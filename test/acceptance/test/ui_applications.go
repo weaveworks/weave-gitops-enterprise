@@ -96,7 +96,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And verify bootstrap application status", func() {
-					Eventually(applicationInfo.Status).Should(MatchText("Ready"), "Failed to have expected flux-system application status: Ready")
+					Eventually(applicationInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(MatchText("Ready"), "Failed to have expected flux-system application status: Ready")
 				})
 			})
 		})
@@ -171,7 +171,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And verify podinfo application status", func() {
-					Eventually(applicationInfo.Status).Should(MatchText("Ready"), fmt.Sprintf("Failed to have expected %s application status: Ready", appName))
+					Eventually(applicationInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(MatchText("Ready"), fmt.Sprintf("Failed to have expected %s application status: Ready", appName))
 				})
 
 				By(fmt.Sprintf("And navigate to %s application page", appName), func() {
@@ -206,7 +206,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(details.Name.Text).Should(MatchRegexp(deploymentName), fmt.Sprintf("Failed to verify %s Deployment name", appName))
 					Eventually(details.Type.Text).Should(MatchRegexp("Deployment"), fmt.Sprintf("Failed to verify %s Type", appName))
 					Eventually(details.Namespace.Text).Should(MatchRegexp(appTargetNamespace), fmt.Sprintf("Failed to verify %s Namespace", appName))
-					Eventually(details.Status.Text, ASSERTION_1MINUTE_TIME_OUT).Should(MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", appName))
+					Eventually(details.Status.Text, ASSERTION_2MINUTE_TIME_OUT).Should(MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", appName))
 					Eventually(details.Message.Text).Should(MatchRegexp("Deployment is available"), fmt.Sprintf("Failed to verify %s Message", appName))
 
 					// Verify metadata
@@ -232,13 +232,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(appDetailPage.Graph.Click()).Should(Succeed(), fmt.Sprintf("Failed to click %s Graph tab button", appName))
 					pages.WaitForPageToLoad(webDriver)
 
-					graph := pages.GetApplicationGraph(webDriver, appNameSpace, appTargetNamespace)
+					graph := pages.GetApplicationGraph(webDriver, deploymentName, appName, appNameSpace, appTargetNamespace)
 
 					Expect(graph.SourceGit).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Source", appName))
 					Expect(graph.Kustomization).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Kustomization", appName))
 					Expect(graph.Deployment).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Deployment", appName))
 					Expect(graph.ReplicaSet).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/ReplicaSet", appName))
-					Expect(graph.Pod.At(0)).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Pod", appName))
+					Expect(graph.Pod).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Pod", appName))
 				})
 
 				navigatetoApplicationsPage(applicationsPage)
@@ -385,7 +385,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(applicationInfo.Namespace).Should(MatchText(appNameSpace), fmt.Sprintf("Failed to have expected %s application namespace: %s", appName, appNameSpace))
 					Eventually(applicationInfo.Cluster).Should(MatchText(leafClusterNamespace+`/`+leafClusterName), fmt.Sprintf("Failed to have expected %s application cluster: %s", appName, leafClusterNamespace+`/`+leafClusterName))
 					Eventually(applicationInfo.Source).Should(MatchText(appName), fmt.Sprintf("Failed to have expected %[1]v application source: %[1]s", appName))
-					Eventually(applicationInfo.Status).Should(MatchText("Ready"), fmt.Sprintf("Failed to have expected %s application status: Ready", appName))
+					Eventually(applicationInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(MatchText("Ready"), fmt.Sprintf("Failed to have expected %s application status: Ready", appName))
 				})
 
 				By(fmt.Sprintf("And navigate to %s application page", appName), func() {
@@ -420,7 +420,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Eventually(details.Name.Text).Should(MatchRegexp(deploymentName), fmt.Sprintf("Failed to verify %s Deployment name", appName))
 					Eventually(details.Type.Text).Should(MatchRegexp("Deployment"), fmt.Sprintf("Failed to verify %s Type", appName))
 					Eventually(details.Namespace.Text).Should(MatchRegexp(appTargetNamespace), fmt.Sprintf("Failed to verify %s Namespace", appName))
-					Eventually(details.Status.Text, ASSERTION_1MINUTE_TIME_OUT).Should(MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", appName))
+					Eventually(details.Status.Text, ASSERTION_2MINUTE_TIME_OUT).Should(MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", appName))
 					Eventually(details.Message.Text).Should(MatchRegexp("Deployment is available"), fmt.Sprintf("Failed to verify %s Message", appName))
 
 					Expect(details.GetMetadata("Description").Text()).Should(MatchRegexp(`Podinfo is a tiny web application made with Go`), "Failed to verify Metada description")
@@ -445,13 +445,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(appDetailPage.Graph.Click()).Should(Succeed(), fmt.Sprintf("Failed to click %s Graph tab button", appName))
 					pages.WaitForPageToLoad(webDriver)
 
-					graph := pages.GetApplicationGraph(webDriver, appNameSpace, appTargetNamespace)
+					graph := pages.GetApplicationGraph(webDriver, deploymentName, appName, appNameSpace, appTargetNamespace)
 
 					Expect(graph.SourceGit).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Source", appName))
 					Expect(graph.Kustomization).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Kustomization", appName))
 					Expect(graph.Deployment).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Deployment", appName))
 					Expect(graph.ReplicaSet).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/ReplicaSet", appName))
-					Expect(graph.Pod.At(0)).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Pod", appName))
+					Expect(graph.Pod).Should(BeFound(), fmt.Sprintf("Failed to verify %s Graph/Pod", appName))
 				})
 
 				navigatetoApplicationsPage(applicationsPage)
