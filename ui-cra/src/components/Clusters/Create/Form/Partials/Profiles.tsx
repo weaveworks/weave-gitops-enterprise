@@ -124,8 +124,9 @@ const Profiles: FC<{
               <Checkbox
                 onChange={event => handleIndividualClick(event, profile.name)}
                 checked={selected.indexOf(profile.name) > -1}
+                disabled={profile.required}
                 style={{
-                  color: weaveTheme.colors.primary,
+                  color: profile.required ? undefined : weaveTheme.colors.primary,
                 }}
               />
             ),
