@@ -7,8 +7,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 type FakeFactory struct {

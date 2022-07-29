@@ -10,9 +10,9 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/vendorfakes/fakehttp"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth/internal"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/vendorfakes/fakehttp"
 )
 
 var _ = Describe("GitlabAuthClient", func() {

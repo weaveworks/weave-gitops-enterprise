@@ -2,9 +2,9 @@ package delete
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/delete/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 func DeleteCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {

@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/names"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/names"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/runner"

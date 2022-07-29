@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

@@ -4,20 +4,21 @@ import (
 	"context"
 	"log"
 	"net"
+	"os"
 	"testing"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/applications"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/servicesfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -29,6 +30,7 @@ import (
 
 func TestServer(t *testing.T) {
 	RegisterFailHandler(Fail)
+	os.Setenv("KUBEBUILDER_ASSETS", "../../../../tools/bin/envtest")
 
 	RunSpecs(t, "Server")
 }
@@ -61,8 +63,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).To(BeNil())
 
 	env, err = testutils.StartK8sTestEnvironment([]string{
-		"../../manifests/crds",
-		"../../tools/testcrds",
+		"../../../../manifests/crds",
+		"../../../../tools/testcrds",
 	})
 	Expect(err).NotTo(HaveOccurred())
 

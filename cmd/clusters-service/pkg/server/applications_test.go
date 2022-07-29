@@ -17,15 +17,15 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/applications"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth/authfakes"
 	authtypes "github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth/types"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/servicesfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 	"google.golang.org/grpc/codes"
@@ -137,7 +137,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(st.Message()).To(ContainSubstring(auth.ErrAuthPending.Error()))
 		})
 
-		It("retuns a jwt if the user has authenticated", func() {
+		It("returns a jwt if the user has authenticated", func() {
 			token := "abc123def456"
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return token, nil

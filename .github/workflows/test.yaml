@@ -78,11 +78,14 @@ jobs:
           key: ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
+      - name: Install flux cli
+        run: curl -s https://fluxcd.io/install.sh | sudo bash
       - name: Install goveralls
         run: go install github.com/mattn/goveralls@v0.0.11
       - name: Run unit tests
         run: |
           go version
+          make dependencies
           make unit-tests-with-coverage
 
   build:

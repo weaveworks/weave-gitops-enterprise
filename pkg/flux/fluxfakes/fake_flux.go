@@ -4,7 +4,7 @@ package fluxfakes
 import (
 	"sync"
 
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
 )
 

@@ -164,3 +164,17 @@ jobs:
       - name: Push images to docker registry
         run: |
           docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
+
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Grab all tags from git
+        run: |
+          git fetch --tags -f
+      - name: build
+        run: |
+          make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/cli/gitops

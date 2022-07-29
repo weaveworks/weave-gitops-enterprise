@@ -6,9 +6,9 @@ import (
 
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
@@ -46,7 +46,7 @@ func TestGitProviderToken(t *testing.T) {
 			assert.True(t, ok)
 			assert.Contains(t, h, "test-token")
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/pull_request_created.json"))
 		},
 	)
 

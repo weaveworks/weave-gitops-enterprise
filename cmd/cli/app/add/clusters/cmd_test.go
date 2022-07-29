@@ -8,9 +8,9 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
@@ -33,7 +33,7 @@ func TestSetSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
@@ -72,7 +72,7 @@ func TestSetMultipleValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
@@ -108,7 +108,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 			assert.Equal(t, "ssh_key", vs.Values["AWS_SSH_KEY_NAME"])
 			assert.Equal(t, "1.19", vs.Values["KUBERNETES_VERSION"])
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/rendered_template_capi.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/rendered_template_capi.json"))
 		},
 	)
 
@@ -160,7 +160,7 @@ func TestGitProviderToken(t *testing.T) {
 			assert.True(t, ok)
 			assert.Contains(t, h, "test-token")
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/pull_request_created.json"))
 		},
 	)
 
@@ -233,7 +233,7 @@ func TestParseProfiles_ValidRequest(t *testing.T) {
 			assert.True(t, ok)
 			assert.Contains(t, h, "test-token")
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/pull_request_created.json"))
 		},
 	)
 
@@ -270,7 +270,7 @@ func TestParseProfiles_InvalidKey(t *testing.T) {
 			assert.True(t, ok)
 			assert.Contains(t, h, "test-token")
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/pull_request_created.json"))
 		},
 	)
 
@@ -307,7 +307,7 @@ func TestParseProfiles_InvalidValue(t *testing.T) {
 			assert.True(t, ok)
 			assert.Contains(t, h, "test-token")
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/pull_request_created.json"))
 		},
 	)
 

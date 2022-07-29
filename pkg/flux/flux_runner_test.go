@@ -7,10 +7,10 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/runner/runnerfakes"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 )
 
 var (

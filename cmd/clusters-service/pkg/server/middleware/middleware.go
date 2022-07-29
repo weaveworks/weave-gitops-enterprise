@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"golang.org/x/oauth2"
 )
 

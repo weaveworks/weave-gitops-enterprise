@@ -36,19 +36,19 @@ import (
 	"github.com/weaveworks/go-checkpoint"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	app_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/applications"
+	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
-	core_app_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/applications"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
-	core_profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	core "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	v1 "k8s.io/api/core/v1"
@@ -284,7 +284,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 
-	appsConfig, err := core.DefaultApplicationsConfig(log)
+	appsConfig, err := server.DefaultApplicationsConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
@@ -387,7 +387,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCoreConfig(core_core.NewCoreConfig(
 			log, rest, clusterName, clusterClientsFactory,
 		)),
-		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
+		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
 		}, profileCache, p.helmRepoNamespace, p.helmRepoName)),
@@ -461,13 +461,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	//Add weave-gitops core handlers
-	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
-	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
+	wegoApplicationServer := server.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
+	if err := app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 
-	wegoProfilesServer := core.NewProfilesServer(args.Log, args.ProfilesConfig)
-	if err := core_profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
+	wegoProfilesServer := server.NewProfilesServer(args.Log, args.ProfilesConfig)
+	if err := profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
 		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 

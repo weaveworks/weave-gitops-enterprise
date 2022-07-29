@@ -13,10 +13,10 @@ import (
 	"github.com/go-resty/resty/v2"
 	"k8s.io/client-go/rest"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/templates"
+	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 

@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/names"
-
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
+	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git/wrapper"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/names"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"

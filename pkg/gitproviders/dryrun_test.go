@@ -82,7 +82,7 @@ var _ = Describe("DryRun", func() {
 	})
 
 	Describe("GetCommits", func() {
-		It("returns emtpy", func() {
+		It("returns empty", func() {
 			res, err := dryRunProvider.GetCommits(ctx, repoUrl, "", 1, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal([]gitprovider.Commit{}))

@@ -24,7 +24,7 @@ func TestGetCluster(t *testing.T) {
 			name:     "cluster kubeconfig",
 			url:      "http://localhost:8000/v1/clusters/dev-cluster/kubeconfig",
 			status:   http.StatusOK,
-			response: httpmock.File("../../../../pkg/adapters/testdata/cluster_kubeconfig.json"),
+			response: httpmock.File("../../../pkg/adapters/testdata/cluster_kubeconfig.json"),
 			args: []string{
 				"get", "cluster",
 				"dev-cluster",

@@ -7,17 +7,17 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/internal"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/adapters"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/names"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/names"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/runner"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 var profileOpts profiles.Options

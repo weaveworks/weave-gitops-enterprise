@@ -6,14 +6,14 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/internal"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/upgrade"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/runner"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/upgrade"
+	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 var upgradeCmdFlags upgrade.UpgradeValues

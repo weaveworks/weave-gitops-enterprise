@@ -3,14 +3,14 @@ package get
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/get/bcrypt"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/get/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/get/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/get/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/get/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/app/get/templates/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/get/bcrypt"
 )
 
 func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {

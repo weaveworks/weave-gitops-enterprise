@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/vendorfakes/fakegitprovider"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/vendorfakes/fakegitprovider"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo/v2"

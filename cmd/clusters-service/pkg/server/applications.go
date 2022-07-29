@@ -18,13 +18,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/applications"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/flux"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/runner"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/flux"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/runner"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 const DefaultHost = "0.0.0.0"

@@ -22,6 +22,8 @@ endif
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
 
+KUBEBUILDER_ASSETS ?= "$(CURRENT_DIR)/tools/bin/envtest"
+
 # Every directory with a Dockerfile in it builds an image called
 # $(IMAGE_PREFIX)<dirname>. Dependencies (i.e. things that go in the image)
 # still need to be explicitly declared.
@@ -110,7 +112,7 @@ all: $(UPTODATE_FILES) binaries
 check: all lint unit-tests ui-audit
 
 BINARIES = \
-	$(NULL)
+	cmd/cli/gitops
 
 binaries: $(BINARIES)
 
@@ -144,7 +146,7 @@ unit-tests-with-coverage: $(GENERATED)
 	cd cmd/clusters-service && go test -v -cover -coverprofile=.coverprofile ./...
 
 unit-tests: $(GENERATED)
-	go test -v ./cmd/... ./pkg/...
+	 go test -v ./cmd/... ./pkg/...
 	cd common && go test -v ./...
 	cd cmd/clusters-service && go test -v ./...
 

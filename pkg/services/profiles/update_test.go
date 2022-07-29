@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/vendorfakes/fakegitprovider"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/cli/pkg/vendorfakes/fakegitprovider"
 	"sigs.k8s.io/yaml"
 
 	. "github.com/onsi/ginkgo/v2"
