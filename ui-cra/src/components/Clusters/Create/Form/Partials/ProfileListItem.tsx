@@ -224,7 +224,10 @@ const ProfilesListItem: FC<{
             id="edit-yaml"
             startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
             onClick={handleUpdateProfiles}
-            disabled={profile.required}
+            disabled={
+              profile.required &&
+              (profile.editable !== true)
+            }
           >
             SAVE CHANGES
           </Button>

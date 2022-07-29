@@ -821,13 +821,14 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 
 func TestGetProfilesFromTemplate(t *testing.T) {
 	annotations := map[string]string{
-		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
+		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\", \"editable\": true }",
 	}
 
 	expected := []*capiv1_protos.TemplateProfile{
 		{
-			Name:    "profile-a",
-			Version: "v0.0.1",
+			Name:     "profile-a",
+			Version:  "v0.0.1",
+			Editable: true,
 		},
 	}
 
