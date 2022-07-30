@@ -13,6 +13,8 @@ import (
 	"text/template"
 	"time"
 
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -1606,8 +1608,8 @@ func makeTestTemplate(renderType string) templatesv1.Template {
 	}
 }
 
-func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotationValue string) *templatesv1.Template {
-	return &templatesv1.Template{
+func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotationValue string) templatesv1.Template {
+	return &capiv1.CAPITemplate{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				annotationName: annotationValue,
@@ -1727,7 +1729,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 		{
 			name: "committed files",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
@@ -1833,11 +1835,10 @@ status: {}
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
-				provider:      tt.provider,
-				hr:            hr,
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+				hr:           hr,
 			})
 
 			// request

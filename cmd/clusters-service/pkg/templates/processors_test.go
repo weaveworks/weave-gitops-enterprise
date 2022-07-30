@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"io/ioutil"
 	"reflect"
 	"testing"
 
@@ -112,13 +111,4 @@ func TestProcessor_AllParamNames(t *testing.T) {
 			}
 		})
 	}
-}
-
-func readFixture(t *testing.T, fname string) []byte {
-	t.Helper()
-	b, err := ioutil.ReadFile(fname)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return b
 }
