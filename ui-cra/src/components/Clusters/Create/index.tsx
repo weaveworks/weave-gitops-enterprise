@@ -290,15 +290,6 @@ const AddCluster: FC = () => {
   ]);
 
   useEffect(() => {
-    if (formData.CLUSTER_NAME) {
-      setFormData((prevState: any) => ({
-        ...prevState,
-        pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
-      }));
-    }
-  }, [formData.CLUSTER_NAME]);
-
-  useEffect(() => {
     if (!callbackState) {
       setFormData((prevState: any) => ({
         ...prevState,
