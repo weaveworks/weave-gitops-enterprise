@@ -1,0 +1,18 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "mccp.fullname" . }}-allow-wge-ingress
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+spec:
+  ingress:
+  - from:
+    - namespaceSelector: {}
+  podSelector:
+    matchLabels:
+      app: clusters-service
+  policyTypes:
+  - Ingress
+{{- end }}
