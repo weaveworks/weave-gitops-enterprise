@@ -120,6 +120,7 @@ type Params struct {
 	TLSCert                           string
 	TLSKey                            string
 	NoTLS                             bool
+	capiEnabled                       bool
 }
 
 type OIDCAuthenticationOptions struct {
@@ -179,6 +180,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+
+	cmd.Flags().BoolVar(&p.capiEnabled, "capi-enabled", true, "")
 
 	return cmd
 }
@@ -260,11 +263,14 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
-		capiv1.AddToScheme,
 		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		authv1.AddToScheme,
+	}
+
+	if p.capiEnabled {
+		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
 	err := schemeBuilder.AddToScheme(scheme)

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"testing"
 	"text/template"
 	"time"
@@ -27,6 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/yaml"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
@@ -42,6 +44,7 @@ func TestListGitopsClusters(t *testing.T) {
 		clusterState []runtime.Object
 		refType      string
 		expected     []*capiv1_protos.GitopsCluster
+		capiEnabled  bool
 		err          error
 	}{
 		{
@@ -198,11 +201,122 @@ func TestListGitopsClusters(t *testing.T) {
 			refType: "foo",
 			err:     errors.New(`reference type "foo" is not recognised`),
 		},
+		{
+			name: "capi-enabled is true",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestCluster(func(o *clusterv1.Cluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.ObjectMeta.Annotations = map[string]string{
+						"cni": "calico",
+					}
+					o.Status.Phase = "Provisioned"
+					o.Status.Conditions = clusterv1.Conditions{
+						clusterv1.Condition{
+							Type:   clusterv1.ControlPlaneInitializedCondition,
+							Status: corev1.ConditionStatus(strconv.FormatBool(true)),
+						},
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+					CapiCluster: &capiv1_protos.CapiCluster{
+						Name:      "gitops-cluster",
+						Namespace: "default",
+						Annotations: map[string]string{
+							"cni": "calico",
+						},
+						Status: &capiv1_protos.CapiClusterStatus{
+							Phase:                   "Provisioned",
+							ControlPlaneInitialized: true,
+							Conditions: []*capiv1_protos.Condition{
+								{
+									Type:      string(clusterv1.ControlPlaneInitializedCondition),
+									Status:    "true",
+									Timestamp: "0001-01-01 00:00:00 +0000 UTC",
+								},
+							},
+						},
+					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_protos.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+			capiEnabled: true,
+		},
+		{
+			name: "capi-enabled is false",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestCluster(func(o *clusterv1.Cluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.ObjectMeta.Annotations = map[string]string{
+						"cni": "calico",
+					}
+					o.Status.Phase = "Provisioned"
+					o.Status.Conditions = clusterv1.Conditions{
+						clusterv1.Condition{
+							Type:   clusterv1.ControlPlaneInitializedCondition,
+							Status: corev1.ConditionStatus(strconv.FormatBool(true)),
+						},
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_protos.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+			capiEnabled: false,
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.SetDefault("runtime-namespace", "default")
+			viper.SetDefault("capi-enabled", tt.capiEnabled)
 
 			// setup
 			s := createServer(t, serverOptions{

@@ -27,6 +27,7 @@ config:
     type: github
     hostname: github.com
   capi:
+    enabled: true
     templates:
       namespace: default
       injectPruneAnnotation: enabled
