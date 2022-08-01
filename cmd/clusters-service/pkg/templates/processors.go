@@ -33,14 +33,14 @@ type RenderOptFunc func(uns *unstructured.Unstructured) error
 // NewProcessorForTemplate creates and returns an appropriate processor for a
 // template based on its declared type.
 func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
-	switch t.Spec.RenderType {
+	switch t.GetSpec().RenderType {
 	case "", templates.RenderTypeEnvsubst:
 		return &TemplateProcessor{Processor: NewEnvsubstTemplateProcessor(), Template: t}, nil
 	case templates.RenderTypeTemplating:
 		return &TemplateProcessor{Processor: NewTextTemplateProcessor(), Template: t}, nil
 
 	}
-	return nil, fmt.Errorf("unknown template renderType: %s", t.Spec.RenderType)
+	return nil, fmt.Errorf("unknown template renderType: %s", t.GetSpec().RenderType)
 }
 
 // TemplateProcessor does the work of rendering a template.
@@ -51,7 +51,7 @@ type TemplateProcessor struct {
 
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
-	for _, v := range p.Template.Spec.ResourceTemplates {
+	for _, v := range p.GetSpec().ResourceTemplates {
 		names, err := p.Processor.ParamNames(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get params from template: %w", err)
@@ -64,7 +64,7 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		paramsMeta[v] = Param{Name: v, Required: true}
 	}
 
-	for _, v := range p.Template.Spec.Params {
+	for _, v := range p.GetSpec().Params {
 		if m, ok := paramsMeta[v.Name]; ok {
 			m.Description = v.Description
 			m.Options = v.Options
@@ -105,7 +105,7 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 	}
 
 	var processed [][]byte
-	for _, v := range p.Template.Spec.ResourceTemplates {
+	for _, v := range p.GetSpec().ResourceTemplates {
 		b, err := yaml.JSONToYAML(v.RawExtension.Raw)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
@@ -168,7 +168,7 @@ func (p *TextTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]str
 
 func (p TemplateProcessor) AllParamNames() ([]string, error) {
 	paramNames := sets.NewString()
-	for _, v := range p.Template.Spec.ResourceTemplates {
+	for _, v := range p.GetSpec().ResourceTemplates {
 		names, err := p.Processor.ParamNames(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get params from template: %w", err)

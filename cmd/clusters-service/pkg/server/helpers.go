@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
-func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, values map[string]string) ([][]byte, error) {
+func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([][]byte, error) {
 	opts := []templates.RenderOptFunc{
 		templates.InNamespace(namespace),
 	}
@@ -18,7 +18,7 @@ func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, 
 		opts = append(opts, templates.InjectPruneAnnotation)
 	}
 
-	processor, err := templates.NewProcessorForTemplate(*t)
+	processor, err := templates.NewProcessorForTemplate(t)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +50,8 @@ func renderTemplateWithValues(t *apitemplates.Template, name, namespace string, 
 	return templateBits, nil
 }
 
-func getProvider(t *apitemplates.Template, annotation string) string {
-	meta, err := templates.ParseTemplateMeta(*t, annotation)
+func getProvider(t apitemplates.Template, annotation string) string {
+	meta, err := templates.ParseTemplateMeta(t, annotation)
 
 	if err != nil {
 		return ""

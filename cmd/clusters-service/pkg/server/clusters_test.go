@@ -13,12 +13,15 @@ import (
 	"text/template"
 	"time"
 
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/chart"
@@ -30,6 +33,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -255,7 +259,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "name validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
@@ -275,7 +279,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "namespace validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
@@ -300,7 +304,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "pull request failed",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("", nil, errors.New("oops")),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -321,7 +325,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "create pull request",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -342,7 +346,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "default profile values",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -441,7 +445,7 @@ status: {}
 		{
 			name: "specify profile namespace and cluster namespace",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -543,7 +547,7 @@ status: {}
 		{
 			name: "create kustomizations",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -662,7 +666,7 @@ status: {}
 		{
 			name: "kustomizations validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -711,7 +715,7 @@ status: {}
 		{
 			name: "kustomization with metadata is nil",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -753,11 +757,10 @@ status: {}
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
-				provider:      tt.provider,
-				hr:            hr,
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+				hr:           hr,
 			})
 
 			// request
@@ -892,10 +895,9 @@ func TestGetKubeconfig(t *testing.T) {
 			viper.SetDefault("capi-clusters-namespace", tt.clusterObjectsNamespace)
 
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
-				ns:            tt.clusterObjectsNamespace,
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				ns:           tt.clusterObjectsNamespace,
 			})
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
@@ -989,9 +991,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			s := createServer(t, serverOptions{
-				configMapName: "capi-templates",
-				namespace:     "default",
-				provider:      tt.provider,
+				namespace: "default",
+				provider:  tt.provider,
 			})
 
 			// delete request
@@ -1155,6 +1156,7 @@ func makeTestChartIndex(opts ...func(*repo.IndexFile)) *repo.IndexFile {
 	}
 	return ri
 }
+
 func TestGenerateProfileFiles(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
@@ -1220,6 +1222,143 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
+func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
+	c := createClient(t, makeTestHelmRepository("base"))
+	file, err := generateProfileFiles(
+		context.TODO(),
+		makeTestTemplateWithProfileAnnotation(
+			templatesv1.RenderTypeEnvsubst,
+			"capi.weave.works/profile-0",
+			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
+		),
+		types.NamespacedName{
+			Name:      "cluster-foo",
+			Namespace: "ns-foo",
+		},
+		c,
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
+			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+			},
+			parameterValues: map[string]string{},
+		},
+	)
+	require.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: defaultFoo
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
+}
+
+func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
+	c := createClient(t, makeTestHelmRepository("base"))
+	file, err := generateProfileFiles(
+		context.TODO(),
+		makeTestTemplateWithProfileAnnotation(
+			templatesv1.RenderTypeEnvsubst,
+			"capi.weave.works/profile-0",
+			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\", \"editable\": true }",
+		),
+		types.NamespacedName{
+			Name:      "cluster-foo",
+			Namespace: "ns-foo",
+		},
+		c,
+		generateProfileFilesParams{
+			helmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
+			},
+			profileValues: []*capiv1_protos.ProfileValues{
+				{
+					Name:    "foo",
+					Version: "0.0.1",
+					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+				},
+			},
+			parameterValues: map[string]string{},
+		},
+	)
+	require.NoError(t, err)
+	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+status: {}
+`
+	assert.Equal(t, expected, *file.Content)
+}
 func TestGenerateProfileFiles_with_templates(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	params := map[string]string{
@@ -1461,10 +1600,267 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
-func makeTestTemplate(renderType string) *templatesv1.Template {
-	return &templatesv1.Template{
+func makeTestTemplate(renderType string) templatesv1.Template {
+	return &gapiv1.GitOpsTemplate{
 		Spec: templatesv1.TemplateSpec{
 			RenderType: renderType,
 		},
+	}
+}
+
+func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotationValue string) templatesv1.Template {
+	return &capiv1.CAPITemplate{
+		ObjectMeta: metav1.ObjectMeta{
+			Annotations: map[string]string{
+				annotationName: annotationValue,
+			},
+		},
+		Spec: templatesv1.TemplateSpec{
+			RenderType: renderType,
+		},
+	}
+}
+
+func TestCreateKustomizationsPullRequest(t *testing.T) {
+	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
+	viper.SetDefault("capi-repository-clusters-path", "clusters")
+	viper.SetDefault("add-bases-kustomization", "enabled")
+	testCases := []struct {
+		name           string
+		clusterState   []runtime.Object
+		provider       git.Provider
+		pruneEnvVar    string
+		req            *capiv1_protos.CreateKustomizationsPullRequestRequest
+		expected       string
+		committedFiles []CommittedFile
+		err            error
+	}{
+		{
+			name: "validation errors",
+			req:  &capiv1_protos.CreateKustomizationsPullRequestRequest{},
+			err:  errors.New("at least one cluster kustomization must be specified"),
+		},
+		{
+			name:     "pull request failed",
+			provider: NewFakeGitProvider("", nil, errors.New("oops")),
+			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
+		},
+		{
+			name:     "create pull request",
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
+						IsControlPlane: true,
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-capi",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/capi",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster Kustomization",
+				Description:   "Creates cluster Kustomizations",
+				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
+						IsControlPlane: true,
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-capi",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/capi",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "apps-billing",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.Spec{
+								Path: "./apps/billing",
+								SourceRef: &capiv1_protos.SourceRef{
+									Name:      "flux-system",
+									Namespace: "flux-system",
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []CommittedFile{
+				{
+					Path: "clusters/management/flux-system/apps-capi-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-capi
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/capi
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/dev/billing/flux-system/apps-billing-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-billing
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/billing
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.SetDefault("runtime-namespace", "default")
+			// setup
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+				hr:           hr,
+			})
+
+			// request
+			createPullRequestResponse, err := s.CreateKustomizationsPullRequest(context.Background(), tt.req)
+
+			// Check the response looks good
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to create a pull request:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
+					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+				}
+				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+				}
+			}
+		})
 	}
 }

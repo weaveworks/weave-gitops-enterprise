@@ -5,8 +5,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
 func TestParamsFromTemplate(t *testing.T) {
@@ -40,8 +38,8 @@ func TestParamsFromTemplate(t *testing.T) {
 
 	for _, tt := range templateTests {
 		t.Run(tt.filename, func(t *testing.T) {
-			parsed := mustParseFile(t, tt.filename)
-			got, err := ParamsFromTemplate(*parsed)
+			parsed := parseCAPITemplateFromFile(t, tt.filename)
+			got, err := ParamsFromTemplate(parsed)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -53,16 +51,7 @@ func TestParamsFromTemplate(t *testing.T) {
 }
 
 func TestParamsFromTemplate_with_bad_template(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/bad_template.yaml")
-	_, err := ParamsFromTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/bad_template.yaml")
+	_, err := ParamsFromTemplate(parsed)
 	assert.EqualError(t, err, "failed to get params from template: processing template: missing closing brace")
-}
-
-func mustParseFile(t *testing.T, filename string) *templates.Template {
-	t.Helper()
-	parsed, err := ParseFile(filename)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return parsed
 }

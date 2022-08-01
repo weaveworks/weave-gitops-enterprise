@@ -213,7 +213,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 				By(fmt.Sprintf("And navigate to '%s' GitopsCluster page", leafClusterName), func() {
 					logger.Info(clusterInfo.Name.Text())
-					Eventually(clusterInfo.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s GitopsCluster detail page", leafClusterName))
+					Eventually(clusterInfo.Name.Find("a").Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s GitopsCluster detail page", leafClusterName))
 				})
 
 				clusterDetailPage := pages.GetClusterDetailPage(webDriver)
