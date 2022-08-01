@@ -1,4 +1,4 @@
-CONTROLLER_TOOLS_VERSION ?= v0.9.0
+CONTROLLER_TOOLS_VERSION ?= v0.9.2
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 
 ## Location to install dependencies to

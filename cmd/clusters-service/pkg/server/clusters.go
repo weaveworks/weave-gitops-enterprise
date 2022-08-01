@@ -567,7 +567,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
@@ -592,14 +592,14 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 		Namespace:  helmRepo.ObjectMeta.Namespace,
 	}
 
-	tmplProcessor, err := templates.NewProcessorForTemplate(*tmpl)
+	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
 	}
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl.Annotations)
+	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
 
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)

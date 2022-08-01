@@ -1,4 +1,4 @@
-apiVersion: capi-server.capi-server/v1
+apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
   name: cluster-template-2
