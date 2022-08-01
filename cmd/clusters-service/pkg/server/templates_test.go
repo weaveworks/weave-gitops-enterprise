@@ -617,15 +617,14 @@ func TestRenderTemplate(t *testing.T) {
 			pruneEnvVar:      "disabled",
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1",
-					makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-						ct.Template.Spec.Params = append(ct.Template.Spec.Params, apitemplates.TemplateParam{
-							Name:     "OPTIONAL_PARAM",
-							Required: false,
-						})
-						ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+						Name:     "OPTIONAL_PARAM",
+						Required: false,
+					})
+					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
@@ -636,9 +635,9 @@ func TestRenderTemplate(t *testing.T) {
 								}
 							}
 						}`),
-							},
-						}
-					})),
+						},
+					}
+				}),
 			},
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
@@ -735,9 +734,11 @@ func TestRenderTemplate(t *testing.T) {
 	}
 }
 
-func TestRenderTemplate_MissingVariables(t *testing.T) {
+func TestRenderTemplate_MissingRequiredVariable(t *testing.T) {
 	clusterState := []runtime.Object{
-		makeCAPITemplate(t),
+		makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+			ct.Spec.Params[0].Required = true
+		}),
 	}
 	s := createServer(t, serverOptions{
 		clusterState: clusterState,
