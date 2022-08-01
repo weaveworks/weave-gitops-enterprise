@@ -27,7 +27,6 @@ config:
     type: github
     hostname: github.com
   capi:
-    enabled: true
     templates:
       namespace: default
       injectPruneAnnotation: enabled
@@ -106,3 +105,6 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+global:
+  capiEnabled: true
