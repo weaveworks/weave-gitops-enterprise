@@ -179,3 +179,6 @@ proto: ## Generate protobuf files
 
 
 FORCE:
+
+echo-ldflags:
+	@echo "$(CLI_LDFLAGS)"
