@@ -106,5 +106,10 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+<<<<<<< HEAD
 global:
   capiEnabled: true
+=======
+networkPolicy:
+  enabled: true
+>>>>>>> 27b32fcd003d11b3c2bd87ec7186b777d796ee26
