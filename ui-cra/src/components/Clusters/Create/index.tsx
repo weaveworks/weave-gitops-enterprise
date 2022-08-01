@@ -109,7 +109,7 @@ const AddCluster: FC = () => {
     url: '',
     provider: '',
     branchName: `create-clusters-branch-${random}`,
-    pullRequestTitle: 'Creates capi cluster',
+    pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
   };
