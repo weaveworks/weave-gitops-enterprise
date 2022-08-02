@@ -42,10 +42,22 @@ func ScrollWindow(webDriver *agouti.Page, xOffSet int, yOffSet int) {
 	Expect(webDriver.RunScript(script, map[string]interface{}{}, &result)).ShouldNot(HaveOccurred())
 }
 
-func OpenNewWindow(webDriver *agouti.Page, url string, windowName string) {
+func OpenWindowInBg(webDriver *agouti.Page, url string, windowName string) {
+	currentWindow, err := webDriver.Session().GetWindow()
+	Expect(err).To(BeNil(), "Failed to get current/active window")
+
 	script := fmt.Sprintf(`window.open('%s', '%s')`, url, windowName)
 	var result interface{}
-	Expect(webDriver.RunScript(script, map[string]interface{}{}, &result)).ShouldNot(HaveOccurred())
+	Expect(webDriver.RunScript(script, map[string]interface{}{}, &result)).ShouldNot(HaveOccurred(), "Failed to execute java script to open new window")
+	Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(HaveOccurred(), "Failed to switch back to old window")
+}
+
+func CloseWindow(webDriver *agouti.Page, windowName string) {
+	currentWindow, err := webDriver.Session().GetWindow()
+	Expect(err).To(BeNil(), "Failed to get current/active window")
+	Expect(webDriver.SwitchToWindow(windowName)).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to switch to %s window", windowName))
+	Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred(), fmt.Sprintf("Failed to close %s window", windowName))
+	Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(HaveOccurred(), "Failed to switch back to old window")
 }
 
 func ClearFieldValue(field *agouti.Selection) {

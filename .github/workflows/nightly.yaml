@@ -60,7 +60,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(capd, upgrade, kind-gitops-cluster, leaf-policy, leaf-violation)'"
+      label-filter: "-ginkgo.label-filter='!(capd, upgrade, kind-gitops-cluster, leaf-application, leaf-policy, leaf-violation)'"
       kubectl-version: "v1.23.6"
       login_user_type: "oidc"
       git-provider: github
@@ -96,7 +96,7 @@ jobs:
       runs-on: macOS-latest
       os-name: darwin
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(upgrade, capd, kind-gitops-cluster, leaf-policy, leaf-violation)'"
+      label-filter: "-ginkgo.label-filter='!(upgrade, capd, kind-gitops-cluster, leaf-application, leaf-policy, leaf-violation)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab
