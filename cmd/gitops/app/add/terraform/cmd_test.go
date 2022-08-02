@@ -46,7 +46,7 @@ func TestGitProviderToken(t *testing.T) {
 			assert.True(t, ok)
 			assert.Contains(t, h, "test-token")
 
-			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../../pkg/adapters/testdata/pull_request_created.json"))
+			return httpmock.NewJsonResponse(http.StatusOK, httpmock.File("../../../pkg/adapters/testdata/pull_request_created.json"))
 		},
 	)
 
