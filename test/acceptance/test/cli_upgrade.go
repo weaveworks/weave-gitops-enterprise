@@ -348,7 +348,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 
-				By("Then I should see see a toast with a link to the creation PR", func() {
+				By("Then I should see a toast with a link to the creation PR", func() {
 					gitops := pages.GetGitOps(webDriver)
 					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})

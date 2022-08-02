@@ -1226,7 +1226,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 				})
 
-				By("Then I should see see a toast with a link to the deletion PR", func() {
+				By("Then I should see a toast with a link to the deletion PR", func() {
 					gitops := pages.GetGitOps(webDriver)
 					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
