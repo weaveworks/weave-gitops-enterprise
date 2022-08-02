@@ -5,8 +5,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/terraform"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {

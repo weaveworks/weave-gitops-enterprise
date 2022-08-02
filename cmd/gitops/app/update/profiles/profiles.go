@@ -7,11 +7,11 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/internal"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/internal"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/runner"

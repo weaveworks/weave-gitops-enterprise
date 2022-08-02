@@ -1,9 +1,9 @@
 package update
 
 import (
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/update/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 
 	"github.com/spf13/cobra"
 )
