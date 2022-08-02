@@ -9,6 +9,7 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import { ListItem } from '@material-ui/core';
 import { useListVersion } from '../../hooks/versions';
 import useNotifications from './../../contexts/Notifications';
+import { MultiRequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
@@ -93,7 +94,7 @@ export const ContentWrapper: FC<{
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
-
+  const FilteredErrors = _.uniqBy(errors, 'clusterName') as MultiRequestError[];
   if (error) {
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
   }
@@ -114,13 +115,13 @@ export const ContentWrapper: FC<{
           {entitlement}
         </Alert>
       )}
-      {!!(errors && errors.length) && (
+      {!!(FilteredErrors && FilteredErrors.length) && (
         <Alert className={classes.alertWrapper} severity="error">
           <AlertTitle>
             There was a problem retrieving results from some clusters:
           </AlertTitle>
-          {errors?.map((item: ListError) => (
-            <ListItem key={item.clusterName}>
+          {FilteredErrors?.map((item: ListError, i) => (
+            <ListItem key={i}>
               - Cluster {item.clusterName} {item.message}
             </ListItem>
           ))}

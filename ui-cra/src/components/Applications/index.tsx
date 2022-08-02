@@ -24,11 +24,11 @@ const WGApplicationsDashboard: FC = () => {
           },
         ]}
       />
-      <ContentWrapper>
+      <ContentWrapper errors={automations?.errors}>
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={automations} />
+          <AutomationsTable automations={automations?.result} />
         )}
       </ContentWrapper>
     </PageTemplate>
