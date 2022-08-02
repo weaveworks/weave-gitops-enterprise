@@ -631,7 +631,7 @@ func TestRenderTemplate(t *testing.T) {
 								"name":"${CLUSTER_NAME}",
 								"namespace":"${NAMESPACE}",
 								"annotations":{
-									"capi.weave.works/display-name":"ClusterName"
+									"capi.weave.works/display-name":"ClusterName${OPTIONAL_PARAM}"
 								}
 							}
 						}`),
@@ -695,6 +695,36 @@ func TestRenderTemplate(t *testing.T) {
 				makeCAPITemplate(t),
 			},
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
+			name:             "render template with renderType: templating",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.Spec.RenderType = "templating"
+					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+						Name:     "OPTIONAL_PARAM",
+						Required: false,
+					})
+					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+							"apiVersion":"fooversion",
+							"kind":"fookind",
+							"metadata":{
+								"name": "{{ .params.CLUSTER_NAME }}",
+								"namespace": "{{ .params.NAMESPACE }}",
+								"annotations":{
+									"capi.weave.works/display-name":"ClusterName{{ .params.OPTIONAL_PARAM }}"
+								}
+							}
+						}`),
+						},
+					}
+				}),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 	}
 
