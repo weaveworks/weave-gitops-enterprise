@@ -56,6 +56,9 @@ spec:
                         type: string
                       type: array
                     required:
+                      default: true
+                      description: Required indicates whether the param must contain
+                        a non-empty value
                       type: boolean
                   required:
                   - name
