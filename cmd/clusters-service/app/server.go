@@ -519,6 +519,15 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("could not create HMAC token signer: %w", err)
 	}
 
+	authMethods := map[auth.AuthMethod]bool {
+			auth.UserAccount: true,
+			auth.TokenPassthrough: true,
+	}
+
+	if args.OIDC.IssuerURL != "" {
+		authMethods[auth.OIDC] = true
+	}
+
 	authServerConfig, err := auth.NewAuthServerConfig(
 		args.Log,
 		auth.OIDCConfig{
@@ -530,6 +539,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		},
 		args.KubernetesClient,
 		tsv,
+		authMethods,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create auth server: %w", err)
