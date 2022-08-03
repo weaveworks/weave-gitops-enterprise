@@ -182,7 +182,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases(leafClusterName, leafClusterNamespace)
+					addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 				})
 
 				installTestPolicies("management", policiesYaml)

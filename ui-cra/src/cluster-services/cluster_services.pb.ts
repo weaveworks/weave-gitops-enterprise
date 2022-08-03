@@ -107,6 +107,8 @@ export type ListPoliciesResponse = {
 export type ListPolicyValidationsRequest = {
   clusterName?: string
   pagination?: Pagination
+  application?: string
+  namespace?: string
 }
 
 export type ListPolicyValidationsResponse = {

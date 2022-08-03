@@ -246,24 +246,30 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 	}
 }
 
-func verifyCapiClusterHealth(kubeconfigPath string, profiles []string, namespace string) {
+func verifyCapiClusterHealth(kubeconfigPath string, profiles []string, namespaces []string) {
 
 	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 	waitForResourceState("Ready", "true", "nodes", "default", "", kubeconfigPath, ASSERTION_5MINUTE_TIME_OUT)
 
-	Expect(waitForResource("pods", "", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-	waitForResourceState("Ready", "true", "pods", namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+	Expect(waitForResource("pods", "", GITOPS_DEFAULT_NAMESPACE, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+	waitForResourceState("Ready", "true", "pods", GITOPS_DEFAULT_NAMESPACE, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 
-	for _, profile := range profiles {
+	for i, profile := range profiles {
 		// Check all profiles are installed in layering order
 		switch profile {
 		case "observability":
-			Expect(waitForResource("deploy", "observability-grafana", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			Expect(waitForResource("deploy", "observability-kube-state-metrics", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespace, "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "observability-grafana", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			Expect(waitForResource("deploy", "observability-kube-state-metrics", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", namespaces[i], "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
-			Expect(waitForResource("deploy", "podinfo ", namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "podinfo ", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", namespaces[i], "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "cert-manager":
+			Expect(waitForResource("deploy", "cert-manager-cert-manager", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", namespaces[i], "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "weave-policy-agent":
+			Expect(waitForResource("deploy", "policy-agent", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", namespaces[i], "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
 }
@@ -394,10 +400,10 @@ func connectGitopsCuster(clusterName string, nameSpace string, bootstrapLabel st
 	return gitopsCluster
 }
 
-func addKustomizationBases(leafCluster string, namespace string) {
+func addKustomizationBases(clusterType, clusterName, clusterNamespace string) {
 	repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
 	checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
-	leafClusterPath := path.Join(repoAbsolutePath, "clusters", namespace, leafCluster)
+	leafClusterPath := path.Join(repoAbsolutePath, "clusters", clusterNamespace, clusterName)
 	clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
 
 	pathErr := func() error {
@@ -406,9 +412,12 @@ func addKustomizationBases(leafCluster string, namespace string) {
 		return err
 
 	}
-	Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", leafCluster))
+	Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", clusterName))
 
-	Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
+	if clusterType != "capi" {
+		Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
+	}
+
 	Expect(createDirectory(clusterBasesPath)).Should(Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
 	Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
 	Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
