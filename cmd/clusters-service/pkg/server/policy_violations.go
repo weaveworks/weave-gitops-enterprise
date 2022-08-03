@@ -29,19 +29,19 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 		return nil, fmt.Errorf("error building selector for events query: %v", err)
 	}
 
-	fieldSeletorSet := map[string]string{
+	fieldSelectorSet := map[string]string{
 		"type": "Warning",
 	}
 
 	if m.Application != "" {
-		fieldSeletorSet["involvedObject.name"] = m.Application
+		fieldSelectorSet["involvedObject.name"] = m.Application
 	}
 
 	if m.Namespace != "" {
-		fieldSeletorSet["involvedObject.namespace"] = m.Namespace
+		fieldSelectorSet["involvedObject.namespace"] = m.Namespace
 	}
 
-	fieldSelector := k8sFields.SelectorFromSet(fieldSeletorSet)
+	fieldSelector := k8sFields.SelectorFromSet(fieldSelectorSet)
 
 	opts := []sigsClient.ListOption{}
 	if m.Pagination != nil {
