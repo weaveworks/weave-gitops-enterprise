@@ -420,7 +420,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("", nil, errors.New("oops")),
+			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -441,7 +441,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -462,7 +462,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -561,7 +561,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -663,7 +663,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -782,7 +782,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -831,7 +831,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -1034,11 +1034,12 @@ func TestGetKubeconfig(t *testing.T) {
 
 func TestDeleteClustersPullRequest(t *testing.T) {
 	testCases := []struct {
-		name     string
-		provider git.Provider
-		req      *capiv1_protos.DeleteClustersPullRequestRequest
-		expected string
-		err      error
+		name           string
+		provider       git.Provider
+		req            *capiv1_protos.DeleteClustersPullRequestRequest
+		committedFiles []CommittedFile
+		expected       string
+		err            error
 	}{
 		{
 			name: "validation errors",
@@ -1064,7 +1065,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		//
 		{
 			name:     "create delete pull request",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNames:  []string{"foo", "bar"},
 				RepositoryUrl: "https://github.com/org/repo.git",
@@ -1078,7 +1079,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		},
 		{
 			name:     "create delete pull request with namespaced cluster names",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
 					{
@@ -1098,6 +1099,44 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				CommitMessage: "Remove cluster manifest",
 			},
 			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "create delete pull request with namespaced cluster names including multiple files in tree",
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []CommittedFile{
+				{
+					Path:    "ns-foo/foo.yaml",
+					Content: "",
+				},
+				{
+					Path:    "my-cluster/clusters/ns-foo/foo.yaml",
+					Content: "",
+				},
+			}),
+			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
+					{
+						Name:      "foo",
+						Namespace: "ns-foo",
+					},
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-02",
+				BaseBranch:    "feature-01",
+				Title:         "Delete Cluster",
+				Description:   "Deletes a cluster",
+				CommitMessage: "Remove cluster manifest",
+			},
+			expected: "https://github.com/org/repo/pull/1",
+			committedFiles: []CommittedFile{
+				{
+					Path:    "clusters/ns-foo/foo.yaml",
+					Content: "",
+				},
+				{
+					Path:    "clusters/my-cluster/clusters/ns-foo/foo.yaml",
+					Content: "",
+				},
+			},
 		},
 	}
 
@@ -1123,6 +1162,19 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 			} else {
 				if diff := cmp.Diff(tt.expected, deletePullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+				}
+				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+
+				if fakeGitProvider.originalFiles != nil {
+					if len(fakeGitProvider.committedFiles) != len(fakeGitProvider.originalFiles) {
+						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.committedFiles), len(fakeGitProvider.committedFiles))
+					}
+					for ind, committedFile := range fakeGitProvider.committedFiles {
+						if *committedFile.Path != fakeGitProvider.originalFiles[ind].Path {
+							t.Fatalf("committed file does not match expected file\n%v\n%v", *committedFile.Path, fakeGitProvider.originalFiles[ind].Path)
+
+						}
+					}
 				}
 			}
 		})
@@ -1168,11 +1220,12 @@ func makeTestGitopsCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv
 	return c
 }
 
-func NewFakeGitProvider(url string, repo *git.GitRepo, err error) git.Provider {
+func NewFakeGitProvider(url string, repo *git.GitRepo, err error, originalFiles []CommittedFile) git.Provider {
 	return &FakeGitProvider{
-		url:  url,
-		repo: repo,
-		err:  err,
+		url:           url,
+		repo:          repo,
+		err:           err,
+		originalFiles: originalFiles,
 	}
 }
 
@@ -1181,6 +1234,7 @@ type FakeGitProvider struct {
 	repo           *git.GitRepo
 	err            error
 	committedFiles []gitprovider.CommitFile
+	originalFiles  []CommittedFile
 }
 
 func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
@@ -1214,6 +1268,32 @@ func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
 		})
 	}
 	return committedFiles
+}
+
+func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, repoUrl string, sha string, recursive bool) ([]*gitprovider.TreeEntry, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+
+	var treeEntries []*gitprovider.TreeEntry
+	filteredTreeEntries := make(map[string]bool)
+	for _, f := range p.originalFiles {
+		if _, ok := filteredTreeEntries[f.Path]; !ok {
+			filteredTreeEntries[f.Path] = true
+
+			treeEntries = append(treeEntries, &gitprovider.TreeEntry{
+				Path:    f.Path,
+				Mode:    "",
+				Type:    "",
+				Size:    123,
+				SHA:     "",
+				Content: f.Content,
+				URL:     "",
+			})
+		}
+
+	}
+	return treeEntries, nil
 }
 
 type CommittedFile struct {

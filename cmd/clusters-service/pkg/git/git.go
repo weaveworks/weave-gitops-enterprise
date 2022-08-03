@@ -32,6 +32,7 @@ type Provider interface {
 	WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error)
 	CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error)
 	GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error)
+	GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, recursive bool) ([]*gitprovider.TreeEntry, error)
 }
 
 type GitProviderService struct {
@@ -196,6 +197,18 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	}
 
 	return repo, nil
+}
+
+// GetTreeList retrieves list of tree files from gitprovider given the sha/branch
+func (s *GitProviderService) GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, recursive bool) ([]*gitprovider.TreeEntry, error) {
+	repo, err := s.GetRepository(ctx, gp, repoUrl)
+
+	treePaths, err := repo.Trees().List(ctx, sha, recursive)
+	if err != nil {
+		return nil, err
+	}
+
+	return treePaths, nil
 }
 
 type writeFilesToBranchRequest struct {

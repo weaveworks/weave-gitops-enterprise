@@ -294,6 +294,24 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 				Path:    &path,
 				Content: nil,
 			})
+
+			// Get file paths belonging to the cluster not in the management cluster directory
+			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, true)
+
+			if err != nil {
+				return nil, err
+			}
+			filteredTreeEntries, err := filterTreeFilesByClusterName(treeEntries, clusterNamespacedName)
+			if err != nil {
+				return nil, err
+			}
+			for _, treeEntry := range filteredTreeEntries {
+				filesList = append(filesList, gitprovider.CommitFile{
+					Path:    &treeEntry.Path,
+					Content: nil,
+				})
+			}
+
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {
@@ -308,6 +326,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 				Content: nil,
 			})
 		}
+
 	}
 
 	if msg.HeadBranch == "" {
@@ -903,6 +922,29 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 	}
 
 	return clusters, nil
+}
+
+// filterTreeFilesByClusterName filters out tree entries that don't belong to the clustername and namespace given in clusterNamespacedName.
+func filterTreeFilesByClusterName(treeEntries []*gitprovider.TreeEntry, clusterNamespacedName *capiv1_proto.ClusterNamespacedName) ([]*gitprovider.TreeEntry, error) {
+	filteredTreeEntries := []*gitprovider.TreeEntry{}
+	clusterManifestPath := getClusterManifestPath(
+		types.NamespacedName{
+			Name:      clusterNamespacedName.Name,
+			Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
+		},
+	)
+	for _, treeEntry := range treeEntries {
+
+		if strings.Contains(treeEntry.Path, clusterNamespacedName.Name) &&
+			strings.Contains(treeEntry.Path, clusterNamespacedName.Namespace) &&
+			treeEntry.Path != clusterManifestPath {
+
+			filteredTreeEntries = append(filteredTreeEntries, treeEntry)
+		}
+
+	}
+	return filteredTreeEntries, nil
+
 }
 
 // getManagementCluster returns the management cluster as a gitops cluster
