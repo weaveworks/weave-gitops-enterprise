@@ -8,8 +8,6 @@ import {
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
-import _ from 'lodash';
-import { MultiRequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 
 const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading } = useListSources();
@@ -27,7 +25,7 @@ const WGApplicationsSources: FC = () => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sources?.result?.length,
           },
         ]}
       />

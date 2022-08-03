@@ -27,7 +27,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sources?.result?.length,
           },
           {
             label: `${props.name}`,

@@ -10,6 +10,7 @@ import { ListItem } from '@material-ui/core';
 import { useListVersion } from '../../hooks/versions';
 import useNotifications from './../../contexts/Notifications';
 import { MultiRequestError } from '@weaveworks/weave-gitops/ui/lib/types';
+import _ from 'lodash';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
