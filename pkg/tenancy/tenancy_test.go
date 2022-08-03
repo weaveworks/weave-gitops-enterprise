@@ -34,6 +34,27 @@ func Test_CreateTenants(t *testing.T) {
 						"toolkit.fluxcd.io/tenant": "foo-tenant",
 					}),
 				},
+				&corev1.ServiceAccount{}: {
+					newServiceAccount("foo-tenant", "foo-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "foo-tenant",
+					}),
+				},
+				&rbacv1.RoleBinding{}: {
+					newRoleBinding("foo-tenant", "foo-ns", "", map[string]string{
+						"toolkit.fluxcd.io/tenant": "foo-tenant",
+					}),
+				},
+				&pacv2beta1.Policy{}: {
+					testNewPolicy(
+						t,
+						"test-tenant",
+						[]string{"test-namespace"},
+						[]AllowedRepository{{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"}},
+						map[string]string{
+							"toolkit.fluxcd.io/tenant": "test-tenant",
+						},
+					),
+				},
 			},
 		},
 		{
@@ -143,28 +164,15 @@ func Test_CreateTenants(t *testing.T) {
 			},
 			expectedResources: map[client.Object][]client.Object{
 				&pacv2beta1.Policy{}: {
-					&pacv2beta1.Policy{
-						TypeMeta: policyTypeMeta,
-						ObjectMeta: metav1.ObjectMeta{
-							Name: "weave.policies.tenancy.bar-tenant-allowed-repositories",
-							Labels: map[string]string{
-								"toolkit.fluxcd.io/tenant": "bar-tenant",
-							},
+					testNewPolicy(
+						t,
+						"test-tenant",
+						[]string{"test-namespace"},
+						[]AllowedRepository{{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"}},
+						map[string]string{
+							"toolkit.fluxcd.io/tenant": "test-tenant",
 						},
-						Spec: pacv2beta1.PolicySpec{
-							Parameters: []pacv2beta1.PolicyParameters{
-								{
-									Name: "git_urls",
-								},
-							},
-							Targets: pacv2beta1.PolicyTargets{
-								Kinds:      policyRepoKinds,
-								Namespaces: []string{"bar-ns", "foobar-ns"},
-							},
-							Code: policyCode,
-							Tags: []string{"tenancy"},
-						},
-					},
+					),
 				},
 			},
 		},
@@ -540,4 +548,13 @@ func newFakeClient(t *testing.T, objs ...runtime.Object) client.Client {
 		WithScheme(scheme).
 		WithRuntimeObjects(objs...).
 		Build()
+}
+
+func testNewPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta1.Policy {
+	t.Helper()
+	p, err := newPolicy(tenantName, namespaces, allowedRepositories, labels)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return p
 }
