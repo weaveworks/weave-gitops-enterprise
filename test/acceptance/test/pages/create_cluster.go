@@ -2,7 +2,6 @@ package pages
 
 import (
 	"fmt"
-	"time"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
@@ -63,7 +62,6 @@ type GitOps struct {
 	ErrorBar       *agouti.Selection
 }
 
-//CreateCluster initialises the webDriver object
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
@@ -75,16 +73,6 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	}
 
 	return &clusterPage
-}
-
-// This function waits for Create emplate page to load completely
-func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
-	// Credentials dropdown takes a while to populate
-	Eventually(webDriver.Find(`.credentials [role="button"][aria-disabled="true"]`),
-		30*time.Second).ShouldNot(BeFound())
-	// With the introduction of profiles, UI takes long time to be fully rendered, UI refreshes once all the profiles valus are read and populated
-	// This delay refresh sometimes cause tests to fail select elements
-	time.Sleep(2 * time.Second)
 }
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {

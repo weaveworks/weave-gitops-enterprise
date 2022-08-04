@@ -69,11 +69,12 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			It("Verify management cluster dashboard shows bootstrap 'flux-system' application", Label("integration"), func() {
 				existingAppCount := getApplicationCount()
 
+				pages.NavigateToPage(webDriver, "Applications")
+
 				By("And wait for  good looking response from /v1/kustomizations", func() {
-					Expect(waitForGitopsResources(context.Background(), "kustomizations", ASSERTION_30SECONDS_TIME_OUT)).To(Succeed(), "Failed to get a successful response from /v1/kustomizations")
+					Expect(waitForGitopsResources(context.Background(), "kustomizations", POLL_INTERVAL_15SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/kustomizations")
 				})
 
-				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 

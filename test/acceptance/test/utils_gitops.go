@@ -140,13 +140,13 @@ func CheckClusterService(capiEndpointURL string) {
 // Ignore all errors (connection refused, 500s etc)
 func waitForGitopsResources(ctx context.Context, resourceName string, timeout time.Duration) error {
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
-	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	waitCtx, cancel := context.WithTimeout(ctx, ASSERTION_1MINUTE_TIME_OUT)
 	defer cancel()
 
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
 		jar, _ := cookiejar.New(&cookiejar.Options{})
 		client := http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: timeout,
 			Jar:     jar,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},

@@ -3,9 +3,7 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
 )
 
 //Header webDriver elements
@@ -17,11 +15,6 @@ type TemplatesPage struct {
 	TemplateProvider      *agouti.Selection
 	TemplateProviderPopup *agouti.MultiSelection
 	TemplateView          *agouti.MultiSelection
-}
-
-// This function waits for any template tile to appear (become visible)
-func (t TemplatesPage) WaitForPageToLoad(webDriver *agouti.Page) {
-	Eventually(webDriver.All(`[data-template-name]`)).Should(BeVisible())
 }
 
 //TemplatesPage webdriver initialises the webDriver object
@@ -78,13 +71,15 @@ func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName strin
 	rowCount, _ := t.TemplatesList.Count()
 	for i := 0; i < rowCount; i++ {
 		tileRow := t.TemplatesList.At(i).FindByXPath(fmt.Sprintf(`//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
-		return &TemplateRecord{
-			Name:             templateName,
-			Provider:         tileRow.FindByXPath(`td[3]`),
-			Description:      tileRow.FindByXPath(`td[4]`),
-			CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
-			ErrorHeader:      tileRow.Find(`.template-error-header`),
-			ErrorDescription: tileRow.Find(`.template-error-description`),
+		if count, _ := tileRow.Count(); count == 1 {
+			return &TemplateRecord{
+				Name:             templateName,
+				Provider:         tileRow.FindByXPath(`td[3]`),
+				Description:      tileRow.FindByXPath(`td[4]`),
+				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
+				ErrorHeader:      tileRow.Find(`.template-error-header`),
+				ErrorDescription: tileRow.Find(`.template-error-description`),
+			}
 		}
 	}
 	return nil

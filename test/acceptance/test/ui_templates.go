@@ -70,12 +70,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When no Capi Templates are available in the cluster", func() {
-			It("Verify template page renders no capiTemplate", func() {
+			It("Verify template page renders no capiTemplate", Label("integration"), func() {
+				pages.NavigateToPage(webDriver, "Templates")
+
 				By("And wait for  good looking response from /v1/templates", func() {
-					Expect(waitForGitopsResources(context.Background(), "templates", ASSERTION_30SECONDS_TIME_OUT)).To(Succeed(), "Failed to get a successful response from /v1/templates")
+					Expect(waitForGitopsResources(context.Background(), "templates", POLL_INTERVAL_15SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/templates")
 				})
 
-				pages.NavigateToPage(webDriver, "Templates")
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
@@ -127,7 +128,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
 				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
 					Eventually(templatesPage.TemplateCount).Should(MatchText(`[0-9]+`))
 
@@ -202,10 +203,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(50, "capi-server-v1-capitemplate.yaml")
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And I should choose a template - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-9")
@@ -223,7 +221,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Templates")
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				By("And I should change the templates view to 'table'", func() {
-					templatesPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
 				})
 
@@ -252,9 +250,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
@@ -292,7 +288,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Templates")
 				By("And wait for Templates page to be fully rendered", func() {
 					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
 
 					count, _ := templatesPage.TemplateCount.Text()
@@ -313,7 +309,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When Capi Template is available in the cluster", func() {
-			It("Verify template parameters should be rendered dynamically and can be set for the selected template", func() {
+			It("Verify template parameters should be rendered dynamically and can be set for the selected template", Label("integration"), func() {
 
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
@@ -321,9 +317,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				pages.NavigateToPage(webDriver, "Templates")
 				templatesPage := pages.GetTemplatesPage(webDriver)
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And I should change the templates view to 'table'", func() {
 					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
@@ -336,7 +330,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -401,10 +395,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
@@ -413,7 +404,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -530,10 +521,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
@@ -542,7 +530,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -629,10 +617,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
@@ -641,7 +626,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -671,10 +656,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "aws-cluster-template-0")
@@ -683,7 +665,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -783,10 +765,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "azure-capi-quickstart-template-0")
@@ -795,7 +774,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -907,19 +886,17 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				By("And wait for cluster-service to cache profiles", func() {
-					Expect(waitForGitopsResources(context.Background(), "profiles", ASSERTION_30SECONDS_TIME_OUT)).To(Succeed(), "Failed to get a successful response from /v1/profiles ")
-				})
-
 				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
+
+				By("And wait for cluster-service to cache profiles", func() {
+					Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/profiles ")
 				})
+
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
@@ -928,7 +905,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
