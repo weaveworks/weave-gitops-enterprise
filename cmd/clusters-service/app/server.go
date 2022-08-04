@@ -110,6 +110,7 @@ type Params struct {
 	capiTemplatesNamespace            string
 	injectPruneAnnotation             string
 	addBasesKustomization             string
+	capiEnabled                       string
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
 	capiRepositoryClustersPath        string
@@ -120,7 +121,6 @@ type Params struct {
 	TLSCert                           string
 	TLSKey                            string
 	NoTLS                             bool
-	capiEnabled                       bool
 }
 
 type OIDCAuthenticationOptions struct {
@@ -160,6 +160,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
+	cmd.Flags().StringVar(&p.capiEnabled, "capi-enabled", "true", "")
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
 	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "where to look for CAPI template resources, required")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
@@ -180,8 +181,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-
-	cmd.Flags().BoolVar(&p.capiEnabled, "capi-enabled", true, "")
 
 	return cmd
 }
@@ -269,7 +268,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		authv1.AddToScheme,
 	}
 
-	if p.capiEnabled {
+	if p.capiEnabled == "true" {
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
