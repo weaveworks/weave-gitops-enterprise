@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sort"
 	"strconv"
 	"testing"
 	"text/template"
@@ -1108,7 +1109,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 					Content: "",
 				},
 				{
-					Path:    "my-cluster/clusters/ns-foo/foo.yaml",
+					Path:    "clusters/my-cluster/clusters/ns-foo/foo.yaml",
 					Content: "",
 				},
 			}),
@@ -1124,19 +1125,9 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				BaseBranch:    "feature-01",
 				Title:         "Delete Cluster",
 				Description:   "Deletes a cluster",
-				CommitMessage: "Remove cluster manifest",
+				CommitMessage: "Remove cluster files",
 			},
 			expected: "https://github.com/org/repo/pull/1",
-			committedFiles: []CommittedFile{
-				{
-					Path:    "clusters/ns-foo/foo.yaml",
-					Content: "",
-				},
-				{
-					Path:    "clusters/my-cluster/clusters/ns-foo/foo.yaml",
-					Content: "",
-				},
-			},
 		},
 	}
 
@@ -1166,8 +1157,20 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
 
 				if fakeGitProvider.originalFiles != nil {
+					// sort committedFiles and originalFiles for comparison
+					sort.Slice(fakeGitProvider.committedFiles[:], func(i, j int) bool {
+						currFile := *fakeGitProvider.committedFiles[i].Path
+						nextFile := *fakeGitProvider.committedFiles[j].Path
+						return currFile < nextFile
+					})
+					sort.Slice(fakeGitProvider.originalFiles[:], func(i, j int) bool {
+						currFile := fakeGitProvider.originalFiles[i].Path
+						nextFile := fakeGitProvider.originalFiles[j].Path
+						return currFile < nextFile
+					})
+
 					if len(fakeGitProvider.committedFiles) != len(fakeGitProvider.originalFiles) {
-						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.committedFiles), len(fakeGitProvider.committedFiles))
+						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.committedFiles), len(fakeGitProvider.originalFiles))
 					}
 					for ind, committedFile := range fakeGitProvider.committedFiles {
 						if *committedFile.Path != fakeGitProvider.originalFiles[ind].Path {
@@ -1285,7 +1288,7 @@ func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, r
 				Path:    f.Path,
 				Mode:    "",
 				Type:    "",
-				Size:    123,
+				Size:    0,
 				SHA:     "",
 				Content: f.Content,
 				URL:     "",
