@@ -1,6 +1,5 @@
 CONTROLLER_TOOLS_VERSION ?= v0.9.2
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
-CLUSTERS_SERVICE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin
