@@ -94,6 +94,8 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			It("Verify connected cluster dashboard shows only management cluster", Label("integration"), func() {
 				pages.NavigateToPage(webDriver, "Clusters")
 
+				pages.NavigateToPage(webDriver, "Clusters")
+
 				By("And wait for  good looking response from /v1/clusters", func() {
 					Expect(waitForGitopsResources(context.Background(), "clusters", POLL_INTERVAL_15SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/clusters")
 				})

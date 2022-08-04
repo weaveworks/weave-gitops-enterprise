@@ -71,7 +71,6 @@ func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName strin
 	rowCount, _ := t.TemplatesList.Count()
 	for i := 0; i < rowCount; i++ {
 		tileRow := t.TemplatesList.At(i).FindByXPath(fmt.Sprintf(`//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
-
 		if count, _ := tileRow.Count(); count == 1 {
 			return &TemplateRecord{
 				Name:             templateName,

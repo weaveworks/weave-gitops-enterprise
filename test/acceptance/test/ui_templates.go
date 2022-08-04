@@ -886,10 +886,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				By("And wait for cluster-service to cache profiles", func() {
-					Expect(waitForGitopsResources(context.Background(), "profiles", ASSERTION_30SECONDS_TIME_OUT)).To(Succeed(), "Failed to get a successful response from /v1/profiles ")
-				})
-
 				By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
