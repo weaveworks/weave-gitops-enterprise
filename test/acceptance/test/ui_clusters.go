@@ -92,7 +92,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[UI] When no leaf cluster is connected", func() {
 			It("Verify connected cluster dashboard shows only management cluster", Label("integration"), func() {
-
 				pages.NavigateToPage(webDriver, "Clusters")
 
 				By("And wait for  good looking response from /v1/clusters", func() {
