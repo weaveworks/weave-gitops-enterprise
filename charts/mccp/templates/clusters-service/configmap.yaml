@@ -16,6 +16,7 @@ data:
   CAPI_REPOSITORY_CLUSTERS_PATH: {{ .Values.config.capi.repositoryClustersPath | quote }}
   CAPI_TEMPLATES_REPOSITORY_API_URL: {{ .Values.config.capi.repositoryApiURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
+  CAPI_ENABLED: {{ .Values.global.capiEnabled }}
   {{- if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1
   {{- end }}
