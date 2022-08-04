@@ -1836,7 +1836,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 		},
 		{
 			name:     "pull request failed",
-			provider: NewFakeGitProvider("", nil, errors.New("oops")),
+			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
 			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -1869,7 +1869,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 		},
 		{
 			name:     "create pull request",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -1925,7 +1925,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",

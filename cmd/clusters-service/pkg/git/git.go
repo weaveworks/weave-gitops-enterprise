@@ -202,6 +202,9 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 // GetTreeList retrieves list of tree files from gitprovider given the sha/branch
 func (s *GitProviderService) GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, recursive bool) ([]*gitprovider.TreeEntry, error) {
 	repo, err := s.GetRepository(ctx, gp, repoUrl)
+	if err != nil {
+		return nil, err
+	}
 
 	treePaths, err := repo.Trees().List(ctx, sha, recursive)
 	if err != nil {
