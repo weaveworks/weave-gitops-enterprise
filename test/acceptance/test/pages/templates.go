@@ -13,7 +13,7 @@ type TemplatesPage struct {
 	TemplateHeader        *agouti.Selection
 	TemplateCount         *agouti.Selection
 	TemplateTiles         *agouti.MultiSelection
-	TemplatesTable        *agouti.MultiSelection
+	TemplatesList         *agouti.MultiSelection
 	TemplateProvider      *agouti.Selection
 	TemplateProviderPopup *agouti.MultiSelection
 	TemplateView          *agouti.MultiSelection
@@ -30,7 +30,7 @@ func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/clusters/templates"]`),
 		TemplateCount:         webDriver.FindByXPath(`//*[@href="/clusters/templates"]/parent::div[@role="heading"]/following-sibling::div`),
 		TemplateTiles:         webDriver.All(`[data-template-name]`),
-		TemplatesTable:        webDriver.All(`#templates-list tbody tr`),
+		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
 		TemplateProviderPopup: webDriver.All(`ul#filter-by-provider-popup li`),
 		TemplateView:          webDriver.All(`main > div > div > div > svg`),
@@ -69,24 +69,33 @@ func (t TemplatesPage) GetTemplateTileList() []string {
 	return titles
 }
 
-func GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
-	tileRow := webDriver.FindByXPath(fmt.Sprintf(`//tr//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
-	return &TemplateRecord{
-		Name:             templateName,
-		Provider:         tileRow.FindByXPath(`td[3]`),
-		Description:      tileRow.FindByXPath(`td[4]`),
-		CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
-		ErrorHeader:      tileRow.Find(`.template-error-header`),
-		ErrorDescription: tileRow.Find(`.template-error-description`),
+func (t TemplatesPage) CountTemplateRows() int {
+	count, _ := t.TemplatesList.Count()
+	return count
+}
+
+func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
+	rowCount, _ := t.TemplatesList.Count()
+	for i := 0; i < rowCount; i++ {
+		tileRow := t.TemplatesList.At(i).FindByXPath(fmt.Sprintf(`//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
+		return &TemplateRecord{
+			Name:             templateName,
+			Provider:         tileRow.FindByXPath(`td[3]`),
+			Description:      tileRow.FindByXPath(`td[4]`),
+			CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
+			ErrorHeader:      tileRow.Find(`.template-error-header`),
+			ErrorDescription: tileRow.Find(`.template-error-description`),
+		}
 	}
+	return nil
 }
 
 func (t TemplatesPage) GetTemplateTableList() []string {
-	rowCount, _ := t.TemplatesTable.Count()
+	rowCount, _ := t.TemplatesList.Count()
 	rows := make([]string, rowCount)
 
 	for i := 0; i < rowCount; i++ {
-		rows[i], _ = t.TemplatesTable.At(i).Text()
+		rows[i], _ = t.TemplatesList.At(i).Text()
 	}
 	return rows
 }

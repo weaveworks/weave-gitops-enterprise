@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -91,6 +92,11 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[UI] When no leaf cluster is connected", func() {
 			It("Verify connected cluster dashboard shows only management cluster", Label("integration"), func() {
+
+				By("And wait for  good looking response from /v1/clusters", func() {
+					Expect(waitForGitopsResources(context.Background(), "clusters", ASSERTION_30SECONDS_TIME_OUT)).To(Succeed(), "Failed to get a successful response from /v1/clusters")
+				})
+
 				pages.NavigateToPage(webDriver, "Clusters")
 				clustersPage := pages.GetClustersPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)

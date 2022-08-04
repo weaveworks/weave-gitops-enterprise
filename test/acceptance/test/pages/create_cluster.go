@@ -31,6 +31,7 @@ type ProfileInformation struct {
 type FormField struct {
 	Label   *agouti.Selection
 	Field   *agouti.Selection
+	Focused *agouti.Selection
 	ListBox *agouti.Selection
 }
 
@@ -117,6 +118,7 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 	return FormField{
 		Label:   param.Find(`label`),
 		Field:   param.Find(`input`),
+		Focused: param.Find(`div.Mui-focused`),
 		ListBox: param.Find(`div[role="button"][aria-haspopup="listbox"]`),
 	}
 }

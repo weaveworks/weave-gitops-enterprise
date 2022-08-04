@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -67,6 +68,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		Context("[UI] When no applications are installed", func() {
 			It("Verify management cluster dashboard shows bootstrap 'flux-system' application", Label("integration"), func() {
 				existingAppCount := getApplicationCount()
+
+				By("And wait for  good looking response from /v1/kustomizations", func() {
+					Expect(waitForGitopsResources(context.Background(), "kustomizations", ASSERTION_30SECONDS_TIME_OUT)).To(Succeed(), "Failed to get a successful response from /v1/kustomizations")
+				})
 
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
