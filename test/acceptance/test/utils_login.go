@@ -149,10 +149,13 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 		if pages.ElementExist(authenticate.AuthenticateGitlab) {
 			Expect(authenticate.AuthenticateGitlab.Click()).To(Succeed())
 
+			browserCompatibility := false
 			if !pages.ElementExist(authenticate.Username) {
 				if pages.ElementExist(authenticate.CheckBrowser) {
-					setGitlabBrowserCompatibility(webDriver)
+					// opening the gitlab in a separate window not controlled by webdriver does not redirect gitlab to login
+					pages.OpenWindowInBg(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
 					Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(BeFound())
+					browserCompatibility = true
 					TakeScreenShot("gitlab_browser_compatibility")
 				}
 
@@ -167,6 +170,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
 				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
 				Expect(authenticate.Signin.Submit()).To(Succeed())
+
 			} else {
 				logger.Info("Login not found, assuming already logged in")
 			}
@@ -174,15 +178,12 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 			if pages.ElementExist(authenticate.Authorize) {
 				Expect(authenticate.Authorize.Click()).To(Succeed())
 			}
+
+			if browserCompatibility {
+				pages.CloseWindow(webDriver, "gitlab")
+			}
 		}
 	}
-}
-
-func setGitlabBrowserCompatibility(webDriver *agouti.Page) {
-	// opening the gitlab in a separate window not controlled by webdriver seems to redirect gitlab to login
-	pages.OpenNewWindow(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
-	// Make sure weave-gitops-enterprise application window is still active window
-	Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
 }
 
 func AuthenticateWithGitHub(webDriver *agouti.Page) {

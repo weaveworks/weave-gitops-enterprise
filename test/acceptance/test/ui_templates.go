@@ -916,7 +916,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			var clusterResourceSet string
 			var crsConfigmap string
 
-			clusterNamespace := map[string]string{
+			clusterNamespaces := map[string]string{
 				GitProviderGitLab: "capi-test-system",
 				GitProviderGitHub: "default",
 			}
@@ -924,21 +924,20 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			patSecret := "capi-pat"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
-			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
 
 			JustBeforeEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
-				createNamespace([]string{clusterNamespace[gitProviderEnv.Type]})
-				createPATSecret(clusterNamespace[gitProviderEnv.Type], patSecret)
-				clusterBootstrapCopnfig = createClusterBootstrapConfig(capdClusterName, clusterNamespace[gitProviderEnv.Type], bootstrapLabel, patSecret)
-				clusterResourceSet = createClusterResourceSet(capdClusterName, clusterNamespace[gitProviderEnv.Type])
-				crsConfigmap = createCRSConfigmap(capdClusterName, clusterNamespace[gitProviderEnv.Type])
+				createNamespace([]string{clusterNamespaces[gitProviderEnv.Type]})
+				createPATSecret(clusterNamespaces[gitProviderEnv.Type], patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(capdClusterName, clusterNamespaces[gitProviderEnv.Type], bootstrapLabel, patSecret)
+				clusterResourceSet = createClusterResourceSet(capdClusterName, clusterNamespaces[gitProviderEnv.Type])
+				crsConfigmap = createCRSConfigmap(capdClusterName, clusterNamespaces[gitProviderEnv.Type])
 			})
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
-				deleteSecret([]string{patSecret}, clusterNamespace[gitProviderEnv.Type])
+				deleteSecret([]string{patSecret}, clusterNamespaces[gitProviderEnv.Type])
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
@@ -946,7 +945,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters([]string{capdClusterName}, clusterNamespace[gitProviderEnv.Type])
+				removeGitopsCapiClusters([]string{capdClusterName}, clusterNamespaces[gitProviderEnv.Type])
 			})
 
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
@@ -957,7 +956,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd-observability.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -967,7 +966,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-observability-0")
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
 					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
 				})
 
@@ -979,7 +978,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				// Parameter values
 				clusterName := capdClusterName
-				namespace := clusterNamespace[gitProviderEnv.Type]
+				clusterNamespace := clusterNamespaces[gitProviderEnv.Type]
 				k8Version := "1.23.3"
 				controlPlaneMachineCount := "1"
 				workerMachineCount := "1"
@@ -992,7 +991,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 					{
 						Name:   "NAMESPACE",
-						Value:  namespace,
+						Value:  clusterNamespace,
 						Option: "",
 					},
 					{
@@ -1024,17 +1023,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				By("And select the podinfo profile to install", func() {
+				pages.ScrollWindow(webDriver, 0, 500)
+				By("And verify default podinfo profile values.yaml", func() {
 					profile := createPage.FindProfileInList("podinfo")
-					Eventually(profile.Checkbox.Click).Should(Succeed(), "Failed to select the podinfo profile")
-				})
-
-				By("And verify selected podinfo profile values.yaml", func() {
-					profile := createPage.FindProfileInList("podinfo")
-
-					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed(), "Failed to select podinfo version: 6.0.1")
-
 					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
 
 					Eventually(profile.Values.Click).Should(Succeed())
@@ -1045,16 +1036,55 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
-				By("And verify default observability profile values.yaml", func() {
-					profile := createPage.FindProfileInList("observability")
+				By("And select the cert-manager profile to install", func() {
+					profile := createPage.FindProfileInList("cert-manager")
+					Eventually(profile.Checkbox.Click).Should(Succeed(), "Failed to select the cert-manager profile")
+				})
+
+				By("And verify selected cert-manager profile values.yaml", func() {
+					profile := createPage.FindProfileInList("cert-manager")
+
+					Eventually(profile.Version.Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "0.0.7").Click).Should(Succeed(), "Failed to select cert-manager version: 0.0.7")
+
 					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-0"))
+					Expect(profile.Namespace.SendKeys("cert-manager")).To(Succeed())
 
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("observability"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("kube-prometheus-stack:"))
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("cert-manager"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("installCRDs: true"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
+				})
+
+				By("And select the weave-policy-agent profile to install", func() {
+					profile := createPage.FindProfileInList("weave-policy-agent")
+					Eventually(profile.Checkbox.Click).Should(Succeed(), "Failed to select the weave-policy-agent profile")
+				})
+
+				By("And verify selected weave-policy-agent profile values.yaml", func() {
+					profile := createPage.FindProfileInList("weave-policy-agent")
+
+					Eventually(profile.Version.Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "0.3.1").Click).Should(Succeed(), "Failed to select weave-policy-agent version: 0.3.1")
+
+					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
+					Expect(profile.Namespace.SendKeys("policy-system")).To(Succeed())
+
+					Eventually(profile.Values.Click).Should(Succeed())
+					valuesYaml := pages.GetValuesYaml(webDriver)
+
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("weave-policy-agent"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("namespace: policy-system"))
+
+					text, _ := valuesYaml.TextArea.Text()
+					text = strings.ReplaceAll(text, `accountId: ""`, `accountId: "weaveworks"`)
+					text = strings.ReplaceAll(text, `clusterId: ""`, fmt.Sprintf(`clusterId: "%s"`, clusterName))
+					Expect(valuesYaml.TextArea.Clear()).To(Succeed())
+					Expect(valuesYaml.TextArea.SendKeys(text)).To(Succeed(), "Failed to change values.yaml for weave-policy-agent profile")
+
+					Eventually(valuesYaml.Save.Click).Should(Succeed(), "Failed to save values.yaml for weave-policy-agent profile")
 				})
 
 				By("Then I should preview the PR", func() {
@@ -1110,17 +1140,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
-					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f %s %s", kustomizationFile, path.Join(repoAbsolutePath, clusterPath)))
-					gitUpdateCommitPush(repoAbsolutePath, "")
-				})
-
 				By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
 					TakeScreenShot("capi-cluster-ready")
 				})
+
+				clusterInfo := pages.GetClustersPage(webDriver).FindClusterInList(clusterName)
+				verifyDashboard(clusterInfo.GetDashboard("prometheus"), clusterName, "Prometheus")
 
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := clustersPage.FindClusterInList(clusterName)
@@ -1147,9 +1174,39 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
 					// List of Profiles in order of layering
-					profiles := []string{"observability", "podinfo"}
-					verifyCapiClusterHealth(downloadedKubeconfigPath, profiles, GITOPS_DEFAULT_NAMESPACE)
+					profiles := []string{"podinfo", "cert-manager", "weave-policy-agent"}
+					namespaces := []string{GITOPS_DEFAULT_NAMESPACE, "cert-manager", "policy-system"}
+					verifyCapiClusterHealth(downloadedKubeconfigPath, profiles, namespaces)
 				})
+
+				existingAppCount := getApplicationCount()
+				By("And add kustomization bases for common resources for leaf cluster)", func() {
+					addKustomizationBases("capi", clusterName, clusterNamespace)
+				})
+
+				pages.NavigateToPage(webDriver, "Applications")
+				applicationsPage := pages.GetApplicationsPage(webDriver)
+				pages.WaitForPageToLoad(webDriver)
+
+				By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
+					totalAppCount := existingAppCount + 5 // flux-system, clusters-bases-kustomization, podinfo, cert-manager, policy-agent
+					Eventually(func(g Gomega) int {
+						return applicationsPage.CountApplications()
+					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+
+					filterID := "type:HelmRelease"
+					searchPage := pages.GetSearchPage(webDriver)
+					Eventually(searchPage.FilterBtn.Click).Should(Succeed(), "Failed to click filter buttton")
+					searchPage.SelectFilter("type", filterID)
+
+					Expect(searchPage.FilterBtn.Click()).Should(Succeed(), "Failed to click filter buttton")
+
+					Eventually(applicationsPage.CountApplications).Should(Equal(3), "There should be 3 application enteries in application table")
+				})
+
+				verifyAppInformation(applicationsPage, "podinfo", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-podinfo", "Ready")
+				verifyAppInformation(applicationsPage, "cert-manager", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-cert-manager", "Ready")
+				verifyAppInformation(applicationsPage, "weave-policy-agent", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-weave-policy-agent", "Ready")
 
 				By("Then I should select the cluster to create the delete pull request", func() {
 					pages.NavigateToPage(webDriver, "Clusters")
@@ -1169,7 +1226,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 				})
 
-				By("Then I should see see a toast with a link to the deletion PR", func() {
+				By("Then I should see a toast with a link to the deletion PR", func() {
 					gitops := pages.GetGitOps(webDriver)
 					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
@@ -1185,13 +1242,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf(`%s/clusters/my-cluster/clusters/%s/%s.yaml`, repoAbsolutePath, clusterNamespace[gitProviderEnv.Type], clusterName))
+					_, err := os.Stat(fmt.Sprintf(`%s/clusters/my-cluster/clusters/%s/%s.yaml`, repoAbsolutePath, clusterNamespaces[gitProviderEnv.Type], clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
 				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
 					clusterFound := func() error {
-						return runCommandPassThrough("kubectl", "get", "cluster", clusterName, "-n", clusterNamespace[gitProviderEnv.Type])
+						return runCommandPassThrough("kubectl", "get", "cluster", clusterName, "-n", clusterNamespaces[gitProviderEnv.Type])
 					}
 					Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})

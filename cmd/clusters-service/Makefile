@@ -28,7 +28,7 @@ build:
 .PHONY: crd-manifests
 crd-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./api/..." output:crd:artifacts:config=config/crd/bases
-
+	cp  config/crd/bases/* ../../charts/mccp/crds/
 
 .PHONY: crd-generate
 crd-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
