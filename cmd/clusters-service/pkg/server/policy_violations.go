@@ -23,14 +23,25 @@ type validationList struct {
 }
 
 func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.ListPolicyValidationsRequest) (*capiv1_proto.ListPolicyValidationsResponse, error) {
-
-	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
+	labelSelector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
 		"pac.weave.works/type": "Admission"})
 	if err != nil {
 		return nil, fmt.Errorf("error building selector for events query: %v", err)
 	}
 
-	fields := k8sFields.OneTermEqualSelector("type", "Warning")
+	fieldSelectorSet := map[string]string{
+		"type": "Warning",
+	}
+
+	if m.Application != "" {
+		fieldSelectorSet["involvedObject.name"] = m.Application
+	}
+
+	if m.Namespace != "" {
+		fieldSelectorSet["involvedObject.namespace"] = m.Namespace
+	}
+
+	fieldSelector := k8sFields.SelectorFromSet(fieldSelectorSet)
 
 	opts := []sigsClient.ListOption{}
 	if m.Pagination != nil {
@@ -38,8 +49,8 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 		opts = append(opts, sigsClient.Continue(m.Pagination.PageToken))
 	}
 	opts = append(opts, &sigsClient.ListOptions{
-		LabelSelector: selector,
-		FieldSelector: fields,
+		LabelSelector: labelSelector,
+		FieldSelector: fieldSelector,
 	})
 	opts = append(opts, sigsClient.InNamespace(v1.NamespaceAll))
 

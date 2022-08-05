@@ -81,9 +81,11 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		return nil, err
 	}
 
-	clusters, err = AddCAPIClusters(ctx, client, clusters)
-	if err != nil {
-		return nil, err
+	if s.capiEnabled == "true" {
+		clusters, err = AddCAPIClusters(ctx, client, clusters)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if msg.Label != "" {
