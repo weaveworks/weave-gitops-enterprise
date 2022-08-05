@@ -48,7 +48,7 @@ func TestListGitopsClusters(t *testing.T) {
 		clusterState []runtime.Object
 		refType      string
 		expected     []*capiv1_protos.GitopsCluster
-		capiEnabled  bool
+		capiEnabled  string
 		err          error
 	}{
 		{
@@ -267,7 +267,7 @@ func TestListGitopsClusters(t *testing.T) {
 					ControlPlane: true,
 				},
 			},
-			capiEnabled: true,
+			capiEnabled: "true",
 		},
 		{
 			name: "capi-enabled is false",
@@ -313,19 +313,19 @@ func TestListGitopsClusters(t *testing.T) {
 					ControlPlane: true,
 				},
 			},
-			capiEnabled: false,
+			capiEnabled: "false",
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.SetDefault("runtime-namespace", "default")
-			viper.SetDefault("capi-enabled", tt.capiEnabled)
 
 			// setup
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
 				namespace:    "default",
+				capiEnabled:  tt.capiEnabled,
 			})
 
 			// request

@@ -81,7 +81,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		return nil, err
 	}
 
-	if viper.GetString("capi-enabled") == "true" {
+	if s.capiEnabled == "true" {
 		clusters, err = AddCAPIClusters(ctx, client, clusters)
 		if err != nil {
 			return nil, err

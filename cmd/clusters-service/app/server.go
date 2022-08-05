@@ -459,6 +459,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClustersNamespace:         args.CAPIClustersNamespace,
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
+			CAPIEnabled:               args.CAPIEnabled,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
