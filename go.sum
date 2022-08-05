@@ -994,14 +994,12 @@ github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802/go.mod h1
 github.com/tomwright/dasel v1.22.1 h1:Y1wefjI7UlhEsHdOozzp3aGMsipKGGyaft6waUU1m24=
 github.com/tomwright/dasel v1.22.1/go.mod h1:YmXrjcQHjmOfvG/ZVg7P0hhURwRlqtbNhSWQu0fOeRQ=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
-github.com/weaveworks/cluster-controller v1.2.0 h1:Q+c5GncBHAf6z7KgvyXM4sCDftC4LfY9d8giD1s8e+w=
-github.com/weaveworks/cluster-controller v1.2.0/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
+github.com/weaveworks/cluster-controller v1.2.1-0.20220801094254-970b4d58cebd h1:G3Eo/f+WGdke5DM3SKscsxVhj0ybDDp01GSwvWZ1T/o=
+github.com/weaveworks/cluster-controller v1.2.1-0.20220801094254-970b4d58cebd/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/policy-agent/api v1.0.4 h1:dznn4I3+tfSniNbERFaAXOMpLsvwW+6MvjemkNou0NE=
 github.com/weaveworks/policy-agent/api v1.0.4/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
-github.com/weaveworks/weave-gitops v0.9.1-rc.2 h1:7aRthgLAY6cZSkxBBlcU1eruIf52la3kj0oTz59uL60=
-github.com/weaveworks/weave-gitops v0.9.1-rc.2/go.mod h1:prdoxOe8u1xjQkSx11BneBs58LGSYidSrXmNjfNEElk=
 github.com/weaveworks/progressive-delivery v0.0.0-20220801174745-7e26bfdd66f9 h1:j/0SoBszB/czhjmFwdoH6c9dLYm3ZaqWlhFMNVyJBAc=
 github.com/weaveworks/progressive-delivery v0.0.0-20220801174745-7e26bfdd66f9/go.mod h1:DKROFoMYek6LRX/Us3W2Jb/VCjvqNduxhKz4E7hgq8c=
 github.com/weaveworks/weave-gitops v0.9.1 h1:8Be6vcSkbNoDZHGmZg5wr3ofaJAfgBzAt2BAQGgYHn8=
