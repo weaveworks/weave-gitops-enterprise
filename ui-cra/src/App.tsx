@@ -70,7 +70,7 @@ const App: FC = () => {
       <MuiThemeProvider theme={muiTheme}>
         <RequestContextProvider fetch={window.fetch}>
           <QueryClientProvider client={queryClient}>
-          	<BrowserRouter basename={import.meta.env.BASE_URL}>
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
                 <AppContextProvider applicationsClient={applicationsClient}>

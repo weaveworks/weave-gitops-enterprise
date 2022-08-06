@@ -127,9 +127,13 @@ ui-audit:
 	cd ui-cra && yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
 
 ui-core-lib:
-	cd ui-cra && \
-	rm -rf node_modules/@weaveworks/weave-gitops/ && \
-	yarn add ../../weave-gitops/dist
+	cd ../weave-gitops && \
+	yarn link && \
+	cd ../weave-gitops-enterprise && \
+	yarn link @weaveworks/weave-gitops
+
+ui-core-lib-unlink:
+	yarn unlink @weaveworks/weave-gitops
 
 lint:
 	bin/go-lint
