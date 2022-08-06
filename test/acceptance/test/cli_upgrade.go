@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
-	"time"
+	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
 	. "github.com/onsi/ginkgo/v2"
@@ -86,7 +86,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				err := runCommandPassThrough("kubectl", "config", "use-context", currentContext)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				deleteClusters("kind", []string{kind_upgrade_cluster_name})
+				deleteClusters("kind", []string{kind_upgrade_cluster_name}, "")
 
 				// Login to management cluster console, in case it has been logged out
 				InitializeWebdriver(test_ui_url)
@@ -148,7 +148,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.8.1-rc.1"
+				version := "0.9.1"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
@@ -180,7 +180,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And I should install rolebindings for default enterprise roles'", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "rbac-auth.yaml")), "Failed to install rolbindings for enterprise default roles")
+					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 				})
 
 				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
@@ -256,8 +256,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				controlPlaneMachineCount := "3"
 				workerMachineCount := "3"
 
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -268,8 +267,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						Value:  namespace,
 						Option: "",
 					},
-				}
-				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "",
@@ -280,8 +277,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						Value:  "",
 						Option: k8Version,
 					},
-				}
-				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -289,40 +284,43 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, paramSection)
-				pages.ScrollWindow(webDriver, 0, 4000)
-				// Temporaroary FIX - Authenticating before profile selection. Gitlab authentication redirect resets the profiles section
+				setParameterValues(createPage, parameters)
 
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-				pages.ScrollWindow(webDriver, 0, 4000)
-
-				By("And select the podinfo profile to install", func() {
-					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
-					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
-					pages.DissmissProfilePopup(webDriver)
-				})
-
-				By("And verify selected podinfo profile values.yaml", func() {
-					profile := pages.GetProfile(webDriver, "podinfo")
+				pages.ScrollWindow(webDriver, 0, 500)
+				By("And verify selected weave-policy-agent profile values.yaml", func() {
+					profile := createPage.FindProfileInList("weave-policy-agent")
 
 					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "6.0.0").Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "0.3.1").Click).Should(Succeed(), "Failed to select weave-policy-agent version: 0.3.1")
 
 					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
+					Expect(profile.Namespace.SendKeys("policy-system")).To(Succeed())
 
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
-					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("weave-policy-agent"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("namespace: policy-system"))
+
+					text, _ := valuesYaml.TextArea.Text()
+					text = strings.ReplaceAll(text, `accountId: ""`, `accountId: "weaveworks"`)
+					text = strings.ReplaceAll(text, `clusterId: ""`, fmt.Sprintf(`clusterId: "%s"`, clusterName))
+					Expect(valuesYaml.TextArea.Clear()).To(Succeed())
+					Expect(valuesYaml.TextArea.SendKeys(text)).To(Succeed(), "Failed to change values.yaml for weave-policy-agent profile")
+
+					Eventually(valuesYaml.Save.Click).Should(Succeed(), "Failed to save values.yaml for weave-policy-agent profile")
 				})
 
 				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
+
+					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
 
@@ -350,11 +348,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 
-				By("Then I should see see a toast with a link to the creation PR", func() {
-					// FIXME: uncomment when GitopsCluster is available in the latest enterprise release
-					time.Sleep(10 * time.Second)
-					// gitops := pages.GetGitOps(webDriver)
-					// Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+				By("Then I should see a toast with a link to the creation PR", func() {
+					gitops := pages.GetGitOps(webDriver)
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
 
 				var createPRUrl string
@@ -365,7 +361,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the manifests are present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s/%s.yaml", repoAbsolutePath, namespace, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})

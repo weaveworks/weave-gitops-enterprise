@@ -1,5 +1,6 @@
 import React, {
   ChangeEvent,
+  Dispatch,
   FC,
   useCallback,
   useEffect,
@@ -7,8 +8,10 @@ import React, {
 } from 'react';
 import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
-import { UpdatedProfile } from '../../../../../types/custom';
-import ListItem from '@material-ui/core/ListItem';
+import {
+  ListProfileValuesResponse,
+  UpdatedProfile,
+} from '../../../../../types/custom';
 import {
   Dialog,
   DialogContent,
@@ -28,8 +31,9 @@ import {
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-const base = weaveTheme.spacing.base;
-const medium = weaveTheme.spacing.medium;
+import useProfiles from './../../../../../contexts/Profiles';
+import { Loader } from '../../../../Loader';
+
 const xs = weaveTheme.spacing.xs;
 
 const useStyles = makeStyles(() => ({
@@ -40,39 +44,24 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const ListItemWrapper = styled.div`
-  & .profile-version,
-  .profile-layer,
-  .profile-namespace {
-    display: flex;
-    align-items: center;
-    margin-left: ${base};
-    span {
-      margin-right: ${xs};
-    }
-  }
-  ,
-  & .profile-name,
-  .profile-layer {
-    min-width: 120px;
-  }
-  & .profile-version {
-    .MuiSelect-root {
-      min-width: 75px;
-    }
-  }
+const ProfileWrapper = styled.div`
+  display: flex;
+  justify-content: space-around;
 `;
 
 const ProfilesListItem: FC<{
   profile: UpdatedProfile;
-  updateProfile: (profile: UpdatedProfile) => void;
-}> = ({ profile, updateProfile }) => {
+  selectedProfiles: UpdatedProfile[];
+  setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
+}> = ({ profile, selectedProfiles, setSelectedProfiles }) => {
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
+  const [loadingYaml, setLoadingYaml] = useState<boolean>(false);
+  const { getProfileYaml } = useProfiles();
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map((value, index) => {
@@ -84,6 +73,17 @@ const ProfilesListItem: FC<{
       );
     }),
   ];
+
+  const handleUpdateProfile = useCallback(
+    profile => {
+      const currentProfileIndex = selectedProfiles.findIndex(
+        p => p.name === profile.name,
+      );
+      selectedProfiles[currentProfileIndex] = profile;
+      setSelectedProfiles(selectedProfiles);
+    },
+    [setSelectedProfiles, selectedProfiles],
+  );
 
   const handleSelectVersion = useCallback(
     (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
@@ -102,17 +102,19 @@ const ProfilesListItem: FC<{
         }
       });
 
-      updateProfile(profile);
+      handleUpdateProfile(profile);
     },
-    [profile, updateProfile],
+    [profile, handleUpdateProfile],
   );
 
   const handleYamlPreview = () => {
-    const currentProfile = profile.values.find(
-      value => value.version === version,
-    );
-    setYaml(currentProfile?.yaml as string);
     setOpenYamlPreview(true);
+    if (yaml === '') {
+      setLoadingYaml(true);
+      getProfileYaml(profile?.name, version)
+        .then((res: ListProfileValuesResponse) => setYaml(res.message))
+        .finally(() => setLoadingYaml(false));
+    }
   };
   const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -124,7 +126,7 @@ const ProfilesListItem: FC<{
     }
     setNamespace(value);
     profile.namespace = value;
-    updateProfile(profile);
+    handleUpdateProfile(profile);
   };
 
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
@@ -137,10 +139,10 @@ const ProfilesListItem: FC<{
       }
     });
 
-    updateProfile(profile);
+    handleUpdateProfile(profile);
 
     setOpenYamlPreview(false);
-  }, [profile, updateProfile, version, yaml]);
+  }, [profile, handleUpdateProfile, version, yaml]);
 
   useEffect(() => {
     const [selectedValue] = profile.values.filter(
@@ -159,50 +161,41 @@ const ProfilesListItem: FC<{
 
   return (
     <>
-      <ListItemWrapper>
-        <ListItem data-profile-name={profile.name}>
-          <div className="profile-name">{profile.name}</div>
-          <div className="profile-version">
-            <span>Version</span>
-            <FormControl>
-              <Select
-                disabled={profile.required}
-                value={version}
-                onChange={handleSelectVersion}
-                autoWidth
-                label="Versions"
-              >
-                {profileVersions(profile)}
-              </Select>
-            </FormControl>
-          </div>
-          <div className="profile-namespace">
-            <span>Namespace</span>
-            <FormControl>
-              <Input
-                id="profile-namespace"
-                value={namespace}
-                placeholder=""
-                onChange={handleChangeNamespace}
-                error={!isNamespaceValid}
-              />
-            </FormControl>
-          </div>
-          <Button
-            style={{ marginLeft: medium }}
-            variant="text"
-            onClick={handleYamlPreview}
-          >
-            Values.yaml
-          </Button>
-          {profile.layer ? (
-            <div className="profile-layer">
-              <span>Layer</span>
-              <span>{profile.layer}</span>
-            </div>
-          ) : null}
-        </ListItem>
-      </ListItemWrapper>
+      <ProfileWrapper data-profile-name={profile.name}>
+        <div className="profile-version">
+          <FormControl>
+            <Select
+              disabled={profile.required}
+              value={version}
+              onChange={handleSelectVersion}
+              autoWidth
+              label="Versions"
+            >
+              {profileVersions(profile)}
+            </Select>
+          </FormControl>
+        </div>
+        <div className="profile-namespace">
+          <FormControl>
+            <Input
+              id="profile-namespace"
+              value={namespace}
+              placeholder="flux-system"
+              onChange={handleChangeNamespace}
+              error={!isNamespaceValid}
+            />
+          </FormControl>
+        </div>
+        {/* <div> */}
+        <Button
+          // style={{ minWidth: '155px' }}
+          variant="text"
+          onClick={handleYamlPreview}
+        >
+          Values.yaml
+        </Button>
+        {/* </div> */}
+      </ProfileWrapper>
 
       <Dialog
         open={openYamlPreview}
@@ -216,18 +209,25 @@ const ProfilesListItem: FC<{
           <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
         </DialogTitle>
         <DialogContent>
-          <TextareaAutosize
-            className={classes.textarea}
-            defaultValue={yaml}
-            onChange={event => handleChangeYaml(event)}
-          />
+          {loadingYaml ? (
+            <Loader />
+          ) : (
+            <TextareaAutosize
+              className={classes.textarea}
+              defaultValue={yaml}
+              onChange={handleChangeYaml}
+            />
+          )}
         </DialogContent>
         <DialogActions>
           <Button
             id="edit-yaml"
             startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
             onClick={handleUpdateProfiles}
-            disabled={profile.required}
+            disabled={
+              profile.required &&
+              (profile.editable !== true)
+            }
           >
             SAVE CHANGES
           </Button>

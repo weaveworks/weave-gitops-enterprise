@@ -99,6 +99,15 @@ service ClustersService {
     };
   }
 
+  // Creates a pull request for the given list of Kustomizations.
+  rpc CreateKustomizationsPullRequest(CreateKustomizationsPullRequestRequest)
+      returns (CreateKustomizationsPullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/enterprise/kustomizations"
+      body : "*"
+    };
+  }
+
   rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
       get : "/v1/config"
@@ -131,6 +140,13 @@ service ClustersService {
   rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
     option (google.api.http) = {
       get : "/v1/policyviolations/{violation_id}"
+    };
+  }
+
+  // ListEvents returns the k8s events for a given object
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+    option (google.api.http) = {
+      get : "/v1/enterprise/events"
     };
   }
 }
@@ -185,6 +201,7 @@ message RenderTemplateRequest {
   map<string, string> values = 2;
   Credential credentials = 3;
   string template_kind = 4;
+  string cluster_namespace = 5;
 }
 message RenderTemplateResponse { string rendered_template = 1; }
 
@@ -209,7 +226,11 @@ message ListPoliciesRequest {
     Pagination pagination = 2;
 }
 
-message GetPolicyResponse { Policy policy = 1; }
+message GetPolicyResponse {
+  Policy policy = 1;
+  string clusterName = 2;
+}
+
 message ListPoliciesResponse {
   repeated Policy policies = 1;
   int32 total = 2;
@@ -217,18 +238,28 @@ message ListPoliciesResponse {
   repeated ListError errors = 4;
 }
 
-
-
 message ListPolicyValidationsRequest{
-  string cluster_id = 1;
+  string clusterName = 1;
+  Pagination pagination = 2;
+  string application = 3;
+  string namespace = 4;
 }
 message ListPolicyValidationsResponse {
   repeated PolicyValidation violations = 1;
   int32 total = 2;
+  string nextPageToken = 3;
+  repeated ListError errors = 4;
 }
 
-message GetPolicyValidationRequest{ string violation_id = 1; }
+message GetPolicyValidationRequest{
+  string violation_id = 1;
+  string clusterName = 2;
+}
 message GetPolicyValidationResponse{ PolicyValidation violation = 1; }
+
+message PolicyValidationOccurrence {
+  string message = 1;
+}
 
 message PolicyValidation{
   string id = 1;
@@ -243,6 +274,8 @@ message PolicyValidation{
   string description=10;
   string how_to_solve=11;
   string name=12;
+  string clusterName = 13;
+  repeated PolicyValidationOccurrence occurrences = 14;
 }
 
 message CreatePullRequestRequest {
@@ -268,10 +301,32 @@ message CreatePullRequestRequest {
   repeated ProfileValues values = 10;
   // The repo api url.
   string repository_api_url = 11;
+  string cluster_namespace = 12;
+  repeated Kustomization kustomizations = 13;
 }
 message CreatePullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
+}
+
+message Kustomization {
+  Metadata metadata = 1;
+  Spec spec = 2;
+}
+
+message Metadata {
+  string name = 1;
+  string namespace = 2;
+}
+
+message Spec {
+  string path = 1;
+  SourceRef source_ref = 2;
+}
+
+message SourceRef {
+  string name = 1;
+  string namespace = 2;
 }
 
 message CreateTfControllerPullRequestRequest {
@@ -299,6 +354,11 @@ message CreateTfControllerPullRequestResponse {
   string web_url = 1;
 }
 
+message ClusterNamespacedName {
+  string namespace = 1;
+  string name = 2;
+}
+
 message DeleteClustersPullRequestRequest {
   // The repository to use.
   string repository_url = 1;
@@ -318,6 +378,7 @@ message DeleteClustersPullRequestRequest {
   Credential credentials = 8;
   // The repo api url.
   string repository_api_url = 9;
+  repeated ClusterNamespacedName cluster_namespaced_names = 10;
 }
 message DeleteClustersPullRequestResponse {
   // The url of the new pull request.
@@ -333,6 +394,7 @@ message ListCredentialsResponse {
 message GetKubeconfigRequest {
   // The name of the workload cluster.
   string cluster_name = 1;
+  string cluster_namespace = 2;
 }
 message GetKubeconfigResponse {
   // The Kubeconfig of the workload cluster.
@@ -409,6 +471,8 @@ message Parameter {
 message TemplateProfile {
   string name = 1;
   string version = 2;
+  bool editable = 3;
+  string values = 4;
 }
 
 message TemplateObject {
@@ -424,6 +488,36 @@ message GetEnterpriseVersionRequest {}
 message GetEnterpriseVersionResponse {
   // The version of WeGO Enterprise
   string version = 1;
+}
+
+message CreateKustomizationsPullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The commit message
+  string commit_message = 6;
+  // The repo api url.
+  string repository_api_url = 7;
+  // A list of cluster and kustomization
+  repeated ClusterKustomization cluster_kustomizations = 8;
+}
+
+message ClusterKustomization {
+  ClusterNamespacedName cluster = 1;
+  bool is_control_plane = 2;
+  Kustomization kustomization = 3;
+}
+
+message CreateKustomizationsPullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
 }
 
 message Maintainer {
@@ -502,4 +596,29 @@ message Policy {
   PolicyTargets targets = 12;
   string created_at = 13;
   string clusterName = 14;
+}
+
+message ObjectRef {
+  string kind      = 1;
+  string name      = 2;
+  string namespace = 3;
+}
+
+message Event {
+  string type      = 1;
+  string reason    = 2;
+  string message   = 3;
+  string timestamp = 4;
+  string component = 5;
+  string host      = 6;
+  string name      = 7;
+}
+
+message ListEventsRequest {
+  ObjectRef involvedObject = 1;
+  string    clusterName    = 2;
+}
+
+message ListEventsResponse {
+  repeated Event events = 1;
 }

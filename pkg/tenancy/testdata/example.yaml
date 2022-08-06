@@ -1,0 +1,17 @@
+tenants:
+  - name: foo-tenant
+    namespaces:
+    - foo-ns
+  - name: bar-tenant
+    namespaces:
+    - bar-ns
+    - foobar-ns
+    allowedRepositories:
+    - kind: GitRepository
+      url: https://github.com/testorg/testrepo
+    - kind: GitRepository
+      url: https://github.com/testorg/testinfo
+    - kind: Bucket
+      url: minio.example.com
+    - kind: HelmRepository
+      url: https://testorg.github.io/testrepo

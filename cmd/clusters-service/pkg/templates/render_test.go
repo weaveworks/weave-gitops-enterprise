@@ -10,9 +10,13 @@ import (
 )
 
 func TestCAPIRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	})
@@ -49,9 +53,13 @@ spec:
 }
 
 func TestGitopsRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/cluster-template.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":       "testing",
 		"GIT_REPO_NAME":      "git-repo",
 		"GIT_REPO_NAMESPACE": "git-namespace",
@@ -126,9 +134,13 @@ metadata:
 }
 
 func TestRender_InjectPruneAnnotation(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
@@ -200,9 +212,13 @@ metadata:
 }
 
 func TestInNamespaceGitOps(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/cluster-template-2.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template-2.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME": "testing",
 	}, InNamespace("new-namespace"))
 	if err != nil {
@@ -258,9 +274,13 @@ metadata:
 }
 
 func TestRender_in_namespace(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
@@ -302,9 +322,13 @@ spec:
 }
 
 func TestRender_with_options(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "2",
 	},
@@ -354,9 +378,14 @@ spec:
 }
 
 func TestRenderWithCRD(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template0.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template0.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"})
+	b, err := processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -385,11 +414,96 @@ spec:
 	}
 }
 
-func TestRender_unknown_parameter(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+func TestTextTemplateRender(t *testing.T) {
+	parsed := parseCAPITemplateFromFile(t, "testdata/text-template.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	_, err := Render(parsed.Spec, map[string]string{})
-	assert.ErrorContains(t, err, "value for variables [CLUSTER_NAME] is not set")
+	b, err := processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing-templating",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing-templating
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    kind: KubeadmControlPlane
+    name: testing-templating-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSCluster
+    name: testing-templating
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestTextTemplateRenderConditional(t *testing.T) {
+	parsed := parseCAPITemplateFromFile(t, "testdata/text-template2.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME":   "testing-templating",
+		"TEST_VALUE":     "false",
+		"S3_BUCKET_NAME": "test-bucket",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing-templating
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+      - 192.168.1.0/16
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+    kind: KubeadmControlPlane
+    name: testing-templating-control-plane
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+    kind: AWSCluster
+    name: testing-templating
+  notARealField:
+    name: test-bucket-test
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestRender_unknown_parameter(t *testing.T) {
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = processor.RenderTemplates(map[string]string{})
+	assert.ErrorContains(t, err, "missing required parameter: CLUSTER_NAME")
 }
 
 func writeMultiDoc(t *testing.T, objs [][]byte) string {

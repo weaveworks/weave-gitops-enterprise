@@ -1,18 +1,18 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: ClusterBootstrapConfig
 metadata:
-  name: gitops
-  namespace: default
+  name: "{{NAME}}"
+  namespace: "{{NAMESPACE}}"
 spec:
   clusterSelector:
     matchLabels:
-      weave.works/flux: bootstrap
+      weave.works/flux: "{{BOOTSTRAP}}"
   jobTemplate:
     generateName: "run-gitops-{{ .ObjectMeta.Name }}"
     # requiredClusterReady: true
     spec:
       containers:
-        - image: ghcr.io/fluxcd/flux-cli:v0.29.5
+        - image: ghcr.io/fluxcd/flux-cli:v0.30.2
           imagePullPolicy: Always
           name: flux-bootstrap
           resources: {}
@@ -27,11 +27,11 @@ spec:
               "--hostname=$(GIT_PROVIDER_HOSTNAME)",
               "--owner=$(GITOPS_REPO_OWNER)",
               "--repository=$(GITOPS_REPO_NAME)",
-              "--path=./clusters/{{ .ObjectMeta.Name }}",
+              "--path=./clusters/{{ .ObjectMeta.Namespace }}/{{ .ObjectMeta.Name }}",
             ]
           envFrom:
             - secretRef:
-                name: my-pat
+                name: "{{PAT_SECRET}}"
           env:
             - name: KUBECONFIG
               value: "/etc/gitops/value"

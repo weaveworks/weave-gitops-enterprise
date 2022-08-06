@@ -5,38 +5,41 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func TestToTemplate(t *testing.T) {
 	testCases := []struct {
 		name     string
-		value    string
+		value    *capiv1.CAPITemplate
 		expected *capiv1_protos.Template
 		err      error
 	}{
 		{
 			name:  "empty",
-			value: "",
+			value: &capiv1.CAPITemplate{},
 			expected: &capiv1_protos.Template{
 				Provider: "",
 			},
 		},
 		{
 			name: "Basics",
-			value: `
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
-metadata:
-  name: foo
-`,
+			value: &capiv1.CAPITemplate{
+				TypeMeta: metav1.TypeMeta{
+					Kind: "CAPITemplate",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+				},
+			},
 			expected: &capiv1_protos.Template{
-				Name:     "foo",
-				Provider: "",
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
 			},
 		},
 		{
@@ -60,9 +63,10 @@ metadata:
 				}
 			}),
 			expected: &capiv1_protos.Template{
-				Name:        "cluster-template-1",
-				Description: "this is test template 1",
-				Provider:    "",
+				Name:         "cluster-template-1",
+				Description:  "this is test template 1",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						ApiVersion: "fooversion",
@@ -83,41 +87,48 @@ metadata:
 		},
 		{
 			name: "annotations",
-			value: `
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
-metadata:
-  annotations:
-    hi: there
-  name: foo
-`,
+			value: &capiv1.CAPITemplate{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "capi.weave.works/v1alpha1",
+					Kind:       "CAPITemplate",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+					Annotations: map[string]string{
+						"hi": "there",
+					},
+				},
+			},
 			expected: &capiv1_protos.Template{
-				Name:        "foo",
-				Provider:    "",
-				Annotations: map[string]string{"hi": "there"},
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
+				Annotations:  map[string]string{"hi": "there"},
 			},
 		},
 		{
 			name:  "With basic type errors",
 			value: makeErrorTemplate(t, `"derp"`),
 			expected: &capiv1_protos.Template{
-				Name:  "cluster-template-1",
-				Error: "Couldn't load template body: failed to unmarshal resourceTemplate: json: cannot unmarshal string into Go value of type map[string]interface {}",
+				Name:         "cluster-template-1",
+				TemplateKind: "CAPITemplate",
+				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: json: cannot unmarshal string into Go value of type map[string]interface {}",
 			},
 		},
 		{
 			name:  "With structural errors",
-			value: makeErrorTemplate(t, `{ "boop": "beep" }`),
+			value: makeErrorTemplate(t, `{"boop":"beep"}`),
 			expected: &capiv1_protos.Template{
-				Name:  "cluster-template-1",
-				Error: "Couldn't load template body: failed to unmarshal resourceTemplate: Object 'Kind' is missing in '{\"boop\":\"beep\"}'",
+				Name:         "cluster-template-1",
+				TemplateKind: "CAPITemplate",
+				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: Object 'Kind' is missing in '{\"boop\":\"beep\"}'",
 			},
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			result := ToTemplateResponse(mustParseBytes(t, tt.value))
+			result := ToTemplateResponse(tt.value)
 			if diff := cmp.Diff(tt.expected, result, protocmp.Transform()); diff != "" {
 				t.Fatalf("templates didn't match expected:\n%s", diff)
 			}
@@ -125,7 +136,7 @@ metadata:
 	}
 }
 
-func makeErrorTemplate(t *testing.T, rawData string) string {
+func makeErrorTemplate(t *testing.T, rawData string) *capiv1.CAPITemplate {
 	return makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 		ct.ObjectMeta.Name = "cluster-template-1"
 		ct.Spec.Description = ""
@@ -135,13 +146,4 @@ func makeErrorTemplate(t *testing.T, rawData string) string {
 			},
 		}
 	})
-}
-
-func mustParseBytes(t *testing.T, data string) *apitemplates.Template {
-	t.Helper()
-	parsed, err := templates.ParseBytes([]byte(data), "no-key-provided")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return parsed
 }

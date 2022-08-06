@@ -501,6 +501,10 @@ func local_request_ClustersService_ListCredentials_0(ctx context.Context, marsha
 
 }
 
+var (
+	filter_ClustersService_GetKubeconfig_0 = &utilities.DoubleArray{Encoding: map[string]int{"cluster_name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
+
 func request_ClustersService_GetKubeconfig_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetKubeconfigRequest
 	var metadata runtime.ServerMetadata
@@ -520,6 +524,13 @@ func request_ClustersService_GetKubeconfig_0(ctx context.Context, marshaler runt
 	protoReq.ClusterName, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_GetKubeconfig_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetKubeconfig(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -548,6 +559,13 @@ func local_request_ClustersService_GetKubeconfig_0(ctx context.Context, marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
 	}
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_GetKubeconfig_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := server.GetKubeconfig(ctx, &protoReq)
 	return msg, metadata, err
 
@@ -567,6 +585,40 @@ func local_request_ClustersService_GetEnterpriseVersion_0(ctx context.Context, m
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.GetEnterpriseVersion(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_ClustersService_CreateKustomizationsPullRequest_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateKustomizationsPullRequestRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.CreateKustomizationsPullRequest(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ClustersService_CreateKustomizationsPullRequest_0(ctx context.Context, marshaler runtime.Marshaler, server ClustersServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateKustomizationsPullRequestRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.CreateKustomizationsPullRequest(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -729,6 +781,10 @@ func local_request_ClustersService_ListPolicyValidations_0(ctx context.Context, 
 
 }
 
+var (
+	filter_ClustersService_GetPolicyValidation_0 = &utilities.DoubleArray{Encoding: map[string]int{"violation_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
+
 func request_ClustersService_GetPolicyValidation_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetPolicyValidationRequest
 	var metadata runtime.ServerMetadata
@@ -748,6 +804,13 @@ func request_ClustersService_GetPolicyValidation_0(ctx context.Context, marshale
 	protoReq.ViolationId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "violation_id", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_GetPolicyValidation_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetPolicyValidation(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -776,7 +839,50 @@ func local_request_ClustersService_GetPolicyValidation_0(ctx context.Context, ma
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "violation_id", err)
 	}
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_GetPolicyValidation_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := server.GetPolicyValidation(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_ClustersService_ListEvents_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ClustersService_ListEvents_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListEventsRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_ListEvents_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.ListEvents(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ClustersService_ListEvents_0(ctx context.Context, marshaler runtime.Marshaler, server ClustersServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListEventsRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ClustersService_ListEvents_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.ListEvents(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -1075,6 +1181,30 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("POST", pattern_ClustersService_CreateKustomizationsPullRequest_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreateKustomizationsPullRequest", runtime.WithHTTPPathPattern("/v1/enterprise/kustomizations"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ClustersService_CreateKustomizationsPullRequest_0(ctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ClustersService_CreateKustomizationsPullRequest_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ClustersService_GetConfig_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1192,6 +1322,30 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_ClustersService_GetPolicyValidation_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_ClustersService_ListEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListEvents", runtime.WithHTTPPathPattern("/v1/enterprise/events"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ClustersService_ListEvents_0(ctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ClustersService_ListEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -1488,6 +1642,27 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("POST", pattern_ClustersService_CreateKustomizationsPullRequest_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreateKustomizationsPullRequest", runtime.WithHTTPPathPattern("/v1/enterprise/kustomizations"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ClustersService_CreateKustomizationsPullRequest_0(ctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ClustersService_CreateKustomizationsPullRequest_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_ClustersService_GetConfig_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1593,6 +1768,27 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("GET", pattern_ClustersService_ListEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListEvents", runtime.WithHTTPPathPattern("/v1/enterprise/events"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ClustersService_ListEvents_0(ctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ClustersService_ListEvents_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -1621,6 +1817,8 @@ var (
 
 	pattern_ClustersService_GetEnterpriseVersion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "enterprise", "version"}, ""))
 
+	pattern_ClustersService_CreateKustomizationsPullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "enterprise", "kustomizations"}, ""))
+
 	pattern_ClustersService_GetConfig_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "config"}, ""))
 
 	pattern_ClustersService_ListPolicies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policies"}, ""))
@@ -1630,6 +1828,8 @@ var (
 	pattern_ClustersService_ListPolicyValidations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policyviolations"}, ""))
 
 	pattern_ClustersService_GetPolicyValidation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyviolations", "violation_id"}, ""))
+
+	pattern_ClustersService_ListEvents_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "enterprise", "events"}, ""))
 )
 
 var (
@@ -1657,6 +1857,8 @@ var (
 
 	forward_ClustersService_GetEnterpriseVersion_0 = runtime.ForwardResponseMessage
 
+	forward_ClustersService_CreateKustomizationsPullRequest_0 = runtime.ForwardResponseMessage
+
 	forward_ClustersService_GetConfig_0 = runtime.ForwardResponseMessage
 
 	forward_ClustersService_ListPolicies_0 = runtime.ForwardResponseMessage
@@ -1666,4 +1868,6 @@ var (
 	forward_ClustersService_ListPolicyValidations_0 = runtime.ForwardResponseMessage
 
 	forward_ClustersService_GetPolicyValidation_0 = runtime.ForwardResponseMessage
+
+	forward_ClustersService_ListEvents_0 = runtime.ForwardResponseMessage
 )

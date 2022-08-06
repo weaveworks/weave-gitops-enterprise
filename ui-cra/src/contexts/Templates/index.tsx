@@ -6,13 +6,10 @@ interface TemplatesContext {
   loading: boolean;
   activeTemplate: Template | null;
   setActiveTemplate: Dispatch<React.SetStateAction<Template | null>>;
-  error: string | null;
-  addCluster: (data: any, token: string) => Promise<any>;
-  renderTemplate: (data: any) => void;
+  addCluster: (data: any, token: string, templateKind: string) => Promise<any>;
+  renderTemplate: (data: any) => Promise<any>;
   getTemplate: (templateName: string) => Template | null;
-  PRPreview: string | null;
-  setPRPreview: Dispatch<React.SetStateAction<string | null>>;
-  setError: Dispatch<React.SetStateAction<string | null>>;
+  isLoading: boolean;
 }
 
 export const Templates = createContext<TemplatesContext | null>(null);

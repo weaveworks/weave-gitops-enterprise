@@ -10,19 +10,21 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
-func ToTemplateResponse(t *apitemplates.Template) *capiv1_proto.Template {
+func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 	var annotation string
-	switch t.Kind {
+	templateKind := t.GetObjectKind().GroupVersionKind().Kind
+	switch templateKind {
 	case capiv1.Kind:
 		annotation = templates.CAPIDisplayNameAnnotation
 	case gapiv1.Kind:
 		annotation = templates.GitOpsTemplateNameAnnotation
 	}
 	res := &capiv1_proto.Template{
-		Name:        t.GetName(),
-		Description: t.Spec.Description,
-		Provider:    getProvider(t, annotation),
-		Annotations: t.Annotations,
+		Name:         t.GetName(),
+		Description:  t.GetSpec().Description,
+		Provider:     getProvider(t, annotation),
+		Annotations:  t.GetAnnotations(),
+		TemplateKind: templateKind,
 	}
 
 	meta, err := templates.ParseTemplateMeta(t, annotation)

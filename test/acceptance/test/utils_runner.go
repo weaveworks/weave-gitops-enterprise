@@ -15,9 +15,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 // Interface that can be implemented either with:
@@ -89,11 +89,8 @@ func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, te
 	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files by database test runner")
 	By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := templates.ParseFile(fileName)
+			capiTemplate, err := parseCAPITemplateFromFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			capiTemplate := &capiv1.CAPITemplate{
-				Template: *template,
-			}
 			err = b.Client.Create(context.Background(), capiTemplate)
 			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
 		}
@@ -105,11 +102,8 @@ func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, te
 func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 	By("Delete CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := templates.ParseFile(fileName)
+			capiTemplate, err := parseCAPITemplateFromFile(fileName)
 			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			capiTemplate := &capiv1.CAPITemplate{
-				Template: *template,
-			}
 			err = b.Client.Delete(context.Background(), capiTemplate)
 			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
 		}
@@ -271,11 +265,17 @@ func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
 
 func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
 	// Restart the deployment pods
-	err := runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
-	if err == nil {
-		// Wait for all the deployments replicas to rolled out successfully
-		err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+	var err error
+	for i := 1; i < 5; i++ {
+		err = runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+		if err == nil {
+			// Wait for all the deployments replicas to rolled out successfully
+			err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+			break
+		}
+		time.Sleep(POLL_INTERVAL_1SECONDS)
 	}
+
 	return err
 }
 
@@ -371,4 +371,22 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 	}
 
 	return templateFiles, nil
+}
+
+func parseCAPITemplateFromBytes(b []byte) (*capiv1.CAPITemplate, error) {
+	var c capiv1.CAPITemplate
+	err := yaml.Unmarshal(b, &c)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+
+}
+
+func parseCAPITemplateFromFile(filename string) (*capiv1.CAPITemplate, error) {
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return parseCAPITemplateFromBytes(b)
 }

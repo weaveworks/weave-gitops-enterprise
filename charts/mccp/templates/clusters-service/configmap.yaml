@@ -7,7 +7,7 @@ data:
   CLUSTER_NAME: {{ .Values.config.cluster.name }}
   GIT_PROVIDER_TYPE: {{ .Values.config.git.type }}
   GIT_PROVIDER_HOSTNAME: {{ .Values.config.git.hostname }}
-  CAPI_CLUSTERS_NAMESPACE: {{ .Values.config.capi.clusters.namespace }}
+  CAPI_CLUSTERS_NAMESPACE: "{{ .Values.config.capi.clusters.namespace }}"
   CAPI_TEMPLATES_NAMESPACE: {{ .Values.config.capi.templates.namespace }}
   INJECT_PRUNE_ANNOTATION: {{ .Values.config.capi.templates.injectPruneAnnotation }}
   ADD_BASES_KUSTOMIZATION: {{ .Values.config.capi.templates.addBasesKustomization }}
@@ -16,6 +16,7 @@ data:
   CAPI_REPOSITORY_CLUSTERS_PATH: {{ .Values.config.capi.repositoryClustersPath | quote }}
   CAPI_TEMPLATES_REPOSITORY_API_URL: {{ .Values.config.capi.repositoryApiURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
+  CAPI_ENABLED: {{ .Values.global.capiEnabled | quote }}
   {{- if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1
   {{- end }}
@@ -28,7 +29,4 @@ data:
   {{- if and .Values.tls.enabled .Values.tls.secretName }}
   TLS_CERT_FILE: /etc/clusters-service-tls/tls.crt
   TLS_PRIVATE_KEY: /etc/clusters-service-tls/tls.key
-  {{- end }}
-  {{- if .Values.features.progressiveDelivery.enabled }}
-  ENABLE_PROGRESSIVE_DELIVERY: "1"
   {{- end }}

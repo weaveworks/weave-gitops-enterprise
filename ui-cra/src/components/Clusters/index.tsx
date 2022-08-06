@@ -4,11 +4,11 @@ import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { Tooltip } from '../Shared';
+import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { Link, useHistory } from 'react-router-dom';
 import useTemplates from '../../contexts/Templates';
-import { contentCss, ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import {
   Button,
@@ -28,11 +28,13 @@ import {
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import useVersions from '../../contexts/Versions';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Checkbox, withStyles } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
+import { useListConfig } from '../../hooks/versions';
+import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
+import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 
 interface Size {
   size?: 'small';
@@ -41,35 +43,27 @@ interface Size {
 const ActionsWrapper = styled.div<Size>`
   display: flex;
   & > * {
-    margin-right: ${theme.spacing.medium};
+    margin-right: ${({ theme }) => theme.spacing.medium};
   }
 `;
 
-const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
+const ClustersTableWrapper = styled(TableWrapper)`
   thead {
     th:first-of-type {
-      padding: ${theme.spacing.base};
+      padding: ${({ theme }) => theme.spacing.base};
     }
   }
   td:first-of-type {
     text-overflow: clip;
     width: 25px;
   }
-  td:nth-child(2) {
-    width: 650px;
+  td:nth-child(7) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
   a {
-    color: ${theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
   }
   max-width: calc(100vw - 220px);
 `;
@@ -86,13 +80,60 @@ export const PRdefaults = {
   commitMessage: 'Deletes capi cluster(s)',
 };
 
+export function computeMessage(conditions: Condition[]) {
+  const readyCondition = conditions.find(
+    c => c.type === 'Ready' || c.type === 'Available',
+  );
+
+  return readyCondition ? readyCondition.message : 'unknown error';
+}
+
+const IndividualCheckbox = withStyles({
+  root: {
+    color: theme.colors.primary,
+    '&$checked': {
+      color: theme.colors.primary,
+    },
+    '&$disabled': {
+      color: theme.colors.neutral20,
+    },
+  },
+  checked: {},
+  disabled: {},
+})(Checkbox);
+
+const ClusterRowCheckbox = ({
+  name,
+  namespace,
+  checked,
+  onChange,
+}: ClusterNamespacedName & { checked: boolean; onChange: any }) => (
+  <IndividualCheckbox
+    checked={checked}
+    onChange={useCallback(
+      ev => onChange({ name, namespace }, ev),
+      [name, namespace, onChange],
+    )}
+    name={name}
+  />
+);
+
+interface FormData {
+  url: string | null;
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+  pullRequestDescription: string;
+}
+
 const MCCP: FC = () => {
   const { clusters, isLoading, count, selectedClusters, setSelectedClusters } =
     useClusters();
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const { repositoryURL } = useVersions();
+  const { data } = useListConfig();
+  const repositoryURL = data?.repositoryURL || '';
   const [repoLink, setRepoLink] = useState<string>('');
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
@@ -100,19 +141,13 @@ const MCCP: FC = () => {
   );
   let selectedCapiClusters = useMemo(
     () =>
-      selectedClusters.filter(cls => capiClusters.find(c => c.name === cls)),
+      selectedClusters.filter(({ name, namespace }) =>
+        capiClusters.find(c => c.name === name && c.namespace === namespace),
+      ),
     [capiClusters, selectedClusters],
   );
 
   const authRedirectPage = `/clusters`;
-
-  interface FormData {
-    url: string | null;
-    branchName: string;
-    pullRequestTitle: string;
-    commitMessage: string;
-    pullRequestDescription: string;
-  }
 
   let initialFormData = {
     ...PRdefaults,
@@ -152,12 +187,15 @@ const MCCP: FC = () => {
 
   useEffect(() => {
     if (!callbackState) {
+      const prTitle = `Delete clusters: ${selectedCapiClusters
+        .map(c => `${c.namespace}/${c.name}`)
+        .join(', ')}`;
       setFormData((prevState: FormData) => ({
         ...prevState,
         url: repositoryURL,
-        pullRequestDescription: `Delete clusters: ${selectedCapiClusters
-          .map(c => c)
-          .join(', ')}`,
+        commitMessage: prTitle,
+        pullRequestTitle: prTitle,
+        pullRequestDescription: prTitle,
       }));
     }
 
@@ -178,46 +216,40 @@ const MCCP: FC = () => {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected =
-        clusters.map((cluster: GitopsClusterEnriched) => cluster.name || '') ||
-        [];
-      setSelectedClusters(newSelected);
+      setSelectedClusters(
+        clusters.map(({ name, namespace }: GitopsClusterEnriched) => ({
+          name,
+          namespace,
+        })),
+      );
       return;
     }
     setSelectedClusters([]);
   };
 
-  const handleIndividualClick = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    if (event.target.checked === true) {
-      setSelectedClusters((prevState: string[]) => [
-        ...prevState,
-        event.target.name,
-      ]);
-    } else {
-      setSelectedClusters((prevState: string[]) =>
-        prevState.filter(cls => event.target.name !== cls),
-      );
-    }
-  };
+  const handleIndividualClick = useCallback(
+    (
+      { name, namespace }: ClusterNamespacedName,
+      event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      if (event.target.checked === true) {
+        setSelectedClusters((prevState: ClusterNamespacedName[]) => [
+          ...prevState,
+          { name, namespace },
+        ]);
+      } else {
+        setSelectedClusters((prevState: ClusterNamespacedName[]) =>
+          prevState.filter(
+            cls => cls.name !== name && cls.namespace !== namespace,
+          ),
+        );
+      }
+    },
+    [setSelectedClusters],
+  );
 
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
-
-  const IndividualCheckbox = withStyles({
-    root: {
-      color: theme.colors.primary,
-      '&$checked': {
-        color: theme.colors.primary,
-      },
-      '&$disabled': {
-        color: theme.colors.neutral20,
-      },
-    },
-    checked: {},
-    disabled: {},
-  })(Checkbox);
 
   useEffect(() => {
     repositoryURL &&
@@ -244,7 +276,6 @@ const MCCP: FC = () => {
             path={[{ label: 'Clusters', url: 'clusters', count }]}
           />
           <ContentWrapper>
-            <Title>Connected clusters dashboard</Title>
             <div
               style={{
                 display: 'flex',
@@ -318,7 +349,7 @@ const MCCP: FC = () => {
               </a>
             </div>
             {!isLoading ? (
-              <TableWrapper id="clusters-list">
+              <ClustersTableWrapper id="clusters-list">
                 <FilterableTable
                   key={clusters.length}
                   filters={initialFilterState}
@@ -339,29 +370,36 @@ const MCCP: FC = () => {
                           }}
                         />
                       ),
-                      value: (c: GitopsClusterEnriched) => (
-                        <IndividualCheckbox
-                          checked={
-                            selectedClusters.indexOf(c.name ? c.name : '') !==
-                            -1
-                          }
+                      value: ({ name, namespace }: GitopsClusterEnriched) => (
+                        <ClusterRowCheckbox
+                          name={name}
+                          namespace={namespace}
                           onChange={handleIndividualClick}
-                          name={c.name}
+                          checked={Boolean(
+                            selectedClusters.find(
+                              cls =>
+                                cls.name === name &&
+                                cls.namespace === namespace,
+                            ),
+                          )}
                         />
                       ),
                       maxWidth: 25,
                     },
                     {
                       label: 'Name',
-                      value: (c: GitopsClusterEnriched) => (
-                        <Link
-                          to={`/cluster?clusterName=${c.name}`}
-                          color={theme.colors.primary}
-                          data-cluster-name={c.name}
-                        >
-                          {c.name}
-                        </Link>
-                      ),
+                      value: (c: GitopsClusterEnriched) =>
+                        c.controlPlane === true ? (
+                          <span data-cluster-name={c.name}>{c.name}</span>
+                        ) : (
+                          <Link
+                            to={`/cluster?clusterName=${c.name}`}
+                            color={theme.colors.primary}
+                            data-cluster-name={c.name}
+                          >
+                            {c.name}
+                          </Link>
+                        ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,
                       maxWidth: 275,
@@ -393,9 +431,17 @@ const MCCP: FC = () => {
                       sortType: SortType.number,
                       sortValue: statusSortHelper,
                     },
+                    {
+                      label: 'Message',
+                      value: (c: GitopsClusterEnriched) =>
+                        (c.conditions && c.conditions[0]?.message) || null,
+                      sortType: SortType.string,
+                      sortValue: ({ conditions }) => computeMessage(conditions),
+                      maxWidth: 600,
+                    },
                   ]}
                 />
-              </TableWrapper>
+              </ClustersTableWrapper>
             ) : (
               <LoadingWrapper>
                 <LoadingPage />

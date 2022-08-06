@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -49,12 +50,27 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				return nil, fmt.Errorf("failed to get capi-cluster: %w", err)
 			}
 
+			cpInitialized := false
+
+			for _, cond := range capiCluster.Status.Conditions {
+				if cond.Type == clusterv1.ControlPlaneInitializedCondition {
+					var err error
+					cpInitialized, err = strconv.ParseBool(string(cond.Status))
+					if err != nil {
+						return nil, fmt.Errorf(
+							"could not parse bool from '%s'. Check the %s condition of cluster %s/%s: %w",
+							cond.Status, cond.Type, capiCluster.Namespace, capiCluster.Name, err)
+					}
+				}
+			}
+
 			clusterStatus := &capiv1_proto.CapiClusterStatus{
-				Phase:               capiCluster.Status.Phase,
-				InfrastructureReady: capiCluster.Status.InfrastructureReady,
-				ControlPlaneReady:   capiCluster.Status.ControlPlaneReady,
-				ObservedGeneration:  capiCluster.Status.ObservedGeneration,
-				Conditions:          mapCapiConditions(capiCluster.Status.Conditions),
+				Phase:                   capiCluster.Status.Phase,
+				InfrastructureReady:     capiCluster.Status.InfrastructureReady,
+				ControlPlaneInitialized: cpInitialized,
+				ControlPlaneReady:       capiCluster.Status.ControlPlaneReady,
+				ObservedGeneration:      capiCluster.Status.ObservedGeneration,
+				Conditions:              mapCapiConditions(capiCluster.Status.Conditions),
 			}
 
 			capiClusterRes := &capiv1_proto.CapiCluster{

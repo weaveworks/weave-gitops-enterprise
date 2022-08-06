@@ -30,7 +30,7 @@ func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/clusters/templates"]`),
 		TemplateCount:         webDriver.FindByXPath(`//*[@href="/clusters/templates"]/parent::div[@role="heading"]/following-sibling::div`),
 		TemplateTiles:         webDriver.All(`[data-template-name]`),
-		TemplatesTable:        webDriver.All(`#templates-list tr[data-template-name]`),
+		TemplatesTable:        webDriver.All(`#templates-list tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
 		TemplateProviderPopup: webDriver.All(`ul#filter-by-provider-popup li`),
 		TemplateView:          webDriver.All(`main > div > div > div > svg`),
@@ -70,12 +70,12 @@ func (t TemplatesPage) GetTemplateTileList() []string {
 }
 
 func GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
-	tileRow := webDriver.Find(fmt.Sprintf(`tr.summary[data-template-name="%s"]`, templateName))
+	tileRow := webDriver.FindByXPath(fmt.Sprintf(`//tr//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
 	return &TemplateRecord{
 		Name:             templateName,
-		Provider:         tileRow.FindByXPath(`td[2]`),
-		Description:      tileRow.FindByXPath(`td[3]`),
-		CreateTemplate:   tileRow.FindByXPath(`td[4]/button[@id="create-cluster"]`),
+		Provider:         tileRow.FindByXPath(`td[3]`),
+		Description:      tileRow.FindByXPath(`td[4]`),
+		CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
 		ErrorHeader:      tileRow.Find(`.template-error-header`),
 		ErrorDescription: tileRow.Find(`.template-error-description`),
 	}

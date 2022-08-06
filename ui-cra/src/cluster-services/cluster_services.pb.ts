@@ -62,6 +62,7 @@ export type RenderTemplateRequest = {
   values?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
+  clusterNamespace?: string
 }
 
 export type RenderTemplateResponse = {
@@ -93,6 +94,7 @@ export type ListPoliciesRequest = {
 
 export type GetPolicyResponse = {
   policy?: Policy
+  clusterName?: string
 }
 
 export type ListPoliciesResponse = {
@@ -103,20 +105,30 @@ export type ListPoliciesResponse = {
 }
 
 export type ListPolicyValidationsRequest = {
-  clusterId?: string
+  clusterName?: string
+  pagination?: Pagination
+  application?: string
+  namespace?: string
 }
 
 export type ListPolicyValidationsResponse = {
   violations?: PolicyValidation[]
   total?: number
+  nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type GetPolicyValidationRequest = {
   violationId?: string
+  clusterName?: string
 }
 
 export type GetPolicyValidationResponse = {
   violation?: PolicyValidation
+}
+
+export type PolicyValidationOccurrence = {
+  message?: string
 }
 
 export type PolicyValidation = {
@@ -132,6 +144,8 @@ export type PolicyValidation = {
   description?: string
   howToSolve?: string
   name?: string
+  clusterName?: string
+  occurrences?: PolicyValidationOccurrence[]
 }
 
 export type CreatePullRequestRequest = {
@@ -146,10 +160,32 @@ export type CreatePullRequestRequest = {
   credentials?: Credential
   values?: ProfileValues[]
   repositoryApiUrl?: string
+  clusterNamespace?: string
+  kustomizations?: Kustomization[]
 }
 
 export type CreatePullRequestResponse = {
   webUrl?: string
+}
+
+export type Kustomization = {
+  metadata?: Metadata
+  spec?: Spec
+}
+
+export type Metadata = {
+  name?: string
+  namespace?: string
+}
+
+export type Spec = {
+  path?: string
+  sourceRef?: SourceRef
+}
+
+export type SourceRef = {
+  name?: string
+  namespace?: string
 }
 
 export type CreateTfControllerPullRequestRequest = {
@@ -168,6 +204,11 @@ export type CreateTfControllerPullRequestResponse = {
   webUrl?: string
 }
 
+export type ClusterNamespacedName = {
+  namespace?: string
+  name?: string
+}
+
 export type DeleteClustersPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -178,6 +219,7 @@ export type DeleteClustersPullRequestRequest = {
   commitMessage?: string
   credentials?: Credential
   repositoryApiUrl?: string
+  clusterNamespacedNames?: ClusterNamespacedName[]
 }
 
 export type DeleteClustersPullRequestResponse = {
@@ -194,6 +236,7 @@ export type ListCredentialsResponse = {
 
 export type GetKubeconfigRequest = {
   clusterName?: string
+  clusterNamespace?: string
 }
 
 export type GetKubeconfigResponse = {
@@ -270,6 +313,8 @@ export type Parameter = {
 export type TemplateProfile = {
   name?: string
   version?: string
+  editable?: boolean
+  values?: string
 }
 
 export type TemplateObject = {
@@ -285,6 +330,27 @@ export type GetEnterpriseVersionRequest = {
 
 export type GetEnterpriseVersionResponse = {
   version?: string
+}
+
+export type CreateKustomizationsPullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  commitMessage?: string
+  repositoryApiUrl?: string
+  clusterKustomizations?: ClusterKustomization[]
+}
+
+export type ClusterKustomization = {
+  cluster?: ClusterNamespacedName
+  isControlPlane?: boolean
+  kustomization?: Kustomization
+}
+
+export type CreateKustomizationsPullRequestResponse = {
+  webUrl?: string
 }
 
 export type Maintainer = {
@@ -370,6 +436,31 @@ export type Policy = {
   clusterName?: string
 }
 
+export type ObjectRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type Event = {
+  type?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+  component?: string
+  host?: string
+  name?: string
+}
+
+export type ListEventsRequest = {
+  involvedObject?: ObjectRef
+  clusterName?: string
+}
+
+export type ListEventsResponse = {
+  events?: Event[]
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -407,6 +498,9 @@ export class ClustersService {
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
+  static CreateKustomizationsPullRequest(req: CreateKustomizationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateKustomizationsPullRequestResponse> {
+    return fm.fetchReq<CreateKustomizationsPullRequestRequest, CreateKustomizationsPullRequestResponse>(`/v1/enterprise/kustomizations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
@@ -421,5 +515,8 @@ export class ClustersService {
   }
   static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
     return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyviolations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
+  }
+  static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

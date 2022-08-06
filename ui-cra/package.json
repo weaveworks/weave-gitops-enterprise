@@ -12,8 +12,6 @@
     "@material-ui/lab": "^4.0.0-alpha.58",
     "@material-ui/styles": "^4.11.4",
     "@primer/octicons-react": "9.6.0",
-    "@rjsf/core": "^2.5.1",
-    "@rjsf/material-ui": "^2.5.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@types/classnames": "^2.3.1",
     "@types/d3-scale": "^3.2.2",
@@ -25,7 +23,7 @@
     "@types/react-router-dom": "^5.1.7",
     "@types/react-syntax-highlighter": "^13.5.2",
     "@types/styled-components": "^5.1.9",
-    "@weaveworks/progressive-delivery": "^0.0.0-rc8",
+    "@weaveworks/progressive-delivery": "0.0.0-rc12",
     "@weaveworks/weave-gitops": "weaveworks/weave-gitops#esm-module",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
@@ -92,12 +90,20 @@
     ]
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^1.3.2",
+    "@testing-library/react": "^12.1.5",
+    "@types/react-syntax-highlighter": "^13.5.2",
     "express": "^4.17.1",
     "http-proxy-middleware": "^2.0.0",
-    "prettier": "^2.3.0",
+    "@vitejs/plugin-react": "^1.3.2",
     "vite": "^2.9.9",
     "vite-plugin-static-copy": "^0.5.0",
-    "vite-tsconfig-paths": "^3.5.0"
+    "vite-tsconfig-paths": "^3.5.0",
+    "jest-styled-components": "^7.0.8",
+    "prettier": "^2.3.0"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!coy)/"
+    ]
   }
 }

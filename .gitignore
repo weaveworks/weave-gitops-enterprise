@@ -16,6 +16,7 @@
 tools/bin
 
 node_modules
+tilt_modules
 
 # Ignore binary dependencies
 /setup/wk-quickstart/bin/

@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
@@ -33,7 +34,7 @@ func TestListPolicies(t *testing.T) {
 			name: "list policies",
 			clusterState: []runtime.Object{
 				makePolicy(t),
-				makePolicy(t, func(p *pacv1.Policy) {
+				makePolicy(t, func(p *pacv2beta1.Policy) {
 					p.ObjectMeta.Name = "weave.policies.missing-app-label"
 					p.Spec.Name = "Missing app Label"
 					p.Spec.Severity = "medium"
@@ -76,12 +77,12 @@ func TestListPolicies(t *testing.T) {
 		{
 			name: "list policies with parameter type string",
 			clusterState: []runtime.Object{
-				makePolicy(t, func(p *pacv1.Policy) {
+				makePolicy(t, func(p *pacv2beta1.Policy) {
 					strBytes, err := json.Marshal("value")
 					if err != nil {
 						t.Fatal(err)
 					}
-					p.Spec.Parameters = append(p.Spec.Parameters, pacv1.PolicyParameters{
+					p.Spec.Parameters = append(p.Spec.Parameters, pacv2beta1.PolicyParameters{
 						Name:  "key",
 						Type:  "string",
 						Value: &apiextensionsv1.JSON{Raw: strBytes},
@@ -118,12 +119,12 @@ func TestListPolicies(t *testing.T) {
 		{
 			name: "list policies with parameter type integer",
 			clusterState: []runtime.Object{
-				makePolicy(t, func(p *pacv1.Policy) {
+				makePolicy(t, func(p *pacv2beta1.Policy) {
 					intBytes, err := json.Marshal(1)
 					if err != nil {
 						t.Fatal(err)
 					}
-					p.Spec.Parameters = append(p.Spec.Parameters, pacv1.PolicyParameters{
+					p.Spec.Parameters = append(p.Spec.Parameters, pacv2beta1.PolicyParameters{
 						Name:  "key",
 						Type:  "integer",
 						Value: &apiextensionsv1.JSON{Raw: intBytes},
@@ -160,12 +161,12 @@ func TestListPolicies(t *testing.T) {
 		{
 			name: "list policies with parameter type boolean",
 			clusterState: []runtime.Object{
-				makePolicy(t, func(p *pacv1.Policy) {
+				makePolicy(t, func(p *pacv2beta1.Policy) {
 					boolBytes, err := json.Marshal(false)
 					if err != nil {
 						t.Fatal(err)
 					}
-					p.Spec.Parameters = append(p.Spec.Parameters, pacv1.PolicyParameters{
+					p.Spec.Parameters = append(p.Spec.Parameters, pacv2beta1.PolicyParameters{
 						Name:  "key",
 						Type:  "boolean",
 						Value: &apiextensionsv1.JSON{Raw: boolBytes},
@@ -202,12 +203,12 @@ func TestListPolicies(t *testing.T) {
 		{
 			name: "list policies with parameter type array",
 			clusterState: []runtime.Object{
-				makePolicy(t, func(p *pacv1.Policy) {
+				makePolicy(t, func(p *pacv2beta1.Policy) {
 					sliceBytes, err := json.Marshal([]string{"value"})
 					if err != nil {
 						t.Fatal(err)
 					}
-					p.Spec.Parameters = append(p.Spec.Parameters, pacv1.PolicyParameters{
+					p.Spec.Parameters = append(p.Spec.Parameters, pacv2beta1.PolicyParameters{
 						Name:  "key",
 						Type:  "array",
 						Value: &apiextensionsv1.JSON{Raw: sliceBytes},
@@ -247,20 +248,43 @@ func TestListPolicies(t *testing.T) {
 				makePolicy(t),
 			},
 			expected: &capiv1_proto.ListPoliciesResponse{
-				Policies: []*capiv1_proto.Policy{},
-				Total:    int32(0),
+				Policies: []*capiv1_proto.Policy{
+					{
+						Name:      "Missing Owner Label",
+						Severity:  "high",
+						Code:      "foo",
+						CreatedAt: "0001-01-01T00:00:00Z",
+						Targets: &capiv1_proto.PolicyTargets{
+							Labels: []*capiv1_proto.PolicyTargetLabel{
+								{
+									Values: map[string]string{"my-label": "my-value"},
+								},
+							},
+						},
+						ClusterName: "Default",
+					},
+				},
+				Total: int32(1),
 			},
+			clusterName: "Default",
+		},
+		{
+			name: "list policies with invalid cluster filtering",
+			clusterState: []runtime.Object{
+				makePolicy(t),
+			},
+			err:         errors.New("error while listing policies for cluster wrong: cluster wrong not found"),
 			clusterName: "wrong",
 		},
 		{
 			name: "list policies with invalid parameter type",
 			clusterState: []runtime.Object{
-				makePolicy(t, func(p *pacv1.Policy) {
+				makePolicy(t, func(p *pacv2beta1.Policy) {
 					strBytes, err := json.Marshal("value")
 					if err != nil {
 						t.Fatal(err)
 					}
-					p.Spec.Parameters = append(p.Spec.Parameters, pacv1.PolicyParameters{
+					p.Spec.Parameters = append(p.Spec.Parameters, pacv2beta1.PolicyParameters{
 						Name:  "key",
 						Type:  "invalid",
 						Value: &apiextensionsv1.JSON{Raw: strBytes},
@@ -274,8 +298,16 @@ func TestListPolicies(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			clientsPool := &clustersmngrfakes.FakeClientsPool{}
 			fakeCl := createClient(t, tt.clusterState...)
-			clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
+			clients := map[string]client.Client{"Default": fakeCl}
+			clientsPool.ClientsReturns(clients)
 			clientsPool.ClientReturns(fakeCl, nil)
+			clientsPool.ClientStub = func(name string) (client.Client, error) {
+				if c, found := clients[name]; found && c != nil {
+					return c, nil
+				}
+
+				return nil, fmt.Errorf("cluster %s not found", name)
+			}
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 
 			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}

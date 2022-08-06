@@ -1,4 +1,30 @@
+import { TableCell, TableRow } from '@material-ui/core';
 import { useCanaryStyle } from '../CanaryStyles';
+
+export function KeyValueRow({ entryObj }: { entryObj: Array<any> }): JSX.Element {
+  const [key, val] = entryObj;
+  return (
+    <TableRow key={key} data-testid={key} style={{
+      height:'40px'
+    }}>
+      <TableCell
+        style={{
+          textTransform: 'capitalize',
+          width: '30%',
+        }}
+      >
+        {key.replace(/([a-z])([A-Z])/g, '$1 $2')}
+      </TableCell>
+      <TableCell
+        style={{
+          width: '70%',
+        }}
+      >
+        {val}
+      </TableCell>
+    </TableRow>
+  );
+}
 
 function CanaryRowHeader({
   children,
@@ -7,11 +33,11 @@ function CanaryRowHeader({
 }: {
   children?: any;
   rowkey: string;
-  value: string | undefined;
+  value: string | JSX.Element | undefined;
 }) {
   const classes = useCanaryStyle();
   return (
-    <div className={classes.rowHeaderWrapper}>
+    <div className={classes.rowHeaderWrapper} data-testid={rowkey}>
       <div className={classes.cardTitle}>{rowkey}:</div>
       <span className={classes.body1}>
         {value || '--'} {children}

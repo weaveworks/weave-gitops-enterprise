@@ -1,18 +1,17 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
 import { Tooltip as Mtooltip, TooltipProps } from '@material-ui/core';
 
 export const Code = styled.div`
   display: flex;
   align-self: center;
   padding: 16px;
-  background-color: ${theme.colors.white};
-  font-family: ${theme.fontFamilies.monospace};
-  border: 1px solid ${theme.colors.neutral20};
-  border-radius: ${theme.borderRadius.soft};
+  background-color: ${({ theme }) => theme.colors.white};
+  font-family: ${({ theme }) => theme.fontFamilies.monospace};
+  border: 1px solid ${({ theme }) => theme.colors.neutral20};
+  border-radius: ${({ theme }) => theme.borderRadius.soft};
   overflow: auto;
-  font-size: ${theme.fontSizes.small};
+  font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
 const TooltipStyle = styled.div`
@@ -44,3 +43,17 @@ export const ColumnHeaderTooltip: FC<TooltipProps> = ({
     {children}
   </Tooltip>
 );
+
+export const TableWrapper = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.medium};
+  div[class*='FilterDialog__SlideContainer'],
+  div[class*='SearchField'] {
+    overflow: hidden;
+  }
+  div[class*='FilterDialog'] {
+    .Mui-checked {
+      color: ${({ theme }) => theme.colors.primary};
+    }
+  }
+  max-width: calc(100vw - 220px);
+`;

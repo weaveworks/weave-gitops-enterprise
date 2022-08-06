@@ -1,4 +1,21 @@
-import { GitopsCluster } from '../cluster-services/cluster_services.pb';
+import {
+  DeleteClustersPullRequestRequest,
+  GitopsCluster,
+} from '../cluster-services/cluster_services.pb';
+
+//
+// Utils
+//
+
+// Make certain fields of a type required.
+// Useful for adapting grpc-gateway-ts fields which are ALL always optional.
+// We can mark those we know will always be returned as required
+//
+type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
+//
+// Types
+//
 
 export type Credential = {
   group?: string;
@@ -41,14 +58,21 @@ export type Profile = {
 
 export type ListProfilesResponse = {
   profiles?: Profile[];
+  code?: number;
 };
 
 export type UpdatedProfile = {
   name: Profile['name'];
+  editable?: boolean;
   values: { version: string; yaml: string; selected?: boolean }[];
   required: boolean;
   layer?: string;
   namespace?: string;
+};
+
+export type ListProfileValuesResponse = {
+  message: string;
+  success: boolean;
 };
 
 export type ChildrenOccurences = {
@@ -63,9 +87,15 @@ export interface CAPICluster {
 
 export interface GitopsClusterEnriched extends GitopsCluster {
   name: string;
+  namespace: string;
   type: string;
   updatedAt: string;
 }
+
+export type DeleteClustersPRRequestEnriched = WithRequired<
+  DeleteClustersPullRequestRequest,
+  'headBranch' | 'title' | 'commitMessage' | 'description'
+>;
 
 export type ListGitopsClustersResponseEnriched = {
   gitopsClusters: GitopsClusterEnriched[];

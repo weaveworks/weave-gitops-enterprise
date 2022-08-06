@@ -75,44 +75,20 @@ func waitForProfiles(ctx context.Context, timeout time.Duration) error {
 	}, waitCtx.Done())
 }
 
-func setParameterValues(createPage *pages.CreateCluster, paramSection map[string][]TemplateField) {
-	for section, parameters := range paramSection {
-		By(fmt.Sprintf("And set template section %s parameter values", section), func() {
-			templateSection := createPage.GetTemplateSection(webDriver, section)
-			Eventually(templateSection.Name).Should(HaveText(section))
-
-			if len(parameters) == 0 {
-				Expect(len(templateSection.Fields)).To(BeNumerically("==", 0), fmt.Sprintf("No form fields should be visible for section %s", section))
+func setParameterValues(createPage *pages.CreateCluster, parameters []TemplateField) {
+	for i := 0; i < len(parameters); i++ {
+		if parameters[i].Option != "" {
+			selectOption := func() bool {
+				_ = createPage.GetTemplateParameter(webDriver, parameters[i].Name).ListBox.Click()
+				time.Sleep(POLL_INTERVAL_100MILLISECONDS)
+				visible, _ := pages.GetOption(webDriver, parameters[i].Option).Visible()
+				return visible
 			}
-
-			for i := 0; i < len(parameters); i++ {
-				paramSet := false
-				for j := 0; j < len(templateSection.Fields); j++ {
-					val, _ := templateSection.Fields[j].Label.Text()
-					if strings.Contains(val, parameters[i].Name) {
-						By("And set template parameter values", func() {
-							if parameters[i].Option != "" {
-								if pages.ElementExist(templateSection.Fields[j].ListBox) {
-									selectOption := func() bool {
-										_ = templateSection.Fields[j].ListBox.Click()
-										time.Sleep(POLL_INTERVAL_100MILLISECONDS)
-										visible, _ := pages.GetOption(webDriver, parameters[i].Option).Visible()
-										return visible
-									}
-									Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s' in section '%s' ", parameters[i].Name, section))
-									Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(Succeed())
-									paramSet = true
-								}
-							} else {
-								Expect(templateSection.Fields[j].Field.SendKeys(parameters[i].Value)).To(Succeed())
-								paramSet = true
-							}
-						})
-					}
-				}
-				Expect(paramSet).Should(BeTrue(), fmt.Sprintf("Parameter '%s' isn't found in section '%s' ", parameters[i].Name, section))
-			}
-		})
+			Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s'", parameters[i].Name))
+			Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(Succeed())
+		} else {
+			Expect(createPage.GetTemplateParameter(webDriver, parameters[i].Name).Field.SendKeys(parameters[i].Value)).To(Succeed())
+		}
 	}
 }
 
@@ -214,7 +190,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And I should change the templates view to 'table'", func() {
 					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
 					rowCount, _ := templatesPage.TemplatesTable.Count()
-					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of rows rendered should be equal to number of templates created")
 
 				})
 
@@ -223,22 +199,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					for i := 0; i < totalTemplateCount; i++ {
 						Expect(actual_list[i]).Should(ContainSubstring(ordered_template_list[i]))
 					}
-				})
-
-				By("And templates can be filtered by provider - table view", func() {
-					// Select cluster provider by selecting from the popup list
-					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.SelectProvider("aws").Click()).To(Succeed())
-
-					rowCount, _ := templatesPage.TemplatesTable.Count()
-					Eventually(rowCount).Should(Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
-
-					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
-
-					rowCount, _ = templatesPage.TemplateTiles.Count()
-					Eventually(rowCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
-
 				})
 
 				By("And I should change the templates view to 'grid'", func() {
@@ -426,17 +386,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				region := "east"
 				sshKey := "abcdef1234567890"
 				k8Version := "1.19.7"
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
 						Option: "",
 					},
-				}
-				paramSection["2.Cluster"] = nil
-				paramSection["3.AWSManagedCluster"] = nil
-				paramSection["4.AWSManagedControlPlane"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  region,
@@ -453,15 +409,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Option: "",
 					},
 				}
-				paramSection["5.AWSFargateProfile"] = nil
 
-				setParameterValues(createPage, paramSection)
+				setParameterValues(createPage, parameters)
 
 				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Text).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
 					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
@@ -511,8 +468,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				controlPlaneMachineCount := "3"
 				workerMachineCount := "3"
 
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -523,8 +479,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  namespace,
 						Option: "",
 					},
-				}
-				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "",
@@ -535,8 +489,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  "",
 						Option: k8Version,
 					},
-				}
-				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -544,11 +496,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, paramSection)
+				setParameterValues(createPage, parameters)
 
 				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
 
@@ -564,10 +520,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					pages.ScrollWindow(webDriver, 0, 4000)
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
@@ -597,7 +556,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				By("And the manifests are present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/quick-capi/%s.yaml", repoAbsolutePath, clusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
@@ -638,8 +597,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				controlPlaneMachineCount := "2"
 				workerMachineCount := "2"
 
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -650,8 +608,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  namespace,
 						Option: "",
 					},
-				}
-				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "",
@@ -662,8 +618,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  "",
 						Option: k8Version,
 					},
-				}
-				paramSection["8.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -671,7 +625,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, paramSection)
+				// Delete authenticating once the form reset issue is fixed
+				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+
+				setParameterValues(createPage, parameters)
 
 				//Pull request values
 				prTitle := "My first pull request"
@@ -684,10 +641,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					pages.ScrollWindow(webDriver, 0, 4000)
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(branchName)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
@@ -784,16 +744,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				awsControlMAchineType := "t4g.large"
 				awsNodeMAchineType := "t3.micro"
 
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  awsClusterName,
 						Option: "",
 					},
-				}
-				paramSection["2.Cluster"] = nil
-				paramSection["3.AWSCluster"] = []TemplateField{
 					{
 						Name:   "AWS_REGION",
 						Value:  awsRegion,
@@ -809,9 +765,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  awsNamespace,
 						Option: "",
 					},
-				}
-
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -822,25 +775,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  awsK8version,
 						Option: "",
 					},
-				}
-
-				paramSection["5.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  awsControlMAchineType,
 						Option: "",
 					},
-				}
-
-				paramSection["6.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
 						Option: "",
 					},
-				}
-
-				paramSection["7.AWSMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AWS_NODE_MACHINE_TYPE",
 						Value:  awsNodeMAchineType,
@@ -848,11 +792,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, paramSection)
+				setParameterValues(createPage, parameters)
 
 				By("Then I should see PR preview containing identity reference added in the template", func() {
-					Eventually(createPage.PreviewPR.Click).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
@@ -906,8 +854,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				azureControlMAchineType := "Standard_D2s_v3"
 				azureNodeMAchineType := "Standard_D4_v4"
 
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  azureClusterName,
@@ -918,9 +865,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  azureNamespace,
 						Option: "",
 					},
-				}
-
-				paramSection["4.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "2",
@@ -931,25 +875,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  "",
 						Option: azureK8version,
 					},
-				}
-
-				paramSection["5.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_CONTROL_PLANE_MACHINE_TYPE",
 						Value:  "",
 						Option: azureControlMAchineType,
 					},
-				}
-
-				paramSection["6.MachineDeployment"] = []TemplateField{
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  "3",
 						Option: "",
 					},
-				}
-
-				paramSection["7.AzureMachineTemplate"] = []TemplateField{
 					{
 						Name:   "AZURE_NODE_MACHINE_TYPE",
 						Value:  "",
@@ -957,11 +892,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, paramSection)
+				setParameterValues(createPage, parameters)
 
 				By("Then I should see PR preview without identity reference added to the template", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Title).Should(MatchText("PR Preview"))
 
@@ -973,29 +912,40 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
-			clusterNamespace := map[string]string{
-				GitProviderGitLab: "default",
-				// GitProviderGitHub: "github-system", (FIXME: there is an existing bug #563)
+			var clusterBootstrapCopnfig string
+			var clusterResourceSet string
+			var crsConfigmap string
+
+			clusterNamespaces := map[string]string{
+				GitProviderGitLab: "capi-test-system",
 				GitProviderGitHub: "default",
 			}
-
+			bootstrapLabel := "bootstrap"
+			patSecret := "capi-pat"
 			capdClusterName := "ui-end-to-end-capd-cluster"
 			downloadedKubeconfigPath := getDownloadedKubeconfigPath(capdClusterName)
-			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
 
 			JustBeforeEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
-				logger.Info("Connecting cluster to itself")
+				createNamespace([]string{clusterNamespaces[gitProviderEnv.Type]})
+				createPATSecret(clusterNamespaces[gitProviderEnv.Type], patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(capdClusterName, clusterNamespaces[gitProviderEnv.Type], bootstrapLabel, patSecret)
+				clusterResourceSet = createClusterResourceSet(capdClusterName, clusterNamespaces[gitProviderEnv.Type])
+				crsConfigmap = createCRSConfigmap(capdClusterName, clusterNamespaces[gitProviderEnv.Type])
 			})
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
+				deleteSecret([]string{patSecret}, clusterNamespaces[gitProviderEnv.Type])
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
 
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters([]string{capdClusterName})
+				removeGitopsCapiClusters([]string{capdClusterName}, clusterNamespaces[gitProviderEnv.Type])
 			})
 
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
@@ -1006,7 +956,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd-observability.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -1016,7 +966,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-observability-0")
+					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
 					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
 				})
 
@@ -1028,13 +978,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				// Parameter values
 				clusterName := capdClusterName
-				namespace := clusterNamespace[gitProviderEnv.Type]
+				clusterNamespace := clusterNamespaces[gitProviderEnv.Type]
 				k8Version := "1.23.3"
 				controlPlaneMachineCount := "1"
 				workerMachineCount := "1"
 
-				paramSection := make(map[string][]TemplateField)
-				paramSection["1.GitopsCluster"] = []TemplateField{
+				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
 						Value:  clusterName,
@@ -1042,11 +991,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 					{
 						Name:   "NAMESPACE",
-						Value:  namespace,
+						Value:  clusterNamespace,
 						Option: "",
 					},
-				}
-				paramSection["5.KubeadmControlPlane"] = []TemplateField{
 					{
 						Name:   "CONTROL_PLANE_MACHINE_COUNT",
 						Value:  "",
@@ -1057,8 +1004,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						Value:  "",
 						Option: k8Version,
 					},
-				}
-				paramSection["8.MachineDeployment"] = []TemplateField{
+					{
+						Name:   "CONTROL_PLANE_MACHINE_COUNT",
+						Value:  "",
+						Option: controlPlaneMachineCount,
+					},
+					{
+						Name:   "KUBERNETES_VERSION",
+						Value:  "",
+						Option: k8Version,
+					},
 					{
 						Name:   "WORKER_MACHINE_COUNT",
 						Value:  workerMachineCount,
@@ -1066,25 +1021,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				setParameterValues(createPage, paramSection)
-				pages.ScrollWindow(webDriver, 0, 4000)
+				setParameterValues(createPage, parameters)
 
-				// FIXME: Workaround for #626 double HelmRelease enteries in profiles.yaml
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-				pages.ScrollWindow(webDriver, 0, 4000)
-
-				By("And select the podinfo profile to install", func() {
-					Eventually(createPage.ProfileSelect.Click).Should(Succeed())
-					Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
-					pages.DissmissProfilePopup(webDriver)
-				})
-
-				By("And verify selected podinfo profile values.yaml", func() {
-					profile := pages.GetProfile(webDriver, "podinfo")
-
-					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "6.0.1").Click).Should(Succeed())
-
+				pages.ScrollWindow(webDriver, 0, 500)
+				By("And verify default podinfo profile values.yaml", func() {
+					profile := createPage.FindProfileInList("podinfo")
 					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
 
 					Eventually(profile.Values.Click).Should(Succeed())
@@ -1095,27 +1036,67 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
-				By("And verify default observability profile values.yaml", func() {
-					profile := pages.GetProfile(webDriver, "observability")
+				By("And select the cert-manager profile to install", func() {
+					profile := createPage.FindProfileInList("cert-manager")
+					Eventually(profile.Checkbox.Click).Should(Succeed(), "Failed to select the cert-manager profile")
+				})
+
+				By("And verify selected cert-manager profile values.yaml", func() {
+					profile := createPage.FindProfileInList("cert-manager")
+
+					Eventually(profile.Version.Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "0.0.7").Click).Should(Succeed(), "Failed to select cert-manager version: 0.0.7")
+
 					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-0"))
+					Expect(profile.Namespace.SendKeys("cert-manager")).To(Succeed())
 
 					Eventually(profile.Values.Click).Should(Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("observability"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("kube-prometheus-stack:"))
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("cert-manager"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("installCRDs: true"))
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
-				By("Then I should preview the PR", func() {
-					Expect(createPage.PreviewPR.Click()).To(Succeed())
-					preview := pages.GetPreview(webDriver)
+				By("And select the weave-policy-agent profile to install", func() {
+					profile := createPage.FindProfileInList("weave-policy-agent")
+					Eventually(profile.Checkbox.Click).Should(Succeed(), "Failed to select the weave-policy-agent profile")
+				})
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+				By("And verify selected weave-policy-agent profile values.yaml", func() {
+					profile := createPage.FindProfileInList("weave-policy-agent")
+
+					Eventually(profile.Version.Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "0.3.1").Click).Should(Succeed(), "Failed to select weave-policy-agent version: 0.3.1")
+
+					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
+					Expect(profile.Namespace.SendKeys("policy-system")).To(Succeed())
+
+					Eventually(profile.Values.Click).Should(Succeed())
+					valuesYaml := pages.GetValuesYaml(webDriver)
+
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("weave-policy-agent"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("namespace: policy-system"))
+
+					text, _ := valuesYaml.TextArea.Text()
+					text = strings.ReplaceAll(text, `accountId: ""`, `accountId: "weaveworks"`)
+					text = strings.ReplaceAll(text, `clusterId: ""`, fmt.Sprintf(`clusterId: "%s"`, clusterName))
+					Expect(valuesYaml.TextArea.Clear()).To(Succeed())
+					Expect(valuesYaml.TextArea.SendKeys(text)).To(Succeed(), "Failed to change values.yaml for weave-policy-agent profile")
+
+					Eventually(valuesYaml.Save.Click).Should(Succeed(), "Failed to save values.yaml for weave-policy-agent profile")
+				})
+
+				By("Then I should preview the PR", func() {
+					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
 
 					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
 					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
 
@@ -1129,17 +1110,20 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(gitops.GitOpsLabel).Should(BeFound())
 
 					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
 					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
 					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
 					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
 					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
 					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					Eventually(gitops.GitCredentials).Should(BeVisible())
 
 					// Wait for template to be reloaded before submitting
-					Eventually(webDriver.Find("#root_CLUSTER_NAME-label")).Should(BeFound())
+					Eventually(createPage.GetTemplateParameter(webDriver, parameters[0].Name).Label).Should(BeVisible(), "Create cluseter page failed to render after git provider authentication")
 
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
@@ -1156,20 +1140,17 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
-					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f %s %s", kustomizationFile, path.Join(repoAbsolutePath, clusterPath)))
-					gitUpdateCommitPush(repoAbsolutePath, "")
-				})
-
 				By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
+					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
 					TakeScreenShot("capi-cluster-ready")
 				})
 
+				clusterInfo := pages.GetClustersPage(webDriver).FindClusterInList(clusterName)
+				verifyDashboard(clusterInfo.GetDashboard("prometheus"), clusterName, "Prometheus")
+
 				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					clusterInfo := clustersPage.FindClusterInList(clusterName)
 					Expect(clusterInfo.Name.Click()).To(Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
 					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
@@ -1193,14 +1174,44 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
 					// List of Profiles in order of layering
-					profiles := []string{"observability", "podinfo"}
-					verifyCapiClusterHealth(downloadedKubeconfigPath, clusterName, profiles, GITOPS_DEFAULT_NAMESPACE)
+					profiles := []string{"podinfo", "cert-manager", "weave-policy-agent"}
+					namespaces := []string{GITOPS_DEFAULT_NAMESPACE, "cert-manager", "policy-system"}
+					verifyCapiClusterHealth(downloadedKubeconfigPath, profiles, namespaces)
 				})
+
+				existingAppCount := getApplicationCount()
+				By("And add kustomization bases for common resources for leaf cluster)", func() {
+					addKustomizationBases("capi", clusterName, clusterNamespace)
+				})
+
+				pages.NavigateToPage(webDriver, "Applications")
+				applicationsPage := pages.GetApplicationsPage(webDriver)
+				pages.WaitForPageToLoad(webDriver)
+
+				By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
+					totalAppCount := existingAppCount + 5 // flux-system, clusters-bases-kustomization, podinfo, cert-manager, policy-agent
+					Eventually(func(g Gomega) int {
+						return applicationsPage.CountApplications()
+					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+
+					filterID := "type:HelmRelease"
+					searchPage := pages.GetSearchPage(webDriver)
+					Eventually(searchPage.FilterBtn.Click).Should(Succeed(), "Failed to click filter buttton")
+					searchPage.SelectFilter("type", filterID)
+
+					Expect(searchPage.FilterBtn.Click()).Should(Succeed(), "Failed to click filter buttton")
+
+					Eventually(applicationsPage.CountApplications).Should(Equal(3), "There should be 3 application enteries in application table")
+				})
+
+				verifyAppInformation(applicationsPage, "podinfo", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-podinfo", "Ready")
+				verifyAppInformation(applicationsPage, "cert-manager", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-cert-manager", "Ready")
+				verifyAppInformation(applicationsPage, "weave-policy-agent", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-weave-policy-agent", "Ready")
 
 				By("Then I should select the cluster to create the delete pull request", func() {
 					pages.NavigateToPage(webDriver, "Clusters")
-					Eventually(pages.FindClusterInList(clustersPage, clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
-					clusterInfo := pages.FindClusterInList(clustersPage, clusterName)
+					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
+					clusterInfo := clustersPage.FindClusterInList(clusterName)
 					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
 
 					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
@@ -1215,7 +1226,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
 				})
 
-				By("Then I should see see a toast with a link to the deletion PR", func() {
+				By("Then I should see a toast with a link to the deletion PR", func() {
 					gitops := pages.GetGitOps(webDriver)
 					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
@@ -1231,13 +1242,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf(`%s/clusters/my-cluster/clusters/%s/%s.yaml`, repoAbsolutePath, clusterNamespaces[gitProviderEnv.Type], clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
 				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
 					clusterFound := func() error {
-						return runCommandPassThrough("kubectl", "get", "cluster", clusterName)
+						return runCommandPassThrough("kubectl", "get", "cluster", clusterName, "-n", clusterNamespaces[gitProviderEnv.Type])
 					}
 					Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
 				})

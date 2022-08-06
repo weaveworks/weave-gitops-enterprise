@@ -28,8 +28,8 @@ const OnboardingMessage = () => {
       </TextWrapper>
       <FlexCenter>
         <Button id="navigate-to-flagger">
-          <LinkTag href="https://flagger.app/" target="_blank" rel="noreferrer">
-            FLAGGER DOCS
+          <LinkTag href="https://docs.gitops.weave.works/docs/next/guides/delivery/" target="_blank" rel="noreferrer">
+            FLAGGER GUIDE
           </LinkTag>
         </Button>
       </FlexCenter>

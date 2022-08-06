@@ -36,11 +36,6 @@ LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.version="${version}"
 
 
-# # Add git provider hostnames to known hosts file so we can use
-# # StrickHostKeyChecking with git+ssh
-COPY ./tools/known_hosts.sh /tmp/known_hosts.sh
-RUN bash /tmp/known_hosts.sh /etc/ssh/ssh_known_hosts && rm /tmp/known_hosts.sh
-
 RUN apk add --no-cache ca-certificates tini
 
 COPY --from=build /app/cmd/clusters-service/clusters-service /usr/local/bin

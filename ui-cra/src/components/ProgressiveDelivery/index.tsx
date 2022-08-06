@@ -1,46 +1,28 @@
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { useCallback, useState } from 'react';
 import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
 
-import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useQuery } from 'react-query';
-import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Alert } from '@material-ui/lab';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 import {
-  IsFlaggerAvailableResponse,
-  ProgressiveDeliveryService,
-} from '@weaveworks/progressive-delivery';
-
-interface FlaggerStatus {
-  isFlaggerAvailabl: boolean;
-}
+  useCanariesCount,
+  useIsFlaggerAvailable,
+} from '../../contexts/ProgressiveDelivery';
+import { useApplicationsCount } from '../Applications/utils';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { SectionHeader } from '../Layout/SectionHeader';
 
 const ProgressiveDelivery = () => {
-  const [count, setCount] = useState<number | undefined>();
-  const { error, data, isLoading } = useQuery<FlaggerStatus, Error>(
-    'flagger',
-    () =>
-      ProgressiveDeliveryService.IsFlaggerAvailable({}).then(
-        ({ clusters }: IsFlaggerAvailableResponse) => {
-          if (clusters === undefined || Object.keys(clusters).length === 0)
-            return { isFlaggerAvailabl: false };
-          else {
-            return {
-              isFlaggerAvailabl: Object.values(clusters).some(
-                (value: boolean) => value === true,
-              ),
-            };
-          }
-        },
-      ),
-  );
-  const onCountChange = useCallback((count: number) => {
-    setCount(count);
-  }, []);
+  // To be discussed as we don't need to show counts for prev tabs in breadcrumb as it's not needed
+  const applicationsCount = useApplicationsCount();
+  const count = useCanariesCount();
+  const {
+    data: isFlaggerAvailable,
+    isLoading,
+    error,
+  } = useIsFlaggerAvailable();
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -48,7 +30,11 @@ const ProgressiveDelivery = () => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Applications', url: 'applications' },
+            {
+              label: 'Applications',
+              url: '/applications',
+              count: applicationsCount,
+            },
             { label: 'Delivery', count },
           ]}
         />
@@ -56,14 +42,8 @@ const ProgressiveDelivery = () => {
           {isLoading && <LoadingPage />}
           {error && <Alert severity="error">{error.message}</Alert>}
 
-          {!!data && (
-            <>
-              {data.isFlaggerAvailabl ? (
-                <CanariesList onCountChange={onCountChange} />
-              ) : (
-                <OnboardingMessage />
-              )}
-            </>
+          {!isLoading && (
+            <>{isFlaggerAvailable ? <CanariesList /> : <OnboardingMessage />}</>
           )}
         </ContentWrapper>
       </PageTemplate>

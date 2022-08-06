@@ -17,6 +17,7 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -29,27 +30,21 @@ func TestListTemplates(t *testing.T) {
 		expectedErrorStr string
 	}{
 		{
-			name:     "no configmap",
-			err:      errors.New("configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
-			expected: []*capiv1_protos.Template{},
-		},
-		{
-			name: "no templates",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates"),
-			},
-			expected: []*capiv1_protos.Template{},
+			name:         "no templates",
+			clusterState: []runtime.Object{},
+			expected:     []*capiv1_protos.Template{},
 		},
 		{
 			name: "1 template",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeTemplateWithProvider(t, "AWSCluster")),
+				makeTemplateWithProvider(t, "AWSCluster"),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "aws",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "aws",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -70,16 +65,18 @@ func TestListTemplates(t *testing.T) {
 		{
 			name: "2 templates",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template2", makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
-				}), "template1", makeCAPITemplate(t)),
+				}),
+				makeCAPITemplate(t),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        string("${CLUSTER_NAME}"),
@@ -97,9 +94,10 @@ func TestListTemplates(t *testing.T) {
 					},
 				},
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        string("${CLUSTER_NAME}"),
@@ -123,9 +121,8 @@ func TestListTemplates(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 
 			listTemplatesRequest := &capiv1_protos.ListTemplatesRequest{
@@ -159,26 +156,25 @@ func TestListClusterTemplates(t *testing.T) {
 	}{
 		{
 			name:     "no configmap",
-			err:      errors.New("configmap cluster-templates not found in default namespace: configmaps \"cluster-templates\" not found"),
+			err:      errors.New("error getting capitemplate default/cluster-template-1: capitemplates.capi.weave.works \"cluster-template-1\" not found"),
 			expected: []*capiv1_protos.Template{},
 		},
 		{
-			name: "no templates",
-			clusterState: []runtime.Object{
-				makeTemplateConfigMap("cluster-templates"),
-			},
-			expected: []*capiv1_protos.Template{},
+			name:         "no templates",
+			clusterState: []runtime.Object{},
+			expected:     []*capiv1_protos.Template{},
 		},
 		{
 			name: "1 template",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("cluster-templates", "template1", makeClusterTemplateWithProvider(t, "AWSCluster")),
+				makeClusterTemplateWithProvider(t, "AWSCluster"),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "aws",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "aws",
+					TemplateKind: "GitOpsTemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       "${RESOURCE_NAME}",
@@ -199,16 +195,18 @@ func TestListClusterTemplates(t *testing.T) {
 		{
 			name: "2 templates",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("cluster-templates", "template2", makeClusterTemplates(t, func(ct *gapiv1.GitOpsTemplate) {
+				makeClusterTemplates(t, func(ct *gapiv1.GitOpsTemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
-				}), "template1", makeClusterTemplates(t)),
+				}),
+				makeClusterTemplates(t),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-1",
-					Description: "this is test template 1",
-					Provider:    "",
+					Name:         "cluster-template-1",
+					Description:  "this is test template 1",
+					Provider:     "",
+					TemplateKind: "GitOpsTemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        "${RESOURCE_NAME}",
@@ -226,9 +224,10 @@ func TestListClusterTemplates(t *testing.T) {
 					},
 				},
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "",
+					TemplateKind: "GitOpsTemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        "${RESOURCE_NAME}",
@@ -252,9 +251,8 @@ func TestListClusterTemplates(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "cluster-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 
 			listTemplatesRequest := &capiv1_protos.ListTemplatesRequest{
@@ -290,16 +288,18 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 			name:     "Provider name with upper case letters",
 			provider: "AWS",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+				makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
-				}), "template1", makeCAPITemplate(t)),
+				}),
+				makeCAPITemplate(t),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "aws",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "aws",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -321,16 +321,18 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 			name:     "Provider name with lower case letters",
 			provider: "aws",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+				makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
-				}), "template1", makeCAPITemplate(t)),
+				}),
+				makeCAPITemplate(t),
 			},
 			expected: []*capiv1_protos.Template{
 				{
-					Name:        "cluster-template-2",
-					Description: "this is test template 2",
-					Provider:    "aws",
+					Name:         "cluster-template-2",
+					Description:  "this is test template 2",
+					Provider:     "aws",
+					TemplateKind: "CAPITemplate",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -352,10 +354,11 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 			name:     "Provider name with no templates",
 			provider: "Azure",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+				makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
-				}), "template1", makeCAPITemplate(t)),
+				}),
+				makeCAPITemplate(t),
 			},
 			expected: []*capiv1_protos.Template{},
 		},
@@ -363,10 +366,11 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 			name:     "Provider name not recognised",
 			provider: "foo",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template2", makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
+				makeTemplateWithProvider(t, "AWSCluster", func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
-				}), "template1", makeCAPITemplate(t)),
+				}),
+				makeCAPITemplate(t),
 			},
 			err: fmt.Errorf("provider %q is not recognised", "foo"),
 		},
@@ -375,9 +379,8 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 
 			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
@@ -410,20 +413,21 @@ func TestGetTemplate(t *testing.T) {
 	}{
 		{
 			name: "No templates",
-			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
+			err:  errors.New("error looking up template cluster-template-1: error getting capitemplate default/cluster-template-1: capitemplates.capi.weave.works \"cluster-template-1\" not found"),
 		},
 		{
 			name: "1 parameter",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+				makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 					c.Annotations = map[string]string{"hi": "there"}
-				})),
+				}),
 			},
 			expected: &capiv1_protos.Template{
-				Name:        "cluster-template-1",
-				Annotations: map[string]string{"hi": "there"},
-				Description: "this is test template 1",
-				Provider:    "",
+				Name:         "cluster-template-1",
+				Annotations:  map[string]string{"hi": "there"},
+				Description:  "this is test template 1",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						Name:        string("${CLUSTER_NAME}"),
@@ -446,9 +450,8 @@ func TestGetTemplate(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1"})
 			if err != nil && tt.err == nil {
@@ -476,12 +479,12 @@ func TestListTemplateParams(t *testing.T) {
 	}{
 		{
 			name: "1 parameter err",
-			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
+			err:  errors.New("error looking up template cluster-template-1: error getting capitemplate default/cluster-template-1: capitemplates.capi.weave.works \"cluster-template-1\" not found"),
 		},
 		{
 			name: "1 parameter",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			expected: []*capiv1_protos.Parameter{
 				{
@@ -495,9 +498,8 @@ func TestListTemplateParams(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 
 			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
@@ -530,16 +532,16 @@ func TestListTemplateProfiles(t *testing.T) {
 	}{
 		{
 			name: "1 profile err",
-			err:  errors.New("error looking up template cluster-template-1: configmap capi-templates not found in default namespace: configmaps \"capi-templates\" not found"),
+			err:  errors.New("error looking up template cluster-template-1: error getting capitemplate default/cluster-template-1: capitemplates.capi.weave.works \"cluster-template-1\" not found"),
 		},
 		{
 			name: "1 profile",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+				makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 					c.Annotations = map[string]string{
 						"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
 					}
-				})),
+				}),
 			},
 			expected: []*capiv1_protos.TemplateProfile{
 				{
@@ -553,9 +555,8 @@ func TestListTemplateProfiles(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 
 			listTemplateProfilesRequest := new(capiv1_protos.ListTemplateProfilesRequest)
@@ -607,7 +608,36 @@ func TestRenderTemplate(t *testing.T) {
 			pruneEnvVar:      "disabled",
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
+			name:             "render template with optional value",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+						Name:     "OPTIONAL_PARAM",
+						Required: false,
+					})
+					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+							"apiVersion":"fooversion",
+							"kind":"fookind",
+							"metadata":{
+								"name":"${CLUSTER_NAME}",
+								"namespace":"${NAMESPACE}",
+								"annotations":{
+									"capi.weave.works/display-name":"ClusterName${OPTIONAL_PARAM}"
+								}
+							}
+						}`),
+						},
+					}
+				}),
 			},
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
@@ -617,7 +647,7 @@ func TestRenderTemplate(t *testing.T) {
 			pruneEnvVar:      "disabled",
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			credentials: &capiv1_protos.Credential{
 				Group:     "",
@@ -634,21 +664,19 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				u,
-				makeTemplateConfigMap("capi-templates", "template1",
-					makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-						ct.ObjectMeta.Name = "cluster-template-1"
-						ct.Spec.Description = "this is test template 1"
-						ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.ObjectMeta.Name = "cluster-template-1"
+					ct.Spec.Description = "this is test template 1"
+					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 							"kind": "AWSCluster",
 							"metadata": { "name": "boop" }
 						}`),
-							},
-						}
-					}),
-				),
+						},
+					}
+				}),
 			},
 			credentials: &capiv1_protos.Credential{
 				Group:     "infrastructure.cluster.x-k8s.io",
@@ -664,9 +692,39 @@ func TestRenderTemplate(t *testing.T) {
 			pruneEnvVar:      "enabled",
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
+			name:             "render template with renderType: templating",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.Spec.RenderType = "templating"
+					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+						Name:     "OPTIONAL_PARAM",
+						Required: false,
+					})
+					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+							"apiVersion":"fooversion",
+							"kind":"fookind",
+							"metadata":{
+								"name": "{{ .params.CLUSTER_NAME }}",
+								"namespace": "{{ .params.NAMESPACE }}",
+								"annotations":{
+									"capi.weave.works/display-name":"ClusterName{{ .params.OPTIONAL_PARAM }}"
+								}
+							}
+						}`),
+						},
+					}
+				}),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 	}
 
@@ -677,9 +735,8 @@ func TestRenderTemplate(t *testing.T) {
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
 
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
@@ -707,14 +764,15 @@ func TestRenderTemplate(t *testing.T) {
 	}
 }
 
-func TestRenderTemplate_MissingVariables(t *testing.T) {
+func TestRenderTemplate_MissingRequiredVariable(t *testing.T) {
 	clusterState := []runtime.Object{
-		makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+		makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+			ct.Spec.Params[0].Required = true
+		}),
 	}
 	s := createServer(t, serverOptions{
-		clusterState:  clusterState,
-		configMapName: "capi-templates",
-		namespace:     "default",
+		clusterState: clusterState,
+		namespace:    "default",
 	})
 
 	renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
@@ -729,7 +787,7 @@ func TestRenderTemplate_MissingVariables(t *testing.T) {
 	}
 
 	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
-	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1, processing template: failed to process template values: value for variables [CLUSTER_NAME] is not set. Please set the value using os environment variables or the clusterctl config file"); diff != "" {
+	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1, missing required parameter: CLUSTER_NAME"); diff != "" {
 		t.Fatalf("got the wrong error:\n%s", diff)
 	}
 }
@@ -745,15 +803,15 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 		{
 			name: "valid value",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n  namespace: default\n",
 		},
 		{
 			name: "value contains non alphanumeric",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			clusterName: "t&est-cluster",
 			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "t&est-cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
@@ -761,7 +819,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 		{
 			name: "value does not end alphanumeric",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			clusterName: "test-cluster-",
 			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "test-cluster-", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
@@ -769,7 +827,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 		{
 			name: "value contains uppercase letter",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			clusterName: "Test-Cluster",
 			err:         errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "Test-Cluster", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
@@ -781,9 +839,8 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 			viper.Reset()
 
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
+				clusterState: tt.clusterState,
+				namespace:    "default",
 			})
 
 			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
@@ -812,13 +869,14 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 
 func TestGetProfilesFromTemplate(t *testing.T) {
 	annotations := map[string]string{
-		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\" }",
+		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\", \"editable\": true }",
 	}
 
 	expected := []*capiv1_protos.TemplateProfile{
 		{
-			Name:    "profile-a",
-			Version: "v0.0.1",
+			Name:     "profile-a",
+			Version:  "v0.0.1",
+			Editable: true,
 		},
 	}
 
@@ -828,7 +886,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	assert.Equal(t, result, expected)
 }
 
-func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) string {
+func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) *capiv1.CAPITemplate {
 	t.Helper()
 	basicRaw := `
 	{
@@ -847,7 +905,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 	})...)
 }
 
-func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(template *gapiv1.GitOpsTemplate)) string {
+func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(template *gapiv1.GitOpsTemplate)) *gapiv1.GitOpsTemplate {
 	t.Helper()
 	basicRaw := `
 	{

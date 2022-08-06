@@ -44,6 +44,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -228,6 +229,7 @@ func TestMccpUI(t *testing.T) {
 		capiv1.AddToScheme,
 		corev1.AddToScheme,
 		gitopsv1.AddToScheme,
+		gapiv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	assert.NoError(t, err)

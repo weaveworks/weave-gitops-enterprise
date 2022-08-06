@@ -2,6 +2,8 @@ package entitlement
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -89,23 +91,27 @@ func TestEntitlementHandler(t *testing.T) {
 
 func TestCheckEntitlementHandler(t *testing.T) {
 	tests := []struct {
-		name     string
-		ctxValue interface{}
-		status   int
-		header   bool
+		name        string
+		ctxValue    interface{}
+		status      int
+		header      bool
+		response    string
+		headerValue string
 	}{
 		{
-			name:   "no entitlement",
-			status: http.StatusInternalServerError,
-			header: false,
+			name:     "no entitlement",
+			status:   http.StatusInternalServerError,
+			header:   false,
+			response: fmt.Sprintf(`{"message":"%s"}`, errorMessage),
 		},
 		{
 			name: "expired entitlement",
 			ctxValue: &entitlement.Entitlement{
 				LicencedUntil: time.Now().Add(-1 * time.Minute),
 			},
-			status: http.StatusOK,
-			header: true,
+			status:      http.StatusOK,
+			header:      true,
+			headerValue: expiredMessage,
 		},
 		{
 			name: "valid entitlement",
@@ -139,9 +145,21 @@ func TestCheckEntitlementHandler(t *testing.T) {
 				t.Errorf("expected response status code to equal %d but was not: %d", tt.status, rec.Code)
 			}
 
+			body, err := io.ReadAll(rec.Body)
+			if err != nil {
+				t.Errorf("unexpected error while reading response: %s", err)
+			}
+
+			if string(body) != tt.response {
+				t.Errorf("expected response body to be %s but got: %s", tt.response, body)
+			}
+
 			h := rec.Header().Get(entitlementExpiredMessageHeader)
 			if tt.header && h == "" {
 				t.Errorf("expected response header to be present but was not: %+v", rec.Header())
+				if h != tt.headerValue {
+					t.Errorf("expected header to be %s but got: %s", tt.headerValue, h)
+				}
 			} else if !tt.header && h != "" {
 				t.Errorf("expected response header to not be present but was: %+v", rec.Header())
 			}

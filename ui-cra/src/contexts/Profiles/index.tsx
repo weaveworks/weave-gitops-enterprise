@@ -3,7 +3,9 @@ import { UpdatedProfile } from '../../types/custom';
 
 interface ProfilesContext {
   loading: boolean;
-  updatedProfiles: UpdatedProfile[];
+  isLoading: boolean;
+  profiles: UpdatedProfile[];
+  getProfileYaml: (name: string, version: string) => Promise<any>;
 }
 
 export const Profiles = createContext<ProfilesContext | null>(null);

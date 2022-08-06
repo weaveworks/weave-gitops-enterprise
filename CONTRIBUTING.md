@@ -54,6 +54,8 @@ You will also be using your personal GitHub account to host GitOps repositories.
 export GITHUB_USER=your_username
 ```
 
+Along with this repository you need to clone the [cluster-controller](https://github.com/weaveworks/cluster-controller) and [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller) repositories next to this repository's clone.
+
 Finally, make sure you can access to the
 [weave-gitops-enterprise-credentials][wge-creds] repository.
 
@@ -419,6 +421,50 @@ yarn start
 
 Open up http://localhost:3000. Changes to code will be hot-reloaded.
 
+### Unit Tests
+
+To start the `jest` test runner CLI dialog:
+
+```
+$ cd ui-cra
+$ yarn test
+
+PASS  src/components/Applications/__tests__/index.test.tsx
+  Applications index test
+    ✓ renders table rows (349 ms)
+    snapshots
+      ✓ loading (170 ms)
+      ✓ success (168 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       3 passed, 3 total
+Snapshots:   2 passed, 2 total
+Time:        5.448 s
+Ran all test suites.
+
+Watch Usage: Press w to show more.
+```
+
+#### UI Unit Test Tips
+
+- The `@testing-library/react` package provides a test renderer as well as helpers for dealing with hooks and component state
+- Snapshots alone generally aren't enough, you should do some assertions to validate component behavior
+- Hooks can be tested in isolation from components using the `act` helper.
+
+#### Snapshot Tests
+
+We use a technique called "Snapshots" to record the rendered output of components and track them in version control over time. Snapshots are not really tests, since they don't have any explicity assertions. Think of them more as a record of the output of a component.
+
+When combined with the `styled-components` integration, snapshots give us a way to track styling logic over time. This can be very helpful in debugging styling issues that would otherwise be hard to understand.
+
+After any changes to styling logic, you should expect to update snapshots, else unit tests will fail.
+
+To update snapshots:
+
+```
+yarn test -u
+```
+
 ### How to do local dev on the UI
 
 The easiest way to dev on the UI is to use an existing cluster.
@@ -494,6 +540,46 @@ new features.
 | https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02         | CAPG |
 
 ---
+
+## Managing multiple clusters
+
+As enterprise features are deployed, the multi-cluster permissions may need to be updated as well.  For example viewing canaries from a leaf cluster did not work.  Below is an example rbac config that resolved the canary issue:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-02
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: impersonate-user-groups
+subjects:
+  - kind: ServiceAccount
+    name: demo-02
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: user-groups-impersonator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: user-groups-impersonator
+rules:
+- apiGroups: [""]
+  resources: ["users", "groups"]
+  verbs: ["impersonate"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+- apiGroups: ["apiextensions.k8s.io"] # required for canary support
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list"]
+```
 
 **CAPI NAME COLLISION WARNING**
 
@@ -645,6 +731,30 @@ Requires: helm CLI >= 3.8.1
 ```
 
 where `e4e540d` is your commit sha. This will return `wkp/mccp 0.0.17-88-ge4e540d 1.16.0 A Helm chart for Kubernetes` where `0.0.17-88-ge4e540d` is the version you're looking for.
+
+## How to search for a Helm release from GCP OCI registry
+
+1. If you are using a Helm verion prior to `v3.8.0` set the `HELM_EXPERIMENTAL_OCI` environment variable.  Helm versions `v3.8.0` and newer have OCI support enabled by default
+
+```bash
+export HELM_EXPERIMENTAL_OCI=1
+```
+
+2. If you haven't already, install and configure the [gcloud CLI](https://cloud.google.com/sdk/docs/install)
+
+3. Use the gcloud cli to query registry artifacts
+    > The Google Artifact Registry Docker repository can hold both helm charts and docker images. If both types will be deployed to the same registry, charts should be stored in the `charts` namespace and images in the `images` namespace as documented [here](https://cloud.google.com/artifact-registry/docs/helm)
+
+```bash
+gcloud artifacts docker images list europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise --include-tags
+```
+
+4. Once you know the version tag you can use the oci image url and version to run helm show/pull/install commands
+    > With oci registries the `--version` flag is required
+
+```bash
+helm show all oci://europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise/charts/mccp --version 0.8.1-55
+```
 
 ## How to make a self-signed cert that works in chrome!
 

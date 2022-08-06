@@ -1,5 +1,5 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
+import { DataTable, theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 export const useCanaryStyle = makeStyles(() =>
@@ -13,7 +13,6 @@ export const useCanaryStyle = makeStyles(() =>
     cardTitle: {
       fontWeight: 600,
       fontSize: theme.fontSizes.normal,
-      color: theme.colors.neutral30,
     },
     body1: {
       fontWeight: 400,
@@ -46,7 +45,7 @@ export const useCanaryStyle = makeStyles(() =>
       color: theme.colors.alert,
     },
     sectionHeaderWrapper: {
-      background: theme.colors.neutral10,
+      background: '#F6F7F9', // add Neutral/Grey Blue to core
       padding: `${theme.spacing.base} ${theme.spacing.xs}`,
       margin: `${theme.spacing.base} 0`,
     },
@@ -56,15 +55,41 @@ export const useCanaryStyle = makeStyles(() =>
     barroot: {
       backgroundColor: theme.colors.success,
     },
-    root: {
+    statusProcessing: {
       backgroundColor: theme.colors.neutral20,
       width: '100%',
       height: 8,
-      marginRight: '4px',
       borderRadius: 5,
+      minWidth: '75px',
+    },
+    statusProcessingText: {
+      minWidth: 'fit-content',
     },
     code: {
       wordBreak: 'break-word',
+    },
+    expandableCondition: {
+      display: 'flex',
+      justifyContent: 'start',
+      alignItems: 'center',
+      padding: theme.spacing.small,
+      marginTop: theme.spacing.medium,
+      cursor: 'pointer',
+    },
+    expandableSpacing: {
+      marginLeft: theme.spacing.xs,
+    },
+    fadeIn: {
+      transform: 'scaleY(0)',
+      transformOrigin: 'top',
+      display: 'block',
+      maxHeight: 0,
+      transition: 'transform 0.15s ease',
+    },
+    fadeOut: {
+      transform: 'scaleY(1)',
+      transformOrigin: 'top',
+      transition: 'transform 0.15s ease',
     },
   }),
 );
@@ -81,7 +106,7 @@ export const TableWrapper = styled.div`
     }
   }
   tr {
-    vertical-align:'center';
+    vertical-align: 'center';
   }
   max-width: calc(100vw - 220px);
 `;
@@ -116,4 +141,10 @@ export const FlexCenter = styled.div`
 
 export const LinkTag = styled.a`
   color: ${theme.colors.primary};
+`;
+
+export const CustomDataTable = styled(DataTable)`
+thead > tr {
+  background: ${theme.colors.neutral10};
+}
 `;

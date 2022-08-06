@@ -46,6 +46,8 @@ type ClustersServiceClient interface {
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
+	// Creates a pull request for the given list of Kustomizations.
+	CreateKustomizationsPullRequest(ctx context.Context, in *CreateKustomizationsPullRequestRequest, opts ...grpc.CallOption) (*CreateKustomizationsPullRequestResponse, error)
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// ListPolicies list policies available on the management cluster
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
@@ -55,6 +57,8 @@ type ClustersServiceClient interface {
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
+	// ListEvents returns the k8s events for a given object
+	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -173,6 +177,15 @@ func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *clustersServiceClient) CreateKustomizationsPullRequest(ctx context.Context, in *CreateKustomizationsPullRequestRequest, opts ...grpc.CallOption) (*CreateKustomizationsPullRequestResponse, error) {
+	out := new(CreateKustomizationsPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateKustomizationsPullRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *clustersServiceClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
 	out := new(GetConfigResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetConfig", in, out, opts...)
@@ -218,6 +231,15 @@ func (c *clustersServiceClient) GetPolicyValidation(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *clustersServiceClient) ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error) {
+	out := new(ListEventsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListEvents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -249,6 +271,8 @@ type ClustersServiceServer interface {
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
+	// Creates a pull request for the given list of Kustomizations.
+	CreateKustomizationsPullRequest(context.Context, *CreateKustomizationsPullRequestRequest) (*CreateKustomizationsPullRequestResponse, error)
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// ListPolicies list policies available on the management cluster
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
@@ -258,6 +282,8 @@ type ClustersServiceServer interface {
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
+	// ListEvents returns the k8s events for a given object
+	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -301,6 +327,9 @@ func (UnimplementedClustersServiceServer) GetKubeconfig(context.Context, *GetKub
 func (UnimplementedClustersServiceServer) GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEnterpriseVersion not implemented")
 }
+func (UnimplementedClustersServiceServer) CreateKustomizationsPullRequest(context.Context, *CreateKustomizationsPullRequestRequest) (*CreateKustomizationsPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateKustomizationsPullRequest not implemented")
+}
 func (UnimplementedClustersServiceServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
 }
@@ -315,6 +344,9 @@ func (UnimplementedClustersServiceServer) ListPolicyValidations(context.Context,
 }
 func (UnimplementedClustersServiceServer) GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyValidation not implemented")
+}
+func (UnimplementedClustersServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -545,6 +577,24 @@ func _ClustersService_GetEnterpriseVersion_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_CreateKustomizationsPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateKustomizationsPullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CreateKustomizationsPullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/CreateKustomizationsPullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CreateKustomizationsPullRequest(ctx, req.(*CreateKustomizationsPullRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ClustersService_GetConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetConfigRequest)
 	if err := dec(in); err != nil {
@@ -635,6 +685,24 @@ func _ClustersService_GetPolicyValidation_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_ListEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListEvents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListEvents(ctx, req.(*ListEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -691,6 +759,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_GetEnterpriseVersion_Handler,
 		},
 		{
+			MethodName: "CreateKustomizationsPullRequest",
+			Handler:    _ClustersService_CreateKustomizationsPullRequest_Handler,
+		},
+		{
 			MethodName: "GetConfig",
 			Handler:    _ClustersService_GetConfig_Handler,
 		},
@@ -709,6 +781,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPolicyValidation",
 			Handler:    _ClustersService_GetPolicyValidation_Handler,
+		},
+		{
+			MethodName: "ListEvents",
+			Handler:    _ClustersService_ListEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   LoadingPage,
   SourcesTable,
@@ -30,7 +30,6 @@ const WGApplicationsSources: FC = () => {
         ]}
       />
       <ContentWrapper>
-        <Title>Sources</Title>
         {isLoading ? <LoadingPage /> : <SourcesTable sources={sources} />}
       </ContentWrapper>
     </PageTemplate>

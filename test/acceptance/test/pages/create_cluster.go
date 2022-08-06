@@ -13,11 +13,19 @@ import (
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection
-	Credentials        *agouti.Selection
-	TemplateSection    *agouti.MultiSelection
-	ProfileSelect      *agouti.Selection
-	ProfileSelectPopup *agouti.MultiSelection
-	PreviewPR          *agouti.Selection
+	Credentials     *agouti.Selection
+	TemplateSection *agouti.MultiSelection
+	ProfileList     *agouti.Selection
+	PreviewPR       *agouti.Selection
+}
+
+type ProfileInformation struct {
+	Checkbox  *agouti.Selection
+	Name      *agouti.Selection
+	Layer     *agouti.Selection
+	Version   *agouti.Selection
+	Namespace *agouti.Selection
+	Values    *agouti.Selection
 }
 
 type FormField struct {
@@ -25,16 +33,10 @@ type FormField struct {
 	Field   *agouti.Selection
 	ListBox *agouti.Selection
 }
+
 type TemplateSection struct {
 	Name   *agouti.Selection
 	Fields []FormField
-}
-
-type Profile struct {
-	Name    *agouti.Selection
-	Version *agouti.Selection
-	Layer   *agouti.Selection
-	Values  *agouti.Selection
 }
 
 type ValuesYaml struct {
@@ -65,11 +67,10 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
-		Credentials:        webDriver.Find(`.credentials [role="button"]`),
-		TemplateSection:    webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
-		ProfileSelect:      webDriver.Find(`div.profiles-select > div`),
-		ProfileSelectPopup: webDriver.All(`ul[role="listbox"] li`),
-		PreviewPR:          webDriver.FindByButton("PREVIEW PR"),
+		Credentials:     webDriver.Find(`.credentials [role="button"]`),
+		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
+		ProfileList:     webDriver.Find(`.profiles-table table tbody`),
+		PreviewPR:       webDriver.FindByButton("PREVIEW PR"),
 	}
 
 	return &clusterPage
@@ -109,13 +110,14 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 	}
 }
 
-func GetProfile(webDriver *agouti.Page, profileName string) Profile {
-	p := webDriver.Find(fmt.Sprintf(`.profiles-list [data-profile-name="%s"]`, profileName))
-	return Profile{
-		Name:    p.Find(`.profile-name`),
-		Version: p.Find(`.profile-version`),
-		Layer:   p.Find(`.profile-layer > span + span`),
-		Values:  p.Find(`button`),
+func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
+	Eventually(webdriver.FindByID(fmt.Sprintf(`%s-group`, name))).Should(BeFound())
+	param := webdriver.FindByID(fmt.Sprintf(`%s-group`, name))
+
+	return FormField{
+		Label:   param.Find(`label`),
+		Field:   param.Find(`input`),
+		ListBox: param.Find(`div[role="button"][aria-haspopup="listbox"]`),
 	}
 }
 
@@ -129,25 +131,21 @@ func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	}
 }
 
-func (c CreateCluster) SelectProfile(profileName string) *agouti.Selection {
-	time.Sleep(2 * time.Second)
-	pCount, _ := c.ProfileSelectPopup.Count()
-
-	for i := 0; i < pCount; i++ {
-		pName, _ := c.ProfileSelectPopup.At(i).Text()
-		if profileName == pName {
-			return c.ProfileSelectPopup.At(i)
-		}
+// FindProfileInList finds the profile with given name
+func (c CreateCluster) FindProfileInList(profileName string) *ProfileInformation {
+	cluster := c.ProfileList.FindByXPath(fmt.Sprintf(`//span[@data-profile-name="%s"]/ancestor::tr`, profileName))
+	return &ProfileInformation{
+		Checkbox:  cluster.FindByXPath(`td[1]//input`),
+		Name:      cluster.FindByXPath(`td[2]`),
+		Layer:     cluster.FindByXPath(`td[3]`),
+		Version:   cluster.FindByXPath(`td[4]//div[contains(@class, "profile-version")]`),
+		Namespace: cluster.FindByXPath(`td[4]//div[contains(@class, "profile-namespace")]//input`),
+		Values:    cluster.FindByXPath(`td[4]//button`),
 	}
-	return nil
-}
-
-func DissmissProfilePopup(webDriver *agouti.Page) {
-	Expect(webDriver.Find(`div[name=Profiles]`).DoubleClick()).To(Succeed())
 }
 
 func GetCredentials(webDriver *agouti.Page) *agouti.MultiSelection {
-	return webDriver.All(`li[class*=MuiListItem-root]`)
+	return webDriver.All(`div[role*=presentation] li[class*=MuiListItem-root]`)
 }
 
 func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
@@ -159,7 +157,6 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 }
 
 func GetPreview(webDriver *agouti.Page) Preview {
-	Eventually(webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]`), 30*time.Second).Should(BeVisible())
 	return Preview{
 		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
 		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),
@@ -169,19 +166,23 @@ func GetPreview(webDriver *agouti.Page) Preview {
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel: webDriver.FindByName("GitOps"),
+		GitOpsLabel: webDriver.FindByXPath(`//h2[.="GitOps"]`),
 		GitOpsFields: []FormField{
 			{
-				Label: webDriver.FindByLabel(`Create branch`),
-				Field: webDriver.FindByID(`Create branch-input`),
+				Label: webDriver.FindByLabel(`CREATE BRANCH`),
+				Field: webDriver.FindByID(`CREATE BRANCH-input`),
 			},
 			{
-				Label: webDriver.FindByLabel(`Pull request title`),
-				Field: webDriver.FindByID(`Pull request title-input`),
+				Label: webDriver.FindByLabel(`PULL REQUEST TITLE`),
+				Field: webDriver.FindByID(`PULL REQUEST TITLE-input`),
 			},
 			{
-				Label: webDriver.FindByLabel(`Commit message`),
-				Field: webDriver.FindByID(`Commit message-input`),
+				Label: webDriver.FindByLabel(`COMMIT MESSAGE`),
+				Field: webDriver.FindByID(`COMMIT MESSAGE-input`),
+			},
+			{
+				Label: webDriver.FindByLabel(`PULL REQUEST DESCRIPTION`),
+				Field: webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
 			},
 		},
 		GitCredentials: webDriver.Find(`div.auth-message`),

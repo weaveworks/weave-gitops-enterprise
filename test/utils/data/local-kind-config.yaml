@@ -8,5 +8,3 @@ nodes:
   extraPortMappings:
   - containerPort: 30080
     hostPort: 30080
-  - containerPort: 31490
-    hostPort: 31490

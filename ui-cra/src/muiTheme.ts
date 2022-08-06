@@ -96,7 +96,7 @@ export const localEEMuiTheme = createTheme({
       ...muiTheme.overrides?.MuiInputBase,
       root: {
         ...muiTheme.overrides?.MuiInputBase?.root,
-        marginRight: `${weaveTheme.spacing.xs}`,
+        marginRight: `${weaveTheme.spacing.medium}`,
       },
       input: {
         ...muiTheme.overrides?.MuiInputBase?.input,

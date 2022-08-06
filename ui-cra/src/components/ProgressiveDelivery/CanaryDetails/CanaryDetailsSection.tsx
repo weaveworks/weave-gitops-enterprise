@@ -1,28 +1,24 @@
-import CanaryRowHeader from '../SharedComponent/CanaryRowHeader';
-import CanaryStatus from '../SharedComponent/CanaryStatus';
-import { useCanaryStyle } from '../CanaryStyles';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@material-ui/core';
+import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { useCanaryStyle } from '../CanaryStyles';
 
+import CanaryStatus from '../SharedComponent/CanaryStatus';
 import {
-  getDeploymentStrategyIcon,
-  getProgressValue,
-} from '../ListCanaries/Table';
-import {
-  Canary,
   Automation,
+  Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import YamlView from '../../YamlView';
+import ListEvents from './Events/ListEvents';
+import { getProgressValue } from '../ListCanaries/Table';
+import ListManagedObjects from './ManagedObjects/ListManagedObjects';
+import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
+import DetailsSection from './Details/DetailsSection';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
+`;
+const CanaryDetailsWrapper = styled.div`
+  width: 100%;
 `;
 
 function CanaryDetailsSection({
@@ -30,9 +26,10 @@ function CanaryDetailsSection({
   automation,
 }: {
   canary: Canary;
-  automation: Automation;
+  automation?: Automation;
 }) {
   const classes = useCanaryStyle();
+  const path = `/applications/delivery/${canary.targetDeployment?.uid}`;
 
   return (
     <>
@@ -50,79 +47,48 @@ function CanaryDetailsSection({
           {canary.status?.conditions![0].message || '--'}
         </p>
       </div>
-      <CanaryRowHeader rowkey="Cluster" value={canary.clusterName} />
-      <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
-      <CanaryRowHeader
-        rowkey="Target"
-        value={`${automation.kind}/${automation.name}`}
-      />
-      <CanaryRowHeader
-        rowkey="Deployment Strategy"
-        value={canary.deploymentStrategy}
-      >
-        <span className={classes.straegyIcon}>
-          {getDeploymentStrategyIcon(canary.deploymentStrategy || '')}
-        </span>
-      </CanaryRowHeader>
-      <CanaryRowHeader rowkey="Provider" value={canary.provider} />
-      <CanaryRowHeader
-        rowkey="Last Transition Time"
-        value={canary.status?.lastTransitionTime}
-      />
-      <CanaryRowHeader
-        rowkey="Last Updated Time"
-        value={canary.status?.conditions![0].lastUpdateTime}
-      />
 
-      <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
-        Status
-      </div>
+      <SubRouterTabs rootPath={`${path}/details`}>
+        <RouterTab name="Details" path={`${path}/details`}>
+          <CanaryDetailsWrapper>
+            <DetailsSection canary={canary} automation={automation} />
+          </CanaryDetailsWrapper>
+        </RouterTab>
 
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell align="left">
-              <span>Status Conditions</span>
-            </TableCell>
-            <TableCell align="left">
-              <span>Value</span>
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow>
-            <TableCell>Canary Weight</TableCell>
-            <TableCell>{canary.status?.canaryWeight || 0}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Failed Checks</TableCell>
-            <TableCell>{canary.status?.failedChecks || 0}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Iterations</TableCell>
-            <TableCell>{canary.status?.iterations || 0}</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-
-      <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
-        YAML
-      </div>
-
-      <SyntaxHighlighter
-        language="yaml"
-        style={darcula}
-        wrapLongLines="pre-wrap"
-        showLineNumbers={true}
-        codeTagProps={{
-          className: classes.code,
-        }}
-        customStyle={{
-          height: '450px',
-        }}
-      >
-        {JSON.parse(JSON.stringify(canary.yaml, null, 2))}
-      </SyntaxHighlighter>
+        <RouterTab name="Objects" path={`${path}/objects`}>
+          <CanaryDetailsWrapper>
+            <ListManagedObjects
+              clusterName={canary.clusterName || ''}
+              name={canary.name || ''}
+              namespace={canary.namespace || ''}
+            />
+          </CanaryDetailsWrapper>
+        </RouterTab>
+        <RouterTab name="Events" path={`${path}/events`}>
+          <CanaryDetailsWrapper>
+            <ListEvents
+              clusterName={canary?.clusterName}
+              involvedObject={{
+                kind: 'Canary',
+                name: canary.name,
+                namespace: canary?.namespace,
+              }}
+            />
+          </CanaryDetailsWrapper>
+        </RouterTab>
+        <RouterTab name="Analysis" path={`${path}/analysis`}>
+          <CanaryDetailsWrapper>
+            <CanaryMetricsTable
+              metrics={canary.analysis?.metrics || []}
+            ></CanaryMetricsTable>
+          </CanaryDetailsWrapper>
+        </RouterTab>
+        <RouterTab name="yaml" path={`${path}/yaml`}>
+          <CanaryDetailsWrapper>
+            <YamlView yaml={canary.yaml || ''} kind="Canary" object={canary} />
+          </CanaryDetailsWrapper>
+        </RouterTab>
+      </SubRouterTabs>
     </>
   );
 }

@@ -151,6 +151,12 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "clusterNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -197,6 +203,88 @@
             }
           }
         },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/enterprise/events": {
+      "get": {
+        "summary": "ListEvents returns the k8s events for a given object",
+        "operationId": "ClustersService_ListEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "involvedObject.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/enterprise/kustomizations": {
+      "post": {
+        "summary": "Creates a pull request for the given list of Kustomizations.",
+        "operationId": "ClustersService_CreateKustomizationsPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateKustomizationsPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateKustomizationsPullRequestRequest"
+            }
+          }
+        ],
         "tags": [
           "ClustersService"
         ]
@@ -362,6 +450,12 @@
             "name": "violationId",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -557,6 +651,9 @@
                 },
                 "templateKind": {
                   "type": "string"
+                },
+                "clusterNamespace": {
+                  "type": "string"
                 }
               }
             }
@@ -633,7 +730,7 @@
         }
       },
       "additionalProperties": {},
-      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "rpcStatus": {
       "type": "object",
@@ -706,6 +803,31 @@
         }
       }
     },
+    "v1ClusterKustomization": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
+        },
+        "isControlPlane": {
+          "type": "boolean"
+        },
+        "kustomization": {
+          "$ref": "#/definitions/v1Kustomization"
+        }
+      }
+    },
+    "v1ClusterNamespacedName": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -726,6 +848,55 @@
         }
       },
       "title": "kubernetes status condition field\nXXX: is dup'd in core, can we share?"
+    },
+    "v1CreateKustomizationsPullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The new branch that will be created."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "title": "The description of the pull request"
+        },
+        "commitMessage": {
+          "type": "string",
+          "title": "The commit message"
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "The repo api url."
+        },
+        "clusterKustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterKustomization"
+          },
+          "title": "A list of cluster and kustomization"
+        }
+      }
+    },
+    "v1CreateKustomizationsPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
     },
     "v1CreatePullRequestRequest": {
       "type": "object",
@@ -779,6 +950,15 @@
         "repositoryApiUrl": {
           "type": "string",
           "description": "The repo api url."
+        },
+        "clusterNamespace": {
+          "type": "string"
+        },
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Kustomization"
+          }
         }
       }
     },
@@ -905,6 +1085,12 @@
         "repositoryApiUrl": {
           "type": "string",
           "description": "The repo api url."
+        },
+        "clusterNamespacedNames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterNamespacedName"
+          }
         }
       }
     },
@@ -914,6 +1100,32 @@
         "webUrl": {
           "type": "string",
           "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1Event": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
@@ -939,6 +1151,9 @@
       "properties": {
         "policy": {
           "$ref": "#/definitions/v1Policy"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },
@@ -1007,6 +1222,17 @@
         }
       }
     },
+    "v1Kustomization": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1Spec"
+        }
+      }
+    },
     "v1ListCredentialsResponse": {
       "type": "object",
       "properties": {
@@ -1033,6 +1259,17 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "v1ListEventsResponse": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Event"
+          }
         }
       }
     },
@@ -1081,7 +1318,16 @@
     "v1ListPolicyValidationsRequest": {
       "type": "object",
       "properties": {
-        "clusterId": {
+        "clusterName": {
+          "type": "string"
+        },
+        "pagination": {
+          "$ref": "#/definitions/v1Pagination"
+        },
+        "application": {
+          "type": "string"
+        },
+        "namespace": {
           "type": "string"
         }
       }
@@ -1098,6 +1344,15 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1147,6 +1402,31 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "v1Metadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ObjectRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },
@@ -1342,6 +1622,23 @@
         },
         "name": {
           "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "occurrences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidationOccurrence"
+          }
+        }
+      }
+    },
+    "v1PolicyValidationOccurrence": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1370,6 +1667,28 @@
       "properties": {
         "renderedTemplate": {
           "type": "string"
+        }
+      }
+    },
+    "v1SourceRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Spec": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
         }
       }
     },
@@ -1441,6 +1760,12 @@
           "type": "string"
         },
         "version": {
+          "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "values": {
           "type": "string"
         }
       }

@@ -28,32 +28,41 @@ export const request = (
   method: RequestMethod,
   query: RequestInfo,
   options: RequestInit = {},
-) =>
-  window.fetch(query, { ...options, method }).then(res => processResponse(res));
+  fetchArg?: typeof window.fetch,
+) => {
+  const f = fetchArg || window.fetch;
+  return f(query, { ...options, method }).then(res => processResponse(res));
+};
 
 export const requestWithCountHeader = (
   method: RequestMethod,
   query: RequestInfo,
   options: RequestInit = {},
-) =>
-  window.fetch(query, { ...options, method }).then(res =>
+  fetchArg?: typeof window.fetch,
+) => {
+  const f = fetchArg || window.fetch;
+  return f(query, { ...options, method }).then(res =>
     processResponse(res).then(body => ({
       data: body,
       total: Number(processCountHeader(res)),
     })),
   );
+};
 
 export const requestWithEntitlementHeader = (
   method: RequestMethod,
   query: RequestInfo,
   options: RequestInit = {},
-) =>
-  window.fetch(query, { ...options, method }).then(res =>
+  fetchArg?: typeof window.fetch,
+) => {
+  const f = fetchArg || window.fetch;
+  return f(query, { ...options, method }).then(res =>
     processResponse(res).then(body => ({
       data: body,
       entitlement: processEntitlementHeaders(res),
     })),
   );
+};
 
 export enum GrpcErrorCodes {
   Unauthenticated = 16,

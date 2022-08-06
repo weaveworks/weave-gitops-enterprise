@@ -1,49 +1,50 @@
-import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
-import { Input } from '../../../../../utils/form';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Button } from '@weaveworks/weave-gitops';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import useTemplates from '../../../../../contexts/Templates';
-import { FormStep } from '../Step';
+import React, {
+  FC,
+  useCallback,
+  useState,
+  Dispatch,
+  ChangeEvent,
+  useEffect,
+} from 'react';
+import styled from 'styled-components';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
-import { Loader } from '../../../../Loader';
+import { Input, validateFormData } from '../../../../../utils/form';
 
-const base = weaveTheme.spacing.base;
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    createCTA: {
-      display: 'flex',
-      justifyContent: 'center',
-      paddingTop: base,
-    },
-  }),
-);
+const GitOpsWrapper = styled.form`
+  padding-bottom: ${({ theme }) => theme.spacing.xl};
+  .form-section {
+    width: 50%;
+  }
+  .create-cta {
+    display: flex;
+    justify-content: end;
+    padding: ${({ theme }) => theme.spacing.small};
+    button {
+      width: 200px;
+    }
+  }
+  .create-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+`;
 
 const GitOps: FC<{
+  loading: boolean;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  activeStep: string | undefined;
-  setActiveStep: Dispatch<React.SetStateAction<string | undefined>>;
-  clickedStep: string;
-  setClickedStep: Dispatch<React.SetStateAction<string>>;
   onSubmit: () => Promise<void>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
+  loading,
   formData,
   setFormData,
-  activeStep,
-  setActiveStep,
-  clickedStep,
-  setClickedStep,
   onSubmit,
   showAuthDialog,
   setShowAuthDialog,
 }) => {
-  const classes = useStyles();
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-  const { loading } = useTemplates();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -81,36 +82,47 @@ const GitOps: FC<{
     [setFormData],
   );
 
-  const handleGitOps = useCallback(() => onSubmit(), [onSubmit]);
+  useEffect(() => {
+    setFormData((prevState: any) => ({
+      ...prevState,
+      pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
+    }));
+  }, [formData.CLUSTER_NAME, setFormData]);
 
   return (
-    <FormStep
-      title="GitOps"
-      active={activeStep === 'GitOps'}
-      clicked={clickedStep === 'GitOps'}
-      setActiveStep={setActiveStep}
-    >
+    <GitOpsWrapper>
+      <h2>GitOps</h2>
       <Input
-        label="Create branch"
+        className="form-section"
+        required
+        label="CREATE BRANCH"
         placeholder={formData.branchName}
+        value={formData.branchName}
         onChange={handleChangeBranchName}
       />
       <Input
-        label="Pull request title"
+        className="form-section"
+        required
+        label="PULL REQUEST TITLE"
         placeholder={formData.pullRequestTitle}
+        value={formData.pullRequestTitle}
         onChange={handleChangePullRequestTitle}
       />
       <Input
-        label="Commit message"
+        className="form-section"
+        required
+        label="COMMIT MESSAGE"
         placeholder={formData.commitMessage}
+        value={formData.commitMessage}
         onChange={handleChangeCommitMessage}
       />
       <Input
-        label="Pull request description"
+        className="form-section"
+        required
+        label="PULL REQUEST DESCRIPTION"
         placeholder={formData.pullRequestDescription}
+        value={formData.pullRequestDescription}
         onChange={handleChangePRDescription}
-        multiline
-        rows={4}
       />
       <GitAuth
         formData={formData}
@@ -119,19 +131,20 @@ const GitOps: FC<{
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
       />
-      <div className={classes.createCTA} onClick={handleGitOps}>
-        {loading && clickedStep === 'GitOps' ? (
-          <Loader />
-        ) : (
+
+      {loading ? (
+        <LoadingPage className="create-loading" />
+      ) : (
+        <div className="create-cta">
           <Button
-            onClick={() => setClickedStep('GitOps')}
+            onClick={event => validateFormData(event, onSubmit)}
             disabled={!enableCreatePR}
           >
             CREATE PULL REQUEST
           </Button>
-        )}
-      </div>
-    </FormStep>
+        </div>
+      )}
+    </GitOpsWrapper>
   );
 };
 

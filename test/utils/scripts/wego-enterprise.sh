@@ -63,12 +63,8 @@ function setup {
     echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
     echo "${LOCALHOST_IP} ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
-
-  if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
-    helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/nightly/charts-v3/
-  else
-    helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
-  fi
+  
+  helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   helm repo update  
   
   kubectl create namespace flux-system
@@ -145,7 +141,7 @@ function setup {
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
-   helmArgs+=( --set "tls.enabled=false" )
+  helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )
   helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
@@ -194,7 +190,7 @@ function setup {
       kubectl apply -f -
 
   # Install RBAC for user authentication
-   kubectl apply -f ${args[1]}/test/utils/data/rbac-auth.yaml
+   kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
 
   # enable cluster resource sets
   export EXP_CLUSTER_RESOURCE_SET=true
@@ -219,6 +215,7 @@ function setup {
 
   # Install policy agent to enforce rego policies - (Installing policy agent after capi because capi violates some of thge policies and failed to install)
   helm upgrade --install weave-policy-agent profiles-catalog/weave-policy-agent \
+    --namespace policy-system --create-namespace \
     --version 0.3.x \
     --set accountId=weaveworks \
     --set clusterId=${MANAGEMENT_CLUSTER_CNAME}
@@ -227,30 +224,6 @@ function setup {
   # Install resources for bootstrapping and CNI
   kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
   
-  if [ ${EXP_CLUSTER_RESOURCE_SET} = true ]; then
-    kubectl wait --for=condition=Ready --timeout=300s -n capi-system --all pod
-    kubectl apply -f ${args[1]}/test/utils/data/calico-crs.yaml
-    kubectl apply -f ${args[1]}/test/utils/data/calico-crs-configmap.yaml
-  fi
-
-  if [ ${GIT_PROVIDER} == "github" ]; then
-    kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
-    cat ${args[1]}/test/utils/data/gitops-cluster-bootstrap-config.yaml | \
-      sed s,{{GIT_PROVIDER}},github,g | \
-      sed s,{{GITOPS_REPO_NAME}},$CLUSTER_REPOSITORY,g | \
-      sed s,{{GITOPS_REPO_OWNER}},$GITHUB_ORG,g | \
-      sed s,{{GIT_PROVIDER_HOSTNAME}},$GIT_PROVIDER_HOSTNAME,g | \
-      kubectl apply -f -
-  elif [ ${GIT_PROVIDER} == "gitlab" ]; then
-    kubectl create secret generic my-pat --from-literal GITLAB_TOKEN=$GITLAB_TOKEN
-    cat ${args[1]}/test/utils/data/gitops-cluster-bootstrap-config.yaml | \
-      sed s,{{GIT_PROVIDER}},gitlab,g | \
-      sed s,{{GITOPS_REPO_NAME}},$CLUSTER_REPOSITORY,g | \
-      sed s,{{GITOPS_REPO_OWNER}},$GITLAB_ORG,g | \
-      sed s,{{GIT_PROVIDER_HOSTNAME}},$GIT_PROVIDER_HOSTNAME,g | \
-      kubectl apply -f -
-  fi
-
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A
@@ -264,9 +237,7 @@ function reset {
   # Delete any orphan resources
   kubectl delete CAPITemplate --all
   kubectl delete ClusterBootstrapConfig --all
-  kubectl delete secret my-pat
   kubectl delete ClusterResourceSet --all
-  kubectl delete configmap calico-crs-configmap
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
   # Delete policy agent

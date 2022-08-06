@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
 import {
   AutomationsTable,
@@ -25,7 +25,6 @@ const WGApplicationsDashboard: FC = () => {
         ]}
       />
       <ContentWrapper>
-        <Title>Applications</Title>
         {isLoading ? (
           <LoadingPage />
         ) : (

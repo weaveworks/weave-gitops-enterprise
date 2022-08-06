@@ -352,7 +352,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(appName)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters(capdClusterNames)
+				removeGitopsCapiClusters(capdClusterNames, clusterNamespace[gitProviderEnv.Type])
 			})
 
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("capd", "git"), func() {
@@ -361,7 +361,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd-observability.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				createCluster := func(clusterName string, namespace string, k8version string) {
@@ -443,7 +443,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(kubeconfigPath, clusterName, []string{}, GITOPS_DEFAULT_NAMESPACE)
+					verifyCapiClusterHealth(kubeconfigPath, []string{}, []string{})
 				})
 
 				clusterName2 := capdClusterNames[1]
@@ -488,7 +488,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
 					// FIXME: should be changed to clusters/my-cluster when updating cli tests
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, clusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/management/%s/%s.yaml", repoAbsolutePath, namespace, clusterName))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 

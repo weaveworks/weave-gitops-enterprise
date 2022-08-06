@@ -22,6 +22,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
+
 	corev1 "k8s.io/api/core/v1"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -32,7 +34,7 @@ import (
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -48,8 +50,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
+	authv1 "k8s.io/api/authentication/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -106,6 +110,7 @@ type Params struct {
 	capiTemplatesNamespace            string
 	injectPruneAnnotation             string
 	addBasesKustomization             string
+	capiEnabled                       string
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
 	capiRepositoryClustersPath        string
@@ -155,8 +160,9 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
+	cmd.Flags().StringVar(&p.capiEnabled, "capi-enabled", "true", "")
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
-	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", corev1.NamespaceAll, "where to look for CAPI template resources, defaults to looking in all namespaces")
+	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "where to look for CAPI template resources, required")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
 	cmd.Flags().StringVar(&p.addBasesKustomization, "add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryUrl, "capi-templates-repository-url", "", "")
@@ -249,14 +255,21 @@ func bindFlagValues(cmd *cobra.Command) {
 }
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+	if p.capiTemplatesNamespace == "" {
+		return errors.New("CAPI templates namespace not set")
+	}
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
-		capiv1.AddToScheme,
 		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
+		authv1.AddToScheme,
+	}
+
+	if p.capiEnabled == "true" {
+		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
 	err := schemeBuilder.AddToScheme(scheme)
@@ -323,7 +336,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
-		pacv1.AddToScheme,
+		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
@@ -339,14 +352,19 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 
-	clientsFactoryScheme := kube.CreateScheme()
-	_ = pacv1.AddToScheme(clientsFactoryScheme)
-	_ = flaggerv1beta1.AddToScheme(clientsFactoryScheme)
+	clientsFactoryScheme, err := kube.CreateScheme()
+	if err != nil {
+		return fmt.Errorf("could not create scheme: %w", err)
+	}
+
+	runtimeUtil.Must(pacv2beta1.AddToScheme(clientsFactoryScheme))
+	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clientsFactoryScheme))
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clientsFactoryScheme,
+		clustersmngr.NewClustersClientsPool,
 	)
 	clusterClientsFactory.Start(ctx)
 
@@ -430,16 +448,19 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
-		args.Log,
-		args.ClustersLibrary,
-		args.TemplateLibrary,
-		args.CoreServerConfig.ClientsFactory,
-		args.GitProvider,
-		args.ClientGetter,
-		args.DiscoveryClient,
-		args.CAPIClustersNamespace,
-		args.ProfileHelmRepository,
-		args.HelmRepositoryCacheDirectory,
+		server.ServerOpts{
+			Logger:                    args.Log,
+			TemplatesLibrary:          args.TemplateLibrary,
+			ClustersLibrary:           args.ClustersLibrary,
+			ClientsFactory:            args.CoreServerConfig.ClientsFactory,
+			GitProvider:               args.GitProvider,
+			ClientGetter:              args.ClientGetter,
+			DiscoveryClient:           args.DiscoveryClient,
+			ClustersNamespace:         args.CAPIClustersNamespace,
+			ProfileHelmRepositoryName: args.ProfileHelmRepository,
+			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
+			CAPIEnabled:               args.CAPIEnabled,
+		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
 		return fmt.Errorf("failed to register clusters service handler server: %w", err)
@@ -459,7 +480,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add logging middleware
 	grpcHttpHandler := middleware.WithLogging(args.Log, grpcMux)
 
-	appsServer, err := core_core.NewCoreServer(args.CoreServerConfig, core_core.WithClientGetter(args.ClientGetter))
+	appsServer, err := core_core.NewCoreServer(args.CoreServerConfig)
 	if err != nil {
 		return fmt.Errorf("unable to create new kube client: %w", err)
 	}
@@ -469,13 +490,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	// Add progressive-delivery handlers
-	if os.Getenv("ENABLE_PROGRESSIVE_DELIVERY") != "" {
-		if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
-			ClientFactory: args.CoreServerConfig.ClientsFactory,
-			Logger:        args.Log,
-		}); err != nil {
-			return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
-		}
+	if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
+		ClientFactory: args.CoreServerConfig.ClientsFactory,
+		Logger:        args.Log,
+	}); err != nil {
+		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
 	// UI
@@ -543,7 +562,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
 
-	mux.Handle("/", staticAssets)
+	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
+
+	mux.Handle("/", staticAssetsWithGz)
 
 	s := &http.Server{
 		Addr:    addr,

@@ -6,6 +6,7 @@ COPY --chown=node:node .npmrc /home/node
 COPY --chown=node:node yarn.lock /home/node
 COPY --chown=node:node Makefile /home/node
 
+ARG REACT_APP_DISABLE_PROGRESSIVE_DELIVERY
 ARG GITHUB_TOKEN
 RUN make node_modules
 
