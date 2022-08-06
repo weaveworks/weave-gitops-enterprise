@@ -18,7 +18,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@weaveworks/weave-gitops": ["node_modules/@weaveworks/weave-gitops/ui"]
+    },
   },
   "include": [
     "src"
