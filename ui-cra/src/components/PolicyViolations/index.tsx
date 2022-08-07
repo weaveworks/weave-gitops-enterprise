@@ -1,40 +1,20 @@
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
-import useClusters from './../../contexts/Clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PolicyViolationsTable } from './Table';
-import { useCallback, useContext, useState } from 'react';
-import LoadingError from '../LoadingError';
-import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
-import {
-  ListError,
-  ListPolicyValidationsResponse,
-  PolicyValidation,
-} from '../../cluster-services/cluster_services.pb';
+import { PolicyViolationsList } from './Table';
+import { useState } from 'react';
+import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
+import useClusters from './../../contexts/Clusters';
 
 const PoliciesViolations = () => {
-  const [count, setCount] = useState<number | undefined>(0);
-  const { api } = useContext(EnterpriseClientContext);
-  const [errors, setErrors] = useState<ListError[] | undefined>();
   const clustersCount = useClusters().count;
+  const [data, setData] = useState<ListPolicyValidationsResponse>();
 
-  // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
-
-  // Update payload on page change for next page request to work properly with pagination component in PolicyViolationTable component below
-  // const updatePayload = (payload: any) => {
-  //   setPayload(payload);
-  // };
-  const fetchPolicyViolationsAPI = useCallback(() => {
-    return api.ListPolicyValidations({}).then(res => {
-      !!res && setCount(res.total);
-      !!res && setErrors(res.errors);
-      return res;
-    });
-    // TODO : Add pagination support for policy violations list API
-    // Debendency: payload
-  }, [api]);
+  const onSuccess = (dt: ListPolicyValidationsResponse) => {
+    setData(dt);
+  };
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -46,24 +26,12 @@ const PoliciesViolations = () => {
             {
               label: 'Violation Log',
               url: 'violations',
-              count,
+              count: data?.total,
             },
           ]}
         />
-        <ContentWrapper errors={errors}>
-          <LoadingError fetchFn={fetchPolicyViolationsAPI}>
-            {({ value }: { value: ListPolicyValidationsResponse }) => (
-              <>
-                {value.total && value.total > 0 ? (
-                  <PolicyViolationsTable
-                    violations={value.violations as PolicyValidation[]}
-                  />
-                ) : (
-                  <div>No data to display</div>
-                )}
-              </>
-            )}
-          </LoadingError>
+        <ContentWrapper errors={data?.errors}>
+          <PolicyViolationsList onSuccess={onSuccess} req={{}} />
         </ContentWrapper>
       </PageTemplate>
     </ThemeProvider>
