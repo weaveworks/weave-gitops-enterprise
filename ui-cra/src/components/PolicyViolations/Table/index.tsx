@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import {
   ListPolicyValidationsRequest,
-  ListPolicyValidationsResponse,
   PolicyValidation,
 } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
@@ -126,24 +125,24 @@ const PolicyViolationsTable: FC<Props> = ({
 
 interface PolicyViolationsListProp {
   req: ListPolicyValidationsRequest;
-  onSuccess?: (data: ListPolicyValidationsResponse) => void;
   tableType?: FieldsType;
 }
 
 export const PolicyViolationsList = ({
   req,
-  onSuccess,
+  tableType,
 }: PolicyViolationsListProp) => {
   const { data, error, isLoading } = useListPolicyValidations(req);
-  if (!!data && !!onSuccess) {
-    onSuccess(data);
-  }
+
   return (
     <>
       {isLoading && <LoadingPage />}
       {error && <Alert severity="error">{error.message}</Alert>}
       {data?.violations && (
-        <PolicyViolationsTable violations={data?.violations || []} />
+        <PolicyViolationsTable
+          violations={data?.violations || []}
+          tableType={tableType}
+        />
       )}
     </>
   );

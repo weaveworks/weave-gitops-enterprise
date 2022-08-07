@@ -3,18 +3,13 @@ import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PolicyViolationsList } from './Table';
-import { useState } from 'react';
-import { ListPolicyValidationsResponse } from '../../cluster-services/cluster_services.pb';
+import { FieldsType, PolicyViolationsList } from './Table';
 import useClusters from './../../contexts/Clusters';
+import { useListPolicyValidations } from '../../contexts/PolicyViolations';
 
 const PoliciesViolations = () => {
   const clustersCount = useClusters().count;
-  const [data, setData] = useState<ListPolicyValidationsResponse>();
-
-  const onSuccess = (dt: ListPolicyValidationsResponse) => {
-    setData(dt);
-  };
+  const { data } = useListPolicyValidations({});
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -31,7 +26,7 @@ const PoliciesViolations = () => {
           ]}
         />
         <ContentWrapper errors={data?.errors}>
-          <PolicyViolationsList onSuccess={onSuccess} req={{}} />
+          <PolicyViolationsList req={{}} tableType={ FieldsType.policy} />
         </ContentWrapper>
       </PageTemplate>
     </ThemeProvider>

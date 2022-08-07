@@ -35,10 +35,12 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
       path: `${path}/violations`,
       component: () => {
         return (
-          <PolicyViolationsList
-            req={{ clusterName, namespace }}
-            tableType={FieldsType.application}
-          />
+          <div style={{ width: '100%' }}>
+            <PolicyViolationsList
+              req={{ clusterName, namespace }}
+              tableType={FieldsType.application}
+            />
+          </div>
         );
       },
       visible: true,
@@ -62,7 +64,11 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         {error && <h3>{error.message}</h3>}
         {isLoading && <LoadingPage />}
         {!error && !isLoading && (
-          <HelmReleaseDetail helmRelease={helmRelease} {...props} customTabs={customTabs}/>
+          <HelmReleaseDetail
+            helmRelease={helmRelease}
+            {...props}
+            customTabs={customTabs}
+          />
         )}
       </ContentWrapper>
     </PageTemplate>

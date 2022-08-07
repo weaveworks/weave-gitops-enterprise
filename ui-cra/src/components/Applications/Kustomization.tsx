@@ -33,10 +33,12 @@ const WGApplicationsKustomization: FC<Props> = ({
       path: `${path}/violations`,
       component: () => {
         return (
-          <PolicyViolationsList
-            req={{ clusterName, namespace }}
-            tableType={FieldsType.application}
-          />
+          <div style={{ width: '100%' }}>
+            <PolicyViolationsList
+              req={{ clusterName, namespace }}
+              tableType={FieldsType.application}
+            />
+          </div>
         );
       },
       visible: true,
