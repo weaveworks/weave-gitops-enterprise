@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -10,7 +10,7 @@ import {
 } from '@weaveworks/weave-gitops';
 
 const WGApplicationsDashboard: FC = () => {
-  const { data: automations, isLoading } = useListAutomations();
+  const { data, isLoading } = useListAutomations();
   const applicationsCount = useApplicationsCount();
 
   return (
@@ -28,7 +28,7 @@ const WGApplicationsDashboard: FC = () => {
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={automations} />
+          <AutomationsTable automations={data?.result} />
         )}
       </ContentWrapper>
     </PageTemplate>
