@@ -39,13 +39,6 @@ type TemplateSection struct {
 	Fields []FormField
 }
 
-type Profile struct {
-	Name    *agouti.Selection
-	Version *agouti.Selection
-	Layer   *agouti.Selection
-	Values  *agouti.Selection
-}
-
 type ValuesYaml struct {
 	Title    *agouti.Selection
 	Cancel   *agouti.Selection
@@ -128,16 +121,6 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 	}
 }
 
-func GetProfile(webDriver *agouti.Page, profileName string) Profile {
-	p := webDriver.Find(fmt.Sprintf(`.profiles-table [data-profile-name="%s"]`, profileName))
-	return Profile{
-		Name:    p.Find(`.profile-name`),
-		Version: p.Find(`.profile-version`),
-		Layer:   p.Find(`.profile-layer > span + span`),
-		Values:  p.Find(`button`),
-	}
-}
-
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(BeVisible())
 	return ValuesYaml{
@@ -152,11 +135,11 @@ func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 func (c CreateCluster) FindProfileInList(profileName string) *ProfileInformation {
 	cluster := c.ProfileList.FindByXPath(fmt.Sprintf(`//span[@data-profile-name="%s"]/ancestor::tr`, profileName))
 	return &ProfileInformation{
-		Checkbox:  cluster.FindByXPath(`td[1]`).Find("input"),
+		Checkbox:  cluster.FindByXPath(`td[1]//input`),
 		Name:      cluster.FindByXPath(`td[2]`),
 		Layer:     cluster.FindByXPath(`td[3]`),
 		Version:   cluster.FindByXPath(`td[4]//div[contains(@class, "profile-version")]`),
-		Namespace: cluster.FindByXPath(`td[4]//div[contains(@class, "profile-namespace")]`),
+		Namespace: cluster.FindByXPath(`td[4]//div[contains(@class, "profile-namespace")]//input`),
 		Values:    cluster.FindByXPath(`td[4]//button`),
 	}
 }

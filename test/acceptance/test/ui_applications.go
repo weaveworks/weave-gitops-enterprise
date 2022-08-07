@@ -49,6 +49,18 @@ func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
 	})
 }
 
+func verifyAppInformation(applicationsPage *pages.ApplicationsPage, appName, appType, appNamespace, cluster, clusterNamespace, source, status string) {
+	By(fmt.Sprintf("And verify %s application information in application table for cluster: %s", appName, cluster), func() {
+		applicationInfo := applicationsPage.FindApplicationInList(appName)
+		Eventually(applicationInfo.Name).Should(MatchText(appName), fmt.Sprintf("Failed to list %s application in  application table", appName))
+		Eventually(applicationInfo.Type).Should(MatchText(appType), fmt.Sprintf("Failed to have expected %s application type: %s", appName, appType))
+		Eventually(applicationInfo.Namespace).Should(MatchText(appNamespace), fmt.Sprintf("Failed to have expected %s application namespace: %s", appName, appNamespace))
+		Eventually(applicationInfo.Cluster).Should(MatchText(path.Join(clusterNamespace, cluster)), fmt.Sprintf("Failed to have expected %s application cluster: %s", appName, path.Join(clusterNamespace, cluster)))
+		Eventually(applicationInfo.Source).Should(MatchText(source), fmt.Sprintf("Failed to have expected %s application source: %s", appName, source))
+		Eventually(applicationInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(MatchText(status), fmt.Sprintf("Failed to have expected %s application status: %s", appName, status))
+	})
+}
+
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Multi-Cluster Control Plane Applications", func() {
 
@@ -74,30 +86,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Expect(applicationsPage.CountApplications()).To(Equal(1), "There should not be any cluster in cluster table")
 				})
 
-				applicationInfo := applicationsPage.FindApplicationInList("flux-system")
-				By("And verify bootstrap application Name", func() {
-					Eventually(applicationInfo.Name).Should(MatchText("flux-system"), "Failed to list flux-system application in  application table")
-				})
-
-				By("And verify bootstrap application Type", func() {
-					Eventually(applicationInfo.Type).Should(MatchText("Kustomization"), "Failed to have expected flux-system application type: Kustomization")
-				})
-
-				By("And verify bootstrap application Namespace", func() {
-					Eventually(applicationInfo.Namespace).Should(MatchText(GITOPS_DEFAULT_NAMESPACE), fmt.Sprintf("Failed to have expected flux-system application namespace: %s", GITOPS_DEFAULT_NAMESPACE))
-				})
-
-				By("And verify bootstrap application Cluster", func() {
-					Eventually(applicationInfo.Cluster).Should(MatchText("management"), "Failed to have expected flux-system application cluster: management")
-				})
-
-				By("And verify bootstrap application Source", func() {
-					Eventually(applicationInfo.Source).Should(MatchText("flux-system"), "Failed to have expected flux-system application namespace: flux-system")
-				})
-
-				By("And verify bootstrap application status", func() {
-					Eventually(applicationInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(MatchText("Ready"), "Failed to have expected flux-system application status: Ready")
-				})
+				verifyAppInformation(applicationsPage, "flux-system", "Kustomization", GITOPS_DEFAULT_NAMESPACE, "management", "", "flux-system", "Ready")
 			})
 		})
 
@@ -149,31 +138,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
+				verifyAppInformation(applicationsPage, appName, "Kustomization", appNameSpace, "management", "", appName, "Ready")
+
 				applicationInfo := applicationsPage.FindApplicationInList(appName)
-				By("And verify podinfo application Name", func() {
-					Eventually(applicationInfo.Name).Should(MatchText(appName), fmt.Sprintf("Failed to list %s application in  application table", appName))
-				})
-
-				By("And verify podinfo application Type", func() {
-					Eventually(applicationInfo.Type).Should(MatchText("Kustomization"), fmt.Sprintf("Failed to have expected %s application type: Kustomization", appName))
-				})
-
-				By("And verify podinfo application Namespace", func() {
-					Eventually(applicationInfo.Namespace).Should(MatchText(appNameSpace), fmt.Sprintf("Failed to have expected %s application namespace: %s", appName, appNameSpace))
-				})
-
-				By("And verify podinfo application Cluster", func() {
-					Eventually(applicationInfo.Cluster).Should(MatchText("management"), fmt.Sprintf("Failed to have expected %s application cluster: management", appName))
-				})
-
-				By("And verify podinfo application Source", func() {
-					Eventually(applicationInfo.Source).Should(MatchText(appName), fmt.Sprintf("Failed to have expected %[1]v application source: %[1]s", appName))
-				})
-
-				By("And verify podinfo application status", func() {
-					Eventually(applicationInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(MatchText("Ready"), fmt.Sprintf("Failed to have expected %s application status: Ready", appName))
-				})
-
 				By(fmt.Sprintf("And navigate to %s application page", appName), func() {
 					Eventually(applicationInfo.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", appName))
 				})
@@ -329,7 +296,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases(leafClusterName, leafClusterNamespace)
+					addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 				})
 
 				By(fmt.Sprintf("And I verify %s GitopsCluster is bootstraped)", leafClusterName), func() {
@@ -378,16 +345,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					}).Should(Equal(1), "There should be '1' application entery in application table after search")
 				})
 
-				applicationInfo := applicationsPage.FindApplicationInList(appName)
-				By("And verify searched podinfo application information in application table", func() {
-					Eventually(applicationInfo.Name).Should(MatchText(appName), fmt.Sprintf("Failed to list %s application in  application table", appName))
-					Eventually(applicationInfo.Type).Should(MatchText("Kustomization"), fmt.Sprintf("Failed to have expected %s application type: Kustomization", appName))
-					Eventually(applicationInfo.Namespace).Should(MatchText(appNameSpace), fmt.Sprintf("Failed to have expected %s application namespace: %s", appName, appNameSpace))
-					Eventually(applicationInfo.Cluster).Should(MatchText(leafClusterNamespace+`/`+leafClusterName), fmt.Sprintf("Failed to have expected %s application cluster: %s", appName, leafClusterNamespace+`/`+leafClusterName))
-					Eventually(applicationInfo.Source).Should(MatchText(appName), fmt.Sprintf("Failed to have expected %[1]v application source: %[1]s", appName))
-					Eventually(applicationInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(MatchText("Ready"), fmt.Sprintf("Failed to have expected %s application status: Ready", appName))
-				})
+				verifyAppInformation(applicationsPage, appName, "Kustomization", appNameSpace, leafClusterName, leafClusterNamespace, appName, "Ready")
 
+				applicationInfo := applicationsPage.FindApplicationInList(appName)
 				By(fmt.Sprintf("And navigate to %s application page", appName), func() {
 					Eventually(applicationInfo.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", appName))
 				})

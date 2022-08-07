@@ -241,6 +241,8 @@ message ListPoliciesResponse {
 message ListPolicyValidationsRequest{
   string clusterName = 1;
   Pagination pagination = 2;
+  string application = 3;
+  string namespace = 4;
 }
 message ListPolicyValidationsResponse {
   repeated PolicyValidation violations = 1;
