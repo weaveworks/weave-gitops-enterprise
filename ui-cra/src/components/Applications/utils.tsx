@@ -1,7 +1,6 @@
 import { useListAutomations } from '@weaveworks/weave-gitops';
 
 export const useApplicationsCount = (): number => {
-  const { data: automations } = useListAutomations();
-
-  return automations ? automations.length : 0;
+  const { data } = useListAutomations();
+  return data?.result?.length || 0;
 };
