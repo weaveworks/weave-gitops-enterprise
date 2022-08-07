@@ -7,11 +7,14 @@ import {
   KustomizationDetail,
   useGetKustomization,
 } from '@weaveworks/weave-gitops';
+import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { useRouteMatch } from 'react-router-dom';
+import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 
 type Props = {
   name: string;
-  namespace?: string;
-  clusterName: string;
+  namespace: string;
+  clusterName: any;
 };
 
 const WGApplicationsKustomization: FC<Props> = ({
@@ -22,6 +25,23 @@ const WGApplicationsKustomization: FC<Props> = ({
   const applicationsCount = useApplicationsCount();
   const { data } = useGetKustomization(name, namespace, clusterName);
   const kustomization = data?.kustomization;
+  const { path } = useRouteMatch();
+
+  const customTabs: Array<routeTab> = [
+    {
+      name: 'Violations',
+      path: `${path}/violations`,
+      component: () => {
+        return (
+          <PolicyViolationsList
+            req={{ clusterName, namespace }}
+            tableType={FieldsType.application}
+          />
+        );
+      },
+      visible: true,
+    },
+  ];
 
   return (
     <PageTemplate documentTitle="WeGO · Kustomization">
@@ -38,7 +58,10 @@ const WGApplicationsKustomization: FC<Props> = ({
         ]}
       />
       <ContentWrapper>
-        <KustomizationDetail kustomization={kustomization} />
+        <KustomizationDetail
+          kustomization={kustomization}
+          customTabs={customTabs}
+        />
       </ContentWrapper>
     </PageTemplate>
   );
