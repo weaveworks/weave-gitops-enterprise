@@ -9,7 +9,6 @@ import _ from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
 import { Link } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
 import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
 import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
 import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
@@ -117,86 +116,76 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
   };
 
   return (
-      <ThemeProvider theme={theme}>
-        {canaries.length > 0 ? (
-          <TableWrapper id="canaries-list">
-            <FilterableTable
-              filters={initialFilterState}
-              rows={sortCanariesByDate(canaries)}
-              fields={[
-                {
-                  label: 'Name',
-                  value: (c: Canary) => (
-                    <Link
-                      to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
-                      className={classes.canaryLink}
-                    >
-                      {c.name}
-                      <span
-                        style={{
-                          marginLeft: theme.spacing.xs,
-                        }}
-                      >
-                        {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
-                      </span>
-                    </Link>
-                  ),
-                },
-                {
-                  label: 'Status',
-                  value: (c: Canary) => (
-                    <div>
-                      <CanaryStatus
-                        status={c.status?.phase || ''}
-                        value={getProgressValue(
-                          c.deploymentStrategy || '',
-                          c.status,
-                          c.analysis,
-                        )}
-                      />
-                    </div>
-                  ),
-                },
-                {
-                  label: 'Cluster',
-                  value: 'clusterName',
-                  textSearchable: true,
-                },
-                {
-                  label: 'Namespace',
-                  value: 'namespace',
-                },
-                {
-                  label: 'Target',
-                  value: (c: Canary) => c.targetReference?.name || '',
-                },
-                {
-                  label: 'Message',
-                  value: (c: Canary) =>
-                    (c.status?.conditions && c.status?.conditions[0].message) ||
-                    '--',
-                },
-                {
-                  label: 'Promoted',
-                  value: (c: Canary) => formatPromoted(c.targetDeployment),
-                },
-                {
-                  label: 'Last Updated',
-                  value: (c: Canary) =>
-                    (c.status?.conditions &&
-                      moment(
-                        c.status?.conditions[0].lastUpdateTime,
-                      ).fromNow()) ||
-                    '--',
-                  sortValue: (c: Canary) =>
-                    c.status?.conditions![0].lastUpdateTime,
-                },
-              ]}
-            />
-          </TableWrapper>
-        ) : (
-          <p>No data to display</p>
-        )}
-      </ThemeProvider>
+    <TableWrapper id="canaries-list">
+      <FilterableTable
+        filters={initialFilterState}
+        rows={sortCanariesByDate(canaries)}
+        fields={[
+          {
+            label: 'Name',
+            value: (c: Canary) => (
+              <Link
+                to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
+                className={classes.canaryLink}
+              >
+                {c.name}
+                <span
+                  style={{
+                    marginLeft: theme.spacing.xs,
+                  }}
+                >
+                  {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
+                </span>
+              </Link>
+            ),
+          },
+          {
+            label: 'Status',
+            value: (c: Canary) => (
+              <div>
+                <CanaryStatus
+                  status={c.status?.phase || ''}
+                  value={getProgressValue(
+                    c.deploymentStrategy || '',
+                    c.status,
+                    c.analysis,
+                  )}
+                />
+              </div>
+            ),
+          },
+          {
+            label: 'Cluster',
+            value: 'clusterName',
+            textSearchable: true,
+          },
+          {
+            label: 'Namespace',
+            value: 'namespace',
+          },
+          {
+            label: 'Target',
+            value: (c: Canary) => c.targetReference?.name || '',
+          },
+          {
+            label: 'Message',
+            value: (c: Canary) =>
+              (c.status?.conditions && c.status?.conditions[0].message) || '--',
+          },
+          {
+            label: 'Promoted',
+            value: (c: Canary) => formatPromoted(c.targetDeployment),
+          },
+          {
+            label: 'Last Updated',
+            value: (c: Canary) =>
+              (c.status?.conditions &&
+                moment(c.status?.conditions[0].lastUpdateTime).fromNow()) ||
+              '--',
+            sortValue: (c: Canary) => c.status?.conditions![0].lastUpdateTime,
+          },
+        ]}
+      />
+    </TableWrapper>
   );
 };
