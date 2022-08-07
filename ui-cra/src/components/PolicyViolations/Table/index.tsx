@@ -1,92 +1,150 @@
 import { FC } from 'react';
-import { muiTheme } from '../../../muiTheme';
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
-import { Shadows } from '@material-ui/core/styles/shadows';
-import { PolicyValidation } from '../../../cluster-services/cluster_services.pb';
+import {
+  ListPolicyValidationsRequest,
+  ListPolicyValidationsResponse,
+  PolicyValidation,
+} from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
-import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
+import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';
+import { TableWrapper } from '../../Shared';
+import { useListPolicyValidations } from '../../../contexts/PolicyViolations';
+import { Alert } from '@material-ui/lab';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 
-const localMuiTheme = createTheme({
-  ...muiTheme,
-  shadows: Array(25).fill('none') as Shadows,
-});
-
-const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
-  tr {
-    vertical-align:'center')};
-  }
-  max-width: calc(100vw - 220px);
-`;
+export enum FieldsType {
+  policy = 'POLICY',
+  application = 'APPLICATION',
+}
 interface Props {
   violations: PolicyValidation[];
+  tableType?: FieldsType;
 }
 
-export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
+const PolicyViolationsTable: FC<Props> = ({
+  violations,
+  tableType = FieldsType.policy,
+}) => {
   const initialFilterState = {
-    ...filterConfig(violations, 'clusterName'),
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
+  const policyFields = [
+    {
+      label: 'Name configured in management UI',
+      value: ({ message, clusterName, id }: PolicyValidation) => (
+        <Link
+          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
+          className={classes.link}
+          data-violation-message={message}
+        >
+          {message}
+        </Link>
+      ),
+      textSearchable: true,
+      maxWidth: 650,
+    },
+    {
+      label: 'Message',
+      value: ({ message, clusterName, id }: PolicyValidation) => (
+        <Link
+          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
+          className={classes.link}
+          data-violation-message={message}
+        >
+          {message}
+        </Link>
+      ),
+      textSearchable: true,
+      maxWidth: 650,
+    },
+    {
+      label: 'Severity',
+      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
+    },
+    {
+      label: 'Violated Policy',
+      value: 'name',
+    },
+    {
+      label: 'Cluster',
+      value: 'clusterName',
+    },
+    {
+      label: 'Violation Time',
+      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
+    },
+    {
+      label: 'Application',
+      value: (v: PolicyValidation) => `${v.namespace}/${v.entity}`,
+    },
+  ];
+
+  const applicationFields = [
+    {
+      label: 'Message',
+      value: ({ message, clusterName, id }: PolicyValidation) => (
+        <Link
+          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
+          className={classes.link}
+          data-violation-message={message}
+        >
+          {message}
+        </Link>
+      ),
+      textSearchable: true,
+      maxWidth: 650,
+    },
+    {
+      label: 'Severity',
+      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
+    },
+    {
+      label: 'Violated Policy',
+      value: 'name',
+    },
+    {
+      label: 'Violation Time',
+      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
+    },
+  ];
+
+  const fields =
+    tableType === FieldsType.policy ? policyFields : applicationFields;
   return (
-    <div className={`${classes.root}`} id="policies-violations-list">
-      <ThemeProvider theme={localMuiTheme}>
-        <TableWrapper>
-          <FilterableTable
-            key={violations?.length}
-            filters={initialFilterState}
-            rows={violations}
-            fields={[
-              {
-                label: 'Name configured in management UI',
-                value: (v: PolicyValidation) => (
-                  <Link
-                    to={`/clusters/violations/details?clusterName=${v.clusterName}&id=${v.id}`}
-                    className={classes.link}
-                    data-violation-message={v.message}
-                  >
-                    {v.message}
-                  </Link>
-                ),
-                textSearchable: true,
-                sortValue: ({ message }) => message,
-                maxWidth: 650,
-              },
-              {
-                label: 'Severity',
-                value: (v: PolicyValidation) => (
-                  <Severity severity={v.severity || ''} />
-                ),
-              },
-              {
-                label: 'Cluster',
-                value: 'clusterName',
-              },
-              {
-                label: 'Violation Time',
-                value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
-              },
-              {
-                label: 'Application',
-                value: (v: PolicyValidation) => `${v.namespace}/${v.entity}`,
-              },
-            ]}
-          ></FilterableTable>
-        </TableWrapper>
-      </ThemeProvider>
-    </div>
+    <TableWrapper>
+      <FilterableTable
+        filters={initialFilterState}
+        rows={violations}
+        fields={fields}
+      ></FilterableTable>
+    </TableWrapper>
+  );
+};
+
+interface PolicyViolationsListProp {
+  req: ListPolicyValidationsRequest;
+  onSuccess?: (data: ListPolicyValidationsResponse) => void;
+  tableType?: FieldsType;
+}
+
+export const PolicyViolationsList = ({
+  req,
+  onSuccess,
+}: PolicyViolationsListProp) => {
+  const { data, error, isLoading } = useListPolicyValidations(req);
+  if (!!data && !!onSuccess) {
+    onSuccess(data);
+  }
+  return (
+    <>
+      {isLoading && <LoadingPage />}
+      {error && <Alert severity="error">{error.message}</Alert>}
+      {data?.violations && (
+        <PolicyViolationsTable violations={data?.violations || []} />
+      )}
+    </>
   );
 };
