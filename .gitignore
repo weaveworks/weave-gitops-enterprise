@@ -53,3 +53,6 @@ tf.json
 charts/mccp/charts
 
 tilt_modules
+
+# .vscode
+.vscode
