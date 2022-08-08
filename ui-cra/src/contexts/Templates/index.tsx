@@ -7,6 +7,7 @@ interface TemplatesContext {
   activeTemplate: Template | null;
   setActiveTemplate: Dispatch<React.SetStateAction<Template | null>>;
   addCluster: (data: any, token: string, templateKind: string) => Promise<any>;
+  addApplication: (data: any, token: string) => Promise<any>;
   renderTemplate: (data: any) => Promise<any>;
   getTemplate: (templateName: string) => Template | null;
   isLoading: boolean;
