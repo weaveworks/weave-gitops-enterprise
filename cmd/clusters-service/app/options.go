@@ -32,6 +32,7 @@ type Options struct {
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
+	CAPIEnabled                  string
 	EntitlementSecretKey         client.ObjectKey
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
