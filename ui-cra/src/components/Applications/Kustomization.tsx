@@ -10,7 +10,7 @@ import {
 
 type Props = {
   name: string;
-  namespace?: string;
+  namespace: string;
   clusterName: string;
 };
 
