@@ -135,7 +135,7 @@ export const TextWrapper = styled.p`
 
 export const FlexCenter = styled.div`
   display: flex;
-  lign-items: center;
+  align-items: center;
   justify-content: center;
 `;
 
@@ -144,7 +144,7 @@ export const LinkTag = styled.a`
 `;
 
 export const CustomDataTable = styled(DataTable)`
-thead > tr {
-  background: ${theme.colors.neutral10};
-}
+  thead > tr {
+    background: ${theme.colors.neutral10};
+  }
 `;
