@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -12,7 +14,6 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,157 +24,134 @@ func Test_CreateTenants(t *testing.T) {
 	testCases := []struct {
 		name              string
 		clusterState      []runtime.Object
+		verifications     []verifyFunc
 		expectedResources map[client.Object][]client.Object
 	}{
 		{
 			name:         "create tenant with new resources",
 			clusterState: []runtime.Object{},
-			expectedResources: map[client.Object][]client.Object{
-				&corev1.Namespace{}: {
-					newNamespace("foo-ns", map[string]string{
+			verifications: []verifyFunc{
+				verifyNamespaces(
+					setResourceVersion(newNamespace("foo-ns", map[string]string{
 						"toolkit.fluxcd.io/tenant": "foo-tenant",
-					}),
-				},
-				&corev1.ServiceAccount{}: {
-					newServiceAccount("foo-tenant", "foo-ns", map[string]string{
+					}), 1),
+					setResourceVersion(newNamespace("bar-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "bar-tenant",
+					}), 1),
+					setResourceVersion(newNamespace("foobar-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "bar-tenant",
+					}), 1),
+				),
+				verifyServiceAccounts(
+					setResourceVersion(
+						newServiceAccount("foo-tenant", "foo-ns", map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
+						}), 1),
+				),
+				verifyRoleBindings(
+					setResourceVersion(newRoleBinding("foo-tenant", "foo-ns", "", map[string]string{
 						"toolkit.fluxcd.io/tenant": "foo-tenant",
-					}),
-				},
-				&rbacv1.RoleBinding{}: {
-					newRoleBinding("foo-tenant", "foo-ns", "", map[string]string{
-						"toolkit.fluxcd.io/tenant": "foo-tenant",
-					}),
-				},
-				&pacv2beta1.Policy{}: {
+					}), 1),
+				),
+				verifyPolicies(
+					setResourceVersion(
+						testNewPolicy(
+							t,
+							"bar-tenant",
+							[]string{"bar-ns", "foobar-ns"},
+							[]AllowedRepository{
+								{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"},
+								{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"},
+								{URL: "minio.example.com", Kind: "Bucket"},
+								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"}},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "bar-tenant",
+							},
+						), 1),
+				),
+			},
+		},
+		{
+			name: "update existing tenants",
+			clusterState: []runtime.Object{
+				// The existing resources do not have labels for the the tenants.
+				setResourceVersion(newNamespace("foo-ns", map[string]string{}), 1),
+				setResourceVersion(newNamespace("bar-ns", map[string]string{}), 1),
+				setResourceVersion(newNamespace("foobar-ns", map[string]string{}), 1),
+				setResourceVersion(
+					newServiceAccount("foo-tenant", "foo-ns", map[string]string{}), 1),
+				setResourceVersion(newRoleBinding("foo-tenant", "foo-ns", "", map[string]string{
+					"toolkit.fluxcd.io/tenant": "foo-tenant",
+				}), 1),
+				// The setup version is only for a single tenant, the example
+				// file has two.
+				setResourceVersion(
 					testNewPolicy(
 						t,
-						"test-tenant",
-						[]string{"test-namespace"},
-						[]AllowedRepository{{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"}},
+						"bar-tenant",
+						[]string{"bar-ns"},
+						[]AllowedRepository{
+							{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"},
+							{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"}},
 						map[string]string{
-							"toolkit.fluxcd.io/tenant": "test-tenant",
+							"toolkit.fluxcd.io/tenant": "bar-tenant",
 						},
-					),
-				},
+					), 1),
 			},
-		},
-		{
-			name: "create tenant with an existing namespace",
-			clusterState: []runtime.Object{
-				&corev1.Namespace{
-					TypeMeta: namespaceTypeMeta,
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "foo-ns",
-						Labels: map[string]string{
-							"toolkit.fluxcd.io/tenant": "foo-tenant",
-						},
-					},
-				},
-			},
-			expectedResources: map[client.Object][]client.Object{
-				&corev1.Namespace{}: {
-					newNamespace("foo-ns", map[string]string{
+			verifications: []verifyFunc{
+				verifyNamespaces(
+					setResourceVersion(newNamespace("foo-ns", map[string]string{
 						"toolkit.fluxcd.io/tenant": "foo-tenant",
-					}),
-				},
-			},
-		},
-		{
-			name: "create tenant with an existing service account",
-			clusterState: []runtime.Object{
-				&corev1.ServiceAccount{
-					TypeMeta: serviceAccountTypeMeta,
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "foo-tenant",
-						Namespace: "foo-ns",
-						Labels: map[string]string{
+					}), 2),
+					setResourceVersion(newNamespace("bar-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "bar-tenant",
+					}), 2),
+					setResourceVersion(newNamespace("foobar-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "bar-tenant",
+					}), 2),
+				),
+				verifyServiceAccounts(
+					setResourceVersion(
+						newServiceAccount("foo-tenant", "foo-ns", map[string]string{
 							"toolkit.fluxcd.io/tenant": "foo-tenant",
-						},
-					},
-				},
-			},
-			expectedResources: map[client.Object][]client.Object{
-				&corev1.ServiceAccount{}: {
-					newServiceAccount("foo-tenant", "foo-ns", map[string]string{
+						}), 2),
+				),
+				verifyRoleBindings(
+					setResourceVersion(newRoleBinding("foo-tenant", "foo-ns", "", map[string]string{
 						"toolkit.fluxcd.io/tenant": "foo-tenant",
-					}),
-				},
+					}), 1),
+				),
+				verifyPolicies(
+					setResourceVersion(
+						testNewPolicy(
+							t,
+							"bar-tenant",
+							[]string{"bar-ns", "foobar-ns"},
+							[]AllowedRepository{
+								{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"},
+								{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"},
+								{URL: "minio.example.com", Kind: "Bucket"},
+								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"}},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "bar-tenant",
+							},
+						), 2),
+				),
 			},
 		},
 		{
-			name: "create tenant with an existing RoleBinding",
+			name: "replace existing rolebindings",
 			clusterState: []runtime.Object{
-				&rbacv1.RoleBinding{
-					TypeMeta: roleBindingTypeMeta,
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "foo-tenant",
-						Namespace: "foo-ns",
-						Labels: map[string]string{
-							"toolkit.fluxcd.io/tenant": "foo-tenant",
-						},
-					},
-					RoleRef: rbacv1.RoleRef{
-						APIGroup: "rbac.authorization.k8s.io",
-						Kind:     "ClusterRole",
-						Name:     "cluster-admin",
-					},
-					Subjects: []rbacv1.Subject{
-						{
-							APIGroup: "rbac.authorization.k8s.io",
-							Kind:     "User",
-							Name:     "gotk:foo-tenant:reconciler",
-						},
-						{
-							Kind:      "ServiceAccount",
-							Name:      "foo-tenant",
-							Namespace: "foo-ns",
-						},
-					},
-				},
+				setResourceVersion(newRoleBinding("foo-tenant", "foo-ns", "unknown-cluster-role", map[string]string{
+					"toolkit.fluxcd.io/tenant": "foo-tenant",
+				}), 1),
 			},
-			expectedResources: map[client.Object][]client.Object{
-				&rbacv1.RoleBinding{}: {
-					newRoleBinding("foo-tenant", "foo-ns", "", map[string]string{
+			verifications: []verifyFunc{
+				verifyRoleBindings(
+					setResourceVersion(newRoleBinding("foo-tenant", "foo-ns", "", map[string]string{
 						"toolkit.fluxcd.io/tenant": "foo-tenant",
-					}),
-				},
-			},
-		},
-		{
-			name: "create tenant with an existing policy",
-			clusterState: []runtime.Object{
-				&pacv2beta1.Policy{
-					TypeMeta: policyTypeMeta,
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "weave.policies.tenancy.bar-tenant-allowed-repositories",
-					},
-					Spec: pacv2beta1.PolicySpec{
-						ID:          "weave.policies.tenancy.bar-tenant-allowed-repositories",
-						Name:        "bar-tenant allowed repositories",
-						Category:    "weave.categories.tenancy",
-						Severity:    "high",
-						Description: "Controls the allowed repositories to be used as sources",
-						Targets: pacv2beta1.PolicyTargets{
-							Kinds:      policyRepoKinds,
-							Namespaces: []string{"bar-ns", "bar"},
-						},
-						Code: policyCode,
-						Tags: []string{"tenancy"},
-					},
-				},
-			},
-			expectedResources: map[client.Object][]client.Object{
-				&pacv2beta1.Policy{}: {
-					testNewPolicy(
-						t,
-						"test-tenant",
-						[]string{"test-namespace"},
-						[]AllowedRepository{{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"}},
-						map[string]string{
-							"toolkit.fluxcd.io/tenant": "test-tenant",
-						},
-					),
-				},
+					}), 1),
+				),
 			},
 		},
 	}
@@ -190,51 +168,8 @@ func Test_CreateTenants(t *testing.T) {
 			err = CreateTenants(context.TODO(), tenants, fc)
 			assert.NoError(t, err)
 
-			if tt.expectedResources[&corev1.Namespace{}] != nil {
-				namespaces := corev1.NamespaceList{}
-				if err := fc.List(context.TODO(), &namespaces); err != nil {
-					t.Fatal(err)
-				}
-
-				assert.Equal(t, len(tt.expectedResources[&corev1.Namespace{}]), len(namespaces.Items))
-
-				assert.Equal(t, tt.expectedResources[&corev1.Namespace{}], &namespaces)
-			}
-			if tt.expectedResources[&corev1.ServiceAccount{}] != nil {
-				accounts := corev1.ServiceAccountList{}
-				if err := fc.List(context.TODO(), &accounts, client.InNamespace("foo-ns")); err != nil {
-					t.Fatal(err)
-				}
-
-				assert.Equal(t, len(tt.expectedResources[&corev1.ServiceAccount{}]), len(accounts.Items))
-
-				assert.Equal(t, tt.expectedResources[&corev1.ServiceAccount{}], &accounts)
-			}
-			if tt.expectedResources[&rbacv1.RoleBinding{}] != nil {
-				roleBindings := rbacv1.RoleBindingList{}
-				if err := fc.List(context.TODO(), &roleBindings, client.InNamespace("foo-ns")); err != nil {
-					t.Fatal(err)
-				}
-
-				assert.Equal(t, len(tt.expectedResources[&rbacv1.RoleBinding{}]), len(roleBindings.Items))
-
-				assert.Equal(t, tt.expectedResources[&rbacv1.RoleBinding{}], &roleBindings)
-			}
-			if tt.expectedResources[&pacv2beta1.Policy{}] != nil {
-				policies := pacv2beta1.PolicyList{}
-				if err := fc.List(context.TODO(), &policies); err != nil {
-					t.Fatal(err)
-				}
-
-				assert.Equal(t, len(tt.expectedResources[&pacv2beta1.Policy{}]), len(policies.Items))
-				// This doesn't compare the entirety of the spec, because it contains the
-				// complete text of the policy.
-				policy := policies.Items[0]
-				expectedPolicy := tt.expectedResources[&pacv2beta1.Policy{}][0].(*pacv2beta1.Policy)
-
-				assert.Equal(t, expectedPolicy.GetLabels(), policy.GetLabels())
-				assert.Equal(t, expectedPolicy.Spec.Parameters[0].Name, policy.Spec.Parameters[0].Name)
-				assert.Equal(t, expectedPolicy.Spec.Targets, policy.Spec.Targets)
+			for _, f := range tt.verifications {
+				f(t, fc)
 			}
 		})
 	}
@@ -550,11 +485,89 @@ func newFakeClient(t *testing.T, objs ...runtime.Object) client.Client {
 		Build()
 }
 
+func verifyNamespaces(ns ...*corev1.Namespace) func(t *testing.T, cl client.Client) {
+	return func(t *testing.T, cl client.Client) {
+		sort.Slice(ns, func(i, j int) bool { return ns[i].GetName() < ns[j].GetName() })
+		namespaces := corev1.NamespaceList{}
+		if err := cl.List(context.TODO(), &namespaces); err != nil {
+			t.Fatal(err)
+		}
+		sort.Slice(namespaces.Items, func(i, j int) bool { return namespaces.Items[i].GetName() < namespaces.Items[j].GetName() })
+		for i := range ns {
+			assert.Equal(t, ns[i], &namespaces.Items[i])
+		}
+	}
+}
+
+func verifyServiceAccounts(sa ...*corev1.ServiceAccount) func(t *testing.T, cl client.Client) {
+	return func(t *testing.T, cl client.Client) {
+		sort.Slice(sa, func(i, j int) bool { return sa[i].GetName() < sa[j].GetName() })
+
+		accounts := corev1.ServiceAccountList{}
+		if err := cl.List(context.TODO(), &accounts, client.InNamespace("foo-ns")); err != nil {
+			t.Fatal(err)
+		}
+		sort.Slice(accounts.Items, func(i, j int) bool { return accounts.Items[i].GetName() < accounts.Items[j].GetName() })
+		for i := range sa {
+			assert.Equal(t, sa[i], &accounts.Items[i])
+		}
+	}
+}
+
+func verifyRoleBindings(rb ...*rbacv1.RoleBinding) func(t *testing.T, cl client.Client) {
+	return func(t *testing.T, cl client.Client) {
+		sort.Slice(rb, func(i, j int) bool { return rb[i].GetName() < rb[j].GetName() })
+		roleBindings := rbacv1.RoleBindingList{}
+		if err := cl.List(context.TODO(), &roleBindings, client.InNamespace("foo-ns")); err != nil {
+			t.Fatal(err)
+		}
+
+		sort.Slice(roleBindings.Items, func(i, j int) bool { return roleBindings.Items[i].GetName() < roleBindings.Items[j].GetName() })
+		for i := range rb {
+			assert.Equal(t, rb[i], &roleBindings.Items[i])
+		}
+	}
+}
+
+func verifyPolicies(expected ...*pacv2beta1.Policy) func(t *testing.T, cl client.Client) {
+	return func(t *testing.T, cl client.Client) {
+		sort.Slice(expected, func(i, j int) bool { return expected[i].GetName() < expected[j].GetName() })
+		policies := pacv2beta1.PolicyList{}
+		if err := cl.List(context.TODO(), &policies); err != nil {
+			t.Fatal(err)
+		}
+		sort.Slice(policies.Items, func(i, j int) bool { return policies.Items[i].GetName() < policies.Items[j].GetName() })
+
+		assert.Equal(t, len(expected), len(policies.Items))
+		for i := range policies.Items {
+			// This doesn't compare the entirety of the spec, because it contains the
+			// complete text of the policy.
+			policy := policies.Items[i]
+			expectedPolicy := expected[i]
+
+			assert.Equal(t, expectedPolicy.ObjectMeta, policy.ObjectMeta)
+			if diff := cmp.Diff(expectedPolicy.Spec.Parameters, policy.Spec.Parameters); diff != "" {
+				t.Fatalf("parameters don't match:\n%s", diff)
+			}
+			assert.Equal(t, expectedPolicy.Spec.Targets, policy.Spec.Targets)
+		}
+	}
+}
+
+type verifyFunc func(t *testing.T, cl client.Client)
+
 func testNewPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta1.Policy {
 	t.Helper()
 	p, err := newPolicy(tenantName, namespaces, allowedRepositories, labels)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	return p
+}
+
+func setResourceVersion[T client.Object](obj T, rv int) T {
+	obj.SetResourceVersion(fmt.Sprintf("%v", rv))
+
+	return obj
 }

@@ -138,9 +138,9 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
 			existing.SetLabels(obj.GetLabels())
-		}
-		if err := kubeClient.Update(ctx, existing); err != nil {
-			return err
+			if err := kubeClient.Update(ctx, existing); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
