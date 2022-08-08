@@ -2335,6 +2335,30 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc12/319a8703bc7963de038f79806b6220ba1f821c4218b10658dbeb00f901345846#01afa880f4248d626c8491372f6eba615c105fff"
   integrity sha512-YrT+JrOXFGNsclQVPmG85uLKsoDiVlYZqF++nryt2zEsNTreLu0RvXt0FjKsFWl3EaD2XGJvkLYDOglxUs2fYg==
 
+"@weaveworks/weave-gitops@../../weave-gitops/dist/":
+  version "0.9.1"
+  dependencies:
+    "@material-ui/core" "^4.12.3"
+    "@material-ui/icons" "^4.11.2"
+    "@material-ui/lab" "^4.0.0-alpha.58"
+    d3 "^6.6.0"
+    history "^5.0.0"
+    http-proxy-middleware "^2.0.3"
+    jest-canvas-mock "^2.4.0"
+    jest-worker "^27.5.1"
+    lodash "^4.17.21"
+    luxon "^1.27.0"
+    postcss "^8.3.11"
+    query-string "^7.0.0"
+    react "^17.0.2"
+    react-dom "^17.0.2"
+    react-lottie-player "^1.4.3"
+    react-query "^3.34.7"
+    react-router-dom "^5.2.0"
+    react-toastify "^7.0.4"
+    styled-components "^5.3.0"
+    yaml "^1.10.2"
+
 "@weaveworks/weave-gitops@0.9.1":
   version "0.9.1"
   resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.9.1/e0ce6fdbf8831efa60aa68b27b621b84522eb07debe9335d3af2eadfb9390aa3#b89e317318e31bf185ac1d0d0254331e9ed06a5c"

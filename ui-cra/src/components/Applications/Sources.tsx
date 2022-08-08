@@ -25,12 +25,16 @@ const WGApplicationsSources: FC = () => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sources?.result?.length,
           },
         ]}
       />
-      <ContentWrapper>
-        {isLoading ? <LoadingPage /> : <SourcesTable sources={sources} />}
+      <ContentWrapper errors={sources?.errors}>
+        {isLoading ? (
+          <LoadingPage />
+        ) : (
+          <SourcesTable sources={sources?.result} />
+        )}
       </ContentWrapper>
     </PageTemplate>
   );

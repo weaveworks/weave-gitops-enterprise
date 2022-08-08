@@ -7,7 +7,6 @@ export const EventsTable = ({ events }: { events: Event[] }) => {
     <TableWrapper id="events-list">
       <CustomDataTable
         rows={events}
-        defaultSort={3}
         fields={[
           {
             label: 'Reason',
@@ -35,6 +34,7 @@ export const EventsTable = ({ events }: { events: Event[] }) => {
             label: 'Last Updated',
             value: (e: Event) => moment(e.timestamp).fromNow() || '--',
             sortValue: (e: Event) => e.timestamp,
+            defaultSort: true,
           },
         ]}
       />
