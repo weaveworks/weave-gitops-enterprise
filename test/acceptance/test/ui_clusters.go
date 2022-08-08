@@ -156,7 +156,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName}, "")
+				deleteCluster("kind", leafClusterName, "")
 			})
 
 			It("Verify a cluster can be connected and dashboard is updated accordingly", Label("kind-gitops-cluster", "integration", "browser-logs"), func() {

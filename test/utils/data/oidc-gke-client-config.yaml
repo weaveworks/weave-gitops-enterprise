@@ -1,0 +1,23 @@
+apiVersion: authentication.gke.io/v2alpha1
+kind: ClientConfig
+metadata:
+  name: default
+  namespace: kube-public
+spec:
+  certificateAuthorityData: "{{CA_AUTHORITY}}"
+  internalServer: ""
+  name: "{{CLUSTER_NAME}}"
+  server: "{{SERVER_NAME}}"
+  authentication:
+  - name: oidc
+    oidc:
+      clientID: "{{CLIENT_ID}}"
+      clientSecret: "{{CLIENT_SECRET}}"
+      extraParams: prompt=consent,access_type=offline
+      issuerURI: "{{ISSUER_URL}}"
+      cloudConsoleRedirectURI: https://console.cloud.google.com/kubernetes/oidc
+      kubectlRedirectURI: "{{REDIRECT_URL}}"
+      scopes: openid,email,offline_access
+      userClaim: email
+      userPrefix: "-"
+status: {}

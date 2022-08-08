@@ -3,13 +3,45 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v2"
 )
+
+type CapiClusterConfig struct {
+	Type      string
+	Name      string
+	Namespace string
+}
+
+type Profile struct {
+	Name      string
+	Namespace string
+	Version   string
+	Values    string
+	Layer     string
+}
+
+func createProfileValuesYaml(clusterName string) string {
+	profileValues := `/tmp/profile-values.yaml`
+
+	values := map[string]string{
+		"installCRDs": "true",                                 // cert-manager values
+		"accountId":   "weaveworks", "clusterId": clusterName} // policy-agent values
+
+	data, err := yaml.Marshal(&values)
+	Expect(err).ShouldNot(HaveOccurred(), "Failed to serializes yaml values")
+
+	err = ioutil.WriteFile(profileValues, data, 0644)
+	Expect(err).ShouldNot(HaveOccurred(), "Failed to write data to file "+profileValues)
+
+	return profileValues
+}
 
 func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops add Tests", func() {
@@ -17,9 +49,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		var stdErr string
 		var repoAbsolutePath string
 		templateFiles := []string{}
-
-		// Using self signed certs, all `gitops get clusters` etc commands should use insecure tls connections
-		insecureFlag := "--insecure-skip-tls-verify"
+		clusterPath := "./clusters/my-cluster/clusters"
 
 		AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
@@ -32,15 +62,16 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
 				k8version := "1.19.7"
+				controlPlaneMachineCount := "2"
+				workerMachineCount := "3"
 
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --endpoint %s %s`, gitops_bin_path, clusterName, namespace, k8version, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s`,
+					clusterName, namespace, k8version, controlPlaneMachineCount, workerMachineCount)
+				stdOut, stdErr = runGitopsCommand(cmd)
 
 				By("Then I should see template preview with updated parameter values", func() {
 					// Verifying cluster object of tbe template for updated  parameter values
@@ -48,28 +79,29 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						clusterName, namespace))
 
 					// Verifying KubeadmControlPlane object of tbe template for updated  parameter values
-					Eventually(stdOut).Should(MatchRegexp(`kind: KubeadmControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: %[2]v[\s\w\d"<%%,/:.-]+version: %[3]v`,
-						clusterName, namespace, k8version))
+					Eventually(stdOut).Should(MatchRegexp(`kind: KubeadmControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: %[2]v[\s\w\d"<%%,/:.-]+replicas: %[3]v[\s\w\d/:.-]+version: %[4]v`,
+						clusterName, namespace, controlPlaneMachineCount, k8version))
 
 					// Verifying MachineDeployment object of tbe template for updated  parameter values
-					Eventually(stdOut).Should(MatchRegexp(`kind: MachineDeployment\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-md-0\s+namespace: %[2]v\s+spec:\s+clusterName: %[1]v[\s\w\d/:.-]+infrastructureRef:[\s\w\d/:.-]+version: %[3]v`,
-						clusterName, namespace, k8version))
+					Eventually(stdOut).Should(MatchRegexp(`kind: MachineDeployment\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-md-0\s+namespace: %[2]v\s+spec:\s+clusterName: %[1]v[\s\w\d/:.-]+replicas: %[3]v[\s\w\d/:.-]+infrastructureRef:[\s\w\d/:.-]+version: %[4]v`,
+						clusterName, namespace, workerMachineCount, k8version))
 				})
 			})
 
 			It("Verify gitops can set template parameters by separate values with commas key1=val1,key2=val2", Label("git"), func() {
 				clusterName := "development-cluster"
 				namespace := "gitops-dev"
-				k8version := "1.19.7"
+				k8version := "1.23.6"
+				controlPlaneMachineCount := "1"
+				workerMachineCount := "2"
 
 				By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s,NAMESPACE=%s,KUBERNETES_VERSION=%s --endpoint %s %s`, gitops_bin_path, clusterName, namespace, k8version, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s,NAMESPACE=%s,KUBERNETES_VERSION=%s,CONTROL_PLANE_MACHINE_COUNT=%s,WORKER_MACHINE_COUNT=%s`,
+					clusterName, namespace, k8version, controlPlaneMachineCount, workerMachineCount)
+				stdOut, stdErr = runGitopsCommand(cmd)
 
 				By("Then I should see template preview with updated parameter values", func() {
 
@@ -102,10 +134,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s add cluster --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --url %s --commit-message %s --description %s --endpoint %s %s`, gitops_bin_path, clusterName, namespace, k8version, prBranch, git_repository_url, prCommit, prDescription, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`add cluster --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --url %s --commit-message %s --description %s`, clusterName, namespace, k8version, prBranch, git_repository_url, prCommit, prDescription)
+				stdOut, stdErr = runGitopsCommand(cmd)
 
 				By("Then I should see an error for required argument to create pull request", func() {
 					Eventually(stdErr).Should(MatchRegexp(`Error: unable to create pull request.*template name must be specified`))
@@ -120,16 +150,16 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			JustAfterEach(func() {
-				// Force clean the repository directory for subsequent tests
-				// FIXME: should be changed to clusters/my-cluster when updating cli tests
-				cleanGitRepository("management")
+				cleanGitRepository(clusterPath)
 			})
 
-			It("Verify gitops can create pull requests to management cluster", Label("smoke, git"), func() {
+			It("Verify gitops can create pull requests to management cluster", Label("smoke", "git"), func() {
 				// CAPD Parameter values
 				capdClusterName := "my-capd-cluster2"
 				capdNamespace := "gitops-dev"
 				capdK8version := "1.19.7"
+				controlPlaneMachineCount := "2"
+				workerMachineCount := "3"
 
 				//CAPD Pull request values
 				capdPRBranch := "cli-feature-capd"
@@ -143,11 +173,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = append(capdTemplateFile, eksTemplateFile...)
 				})
 
-				cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --title %s --url %s --commit-message %s --description %s --endpoint %s %s`,
-					gitops_bin_path, capdClusterName, capdNamespace, capdK8version, capdPRBranch, capdPRTitle, git_repository_url, capdPRCommit, capdPRDescription, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
+					capdClusterName, capdNamespace, capdK8version, controlPlaneMachineCount, workerMachineCount, capdPRBranch, capdPRTitle, git_repository_url, capdPRCommit, capdPRDescription)
+				stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
 				var capdPRUrl string
 				By("Then I should see pull request created to management cluster", func() {
@@ -165,7 +193,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				By("And the capd manifest is present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, capdPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, capdClusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s/%s.yaml", repoAbsolutePath, capdNamespace, capdClusterName))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 
@@ -174,7 +202,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				eksRegion := "eu-west-3"
 				eksK8version := "1.19.8"
 				eksSshKeyName := "my-aws-ssh-key"
-				eksNamespace := "default" // FIXME: NAMESPACE parameter value is not required, need to get rid of it. it is just there to mask an existing bug WKP-2203
+				eksNamespace := "default"
 
 				//EKS Pull request values
 				eksPRBranch := "cli-feature-eks"
@@ -182,11 +210,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				eksPRCommit := "First eks capi template"
 				eksPRDescription := "This PR creates a new eks Kubernetes cluster"
 
-				cmd = fmt.Sprintf(`%s add cluster --from-template eks-fargate-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s --endpoint %s %s`,
-					gitops_bin_path, eksClusterName, eksRegion, eksK8version, eksSshKeyName, eksNamespace, eksPRBranch, eksPRTitle, git_repository_url, eksPRCommit, eksPRDescription, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd = fmt.Sprintf(`add cluster --from-template eks-fargate-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
+					eksClusterName, eksRegion, eksK8version, eksSshKeyName, eksNamespace, eksPRBranch, eksPRTitle, git_repository_url, eksPRCommit, eksPRDescription)
+				stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
 				var eksPRUrl string
 				By("Then I should see pull request created for eks to management cluster", func() {
@@ -205,22 +231,12 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				By("And the eks manifest is present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, eksPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s.yaml", repoAbsolutePath, eksClusterName))
+					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, eksNamespace, eksClusterName+".yaml"))
 					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
 				})
 
-				By(fmt.Sprintf("Then I run 'gitops get clusters --endpoint %s'", capi_endpoint_url), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf(`%s get clusters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag))
-				})
+				stdOut, stdErr = runGitopsCommand(`get clusters`)
 
-				By("Then I should see cluster status as 'Creation PR'", func() {
-					Eventually(stdOut).Should(MatchRegexp(`NAME\s+STATUS`))
-
-					re := regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, eksClusterName))
-					Eventually(re.Find([]byte(stdOut))).ShouldNot(BeNil())
-					re = regexp.MustCompile(fmt.Sprintf(`%s\s+Creation PR`, capdClusterName))
-					Eventually(re.Find([]byte(stdOut))).ShouldNot(BeNil())
-				})
 			})
 
 			It("Verify giops can not create pull request to management cluster using existing branch", Label("git"), func() {
@@ -242,11 +258,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-capitemplate.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s --endpoint %s %s`,
-					gitops_bin_path, clusterName, namespace, branchName, prTitle, git_repository_url, prCommit, prDescription, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
+					clusterName, namespace, branchName, prTitle, git_repository_url, prCommit, prDescription)
+				stdOut, stdErr = runGitopsCommand(cmd)
 
 				By("Then I should not see pull request to be created", func() {
 					Eventually(stdErr).Should(MatchRegexp(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
@@ -285,11 +299,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				awsControlMAchineType := "t4g.large"
 				awsNodeMAchineType := "t3.micro"
 
-				cmd := fmt.Sprintf(` %s add cluster --from-template aws-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials aws-test-identity --dry-run --endpoint %s %s`,
-					gitops_bin_path, awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`add cluster --from-template aws-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials aws-test-identity --dry-run`,
+					awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType)
+				stdOut, stdErr = runGitopsCommand(cmd)
 
 				By("Then I should see preview containing identity reference added in the template", func() {
 					// Verifying cluster object of the template for added credential reference
@@ -316,11 +328,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				awsControlMAchineType := "t4g.large"
 				awsNodeMAchineType := "t3.micro"
 
-				cmd := fmt.Sprintf(`%s add cluster --from-template aws-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials azure-cluster-identity --dry-run --endpoint %s %s`,
-					gitops_bin_path, awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`add cluster --from-template aws-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials azure-cluster-identity --dry-run`,
+					awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType)
+				stdOut, stdErr = runGitopsCommand(cmd)
 
 				// FIXME - User should get some warning or error as well for chossing wrong credential/identity for the infrastructure provider
 				By("Then I should see preview without identity reference added to the template", func() {
@@ -330,29 +340,48 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+			var clusterBootstrapCopnfig string
+			var clusterResourceSet string
+			var crsConfigmap string
+			var capdClusters []CapiClusterConfig
+			var kubeconfigPath string
+
 			clusterNamespace := map[string]string{
+				// GitProviderGitLab: "capi-test-system",
 				GitProviderGitLab: "default",
-				// GitProviderGitHub: "github-system", (FIXME: there is an existing bug #563)
 				GitProviderGitHub: "default",
 			}
-			kubeconfigPath := path.Join(os.Getenv("HOME"), "capi.kubeconfig")
-			kustomizationFile := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "test_kustomization.yaml")
-			// FIXME: should be changed to ./clusters/my-cluster when updating these tests
-			appName := "management"
-			appPath := "./management"
-			capdClusterNames := []string{"cli-end-to-end-capd-cluster-1", "cli-end-to-end-capd-cluster-2"}
+
+			bootstrapLabel := "bootstrap"
+			patSecret := "capi-pat"
 
 			JustBeforeEach(func() {
+				kubeconfigPath = path.Join(os.Getenv("HOME"), "capi.kubeconfig")
+				capdClusters = []CapiClusterConfig{
+					{"capd", "cli-end-to-end-capd-cluster-1", clusterNamespace[gitProviderEnv.Type]},
+					{"capd", "cli-end-to-end-capd-cluster-2", "default"},
+				}
 				_ = deleteFile([]string{kubeconfigPath})
+
 				repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
+				createNamespace([]string{capdClusters[0].Namespace})
+				createPATSecret(capdClusters[0].Namespace, patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(capdClusters[0].Name, capdClusters[0].Namespace, bootstrapLabel, patSecret)
+				clusterResourceSet = createClusterResourceSet(capdClusters[0].Name, capdClusters[0].Namespace)
+				crsConfigmap = createCRSConfigmap(capdClusters[0].Name, capdClusters[0].Namespace)
 			})
 
 			JustAfterEach(func() {
 				_ = deleteFile([]string{kubeconfigPath})
+				deleteSecret([]string{patSecret}, capdClusters[0].Namespace)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
+
 				// Force clean the repository directory for subsequent tests
-				cleanGitRepository(appName)
+				cleanGitRepository(clusterPath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters(capdClusterNames, clusterNamespace[gitProviderEnv.Type])
+				removeGitopsCapiClusters(capdClusters)
 			})
 
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("capd", "git"), func() {
@@ -364,31 +393,28 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				createCluster := func(clusterName string, namespace string, k8version string) {
+				createCluster := func(clusterName string, namespace string, k8version string, profiles []Profile) {
 					//Pull request values
 					prBranch := fmt.Sprintf("br-%s", clusterName)
 					prTitle := "CAPD pull request"
 					prCommit := "CAPD capi template"
 					prDescription := "This PR creates a new CAPD Kubernetes cluster"
 
-					cmd := fmt.Sprintf(`%s add cluster --from-template cluster-template-development-observability-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 `, gitops_bin_path, clusterName, namespace, k8version) +
-						fmt.Sprintf(`--profile 'name=podinfo,version=6.0.1' --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s" --endpoint %s %s`, prBranch, prTitle, git_repository_url, prCommit, prDescription, capi_endpoint_url, insecureFlag)
-					By(fmt.Sprintf("And I run '%s'", cmd), func() {
-						stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_30SECONDS_TIME_OUT)
-					})
+					profileFlag := ""
+					if len(profiles) > 0 {
+						for _, p := range profiles {
+							// profileFlag += fmt.Sprintf(`--profile 'name=%s,version=%s,values=%s'`, p.Name, p.Version, p.Values)
+							profileFlag += fmt.Sprintf(`--profile 'name=%s,version=%s'`, p.Name, p.Version)
+						}
+					}
+
+					cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 `, clusterName, namespace, k8version) +
+						fmt.Sprintf(`%s --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s"`,
+							profileFlag, prBranch, prTitle, git_repository_url, prCommit, prDescription)
+					stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
 					By("Then I should see pull request created to management cluster", func() {
-						Expect(stdOut).Should(MatchRegexp(`name=podinfo[\s\w\d./:-]*version=6.0.1`))
 						Expect(stdOut).Should(MatchRegexp(`Created pull request:\s*(?P<url>https:.*\/\d+)`))
-					})
-
-					By(fmt.Sprintf("Then I run 'gitops get clusters --endpoint %s'", capi_endpoint_url), func() {
-						stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf(`%s get clusters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag))
-					})
-
-					By("And I should see cluster status as 'Creation PR'", func() {
-						Expect(stdOut).Should(MatchRegexp(`NAME\s+STATUS`))
-						Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`%s\s+Creation PR`, clusterName)))
 					})
 
 					By("Then I should merge the pull request to start cluster provisioning", func() {
@@ -396,58 +422,65 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					})
 
-					By("And I add a test kustomization file to the management appliction (because flux doesn't reconcile empty folders on deletion)", func() {
-						pullGitRepo(repoAbsolutePath)
-						_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cp -f %s %s", kustomizationFile, path.Join(repoAbsolutePath, appPath)))
-						gitUpdateCommitPush(repoAbsolutePath, "")
-					})
-
-					By("And I run gitops add app 'management' command", func() {
-						if listGitopsApplication(appName, GITOPS_DEFAULT_NAMESPACE) == "" {
-							addCommand := fmt.Sprintf("add app . --path=%s  --name=%s  --auto-merge=true", appPath, appName)
-							runWegoAddCommand(repoAbsolutePath, addCommand, GITOPS_DEFAULT_NAMESPACE)
-						} else {
-							logger.Infof("Application '%s' alreaded exists", appName)
-						}
-					})
-
-					By("And I should see cluster status changes to 'clusterFound'", func() {
-						waitForGitRepoReady(appName, GITOPS_DEFAULT_NAMESPACE)
+					By("And I should see cluster status changes to 'Ready'", func() {
+						waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 						clusterFound := func() string {
-							output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get clusters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag))
+							output, _ := runGitopsCommand(`get clusters`)
 							return output
 						}
-						Eventually(clusterFound, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName)))
+						Eventually(clusterFound, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+Ready`, clusterName)), clusterName+" cluster status should be Ready")
 					})
 
-					cmd = fmt.Sprintf(`%s get cluster %s --kubeconfig --endpoint %s %s | tee %s`, gitops_bin_path, clusterName, capi_endpoint_url, insecureFlag, kubeconfigPath)
-					By(fmt.Sprintf("Then I run '%s'", cmd), func() {
+					cmd = fmt.Sprintf(`get cluster %s --print-kubeconfig | tee %s`, clusterName, kubeconfigPath)
+					By("And I should print/download the kubeconfig for the CAPD capi cluster "+clusterName, func() {
 						kubeConfigFound := func() string {
-							output, _ := runCommandAndReturnStringOutput(cmd)
+							output, _ := runGitopsCommand(cmd)
 							return output
 
 						}
-						Eventually(kubeConfigFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)))
+						Eventually(kubeConfigFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, clusterName)), "Failed to download kubeconfig for cluster "+clusterName)
 					})
 				}
 
 				// Parameter values
-				clusterName := capdClusterNames[0]
-				namespace := clusterNamespace[gitProviderEnv.Type]
+				clusterName := capdClusters[0].Name
+				namespace := capdClusters[0].Namespace
 				k8version := "1.23.3"
+				profileValues := createProfileValuesYaml(clusterName)
+				profiles := []Profile{
+					{
+						Name:      "cert-manager",
+						Namespace: "cert-manager",
+						Version:   "0.0.7",
+						Values:    profileValues,
+					},
+					{
+						Name:      "weave-policy-agent",
+						Namespace: "policy-system",
+						Version:   "0.3.1",
+						Values:    profileValues,
+					},
+				}
+
 				// Creating two capd clusters
-				createCluster(clusterName, namespace, k8version)
+				createCluster(clusterName, namespace, k8version, profiles)
 
 				By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", clusterName), func() {
 					verifyCapiClusterKubeconfig(kubeconfigPath, clusterName)
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(kubeconfigPath, []string{}, []string{})
+					// Fixme: profiles are not installed via cli; issue #1228
+					// podInfo := Profile{
+					// 	Name:      "podinfo",
+					// 	Namespace: "flux-system",
+					// }
+					verifyCapiClusterHealth(kubeconfigPath, []Profile{})
 				})
 
-				clusterName2 := capdClusterNames[1]
-				createCluster(clusterName2, namespace, k8version)
+				clusterName2 := capdClusters[1].Name
+				namespace2 := capdClusters[1].Namespace
+				createCluster(clusterName2, namespace2, k8version, nil)
 
 				// Deleting first cluster
 				prBranch := fmt.Sprintf("%s-delete", clusterName)
@@ -455,25 +488,14 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				prCommit := "CAPD capi template deletion"
 				prDescription := "This PR deletes CAPD Kubernetes cluster"
 
-				cmd := fmt.Sprintf(`%s delete cluster %s --branch %s --title "%s" --url %s --commit-message "%s" --description "%s" --endpoint %s %s`,
-					gitops_bin_path, clusterName, prBranch, prTitle, git_repository_url, prCommit, prDescription, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
-					stdOut, _ = runCommandAndReturnStringOutput(cmd)
-				})
+				cmd := fmt.Sprintf(`delete cluster %s --branch %s --title "%s" --url %s --commit-message "%s" --description "%s"`,
+					clusterName, prBranch, prTitle, git_repository_url, prCommit, prDescription)
+				stdOut, _ = runGitopsCommand(cmd)
 
 				By("Then I should see delete pull request created to management cluster", func() {
 					re := regexp.MustCompile(`Created pull request for clusters deletion:\s*(?P<url>https:.*\/\d+)`)
 					match := re.FindSubmatch([]byte(stdOut))
 					Eventually(match).ShouldNot(BeNil(), "Failed to Create pull request for deleting cluster")
-				})
-
-				By(fmt.Sprintf("Then I should see the '%s' cluster status changes to Deletion PR", clusterName), func() {
-					clusterDelete := func() string {
-						output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get cluster %s --endpoint %s %s`, gitops_bin_path, clusterName, capi_endpoint_url, insecureFlag))
-						return output
-
-					}
-					Eventually(clusterDelete, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(fmt.Sprintf(`%s\s+Deletion PR`, clusterName)))
 				})
 
 				var deletePRUrl string
@@ -487,25 +509,24 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 				By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
-					// FIXME: should be changed to clusters/my-cluster when updating cli tests
-					_, err := os.Stat(fmt.Sprintf("%s/management/%s/%s.yaml", repoAbsolutePath, namespace, clusterName))
+					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, namespace, clusterName+".yaml"))
 					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
-				By(fmt.Sprintf("And I should see the '%s' cluster status remains unchanged as 'clusterFound'", clusterName2), func() {
-					clusterFound := func() string {
-						output, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`%s get cluster %s --endpoint %s %s`, gitops_bin_path, clusterName2, capi_endpoint_url, insecureFlag))
+				By(fmt.Sprintf("And I should see the '%s' cluster (not deleted) status remains unchanged as 'Ready'", clusterName2), func() {
+					clusterStatus := func() string {
+						output, _ := runGitopsCommand(`get cluster ` + clusterName2)
 						return output
 
 					}
-					Eventually(clusterFound).Should(MatchRegexp(fmt.Sprintf(`%s\s+clusterFound`, clusterName2)))
+					Eventually(clusterStatus).Should(MatchRegexp(fmt.Sprintf(`%s\s+Ready`, clusterName2)), clusterName2+" cluster status should be Ready")
 				})
 
-				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
+				By(fmt.Sprintf("Then I should see the '%s' cluster deleted/disappeared", clusterName), func() {
 					clusterFound := func() error {
 						return runCommandPassThrough("kubectl", "get", "cluster", clusterName)
 					}
-					Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+					Eventually(clusterFound, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred(), clusterName+" cluster should be deleted")
 				})
 			})
 		})
