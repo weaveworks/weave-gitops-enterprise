@@ -119,6 +119,8 @@ apiVersion: pac.weave.works/v2beta1
 kind: Policy
 metadata:
   creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
   name: weave.policies.tenancy.bar-tenant-allowed-repositories
 spec:
   category: weave.categories.tenancy
