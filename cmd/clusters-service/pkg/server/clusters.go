@@ -299,11 +299,11 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, true)
 
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
 			}
 			filteredTreeEntries, err := filterTreeFilesByClusterName(treeEntries, clusterNamespacedName)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error filtering retrieved tree files in repo: %s@%s: %w", repositoryURL, baseBranch, err)
 			}
 			for _, treeEntry := range filteredTreeEntries {
 				filesList = append(filesList, gitprovider.CommitFile{
