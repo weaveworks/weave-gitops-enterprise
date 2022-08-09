@@ -9,13 +9,19 @@ import GitOps from '../../Clusters/Create/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import useTemplates from '../../../contexts/Templates';
-import { getProviderToken } from '@weaveworks/weave-gitops';
+import {
+  CallbackStateContextProvider,
+  clearCallbackState,
+  getCallbackState,
+  getProviderToken,
+} from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -28,6 +34,7 @@ const AddApplication = () => {
   const { setNotifications } = useNotifications();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
+  const authRedirectPage = `/applications/new`;
 
   let initialFormData = {
     url: '',
@@ -37,6 +44,15 @@ const AddApplication = () => {
     commitMessage: 'add application',
     pullRequestDescription: 'This PR add a new application',
   };
+
+  const callbackState = getCallbackState();
+
+  if (callbackState) {
+    initialFormData = {
+      ...initialFormData,
+      ...callbackState.state.formData,
+    };
+  }
   const [formData, setFormData] = useState<any>(initialFormData);
 
   useEffect(() => {
@@ -47,6 +63,10 @@ const AddApplication = () => {
       }));
     }
   }, [repositoryURL]);
+
+  useEffect(() => {
+    clearCallbackState();
+  }, []);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -95,31 +115,40 @@ const AddApplication = () => {
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Add new application">
-        <SectionHeader
-          className="count-header"
-          path={[
-            {
-              label: 'Applications',
-              url: '/applications',
-              count: applicationsCount,
+        <CallbackStateContextProvider
+          callbackState={{
+            page: authRedirectPage as PageRoute,
+            state: {
+              formData,
             },
-            { label: 'Add new application' },
-          ]}
-        />
-        <ContentWrapper>
-          <Grid container>
-            <Grid item xs={12} sm={10} md={10} lg={8}>
-              <GitOps
-                loading={loading}
-                formData={formData}
-                setFormData={setFormData}
-                onSubmit={handleAddApplication}
-                showAuthDialog={showAuthDialog}
-                setShowAuthDialog={setShowAuthDialog}
-              />
+          }}
+        >
+          <SectionHeader
+            className="count-header"
+            path={[
+              {
+                label: 'Applications',
+                url: '/applications',
+                count: applicationsCount,
+              },
+              { label: 'Add new application' },
+            ]}
+          />
+          <ContentWrapper>
+            <Grid container>
+              <Grid item xs={12} sm={10} md={10} lg={8}>
+                <GitOps
+                  loading={loading}
+                  formData={formData}
+                  setFormData={setFormData}
+                  onSubmit={handleAddApplication}
+                  showAuthDialog={showAuthDialog}
+                  setShowAuthDialog={setShowAuthDialog}
+                />
+              </Grid>
             </Grid>
-          </Grid>
-        </ContentWrapper>
+          </ContentWrapper>
+        </CallbackStateContextProvider>
       </PageTemplate>
     </ThemeProvider>
   );
