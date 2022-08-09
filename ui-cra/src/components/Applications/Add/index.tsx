@@ -22,6 +22,10 @@ import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import {
+  ClusterKustomization,
+  CreateKustomizationsPullRequestRequest,
+} from '../../../cluster-services/cluster_services.pb';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -36,13 +40,29 @@ const AddApplication = () => {
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/new`;
 
-  let initialFormData = {
-    url: '',
-    provider: '',
-    branchName: `add-application-branch`,
-    pullRequestTitle: 'Add application',
+  let initialKustomizationFormData: ClusterKustomization = {
+    isControlPlane: false,
+    kustomization: {
+      metadata: {
+        name: '',
+        namespace: '',
+      },
+      spec: {
+        path: '',
+        sourceRef: {
+          name: '',
+          namespace: '',
+        },
+      },
+    },
+  };
+  let initialFormData: CreateKustomizationsPullRequestRequest = {
+    repositoryUrl: '',
+    headBranch: `add-application-branch`,
+    title: 'Add application',
     commitMessage: 'add application',
-    pullRequestDescription: 'This PR add a new application',
+    description: 'This PR add a new application',
+    clusterKustomizations: [initialKustomizationFormData] || undefined,
   };
 
   const callbackState = getCallbackState();
@@ -67,6 +87,15 @@ const AddApplication = () => {
   useEffect(() => {
     clearCallbackState();
   }, []);
+
+  useEffect(() => {
+    setFormData((prevState: any) => ({
+      ...prevState,
+      pullRequestTitle: `Add application ${
+        formData.kustomization.metadata.name || ''
+      }`,
+    }));
+  }, [formData.kustomization.metadata.name, setFormData]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {

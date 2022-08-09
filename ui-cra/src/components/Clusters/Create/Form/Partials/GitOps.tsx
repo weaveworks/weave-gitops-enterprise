@@ -82,13 +82,6 @@ const GitOps: FC<{
     [setFormData],
   );
 
-  useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
-    }));
-  }, [formData.CLUSTER_NAME, setFormData]);
-
   return (
     <GitOpsWrapper>
       <h2>GitOps</h2>
