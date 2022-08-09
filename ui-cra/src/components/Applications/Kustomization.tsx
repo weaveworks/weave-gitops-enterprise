@@ -59,7 +59,7 @@ const WGApplicationsKustomization: FC<Props> = ({
           },
         ]}
       />
-      <ContentWrapper>
+      <ContentWrapper loading={isLoading}>
         <KustomizationDetail
           kustomization={kustomization}
           customTabs={customTabs}
