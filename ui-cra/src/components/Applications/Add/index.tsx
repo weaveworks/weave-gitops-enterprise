@@ -29,6 +29,12 @@ import {
 import styled from 'styled-components';
 import { Input, Select, validateFormData } from '../../../utils/form';
 
+const FormWrapper = styled.form`
+  .form-section {
+    width: 50%;
+  }
+`;
+
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
   const { clusters, isLoading } = useClusters();
@@ -74,6 +80,7 @@ const AddApplication = () => {
     namespace: '',
     cluster_name: '',
     cluster_namespace: '',
+    cluster: '',
   };
 
   const callbackState = getCallbackState();
@@ -85,12 +92,6 @@ const AddApplication = () => {
     };
   }
   const [formData, setFormData] = useState<any>(initialFormData);
-
-  const FormWrapper = styled.form`
-    .form-section {
-      width: 50%;
-    }
-  `;
 
   useEffect(() => {
     if (repositoryURL != null) {
@@ -156,14 +157,13 @@ const AddApplication = () => {
       .finally(() => setLoading(false));
   }, [addApplication, formData, history, setNotifications, setPRPreview]);
 
-  const handleSelectCluster = (
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-  ) => {
-    const { value } = event?.target as any;
+  const handleSelectCluster = (event: React.ChangeEvent<any>) => {
+    const value = event.target.value;
     setFormData({
       ...formData,
-      clustster_name: value?.name,
-      cluster_namespace: value?.namespace,
+      clustster_name: JSON.parse(value).name,
+      cluster_namespace: JSON.parse(value).namespace,
+      cluster: value,
     });
   };
 
@@ -198,12 +198,16 @@ const AddApplication = () => {
                     name="cluster_Name"
                     required={true}
                     label="SELECT CLUSTER"
-                    value={formData.cluster}
-                    onChange={event => handleSelectCluster(event)}
+                    value={formData.cluster || ''}
+                    onChange={handleSelectCluster}
+                    defaultValue={''}
                   >
-                    {clusters?.map((option: any, i) => {
+                    {clusters?.map((option: any) => {
                       return (
-                        <MenuItem key={i} value={option}>
+                        <MenuItem
+                          key={option.name}
+                          value={JSON.stringify(option)}
+                        >
                           {option.name}
                         </MenuItem>
                       );
