@@ -119,7 +119,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
 		ClustersList:          webDriver.First(`#clusters-list table tbody`),
 		Tooltip:               webDriver.Find(`div[role="tooltip"]`),
-		SupportEmailLink:      webDriver.FindByLink(`support@weave.works`),
+		SupportEmailLink:      webDriver.FindByLink(`https://weavesupport.zendesk.com/`),
 		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
 		Version:               webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
