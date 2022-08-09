@@ -124,19 +124,20 @@ metadata:
   name: weave.policies.tenancy.bar-tenant-allowed-repositories
 spec:
   category: weave.categories.tenancy
-  code: "\npackage weave.tenancy.allowed_repositories\n\ncontroller_input := input.review.object\nnamespace
-    := controller_input.metadata.namespace\nviolation[result] {\n\tcontroller_input.kind
-    == \"GitRepository\"\n\turls := input.parameters.git_urls\n\turl := controller_input.spec.url\n\tnot
-    contains_array(url, urls)\n\tresult = {\t\n\t\"issue detected\": true,\n\t\"msg\":
-    sprintf(\"Git repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\nviolation[result]
-    {\n\tcontroller_input.kind == \"Bucket\"\n\turls := input.parameters.bucket_endpoints\n\turl
-    := controller_input.spec.endpoint\n\tnot contains_array(url, urls)\n\tresult =
-    {\t\n\t\"issue detected\": true,\n\t\"msg\": sprintf(\"Bucket endpoint %v is not
-    allowed for namespace %v\", [url, namespace]),\n\t}\n}\nviolation[result] {\n\tcontroller_input.kind
-    == \"HelmRepository\"\n\turls := input.parameters.helm_urls\n\turl := controller_input.spec.url\n\tnot
-    contains_array(url, urls)\n\tresult = {\t\n\t\"issue detected\": true,\n\t\"msg\":
-    sprintf(\"Helm repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\ncontains_array(item,
-    items) {\n\titems[_] = item\n}\n"
+  code: "\n\tpackage weave.tenancy.allowed_repositories\n\n\tcontroller_input := input.review.object\n\tnamespace
+    := controller_input.metadata.namespace\n\tviolation[result] {\n\t\tcontroller_input.kind
+    == \"GitRepository\"\n\t\turls := input.parameters.git_urls\n\t\turl := controller_input.spec.url\n\t\tnot
+    contains_array(url, urls)\n\t\tresult = {\t\n\t\t\"issue detected\": true,\n\t\t\"msg\":
+    sprintf(\"Git repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t\t}\n\t}\n\tviolation[result]
+    {\n\t\tcontroller_input.kind == \"Bucket\"\n\t\turls := input.parameters.bucket_endpoints\n\t\turl
+    := controller_input.spec.endpoint\n\t\tnot contains_array(url, urls)\n\t\tresult
+    = {\t\n\t\t\"issue detected\": true,\n\t\t\"msg\": sprintf(\"Bucket endpoint %v
+    is not allowed for namespace %v\", [url, namespace]),\n\t\t}\n\t}\n\tviolation[result]
+    {\n\t\tcontroller_input.kind == \"HelmRepository\"\n\t\turls := input.parameters.helm_urls\n\t\turl
+    := controller_input.spec.url\n\t\tnot contains_array(url, urls)\n\t\tresult =
+    {\t\n\t\t\"issue detected\": true,\n\t\t\"msg\": sprintf(\"Helm repository url
+    %v is not allowed for namespace %v\", [url, namespace]),\n\t\t}\n\t}\n\tcontains_array(item,
+    items) {\n\t\titems[_] = item\n\t}\n"
   description: Controls the allowed repositories to be used as sources
   how_to_solve: ""
   id: weave.policies.tenancy.bar-tenant-allowed-repositories
@@ -167,6 +168,45 @@ spec:
     - GitRepository
     - Bucket
     - HelmRepository
+    labels: null
+    namespaces:
+    - bar-ns
+    - foobar-ns
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: weave.policies.tenancy.bar-tenant-allowed-clusters
+spec:
+  category: weave.categories.tenancy
+  code: "\n\tpackage weave.tenancy.allowed_clusters\n\n\tcontroller_input := input.review.object\n\tnamespace
+    := controller_input.metadata.namespace\n\tviolation[result] {\n\t\tcontroller_input.kind
+    == \"GitopsCluster\"\n\t\tsecrets := input.parameters.cluster_secrets\n\t\tsecret
+    := controller_input.spec.secretRef.name\n\t\tnot contains_array(secret, secrets)\n\t\tresult
+    = {\t\n\t\t\"issue detected\": true,\n\t\t\"msg\": sprintf(\"cluster secretRef
+    %v is not allowed for namespace %v\", [secret, namespace]),\n\t\t}\n\t}\n\tcontains_array(item,
+    items) {\n\t\titems[_] = item\n\t}\n"
+  description: Controls the allowed clusters to be added
+  how_to_solve: ""
+  id: weave.policies.tenancy.bar-tenant-allowed-clusters
+  name: bar-tenant allowed clusters
+  parameters:
+  - name: cluster_secrets
+    required: false
+    type: array
+    value:
+    - cluster-1-kubeconfig
+    - cluster-2-kubeconfig
+  severity: high
+  standards: null
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - GitopsCluster
     labels: null
     namespaces:
     - bar-ns

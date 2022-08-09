@@ -55,7 +55,7 @@ func Test_CreateTenants(t *testing.T) {
 				),
 				verifyPolicies(
 					setResourceVersion(
-						testNewPolicy(
+						testNewAllowedReposPolicy(
 							t,
 							"bar-tenant",
 							[]string{"bar-ns", "foobar-ns"},
@@ -64,6 +64,19 @@ func Test_CreateTenants(t *testing.T) {
 								{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"},
 								{URL: "minio.example.com", Kind: "Bucket"},
 								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"}},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "bar-tenant",
+							},
+						), 1),
+					setResourceVersion(
+						testNewAllowedClustersPolicy(
+							t,
+							"bar-tenant",
+							[]string{"bar-ns", "foobar-ns"},
+							[]AllowedCluster{
+								{Name: "cluster-1-kubeconfig"},
+								{Name: "cluster-2-kubeconfig"},
+							},
 							map[string]string{
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
 							},
@@ -86,13 +99,25 @@ func Test_CreateTenants(t *testing.T) {
 				// The setup version is only for a single tenant, the example
 				// file has two.
 				setResourceVersion(
-					testNewPolicy(
+					testNewAllowedReposPolicy(
 						t,
 						"bar-tenant",
 						[]string{"bar-ns"},
 						[]AllowedRepository{
 							{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"},
 							{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"}},
+						map[string]string{
+							"toolkit.fluxcd.io/tenant": "bar-tenant",
+						},
+					), 1),
+				setResourceVersion(
+					testNewAllowedClustersPolicy(
+						t,
+						"bar-tenant",
+						[]string{"bar-ns", "foobar-ns"},
+						[]AllowedCluster{
+							{Name: "cluster-3-kubeconfig"},
+						},
 						map[string]string{
 							"toolkit.fluxcd.io/tenant": "bar-tenant",
 						},
@@ -123,7 +148,7 @@ func Test_CreateTenants(t *testing.T) {
 				),
 				verifyPolicies(
 					setResourceVersion(
-						testNewPolicy(
+						testNewAllowedReposPolicy(
 							t,
 							"bar-tenant",
 							[]string{"bar-ns", "foobar-ns"},
@@ -132,6 +157,19 @@ func Test_CreateTenants(t *testing.T) {
 								{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"},
 								{URL: "minio.example.com", Kind: "Bucket"},
 								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"}},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "bar-tenant",
+							},
+						), 2),
+					setResourceVersion(
+						testNewAllowedClustersPolicy(
+							t,
+							"bar-tenant",
+							[]string{"bar-ns", "foobar-ns"},
+							[]AllowedCluster{
+								{Name: "cluster-1-kubeconfig"},
+								{Name: "cluster-2-kubeconfig"},
+							},
 							map[string]string{
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
 							},
@@ -427,14 +465,14 @@ func Test_newRoleBinding(t *testing.T) {
 	assert.Equal(t, rb.RoleRef.Name, "test-cluster-role")
 }
 
-func Test_newPolicy(t *testing.T) {
+func Test_newAllowedRepositoriesPolicy(t *testing.T) {
 	labels := map[string]string{
 		"toolkit.fluxcd.io/tenant": "test-tenant",
 	}
 
 	namespaces := []string{"test-namespace"}
 
-	pol, err := newPolicy(
+	pol, err := newAllowedRepositoriesPolicy(
 		"test-tenant",
 		namespaces,
 		[]AllowedRepository{{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"}},
@@ -451,6 +489,34 @@ func Test_newPolicy(t *testing.T) {
 	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
 	assert.Equal(t, pol.Spec.Parameters[0].Value.Raw, val)
 	assert.Equal(t, pol.Spec.Parameters[0].Name, "git_urls")
+	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
+
+}
+
+func Test_newAllowedClustersPolicy(t *testing.T) {
+	labels := map[string]string{
+		"toolkit.fluxcd.io/tenant": "test-tenant",
+	}
+
+	namespaces := []string{"test-namespace"}
+
+	pol, err := newAllowedClustersPolicy(
+		"test-tenant",
+		namespaces,
+		[]AllowedCluster{{Name: "demo-kubeconfig"}},
+		labels,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	val, err := json.Marshal([]string{"demo-kubeconfig"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, pol.Name, "weave.policies.tenancy.test-tenant-allowed-clusters")
+	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
+	assert.Equal(t, pol.Spec.Parameters[0].Value.Raw, val)
+	assert.Equal(t, pol.Spec.Parameters[0].Name, "cluster_secrets")
 	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 
 }
@@ -556,9 +622,19 @@ func verifyPolicies(expected ...*pacv2beta1.Policy) func(t *testing.T, cl client
 
 type verifyFunc func(t *testing.T, cl client.Client)
 
-func testNewPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta1.Policy {
+func testNewAllowedReposPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta1.Policy {
 	t.Helper()
-	p, err := newPolicy(tenantName, namespaces, allowedRepositories, labels)
+	p, err := newAllowedRepositoriesPolicy(tenantName, namespaces, allowedRepositories, labels)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return p
+}
+
+func testNewAllowedClustersPolicy(t *testing.T, tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) *pacv2beta1.Policy {
+	t.Helper()
+	p, err := newAllowedClustersPolicy(tenantName, namespaces, allowedClusters, labels)
 	if err != nil {
 		t.Fatal(err)
 	}
