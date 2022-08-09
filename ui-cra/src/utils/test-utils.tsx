@@ -10,7 +10,7 @@ import {
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';

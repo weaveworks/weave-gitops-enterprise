@@ -133,6 +133,7 @@ ui-core-lib:
 
 ui-core-lib-unlink:
 	yarn unlink @weaveworks/weave-gitops
+	yarn install --force
 
 lint:
 	bin/go-lint

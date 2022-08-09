@@ -6,7 +6,7 @@ export interface NotificationData {
 }
 
 type NotificationContext = {
-  notifications: NotificationData[] | [];
+  notifications: NotificationData[];
   setNotifications: Dispatch<React.SetStateAction<NotificationData[] | []>>;
 };
 

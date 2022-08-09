@@ -5,7 +5,7 @@ import {
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
-import React, { useContext } from 'react';
+import * as React from 'react';
 import { useQuery } from 'react-query';
 import {
   ListEventsRequest,
@@ -94,7 +94,7 @@ export const useListFlaggerObjects = (params: CanaryParams) => {
 const EVENTS_QUERY_KEY = 'events';
 
 export function useListEvents(req: ListEventsRequest) {
-  const { api } = useContext(EnterpriseClientContext);
+  const { api } = React.useContext(EnterpriseClientContext);
 
   return useQuery<ListEventsResponse, Error>([EVENTS_QUERY_KEY, req], () =>
     api.ListEvents(req),

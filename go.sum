@@ -1000,8 +1000,6 @@ github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQ
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/policy-agent/api v1.0.4 h1:dznn4I3+tfSniNbERFaAXOMpLsvwW+6MvjemkNou0NE=
 github.com/weaveworks/policy-agent/api v1.0.4/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
-github.com/weaveworks/weave-gitops v0.9.1-rc.2 h1:7aRthgLAY6cZSkxBBlcU1eruIf52la3kj0oTz59uL60=
-github.com/weaveworks/weave-gitops v0.9.1-rc.2/go.mod h1:prdoxOe8u1xjQkSx11BneBs58LGSYidSrXmNjfNEElk=
 github.com/weaveworks/progressive-delivery v0.0.0-20220801174745-7e26bfdd66f9 h1:j/0SoBszB/czhjmFwdoH6c9dLYm3ZaqWlhFMNVyJBAc=
 github.com/weaveworks/progressive-delivery v0.0.0-20220801174745-7e26bfdd66f9/go.mod h1:DKROFoMYek6LRX/Us3W2Jb/VCjvqNduxhKz4E7hgq8c=
 github.com/weaveworks/weave-gitops v0.9.1 h1:8Be6vcSkbNoDZHGmZg5wr3ofaJAfgBzAt2BAQGgYHn8=
@@ -1742,6 +1740,7 @@ k8s.io/helm v2.17.0+incompatible h1:Bpn6o1wKLYqKM3+Osh8e+1/K2g/GsQJ4F4yNF2+deao=
 k8s.io/helm v2.17.0+incompatible/go.mod h1:LZzlS4LQBHfciFOurYBFkCMTaZ0D1l+p0teMg7TSULI=
 k8s.io/klog v0.3.0/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
 k8s.io/klog v0.4.0/go.mod h1:4Bi6QPql/J/LkTDqv7R/cd3hPo4k2DG6Ptcz060Ez5I=
+k8s.io/klog v1.0.0 h1:Pt+yjF5aB1xDSVbau4VsWe+dQNzA0qv1LlXdC2dF6Q8=
 k8s.io/klog v1.0.0/go.mod h1:4Bi6QPql/J/LkTDqv7R/cd3hPo4k2DG6Ptcz060Ez5I=
 k8s.io/klog/v2 v2.0.0/go.mod h1:PBfzABfn139FHAV07az/IF9Wp1bkk3vpT2XSJ76fSDE=
 k8s.io/klog/v2 v2.2.0/go.mod h1:Od+F08eJP+W3HUb4pSrPpgp9DGU4GzlpG/TmITuYh/Y=
