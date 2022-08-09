@@ -6,7 +6,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { useApplicationsCount } from '../utils';
 import useClusters from '../../../contexts/Clusters';
 import GitOps from '../../Clusters/Create/Form/Partials/GitOps';
-import { Grid } from '@material-ui/core';
+import { Grid, MenuItem } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import useTemplates from '../../../contexts/Templates';
 import {
@@ -26,6 +26,8 @@ import {
   ClusterKustomization,
   CreateKustomizationsPullRequestRequest,
 } from '../../../cluster-services/cluster_services.pb';
+import styled from 'styled-components';
+import { Input, Select, validateFormData } from '../../../utils/form';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -41,6 +43,10 @@ const AddApplication = () => {
   const authRedirectPage = `/applications/new`;
 
   let initialKustomizationFormData: ClusterKustomization = {
+    cluster: {
+      name: '',
+      namespace: '',
+    },
     isControlPlane: false,
     kustomization: {
       metadata: {
@@ -56,13 +62,18 @@ const AddApplication = () => {
       },
     },
   };
-  let initialFormData: CreateKustomizationsPullRequestRequest = {
-    repositoryUrl: '',
-    headBranch: `add-application-branch`,
+  let initialFormData = {
+    url: '',
+    provider: '',
+    branchName: `add-application-branch`,
     title: 'Add application',
     commitMessage: 'add application',
-    description: 'This PR add a new application',
-    clusterKustomizations: [initialKustomizationFormData] || undefined,
+    pullRequestDescription: 'This PR add a new application',
+    clusterKustomizations: [initialKustomizationFormData],
+    name: '',
+    namespace: '',
+    cluster_name: '',
+    cluster_namespace: '',
   };
 
   const callbackState = getCallbackState();
@@ -74,6 +85,12 @@ const AddApplication = () => {
     };
   }
   const [formData, setFormData] = useState<any>(initialFormData);
+
+  const FormWrapper = styled.form`
+    .form-section {
+      width: 50%;
+    }
+  `;
 
   useEffect(() => {
     if (repositoryURL != null) {
@@ -91,11 +108,9 @@ const AddApplication = () => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      pullRequestTitle: `Add application ${
-        formData.kustomization.metadata.name || ''
-      }`,
+      pullRequestTitle: `Add application ${formData.name || ''}`,
     }));
-  }, [formData.kustomization.metadata.name, setFormData]);
+  }, [formData.name]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -141,6 +156,17 @@ const AddApplication = () => {
       .finally(() => setLoading(false));
   }, [addApplication, formData, history, setNotifications, setPRPreview]);
 
+  const handleSelectCluster = (
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => {
+    const { value } = event?.target as any;
+    setFormData({
+      ...formData,
+      clustster_name: value?.name,
+      cluster_namespace: value?.namespace,
+    });
+  };
+
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Add new application">
@@ -165,6 +191,26 @@ const AddApplication = () => {
           />
           <ContentWrapper>
             <Grid container>
+              <Grid item xs={12} sm={10} md={10} lg={8}>
+                <FormWrapper>
+                  <Select
+                    className="form-section"
+                    name="cluster_Name"
+                    required={true}
+                    label="SELECT CLUSTER"
+                    value={formData.cluster}
+                    onChange={event => handleSelectCluster(event)}
+                  >
+                    {clusters?.map((option: any, i) => {
+                      return (
+                        <MenuItem key={i} value={option}>
+                          {option.name}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormWrapper>
+              </Grid>
               <Grid item xs={12} sm={10} md={10} lg={8}>
                 <GitOps
                   loading={loading}
