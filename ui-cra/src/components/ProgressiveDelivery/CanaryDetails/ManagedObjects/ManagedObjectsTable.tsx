@@ -1,5 +1,6 @@
 import { UnstructuredObject } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { CustomDataTable, TableWrapper } from '../../CanaryStyles';
+import { DataTable } from '@weaveworks/weave-gitops';
+import { TableWrapper } from '../../CanaryStyles';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 export const ManagedObjectsTable = ({
   objects,
@@ -8,7 +9,7 @@ export const ManagedObjectsTable = ({
 }) => {
   return (
     <TableWrapper id="objects-list">
-      <CustomDataTable
+      <DataTable
         rows={objects}
         fields={[
           {

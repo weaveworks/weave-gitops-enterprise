@@ -22,7 +22,7 @@ interface Props {
   tableType?: FieldsType;
 }
 
-const PolicyViolationsTable: FC<Props> = ({
+export const PolicyViolationsTable: FC<Props> = ({
   violations,
   tableType = FieldsType.policy,
 }) => {

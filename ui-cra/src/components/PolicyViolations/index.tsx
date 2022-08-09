@@ -3,13 +3,15 @@ import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { FieldsType, PolicyViolationsList } from './Table';
+import { FieldsType, PolicyViolationsTable } from './Table';
 import useClusters from './../../contexts/Clusters';
 import { useListPolicyValidations } from '../../contexts/PolicyViolations';
+import { Alert } from '@material-ui/lab';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 
 const PoliciesViolations = () => {
   const clustersCount = useClusters().count;
-  const { data } = useListPolicyValidations({});
+  const { data, isLoading, error } = useListPolicyValidations({});
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -26,7 +28,14 @@ const PoliciesViolations = () => {
           ]}
         />
         <ContentWrapper errors={data?.errors}>
-          <PolicyViolationsList req={{}} tableType={ FieldsType.policy} />
+          {isLoading && <LoadingPage />}
+          {error && <Alert severity="error">{error.message}</Alert>}
+          {data?.violations && (
+            <PolicyViolationsTable
+              violations={data?.violations || []}
+              tableType={FieldsType.policy}
+            />
+          )}
         </ContentWrapper>
       </PageTemplate>
     </ThemeProvider>

@@ -142,9 +142,3 @@ export const FlexCenter = styled.div`
 export const LinkTag = styled.a`
   color: ${theme.colors.primary};
 `;
-
-export const CustomDataTable = styled(DataTable)`
-thead > tr {
-  background: ${theme.colors.neutral10};
-}
-`;
