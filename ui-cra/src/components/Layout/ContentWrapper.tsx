@@ -1,11 +1,11 @@
-import React, { FC } from 'react';
-import styled, { css } from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
-import { Tooltip } from '../Shared';
-import { ListError } from '../../cluster-services/cluster_services.pb';
 import Alert from '@material-ui/lab/Alert';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { theme } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import styled, { css } from 'styled-components';
+import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
+import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 

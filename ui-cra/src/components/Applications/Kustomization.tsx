@@ -1,15 +1,15 @@
-import React, { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
 import {
   KustomizationDetail,
   useGetKustomization,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
+import { SectionHeader } from '../Layout/SectionHeader';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
+import { useApplicationsCount } from './utils';
 
 type Props = {
   name: string;
@@ -23,7 +23,7 @@ const WGApplicationsKustomization: FC<Props> = ({
   clusterName,
 }) => {
   const applicationsCount = useApplicationsCount();
-  const { data } = useGetKustomization(name, namespace, clusterName);
+  const { data, isLoading } = useGetKustomization(name, namespace, clusterName);
   const kustomization = data?.kustomization;
   const { path } = useRouteMatch();
 
