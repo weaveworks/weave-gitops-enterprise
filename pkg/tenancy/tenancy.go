@@ -6,11 +6,15 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 
+	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/go-multierror"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
+	errs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -72,7 +76,7 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 	}
 
 	for _, resource := range resources {
-		err = createObject(ctx, c, resource)
+		err := upsert(ctx, c, resource)
 		if err != nil {
 			return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
 		}
@@ -81,8 +85,69 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 	return nil
 }
 
-func createObject(ctx context.Context, c client.Client, obj client.Object) error {
-	return c.Create(ctx, obj)
+// upsert applies runtime objects to the cluster, if they already exist,
+// patching them with type specific elements.
+func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) error {
+	existing := runtimeObjectFromObject(obj)
+
+	err := kubeClient.Get(ctx, client.ObjectKeyFromObject(obj), existing)
+	if err != nil {
+		if errs.IsNotFound(err) {
+			if err := kubeClient.Create(ctx, obj); err != nil {
+				return err
+			}
+			return nil
+		}
+		return err
+	}
+
+	patchHelper, err := patch.NewHelper(existing, kubeClient)
+	if err != nil {
+		return err
+	}
+
+	switch to := obj.(type) {
+	case *rbacv1.RoleBinding:
+		existingRB := existing.(*rbacv1.RoleBinding)
+		if !equality.Semantic.DeepDerivative(to.Subjects, existingRB.Subjects) ||
+			!equality.Semantic.DeepDerivative(to.RoleRef, existingRB.RoleRef) ||
+			!equality.Semantic.DeepDerivative(to.GetLabels(), existingRB.GetLabels()) {
+			if err := kubeClient.Delete(ctx, existing); err != nil {
+				return err
+			}
+			if err := kubeClient.Create(ctx, to); err != nil {
+				return err
+			}
+		}
+	case *pacv2beta1.Policy:
+		existingPolicy := existing.(*pacv2beta1.Policy)
+		var changed bool
+		if !equality.Semantic.DeepDerivative(to.GetLabels(), existingPolicy.GetLabels()) {
+			existingPolicy.SetLabels(to.GetLabels())
+			changed = true
+		}
+		if !equality.Semantic.DeepDerivative(to.Spec, existingPolicy.Spec) {
+			existingPolicy.Spec = to.Spec
+			changed = true
+		}
+		if changed {
+			if err := patchHelper.Patch(ctx, existing); err != nil {
+				return fmt.Errorf("failed to patch existing policy: %w", err)
+			}
+		}
+	default:
+		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
+			existing.SetLabels(obj.GetLabels())
+			if err := kubeClient.Update(ctx, existing); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func runtimeObjectFromObject(o client.Object) client.Object {
+	return reflect.New(reflect.TypeOf(o).Elem()).Interface().(client.Object)
 }
 
 // ExportTenants exports all the tenants to a file.
@@ -145,7 +210,7 @@ func GenerateTenantResources(tenants ...Tenant) ([]client.Object, error) {
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, tenant.ClusterRole, tenantLabels))
 		}
 		if len(tenant.AllowedRepositories) != 0 {
-			policy, err := newPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenant.Labels)
+			policy, err := newPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
 			if err != nil {
 				return nil, err
 			}
