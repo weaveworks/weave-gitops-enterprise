@@ -100,6 +100,7 @@ const AddApplication = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
+    console.log(initialFormData);
   }
   const [formData, setFormData] = useState<any>(initialFormData);
 
@@ -236,23 +237,19 @@ const AddApplication = () => {
                   <Input
                     className="form-section"
                     required={true}
-                    name="application_name"
+                    name="name"
                     label="APPLICATION NAME"
-                    value={formData.application_name}
-                    onChange={event =>
-                      handleFormData(event, 'application_name')
-                    }
+                    value={formData.name}
+                    onChange={event => handleFormData(event, 'name')}
                     description="define application name"
                   />
                   <Input
                     className="form-section"
                     required={true}
-                    name="application_namespace"
+                    name="namespace"
                     label="APPLICATION NAMESPACE"
-                    value={formData.namesapce}
-                    onChange={event =>
-                      handleFormData(event, 'application_namespace')
-                    }
+                    value={formData.namespace}
+                    onChange={event => handleFormData(event, 'namespace')}
                     description="define application namespace"
                   />
                   <Select
