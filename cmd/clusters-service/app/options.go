@@ -32,7 +32,7 @@ type Options struct {
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
-	CAPIEnabled                  string
+	CAPIEnabled                  bool
 	EntitlementSecretKey         client.ObjectKey
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
@@ -192,5 +192,11 @@ func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 		o.TLSCert = tlsCert
 		o.TLSKey = tlsKey
 		o.NoTLS = noTLS
+	}
+}
+
+func WithCAPIEnabled(capiEnabled bool) Option {
+	return func(o *Options) {
+		o.CAPIEnabled = capiEnabled
 	}
 }
