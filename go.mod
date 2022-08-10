@@ -281,7 +281,7 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
-	github.com/fluxcd/go-git-providers => github.com/ranatrk/go-git-providers v0.0.0-20220724200548-09feaead0898
+	github.com/fluxcd/go-git-providers => github.com/ranatrk/go-git-providers v0.0.0-20220809210816-77b521f7fbb7
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 	// Fix for CVE-2022-1996
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
