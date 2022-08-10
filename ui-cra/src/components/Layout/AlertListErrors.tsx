@@ -26,20 +26,22 @@ const useStyles = makeStyles(() =>
 export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   const classes = useStyles();
 
+  if (!errors || !errors.length) {
+    return null;
+  }
+
   return (
     <>
-      {!!(errors && errors.length) && (
-        <Alert className={classes.alertWrapper} severity="error">
-          <AlertTitle>
-            There were errors while listing some resources:
-          </AlertTitle>
-          {errors?.map((item: ListError) => (
-            <ListItem key={item.clusterName}>
-              • error='{item.message}' cluster='{item.clusterName}' namespace='{item.namespace}'
-            </ListItem>
-          ))}
-        </Alert>
-      )}
+      <Alert className={classes.alertWrapper} severity="error">
+        <AlertTitle>
+          There were errors while listing some resources:
+        </AlertTitle>
+        {errors?.map((item: ListError) => (
+          <ListItem key={item.clusterName}>
+            • error='{item.message}' cluster='{item.clusterName}' namespace='{item.namespace}'
+          </ListItem>
+        ))}
+      </Alert>
     </>
   );
 };
