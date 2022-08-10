@@ -1273,27 +1273,22 @@ func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
 	return committedFiles
 }
 
-func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, repoUrl string, sha string, recursive bool) ([]*gitprovider.TreeEntry, error) {
+func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error) {
 	if p.err != nil {
 		return nil, p.err
 	}
 
 	var treeEntries []*gitprovider.TreeEntry
-	filteredTreeEntries := make(map[string]bool)
 	for _, f := range p.originalFiles {
-		if _, ok := filteredTreeEntries[f.Path]; !ok {
-			filteredTreeEntries[f.Path] = true
-
-			treeEntries = append(treeEntries, &gitprovider.TreeEntry{
-				Path:    f.Path,
-				Mode:    "",
-				Type:    "",
-				Size:    0,
-				SHA:     "",
-				Content: f.Content,
-				URL:     "",
-			})
-		}
+		treeEntries = append(treeEntries, &gitprovider.TreeEntry{
+			Path:    f.Path,
+			Mode:    "",
+			Type:    "",
+			Size:    0,
+			SHA:     "",
+			Content: f.Content,
+			URL:     "",
+		})
 
 	}
 	return treeEntries, nil

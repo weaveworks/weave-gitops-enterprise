@@ -284,28 +284,27 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	var filesList []gitprovider.CommitFile
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
-			path := getClusterManifestPath(
+			// Get file paths belonging to the cluster not in the management cluster directory
+			clusterDirPath := getClusterDirPath(
 				types.NamespacedName{
 					Name:      clusterNamespacedName.Name,
 					Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
 				},
 			)
-			filesList = append(filesList, gitprovider.CommitFile{
-				Path:    &path,
-				Content: nil,
-			})
 
-			// Get file paths belonging to the cluster not in the management cluster directory
-			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, true)
-
+			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, clusterDirPath, true)
 			if err != nil {
 				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
 			}
-			filteredTreeEntries, err := filterTreeFilesByClusterName(treeEntries, clusterNamespacedName)
-			if err != nil {
-				return nil, fmt.Errorf("error filtering retrieved tree files in repo: %s@%s: %w", repositoryURL, baseBranch, err)
+
+			if clusterDirPath == "" {
+				treeEntries, err = filterTreeFilesByClusterName(treeEntries, clusterNamespacedName)
+				if err != nil {
+					return nil, fmt.Errorf("error filtering retrieved tree files in repo: %s@%s: %w", repositoryURL, baseBranch, err)
+				}
 			}
-			for _, treeEntry := range filteredTreeEntries {
+
+			for _, treeEntry := range treeEntries {
 				filesList = append(filesList, gitprovider.CommitFile{
 					Path:    &treeEntry.Path,
 					Content: nil,
@@ -820,6 +819,14 @@ func getClusterManifestPath(cluster types.NamespacedName) string {
 	)
 }
 
+func getClusterDirPath(cluster types.NamespacedName) string {
+	return filepath.Join(
+		viper.GetString("capi-repository-clusters-path"),
+		cluster.Namespace,
+		cluster.Name,
+	)
+}
+
 func getCommonKustomizationPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
@@ -927,17 +934,10 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 // filterTreeFilesByClusterName filters out tree entries that don't belong to the clustername and namespace given in clusterNamespacedName.
 func filterTreeFilesByClusterName(treeEntries []*gitprovider.TreeEntry, clusterNamespacedName *capiv1_proto.ClusterNamespacedName) ([]*gitprovider.TreeEntry, error) {
 	filteredTreeEntries := []*gitprovider.TreeEntry{}
-	clusterManifestPath := getClusterManifestPath(
-		types.NamespacedName{
-			Name:      clusterNamespacedName.Name,
-			Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
-		},
-	)
 	for _, treeEntry := range treeEntries {
 
 		if strings.Contains(treeEntry.Path, clusterNamespacedName.Name) &&
-			strings.Contains(treeEntry.Path, clusterNamespacedName.Namespace) &&
-			treeEntry.Path != clusterManifestPath {
+			strings.Contains(treeEntry.Path, clusterNamespacedName.Namespace) {
 
 			filteredTreeEntries = append(filteredTreeEntries, treeEntry)
 		}
