@@ -1,4 +1,3 @@
-import { TableWrapper } from '../../CanaryStyles';
 import {
   CanaryMetric,
   CanaryMetricTemplate,
@@ -6,6 +5,7 @@ import {
 import { Dispatch, FC, SetStateAction, useState } from 'react';
 import { MetricTemplateModal } from './MetricTemplateModal';
 import { DataTable } from '@weaveworks/weave-gitops';
+import { TableWrapper } from '../../../Shared';
 
 type Props = {
   metricTemplate: CanaryMetricTemplate;

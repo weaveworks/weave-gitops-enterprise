@@ -14,7 +14,7 @@ import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-gre
 import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
 import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
-import { TableWrapper } from '../../CanaryStyles';
+import { TableWrapper } from '../../../Shared';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 interface Props {
   canaries: Canary[];
