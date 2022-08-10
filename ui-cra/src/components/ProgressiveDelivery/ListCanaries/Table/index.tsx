@@ -30,13 +30,13 @@ enum DeploymentStrategy {
 export const getDeploymentStrategyIcon = (strategy: string) => {
   switch (strategy.toLocaleLowerCase()) {
     case DeploymentStrategy.AB:
-      return <ABIcon />;
+      return <ABIcon title="A/B Testing" />;
     case DeploymentStrategy.BlueGreen:
-      return <BlueGreenIcon />;
+      return <BlueGreenIcon title="Blue/Green" />;
     case DeploymentStrategy.Mirroring:
-      return <MirroringIcon />;
+      return <MirroringIcon title="Blue/Green Mirroring" />;
     case DeploymentStrategy.Canary:
-      return <CanaryIcon />;
+      return <CanaryIcon title="Canary Release" />;
     default:
       return;
   }
