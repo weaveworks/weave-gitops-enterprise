@@ -34,7 +34,7 @@ service Pipelines {
 
     rpc GetPipelineStatusForObject(GetPipelineStatusForObjectRequest) returns (GetPipelineStatusForObjectResponse) {
         option (google.api.http) = {
-            get : "/v1/pipelines/status/{objectName}"
+            get : "/v1/pipelines/status"
         }; 
     }
 }
@@ -61,7 +61,7 @@ message GetPipelineStatusForObjectRequest {
 }
 
 message GetPipelineStatusForObjectResponse {
-    // ??
+    PipelineStatus pipelineStatus = 1;
 }
 
 

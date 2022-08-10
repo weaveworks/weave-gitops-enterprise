@@ -26,10 +26,26 @@ message ObjectRef {
     string namespace = 3;
 }
 
-message Pipeline {
-    string name      = 1;
-    string namespace = 2;
+message WorkloadStatus {
+    string kind    = 1;
+    string name    = 2;
+    string version = 3;
+}
 
-    repeated Environment environments = 3;
-    repeated Target targets           = 4;
+message PipelineTargetStatus {
+    string   kind                     = 1;
+    string   name                     = 2;
+    repeated WorkloadStatus workloads = 3;
+}
+
+message PipelineStatus {
+    map<string, PipelineTargetStatus> environments = 1;
+}
+
+message Pipeline {
+    string         name                     = 1;
+    string         namespace                = 2;
+    repeated       Environment environments = 3;
+    repeated       Target targets           = 4;
+    PipelineStatus status                   = 5;
 }
