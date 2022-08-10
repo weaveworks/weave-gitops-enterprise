@@ -28,6 +28,7 @@ import {
 } from '../../../cluster-services/cluster_services.pb';
 import styled from 'styled-components';
 import { Input, Select, validateFormData } from '../../../utils/form';
+import { useListGitRepos } from '../../../hooks/gitReposSource';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -48,6 +49,7 @@ const AddApplication = () => {
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/new`;
   const [sources, setSources] = useState([]);
+  const { gitResposList } = useListGitRepos();
 
   let initialKustomizationFormData: ClusterKustomization = {
     cluster: {
@@ -271,7 +273,7 @@ const AddApplication = () => {
                     defaultValue={''}
                     description="The name and type of source"
                   >
-                    {sources?.map((option: any) => {
+                    {gitResposList?.gitRepositories?.map((option: any) => {
                       return (
                         <MenuItem
                           key={option.name}
