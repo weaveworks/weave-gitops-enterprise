@@ -47,6 +47,7 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/new`;
+  const [sources, setSources] = useState([]);
 
   let initialKustomizationFormData: ClusterKustomization = {
     cluster: {
@@ -169,6 +170,18 @@ const AddApplication = () => {
       cluster: value,
     });
   };
+
+  const handleSelectSource = (event: React.ChangeEvent<any>) => {
+    const value = event.target.value;
+    setFormData({
+      ...formData,
+      clustster_name: JSON.parse(value).name,
+      cluster_namespace: JSON.parse(value).namespace,
+      cluster_isControlPlane: JSON.parse(value).controlPlane,
+      cluster: value,
+    });
+  };
+
   const handleFormData = (
     event:
       | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
@@ -250,15 +263,15 @@ const AddApplication = () => {
                   </Select>
                   <Select
                     className="form-section"
-                    name="cluster_name"
+                    name="source"
                     required={true}
-                    label="SELECT CLUSTER"
-                    value={formData.cluster || ''}
-                    onChange={handleSelectCluster}
+                    label="SELECT SOURCE"
+                    value={formData.source || ''}
+                    onChange={handleSelectSource}
                     defaultValue={''}
-                    description="select target cluster"
+                    description="The name and type of source"
                   >
-                    {clusters?.map((option: any) => {
+                    {sources?.map((option: any) => {
                       return (
                         <MenuItem
                           key={option.name}
