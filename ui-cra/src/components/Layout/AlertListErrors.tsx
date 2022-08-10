@@ -31,11 +31,11 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
       {!!(errors && errors.length) && (
         <Alert className={classes.alertWrapper} severity="error">
           <AlertTitle>
-            There was a problem retrieving results from some clusters:
+            There were errors while listing some resources:
           </AlertTitle>
           {errors?.map((item: ListError) => (
             <ListItem key={item.clusterName}>
-              - Cluster {item.clusterName} {item.message}
+              • error='{item.message}' cluster='{item.clusterName}' namespace='{item.namespace}'
             </ListItem>
           ))}
         </Alert>
