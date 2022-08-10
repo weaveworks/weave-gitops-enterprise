@@ -1,6 +1,6 @@
 dependencies:
 - name: cluster-controller
   repository: file://../cluster-controller
-  version: 1.0.0
-digest: sha256:708fb87f78a71f16c87bd580044c1ced87710f55b88cb86efa3797722756f413
-generated: "2022-05-18T22:48:47.550126+02:00"
+  version: 1.3.0
+digest: sha256:f3b33d8fdd7c8f9c3ebabef6939840da8e446a013d6c924cdface0905adea211
+generated: "2022-08-10T12:38:04.402742+02:00"
