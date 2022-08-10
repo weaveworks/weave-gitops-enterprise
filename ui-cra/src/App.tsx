@@ -63,7 +63,7 @@ const GlobalStyle = createGlobalStyle`
     text-decoration: none;
   }
 
-  body::-webkit-scrollbar-track, .fancy-scroll::-webkit-scrollbar-track {
+  ::-webkit-scrollbar-track {
     margin-top: 5px;
     -webkit-box-shadow: transparent;
     -moz-box-shadow: transparent;
@@ -71,20 +71,20 @@ const GlobalStyle = createGlobalStyle`
     border-radius: 5px;
   }
 
-  body::-webkit-scrollbar, .fancy-scroll::-webkit-scrollbar{
+  ::-webkit-scrollbar{
     width: 5px;
     height: 5px;
     background-color: transparent;
     margin-top: 50px;
   }
-  body::-webkit-scrollbar-thumb , .fancy-scroll::-webkit-scrollbar-thumb {
+ ::-webkit-scrollbar-thumb {
     background-color: ${props => props.theme.colors.neutral20};
     border-radius: 5px;
   }
-  body::-webkit-scrollbar-thumb:hover, .fancy-scroll::-webkit-scrollbar-thumb:hover {
+ ::-webkit-scrollbar-thumb:hover {
     background-color: ${props => props.theme.colors.neutral30};
   }
-  body::-webkit-scrollbar:hover, .fancy-scroll::-webkit-scrollbar:hover{
+  ::-webkit-scrollbar:hover{
     width: 7px;
     height:7px;
   }
