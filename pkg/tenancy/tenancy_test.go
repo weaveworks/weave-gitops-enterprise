@@ -14,6 +14,7 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -485,10 +486,34 @@ func Test_newAllowedRepositoriesPolicy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	expectedParams := []pacv2beta1.PolicyParameters{
+		{
+			Name: "git_urls",
+			Value: &apiextensionsv1.JSON{
+				Raw: val,
+			},
+			Type: "array",
+		},
+		{
+			Name: "bucket_endpoints",
+			Value: &apiextensionsv1.JSON{
+				Raw: []byte("null"),
+			},
+			Type: "array",
+		},
+		{
+			Name: "helm_urls",
+			Value: &apiextensionsv1.JSON{
+				Raw: []byte("null"),
+			},
+			Type: "array",
+		},
+	}
+
 	assert.Equal(t, pol.Name, "weave.policies.tenancy.test-tenant-allowed-repositories")
 	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
-	assert.Equal(t, pol.Spec.Parameters[0].Value.Raw, val)
-	assert.Equal(t, pol.Spec.Parameters[0].Name, "git_urls")
+	assert.Equal(t, pol.Spec.Parameters, expectedParams)
 	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 
 }
@@ -513,10 +538,18 @@ func Test_newAllowedClustersPolicy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	expectedParams := []pacv2beta1.PolicyParameters{
+		{
+			Name: "cluster_secrets",
+			Value: &apiextensionsv1.JSON{
+				Raw: val,
+			},
+			Type: "array",
+		},
+	}
 	assert.Equal(t, pol.Name, "weave.policies.tenancy.test-tenant-allowed-clusters")
 	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
-	assert.Equal(t, pol.Spec.Parameters[0].Value.Raw, val)
-	assert.Equal(t, pol.Spec.Parameters[0].Name, "cluster_secrets")
+	assert.Equal(t, pol.Spec.Parameters, expectedParams)
 	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 
 }

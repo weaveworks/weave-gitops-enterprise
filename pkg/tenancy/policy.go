@@ -1,6 +1,7 @@
 package tenancy
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 
@@ -15,11 +16,17 @@ const (
 	policyClusterskind   = "GitopsCluster"
 )
 
-var policyRepoKinds = []string{
-	policyRepoGitKind,
-	policyRepoBucketKind,
-	policyRepoHelmKind,
-}
+var (
+	policyRepoKinds = []string{
+		policyRepoGitKind,
+		policyRepoBucketKind,
+		policyRepoHelmKind,
+	}
+	//go:embed policies/allowed_repositories.rego
+	repoPolicyCode string
+	//go:embed policies/allowed_clusters.rego
+	clusterPolicyCode string
+)
 
 func validatePolicyRepoKind(kind string) error {
 	for _, repoKind := range policyRepoKinds {
@@ -69,64 +76,3 @@ func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs []string) ([]pa
 		},
 	}, nil
 }
-
-const (
-	repoPolicyCode = `
-	package weave.tenancy.allowed_repositories
-
-	controller_input := input.review.object
-	namespace := controller_input.metadata.namespace
-	violation[result] {
-		controller_input.kind == "GitRepository"
-		urls := input.parameters.git_urls
-		url := controller_input.spec.url
-		not contains_array(url, urls)
-		result = {	
-		"issue detected": true,
-		"msg": sprintf("Git repository url %v is not allowed for namespace %v", [url, namespace]),
-		}
-	}
-	violation[result] {
-		controller_input.kind == "Bucket"
-		urls := input.parameters.bucket_endpoints
-		url := controller_input.spec.endpoint
-		not contains_array(url, urls)
-		result = {	
-		"issue detected": true,
-		"msg": sprintf("Bucket endpoint %v is not allowed for namespace %v", [url, namespace]),
-		}
-	}
-	violation[result] {
-		controller_input.kind == "HelmRepository"
-		urls := input.parameters.helm_urls
-		url := controller_input.spec.url
-		not contains_array(url, urls)
-		result = {	
-		"issue detected": true,
-		"msg": sprintf("Helm repository url %v is not allowed for namespace %v", [url, namespace]),
-		}
-	}
-	contains_array(item, items) {
-		items[_] = item
-	}
-`
-	clusterPolicyCode = `
-	package weave.tenancy.allowed_clusters
-
-	controller_input := input.review.object
-	namespace := controller_input.metadata.namespace
-	violation[result] {
-		controller_input.kind == "GitopsCluster"
-		secrets := input.parameters.cluster_secrets
-		secret := controller_input.spec.secretRef.name
-		not contains_array(secret, secrets)
-		result = {	
-		"issue detected": true,
-		"msg": sprintf("cluster secretRef %v is not allowed for namespace %v", [secret, namespace]),
-		}
-	}
-	contains_array(item, items) {
-		items[_] = item
-	}
-`
-)
