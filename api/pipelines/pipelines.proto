@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package pipelines.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+import "api/pipelines/types.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Weave GitOps Pipelines API",
+      version: "0.1";
+      description: "The API handles operations for Weave GitOps Pipelines";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+service Pipelines {
+    rpc ListPipelines(ListPipelinesRequest) returns (ListPipelinesResponse) {
+        option (google.api.http) = {
+            get : "/v1/pipelines"
+        };
+    }
+
+    rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse) {
+        option (google.api.http) = {
+            get : "/v1/pipelines/{name}"
+        }; 
+    }
+
+    rpc GetPipelineStatusForObject(GetPipelineStatusForObjectRequest) returns (GetPipelineStatusForObjectResponse) {
+        option (google.api.http) = {
+            get : "/v1/pipelines/status/{objectName}"
+        }; 
+    }
+}
+
+message ListPipelinesRequest {
+    string namespace = 1;
+}
+
+message ListPipelinesResponse {
+    repeated Pipeline pipelines = 1;
+}
+
+message GetPipelineRequest {
+    string name = 1;
+    string namespace = 2;
+}
+
+message GetPipelineResponse {
+    Pipeline pipeline = 1;
+}
+
+message GetPipelineStatusForObjectRequest {
+    ObjectRef object = 1;
+}
+
+message GetPipelineStatusForObjectResponse {
+    // ??
+}
+
+
+

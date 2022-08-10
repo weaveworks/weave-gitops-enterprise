@@ -1,0 +1,35 @@
+
+syntax = "proto3";
+
+package pipelines.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api";
+
+message ClusterRef {
+    string kind = 1;
+    string name = 2;
+}
+
+message Target {
+    string     namespace  = 1;
+    ClusterRef clusterRef = 2;
+}
+
+message Environment {
+    string     namespace  = 1;
+    ClusterRef clusterRef = 2;
+}
+
+message ObjectRef {
+    string kind      = 1;
+    string name      = 2;
+    string namespace = 3;
+}
+
+message Pipeline {
+    string name      = 1;
+    string namespace = 2;
+
+    repeated Environment environments = 3;
+    repeated Target targets           = 4;
+}
