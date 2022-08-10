@@ -1,4 +1,3 @@
-import { SortType } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { Event } from '../../../../cluster-services/cluster_services.pb';
 import { CustomDataTable, TableWrapper } from '../../CanaryStyles';
@@ -8,7 +7,6 @@ export const EventsTable = ({ events }: { events: Event[] }) => {
     <TableWrapper id="events-list">
       <CustomDataTable
         rows={events}
-        defaultSort={3}
         fields={[
           {
             label: 'Reason',
@@ -34,8 +32,8 @@ export const EventsTable = ({ events }: { events: Event[] }) => {
           },
           {
             label: 'Last Updated',
+            defaultSort: true,
             value: (e: Event) => moment(e.timestamp).fromNow() || '--',
-            sortType: SortType.number,
             sortValue: (e: Event) => {
               const t = e.timestamp && new Date(e.timestamp);
               // Invert the timestamp so the default sort shows the most recent first

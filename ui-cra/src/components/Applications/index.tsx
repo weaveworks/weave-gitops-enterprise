@@ -28,7 +28,7 @@ const WGApplicationsDashboard: FC = () => {
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={automations} />
+          <AutomationsTable automations={automations?.result} />
         )}
       </ContentWrapper>
     </PageTemplate>
