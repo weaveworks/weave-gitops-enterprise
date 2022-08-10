@@ -81,6 +81,8 @@ const AddApplication = () => {
     cluster_name: '',
     cluster_namespace: '',
     cluster: '',
+    cluster_isControlPlane: false,
+    path: '',
   };
 
   const callbackState = getCallbackState();
@@ -163,8 +165,18 @@ const AddApplication = () => {
       ...formData,
       clustster_name: JSON.parse(value).name,
       cluster_namespace: JSON.parse(value).namespace,
+      cluster_isControlPlane: JSON.parse(value).controlPlane,
       cluster: value,
     });
+  };
+  const handleFormData = (
+    event:
+      | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+      | React.ChangeEvent<{ name?: string; value: unknown }>,
+    fieldName?: string,
+  ) => {
+    const { value } = event?.target;
+    setFormData({ ...formData, [fieldName as string]: value });
   };
 
   return (
@@ -193,14 +205,37 @@ const AddApplication = () => {
             <Grid container>
               <Grid item xs={12} sm={10} md={10} lg={8}>
                 <FormWrapper>
+                  <Input
+                    className="form-section"
+                    required={true}
+                    name="application_name"
+                    label="APPLICATION NAME"
+                    value={formData.application_name}
+                    onChange={event =>
+                      handleFormData(event, 'application_name')
+                    }
+                    description="define application name"
+                  />
+                  <Input
+                    className="form-section"
+                    required={true}
+                    name="application_namespace"
+                    label="APPLICATION NAMESPACE"
+                    value={formData.namesapce}
+                    onChange={event =>
+                      handleFormData(event, 'application_namespace')
+                    }
+                    description="define application namespace"
+                  />
                   <Select
                     className="form-section"
-                    name="cluster_Name"
+                    name="cluster_name"
                     required={true}
                     label="SELECT CLUSTER"
                     value={formData.cluster || ''}
                     onChange={handleSelectCluster}
                     defaultValue={''}
+                    description="select target cluster"
                   >
                     {clusters?.map((option: any) => {
                       return (
@@ -213,6 +248,36 @@ const AddApplication = () => {
                       );
                     })}
                   </Select>
+                  <Select
+                    className="form-section"
+                    name="cluster_name"
+                    required={true}
+                    label="SELECT CLUSTER"
+                    value={formData.cluster || ''}
+                    onChange={handleSelectCluster}
+                    defaultValue={''}
+                    description="select target cluster"
+                  >
+                    {clusters?.map((option: any) => {
+                      return (
+                        <MenuItem
+                          key={option.name}
+                          value={JSON.stringify(option)}
+                        >
+                          {option.name}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                  <Input
+                    className="form-section"
+                    required={true}
+                    name="path"
+                    label="SELECT PATH/CHART"
+                    value={formData.path}
+                    onChange={event => handleFormData(event, 'path')}
+                    description="The name of the path"
+                  />
                 </FormWrapper>
               </Grid>
               <Grid item xs={12} sm={10} md={10} lg={8}>
