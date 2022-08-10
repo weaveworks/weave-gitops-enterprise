@@ -33,6 +33,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.22.1
 	github.com/fluxcd/kustomize-controller/api v0.26.2
 	github.com/fluxcd/pkg/apis/meta v0.14.2
+	github.com/fluxcd/pkg/runtime v0.16.2
 	github.com/fluxcd/source-controller/api v0.25.9
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
@@ -113,7 +114,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.0.3 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.4.2 // indirect
-	github.com/fluxcd/pkg/runtime v0.16.2 // indirect
 	github.com/fluxcd/pkg/ssa v0.17.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
