@@ -9,13 +9,21 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/tenancy"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+
+	apiextentionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	policyCRDName = "policies.pac.weave.works"
 )
 
 type tenantCommandFlags struct {
-	name       string
-	namespaces []string
-	fromFile   string
-	export     bool
+	name                string
+	namespaces          []string
+	fromFile            string
+	export              bool
+	skipPreFlightChecks bool
 }
 
 var flags tenantCommandFlags
@@ -44,6 +52,7 @@ func init() {
 	TenantsCommand.Flags().StringSliceVar(&flags.namespaces, "namespace", []string{}, "a list of namespaces for the tenant")
 	TenantsCommand.Flags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
 	TenantsCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
+	TenantsCommand.Flags().BoolVar(&flags.skipPreFlightChecks, "skip-preflight-checks", false, "skip preflight checks before creating resources in cluster")
 
 	cobra.CheckErr(TenantsCommand.MarkFlagRequired("from-file"))
 }
@@ -89,6 +98,13 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("failed to create kube client: %w", err)
 		}
 
+		if !flags.skipPreFlightChecks {
+			err := preFlightCheck(ctx, tenants, kubeClient)
+			if err != nil {
+				return fmt.Errorf("preflight check failed with error: %w", err)
+			}
+		}
+
 		err = tenancy.CreateTenants(ctx, tenants, kubeClient)
 		if err != nil {
 			return err
@@ -96,4 +112,28 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 
 		return nil
 	}
+}
+
+func preFlightCheck(ctx context.Context, tenants []tenancy.Tenant, kubeClient *kube.KubeHTTP) error {
+	var hasPolicy bool
+
+	for _, tenant := range tenants {
+		if len(tenant.AllowedRepositories) > 0 {
+			hasPolicy = true
+			break
+		}
+	}
+
+	if !hasPolicy {
+		return nil
+	}
+
+	crd := &apiextentionsv1.CustomResourceDefinition{}
+
+	err := kubeClient.Get(ctx, client.ObjectKey{Name: policyCRDName}, crd)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
