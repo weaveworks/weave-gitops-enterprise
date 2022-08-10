@@ -108,7 +108,7 @@ export const TableWrapper = styled.div`
   tr {
     vertical-align: 'center';
   }
-  max-width: calc(100vw - 220px);
+  max-width: calc(100vw - 300px);
 `;
 
 export const OnBoardingMessageWrapper = styled.div`
