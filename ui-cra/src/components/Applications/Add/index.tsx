@@ -22,13 +22,12 @@ import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import {
-  ClusterKustomization,
-  CreateKustomizationsPullRequestRequest,
-} from '../../../cluster-services/cluster_services.pb';
+import { ClusterKustomization } from '../../../cluster-services/cluster_services.pb';
 import styled from 'styled-components';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { useListGitRepos } from '../../../hooks/gitReposSource';
+import _ from 'lodash';
+import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -48,8 +47,11 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/new`;
-  const [sources, setSources] = useState([]);
-  const { gitResposList } = useListGitRepos();
+  // const [sources, setSources] = useState([]);
+  const { data: GitRepoResponse } = useListGitRepos();
+  const [sourcesFilteredList, setSourcesFilteredList] = useState<
+    GitRepository[] | []
+  >([]);
 
   let initialKustomizationFormData: ClusterKustomization = {
     cluster: {
@@ -86,6 +88,9 @@ const AddApplication = () => {
     cluster: '',
     cluster_isControlPlane: false,
     path: '',
+    source_name: '',
+    source_namespace: '',
+    source: '',
   };
 
   const callbackState = getCallbackState();
@@ -171,16 +176,24 @@ const AddApplication = () => {
       cluster_isControlPlane: JSON.parse(value).controlPlane,
       cluster: value,
     });
+    const clusterName = JSON.parse(value).namespace
+      ? `${JSON.parse(value).namespace}/${JSON.parse(value).name}`
+      : `${JSON.parse(value).name}`;
+
+    const gitResposFilterdList = _.filter(GitRepoResponse?.gitRepositories, [
+      'clusterName',
+      clusterName,
+    ]);
+    setSourcesFilteredList(gitResposFilterdList || []);
   };
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
     setFormData({
       ...formData,
-      clustster_name: JSON.parse(value).name,
-      cluster_namespace: JSON.parse(value).namespace,
-      cluster_isControlPlane: JSON.parse(value).controlPlane,
-      cluster: value,
+      source_name: JSON.parse(value).name,
+      source_namespace: JSON.parse(value).namespace,
+      source: value,
     });
   };
 
@@ -273,10 +286,10 @@ const AddApplication = () => {
                     defaultValue={''}
                     description="The name and type of source"
                   >
-                    {gitResposList?.gitRepositories?.map((option: any) => {
+                    {sourcesFilteredList?.map((option: any) => {
                       return (
                         <MenuItem
-                          key={option.name}
+                          key={option.cluseterName}
                           value={JSON.stringify(option)}
                         >
                           {option.name}
