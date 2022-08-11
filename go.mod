@@ -33,6 +33,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.22.1
 	github.com/fluxcd/kustomize-controller/api v0.26.2
 	github.com/fluxcd/pkg/apis/meta v0.14.2
+	github.com/fluxcd/pkg/runtime v0.16.2
 	github.com/fluxcd/source-controller/api v0.25.9
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
@@ -46,7 +47,7 @@ require (
 	github.com/weaveworks/cluster-controller v1.2.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.4
-	github.com/weaveworks/progressive-delivery v0.0.0-20220801174745-7e26bfdd66f9
+	github.com/weaveworks/progressive-delivery v0.0.0-20220808183836-c7c637e887d0
 	github.com/xanzy/go-gitlab v0.58.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
@@ -113,7 +114,6 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.0.3 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.4.2 // indirect
-	github.com/fluxcd/pkg/runtime v0.16.2 // indirect
 	github.com/fluxcd/pkg/ssa v0.17.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect

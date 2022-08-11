@@ -110,7 +110,7 @@ type Params struct {
 	capiTemplatesNamespace            string
 	injectPruneAnnotation             string
 	addBasesKustomization             string
-	capiEnabled                       string
+	capiEnabled                       bool
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
 	capiRepositoryClustersPath        string
@@ -160,7 +160,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
-	cmd.Flags().StringVar(&p.capiEnabled, "capi-enabled", "true", "")
+	cmd.Flags().BoolVar(&p.capiEnabled, "capi-enabled", true, "")
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
 	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "where to look for CAPI template resources, required")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
@@ -268,7 +268,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		authv1.AddToScheme,
 	}
 
-	if p.capiEnabled == "true" {
+	if p.capiEnabled {
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
@@ -409,6 +409,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
+		WithCAPIEnabled(p.capiEnabled),
 	)
 }
 
