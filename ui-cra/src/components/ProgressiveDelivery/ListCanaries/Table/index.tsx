@@ -96,16 +96,6 @@ function formatPromoted(target?: CanaryTargetDeployment): any {
   // Remove trainling comma
   return out;
 }
-function getTime(date: string): number {
-  return new Date(date).getTime();
-}
-function sortCanariesByDate(canaries: Canary[]): Canary[] {
-  return canaries.sort(
-    (pre, curr) =>
-      getTime(curr?.status?.conditions![0].lastUpdateTime || '') -
-      getTime(pre?.status?.conditions![0].lastUpdateTime || ''),
-  );
-}
 
 export const CanaryTable: FC<Props> = ({ canaries }) => {
   const classes = usePolicyStyle();
@@ -119,7 +109,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
     <TableWrapper id="canaries-list">
       <FilterableTable
         filters={initialFilterState}
-        rows={sortCanariesByDate(canaries)}
+        rows={canaries}
         fields={[
           {
             label: 'Name',
@@ -182,11 +172,15 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
               (c.status?.conditions &&
                 moment(c.status?.conditions[0].lastUpdateTime).fromNow()) ||
               '--',
-            sortValue: (c: Canary) =>
-              (c.status?.conditions &&
-                c.status?.conditions[0].lastUpdateTime) ||
-              '',
             defaultSort: true,
+            sortValue: (c: Canary) => {
+              const t =
+                c.status?.conditions &&
+                new Date(
+                  c.status?.conditions[0].lastUpdateTime || '',
+                ).getTime();
+              return Number(t) * -1;
+            },
           },
         ]}
       />
