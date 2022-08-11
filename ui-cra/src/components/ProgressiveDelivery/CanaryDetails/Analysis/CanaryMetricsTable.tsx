@@ -1,10 +1,11 @@
-import { CustomDataTable, TableWrapper } from '../../CanaryStyles';
 import {
   CanaryMetric,
   CanaryMetricTemplate,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Dispatch, FC, SetStateAction, useState } from 'react';
 import { MetricTemplateModal } from './MetricTemplateModal';
+import { DataTable } from '@weaveworks/weave-gitops';
+import { TableWrapper } from '../../../Shared';
 
 type Props = {
   metricTemplate: CanaryMetricTemplate;
@@ -44,7 +45,7 @@ export const CanaryMetricsTable = ({
 
   return (
       <TableWrapper id="canary-analysis-metrics">
-        <CustomDataTable
+        <DataTable
           rows={metrics}
           fields={[
             {
