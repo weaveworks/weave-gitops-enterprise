@@ -29,6 +29,7 @@ type Options struct {
 	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
+	RuntimeNamespace             string
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
@@ -123,6 +124,13 @@ func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
 	}
 }
 
+// WithRuntimeNamespace set the namespace that holds any authentication
+// secrets (e.g. cluster-user-auth or oidc-auth).
+func WithRuntimeNamespace(RuntimeNamespace string) Option {
+	return func(o *Options) {
+		o.RuntimeNamespace = RuntimeNamespace
+	}
+}
 // WithProfileHelmRepository is used to set the name of the Flux
 // HelmRepository object that will be inspected for Helm charts
 // that include the profile annotation.
