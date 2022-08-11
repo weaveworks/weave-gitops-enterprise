@@ -121,6 +121,7 @@ type Params struct {
 	TLSCert                           string
 	TLSKey                            string
 	NoTLS                             bool
+	KubeconfigServer                  string
 }
 
 type OIDCAuthenticationOptions struct {
@@ -175,6 +176,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&p.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
+	cmd.Flags().StringVar(&p.KubeconfigServer, "kubeconfig-server", "", "Override the kubeconfig.cluster.server address used for the kube api-server")
 
 	cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
@@ -279,6 +281,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	kubeClientConfig, err := config.GetConfig()
 	if err != nil {
 		return err
+	}
+	if p.KubeconfigServer != "" {
+		kubeClientConfig.Host = p.KubeconfigServer
 	}
 	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
 	if err != nil {
