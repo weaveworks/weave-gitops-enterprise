@@ -22,9 +22,8 @@ import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { ClusterKustomization } from '../../../cluster-services/cluster_services.pb';
 import styled from 'styled-components';
-import { Input, Select, validateFormData } from '../../../utils/form';
+import { Input, Select } from '../../../utils/form';
 import { useListGitRepos } from '../../../hooks/gitReposSource';
 import _ from 'lodash';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
@@ -41,38 +40,16 @@ const AddApplication = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { addApplication } = useTemplates();
-  const [PRPreview, setPRPreview] = useState<string | null>(null);
   const history = useHistory();
   const { setNotifications } = useNotifications();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/new`;
-  // const [sources, setSources] = useState([]);
   const { data: GitRepoResponse } = useListGitRepos();
   const [sourcesFilteredList, setSourcesFilteredList] = useState<
     GitRepository[] | []
   >([]);
 
-  let initialKustomizationFormData: ClusterKustomization = {
-    cluster: {
-      name: '',
-      namespace: '',
-    },
-    isControlPlane: false,
-    kustomization: {
-      metadata: {
-        name: '',
-        namespace: '',
-      },
-      spec: {
-        path: '',
-        sourceRef: {
-          name: '',
-          namespace: '',
-        },
-      },
-    },
-  };
   let initialFormData = {
     url: '',
     provider: '',
@@ -80,7 +57,7 @@ const AddApplication = () => {
     title: 'Add application',
     commitMessage: 'add application',
     pullRequestDescription: 'This PR add a new application',
-    clusterKustomizations: [initialKustomizationFormData],
+    clusterKustomizations: [{}],
     name: '',
     namespace: '',
     cluster_name: '',
@@ -100,7 +77,6 @@ const AddApplication = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    console.log(initialFormData);
   }
   const [formData, setFormData] = useState<any>(initialFormData);
 
@@ -159,7 +135,6 @@ const AddApplication = () => {
       getProviderToken(formData.provider as GitProvider),
     )
       .then(response => {
-        setPRPreview(null);
         history.push('/applications');
         setNotifications([
           {
@@ -188,7 +163,7 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, [addApplication, formData, history, setNotifications, setPRPreview]);
+  }, [addApplication, formData, history, setNotifications]);
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
