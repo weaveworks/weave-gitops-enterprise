@@ -8,7 +8,6 @@ import useClusters from '../../../contexts/Clusters';
 import GitOps from '../../Clusters/Create/Form/Partials/GitOps';
 import { Grid, MenuItem } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
-import useTemplates from '../../../contexts/Templates';
 import {
   CallbackStateContextProvider,
   clearCallbackState,
