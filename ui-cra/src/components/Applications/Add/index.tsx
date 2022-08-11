@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
@@ -43,11 +43,12 @@ const AddApplication = () => {
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/new`;
   const { data: GitRepoResponse } = useListGitRepos();
+  const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
     url: '',
     provider: '',
-    branchName: `add-application-branch`,
+    branchName: `add-application-branch-${random}`,
     title: 'Add application',
     commitMessage: 'add application',
     pullRequestDescription: 'This PR add a new application',
