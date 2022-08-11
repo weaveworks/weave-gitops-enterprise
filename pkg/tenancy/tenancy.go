@@ -104,8 +104,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Create(ctx, obj); err != nil {
 				return err
 			}
-			kind := strings.ToLower(obj.GetObjectKind().GroupVersionKind().GroupKind().String())
-			fmt.Fprintf(out, "%s/%s created\n", kind, obj.GetName())
+			fmt.Fprintf(out, "%s created\n", objectID(obj))
 
 			return nil
 		}
@@ -129,8 +128,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Create(ctx, to); err != nil {
 				return err
 			}
-			kind := strings.ToLower(to.GetObjectKind().GroupVersionKind().GroupKind().String())
-			fmt.Fprintf(out, "%s/%s recreated\n", kind, to.GetName())
+			fmt.Fprintf(out, "%s recreated\n", objectID(to))
 		}
 	case *pacv2beta1.Policy:
 		existingPolicy := existing.(*pacv2beta1.Policy)
@@ -147,8 +145,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := patchHelper.Patch(ctx, existing); err != nil {
 				return fmt.Errorf("failed to patch existing policy: %w", err)
 			}
-			kind := strings.ToLower(existing.GetObjectKind().GroupVersionKind().GroupKind().String())
-			fmt.Fprintf(out, "%s/%s updated\n", kind, existing.GetName())
+			fmt.Fprintf(out, "%s updated\n", objectID(existing))
 		}
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
@@ -156,11 +153,14 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Update(ctx, existing); err != nil {
 				return err
 			}
-			kind := strings.ToLower(existing.GetObjectKind().GroupVersionKind().GroupKind().String())
-			fmt.Fprintf(out, "%s/%s updated\n", kind, existing.GetName())
+			fmt.Fprintf(out, "%s updated\n", objectID(existing))
 		}
 	}
 	return nil
+}
+
+func objectID(obj client.Object) string {
+	return fmt.Sprintf("%s/%s", strings.ToLower(obj.GetObjectKind().GroupVersionKind().GroupKind().String()), obj.GetName())
 }
 
 func runtimeObjectFromObject(o client.Object) client.Object {
