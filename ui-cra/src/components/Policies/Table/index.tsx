@@ -3,12 +3,12 @@ import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { Policy } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../PolicyStyles';
-import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
+import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import Severity from '../Severity';
 import moment from 'moment';
-import styled from 'styled-components';
 import { localEEMuiTheme } from '../../../muiTheme';
+import { TableWrapper } from '../../Shared';
 
 const localMuiTheme = createTheme({
   ...localEEMuiTheme,
@@ -18,22 +18,6 @@ const localMuiTheme = createTheme({
 interface Props {
   policies: Policy[];
 }
-const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
-  tr {
-    vertical-align: 'center';
-  }
-  max-width: calc(100vw - 220px);
-`;
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
