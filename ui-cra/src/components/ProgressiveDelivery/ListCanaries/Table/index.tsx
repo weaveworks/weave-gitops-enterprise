@@ -182,7 +182,11 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
               (c.status?.conditions &&
                 moment(c.status?.conditions[0].lastUpdateTime).fromNow()) ||
               '--',
-            sortValue: (c: Canary) => c.status?.conditions![0].lastUpdateTime,
+            sortValue: (c: Canary) =>
+              (c.status?.conditions &&
+                c.status?.conditions[0].lastUpdateTime) ||
+              '',
+            defaultSort: true,
           },
         ]}
       />
