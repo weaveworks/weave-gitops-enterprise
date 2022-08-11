@@ -883,12 +883,8 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	result, err := getProfilesFromTemplate(annotations)
 	assert.NoError(t, err)
 
-	for i, res := range result {
-		exp := expected[i]
-		assert.Equal(t, exp.Name, res.Name)
-		assert.Equal(t, exp.Version, res.Version)
-		assert.Equal(t, exp.Values, res.Values)
-		assert.Equal(t, exp.Editable, res.Editable)
+	if diff := cmp.Diff(expected, result, protocmp.Transform()); diff != "" {
+		t.Fatalf("template params didn't match expected:\n%s", diff)
 	}
 }
 
