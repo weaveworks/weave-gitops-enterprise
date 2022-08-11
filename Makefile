@@ -1,4 +1,4 @@
-.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -162,5 +162,9 @@ push:
 			docker push $$IMAGE_NAME:$(IMAGE_TAG); \
 		fi \
 	done
+
+proto: ## Generate protobuf files
+	buf generate
+
 
 FORCE:
