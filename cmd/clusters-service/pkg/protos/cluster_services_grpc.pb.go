@@ -47,7 +47,7 @@ type ClustersServiceClient interface {
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
 	// Creates a pull request for the given list of Kustomizations.
-	CreateKustomizationsPullRequest(ctx context.Context, in *CreateKustomizationsPullRequestRequest, opts ...grpc.CallOption) (*CreateKustomizationsPullRequestResponse, error)
+	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// ListPolicies list policies available on the management cluster
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
@@ -177,9 +177,9 @@ func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *Ge
 	return out, nil
 }
 
-func (c *clustersServiceClient) CreateKustomizationsPullRequest(ctx context.Context, in *CreateKustomizationsPullRequestRequest, opts ...grpc.CallOption) (*CreateKustomizationsPullRequestResponse, error) {
-	out := new(CreateKustomizationsPullRequestResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateKustomizationsPullRequest", in, out, opts...)
+func (c *clustersServiceClient) CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error) {
+	out := new(CreateAutomationsPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ type ClustersServiceServer interface {
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
 	// Creates a pull request for the given list of Kustomizations.
-	CreateKustomizationsPullRequest(context.Context, *CreateKustomizationsPullRequestRequest) (*CreateKustomizationsPullRequestResponse, error)
+	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// ListPolicies list policies available on the management cluster
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
@@ -327,8 +327,8 @@ func (UnimplementedClustersServiceServer) GetKubeconfig(context.Context, *GetKub
 func (UnimplementedClustersServiceServer) GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEnterpriseVersion not implemented")
 }
-func (UnimplementedClustersServiceServer) CreateKustomizationsPullRequest(context.Context, *CreateKustomizationsPullRequestRequest) (*CreateKustomizationsPullRequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateKustomizationsPullRequest not implemented")
+func (UnimplementedClustersServiceServer) CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAutomationsPullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
@@ -577,20 +577,20 @@ func _ClustersService_GetEnterpriseVersion_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClustersService_CreateKustomizationsPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateKustomizationsPullRequestRequest)
+func _ClustersService_CreateAutomationsPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAutomationsPullRequestRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClustersServiceServer).CreateKustomizationsPullRequest(ctx, in)
+		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/CreateKustomizationsPullRequest",
+		FullMethod: "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).CreateKustomizationsPullRequest(ctx, req.(*CreateKustomizationsPullRequestRequest))
+		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, req.(*CreateAutomationsPullRequestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -759,8 +759,8 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_GetEnterpriseVersion_Handler,
 		},
 		{
-			MethodName: "CreateKustomizationsPullRequest",
-			Handler:    _ClustersService_CreateKustomizationsPullRequest_Handler,
+			MethodName: "CreateAutomationsPullRequest",
+			Handler:    _ClustersService_CreateAutomationsPullRequest_Handler,
 		},
 		{
 			MethodName: "GetConfig",

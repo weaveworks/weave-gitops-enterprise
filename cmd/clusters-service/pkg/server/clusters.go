@@ -26,6 +26,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/helm/pkg/chartutil"
@@ -42,12 +43,12 @@ import (
 )
 
 const (
-	capiClusterRef                         string = "CAPICluster"
-	secretRef                              string = "Secret"
-	HelmReleaseNamespace                          = "flux-system"
-	deleteClustersRequiredErr                     = "at least one cluster must be specified"
-	createClusterKustomizationsRequiredErr        = "at least one cluster kustomization must be specified"
-	kustomizationKind                             = "GitRepository"
+	capiClusterRef                      string = "CAPICluster"
+	secretRef                           string = "Secret"
+	HelmReleaseNamespace                       = "flux-system"
+	deleteClustersRequiredErr                  = "at least one cluster must be specified"
+	createClusterAutomationsRequiredErr        = "at least one cluster automation must be specified"
+	kustomizationKind                          = "GitRepository"
 )
 
 var (
@@ -400,16 +401,16 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	}, nil
 }
 
-// CreateKustomizationsPullRequest receives a list of {kustomization, cluster}
-// generates a kustomization file for each provided cluster in the list
+// CreateAutomationsPullRequest receives a list of {kustomization, helmrelease, cluster}
+// generates a kustomization file and/or a helm release file for each provided cluster in the list
 // and creates a pull request for the generated files
-func (s *server) CreateKustomizationsPullRequest(ctx context.Context, msg *capiv1_proto.CreateKustomizationsPullRequestRequest) (*capiv1_proto.CreateKustomizationsPullRequestResponse, error) {
+func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_proto.CreateAutomationsPullRequestRequest) (*capiv1_proto.CreateAutomationsPullRequestResponse, error) {
 	gp, err := getGitProvider(ctx)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
 
-	if err := validateCreateKustomizationsPR(msg); err != nil {
+	if err := validateCreateAutomationsPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
@@ -430,17 +431,32 @@ func (s *server) CreateKustomizationsPullRequest(ctx context.Context, msg *capiv
 
 	var clusters []string
 	var files []gitprovider.CommitFile
-	for _, c := range msg.ClusterKustomizations {
+	for _, c := range msg.ClusterAutomations {
 		cluster := types.NamespacedName{
 			Name:      c.Cluster.Name,
 			Namespace: c.Cluster.Namespace,
 		}
-		kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization)
 
-		if err != nil {
-			return nil, err
+		if c.Kustomization != nil {
+			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization)
+
+			if err != nil {
+				return nil, err
+			}
+
+			files = append(files, kustomization)
 		}
-		files = append(files, kustomization)
+
+		if c.HelmRelease != nil {
+			helmRelease, err := generateHelmReleaseFile(ctx, cluster, client, c.HelmRelease)
+
+			if err != nil {
+				return nil, err
+			}
+
+			files = append(files, helmRelease)
+		}
+
 		clusters = append(clusters, c.Cluster.Name)
 	}
 
@@ -478,7 +494,7 @@ func (s *server) CreateKustomizationsPullRequest(ctx context.Context, msg *capiv
 		return nil, fmt.Errorf("unable to create pull request: %w", err)
 	}
 
-	return &capiv1_proto.CreateKustomizationsPullRequestResponse{
+	return &capiv1_proto.CreateAutomationsPullRequestResponse{
 		WebUrl: res.WebURL,
 	}, nil
 }
@@ -508,7 +524,7 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 			Name:      "clusters-bases-kustomization",
 			Namespace: "flux-system",
 		},
-		Spec: &capiv1_proto.Spec{
+		Spec: &capiv1_proto.KustomizationSpec{
 			Path: filepath.Join(
 				viper.GetString("capi-repository-clusters-path"),
 				"bases",
@@ -737,14 +753,14 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 	return err
 }
 
-func validateCreateKustomizationsPR(msg *capiv1_proto.CreateKustomizationsPullRequestRequest) error {
+func validateCreateAutomationsPR(msg *capiv1_proto.CreateAutomationsPullRequestRequest) error {
 	var err error
 
-	if len(msg.ClusterKustomizations) == 0 {
-		err = multierror.Append(err, fmt.Errorf(createClusterKustomizationsRequiredErr))
+	if len(msg.ClusterAutomations) == 0 {
+		err = multierror.Append(err, fmt.Errorf(createClusterAutomationsRequiredErr))
 	}
 
-	for _, c := range msg.ClusterKustomizations {
+	for _, c := range msg.ClusterAutomations {
 		if c.Cluster.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("cluster name must be specified"))
 		}
@@ -754,7 +770,13 @@ func validateCreateKustomizationsPR(msg *capiv1_proto.CreateKustomizationsPullRe
 			err = multierror.Append(err, invalidNamespaceErr)
 		}
 
-		err = multierror.Append(err, validateKustomization(c.Kustomization))
+		if c.Kustomization != nil {
+			err = multierror.Append(err, validateKustomization(c.Kustomization))
+		} else if c.HelmRelease != nil {
+			err = multierror.Append(err, validateHelmRelease(c.HelmRelease))
+		} else {
+			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release"))
+		}
 	}
 
 	return err
@@ -785,6 +807,39 @@ func validateKustomization(kustomization *capiv1_proto.Kustomization) error {
 		}
 
 		invalidNamespaceErr := validateNamespace(kustomization.Spec.SourceRef.Namespace)
+		if invalidNamespaceErr != nil {
+			err = multierror.Append(err, invalidNamespaceErr)
+		}
+	}
+
+	return err
+}
+
+func validateHelmRelease(helmRelease *capiv1_proto.HelmRelease) error {
+	var err error
+
+	if helmRelease.Metadata == nil {
+		err = multierror.Append(err, errors.New("helmrelease metadata must be specified"))
+	} else {
+		if helmRelease.Metadata.Name == "" {
+			err = multierror.Append(err, fmt.Errorf("helmrelease name must be specified"))
+		}
+
+		invalidNamespaceErr := validateNamespace(helmRelease.Metadata.Namespace)
+		if invalidNamespaceErr != nil {
+			err = multierror.Append(err, invalidNamespaceErr)
+		}
+	}
+
+	if helmRelease.Spec.Chart.Spec.SourceRef != nil {
+		if helmRelease.Spec.Chart.Spec.SourceRef.Name == "" {
+			err = multierror.Append(
+				err,
+				fmt.Errorf("sourceRef name must be specified in chart %s in helmrelease %s",
+					helmRelease.Spec.Chart.Spec.Chart, helmRelease.Metadata.Name))
+		}
+
+		invalidNamespaceErr := validateNamespace(helmRelease.Spec.Chart.Spec.SourceRef.Namespace)
 		if invalidNamespaceErr != nil {
 			err = multierror.Append(err, invalidNamespaceErr)
 		}
@@ -990,6 +1045,59 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 	}
 
 	return generatedKustomization
+}
+
+func generateHelmReleaseFile(
+	ctx context.Context,
+	cluster types.NamespacedName,
+	kubeClient client.Client,
+	helmRelease *capiv1_proto.HelmRelease) (gitprovider.CommitFile, error) {
+	kustomizationYAML := createHelmReleaseObject(helmRelease)
+
+	b, err := yaml.Marshal(kustomizationYAML)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s helmrelease, %w", helmRelease.Metadata.Name, err)
+	}
+
+	helmReleasePath := getClusterProfilesPath(cluster)
+	helmReleaseContent := string(b)
+
+	file := &gitprovider.CommitFile{
+		Path:    &helmReleasePath,
+		Content: &helmReleaseContent,
+	}
+
+	return *file, nil
+}
+
+func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) *helmv2.HelmRelease {
+	generatedHelmRelease := helmv2.HelmRelease{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: helmv2.GroupVersion.Identifier(),
+			Kind:       helmv2.HelmReleaseKind,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      hr.Metadata.Name,
+			Namespace: hr.Metadata.Namespace,
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart: hr.Spec.Chart.Spec.Chart,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						APIVersion: sourcev1.GroupVersion.Identifier(),
+						Kind:       sourcev1.HelmRepositoryKind,
+						Name:       hr.Spec.Chart.Spec.SourceRef.Name,
+						Namespace:  hr.Spec.Chart.Spec.SourceRef.Namespace,
+					},
+				},
+			},
+			Interval: metav1.Duration{Duration: time.Minute * 10},
+			Values:   &apiextensionsv1.JSON{Raw: []byte(hr.Spec.Values)},
+		},
+	}
+
+	return &generatedHelmRelease
 }
 
 func kubeConfigFromSecret(s corev1.Secret) ([]byte, bool) {

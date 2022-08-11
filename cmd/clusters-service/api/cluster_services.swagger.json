@@ -208,6 +208,39 @@
         ]
       }
     },
+    "/v1/enterprise/automations": {
+      "post": {
+        "summary": "Creates a pull request for the given list of Kustomizations.",
+        "operationId": "ClustersService_CreateAutomationsPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/enterprise/events": {
       "get": {
         "summary": "ListEvents returns the k8s events for a given object",
@@ -250,39 +283,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/enterprise/kustomizations": {
-      "post": {
-        "summary": "Creates a pull request for the given list of Kustomizations.",
-        "operationId": "ClustersService_CreateKustomizationsPullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreateKustomizationsPullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreateKustomizationsPullRequestRequest"
-            }
           }
         ],
         "tags": [
@@ -803,7 +803,26 @@
         }
       }
     },
-    "v1ClusterKustomization": {
+    "v1Chart": {
+      "type": "object",
+      "properties": {
+        "spec": {
+          "$ref": "#/definitions/v1ChartSpec"
+        }
+      }
+    },
+    "v1ChartSpec": {
+      "type": "object",
+      "properties": {
+        "chart": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
+        }
+      }
+    },
+    "v1ClusterAutomation": {
       "type": "object",
       "properties": {
         "cluster": {
@@ -814,6 +833,9 @@
         },
         "kustomization": {
           "$ref": "#/definitions/v1Kustomization"
+        },
+        "helmRelease": {
+          "$ref": "#/definitions/v1HelmRelease"
         }
       }
     },
@@ -849,7 +871,7 @@
       },
       "title": "kubernetes status condition field\nXXX: is dup'd in core, can we share?"
     },
-    "v1CreateKustomizationsPullRequestRequest": {
+    "v1CreateAutomationsPullRequestRequest": {
       "type": "object",
       "properties": {
         "repositoryUrl": {
@@ -880,16 +902,16 @@
           "type": "string",
           "description": "The repo api url."
         },
-        "clusterKustomizations": {
+        "clusterAutomations": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1ClusterKustomization"
+            "$ref": "#/definitions/v1ClusterAutomation"
           },
           "title": "A list of cluster and kustomization"
         }
       }
     },
-    "v1CreateKustomizationsPullRequestResponse": {
+    "v1CreateAutomationsPullRequestResponse": {
       "type": "object",
       "properties": {
         "webUrl": {
@@ -1222,6 +1244,28 @@
         }
       }
     },
+    "v1HelmRelease": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1HelmReleaseSpec"
+        }
+      }
+    },
+    "v1HelmReleaseSpec": {
+      "type": "object",
+      "properties": {
+        "chart": {
+          "$ref": "#/definitions/v1Chart"
+        },
+        "values": {
+          "type": "string"
+        }
+      }
+    },
     "v1Kustomization": {
       "type": "object",
       "properties": {
@@ -1229,7 +1273,18 @@
           "$ref": "#/definitions/v1Metadata"
         },
         "spec": {
-          "$ref": "#/definitions/v1Spec"
+          "$ref": "#/definitions/v1KustomizationSpec"
+        }
+      }
+    },
+    "v1KustomizationSpec": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
         }
       }
     },
@@ -1678,17 +1733,6 @@
         },
         "namespace": {
           "type": "string"
-        }
-      }
-    },
-    "v1Spec": {
-      "type": "object",
-      "properties": {
-        "path": {
-          "type": "string"
-        },
-        "sourceRef": {
-          "$ref": "#/definitions/v1SourceRef"
         }
       }
     },

@@ -682,7 +682,7 @@ status: {}
 							Name:      "apps-capi",
 							Namespace: "flux-system",
 						},
-						Spec: &capiv1_protos.Spec{
+						Spec: &capiv1_protos.KustomizationSpec{
 							Path: "./apps/capi",
 							SourceRef: &capiv1_protos.SourceRef{
 								Name:      "flux-system",
@@ -695,7 +695,7 @@ status: {}
 							Name:      "apps-billing",
 							Namespace: "flux-system",
 						},
-						Spec: &capiv1_protos.Spec{
+						Spec: &capiv1_protos.KustomizationSpec{
 							Path: "./apps/billing",
 							SourceRef: &capiv1_protos.SourceRef{
 								Name:      "flux-system",
@@ -801,7 +801,7 @@ status: {}
 							Name:      "",
 							Namespace: "@kustomization",
 						},
-						Spec: &capiv1_protos.Spec{
+						Spec: &capiv1_protos.KustomizationSpec{
 							Path: "./apps/capi",
 							SourceRef: &capiv1_protos.SourceRef{
 								Name:      "flux-system",
@@ -814,7 +814,7 @@ status: {}
 							Name:      "apps-capi",
 							Namespace: "flux-system",
 						},
-						Spec: &capiv1_protos.Spec{
+						Spec: &capiv1_protos.KustomizationSpec{
 							Path: "./apps/capi",
 							SourceRef: &capiv1_protos.SourceRef{
 								Name:      "",
@@ -846,7 +846,7 @@ status: {}
 				CommitMessage: "Add cluster manifest",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
-						Spec: &capiv1_protos.Spec{
+						Spec: &capiv1_protos.KustomizationSpec{
 							Path: "./apps/capi",
 							SourceRef: &capiv1_protos.SourceRef{
 								Name:      "flux-system",
@@ -1735,7 +1735,7 @@ func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotatio
 	}
 }
 
-func TestCreateKustomizationsPullRequest(t *testing.T) {
+func TestCreateAutomationsPullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
 	viper.SetDefault("capi-repository-clusters-path", "clusters")
 	viper.SetDefault("add-bases-kustomization", "enabled")
@@ -1744,26 +1744,26 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 		clusterState   []runtime.Object
 		provider       git.Provider
 		pruneEnvVar    string
-		req            *capiv1_protos.CreateKustomizationsPullRequestRequest
+		req            *capiv1_protos.CreateAutomationsPullRequestRequest
 		expected       string
 		committedFiles []CommittedFile
 		err            error
 	}{
 		{
 			name: "validation errors",
-			req:  &capiv1_protos.CreateKustomizationsPullRequestRequest{},
-			err:  errors.New("at least one cluster kustomization must be specified"),
+			req:  &capiv1_protos.CreateAutomationsPullRequestRequest{},
+			err:  errors.New("at least one cluster automation must be specified"),
 		},
 		{
 			name:     "pull request failed",
 			provider: NewFakeGitProvider("", nil, errors.New("oops")),
-			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
 				BaseBranch:    "main",
 				Title:         "New Cluster",
 				Description:   "Creates a cluster through a CAPI template",
-				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
 						Cluster: &capiv1_protos.ClusterNamespacedName{
 							Name:      "billing",
@@ -1774,7 +1774,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 								Name:      "apps-billing",
 								Namespace: "flux-system",
 							},
-							Spec: &capiv1_protos.Spec{
+							Spec: &capiv1_protos.KustomizationSpec{
 								Path: "./apps/billing",
 								SourceRef: &capiv1_protos.SourceRef{
 									Name:      "flux-system",
@@ -1790,13 +1790,13 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 		{
 			name:     "create pull request",
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
 				BaseBranch:    "main",
 				Title:         "New Cluster",
 				Description:   "Creates a cluster through a CAPI template",
-				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
 						Cluster: &capiv1_protos.ClusterNamespacedName{
 							Name:      "management",
@@ -1808,7 +1808,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 								Name:      "apps-capi",
 								Namespace: "flux-system",
 							},
-							Spec: &capiv1_protos.Spec{
+							Spec: &capiv1_protos.KustomizationSpec{
 								Path: "./apps/capi",
 								SourceRef: &capiv1_protos.SourceRef{
 									Name:      "flux-system",
@@ -1822,17 +1822,22 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 							Name:      "billing",
 							Namespace: "dev",
 						},
-						Kustomization: &capiv1_protos.Kustomization{
+						HelmRelease: &capiv1_protos.HelmRelease{
 							Metadata: &capiv1_protos.Metadata{
 								Name:      "apps-billing",
 								Namespace: "flux-system",
 							},
-							Spec: &capiv1_protos.Spec{
-								Path: "./apps/billing",
-								SourceRef: &capiv1_protos.SourceRef{
-									Name:      "flux-system",
-									Namespace: "flux-system",
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: &capiv1_protos.Chart{
+									Spec: &capiv1_protos.ChartSpec{
+										Chart: "test-chart",
+										SourceRef: &capiv1_protos.SourceRef{
+											Name:      "test",
+											Namespace: "test-ns",
+										},
+									},
 								},
+								Values: base64.StdEncoding.EncodeToString([]byte(``)),
 							},
 						},
 					},
@@ -1841,18 +1846,18 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
-			name: "committed files",
+			name: "committed files for kustomization",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
 				BaseBranch:    "main",
 				Title:         "New Cluster Kustomization",
 				Description:   "Creates cluster Kustomizations",
-				ClusterKustomizations: []*capiv1_protos.ClusterKustomization{
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
 						Cluster: &capiv1_protos.ClusterNamespacedName{
 							Name:      "management",
@@ -1864,7 +1869,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 								Name:      "apps-capi",
 								Namespace: "flux-system",
 							},
-							Spec: &capiv1_protos.Spec{
+							Spec: &capiv1_protos.KustomizationSpec{
 								Path: "./apps/capi",
 								SourceRef: &capiv1_protos.SourceRef{
 									Name:      "flux-system",
@@ -1883,7 +1888,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 								Name:      "apps-billing",
 								Namespace: "flux-system",
 							},
-							Spec: &capiv1_protos.Spec{
+							Spec: &capiv1_protos.KustomizationSpec{
 								Path: "./apps/billing",
 								SourceRef: &capiv1_protos.SourceRef{
 									Name:      "flux-system",
@@ -1936,6 +1941,117 @@ status: {}
 			},
 			expected: "https://github.com/org/repo/pull/1",
 		},
+		{
+			name: "committed files for helm release",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster HelmRelease",
+				Description:   "Creates cluster HelmReleases",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "first-profile",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: &capiv1_protos.Chart{
+									Spec: &capiv1_protos.ChartSpec{
+										Chart: "test-chart",
+										SourceRef: &capiv1_protos.SourceRef{
+											Name:      "weaveworks-charts",
+											Namespace: "default",
+										},
+									},
+								},
+								Values: base64.StdEncoding.EncodeToString([]byte(``)),
+							},
+						},
+					},
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "second-profile",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: &capiv1_protos.Chart{
+									Spec: &capiv1_protos.ChartSpec{
+										Chart: "test-chart",
+										SourceRef: &capiv1_protos.SourceRef{
+											Name:      "weaveworks-charts",
+											Namespace: "default",
+										},
+									},
+								},
+								Values: base64.StdEncoding.EncodeToString([]byte(``)),
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []CommittedFile{
+				{
+					Path: "clusters/default/management/profiles.yaml",
+					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: first-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: test-chart
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+  interval: 10m0s
+  values: null
+status: {}
+`,
+				},
+				{
+					Path: "clusters/dev/billing/profiles.yaml",
+					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: second-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: test-chart
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+  interval: 10m0s
+  values: null
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
 	}
 
 	for _, tt := range testCases {
@@ -1956,7 +2072,7 @@ status: {}
 			})
 
 			// request
-			createPullRequestResponse, err := s.CreateKustomizationsPullRequest(context.Background(), tt.req)
+			createPullRequestResponse, err := s.CreateAutomationsPullRequest(context.Background(), tt.req)
 
 			// Check the response looks good
 			if err != nil {
