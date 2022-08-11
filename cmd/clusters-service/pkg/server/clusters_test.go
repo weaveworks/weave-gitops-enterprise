@@ -678,29 +678,17 @@ status: {}
 				CommitMessage: "Add cluster manifest",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
-						Metadata: &capiv1_protos.Metadata{
-							Name:      "apps-capi",
-							Namespace: "flux-system",
-						},
+						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 						Spec: &capiv1_protos.KustomizationSpec{
-							Path: "./apps/capi",
-							SourceRef: &capiv1_protos.SourceRef{
-								Name:      "flux-system",
-								Namespace: "flux-system",
-							},
+							Path:      "./apps/capi",
+							SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 						},
 					},
 					{
-						Metadata: &capiv1_protos.Metadata{
-							Name:      "apps-billing",
-							Namespace: "flux-system",
-						},
+						Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
 						Spec: &capiv1_protos.KustomizationSpec{
-							Path: "./apps/billing",
-							SourceRef: &capiv1_protos.SourceRef{
-								Name:      "flux-system",
-								Namespace: "flux-system",
-							},
+							Path:      "./apps/billing",
+							SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 						},
 					},
 				},
@@ -797,29 +785,17 @@ status: {}
 				CommitMessage: "Add cluster manifest",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
-						Metadata: &capiv1_protos.Metadata{
-							Name:      "",
-							Namespace: "@kustomization",
-						},
+						Metadata: testNewMetadata(t, "", "@kustomization"),
 						Spec: &capiv1_protos.KustomizationSpec{
-							Path: "./apps/capi",
-							SourceRef: &capiv1_protos.SourceRef{
-								Name:      "flux-system",
-								Namespace: "flux-system",
-							},
+							Path:      "./apps/capi",
+							SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 						},
 					},
 					{
-						Metadata: &capiv1_protos.Metadata{
-							Name:      "apps-capi",
-							Namespace: "flux-system",
-						},
+						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 						Spec: &capiv1_protos.KustomizationSpec{
-							Path: "./apps/capi",
-							SourceRef: &capiv1_protos.SourceRef{
-								Name:      "",
-								Namespace: "",
-							},
+							Path:      "./apps/capi",
+							SourceRef: testNewSourceRef(t, "", ""),
 						},
 					},
 				},
@@ -847,11 +823,8 @@ status: {}
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Spec: &capiv1_protos.KustomizationSpec{
-							Path: "./apps/capi",
-							SourceRef: &capiv1_protos.SourceRef{
-								Name:      "flux-system",
-								Namespace: "flux-system",
-							},
+							Path:      "./apps/capi",
+							SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 						},
 					},
 				},
@@ -1081,14 +1054,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
-					{
-						Name:      "foo",
-						Namespace: "ns-foo",
-					},
-					{
-						Name:      "bar",
-						Namespace: "ns-bar",
-					},
+					testNewClusterNamespacedName(t, "foo", "ns-foo"),
+					testNewClusterNamespacedName(t, "bar", "ns-bar"),
 				},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-02",
@@ -1765,21 +1732,12 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "billing",
-							Namespace: "dev",
-						},
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
 						Kustomization: &capiv1_protos.Kustomization{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "apps-billing",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path: "./apps/billing",
-								SourceRef: &capiv1_protos.SourceRef{
-									Name:      "flux-system",
-									Namespace: "flux-system",
-								},
+								Path:      "./apps/billing",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 							},
 						},
 					},
@@ -1798,45 +1756,22 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 				Description:   "Creates a cluster through a CAPI template",
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "management",
-							Namespace: "default",
-						},
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
 						IsControlPlane: true,
 						Kustomization: &capiv1_protos.Kustomization{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "apps-capi",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path: "./apps/capi",
-								SourceRef: &capiv1_protos.SourceRef{
-									Name:      "flux-system",
-									Namespace: "flux-system",
-								},
+								Path:      "./apps/capi",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 							},
 						},
 					},
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "billing",
-							Namespace: "dev",
-						},
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
 						HelmRelease: &capiv1_protos.HelmRelease{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "apps-billing",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
-								Chart: &capiv1_protos.Chart{
-									Spec: &capiv1_protos.ChartSpec{
-										Chart: "test-chart",
-										SourceRef: &capiv1_protos.SourceRef{
-											Name:      "test",
-											Namespace: "test-ns",
-										},
-									},
-								},
+								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "test", "test-ns")),
 								Values: base64.StdEncoding.EncodeToString([]byte(``)),
 							},
 						},
@@ -1859,41 +1794,23 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 				Description:   "Creates cluster Kustomizations",
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "management",
-							Namespace: "default",
-						},
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
 						IsControlPlane: true,
 						Kustomization: &capiv1_protos.Kustomization{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "apps-capi",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path: "./apps/capi",
-								SourceRef: &capiv1_protos.SourceRef{
-									Name:      "flux-system",
-									Namespace: "flux-system",
-								},
+								Path:      "./apps/capi",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 							},
 						},
 					},
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "billing",
-							Namespace: "dev",
-						},
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
 						Kustomization: &capiv1_protos.Kustomization{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "apps-billing",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path: "./apps/billing",
-								SourceRef: &capiv1_protos.SourceRef{
-									Name:      "flux-system",
-									Namespace: "flux-system",
-								},
+								Path:      "./apps/billing",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 							},
 						},
 					},
@@ -1955,21 +1872,12 @@ status: {}
 				Description:   "Creates cluster Kustomizations",
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "billing",
-							Namespace: "dev",
-						},
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
 						Kustomization: &capiv1_protos.Kustomization{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "apps-billing",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path: "./apps/billing",
-								SourceRef: &capiv1_protos.SourceRef{
-									Name:      "flux-system",
-									Namespace: "flux-system",
-								},
+								Path:      "./apps/billing",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
 							},
 						},
 					},
@@ -2013,50 +1921,22 @@ status: {}
 				Description:   "Creates cluster HelmReleases",
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "management",
-							Namespace: "default",
-						},
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
 						IsControlPlane: true,
 						HelmRelease: &capiv1_protos.HelmRelease{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "first-profile",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "first-profile", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
-								Chart: &capiv1_protos.Chart{
-									Spec: &capiv1_protos.ChartSpec{
-										Chart: "test-chart",
-										SourceRef: &capiv1_protos.SourceRef{
-											Name:      "weaveworks-charts",
-											Namespace: "default",
-										},
-									},
-								},
+								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
 								Values: base64.StdEncoding.EncodeToString([]byte(``)),
 							},
 						},
 					},
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "billing",
-							Namespace: "dev",
-						},
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
 						HelmRelease: &capiv1_protos.HelmRelease{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "second-profile",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "second-profile", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
-								Chart: &capiv1_protos.Chart{
-									Spec: &capiv1_protos.ChartSpec{
-										Chart: "test-chart",
-										SourceRef: &capiv1_protos.SourceRef{
-											Name:      "weaveworks-charts",
-											Namespace: "default",
-										},
-									},
-								},
+								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
 								Values: base64.StdEncoding.EncodeToString([]byte(``)),
 							},
 						},
@@ -2125,55 +2005,59 @@ status: {}
 				Description:   "Creates cluster HelmReleases",
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "management",
-							Namespace: "default",
-						},
+						Cluster: testNewClusterNamespacedName(t, "management", "default"),
 						HelmRelease: &capiv1_protos.HelmRelease{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "",
-								Namespace: "@helmrelease",
-							},
+							Metadata: testNewMetadata(t, "", "@helmrelease"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
-								Chart: &capiv1_protos.Chart{
-									Spec: &capiv1_protos.ChartSpec{
-										Chart: "test-chart",
-
-										SourceRef: &capiv1_protos.SourceRef{
-											Name:      "flux-system",
-											Namespace: "flux-system",
-										},
-									},
-								},
+								Chart: testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
 							},
 						},
 					},
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "billing",
-							Namespace: "dev",
-						},
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
 						HelmRelease: &capiv1_protos.HelmRelease{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "test-profile",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "test-profile", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
-								Chart: &capiv1_protos.Chart{
-									Spec: &capiv1_protos.ChartSpec{
-										Chart: "test-chart",
-										SourceRef: &capiv1_protos.SourceRef{
-											Name:      "",
-											Namespace: "",
-										},
-									},
-								},
+								Chart: testNewChart(t, "test-chart", testNewSourceRef(t, "", "")),
 							},
 						},
 					},
 				},
 			},
 			err: errors.New("3 errors occurred:\nhelmrelease name must be specified\ninvalid namespace: @helmrelease, a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')\nsourceRef name must be specified in chart test-chart in HelmRelease test-profile"),
+		},
+		{
+			name: "chart validation errors",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster HelmRelease",
+				Description:   "Creates cluster HelmReleases",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster: testNewClusterNamespacedName(t, "management", "default"),
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: testNewMetadata(t, "foo-hr", "flux-system"),
+							Spec:     &capiv1_protos.HelmReleaseSpec{},
+						},
+					},
+					{
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: testNewMetadata(t, "bar-hr", "flux-system"),
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: testNewChart(t, "", testNewSourceRef(t, "weaveworks-charts", "default")),
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("2 errors occurred:\nchart must be specified in HelmRelease foo-hr\nchart name must be specified in HelmRelease bar-hr"),
 		},
 		{
 			name: "helmrelease with metadata is nil",
@@ -2189,21 +2073,10 @@ status: {}
 				Description:   "Creates cluster HelmReleases",
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
-						Cluster: &capiv1_protos.ClusterNamespacedName{
-							Name:      "management",
-							Namespace: "default",
-						},
+						Cluster: testNewClusterNamespacedName(t, "management", "default"),
 						HelmRelease: &capiv1_protos.HelmRelease{
 							Spec: &capiv1_protos.HelmReleaseSpec{
-								Chart: &capiv1_protos.Chart{
-									Spec: &capiv1_protos.ChartSpec{
-										Chart: "test-chart",
-										SourceRef: &capiv1_protos.SourceRef{
-											Name:      "flux-system",
-											Namespace: "flux-system",
-										},
-									},
-								},
+								Chart: testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
 							},
 						},
 					},
@@ -2226,20 +2099,9 @@ status: {}
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
 						HelmRelease: &capiv1_protos.HelmRelease{
-							Metadata: &capiv1_protos.Metadata{
-								Name:      "test-profile",
-								Namespace: "flux-system",
-							},
+							Metadata: testNewMetadata(t, "test-profile", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
-								Chart: &capiv1_protos.Chart{
-									Spec: &capiv1_protos.ChartSpec{
-										Chart: "test-chart",
-										SourceRef: &capiv1_protos.SourceRef{
-											Name:      "flux-system",
-											Namespace: "flux-system",
-										},
-									},
-								},
+								Chart: testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
 							},
 						},
 					},
@@ -2287,5 +2149,39 @@ status: {}
 				}
 			}
 		})
+	}
+}
+
+func testNewClusterNamespacedName(t *testing.T, name, namespace string) *capiv1_protos.ClusterNamespacedName {
+	t.Helper()
+	return &capiv1_protos.ClusterNamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+}
+
+func testNewMetadata(t *testing.T, name, namespace string) *capiv1_protos.Metadata {
+	t.Helper()
+	return &capiv1_protos.Metadata{
+		Name:      name,
+		Namespace: namespace,
+	}
+}
+
+func testNewSourceRef(t *testing.T, name, namespace string) *capiv1_protos.SourceRef {
+	t.Helper()
+	return &capiv1_protos.SourceRef{
+		Name:      name,
+		Namespace: namespace,
+	}
+}
+
+func testNewChart(t *testing.T, name string, sourceRef *capiv1_protos.SourceRef) *capiv1_protos.Chart {
+	t.Helper()
+	return &capiv1_protos.Chart{
+		Spec: &capiv1_protos.ChartSpec{
+			Chart:     name,
+			SourceRef: sourceRef,
+		},
 	}
 }

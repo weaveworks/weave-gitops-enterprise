@@ -161,10 +161,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if !ok {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' parameter in supplied values")
 	}
-	cluster := types.NamespacedName{
-		Name:      clusterName,
-		Namespace: clusterNamespace,
-	}
+	cluster := createNamespacedName(clusterName, clusterNamespace)
 
 	content := string(tmplWithValuesAndCredentials[:])
 	path := getClusterManifestPath(cluster)
@@ -215,10 +212,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			cluster,
 			client,
 			generateProfileFilesParams{
-				helmRepository: types.NamespacedName{
-					Name:      s.profileHelmRepositoryName,
-					Namespace: viper.GetString("runtime-namespace"),
-				},
+				helmRepository:         createNamespacedName(s.profileHelmRepositoryName, viper.GetString("runtime-namespace")),
 				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
 				profileValues:          msg.Values,
 				parameterValues:        msg.ParameterValues,
@@ -286,10 +280,9 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
 			path := getClusterManifestPath(
-				types.NamespacedName{
-					Name:      clusterNamespacedName.Name,
-					Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
-				},
+				createNamespacedName(
+					clusterNamespacedName.Name,
+					getClusterNamespace(clusterNamespacedName.Namespace)),
 			)
 			filesList = append(filesList, gitprovider.CommitFile{
 				Path:    &path,
@@ -299,10 +292,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	} else {
 		for _, clusterName := range msg.ClusterNames {
 			path := getClusterManifestPath(
-				types.NamespacedName{
-					Name:      clusterName,
-					Namespace: getClusterNamespace(""),
-				},
+				createNamespacedName(clusterName, getClusterNamespace("")),
 			)
 			filesList = append(filesList, gitprovider.CommitFile{
 				Path:    &path,
@@ -434,10 +424,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	var files []gitprovider.CommitFile
 
 	for _, c := range msg.ClusterAutomations {
-		cluster := types.NamespacedName{
-			Name:      c.Cluster.Name,
-			Namespace: c.Cluster.Namespace,
-		}
+		cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
 		if c.Kustomization != nil {
 			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, msg.FilePath)
@@ -837,17 +824,31 @@ func validateHelmRelease(helmRelease *capiv1_proto.HelmRelease) error {
 		}
 	}
 
-	if helmRelease.Spec.Chart.Spec.SourceRef != nil {
-		if helmRelease.Spec.Chart.Spec.SourceRef.Name == "" {
+	if helmRelease.Spec.Chart == nil {
+		err = multierror.Append(
+			err,
+			fmt.Errorf("chart must be specified in HelmRelease %s",
+				helmRelease.Metadata.Name))
+	} else {
+		if helmRelease.Spec.Chart.Spec.Chart == "" {
 			err = multierror.Append(
 				err,
-				fmt.Errorf("sourceRef name must be specified in chart %s in HelmRelease %s",
-					helmRelease.Spec.Chart.Spec.Chart, helmRelease.Metadata.Name))
+				fmt.Errorf("chart name must be specified in HelmRelease %s",
+					helmRelease.Metadata.Name))
 		}
 
-		invalidNamespaceErr := validateNamespace(helmRelease.Spec.Chart.Spec.SourceRef.Namespace)
-		if invalidNamespaceErr != nil {
-			err = multierror.Append(err, invalidNamespaceErr)
+		if helmRelease.Spec.Chart.Spec.SourceRef != nil {
+			if helmRelease.Spec.Chart.Spec.SourceRef.Name == "" {
+				err = multierror.Append(
+					err,
+					fmt.Errorf("sourceRef name must be specified in chart %s in HelmRelease %s",
+						helmRelease.Spec.Chart.Spec.Chart, helmRelease.Metadata.Name))
+			}
+
+			invalidNamespaceErr := validateNamespace(helmRelease.Spec.Chart.Spec.SourceRef.Namespace)
+			if invalidNamespaceErr != nil {
+				err = multierror.Append(err, invalidNamespaceErr)
+			}
 		}
 	}
 
@@ -998,10 +999,7 @@ func generateKustomizationFile(
 		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s kustomization, %w", kustomization.Metadata.Name, err)
 	}
 
-	k := types.NamespacedName{
-		Name:      kustomization.Metadata.Name,
-		Namespace: kustomization.Metadata.Namespace,
-	}
+	k := createNamespacedName(kustomization.Metadata.Name, kustomization.Metadata.Namespace)
 
 	kustomizationPath := getClusterResourcePath(isControlPlane, "kustomization", cluster, k)
 	if filePath != "" {
@@ -1072,10 +1070,7 @@ func generateHelmReleaseFile(
 		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s helmrelease, %w", helmRelease.Metadata.Name, err)
 	}
 
-	hr := types.NamespacedName{
-		Name:      helmRelease.Metadata.Name,
-		Namespace: helmRelease.Metadata.Namespace,
-	}
+	hr := createNamespacedName(helmRelease.Metadata.Name, helmRelease.Metadata.Namespace)
 
 	helmReleasePath := getClusterResourcePath(isControlPlane, "helmrelease", cluster, hr)
 	if filePath != "" {
@@ -1132,4 +1127,11 @@ func kubeConfigFromSecret(s corev1.Secret) ([]byte, bool) {
 		return val, true
 	}
 	return nil, false
+}
+
+func createNamespacedName(name, namespace string) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
 }
