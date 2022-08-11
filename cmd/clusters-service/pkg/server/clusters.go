@@ -573,7 +573,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", args.helmRepository.Namespace, args.helmRepository.Name, err)
 	}
 	helmRepoTemplate := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
