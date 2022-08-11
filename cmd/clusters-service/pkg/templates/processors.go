@@ -97,13 +97,12 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 	for _, param := range params {
 		_, ok := vars[param.Name]
 		if !ok {
-			if param.Required {
-				return nil, fmt.Errorf("missing required parameter: %s", param.Name)
-			}
-
 			if param.Default != "" {
 				vars[param.Name] = param.Default
 			} else {
+				if param.Required {
+					return nil, fmt.Errorf("missing required parameter: %s", param.Name)
+				}
 				vars[param.Name] = ""
 			}
 

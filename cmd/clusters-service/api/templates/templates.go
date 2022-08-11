@@ -59,7 +59,7 @@ type TemplateParam struct {
 	Required bool     `json:"required,omitempty"`
 	Options  []string `json:"options,omitempty"`
 
-	// Default default value for that param
+	// Default specifies the default value for the parameter
 	// +optional
 	Default string `json:"default,omitempty"`
 }

@@ -48,7 +48,7 @@ spec:
                     into a struct.
                   properties:
                     default:
-                      description: Default default value for that param
+                      description: Default specifies the default value for the parameter
                       type: string
                     description:
                       type: string

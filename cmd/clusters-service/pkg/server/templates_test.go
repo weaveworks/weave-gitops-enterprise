@@ -649,7 +649,7 @@ func TestRenderTemplate(t *testing.T) {
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
-						Required: false,
+						Required: true, // Default being set overrides this field
 						Default:  "foo",
 					})
 					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
