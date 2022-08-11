@@ -131,6 +131,7 @@ func WithRuntimeNamespace(RuntimeNamespace string) Option {
 		o.RuntimeNamespace = RuntimeNamespace
 	}
 }
+
 // WithProfileHelmRepository is used to set the name of the Flux
 // HelmRepository object that will be inspected for Helm charts
 // that include the profile annotation.

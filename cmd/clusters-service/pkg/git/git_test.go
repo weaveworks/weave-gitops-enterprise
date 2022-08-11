@@ -74,7 +74,7 @@ func TestCreatePullRequestInGitHubOrganization(t *testing.T) {
 		Description:   "Creates a cluster through a CAPI template",
 		CommitMessage: "Add cluster manifest",
 		Files: []gitprovider.CommitFile{
-			gitprovider.CommitFile{
+			{
 				Path:    &path,
 				Content: &content,
 			},
@@ -134,7 +134,7 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 		Description:   "Creates a cluster through a CAPI template",
 		CommitMessage: "Add cluster manifest",
 		Files: []gitprovider.CommitFile{
-			gitprovider.CommitFile{
+			{
 				Path:    &path,
 				Content: &content,
 			},
@@ -162,7 +162,7 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 		Description:   "Deletes a cluster via gitops",
 		CommitMessage: "Remove cluster manifest",
 		Files: []gitprovider.CommitFile{
-			gitprovider.CommitFile{
+			{
 				Path:    &path,
 				Content: nil,
 			},
@@ -220,7 +220,7 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 		Description:   "Creates a cluster through a CAPI template",
 		CommitMessage: "Add cluster manifest",
 		Files: []gitprovider.CommitFile{
-			gitprovider.CommitFile{
+			{
 				Path:    &path,
 				Content: &content,
 			},
