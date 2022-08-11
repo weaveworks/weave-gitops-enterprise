@@ -82,7 +82,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		return nil, err
 	}
 
-	if s.capiEnabled == "true" {
+	if s.capiEnabled {
 		clusters, err = AddCAPIClusters(ctx, client, clusters)
 		if err != nil {
 			return nil, err
@@ -232,7 +232,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	if len(msg.Kustomizations) > 0 {
 		for _, k := range msg.Kustomizations {
-			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k)
+			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
 			if err != nil {
 				return nil, err
 			}
@@ -438,7 +438,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		}
 
 		if c.Kustomization != nil {
-			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization)
+			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, msg.FilePath)
 
 			if err != nil {
 				return nil, err
@@ -448,7 +448,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		}
 
 		if c.HelmRelease != nil {
-			helmRelease, err := generateHelmReleaseFile(ctx, cluster, client, c.HelmRelease)
+			helmRelease, err := generateHelmReleaseFile(ctx, c.IsControlPlane, cluster, client, c.HelmRelease, msg.FilePath)
 
 			if err != nil {
 				return nil, err
@@ -589,7 +589,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", args.helmRepository.Namespace, args.helmRepository.Name, err)
 	}
 	helmRepoTemplate := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
@@ -983,7 +983,8 @@ func generateKustomizationFile(
 	isControlPlane bool,
 	cluster types.NamespacedName,
 	kubeClient client.Client,
-	kustomization *capiv1_proto.Kustomization) (gitprovider.CommitFile, error) {
+	kustomization *capiv1_proto.Kustomization,
+	filePath string) (gitprovider.CommitFile, error) {
 	kustomizationYAML := createKustomizationObject(kustomization)
 
 	b, err := yaml.Marshal(kustomizationYAML)
@@ -996,7 +997,11 @@ func generateKustomizationFile(
 		Namespace: kustomization.Metadata.Namespace,
 	}
 
-	kustomizationPath := getClusterKustomizationsPath(isControlPlane, cluster, k)
+	kustomizationPath := getClusterResourcePath(isControlPlane, "kustomization", cluster, k)
+	if filePath != "" {
+		kustomizationPath = filePath
+	}
+
 	kustomizationContent := string(b)
 
 	file := &gitprovider.CommitFile{
@@ -1007,7 +1012,7 @@ func generateKustomizationFile(
 	return *file, nil
 }
 
-func getClusterKustomizationsPath(isControlPlane bool, cluster types.NamespacedName, kustomization types.NamespacedName) string {
+func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, resource types.NamespacedName) string {
 	var clusterNamespace string
 	if !isControlPlane {
 		clusterNamespace = cluster.Namespace
@@ -1017,8 +1022,8 @@ func getClusterKustomizationsPath(isControlPlane bool, cluster types.NamespacedN
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
 		cluster.Name,
-		kustomization.Namespace,
-		fmt.Sprintf("%s-kustomization.yaml", kustomization.Name),
+		resource.Namespace,
+		fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType),
 	)
 }
 
@@ -1049,9 +1054,11 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 
 func generateHelmReleaseFile(
 	ctx context.Context,
+	isControlPlane bool,
 	cluster types.NamespacedName,
 	kubeClient client.Client,
-	helmRelease *capiv1_proto.HelmRelease) (gitprovider.CommitFile, error) {
+	helmRelease *capiv1_proto.HelmRelease,
+	filePath string) (gitprovider.CommitFile, error) {
 	kustomizationYAML := createHelmReleaseObject(helmRelease)
 
 	b, err := yaml.Marshal(kustomizationYAML)
@@ -1059,7 +1066,16 @@ func generateHelmReleaseFile(
 		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s helmrelease, %w", helmRelease.Metadata.Name, err)
 	}
 
-	helmReleasePath := getClusterProfilesPath(cluster)
+	hr := types.NamespacedName{
+		Name:      helmRelease.Metadata.Name,
+		Namespace: helmRelease.Metadata.Namespace,
+	}
+
+	helmReleasePath := getClusterResourcePath(isControlPlane, "helmrelease", cluster, hr)
+	if filePath != "" {
+		helmReleasePath = filePath
+	}
+
 	helmReleaseContent := string(b)
 
 	file := &gitprovider.CommitFile{

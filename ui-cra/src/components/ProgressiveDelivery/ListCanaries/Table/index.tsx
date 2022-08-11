@@ -31,13 +31,13 @@ enum DeploymentStrategy {
 export const getDeploymentStrategyIcon = (strategy: string) => {
   switch (strategy.toLocaleLowerCase()) {
     case DeploymentStrategy.AB:
-      return <ABIcon />;
+      return <ABIcon title="A/B Testing" />;
     case DeploymentStrategy.BlueGreen:
-      return <BlueGreenIcon />;
+      return <BlueGreenIcon title="Blue/Green" />;
     case DeploymentStrategy.Mirroring:
-      return <MirroringIcon />;
+      return <MirroringIcon title="Blue/Green Mirroring" />;
     case DeploymentStrategy.Canary:
-      return <CanaryIcon />;
+      return <CanaryIcon title="Canary Release" />;
     default:
       return;
   }
@@ -117,86 +117,84 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
   };
 
   return (
-      <ThemeProvider theme={theme}>
-        {canaries.length > 0 ? (
-          <TableWrapper id="canaries-list">
-            <FilterableTable
-              filters={initialFilterState}
-              rows={sortCanariesByDate(canaries)}
-              fields={[
-                {
-                  label: 'Name',
-                  value: (c: Canary) => (
-                    <Link
-                      to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
-                      className={classes.canaryLink}
+    <ThemeProvider theme={theme}>
+      {canaries.length > 0 ? (
+        <TableWrapper id="canaries-list">
+          <FilterableTable
+            filters={initialFilterState}
+            rows={sortCanariesByDate(canaries)}
+            fields={[
+              {
+                label: 'Name',
+                value: (c: Canary) => (
+                  <Link
+                    to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
+                    className={classes.canaryLink}
+                  >
+                    {c.name}
+                    <span
+                      style={{
+                        marginLeft: theme.spacing.xs,
+                      }}
                     >
-                      {c.name}
-                      <span
-                        style={{
-                          marginLeft: theme.spacing.xs,
-                        }}
-                      >
-                        {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
-                      </span>
-                    </Link>
-                  ),
-                },
-                {
-                  label: 'Status',
-                  value: (c: Canary) => (
-                    <div>
-                      <CanaryStatus
-                        status={c.status?.phase || ''}
-                        value={getProgressValue(
-                          c.deploymentStrategy || '',
-                          c.status,
-                          c.analysis,
-                        )}
-                      />
-                    </div>
-                  ),
-                },
-                {
-                  label: 'Cluster',
-                  value: 'clusterName',
-                  textSearchable: true,
-                },
-                {
-                  label: 'Namespace',
-                  value: 'namespace',
-                },
-                {
-                  label: 'Target',
-                  value: (c: Canary) => c.targetReference?.name || '',
-                },
-                {
-                  label: 'Message',
-                  value: (c: Canary) =>
-                    (c.status?.conditions && c.status?.conditions[0].message) ||
-                    '--',
-                },
-                {
-                  label: 'Promoted',
-                  value: (c: Canary) => formatPromoted(c.targetDeployment),
-                },
-                {
-                  label: 'Last Updated',
-                  value: (c: Canary) =>
-                    (c.status?.conditions &&
-                      moment(
-                        c.status?.conditions[0].lastUpdateTime,
-                      ).fromNow()) ||
-                    '--',
-                  sortValue: (c: Canary) =>
-                    c.status?.conditions![0].lastUpdateTime,
-                },
-              ]}
-            />
-          </TableWrapper>
-        ) : (
-          <p>No data to display</p>
-        )}
-      </ThemeProvider>
+                      {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
+                    </span>
+                  </Link>
+                ),
+              },
+              {
+                label: 'Status',
+                value: (c: Canary) => (
+                  <div>
+                    <CanaryStatus
+                      status={c.status?.phase || ''}
+                      value={getProgressValue(
+                        c.deploymentStrategy || '',
+                        c.status,
+                        c.analysis,
+                      )}
+                    />
+                  </div>
+                ),
+              },
+              {
+                label: 'Cluster',
+                value: 'clusterName',
+                textSearchable: true,
+              },
+              {
+                label: 'Namespace',
+                value: 'namespace',
+              },
+              {
+                label: 'Target',
+                value: (c: Canary) => c.targetReference?.name || '',
+              },
+              {
+                label: 'Message',
+                value: (c: Canary) =>
+                  (c.status?.conditions && c.status?.conditions[0].message) ||
+                  '--',
+              },
+              {
+                label: 'Promoted',
+                value: (c: Canary) => formatPromoted(c.targetDeployment),
+              },
+              {
+                label: 'Last Updated',
+                value: (c: Canary) =>
+                  (c.status?.conditions &&
+                    moment(c.status?.conditions[0].lastUpdateTime).fromNow()) ||
+                  '--',
+                sortValue: (c: Canary) =>
+                  c.status?.conditions![0].lastUpdateTime,
+              },
+            ]}
+          />
+        </TableWrapper>
+      ) : (
+        <p>No data to display</p>
+      )}
+    </ThemeProvider>
   );
 };

@@ -321,6 +321,7 @@ export type CreateAutomationsPullRequestRequest = {
   commitMessage?: string
   repositoryApiUrl?: string
   clusterAutomations?: ClusterAutomation[]
+  filePath?: string
 }
 
 export type ClusterAutomation = {

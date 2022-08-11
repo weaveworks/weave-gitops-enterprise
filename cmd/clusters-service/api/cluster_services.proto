@@ -487,6 +487,8 @@ message CreateAutomationsPullRequestRequest {
   string repository_api_url = 7;
   // A list of cluster and kustomization
   repeated ClusterAutomation cluster_automations = 8;
+  // A path to write the resource to in the management git repo
+  string file_path = 9;
 }
 
 message ClusterAutomation {
