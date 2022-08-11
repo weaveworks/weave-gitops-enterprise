@@ -21,6 +21,9 @@ serviceAccount:
   name: ""
 
 config:
+  kubeconfig:
+    cluster:
+      server: ""
   cluster:
     name: default
   git:

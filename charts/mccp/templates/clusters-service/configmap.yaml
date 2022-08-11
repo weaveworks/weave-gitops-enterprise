@@ -17,6 +17,7 @@ data:
   CAPI_TEMPLATES_REPOSITORY_API_URL: {{ .Values.config.capi.repositoryApiURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
   CAPI_ENABLED: {{ .Values.global.capiEnabled | quote }}
+  KUBECONFIG_SERVER: {{ .Values.config.kubeconfig.cluster.server | quote }}
   {{- if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1
   {{- end }}
