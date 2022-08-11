@@ -3,7 +3,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { useApplicationsCount } from '../utils';
+import { AddApplicationRequest, useApplicationsCount } from '../utils';
 import useClusters from '../../../contexts/Clusters';
 import GitOps from '../../Clusters/Create/Form/Partials/GitOps';
 import { Grid, MenuItem } from '@material-ui/core';
@@ -26,7 +26,6 @@ import styled from 'styled-components';
 import { Input, Select } from '../../../utils/form';
 import { useListGitRepos } from '../../../hooks/gitReposSource';
 import _ from 'lodash';
-import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -39,16 +38,12 @@ const AddApplication = () => {
   const { clusters, isLoading } = useClusters();
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const { addApplication } = useTemplates();
   const history = useHistory();
   const { setNotifications } = useNotifications();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/new`;
   const { data: GitRepoResponse } = useListGitRepos();
-  const [sourcesFilteredList, setSourcesFilteredList] = useState<
-    GitRepository[] | []
-  >([]);
 
   let initialFormData = {
     url: '',
@@ -130,7 +125,7 @@ const AddApplication = () => {
       ],
     };
     setLoading(true);
-    return addApplication(
+    return AddApplicationRequest(
       payload,
       getProviderToken(formData.provider as GitProvider),
     )
@@ -163,7 +158,7 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, [addApplication, formData, history, setNotifications]);
+  }, [formData, history, setNotifications]);
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
@@ -174,16 +169,14 @@ const AddApplication = () => {
       cluster_isControlPlane: JSON.parse(value).controlPlane,
       cluster: value,
     });
-    const clusterName = JSON.parse(value).namespace
-      ? `${JSON.parse(value).namespace}/${JSON.parse(value).name}`
-      : `${JSON.parse(value).name}`;
-
-    const gitResposFilterdList = _.filter(GitRepoResponse?.gitRepositories, [
-      'clusterName',
-      clusterName,
-    ]);
-    setSourcesFilteredList(gitResposFilterdList || []);
   };
+  const clusterName = formData.cluster_namespace
+    ? `${formData.cluster_namespace}/${formData.cluster_name}`
+    : `${formData.cluster_name}`;
+  const gitResposFilterdList = _.filter(GitRepoResponse?.gitRepositories, [
+    'clusterName',
+    clusterName,
+  ]);
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
@@ -280,7 +273,7 @@ const AddApplication = () => {
                     defaultValue={''}
                     description="The name and type of source"
                   >
-                    {sourcesFilteredList?.map((option: any) => {
+                    {gitResposFilterdList?.map((option: any) => {
                       return (
                         <MenuItem
                           key={option.cluseterName}

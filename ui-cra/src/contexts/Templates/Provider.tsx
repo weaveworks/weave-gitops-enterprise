@@ -47,13 +47,13 @@ const TemplatesProvider: FC = ({ children }) => {
     [],
   );
 
-  const addApplication = useCallback(({ ...data }, token: string) => {
-    setLoading(true);
-    return request('POST', `/v1/enterprise/kustomizations`, {
-      body: JSON.stringify(data),
-      headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-    }).finally(() => setLoading(false));
-  }, []);
+  // const addApplication = useCallback(({ ...data }, token: string) => {
+  //   setLoading(true);
+  //   return request('POST', `/v1/enterprise/kustomizations`, {
+  //     body: JSON.stringify(data),
+  //     headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
+  //   }).finally(() => setLoading(false));
+  // }, []);
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
@@ -82,7 +82,7 @@ const TemplatesProvider: FC = ({ children }) => {
         getTemplate,
         addCluster,
         renderTemplate,
-        addApplication,
+        // addApplication,
         // PRPreview,
         // setPRPreview,
       }}
