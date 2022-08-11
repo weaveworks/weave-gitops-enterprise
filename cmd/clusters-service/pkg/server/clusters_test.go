@@ -2111,6 +2111,142 @@ status: {}
 			},
 			expected: "https://github.com/org/repo/pull/1",
 		},
+		{
+			name: "helm release validation errors",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster HelmRelease",
+				Description:   "Creates cluster HelmReleases",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "",
+								Namespace: "@helmrelease",
+							},
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: &capiv1_protos.Chart{
+									Spec: &capiv1_protos.ChartSpec{
+										Chart: "test-chart",
+
+										SourceRef: &capiv1_protos.SourceRef{
+											Name:      "flux-system",
+											Namespace: "flux-system",
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "billing",
+							Namespace: "dev",
+						},
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "test-profile",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: &capiv1_protos.Chart{
+									Spec: &capiv1_protos.ChartSpec{
+										Chart: "test-chart",
+										SourceRef: &capiv1_protos.SourceRef{
+											Name:      "",
+											Namespace: "",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("3 errors occurred:\nhelmrelease name must be specified\ninvalid namespace: @helmrelease, a lowercase RFC 1123 label must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?')\nsourceRef name must be specified in chart test-chart in HelmRelease test-profile"),
+		},
+		{
+			name: "helmrelease with metadata is nil",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster HelmRelease",
+				Description:   "Creates cluster HelmReleases",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster: &capiv1_protos.ClusterNamespacedName{
+							Name:      "management",
+							Namespace: "default",
+						},
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: &capiv1_protos.Chart{
+									Spec: &capiv1_protos.ChartSpec{
+										Chart: "test-chart",
+										SourceRef: &capiv1_protos.SourceRef{
+											Name:      "flux-system",
+											Namespace: "flux-system",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("helmrelease metadata must be specified"),
+		},
+		{
+			name: "ClusterAutomation with Cluster is nil",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster HelmRelease",
+				Description:   "Creates cluster HelmReleases",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: &capiv1_protos.Metadata{
+								Name:      "test-profile",
+								Namespace: "flux-system",
+							},
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: &capiv1_protos.Chart{
+									Spec: &capiv1_protos.ChartSpec{
+										Chart: "test-chart",
+										SourceRef: &capiv1_protos.SourceRef{
+											Name:      "flux-system",
+											Namespace: "flux-system",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("cluster object must be specified"),
+		},
 	}
 
 	for _, tt := range testCases {

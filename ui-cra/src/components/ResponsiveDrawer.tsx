@@ -332,7 +332,6 @@ const App = () => {
               />
               <Route
                 component={WGApplicationsFluxRuntime}
-                exact
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />

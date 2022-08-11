@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -13,7 +13,7 @@ type Props = {
 
 const WGApplicationsHelmChart: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const { data } = useListSources();
 
   return (
     <PageTemplate documentTitle="WeGO · Helm Chart">
@@ -27,7 +27,7 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: data?.result?.length,
           },
           {
             label: `${props.name}`,

@@ -430,7 +430,9 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	}
 
 	var clusters []string
+
 	var files []gitprovider.CommitFile
+
 	for _, c := range msg.ClusterAutomations {
 		cluster := types.NamespacedName{
 			Name:      c.Cluster.Name,
@@ -517,7 +519,6 @@ func getToken(ctx context.Context) (string, string, error) {
 }
 
 func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFile, error) {
-
 	commonKustomizationPath := getCommonKustomizationPath(cluster)
 	commonKustomization := createKustomizationObject(&capiv1_proto.Kustomization{
 		Metadata: &capiv1_proto.Metadata{
@@ -544,6 +545,7 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 		Path:    &commonKustomizationPath,
 		Content: &commonKustomizationString,
 	}
+
 	return file, nil
 }
 
@@ -761,13 +763,17 @@ func validateCreateAutomationsPR(msg *capiv1_proto.CreateAutomationsPullRequestR
 	}
 
 	for _, c := range msg.ClusterAutomations {
-		if c.Cluster.Name == "" {
-			err = multierror.Append(err, fmt.Errorf("cluster name must be specified"))
-		}
+		if c.Cluster == nil {
+			err = multierror.Append(err, fmt.Errorf("cluster object must be specified"))
+		} else {
+			if c.Cluster.Name == "" {
+				err = multierror.Append(err, fmt.Errorf("cluster name must be specified"))
+			}
 
-		invalidNamespaceErr := validateNamespace(c.Cluster.Namespace)
-		if invalidNamespaceErr != nil {
-			err = multierror.Append(err, invalidNamespaceErr)
+			invalidNamespaceErr := validateNamespace(c.Cluster.Namespace)
+			if invalidNamespaceErr != nil {
+				err = multierror.Append(err, invalidNamespaceErr)
+			}
 		}
 
 		if c.Kustomization != nil {
@@ -835,7 +841,7 @@ func validateHelmRelease(helmRelease *capiv1_proto.HelmRelease) error {
 		if helmRelease.Spec.Chart.Spec.SourceRef.Name == "" {
 			err = multierror.Append(
 				err,
-				fmt.Errorf("sourceRef name must be specified in chart %s in helmrelease %s",
+				fmt.Errorf("sourceRef name must be specified in chart %s in HelmRelease %s",
 					helmRelease.Spec.Chart.Spec.Chart, helmRelease.Metadata.Name))
 		}
 
