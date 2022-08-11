@@ -130,6 +130,28 @@ const AddApplication = () => {
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
+      clusterKustomizations: [
+        {
+          cluster: {
+            name: formData.cluster_name,
+            namespace: formData.cluster_namespace,
+          },
+          isControlPlane: formData.cluster_isControlPlane,
+          kustomization: {
+            metadata: {
+              name: formData.name,
+              namespace: formData.namespace,
+            },
+            spec: {
+              path: formData.path,
+              sourceRef: {
+                name: formData.source_name,
+                namespace: formData.source_namespace,
+              },
+            },
+          },
+        },
+      ],
     };
     setLoading(true);
     return addApplication(
@@ -172,7 +194,7 @@ const AddApplication = () => {
     const value = event.target.value;
     setFormData({
       ...formData,
-      clustster_name: JSON.parse(value).name,
+      cluster_name: JSON.parse(value).name,
       cluster_namespace: JSON.parse(value).namespace,
       cluster_isControlPlane: JSON.parse(value).controlPlane,
       cluster: value,
