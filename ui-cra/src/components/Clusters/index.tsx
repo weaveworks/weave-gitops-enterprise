@@ -22,7 +22,6 @@ import {
   filterConfig,
   LoadingPage,
   KubeStatusIndicator,
-  SortType,
   statusSortHelper,
   applicationsClient,
 } from '@weaveworks/weave-gitops';
@@ -428,14 +427,12 @@ const MCCP: FC = () => {
                             conditions={c.conditions}
                           />
                         ) : null,
-                      sortType: SortType.number,
                       sortValue: statusSortHelper,
                     },
                     {
                       label: 'Message',
                       value: (c: GitopsClusterEnriched) =>
                         (c.conditions && c.conditions[0]?.message) || null,
-                      sortType: SortType.string,
                       sortValue: ({ conditions }) => computeMessage(conditions),
                       maxWidth: 600,
                     },

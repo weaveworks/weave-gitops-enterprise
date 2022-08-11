@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -8,9 +8,10 @@ import {
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
+import { Alert } from '@material-ui/lab';
 
 const WGApplicationsSources: FC = () => {
-  const { data: sources, isLoading } = useListSources();
+  const { data: sources, isLoading, error } = useListSources();
   const applicationsCount = useApplicationsCount();
 
   return (
@@ -25,12 +26,14 @@ const WGApplicationsSources: FC = () => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sources?.result?.length,
           },
         ]}
       />
       <ContentWrapper>
-        {isLoading ? <LoadingPage /> : <SourcesTable sources={sources} />}
+        {isLoading && <LoadingPage />}
+        {error && <Alert severity="error">{error.message}</Alert>}
+        {sources && <SourcesTable sources={sources?.result} />}
       </ContentWrapper>
     </PageTemplate>
   );
