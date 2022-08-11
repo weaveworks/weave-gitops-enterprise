@@ -25,6 +25,7 @@ import styled from 'styled-components';
 import { Input, Select } from '../../../utils/form';
 import { useListGitRepos } from '../../../hooks/gitReposSource';
 import _ from 'lodash';
+import { Loader } from '../../Loader';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -242,27 +243,34 @@ const AddApplication = () => {
                     onChange={event => handleFormData(event, 'namespace')}
                     description="define application namespace"
                   />
-                  <Select
-                    className="form-section"
-                    name="cluster_name"
-                    required={true}
-                    label="SELECT CLUSTER"
-                    value={formData.cluster || ''}
-                    onChange={handleSelectCluster}
-                    defaultValue={''}
-                    description="select target cluster"
-                  >
-                    {clusters?.map((option: any) => {
-                      return (
-                        <MenuItem
-                          key={option.name}
-                          value={JSON.stringify(option)}
-                        >
-                          {option.name}
-                        </MenuItem>
-                      );
-                    })}
-                  </Select>
+                  <div>
+                    {clusters.length > 0 ? (
+                      <Select
+                        className="form-section"
+                        name="cluster_name"
+                        required={true}
+                        label="SELECT CLUSTER"
+                        value={formData.cluster || ''}
+                        onChange={handleSelectCluster}
+                        defaultValue={''}
+                        description="select target cluster"
+                      >
+                        {clusters?.map((option: any) => {
+                          return (
+                            <MenuItem
+                              key={option.name}
+                              value={JSON.stringify(option)}
+                            >
+                              {option.name}
+                            </MenuItem>
+                          );
+                        })}
+                      </Select>
+                    ) : (
+                      <Loader />
+                    )}
+                  </div>
+
                   <Select
                     className="form-section"
                     name="source"
@@ -273,16 +281,22 @@ const AddApplication = () => {
                     defaultValue={''}
                     description="The name and type of source"
                   >
-                    {gitResposFilterdList?.map((option: any) => {
-                      return (
-                        <MenuItem
-                          key={option.cluseterName}
-                          value={JSON.stringify(option)}
-                        >
-                          {option.name}
-                        </MenuItem>
-                      );
-                    })}
+                    {gitResposFilterdList.length > 0 ? (
+                      gitResposFilterdList?.map((option: any) => {
+                        return (
+                          <MenuItem
+                            key={option.cluseterName}
+                            value={JSON.stringify(option)}
+                          >
+                            {option.name}
+                          </MenuItem>
+                        );
+                      })
+                    ) : (
+                      <MenuItem disabled={true}>
+                        No GitRepository available please select another cluster
+                      </MenuItem>
+                    )}
                   </Select>
                   <Input
                     className="form-section"
