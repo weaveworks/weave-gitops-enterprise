@@ -90,9 +90,9 @@ const AddProfileFields: FC<{
             defaultValue={''}
             description="select target cluster"
           >
-            {clusters?.map((option: any) => {
+            {clusters?.map((option: any, index: number) => {
               return (
-                <MenuItem key={option.name} value={JSON.stringify(option)}>
+                <MenuItem key={index} value={JSON.stringify(option)}>
                   {option.name}
                 </MenuItem>
               );
@@ -114,12 +114,9 @@ const AddProfileFields: FC<{
         description="The name and type of source"
       >
         {gitResposFilterdList.length > 0 ? (
-          gitResposFilterdList?.map((option: any) => {
+          gitResposFilterdList?.map((option: any, index: number) => {
             return (
-              <MenuItem
-                key={option.cluseterName}
-                value={JSON.stringify(option)}
-              >
+              <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}
               </MenuItem>
             );
