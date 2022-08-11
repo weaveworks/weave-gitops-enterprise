@@ -875,9 +875,9 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	}
 
 	expected := []*capiv1_protos.TemplateProfile{
-		{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
-		{Name: "external-dns", Version: "0.0.8", Editable: true},
 		{Name: "cert-manager", Version: "2.0.1"},
+		{Name: "external-dns", Version: "0.0.8", Editable: true},
+		{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
 	}
 
 	result, err := getProfilesFromTemplate(annotations)
