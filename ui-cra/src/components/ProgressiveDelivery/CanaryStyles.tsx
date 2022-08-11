@@ -1,5 +1,5 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { DataTable, theme } from '@weaveworks/weave-gitops';
+import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 export const useCanaryStyle = makeStyles(() =>
