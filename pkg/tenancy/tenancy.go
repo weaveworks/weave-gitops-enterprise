@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/go-multierror"
@@ -103,7 +104,8 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Create(ctx, obj); err != nil {
 				return err
 			}
-			fmt.Fprintf(out, "%s/%s created\n", obj.GetObjectKind(), obj.GetName())
+			kind := strings.ToLower(obj.GetObjectKind().GroupVersionKind().GroupKind().String())
+			fmt.Fprintf(out, "%s/%s created\n", kind, obj.GetName())
 
 			return nil
 		}
@@ -124,12 +126,11 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Delete(ctx, existing); err != nil {
 				return err
 			}
-			fmt.Fprintf(out, "%s/%s deleted", existing.GetObjectKind(), existing.GetName())
-
 			if err := kubeClient.Create(ctx, to); err != nil {
 				return err
 			}
-			fmt.Fprintf(out, "%s/%s created", to.GetObjectKind(), to.GetName())
+			kind := strings.ToLower(to.GetObjectKind().GroupVersionKind().GroupKind().String())
+			fmt.Fprintf(out, "%s/%s recreated\n", kind, to.GetName())
 		}
 	case *pacv2beta1.Policy:
 		existingPolicy := existing.(*pacv2beta1.Policy)
@@ -146,7 +147,8 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := patchHelper.Patch(ctx, existing); err != nil {
 				return fmt.Errorf("failed to patch existing policy: %w", err)
 			}
-			fmt.Fprintf(out, "%s/%s patched", existing.GetObjectKind(), existing.GetName())
+			kind := strings.ToLower(existing.GetObjectKind().GroupVersionKind().GroupKind().String())
+			fmt.Fprintf(out, "%s/%s updated\n", kind, existing.GetName())
 		}
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
@@ -154,7 +156,8 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Update(ctx, existing); err != nil {
 				return err
 			}
-			fmt.Fprintf(out, "%s/%s updated", existing.GetObjectKind(), existing.GetName())
+			kind := strings.ToLower(existing.GetObjectKind().GroupVersionKind().GroupKind().String())
+			fmt.Fprintf(out, "%s/%s updated\n", kind, existing.GetName())
 		}
 	}
 	return nil
