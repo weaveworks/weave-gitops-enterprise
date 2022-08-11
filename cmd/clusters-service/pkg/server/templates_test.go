@@ -869,15 +869,17 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 
 func TestGetProfilesFromTemplate(t *testing.T) {
 	annotations := map[string]string{
-		"capi.weave.works/profile-0": "{\"name\": \"profile-a\", \"version\": \"v0.0.1\", \"editable\": true }",
+		"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
+		"capi.weave.works/profile-1": "{\"name\": \"external-dns\", \"version\": \"0.0.8\", \"editable\": true }",
+		"capi.weave.works/profile-2": "{\"name\": \"cert-manager\", \"version\": \"2.0.1\"}",
+		"capi.weave.works/profile-3": "{\"name\": \"cert-manager-issuer\", \"version\": \"0.0.3\"}",
 	}
 
 	expected := []*capiv1_protos.TemplateProfile{
-		{
-			Name:     "profile-a",
-			Version:  "v0.0.1",
-			Editable: true,
-		},
+		{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
+		{Name: "external-dns", Version: "0.0.8", Editable: true},
+		{Name: "cert-manager", Version: "2.0.1"},
+		{Name: "cert-manager-issuer", Version: "0.0.3"},
 	}
 
 	result, err := getProfilesFromTemplate(annotations)
