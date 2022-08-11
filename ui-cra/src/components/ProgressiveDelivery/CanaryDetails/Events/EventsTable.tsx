@@ -1,4 +1,3 @@
-import { SortType } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { Event } from '../../../../cluster-services/cluster_services.pb';
 import { CustomDataTable, TableWrapper } from '../../CanaryStyles';

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -10,11 +10,14 @@ import {
   IconType,
   LoadingPage,
   useListAutomations,
+  applicationsClient,
+  theme,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../muiTheme';
+import { useListConfig } from '../../hooks/versions';
 
 interface Size {
   size?: 'small';
@@ -30,10 +33,24 @@ const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const applicationsCount = useApplicationsCount();
   const history = useHistory();
+  const { data } = useListConfig();
+  const repositoryURL = data?.repositoryURL || '';
+  const [repoLink, setRepoLink] = useState<string>('');
 
   const handleAddApplication = () => {
     history.push('/applications/new');
   };
+
+  useEffect(() => {
+    repositoryURL &&
+      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+        if (res.provider === 'GitHub') {
+          setRepoLink(repositoryURL + `/pulls`);
+        } else if (res.provider === 'GitLab') {
+          setRepoLink(repositoryURL + `/-/merge_requests`);
+        }
+      });
+  }, [repositoryURL]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -48,15 +65,34 @@ const WGApplicationsDashboard: FC = () => {
           ]}
         />
         <ContentWrapper errors={automations?.errors}>
-          <ActionsWrapper>
-            <Button
-              id="add-application"
-              startIcon={<Icon type={IconType.AddIcon} size="base" />}
-              onClick={handleAddApplication}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <ActionsWrapper>
+              <Button
+                id="add-application"
+                startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                onClick={handleAddApplication}
+              >
+                ADD AN APPLICATION
+              </Button>
+            </ActionsWrapper>
+            <a
+              style={{
+                color: theme.colors.primary,
+                padding: theme.spacing.small,
+              }}
+              href={repoLink}
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              ADD AN APPLICATION
-            </Button>
-          </ActionsWrapper>
+              View open Pull Requests
+            </a>
+          </div>
           {isLoading ? (
             <LoadingPage />
           ) : (
