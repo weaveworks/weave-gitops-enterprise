@@ -168,11 +168,14 @@
     "v1Environment": {
       "type": "object",
       "properties": {
-        "namespace": {
+        "name": {
           "type": "string"
         },
-        "clusterRef": {
-          "$ref": "#/definitions/v1ClusterRef"
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Target"
+          }
         }
       }
     },
