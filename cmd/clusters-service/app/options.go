@@ -187,6 +187,7 @@ func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
 	}
 }
 
+// WithTLSConfig is used to set the TLS configuration.
 func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 	return func(o *Options) {
 		o.TLSCert = tlsCert
@@ -195,6 +196,9 @@ func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 	}
 }
 
+// WithCAPIEnabled is enabled/disable CAPI support
+// If the CAPI CRDS are not installed in the cluster and CAPI is
+// enabled, the system will error on certain routes
 func WithCAPIEnabled(capiEnabled bool) Option {
 	return func(o *Options) {
 		o.CAPIEnabled = capiEnabled
