@@ -48,7 +48,7 @@ func TestListGitopsClusters(t *testing.T) {
 		clusterState []runtime.Object
 		refType      string
 		expected     []*capiv1_protos.GitopsCluster
-		capiEnabled  string
+		capiEnabled  bool
 		err          error
 	}{
 		{
@@ -267,7 +267,7 @@ func TestListGitopsClusters(t *testing.T) {
 					ControlPlane: true,
 				},
 			},
-			capiEnabled: "true",
+			capiEnabled: true,
 		},
 		{
 			name: "capi-enabled is false",
@@ -313,7 +313,7 @@ func TestListGitopsClusters(t *testing.T) {
 					ControlPlane: true,
 				},
 			},
-			capiEnabled: "false",
+			capiEnabled: false,
 		},
 	}
 
