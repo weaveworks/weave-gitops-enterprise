@@ -1,16 +1,12 @@
-import React, { FC } from 'react';
+import { HelmReleaseDetail, useGetHelmRelease } from '@weaveworks/weave-gitops';
+import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { FC } from 'react';
+import { useRouteMatch } from 'react-router-dom';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
-import {
-  HelmReleaseDetail,
-  LoadingPage,
-  useGetHelmRelease,
-} from '@weaveworks/weave-gitops';
-import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
-import { useRouteMatch } from 'react-router-dom';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
+import { useApplicationsCount } from './utils';
 
 type Props = {
   name: string;
@@ -60,9 +56,10 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
           },
         ]}
       />
-      <ContentWrapper>
-        {error && <h3>{error.message}</h3>}
-        {isLoading && <LoadingPage />}
+      <ContentWrapper
+        loading={isLoading}
+        errors={[{ clusterName, namespace, message: error?.message }]}
+      >
         {!error && !isLoading && (
           <HelmReleaseDetail
             helmRelease={helmRelease}
