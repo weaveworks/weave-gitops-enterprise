@@ -47,6 +47,9 @@ spec:
                   description: TemplateParam is a parameter that can be templated
                     into a struct.
                   properties:
+                    default:
+                      description: Default default value for that param
+                      type: string
                     description:
                       type: string
                     name:

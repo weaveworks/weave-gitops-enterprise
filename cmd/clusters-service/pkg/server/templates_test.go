@@ -642,6 +642,36 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
+			name:             "render template with default value",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+						Name:     "OPTIONAL_PARAM",
+						Required: false,
+						Default:  "foo",
+					})
+					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+							"apiVersion":"fooversion",
+							"kind":"fookind",
+							"metadata":{
+								"name":"${CLUSTER_NAME}",
+								"namespace":"${NAMESPACE}",
+								"annotations":{
+									"capi.weave.works/display-name":"ClusterName${OPTIONAL_PARAM}"
+								}
+							}
+						}`),
+						},
+					}
+				}),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterNamefoo\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
 			// some client might send empty credentials objects
 			name:             "render template with empty credentials",
 			pruneEnvVar:      "disabled",
