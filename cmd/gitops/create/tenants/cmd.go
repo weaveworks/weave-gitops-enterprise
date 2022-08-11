@@ -105,7 +105,7 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 			}
 		}
 
-		err = tenancy.CreateTenants(ctx, tenants, kubeClient)
+		err = tenancy.CreateTenants(ctx, tenants, kubeClient, os.Stdout)
 		if err != nil {
 			return err
 		}

@@ -76,14 +76,14 @@ func (t Tenant) Validate() error {
 }
 
 // CreateTenants creates resources for tenants given a file for definition.
-func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error {
+func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client, out io.Writer) error {
 	resources, err := GenerateTenantResources(tenants...)
 	if err != nil {
 		return fmt.Errorf("failed to generate tenant output: %w", err)
 	}
 
 	for _, resource := range resources {
-		err := upsert(ctx, c, resource)
+		err := upsert(ctx, c, resource, out)
 		if err != nil {
 			return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
 		}
@@ -94,7 +94,7 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 
 // upsert applies runtime objects to the cluster, if they already exist,
 // patching them with type specific elements.
-func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) error {
+func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, out io.Writer) error {
 	existing := runtimeObjectFromObject(obj)
 
 	err := kubeClient.Get(ctx, client.ObjectKeyFromObject(obj), existing)
@@ -103,6 +103,8 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := kubeClient.Create(ctx, obj); err != nil {
 				return err
 			}
+			fmt.Fprintf(out, "%s/%s created\n", obj.GetObjectKind(), obj.GetName())
+
 			return nil
 		}
 		return err
@@ -122,9 +124,12 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := kubeClient.Delete(ctx, existing); err != nil {
 				return err
 			}
+			fmt.Fprintf(out, "%s/%s deleted", existing.GetObjectKind(), existing.GetName())
+
 			if err := kubeClient.Create(ctx, to); err != nil {
 				return err
 			}
+			fmt.Fprintf(out, "%s/%s created", to.GetObjectKind(), to.GetName())
 		}
 	case *pacv2beta1.Policy:
 		existingPolicy := existing.(*pacv2beta1.Policy)
@@ -141,6 +146,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := patchHelper.Patch(ctx, existing); err != nil {
 				return fmt.Errorf("failed to patch existing policy: %w", err)
 			}
+			fmt.Fprintf(out, "%s/%s patched", existing.GetObjectKind(), existing.GetName())
 		}
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
@@ -148,6 +154,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := kubeClient.Update(ctx, existing); err != nil {
 				return err
 			}
+			fmt.Fprintf(out, "%s/%s updated", existing.GetObjectKind(), existing.GetName())
 		}
 	}
 	return nil
