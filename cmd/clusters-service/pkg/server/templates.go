@@ -169,10 +169,9 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 
 func getProfilesFromTemplate(annotations map[string]string) ([]*capiv1_proto.TemplateProfile, error) {
 	profiles := []*capiv1_proto.TemplateProfile{}
-	profile := capiv1_proto.TemplateProfile{}
-
 	for k, v := range annotations {
 		if strings.Contains(k, "capi.weave.works/profile-") {
+			profile := capiv1_proto.TemplateProfile{}
 			err := json.Unmarshal([]byte(v), &profile)
 			if err != nil {
 				return profiles, fmt.Errorf("failed to unmarshal profiles: %w", err)
