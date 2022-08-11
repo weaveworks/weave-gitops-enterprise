@@ -55,5 +55,5 @@ export const TableWrapper = styled.div`
       color: ${({ theme }) => theme.colors.primary};
     }
   }
-  max-width: calc(100vw - 220px);
+  max-width: calc(100vw - 300px);
 `;

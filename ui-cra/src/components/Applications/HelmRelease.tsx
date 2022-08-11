@@ -8,6 +8,9 @@ import {
   LoadingPage,
   useGetHelmRelease,
 } from '@weaveworks/weave-gitops';
+import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { useRouteMatch } from 'react-router-dom';
+import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 
 type Props = {
   name: string;
@@ -25,6 +28,24 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
   );
   const helmRelease = data?.helmRelease;
 
+  const { path } = useRouteMatch();
+  const customTabs: Array<routeTab> = [
+    {
+      name: 'Violations',
+      path: `${path}/violations`,
+      component: () => {
+        return (
+          <div style={{ width: '100%' }}>
+            <PolicyViolationsList
+              req={{ clusterName, namespace }}
+              tableType={FieldsType.application}
+            />
+          </div>
+        );
+      },
+      visible: true,
+    },
+  ];
   return (
     <PageTemplate documentTitle="WeGO · Helm Release">
       <SectionHeader
@@ -43,7 +64,11 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         {error && <h3>{error.message}</h3>}
         {isLoading && <LoadingPage />}
         {!error && !isLoading && (
-          <HelmReleaseDetail helmRelease={helmRelease} {...props} />
+          <HelmReleaseDetail
+            helmRelease={helmRelease}
+            {...props}
+            customTabs={customTabs}
+          />
         )}
       </ContentWrapper>
     </PageTemplate>
