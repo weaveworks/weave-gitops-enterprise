@@ -554,8 +554,11 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c13 {
-  margin: 4px 0px;
-  overflow: scroll;
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 
 .c13 .MuiChip-root {
@@ -597,6 +600,9 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c19 {
   width: 100%;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
   overflow-x: auto;
 }
 
@@ -620,8 +626,13 @@ exports[`Applications index test snapshots success 1`] = `
   transition: background 0.5s ease-in-out;
 }
 
+.c19 table {
+  margin-top: 12px;
+}
+
 .c19 th {
-  padding: 0;
+  padding: 8px;
+  background: #F6F7F9;
 }
 
 .c19 td {
@@ -683,8 +694,6 @@ exports[`Applications index test snapshots success 1`] = `
 .c14 {
   position: relative;
   padding: 0 12px;
-  border-left: 2px solid #d8d8d8;
-  background: rbga(255,255,255,0.75);
 }
 
 .c10 td:nth-child(7) {
