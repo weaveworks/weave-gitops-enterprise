@@ -14,7 +14,7 @@ import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 type Props = {
   name: string;
   namespace: string;
-  clusterName: any;
+  clusterName: string;
 };
 
 const WGApplicationsKustomization: FC<Props> = ({
