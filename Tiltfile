@@ -88,7 +88,8 @@ else:
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
       dockerfile='cmd/clusters-service/Dockerfile',
-      build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'}
+      build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
+      entrypoint= ["/sbin/tini", "--", "clusters-service", "--dev-mode"]
    )
    docker_build(
       'weaveworks/weave-gitops-enterprise-ui-server',
