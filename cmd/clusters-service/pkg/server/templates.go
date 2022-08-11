@@ -180,5 +180,7 @@ func getProfilesFromTemplate(annotations map[string]string) ([]*capiv1_proto.Tem
 		}
 	}
 
+	sort.Slice(profiles, func(i, j int) bool { return profiles[i].Name < profiles[j].Name })
+
 	return profiles, nil
 }

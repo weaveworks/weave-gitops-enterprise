@@ -38,7 +38,7 @@ type server struct {
 	ns                        string // The namespace where cluster objects reside
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
-	capiEnabled               string
+	capiEnabled               bool
 }
 
 type ServerOpts struct {
@@ -52,7 +52,7 @@ type ServerOpts struct {
 	ClustersNamespace         string
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
-	CAPIEnabled               string
+	CAPIEnabled               bool
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
