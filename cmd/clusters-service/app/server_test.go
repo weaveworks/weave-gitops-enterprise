@@ -50,10 +50,12 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	assert.NoError(t, err)
 
+	runtimeNamespace := "flux-system"
+
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
-			Namespace: "flux-system",
+			Namespace: runtimeNamespace,
 		},
 		Data: map[string][]byte{
 			"username": []byte("testsuite"),
@@ -99,6 +101,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 				ClientGetter:  kubefakes.NewFakeClientGetter(c),
 				CAPINamespace: "default",
 			}),
+			app.WithRuntimeNamespace(runtimeNamespace),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
 			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
