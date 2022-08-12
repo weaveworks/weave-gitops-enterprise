@@ -204,7 +204,7 @@ func Test_CreateTenants(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = CreateTenants(context.TODO(), tenants, fc)
+			err = CreateTenants(context.TODO(), tenants, fc, os.Stdout)
 			assert.NoError(t, err)
 
 			for _, f := range tt.verifications {
