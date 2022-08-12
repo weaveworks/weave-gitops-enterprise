@@ -118,7 +118,7 @@ func preFlightCheck(ctx context.Context, tenants []tenancy.Tenant, kubeClient *k
 	var hasPolicy bool
 
 	for _, tenant := range tenants {
-		if len(tenant.AllowedRepositories) > 0 {
+		if len(tenant.AllowedRepositories) != 0 || len(tenant.AllowedClusters) != 0 {
 			hasPolicy = true
 			break
 		}
