@@ -356,8 +356,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("capd", "git"), func() {
-				By("Wait for cluster-service to cache profiles", func() {
-					Expect(waitForProfiles(context.Background(), ASSERTION_30SECONDS_TIME_OUT)).To(Succeed())
+				By("And wait for cluster-service to cache profiles", func() {
+					Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/profiles ")
 				})
 
 				By("Then I Apply/Install CAPITemplate", func() {
