@@ -410,6 +410,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithOIDCConfig(p.OIDC),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 		WithCAPIEnabled(p.capiEnabled),
+		WithRuntimeNamespace(p.runtimeNamespace),
 	)
 }
 
