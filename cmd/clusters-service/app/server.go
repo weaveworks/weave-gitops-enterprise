@@ -283,6 +283,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 	if p.KubeconfigServer != "" {
+		log.Info("Replacing KUBECONFIG.cluster.server", "old", kubeClientConfig.Host, "new", p.KubeconfigServer)
 		kubeClientConfig.Host = p.KubeconfigServer
 	}
 	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
