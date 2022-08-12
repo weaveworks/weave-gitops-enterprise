@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -69,6 +70,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				existingAppCount := getApplicationCount()
 
 				pages.NavigateToPage(webDriver, "Applications")
+
+				By("And wait for  good looking response from /v1/kustomizations", func() {
+					Expect(waitForGitopsResources(context.Background(), "kustomizations", POLL_INTERVAL_15SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/kustomizations")
+				})
+
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
