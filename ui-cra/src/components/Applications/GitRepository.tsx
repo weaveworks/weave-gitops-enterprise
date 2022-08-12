@@ -1,9 +1,9 @@
-import  { FC } from 'react';
+import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount } from './utils';
-import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
@@ -13,7 +13,7 @@ type Props = {
 
 const WGApplicationsGitRepository: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const { data: sources, isLoading } = useListSources();
 
   return (
     <PageTemplate documentTitle="WeGO · Git Repository">
@@ -34,7 +34,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
           },
         ]}
       />
-      <ContentWrapper>
+      <ContentWrapper loading={isLoading}>
         <GitRepositoryDetail {...props} />
       </ContentWrapper>
     </PageTemplate>
