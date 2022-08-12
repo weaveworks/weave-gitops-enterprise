@@ -1,16 +1,13 @@
-import React, { FC } from 'react';
+import { Alert } from '@material-ui/lab';
+import { SourcesTable, useListSources } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import {
-  LoadingPage,
-  SourcesTable,
-  useListSources,
-} from '@weaveworks/weave-gitops';
 import { useApplicationsCount } from './utils';
 
 const WGApplicationsSources: FC = () => {
-  const { data: sources, isLoading } = useListSources();
+  const { data: sources, isLoading, error } = useListSources();
   const applicationsCount = useApplicationsCount();
 
   return (
@@ -25,12 +22,13 @@ const WGApplicationsSources: FC = () => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sources?.result?.length,
           },
         ]}
       />
-      <ContentWrapper>
-        {isLoading ? <LoadingPage /> : <SourcesTable sources={sources} />}
+      <ContentWrapper loading={isLoading}>
+        {error && <Alert severity="error">{error.message}</Alert>}
+        {sources && <SourcesTable sources={sources?.result} />}
       </ContentWrapper>
     </PageTemplate>
   );

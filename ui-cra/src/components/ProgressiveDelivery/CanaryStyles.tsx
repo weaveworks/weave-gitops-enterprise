@@ -1,5 +1,5 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { DataTable, theme } from '@weaveworks/weave-gitops';
+import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 export const useCanaryStyle = makeStyles(() =>
@@ -94,23 +94,6 @@ export const useCanaryStyle = makeStyles(() =>
   }),
 );
 
-export const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
-  tr {
-    vertical-align: 'center';
-  }
-  max-width: calc(100vw - 220px);
-`;
-
 export const OnBoardingMessageWrapper = styled.div`
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 5px 10px 50px 3px rgb(0 0 0 / 10%);
@@ -141,10 +124,4 @@ export const FlexCenter = styled.div`
 
 export const LinkTag = styled.a`
   color: ${theme.colors.primary};
-`;
-
-export const CustomDataTable = styled(DataTable)`
-  thead > tr {
-    background: ${theme.colors.neutral10};
-  }
 `;
