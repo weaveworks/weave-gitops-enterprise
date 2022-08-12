@@ -109,3 +109,9 @@ ingress:
 envVars:
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
+
+networkPolicy:
+  enabled: true
+
+global:
+  capiEnabled: true

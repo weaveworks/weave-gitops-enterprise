@@ -9,9 +9,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"testing"
 	"text/template"
 	"time"
+
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -28,9 +31,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/yaml"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -43,6 +48,7 @@ func TestListGitopsClusters(t *testing.T) {
 		clusterState []runtime.Object
 		refType      string
 		expected     []*capiv1_protos.GitopsCluster
+		capiEnabled  bool
 		err          error
 	}{
 		{
@@ -199,6 +205,116 @@ func TestListGitopsClusters(t *testing.T) {
 			refType: "foo",
 			err:     errors.New(`reference type "foo" is not recognised`),
 		},
+		{
+			name: "capi-enabled is true",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestCluster(func(o *clusterv1.Cluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.ObjectMeta.Annotations = map[string]string{
+						"cni": "calico",
+					}
+					o.Status.Phase = "Provisioned"
+					o.Status.Conditions = clusterv1.Conditions{
+						clusterv1.Condition{
+							Type:   clusterv1.ControlPlaneInitializedCondition,
+							Status: corev1.ConditionStatus(strconv.FormatBool(true)),
+						},
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+					CapiCluster: &capiv1_protos.CapiCluster{
+						Name:      "gitops-cluster",
+						Namespace: "default",
+						Annotations: map[string]string{
+							"cni": "calico",
+						},
+						Status: &capiv1_protos.CapiClusterStatus{
+							Phase:                   "Provisioned",
+							ControlPlaneInitialized: true,
+							Conditions: []*capiv1_protos.Condition{
+								{
+									Type:      string(clusterv1.ControlPlaneInitializedCondition),
+									Status:    "true",
+									Timestamp: "0001-01-01 00:00:00 +0000 UTC",
+								},
+							},
+						},
+					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_protos.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+			capiEnabled: true,
+		},
+		{
+			name: "capi-enabled is false",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: "dev",
+					}
+				}),
+				makeTestCluster(func(o *clusterv1.Cluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.ObjectMeta.Annotations = map[string]string{
+						"cni": "calico",
+					}
+					o.Status.Phase = "Provisioned"
+					o.Status.Conditions = clusterv1.Conditions{
+						clusterv1.Condition{
+							Type:   clusterv1.ControlPlaneInitializedCondition,
+							Status: corev1.ConditionStatus(strconv.FormatBool(true)),
+						},
+					}
+				}),
+			},
+			expected: []*capiv1_protos.GitopsCluster{
+				{
+					Name:      "gitops-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+				{
+					Name: "management",
+					Conditions: []*capiv1_protos.Condition{
+						{
+							Type:   "Ready",
+							Status: "True",
+						},
+					},
+					ControlPlane: true,
+				},
+			},
+			capiEnabled: false,
+		},
 	}
 
 	for _, tt := range testCases {
@@ -209,6 +325,7 @@ func TestListGitopsClusters(t *testing.T) {
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
 				namespace:    "default",
+				capiEnabled:  tt.capiEnabled,
 			})
 
 			// request
@@ -256,7 +373,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "name validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
@@ -276,7 +393,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "namespace validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
@@ -301,7 +418,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "pull request failed",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("", nil, errors.New("oops")),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -322,7 +439,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "create pull request",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -343,7 +460,7 @@ func TestCreatePullRequest(t *testing.T) {
 		{
 			name: "default profile values",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -442,7 +559,7 @@ status: {}
 		{
 			name: "specify profile namespace and cluster namespace",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -544,7 +661,7 @@ status: {}
 		{
 			name: "create kustomizations",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -663,7 +780,7 @@ status: {}
 		{
 			name: "kustomizations validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -712,7 +829,7 @@ status: {}
 		{
 			name: "kustomization with metadata is nil",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
@@ -754,11 +871,10 @@ status: {}
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
-				provider:      tt.provider,
-				hr:            hr,
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+				hr:           hr,
 			})
 
 			// request
@@ -893,10 +1009,9 @@ func TestGetKubeconfig(t *testing.T) {
 			viper.SetDefault("capi-clusters-namespace", tt.clusterObjectsNamespace)
 
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
-				ns:            tt.clusterObjectsNamespace,
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				ns:           tt.clusterObjectsNamespace,
 			})
 
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
@@ -990,9 +1105,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			s := createServer(t, serverOptions{
-				configMapName: "capi-templates",
-				namespace:     "default",
-				provider:      tt.provider,
+				namespace: "default",
+				provider:  tt.provider,
 			})
 
 			// delete request
@@ -1600,16 +1714,16 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
-func makeTestTemplate(renderType string) *templatesv1.Template {
-	return &templatesv1.Template{
+func makeTestTemplate(renderType string) templatesv1.Template {
+	return &gapiv1.GitOpsTemplate{
 		Spec: templatesv1.TemplateSpec{
 			RenderType: renderType,
 		},
 	}
 }
 
-func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotationValue string) *templatesv1.Template {
-	return &templatesv1.Template{
+func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotationValue string) templatesv1.Template {
+	return &capiv1.CAPITemplate{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				annotationName: annotationValue,
@@ -1729,7 +1843,7 @@ func TestCreateKustomizationsPullRequest(t *testing.T) {
 		{
 			name: "committed files",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("capi-templates", "template1", makeCAPITemplate(t)),
+				makeCAPITemplate(t),
 			},
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
 			req: &capiv1_protos.CreateKustomizationsPullRequestRequest{
@@ -1835,11 +1949,10 @@ status: {}
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "capi-templates",
-				namespace:     "default",
-				provider:      tt.provider,
-				hr:            hr,
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+				hr:           hr,
 			})
 
 			// request

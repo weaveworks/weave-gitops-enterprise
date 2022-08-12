@@ -2,7 +2,6 @@ package pages
 
 import (
 	"fmt"
-	"time"
 
 	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
@@ -31,19 +30,13 @@ type ProfileInformation struct {
 type FormField struct {
 	Label   *agouti.Selection
 	Field   *agouti.Selection
+	Focused *agouti.Selection
 	ListBox *agouti.Selection
 }
 
 type TemplateSection struct {
 	Name   *agouti.Selection
 	Fields []FormField
-}
-
-type Profile struct {
-	Name    *agouti.Selection
-	Version *agouti.Selection
-	Layer   *agouti.Selection
-	Values  *agouti.Selection
 }
 
 type ValuesYaml struct {
@@ -69,7 +62,6 @@ type GitOps struct {
 	ErrorBar       *agouti.Selection
 }
 
-//CreateCluster initialises the webDriver object
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
@@ -81,16 +73,6 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	}
 
 	return &clusterPage
-}
-
-// This function waits for Create emplate page to load completely
-func (c CreateCluster) WaitForPageToLoad(webDriver *agouti.Page) {
-	// Credentials dropdown takes a while to populate
-	Eventually(webDriver.Find(`.credentials [role="button"][aria-disabled="true"]`),
-		30*time.Second).ShouldNot(BeFound())
-	// With the introduction of profiles, UI takes long time to be fully rendered, UI refreshes once all the profiles valus are read and populated
-	// This delay refresh sometimes cause tests to fail select elements
-	time.Sleep(2 * time.Second)
 }
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {
@@ -124,17 +106,8 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 	return FormField{
 		Label:   param.Find(`label`),
 		Field:   param.Find(`input`),
+		Focused: param.Find(`div.Mui-focused`),
 		ListBox: param.Find(`div[role="button"][aria-haspopup="listbox"]`),
-	}
-}
-
-func GetProfile(webDriver *agouti.Page, profileName string) Profile {
-	p := webDriver.Find(fmt.Sprintf(`.profiles-table [data-profile-name="%s"]`, profileName))
-	return Profile{
-		Name:    p.Find(`.profile-name`),
-		Version: p.Find(`.profile-version`),
-		Layer:   p.Find(`.profile-layer > span + span`),
-		Values:  p.Find(`button`),
 	}
 }
 
@@ -152,11 +125,11 @@ func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 func (c CreateCluster) FindProfileInList(profileName string) *ProfileInformation {
 	cluster := c.ProfileList.FindByXPath(fmt.Sprintf(`//span[@data-profile-name="%s"]/ancestor::tr`, profileName))
 	return &ProfileInformation{
-		Checkbox:  cluster.FindByXPath(`td[1]`).Find("input"),
+		Checkbox:  cluster.FindByXPath(`td[1]//input`),
 		Name:      cluster.FindByXPath(`td[2]`),
 		Layer:     cluster.FindByXPath(`td[3]`),
 		Version:   cluster.FindByXPath(`td[4]//div[contains(@class, "profile-version")]`),
-		Namespace: cluster.FindByXPath(`td[4]//div[contains(@class, "profile-namespace")]`),
+		Namespace: cluster.FindByXPath(`td[4]//div[contains(@class, "profile-namespace")]//input`),
 		Values:    cluster.FindByXPath(`td[4]//button`),
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
-	"time"
+	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
 	. "github.com/onsi/ginkgo/v2"
@@ -148,7 +148,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				prBranch := "wego-upgrade-enterprise"
-				version := "0.9.0-rc.4"
+				version := "0.9.1"
 				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
@@ -233,10 +233,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					templatesPage.WaitForPageToLoad(webDriver)
-				})
+				pages.WaitForPageToLoad(webDriver)
 
 				By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
@@ -245,7 +242,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				createPage := pages.GetCreateClusterPage(webDriver)
 				By("And wait for Create cluster page to be fully rendered", func() {
-					createPage.WaitForPageToLoad(webDriver)
+					pages.WaitForPageToLoad(webDriver)
 					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
 				})
 
@@ -286,38 +283,41 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				pages.ScrollWindow(webDriver, 0, 4000)
+				pages.ScrollWindow(webDriver, 0, 500)
+				By("And verify selected weave-policy-agent profile values.yaml", func() {
+					profile := createPage.FindProfileInList("weave-policy-agent")
 
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-				pages.ScrollWindow(webDriver, 0, 4000)
+					Eventually(profile.Version.Click).Should(Succeed())
+					Eventually(pages.GetOption(webDriver, "0.3.1").Click).Should(Succeed(), "Failed to select weave-policy-agent version: 0.3.1")
 
-				// Temporaroary FIX - The last WGE release doesn't have new UI changes hence skipping them
-				// By("And select the podinfo profile to install", func() {
-				// 	Eventually(createPage.ProfileSelect.Click).Should(Succeed())
-				// 	Eventually(createPage.SelectProfile("podinfo").Click).Should(Succeed())
-				// })
+					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
+					Expect(profile.Namespace.SendKeys("policy-system")).To(Succeed())
 
-				// By("And verify selected podinfo profile values.yaml", func() {
-				// 	profile := pages.GetProfile(webDriver, "podinfo")
+					Eventually(profile.Values.Click).Should(Succeed())
+					valuesYaml := pages.GetValuesYaml(webDriver)
 
-				// 	Eventually(profile.Version.Click).Should(Succeed())
-				// 	Eventually(pages.GetOption(webDriver, "6.0.0").Click).Should(Succeed())
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("weave-policy-agent"))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("namespace: policy-system"))
 
-				// 	Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
+					text, _ := valuesYaml.TextArea.Text()
+					text = strings.ReplaceAll(text, `accountId: ""`, `accountId: "weaveworks"`)
+					text = strings.ReplaceAll(text, `clusterId: ""`, fmt.Sprintf(`clusterId: "%s"`, clusterName))
+					Expect(valuesYaml.TextArea.Clear()).To(Succeed())
+					Expect(valuesYaml.TextArea.SendKeys(text)).To(Succeed(), "Failed to change values.yaml for weave-policy-agent profile")
 
-				// 	Eventually(profile.Values.Click).Should(Succeed())
-				// 	valuesYaml := pages.GetValuesYaml(webDriver)
-
-				// 	Eventually(valuesYaml.Title.Text).Should(MatchRegexp("podinfo"))
-				// 	Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: 6.0.0"))
-				// 	Eventually(valuesYaml.Cancel.Click).Should(Succeed())
-				// })
+					Eventually(valuesYaml.Save.Click).Should(Succeed(), "Failed to save values.yaml for weave-policy-agent profile")
+				})
 
 				By("Then I should preview the PR", func() {
-					Eventually(createPage.PreviewPR.Click, ASSERTION_30SECONDS_TIME_OUT).Should(Succeed())
 					preview := pages.GetPreview(webDriver)
+					Eventually(func(g Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
+						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
+
+					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
 					Eventually(preview.Close.Click).Should(Succeed())
 				})
 
@@ -345,11 +345,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					Expect(gitops.CreatePR.Click()).To(Succeed())
 				})
 
-				By("Then I should see see a toast with a link to the creation PR", func() {
-					// FIXME: uncomment when GitopsCluster is available in the latest enterprise release
-					time.Sleep(10 * time.Second)
-					// gitops := pages.GetGitOps(webDriver)
-					// Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+				By("Then I should see a toast with a link to the creation PR", func() {
+					gitops := pages.GetGitOps(webDriver)
+					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
 				})
 
 				var createPRUrl string

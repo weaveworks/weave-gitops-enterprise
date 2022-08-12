@@ -81,9 +81,11 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		return nil, err
 	}
 
-	clusters, err = AddCAPIClusters(ctx, client, clusters)
-	if err != nil {
-		return nil, err
+	if s.capiEnabled {
+		clusters, err = AddCAPIClusters(ctx, client, clusters)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if msg.Label != "" {
@@ -567,11 +569,11 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", args.helmRepository.Namespace, args.helmRepository.Name, err)
 	}
 	helmRepoTemplate := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
@@ -592,14 +594,14 @@ func generateProfileFiles(ctx context.Context, tmpl *templatesv1.Template, clust
 		Namespace:  helmRepo.ObjectMeta.Namespace,
 	}
 
-	tmplProcessor, err := templates.NewProcessorForTemplate(*tmpl)
+	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
 	}
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl.Annotations)
+	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
 
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)

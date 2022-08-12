@@ -32,6 +32,7 @@ type Options struct {
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
+	CAPIEnabled                  bool
 	EntitlementSecretKey         client.ObjectKey
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
@@ -186,10 +187,20 @@ func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
 	}
 }
 
+// WithTLSConfig is used to set the TLS configuration.
 func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 	return func(o *Options) {
 		o.TLSCert = tlsCert
 		o.TLSKey = tlsKey
 		o.NoTLS = noTLS
+	}
+}
+
+// WithCAPIEnabled is enabled/disable CAPI support
+// If the CAPI CRDS are not installed in the cluster and CAPI is
+// enabled, the system will error on certain routes
+func WithCAPIEnabled(capiEnabled bool) Option {
+	return func(o *Options) {
+		o.CAPIEnabled = capiEnabled
 	}
 }

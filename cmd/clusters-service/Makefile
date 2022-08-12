@@ -1,4 +1,4 @@
-CONTROLLER_TOOLS_VERSION ?= v0.9.0
+CONTROLLER_TOOLS_VERSION ?= v0.9.2
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 
 ## Location to install dependencies to
@@ -28,7 +28,7 @@ build:
 .PHONY: crd-manifests
 crd-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./api/..." output:crd:artifacts:config=config/crd/bases
-
+	cp  config/crd/bases/* ../../charts/mccp/crds/
 
 .PHONY: crd-generate
 crd-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

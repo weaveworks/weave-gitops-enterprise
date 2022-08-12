@@ -1,4 +1,11 @@
-import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
+import React, {
+  FC,
+  useCallback,
+  useState,
+  Dispatch,
+  ChangeEvent,
+  useEffect,
+} from 'react';
 import styled from 'styled-components';
 import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
@@ -74,6 +81,13 @@ const GitOps: FC<{
       })),
     [setFormData],
   );
+
+  useEffect(() => {
+    setFormData((prevState: any) => ({
+      ...prevState,
+      pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
+    }));
+  }, [formData.CLUSTER_NAME, setFormData]);
 
   return (
     <GitOpsWrapper>

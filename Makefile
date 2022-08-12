@@ -1,4 +1,4 @@
-.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -139,10 +139,11 @@ unit-tests-with-coverage: $(GENERATED)
 	cd common && go test -v -cover -coverprofile=.coverprofile ./...
 	cd cmd/clusters-service && go test -v -cover -coverprofile=.coverprofile ./...
 
+TEST_V?="-v"
 unit-tests: $(GENERATED)
-	go test -v ./cmd/... ./pkg/...
-	cd common && go test -v ./...
-	cd cmd/clusters-service && go test -v ./...
+	go test $(TEST_V) ./cmd/... ./pkg/...
+	cd common && go test $(TEST_V) ./...
+	cd cmd/clusters-service && go test $(TEST_V) ./...
 
 ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
@@ -162,5 +163,9 @@ push:
 			docker push $$IMAGE_NAME:$(IMAGE_TAG); \
 		fi \
 	done
+
+proto: ## Generate protobuf files
+	buf generate
+
 
 FORCE:

@@ -110,6 +110,7 @@ type Params struct {
 	capiTemplatesNamespace            string
 	injectPruneAnnotation             string
 	addBasesKustomization             string
+	capiEnabled                       bool
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
 	capiRepositoryClustersPath        string
@@ -159,6 +160,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
+	cmd.Flags().BoolVar(&p.capiEnabled, "capi-enabled", true, "")
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
 	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "where to look for CAPI template resources, required")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
@@ -260,11 +262,14 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		v1.AddToScheme,
-		capiv1.AddToScheme,
 		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		authv1.AddToScheme,
+	}
+
+	if p.capiEnabled {
+		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
 	err := schemeBuilder.AddToScheme(scheme)
@@ -404,6 +409,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
+		WithCAPIEnabled(p.capiEnabled),
 	)
 }
 
@@ -454,6 +460,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClustersNamespace:         args.CAPIClustersNamespace,
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
+			CAPIEnabled:               args.CAPIEnabled,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {

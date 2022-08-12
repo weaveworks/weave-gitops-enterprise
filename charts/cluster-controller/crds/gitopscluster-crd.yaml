@@ -1,12 +1,11 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: gitopsclusters.gitops.weave.works
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "cluster-controller.fullname" . }}-
-    controller-gen.kubebuilder.io/version: v0.7.0
-  labels:
-  {{- include "cluster-controller.labels" . | nindent 4 }}
+    controller-gen.kubebuilder.io/version: v0.8.0
+    helm.sh/resource-policy: keep
+  creationTimestamp: null
+  name: gitopsclusters.gitops.weave.works
 spec:
   group: gitops.weave.works
   names:
@@ -90,8 +89,8 @@ spec:
                       format: date-time
                       type: string
                     message:
-                      description: message is a human readable message indicating details
-                        about the transition. This may be an empty string.
+                      description: message is a human readable message indicating
+                        details about the transition. This may be an empty string.
                       maxLength: 32768
                       type: string
                     observedGeneration:
@@ -105,11 +104,11 @@ spec:
                       type: integer
                     reason:
                       description: reason contains a programmatic identifier indicating
-                        the reason for the condition's last transition. Producers of
-                        specific condition types may define expected values and meanings
-                        for this field, and whether the values are considered a guaranteed
-                        API. The value should be a CamelCase string. This field may
-                        not be empty.
+                        the reason for the condition's last transition. Producers
+                        of specific condition types may define expected values and
+                        meanings for this field, and whether the values are considered
+                        a guaranteed API. The value should be a CamelCase string.
+                        This field may not be empty.
                       maxLength: 1024
                       minLength: 1
                       pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
