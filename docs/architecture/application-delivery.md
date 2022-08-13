@@ -16,6 +16,21 @@ As [our mission](https://www.weave.works/company/) states
 We require to provide capabilities to enable evolution of the software. Application Delivery enables that part of our
 business domain.
 
+
+```mermaid
+C4Context
+      title Application Delivery - System Context
+      Person(customerA, "Platform Operator")
+      Person(customerB, "Application Developer")      
+      System(SystemAA, "Weave Gitops Enterprise")
+
+      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
+      Rel(customerB, SystemAA, "Owns App")
+
+      System_Ext(SystemC, "Git", "") 
+```
+
+
 ## Application Delivery Domain
 
 Application Delivery represent the business domain for all capabilities that enables a weave gitops user to deliver application changes.
