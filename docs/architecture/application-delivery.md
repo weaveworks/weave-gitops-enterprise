@@ -97,25 +97,26 @@ It is composed by the following sub-capabilities
 
 ```mermaid
 C4Context
-      title Application Delivery - Container Diagram
+      title Pipelines - Component Diagram
       Person(customerA, "Platform Operator")
       Person(customerB, "Application Developer")    
       Rel(customerA, SystemAA, "Manages Delivery Capabilities")
       Rel(customerB, SystemAA, "Owns App")
       Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
         System(SystemAA, "Weave Gitops Enterprise UI")
-        Rel(SystemAA, Pipelines, "Pipelines API")
-        Rel(SystemAA, ProgressiveDelivery, "ProgressiveDelivery API")
-        Enterprise_Boundary(WegeBackend, "Weave Gitops Enterprise Backend") {
-          System(Pipelines, "Pipelines")
-          System(ProgressiveDelivery, "Progressive Delivery")
-          Rel(Pipelines, SystemD, "Pipelines Resources")
-          Rel(Pipelines, SystemD, "Progressive Delivery Resources")
+        Rel(SystemAA, WegeBackend, "Pipelines API")
+        System(WegeBackend, "Weave Gitops Enterprise Backend")
+        Enterprise_Boundary(Pipelines, "Pipelines") {
+            Component(Pipeline, "Pipeline")
+            Component(PipelineStatus, "PipelineStatus")
+            Component(PipelinePromotion, "PipelinePromotion")
         }
+        Rel(Pipeline, SystemD, "Read Pipeline")
+        Rel(PipelineStatus, SystemD, "Read PipelineStatus")
+        Rel(PipelinePromotion, SystemD, "Do X")
         System_Ext(SystemD, "Kubernetes", "") 
       }
       System_Ext(SystemC, "Git", "") 
-
 ```
 
 - pipeline: ability to define pipelines, environments and associations with applications. 
@@ -138,7 +139,29 @@ Progressive Delivery enables a user to deliver an application change into a give
 
 It is composed by the following sub-capabilities
 
-![](imgs/progressive-delivery.png)
+```mermaid
+C4Context
+      title Progressive Delivery - Component Diagram
+      Person(customerA, "Platform Operator")
+      Person(customerB, "Application Developer")    
+      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
+      Rel(customerB, SystemAA, "Owns App")
+      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
+        System(SystemAA, "Weave Gitops Enterprise UI")
+        Rel(SystemAA, WegeBackend, "Pipelines API")
+        System(WegeBackend, "Weave Gitops Enterprise Backend")
+        Enterprise_Boundary(ProgressiveDelivery, "ProgressiveDelivery") {
+            Component(Canary, "Canary")
+            Component(MetricTemplate, "MetricTemplate")
+        }
+        Rel(Canary, SystemD, "Read Canary")
+        Rel(MetricTemplate, SystemD, "Read MetricTemplate")
+        System_Ext(SystemD, "Kubernetes", "") 
+      }
+      System_Ext(SystemC, "Git", "") 
+
+
+```
 
 - canaries: allows to interact with flagger [canaries](https://docs.flagger.app/usage/how-it-works#canary-resource)
 - metrics templates: allow to interact with flagger [metric templates](https://docs.flagger.app/usage/metrics#custom-metrics)
