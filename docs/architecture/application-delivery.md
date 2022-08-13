@@ -38,7 +38,7 @@ C4Container
       title Application Delivery - Container Diagram
       Person(platformOperator, "Platform Operator")
       Person(developer, "Application Developer")      
-      Enterprise_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
+      Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
         Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
         Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend")
 
@@ -59,31 +59,20 @@ C4Container
 
 Application Delivery represent the business domain for all capabilities that enables a weave gitops user to deliver application changes.
 
-![application domain diagram](imgs/application-delivery-domain.png)
-
-
 ```mermaid
-C4Context
-      title Application Delivery - Container Diagram
-      Person(platformOperator, "Platform Operator")
-      Person(developer, "Application Developer")    
-      Rel(platformOperator, SystemAA, "Manages Delivery Capabilities")
-      Rel(developer, SystemAA, "Owns App")
-      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
-        System(SystemAA, "Weave Gitops Enterprise UI")
-        Rel(SystemAA, Pipelines, "Pipelines API")
-        Rel(SystemAA, ProgressiveDelivery, "ProgressiveDelivery API")
-        Enterprise_Boundary(WegeBackend, "Weave Gitops Enterprise Backend") {
-          System(Pipelines, "Pipelines")
-          System(ProgressiveDelivery, "Progressive Delivery")
-          Rel(Pipelines, SystemD, "Pipelines Resources")
-          Rel(Pipelines, SystemD, "Progressive Delivery Resources")
-        }
-        System_Ext(SystemD, "Kubernetes", "") 
+C4Container
+      title Application Delivery - Backend Container Diagram
+      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
+      Rel(weaveGitopsEnterpriseUi, Pipelines, "consumes pipelines capabilities via pipelines api")
+      Rel(weaveGitopsEnterpriseUi, ProgressiveDelivery, "consumes ProgressiveDelivery capabilities via ProgressiveDelivery api")
+      Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
+        Container(Pipelines, "Pipelines")
+        Container(ProgressiveDelivery, "Progressive Delivery")
+        Rel(Pipelines, KubernetesCluster, "Read Pipelines Resources")
+        Rel(ProgressiveDelivery, KubernetesCluster, "Read Progressive Delivery Resources")      
       }
-      System_Ext(SystemC, "Git", "") 
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")      
 ```
-
 
 - Pipelines: enables a user to deliver application changes across different environment in an orchestrated manner. 
 - Progressive Delivery: enables a user to deliver an application change into a given environment in a safe manner to optimise for application availability.
@@ -95,32 +84,23 @@ Pipelines enables a user to deliver application changes across different environ
 It is composed by the following sub-capabilities
 
 ```mermaid
-C4Context
-      title Pipelines - Component Diagram
-      Person(platformOperator, "Platform Operator")
-      Person(developer, "Application Developer")    
-      Rel(platformOperator, SystemAA, "Manages Delivery Capabilities")
-      Rel(developer, SystemAA, "Owns App")
-      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
-        System(SystemAA, "Weave Gitops Enterprise UI")
-        Rel(SystemAA, WegeBackend, "Pipelines API")
-        System(WegeBackend, "Weave Gitops Enterprise Backend")
-        Enterprise_Boundary(Pipelines, "Pipelines") {
-            Component(Pipeline, "Pipeline")
-            Component(PipelineStatus, "PipelineStatus")
-            Component(PipelinePromotion, "PipelinePromotion")
-        }
-        Rel(Pipeline, SystemD, "Read Pipeline")
-        Rel(PipelineStatus, SystemD, "Read PipelineStatus")
-        Rel(PipelinePromotion, SystemD, "Do X")
-        System_Ext(SystemD, "Kubernetes", "") 
+
+C4Component
+      title Application Delivery - Pipelines Domain Component Diagram
+      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
+      Rel(weaveGitopsEnterpriseUi, Pipeline, "read pipeline definition via api")
+      Rel(weaveGitopsEnterpriseUi, PipelineStatus, "read pipeline status via api")
+      Container_Boundary(Pipelines, "Pipelines") {
+        Component(Pipeline, "Pipeline")
+        Component(PipelineStatus, "PipelineStatus")
+        Rel(Pipeline, KubernetesCluster, "Read pipeline resources via api")
+        Rel(PipelineStatus, KubernetesCluster, "Read pipeline status via api")      
       }
-      System_Ext(SystemC, "Git", "") 
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")                
 ```
 
 - pipeline: ability to define pipelines, environments and associations with applications. 
 - pipeline status: ability to follow an application change along the environments defined in a pipeline specification.
-- promotions: ability to define behaviour to apply after an application change has been deployed to an environment.
 
 //TODO: move me to master
 Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/af0da2a895d205d837d1c7afaf29977225e01957/api/pipelines/pipelines.proto)
@@ -139,27 +119,21 @@ Progressive Delivery enables a user to deliver an application change into a give
 It is composed by the following sub-capabilities
 
 ```mermaid
-C4Context
-      title Progressive Delivery - Component Diagram
-      Person(platformOperator, "Platform Operator")
-      Person(developer, "Application Developer")    
-      Rel(platformOperator, SystemAA, "Manages Delivery Capabilities")
-      Rel(developer, SystemAA, "Owns App")
-      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
-        System(SystemAA, "Weave Gitops Enterprise UI")
-        Rel(SystemAA, WegeBackend, "Pipelines API")
-        System(WegeBackend, "Weave Gitops Enterprise Backend")
-        Enterprise_Boundary(ProgressiveDelivery, "ProgressiveDelivery") {
-            Component(Canary, "Canary")
-            Component(MetricTemplate, "MetricTemplate")
-        }
-        Rel(Canary, SystemD, "Read Canary")
-        Rel(MetricTemplate, SystemD, "Read MetricTemplate")
-        System_Ext(SystemD, "Kubernetes", "") 
+C4Component
+      title Application Delivery - Progressive Delivery Domain Component Diagram
+      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
+      Rel(weaveGitopsEnterpriseUi, Canary, "read canaries via api")
+      Rel(weaveGitopsEnterpriseUi, MetricTemplate, "read metric teampaltes via api")
+      Container_Boundary(ProgressiveDelivery, "ProgressiveDelivery") {
+        Component(Canary, "Canary")
+        Component(MetricTemplate, "MetricTemplate")
+        Rel(Canary, KubernetesCluster, "Reads canary resources via api")
+        Rel(MetricTemplate, KubernetesCluster, "Reads metric temaplate resources via api")      
       }
-      System_Ext(SystemC, "Git", "") 
-
-
+      System_Ext(Flagger, "Flagger")
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")   
+      Rel(Flagger, KubernetesCluster, "runs as controller for progressive delivery")      
+      
 ```
 
 - canaries: allows to interact with flagger [canaries](https://docs.flagger.app/usage/how-it-works#canary-resource)
