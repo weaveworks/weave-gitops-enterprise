@@ -19,40 +19,39 @@ business domain.
 
 ```mermaid
 C4Context
-      title Application Delivery - System Context
-      Person(customerA, "Platform Operator")
-      Person(customerB, "Application Developer")      
-      System(SystemAA, "Weave Gitops Enterprise")
+      title Application Delivery - System Context Diagram
+      Person(platformOperator, "Platform Operator")
+      Person(developer, "Application Developer")      
+      System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
 
-      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
-      Rel(customerB, SystemAA, "Owns App")
+      Rel(platformOperator, weaveGitopsEnterprise, "Manages Delivery Capabilities")
+      Rel(developer, weaveGitopsEnterprise, "Delivers Application")
+      Rel(weaveGitopsEnterprise, Git, "sync application and delivery resources from")
+      Rel(weaveGitopsEnterprise, KubernetesCluster, "consumes delivery resources via kubernetes api")
 
-      System_Ext(SystemC, "Git", "") 
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")
+      System_Ext(Git, "Git") 
 ```
 
 ```mermaid
-C4Context
+C4Container
       title Application Delivery - Container Diagram
-      Person(customerA, "Platform Operator")
-      Person(customerB, "Application Developer")    
-      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
-        System(SystemAA, "Weave Gitops Enterprise UI")
-        System(SystemAB, "Weave Gitops Enterprise Backend")
-        System_Ext(SystemD, "Kubernetes", "") 
-        Rel(customerA, SystemAA, "Manages Delivery Capabilities")
-        Rel(customerB, SystemAA, "Owns App")
-        Rel(SystemAA, SystemAB, "API")
-        Rel(SystemAB, SystemD, "Read Resources")
+      Person(platformOperator, "Platform Operator")
+      Person(developer, "Application Developer")      
+      Enterprise_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
+        Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
+        Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend")
 
-        System(Pipelines, "Pipelines")
-        System(ProgressiveDelivery, "Progressive Delivery")
-
-        Rel(SystemAB, SystemD, "Read Resources")
-
-
+        Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes delivery capabilities via api")
+        Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
       }
-        
-      System_Ext(SystemC, "Git", "") 
+      Rel(platformOperator, weaveGitopsEnterpriseUi, "Manages Delivery Capabilities")
+      Rel(developer, weaveGitopsEnterpriseUi, "Delivers Application")
+      Rel(weaveGitopsEnterpriseBackend, Git, "sync application and delivery resources from")
+      Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
+
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")
+      System_Ext(Git, "Git")                
 ```
 
 
@@ -66,10 +65,10 @@ Application Delivery represent the business domain for all capabilities that ena
 ```mermaid
 C4Context
       title Application Delivery - Container Diagram
-      Person(customerA, "Platform Operator")
-      Person(customerB, "Application Developer")    
-      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
-      Rel(customerB, SystemAA, "Owns App")
+      Person(platformOperator, "Platform Operator")
+      Person(developer, "Application Developer")    
+      Rel(platformOperator, SystemAA, "Manages Delivery Capabilities")
+      Rel(developer, SystemAA, "Owns App")
       Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
         System(SystemAA, "Weave Gitops Enterprise UI")
         Rel(SystemAA, Pipelines, "Pipelines API")
@@ -98,10 +97,10 @@ It is composed by the following sub-capabilities
 ```mermaid
 C4Context
       title Pipelines - Component Diagram
-      Person(customerA, "Platform Operator")
-      Person(customerB, "Application Developer")    
-      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
-      Rel(customerB, SystemAA, "Owns App")
+      Person(platformOperator, "Platform Operator")
+      Person(developer, "Application Developer")    
+      Rel(platformOperator, SystemAA, "Manages Delivery Capabilities")
+      Rel(developer, SystemAA, "Owns App")
       Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
         System(SystemAA, "Weave Gitops Enterprise UI")
         Rel(SystemAA, WegeBackend, "Pipelines API")
@@ -142,10 +141,10 @@ It is composed by the following sub-capabilities
 ```mermaid
 C4Context
       title Progressive Delivery - Component Diagram
-      Person(customerA, "Platform Operator")
-      Person(customerB, "Application Developer")    
-      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
-      Rel(customerB, SystemAA, "Owns App")
+      Person(platformOperator, "Platform Operator")
+      Person(developer, "Application Developer")    
+      Rel(platformOperator, SystemAA, "Manages Delivery Capabilities")
+      Rel(developer, SystemAA, "Owns App")
       Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
         System(SystemAA, "Weave Gitops Enterprise UI")
         Rel(SystemAA, WegeBackend, "Pipelines API")
