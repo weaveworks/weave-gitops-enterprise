@@ -30,12 +30,61 @@ C4Context
       System_Ext(SystemC, "Git", "") 
 ```
 
+```mermaid
+C4Context
+      title Application Delivery - Container Diagram
+      Person(customerA, "Platform Operator")
+      Person(customerB, "Application Developer")    
+      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
+        System(SystemAA, "Weave Gitops Enterprise UI")
+        System(SystemAB, "Weave Gitops Enterprise Backend")
+        System_Ext(SystemD, "Kubernetes", "") 
+        Rel(customerA, SystemAA, "Manages Delivery Capabilities")
+        Rel(customerB, SystemAA, "Owns App")
+        Rel(SystemAA, SystemAB, "API")
+        Rel(SystemAB, SystemD, "Read Resources")
+
+        System(Pipelines, "Pipelines")
+        System(ProgressiveDelivery, "Progressive Delivery")
+
+        Rel(SystemAB, SystemD, "Read Resources")
+
+
+      }
+        
+      System_Ext(SystemC, "Git", "") 
+```
+
 
 ## Application Delivery Domain
 
 Application Delivery represent the business domain for all capabilities that enables a weave gitops user to deliver application changes.
 
 ![application domain diagram](imgs/application-delivery-domain.png)
+
+
+```mermaid
+C4Context
+      title Application Delivery - Container Diagram
+      Person(customerA, "Platform Operator")
+      Person(customerB, "Application Developer")    
+      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
+      Rel(customerB, SystemAA, "Owns App")
+      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
+        System(SystemAA, "Weave Gitops Enterprise UI")
+        Rel(SystemAA, Pipelines, "Pipelines API")
+        Rel(SystemAA, ProgressiveDelivery, "ProgressiveDelivery API")
+        Enterprise_Boundary(WegeBackend, "Weave Gitops Enterprise Backend") {
+          System(Pipelines, "Pipelines")
+          System(ProgressiveDelivery, "Progressive Delivery")
+          Rel(Pipelines, SystemD, "Pipelines Resources")
+          Rel(Pipelines, SystemD, "Progressive Delivery Resources")
+        }
+        System_Ext(SystemD, "Kubernetes", "") 
+      }
+      System_Ext(SystemC, "Git", "") 
+```
+
 
 - Pipelines: enables a user to deliver application changes across different environment in an orchestrated manner. 
 - Progressive Delivery: enables a user to deliver an application change into a given environment in a safe manner to optimise for application availability.
@@ -46,7 +95,28 @@ Pipelines enables a user to deliver application changes across different environ
 
 It is composed by the following sub-capabilities
 
-![](imgs/pipelines.png)
+```mermaid
+C4Context
+      title Application Delivery - Container Diagram
+      Person(customerA, "Platform Operator")
+      Person(customerB, "Application Developer")    
+      Rel(customerA, SystemAA, "Manages Delivery Capabilities")
+      Rel(customerB, SystemAA, "Owns App")
+      Enterprise_Boundary(Wege, "Weave Gitops Enterprise") {
+        System(SystemAA, "Weave Gitops Enterprise UI")
+        Rel(SystemAA, Pipelines, "Pipelines API")
+        Rel(SystemAA, ProgressiveDelivery, "ProgressiveDelivery API")
+        Enterprise_Boundary(WegeBackend, "Weave Gitops Enterprise Backend") {
+          System(Pipelines, "Pipelines")
+          System(ProgressiveDelivery, "Progressive Delivery")
+          Rel(Pipelines, SystemD, "Pipelines Resources")
+          Rel(Pipelines, SystemD, "Progressive Delivery Resources")
+        }
+        System_Ext(SystemD, "Kubernetes", "") 
+      }
+      System_Ext(SystemC, "Git", "") 
+
+```
 
 - pipeline: ability to define pipelines, environments and associations with applications. 
 - pipeline status: ability to follow an application change along the environments defined in a pipeline specification.
