@@ -81,7 +81,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		return nil, err
 	}
 
-	if s.capiEnabled == "true" {
+	if s.capiEnabled {
 		clusters, err = AddCAPIClusters(ctx, client, clusters)
 		if err != nil {
 			return nil, err
@@ -573,7 +573,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", args.helmRepository.Namespace, args.helmRepository.Name, err)
 	}
 	helmRepoTemplate := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{

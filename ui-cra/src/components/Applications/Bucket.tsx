@@ -1,9 +1,9 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
+import { BucketDetail, useListSources } from '@weaveworks/weave-gitops';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount, useSourcesCount } from './utils';
-import { BucketDetail } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
@@ -13,6 +13,7 @@ type Props = {
 
 const WGApplicationsBucket: FC<Props> = props => {
   const applicationsCount = useApplicationsCount();
+  const { isLoading } = useListSources();
   const sourcesCount = useSourcesCount();
 
   return (
@@ -34,7 +35,7 @@ const WGApplicationsBucket: FC<Props> = props => {
           },
         ]}
       />
-      <ContentWrapper>
+      <ContentWrapper loading={isLoading}>
         <BucketDetail {...props} />
       </ContentWrapper>
     </PageTemplate>

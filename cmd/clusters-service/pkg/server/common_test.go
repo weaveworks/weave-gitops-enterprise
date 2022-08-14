@@ -63,7 +63,7 @@ type serverOptions struct {
 	ns             string
 	hr             *sourcev1.HelmRepository
 	clientsFactory clustersmngr.ClientsFactory
-	capiEnabled    string
+	capiEnabled    bool
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
