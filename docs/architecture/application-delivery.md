@@ -31,6 +31,8 @@ C4Context
 
       System_Ext(KubernetesCluster, "Kubernetes Cluster")
       System_Ext(Git, "Git") 
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+
 ```
 
 ```mermaid
@@ -51,7 +53,9 @@ C4Container
       Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
 
       System_Ext(KubernetesCluster, "Kubernetes Cluster")
-      System_Ext(Git, "Git")                
+      System_Ext(Git, "Git")     
+          UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
+           
 ```
 
 
@@ -71,7 +75,8 @@ C4Container
         Rel(Pipelines, KubernetesCluster, "Read Pipelines Resources")
         Rel(ProgressiveDelivery, KubernetesCluster, "Read Progressive Delivery Resources")      
       }
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")      
+      System_Ext(KubernetesCluster, "Kubernetes Cluster") 
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")           
 ```
 
 - Pipelines: enables a user to deliver application changes across different environment in an orchestrated manner. 
@@ -96,7 +101,9 @@ C4Component
         Rel(Pipeline, KubernetesCluster, "Read pipeline resources via api")
         Rel(PipelineStatus, KubernetesCluster, "Read pipeline status via api")      
       }
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")                
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")  
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")           
+                    
 ```
 
 - pipeline: ability to define pipelines, environments and associations with applications. 
@@ -133,7 +140,7 @@ C4Component
       System_Ext(Flagger, "Flagger")
       System_Ext(KubernetesCluster, "Kubernetes Cluster")   
       Rel(Flagger, KubernetesCluster, "runs as controller for progressive delivery")      
-      
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")           
 ```
 
 - canaries: allows to interact with flagger [canaries](https://docs.flagger.app/usage/how-it-works#canary-resource)
