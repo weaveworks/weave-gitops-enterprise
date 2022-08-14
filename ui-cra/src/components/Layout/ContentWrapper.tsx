@@ -1,11 +1,12 @@
-import React, { FC } from 'react';
-import styled, { css } from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
-import { Tooltip } from '../Shared';
-import { ListError } from '../../cluster-services/cluster_services.pb';
+import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { Flex, theme } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import styled, { css } from 'styled-components';
+import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
+import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 
@@ -79,11 +80,20 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const ContentWrapper: FC<{
+interface Props {
   type?: string;
   backgroundColor?: string;
   errors?: ListError[];
-}> = ({ children, type, backgroundColor, errors }) => {
+  loading?: boolean;
+}
+
+export const ContentWrapper: FC<Props> = ({
+  children,
+  type,
+  backgroundColor,
+  errors,
+  loading,
+}) => {
   const classes = useStyles();
   const { setNotifications } = useNotifications();
   const { data, error } = useListVersion();
@@ -92,6 +102,16 @@ export const ContentWrapper: FC<{
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
+
+  if (loading) {
+    return (
+      <Box marginTop={4}>
+        <Flex wide center>
+          <CircularProgress />
+        </Flex>
+      </Box>
+    );
+  }
 
   if (error) {
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);

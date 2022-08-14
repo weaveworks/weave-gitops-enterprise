@@ -161,6 +161,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 				TokenDuration: time.Hour,
 			},
 		),
+		app.WithRuntimeNamespace("flux-system"),
 	)
 }
 

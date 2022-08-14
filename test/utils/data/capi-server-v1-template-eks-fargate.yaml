@@ -10,6 +10,11 @@ spec:
       description: This is used for the cluster naming.
       options: []
       required: true
+    - name: AWS_REGION
+      description: AWS Region to create cluster
+    - name: AWS_SSH_KEY_NAME
+      description: AWS Region to create cluster
+      required: false
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster

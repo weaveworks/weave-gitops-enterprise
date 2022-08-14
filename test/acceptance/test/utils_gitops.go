@@ -1,8 +1,14 @@
 package acceptance
 
 import (
+	"bytes"
+	"context"
+	"crypto/tls"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"path"
 	"regexp"
@@ -14,6 +20,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func waitForResource(resourceType string, resourceName string, namespace string, kubeconfig string, timeout time.Duration) error {
@@ -127,6 +134,53 @@ func CheckClusterService(capiEndpointURL string) {
 		g.Expect(stdOut).To(MatchRegexp("200"), "Cluster Service is not healthy: %v", stdErr)
 
 	}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed())
+}
+
+// Wait until we get a good looking response from /v1/<resource>
+// Ignore all errors (connection refused, 500s etc)
+func waitForGitopsResources(ctx context.Context, resourceName string, timeout time.Duration) error {
+	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
+	waitCtx, cancel := context.WithTimeout(ctx, ASSERTION_1MINUTE_TIME_OUT)
+	defer cancel()
+
+	return wait.PollUntil(time.Second*1, func() (bool, error) {
+		jar, _ := cookiejar.New(&cookiejar.Options{})
+		client := http.Client{
+			Timeout: timeout,
+			Jar:     jar,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
+		// login to fetch cookie
+		resp, err := client.Post(test_ui_url+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, AdminUserName, adminPassword))))
+		if err != nil {
+			logger.Tracef("error logging in (waiting for a success, retrying): %v", err)
+			return false, nil
+		}
+		if resp.StatusCode != http.StatusOK {
+			logger.Tracef("wrong status from login (waiting for a ok, retrying): %v", resp.StatusCode)
+			return false, nil
+		}
+		// fetch gitops resource
+		resp, err = client.Get(test_ui_url + "/v1/" + resourceName)
+		if err != nil {
+			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", resourceName, err)
+			return false, nil
+		}
+		if resp.StatusCode != http.StatusOK {
+			logger.Tracef("wrong status from %s (waiting for a ok, retrying): %v", resourceName, resp.StatusCode)
+			return false, nil
+		}
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false, nil
+		}
+		bodyString := string(bodyBytes)
+
+		return strings.Contains(strings.ToLower(bodyString), strings.ToLower(fmt.Sprintf(`%s":`, resourceName))), nil
+	}, waitCtx.Done())
 }
 
 func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {

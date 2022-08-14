@@ -528,6 +528,38 @@ go mod tidy
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 ```
 
+## How to update the version of `cluster-controller`
+
+When a new release of the cluster-controller is made we'll usually want to update it in WGE.
+
+```bash
+export CC_VERSION=1.2.0
+
+# update the backend golang code in the weave-gitops-enterprise repo root
+cd weave-gitops-enterprise
+go get -d github.com/weaveworks/cluster-controller@CC_VERSION
+go mod tidy
+```
+
+Copy across the newer helm-chart
+
+```bash
+cd ../cluster-controller
+
+# generates and copies a new helm subchart to ../weave-gitops-enterprise
+make helm
+cd ../weave-gitops-enterprise
+
+# TODO: improve this:
+# Carefully add back the "important" changes to the chart, read the comments as you go.
+git add --patch
+```
+
+## How to update the version of `cluster-bootstrap-controller`
+
+Update `images.clusterBootstrapController` in https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
+
+
 ## Demo clusters
 
 We have 3 demo clusters currently that we use to demonstrate our work and test
