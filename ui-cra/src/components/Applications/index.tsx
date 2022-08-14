@@ -53,54 +53,52 @@ const WGApplicationsDashboard: FC = () => {
   }, [repositoryURL]);
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGO · Applications">
-        <SectionHeader
-          path={[
-            {
-              label: 'Applications',
-              url: '/applications',
-              count: applicationsCount,
-            },
-          ]}
-        />
-        <ContentWrapper errors={automations?.errors}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <ActionsWrapper>
-              <Button
-                id="add-application"
-                startIcon={<Icon type={IconType.AddIcon} size="base" />}
-                onClick={handleAddApplication}
-              >
-                ADD AN APPLICATION
-              </Button>
-            </ActionsWrapper>
-            <a
-              style={{
-                color: theme.colors.primary,
-                padding: theme.spacing.small,
-              }}
-              href={repoLink}
-              target="_blank"
-              rel="noopener noreferrer"
+    <PageTemplate documentTitle="WeGO · Applications">
+      <SectionHeader
+        path={[
+          {
+            label: 'Applications',
+            url: '/applications',
+            count: applicationsCount,
+          },
+        ]}
+      />
+      <ContentWrapper errors={automations?.errors}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <ActionsWrapper>
+            <Button
+              id="add-application"
+              startIcon={<Icon type={IconType.AddIcon} size="base" />}
+              onClick={handleAddApplication}
             >
-              View open Pull Requests
-            </a>
-          </div>
-          {isLoading ? (
-            <LoadingPage />
-          ) : (
-            <AutomationsTable automations={automations?.result} />
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+              ADD AN APPLICATION
+            </Button>
+          </ActionsWrapper>
+          <a
+            style={{
+              color: theme.colors.primary,
+              padding: theme.spacing.small,
+            }}
+            href={repoLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View open Pull Requests
+          </a>
+        </div>
+        {isLoading ? (
+          <LoadingPage />
+        ) : (
+          <AutomationsTable automations={automations?.result} />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 
