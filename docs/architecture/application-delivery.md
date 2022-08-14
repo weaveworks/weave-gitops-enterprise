@@ -2,6 +2,19 @@
 
 This document outlines an architecture documentation for Weave Gitops Application Delivery domain.
 
+## Glossary 
+
+- Application Delivery Domain: 
+- Pipelines
+- Progressive Delivery
+
+## Audience
+
+1. You work within application delivery domain.
+2. You work in a domain that depends on application delivery domain. 
+3. You do not work within application delivery domain but interested in getting 
+   a more complete information about the architecture.
+
 ## Motivation
 
 As software business, value is delivered to the users or customers by enabling them to do actions. 
