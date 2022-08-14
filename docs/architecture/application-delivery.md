@@ -2,34 +2,41 @@
 
 This document outlines an architecture documentation for Weave Gitops Application Delivery domain.
 
-## Glossary 
-
-- Application Delivery Domain: 
-- Pipelines
-- Progressive Delivery
-
-## Audience
-
-1. You work within application delivery domain.
-2. You work in a domain that depends on application delivery domain. 
-3. You do not work within application delivery domain but interested in getting 
-   a more complete information about the architecture.
-
 ## Motivation
 
-As software business, value is delivered to the users or customers by enabling them to do actions. 
-That enablement of the user is rarely a thing that happens statically but evolves over time. 
+As software business, value is delivered to the users or customers by enabling them to do actions.
+That enablement of the user is rarely a thing that happens statically but evolves over time.
 
-In software, as the enablement of the user comes through software components, the evolution of that enablement 
+In software, as the enablement of the user comes through software components, the evolution of that enablement
 involves evolution of the underlying software components. Traditionally called in several ways, application, services ,etc ..
 
 As [our mission](https://www.weave.works/company/) states
-> to empower developers and DevOps teams to build better software faster. 
+> to empower developers and DevOps teams to build better software faster.
 
 We require to provide capabilities to enable evolution of the software. Application Delivery enables that part of our
 business domain.
 
 
+## Audience
+You would be interested in know about application delivery domain if
+1. You are working in a capability within the domain.
+2. You are working in a capability in another domain that has a dependency with it.
+3. You are not working in the context of the domain nor dependent, but want to understand a bit more
+of the wider weave gitops architecture.
+
+
+## Glossary
+
+- Application Delivery Domain:
+- Pipelines
+- Progressive Delivery
+
+## Application Delivery Architecture
+
+The document uses [C4 Model](https://c4model.com/) 
+
+### Weave Gitops Enterprise - Application Delivery Domain - Context Diagram
+//TODO add note
 ```mermaid
 C4Context
       title Application Delivery - System Context Diagram
@@ -48,16 +55,19 @@ C4Context
 
 ```
 
+### Weave Gitops Enterprise - Application Delivery Domain - Container Diagram
+
+Weave Gitops Enterprise as tiered application
+
 ```mermaid
 C4Container
       title Application Delivery - Container Diagram
       Person(platformOperator, "Platform Operator")
       Person(developer, "Application Developer")      
       Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
-        Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
-        Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend")
-
-        Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes delivery capabilities via api")
+        Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
+        Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend","golang","monlith backend application with grpc api"))
+        Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes delivery capabilities via grpc")
         Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
       }
       Rel(platformOperator, weaveGitopsEnterpriseUi, "Manages Delivery Capabilities")
@@ -67,24 +77,19 @@ C4Container
 
       System_Ext(KubernetesCluster, "Kubernetes Cluster")
       System_Ext(Git, "Git")     
-          UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
-           
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")                 
 ```
-
-
-## Application Delivery Domain
-
-Application Delivery represent the business domain for all capabilities that enables a weave gitops user to deliver application changes.
+Weave Gitops Enterprise Backend as Application Delivery domain container
 
 ```mermaid
 C4Container
       title Application Delivery - Backend Container Diagram
-      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
+      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
       Rel(weaveGitopsEnterpriseUi, Pipelines, "consumes pipelines capabilities via pipelines api")
       Rel(weaveGitopsEnterpriseUi, ProgressiveDelivery, "consumes ProgressiveDelivery capabilities via ProgressiveDelivery api")
       Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
-        Container(Pipelines, "Pipelines")
-        Container(ProgressiveDelivery, "Progressive Delivery")
+        Container(Pipelines, "Pipelines", "golang", "logical group of all domain capabilities around pipelines")
+        Container(ProgressiveDelivery, "Progressive Delivery", "golang", "logical group of all domain capabilities around progressive delivery")
         Rel(Pipelines, KubernetesCluster, "Read Pipelines Resources")
         Rel(ProgressiveDelivery, KubernetesCluster, "Read Progressive Delivery Resources")      
       }
@@ -95,7 +100,8 @@ C4Container
 - Pipelines: enables a user to deliver application changes across different environment in an orchestrated manner. 
 - Progressive Delivery: enables a user to deliver an application change into a given environment in a safe manner to optimise for application availability.
 
-### Pipelines Capability
+
+### Application Delivery - Pipelines Capability - Component Diagram
 
 Pipelines enables a user to deliver application changes across different environment in an orchestrated manner.
 
@@ -143,17 +149,17 @@ C4Component
       title Application Delivery - Progressive Delivery Domain Component Diagram
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
       Rel(weaveGitopsEnterpriseUi, Canary, "read canaries via api")
-      Rel(weaveGitopsEnterpriseUi, MetricTemplate, "read metric teampaltes via api")
+      Rel(weaveGitopsEnterpriseUi, MetricTemplate, "read metric templates via api")
       Container_Boundary(ProgressiveDelivery, "ProgressiveDelivery") {
-        Component(Canary, "Canary")
-        Component(MetricTemplate, "MetricTemplate")
-        Rel(Canary, KubernetesCluster, "Reads canary resources via api")
-        Rel(MetricTemplate, KubernetesCluster, "Reads metric temaplate resources via api")      
+        Component(Canary, "Canary", "golang", "service layer to read flagger canary resources")
+        Component(MetricTemplate, "MetricTemplate", "golang", "service layer to read flagger metric template resources")
+        Rel(Canary, KubernetesCluster, "reads canary resources via api")
+        Rel(MetricTemplate, KubernetesCluster, "reads metric temaplate resources via api")      
       }
-      System_Ext(Flagger, "Flagger")
+      System_Ext(Flagger, "Flagger","controller that provides the runtime for progressive delivery")
       System_Ext(KubernetesCluster, "Kubernetes Cluster")   
-      Rel(Flagger, KubernetesCluster, "runs as controller for progressive delivery")      
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")           
+      Rel(Flagger, KubernetesCluster, "runs as workload within kubernetes")      
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")          
 ```
 
 - canaries: allows to interact with flagger [canaries](https://docs.flagger.app/usage/how-it-works#canary-resource)
