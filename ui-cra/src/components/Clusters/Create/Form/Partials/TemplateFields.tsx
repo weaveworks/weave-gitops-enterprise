@@ -51,6 +51,7 @@ const TemplateFields: FC<{
       {activeTemplate?.parameters?.map((param, index) => {
         const name = param.name || '';
         const options = param?.options || [];
+        param.required = !!param.default ?  false : param.required
         if (options.length > 0) {
           return (
             <Select
@@ -63,6 +64,7 @@ const TemplateFields: FC<{
               onChange={event => handleFormData(event, name)}
               items={options}
               description={param.description}
+              placeholder={param.default}
             />
           );
         } else
@@ -74,6 +76,7 @@ const TemplateFields: FC<{
               name={name}
               label={name}
               value={formData[name]}
+              placeholder={param.default}
               onChange={handleFormData}
               description={param.description}
             />

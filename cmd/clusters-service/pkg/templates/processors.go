@@ -95,8 +95,8 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 	}
 
 	for _, param := range params {
-		_, ok := vars[param.Name]
-		if !ok {
+		val, ok := vars[param.Name]
+		if !ok || val == "" {
 			if param.Default != "" {
 				vars[param.Name] = param.Default
 			} else {
