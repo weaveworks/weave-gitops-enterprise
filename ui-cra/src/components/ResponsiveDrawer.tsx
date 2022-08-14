@@ -277,7 +277,7 @@ const App = () => {
               <Route
                 component={AddApplication}
                 exact
-                path="/applications/new"
+                path="/applications/create"
               />
               <Route
                 component={() => (

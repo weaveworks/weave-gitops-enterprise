@@ -38,7 +38,7 @@ const WGApplicationsDashboard: FC = () => {
   const [repoLink, setRepoLink] = useState<string>('');
 
   const handleAddApplication = () => {
-    history.push('/applications/new');
+    history.push('/applications/create');
   };
 
   useEffect(() => {

@@ -20,7 +20,7 @@ import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import AddProfileFields from './form/partials/AddProfileFields';
+import AddProfileFields from './form/Partials/AppFields';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -30,7 +30,7 @@ const AddApplication = () => {
   const { setNotifications } = useNotifications();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
-  const authRedirectPage = `/applications/new`;
+  const authRedirectPage = `/applications/create`;
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -39,8 +39,8 @@ const AddApplication = () => {
     provider: '',
     branchName: `add-application-branch-${random}`,
     title: 'Add application',
-    commitMessage: 'add application',
-    pullRequestDescription: 'This PR add a new application',
+    commitMessage: 'Add application',
+    pullRequestDescription: 'This PR adds a new application',
     clusterKustomizations: [{}],
     name: '',
     namespace: '',

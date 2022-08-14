@@ -6,14 +6,19 @@ import { useListGitRepos } from '../../../../../hooks/gitReposSource';
 import _ from 'lodash';
 import { Loader } from '../../../../Loader';
 import { MenuItem } from '@material-ui/core';
+import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
+import { GitopsClusterEnriched } from '../../../../../types/custom';
 
 const FormWrapper = styled.form`
   .form-section {
     width: 50%;
   }
+  .loader {
+    padding-bottom: ${({ theme }) => theme.spacing.medium};
+  }
 `;
 
-const AddProfileFields: FC<{
+const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ formData, setFormData }) => {
@@ -90,7 +95,7 @@ const AddProfileFields: FC<{
             defaultValue={''}
             description="select target cluster"
           >
-            {clusters?.map((option: any, index: number) => {
+            {clusters?.map((option: GitopsClusterEnriched, index: number) => {
               return (
                 <MenuItem key={index} value={JSON.stringify(option)}>
                   {option.name}
@@ -99,7 +104,9 @@ const AddProfileFields: FC<{
             })}
           </Select>
         ) : (
-          <Loader />
+          <div className="loader">
+            <Loader />
+          </div>
         )}
       </div>
 
@@ -114,7 +121,7 @@ const AddProfileFields: FC<{
         description="The name and type of source"
       >
         {gitResposFilterdList.length > 0 ? (
-          gitResposFilterdList?.map((option: any, index: number) => {
+          gitResposFilterdList?.map((option: GitRepository, index: number) => {
             return (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}
@@ -140,4 +147,4 @@ const AddProfileFields: FC<{
   );
 };
 
-export default AddProfileFields;
+export default AppFields;
