@@ -42,7 +42,6 @@ type Options struct {
 	TLSKey                       string
 	NoTLS                        bool
 	DevMode                      bool
-	string
 }
 
 type Option func(*Options)
