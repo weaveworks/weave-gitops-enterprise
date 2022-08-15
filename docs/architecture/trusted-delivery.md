@@ -79,7 +79,7 @@ C4Container
 ```
 Looking into Trusted Delivery Domain capabilities we could see the following
 
-![Container Diagram Capabilities](imgs/application-delivery-container.svg)
+![Container Diagram Capabilities](imgs/trusted-delivery-container.svg)
 
 ```mermaid
 C4Container
@@ -88,10 +88,8 @@ C4Container
     Rel(weaveGitopsEnterpriseUi, Pipelines, "uses pipelines api")
     Rel(weaveGitopsEnterpriseUi, ProgressiveDelivery, "uses progressive delivery api")
     Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
-      Container(Pipelines, "Pipelines", "golang", "provides pipelines capabilities")
-      Container(ProgressiveDelivery, "Progressive Delivery", "golang", "flagger service provides progressive delivery capabilities")
-      Rel(Pipelines, KubernetesCluster, "read pipeline resourcess")
-      Rel(ProgressiveDelivery, KubernetesCluster, "read progressive delivery resources")      
+      Container(Policy, "Policy", "golang", "provides policy capabilities")
+      Rel(Policy, KubernetesCluster, "read policy resourcess")
     }
     Container_Boundary(external, "external") {
       System_Ext(KubernetesCluster, "Kubernetes Cluster")
@@ -99,50 +97,43 @@ C4Container
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")          
 ```
 
+### Trusted Delivery - Policy Capabilities - Component Diagram
 
-
-### Application Delivery - Pipelines Capability - Component Diagram
-
-Pipelines enables a user to deliver application changes across different environment in an orchestrated manner.
 
 It is composed by the following sub-capabilities
 
-![Pipelines](imgs/application-delivery-pipelines.svg)
+![Policy](imgs/trusted-delivery-policy.svg)
 
 ```mermaid
 
 C4Component
-      title Application Delivery - Pipelines Domain Component Diagram
+      title Trusted Delivery - Policy Component Diagram
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
-      Rel(weaveGitopsEnterpriseUi, Pipeline, "read pipeline definitions")
-      Rel(weaveGitopsEnterpriseUi, PipelineStatus, "read pipeline status")
+      Rel(weaveGitopsEnterpriseUi, Policy, "read policy definitions")
+      Rel(weaveGitopsEnterpriseUi, Violation, "read policy violations")
       Container_Boundary(Pipelines, "Pipelines") {
-        Component(Pipeline, "Pipeline", "golang","in development")
-        Component(PipelineStatus, "PipelineStatus","golang", "in development")
-        Rel(Pipeline, KubernetesCluster, "reads pipeline resources")
-        Rel(PipelineStatus, KubernetesCluster, "reads pipeline status")      
+        Component(Policy, "Policy", "golang","policy definitions")
+        Component(Violation, "Violation", "golang","policy violations")
+        Rel(Policy, PolicyRuntime, "enforces policies")
+        Rel(Violation, PolicyRuntime, "created by")
       }
-      Container_Boundary(external, "external") {
-        System_Ext(KubernetesCluster, "Kubernetes Cluster")
+      Container_Boundary(Kuberetes, "Kubernetes") {
+        System_Ext(PolicyRuntime, "Policy Runtime")
       }
       UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")        
                     
 ```
 
-- pipeline: ability to define pipelines, environments and associations with applications. 
-- pipeline status: ability to follow an application change along the environments defined in a pipeline specification.
+- policy definitions 
+- policy violations
 
-//TODO: move me to master
+//TODO add policy api
 Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/af0da2a895d205d837d1c7afaf29977225e01957/api/pipelines/pipelines.proto)
 
 Next Steps:
+//TODO REVIEW
 - [code](https://github.com/weaveworks/weave-gitops-enterprise)
 - [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
-
-Capability could be seen in action via:
-- In development
-
-
 
 
 
