@@ -19,6 +19,9 @@ const useStyles = makeStyles(() =>
     warning: {
       backgroundColor: theme.colors.feedbackLight,
     },
+    listItems: {
+      display: 'list-item',
+    },
   }),
 );
 
@@ -39,7 +42,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
         {filteredErrors?.map((item: ListError, index: number) => (
           <ListItem key={index} dense={true}>
             <ListItemText
-              style={{ display: 'list-item' }}
+              className={classes.listItems}
               primary={item.message}
               secondary={`Cluster: ${item.clusterName} , Namespace: ${item.namespace}`}
             />
