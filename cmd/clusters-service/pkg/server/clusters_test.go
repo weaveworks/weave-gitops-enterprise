@@ -1859,55 +1859,6 @@ status: {}
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
-			name: "custom filepath for kustomization",
-			clusterState: []runtime.Object{
-				makeCAPITemplate(t),
-			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster Kustomization",
-				Description:   "Creates cluster Kustomizations",
-				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
-					{
-						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
-						Kustomization: &capiv1_protos.Kustomization{
-							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
-							Spec: &capiv1_protos.KustomizationSpec{
-								Path:      "./apps/billing",
-								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
-							},
-						},
-					},
-				},
-				FilePath: "clusters/dev/test-kustomization.yaml",
-			},
-			committedFiles: []CommittedFile{
-				{
-					Path: "clusters/dev/test-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
-metadata:
-  creationTimestamp: null
-  name: apps-billing
-  namespace: flux-system
-spec:
-  interval: 10m0s
-  path: ./apps/billing
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-    namespace: flux-system
-status: {}
-`,
-				},
-			},
-			expected: "https://github.com/org/repo/pull/1",
-		},
-		{
 			name: "committed files for helm release",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
@@ -2108,6 +2059,85 @@ status: {}
 				},
 			},
 			err: errors.New("cluster object must be specified"),
+		},
+		{
+			name: "custom filepath",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster Kustomization",
+				Description:   "Creates cluster Kustomizations",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:      "./apps/billing",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+							},
+						},
+						FilePath: "clusters/dev/test-kustomization.yaml",
+					},
+					{
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: testNewMetadata(t, "test-profile", "flux-system"),
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
+								Values: base64.StdEncoding.EncodeToString([]byte(``)),
+							},
+						},
+						FilePath: "clusters/prod/test-hr.yaml",
+					},
+				},
+			},
+			committedFiles: []CommittedFile{
+				{
+					Path: "clusters/dev/test-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-billing
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/billing
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/prod/test-hr.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-billing
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/billing
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
 		},
 	}
 
