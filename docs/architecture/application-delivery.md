@@ -118,7 +118,7 @@ Pipelines enables a user to deliver application changes across different environ
 
 It is composed by the following sub-capabilities
 
-![Container Diagram Tiers](imgs/application-delivery-pipelines.svg)
+![Pipelines](imgs/application-delivery-pipelines.svg)
 
 ```mermaid
 
@@ -159,6 +159,8 @@ Progressive Delivery enables a user to deliver an application change into a give
 
 It is composed by the following sub-capabilities
 
+![Progressive Delivery](imgs/application-delivery-progressive-delivery.svg)
+
 ```mermaid
 C4Component
       title Application Delivery - Progressive Delivery Domain Component Diagram
@@ -168,13 +170,14 @@ C4Component
       Container_Boundary(ProgressiveDelivery, "ProgressiveDelivery") {
         Component(Canary, "Canary", "golang", "service layer to read flagger canary resources")
         Component(MetricTemplate, "MetricTemplate", "golang", "service layer to read flagger metric template resources")
-        Rel(Canary, KubernetesCluster, "reads canary resources via api")
-        Rel(MetricTemplate, KubernetesCluster, "reads metric temaplate resources via api")      
+        Rel(Canary, KubernetesApi, "reads canary resources via api")
+        Rel(MetricTemplate, KubernetesApi, "reads metric temaplate resources via api")      
       }
-      System_Ext(Flagger, "Flagger","controller that provides the runtime for progressive delivery")
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")   
-      Rel(Flagger, KubernetesCluster, "runs as workload within kubernetes")      
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")          
+      Container_Boundary(Kubernetes, "Kubernetes Cluster") {
+        System_Ext(Flagger, "Flagger","controller that provides the runtime for progressive delivery")
+        System_Ext(KubernetesApi, "Kubernetes API")
+      }
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")       
 ```
 
 - canaries: allows to interact with flagger [canaries](https://docs.flagger.app/usage/how-it-works#canary-resource)
