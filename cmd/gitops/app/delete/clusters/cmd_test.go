@@ -15,7 +15,7 @@ import (
 
 func TestEndpointNotSet(t *testing.T) {
 	client := adapters.NewHTTPClient()
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"delete", "cluster",
 		"dev-cluster",
@@ -54,7 +54,7 @@ func TestPayload(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"delete", "cluster",
 		"dev-cluster",
@@ -86,7 +86,7 @@ func TestGitProviderToken(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"delete", "cluster",
 		"dev-cluster",
@@ -101,7 +101,7 @@ func TestGitProviderToken(t *testing.T) {
 func TestGitProviderToken_NoURL(t *testing.T) {
 	client := adapters.NewHTTPClient()
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"delete", "cluster",
 		"dev-cluster",
@@ -115,7 +115,7 @@ func TestGitProviderToken_NoURL(t *testing.T) {
 func TestGitProviderToken_InvalidURL(t *testing.T) {
 	client := adapters.NewHTTPClient()
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"delete", "cluster",
 		"dev-cluster",
