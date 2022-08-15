@@ -29,7 +29,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   if (!errors || !errors.length) {
     return null;
   }
-  const err = `Something went wrong, User "wego-admin"`;
+  const err = `Something went wrong`;
 
   return (
     <>
