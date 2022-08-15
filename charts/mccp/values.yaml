@@ -84,6 +84,11 @@ service:
 cluster-controller:
   enabled: true
 
+policy-agent:
+  enabled: false
+  accountId: ""
+  clusterId: ""
+
 ingress:
   enabled: false
   className: ""
