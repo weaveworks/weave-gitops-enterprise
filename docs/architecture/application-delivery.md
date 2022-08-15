@@ -60,14 +60,13 @@ C4Context
 
 ### Weave Gitops Enterprise - Application Delivery Domain - Container Diagram
 
-Weave Gitops Enterprise as tiered application
+Weave Gitops Enterprise as tiered application that could be seen in the following diagram
 
-![Container Diagram](./imgs/application-delivery-container.svg)
-
+![Container Diagram Tiers](./imgs/application-delivery-container-tiers.svg)
 
 ```mermaid
 C4Container
-  title "Application Delivery - Container Diagram"
+  title "Application Delivery - Container Diagram - Tiers"
   Person(platformOperator, "Platform Operator")
   Person(developer, "Application Developer")      
   Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
@@ -82,27 +81,31 @@ C4Container
     System_Ext(KubernetesCluster, "Kubernetes Cluster")
     System_Ext(Git, "Git")     
   }
-  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
+`  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
   Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes resources from")  
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")              
 ```
-Weave Gitops Enterprise Backend as Application Delivery domain container
+Looking into application delivery domain capabilities we could see the following
+
+![Container Diagram Capabilities](./imgs/application-delivery-container.svg)
 
 ```mermaid
 C4Container
-      title Application Delivery - Backend Container Diagram
-      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
-      Rel(weaveGitopsEnterpriseUi, Pipelines, "consumes pipelines capabilities via pipelines api")
-      Rel(weaveGitopsEnterpriseUi, ProgressiveDelivery, "consumes ProgressiveDelivery capabilities via ProgressiveDelivery api")
-      Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
-        Container(Pipelines, "Pipelines", "golang", "logical group of all domain capabilities around pipelines")
-        Container(ProgressiveDelivery, "Progressive Delivery", "golang", "logical group of all domain capabilities around progressive delivery")
-        Rel(Pipelines, KubernetesCluster, "Read Pipelines Resources")
-        Rel(ProgressiveDelivery, KubernetesCluster, "Read Progressive Delivery Resources")      
-      }
-      System_Ext(KubernetesCluster, "Kubernetes Cluster") 
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")           
+    title "Application Delivery - Container Diagram - Capabilities"
+    Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
+    Rel(weaveGitopsEnterpriseUi, Pipelines, "uses pipelines api")
+    Rel(weaveGitopsEnterpriseUi, ProgressiveDelivery, "uses progressive delivery api")
+    Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
+      Container(Pipelines, "Pipelines", "golang", "provides pipelines capabilities")
+      Container(ProgressiveDelivery, "Progressive Delivery", "golang", "flagger service provides progressive delivery capabilities")
+      Rel(Pipelines, KubernetesCluster, "read pipeline resourcess")
+      Rel(ProgressiveDelivery, KubernetesCluster, "read progressive delivery resources")      
+    }
+    Container_Boundary(external, "external") {
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")
+    }
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")          
 ```
 
 - Pipelines: enables a user to deliver application changes across different environment in an orchestrated manner. 
