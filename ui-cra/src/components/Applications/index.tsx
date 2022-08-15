@@ -15,8 +15,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../muiTheme';
 import { useListConfig } from '../../hooks/versions';
 
 interface Size {
