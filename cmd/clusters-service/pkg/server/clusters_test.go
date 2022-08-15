@@ -1109,7 +1109,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 					Content: "",
 				},
 				{
-					Path:    "clusters/my-cluster/clusters/ns-foo/foo.yaml",
+					Path:    "clusters/default/my-cluster/ns-foo/foo.yaml",
 					Content: "",
 				},
 			}),
