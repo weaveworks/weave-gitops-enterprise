@@ -30,7 +30,6 @@ function CanaryDetailsSection({
 }) {
   const classes = useCanaryStyle();
   const path = `/applications/delivery/${canary.targetDeployment?.uid}`;
-
   return (
     <>
       <TitleWrapper>{canary.name}</TitleWrapper>

@@ -11,7 +11,7 @@ import (
 func main() {
 	client := adapters.NewHTTPClient().EnableCLIAuth()
 
-	if err := root.RootCmd(client).Execute(); err != nil {
+	if err := root.Command(client).Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

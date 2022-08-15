@@ -13,7 +13,7 @@ var _ = Describe("Update Profile(s)", func() {
 	var cmd *cobra.Command
 
 	BeforeEach(func() {
-		cmd = root.RootCmd(adapters.NewHTTPClient())
+		cmd = root.Command(adapters.NewHTTPClient())
 	})
 
 	When("the flags are valid", func() {

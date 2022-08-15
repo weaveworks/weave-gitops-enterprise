@@ -13,7 +13,7 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func ProfilesCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:           "profile",
 		Aliases:       []string{"profiles"},

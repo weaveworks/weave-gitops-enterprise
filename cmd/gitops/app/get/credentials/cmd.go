@@ -11,7 +11,7 @@ import (
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
-func CredentialCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "credential",
 		Aliases: []string{"credentials"},
