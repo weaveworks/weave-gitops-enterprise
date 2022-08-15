@@ -2119,20 +2119,23 @@ status: {}
 				},
 				{
 					Path: "clusters/prod/test-hr.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-kind: Kustomization
+					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: apps-billing
+  name: test-profile
   namespace: flux-system
 spec:
+  chart:
+    spec:
+      chart: test-chart
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
   interval: 10m0s
-  path: ./apps/billing
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-    namespace: flux-system
+  values: null
 status: {}
 `,
 				},
