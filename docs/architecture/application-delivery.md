@@ -39,6 +39,7 @@ The document uses [C4 Model](https://c4model.com/)
 //TODO add note
 ```mermaid
 C4Context
+
       title Application Delivery - System Context Diagram
       Person(platformOperator, "Platform Operator")
       Person(developer, "Application Developer")      
