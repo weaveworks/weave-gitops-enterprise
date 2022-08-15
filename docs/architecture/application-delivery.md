@@ -62,7 +62,7 @@ C4Context
 
 Weave Gitops Enterprise as tiered application that could be seen in the following diagram
 
-![Container Diagram Tiers](./imgs/application-delivery-container-tiers.svg)
+![Container Diagram Capabilities](imgs/application-delivery-container-tiers.svg)
 
 ```mermaid
 C4Container
@@ -88,7 +88,7 @@ C4Container
 ```
 Looking into application delivery domain capabilities we could see the following
 
-![Container Diagram Capabilities](./imgs/application-delivery-container.svg)
+![Container Diagram Capabilities](imgs/application-delivery-container.svg)
 
 ```mermaid
 C4Container
@@ -118,21 +118,25 @@ Pipelines enables a user to deliver application changes across different environ
 
 It is composed by the following sub-capabilities
 
+![Container Diagram Tiers](imgs/application-delivery-pipelines.svg)
+
 ```mermaid
 
 C4Component
       title Application Delivery - Pipelines Domain Component Diagram
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
-      Rel(weaveGitopsEnterpriseUi, Pipeline, "read pipeline definition via api")
-      Rel(weaveGitopsEnterpriseUi, PipelineStatus, "read pipeline status via api")
+      Rel(weaveGitopsEnterpriseUi, Pipeline, "read pipeline definitions")
+      Rel(weaveGitopsEnterpriseUi, PipelineStatus, "read pipeline status")
       Container_Boundary(Pipelines, "Pipelines") {
-        Component(Pipeline, "Pipeline")
-        Component(PipelineStatus, "PipelineStatus")
-        Rel(Pipeline, KubernetesCluster, "Read pipeline resources via api")
-        Rel(PipelineStatus, KubernetesCluster, "Read pipeline status via api")      
+        Component(Pipeline, "Pipeline", "golang","in development")
+        Component(PipelineStatus, "PipelineStatus","golang", "in development")
+        Rel(Pipeline, KubernetesCluster, "reads pipeline resources")
+        Rel(PipelineStatus, KubernetesCluster, "reads pipeline status")      
       }
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")  
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")           
+      Container_Boundary(external, "external") {
+        System_Ext(KubernetesCluster, "Kubernetes Cluster")
+      }
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")        
                     
 ```
 
