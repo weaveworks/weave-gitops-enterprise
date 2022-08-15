@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -54,21 +55,23 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	runtimeNamespace := "flux-system"
 	c := createK8sClient(t, password, runtimeNamespace)
 
-	client := runServer(t, ctx, c, runtimeNamespace)
+	port := "8001"
+
+	client := runServer(t, ctx, c, runtimeNamespace, "0.0.0.0:"+port)
 
 	// login
-	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
+	res1, err := client.Post(fmt.Sprintf("https://localhost:%s/oauth2/sign_in", port), "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err := client.Get("https://localhost:8001/v1/kustomizations?namespace=foo")
+	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/kustomizations?namespace=foo", port))
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
 	}
-	res, err = client.Get("https://localhost:8001/v1/pineapples")
+	res, err = client.Get(fmt.Sprintf("https://localhost:%s/v1/pineapples", port))
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
@@ -86,7 +89,9 @@ func TestPipelinesServer(t *testing.T) {
 	runtimeNamespace := "flux-system"
 	c := createK8sClient(t, password, runtimeNamespace)
 
-	client := runServer(t, ctx, c, runtimeNamespace)
+	port := "8002"
+
+	client := runServer(t, ctx, c, runtimeNamespace, "0.0.0.0:"+port)
 
 	p := &pipectrl.Pipeline{}
 	p.Name = "my-pipeline"
@@ -94,11 +99,11 @@ func TestPipelinesServer(t *testing.T) {
 
 	assert.NoError(t, c.Create(ctx, p))
 
-	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
+	res1, err := client.Post(fmt.Sprintf("https://localhost:%s/oauth2/sign_in", port), "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err := client.Get("https://localhost:8001/v1/pipelines")
+	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/pipelines", port))
 	assert.NoError(t, err)
 
 	body, err := ioutil.ReadAll(res.Body)
@@ -138,7 +143,7 @@ func createK8sClient(t *testing.T, pw string, ns string, objects ...runtime.Obje
 	return createFakeClient(t, objs...)
 }
 
-func runServer(t *testing.T, ctx context.Context, k client.Client, ns string) *http.Client {
+func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, addr string) *http.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -166,7 +171,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string) *h
 		coreConfig := fakeCoreConfig(t, log)
 		appsConfig := fakeAppsConfig(k, log)
 
-		err = app.RunInProcessGateway(ctx, "0.0.0.0:8001",
+		err = app.RunInProcessGateway(ctx, addr,
 			app.WithCAPIClustersNamespace("default"),
 			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
 			app.WithKubernetesClient(k),
