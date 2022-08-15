@@ -3,7 +3,7 @@ This document outlines an architecture documentation for Weave Gitops Trusted De
 
 ## Motivation
 
-TBA
+//TODO add why trusted delivery within weave gitops business domain
 
 ## Audience
 You would be interested in know about Trusted Delivery Domain if
@@ -14,6 +14,7 @@ of the wider weave gitops architecture.
 
 ## Glossary
 
+//TODO add other and complete existing
 - Trusted Delivery
 - Policy 
 - other terms 
@@ -27,12 +28,12 @@ diagrams due to c4models integration with mermaid and markdown.
 
 This section shows the context where personas could make use of application delivery capabilities within weave gitops.
 
-![Context Diagram](./imgs/application-delivery-context.svg)
+![Context Diagram](./imgs/trusted-delivery-context.svg)
 
 ```mermaid
 C4Context
 
-      title Application Delivery - System Context Diagram
+      title Trusted Delivery - System Context Diagram
       Person(platformOperator, "Platform Operator")
       Person(developer, "Application Developer")      
       System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
@@ -46,18 +47,17 @@ C4Context
       System_Ext(KubernetesCluster, "Kubernetes Cluster")
       System_Ext(Git, "Git") 
       UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
-
 ```
 
 ### Weave Gitops Enterprise - Trusted Delivery Domain - Container Diagram
 
 Weave Gitops Enterprise as tiered application that could be seen in the following diagram
 
-![Container Diagram Capabilities](imgs/application-delivery-container-tiers.svg)
+![Container Diagram Capabilities](imgs/trusted-delivery-container-tiers.svg)
 
 ```mermaid
 C4Container
-  title "Application Delivery - Container Diagram - Tiers"
+  title "Trusted Delivery - Container Diagram - Tiers"
   Person(platformOperator, "Platform Operator")
   Person(developer, "Application Developer")      
   Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
@@ -72,7 +72,7 @@ C4Container
     System_Ext(KubernetesCluster, "Kubernetes Cluster")
     System_Ext(Git, "Git")     
   }
-`  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
+  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
   Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes resources from")  
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")              
