@@ -24,13 +24,14 @@ of the wider weave gitops architecture.
 
 ## Glossary
 
-- Application Delivery Domain:
+- Application Delivery Domain
 - Pipelines
 - Progressive Delivery
 
 ## Application Delivery Architecture
 
-Diagarms are based on [C4 Model](https://c4model.com/)  
+Diagrams are based on [C4 Model](https://c4model.com/). Note that there are some limitations with the visualization of 
+diagrams due to c4models integration with mermaid and markdown.
 
 ### Weave Gitops Enterprise - Application Delivery Domain - Context Diagram
 
