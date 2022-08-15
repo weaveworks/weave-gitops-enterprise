@@ -62,25 +62,30 @@ C4Context
 
 Weave Gitops Enterprise as tiered application
 
+![Container Diagram](./imgs/application-delivery-container.svg)
+
+
 ```mermaid
 C4Container
-      title Application Delivery - Container Diagram
-      Person(platformOperator, "Platform Operator")
-      Person(developer, "Application Developer")      
-      Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
-        Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
-        Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend","golang","monlith backend application with grpc api"))
-        Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes delivery capabilities via grpc")
-        Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
-      }
-      Rel(platformOperator, weaveGitopsEnterpriseUi, "Manages Delivery Capabilities")
-      Rel(developer, weaveGitopsEnterpriseUi, "Delivers Application")
-      Rel(weaveGitopsEnterpriseBackend, Git, "sync application and delivery resources from")
+  title "Application Delivery - Container Diagram"
+  Person(platformOperator, "Platform Operator")
+  Person(developer, "Application Developer")      
+  Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
+      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
+      Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend","golang","monlith backend application with grpc api")
+      Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes via grpc")
       Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
+  }
+  Rel(platformOperator, weaveGitopsEnterpriseUi, "Manages Platform")
+  Rel(developer, weaveGitopsEnterpriseUi, "Delivers Application")
+  Container_Boundary(external, "external") {
+    System_Ext(KubernetesCluster, "Kubernetes Cluster")
+    System_Ext(Git, "Git")     
+  }
+  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
+  Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes resources from")  
 
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")
-      System_Ext(Git, "Git")     
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")                 
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")              
 ```
 Weave Gitops Enterprise Backend as Application Delivery domain container
 
