@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"testing"
 	"text/template"
 	"time"
@@ -1034,6 +1035,8 @@ func TestGetKubeconfig(t *testing.T) {
 }
 
 func TestDeleteClustersPullRequest(t *testing.T) {
+	viper.SetDefault("capi-repository-path", "clusters/management/clusters")
+	viper.SetDefault("capi-repository-clusters-path", "clusters/")
 	testCases := []struct {
 		name           string
 		provider       git.Provider
@@ -1065,8 +1068,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		{
 			name: "create delete pull request including multiple files in tree",
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
-				"ns-foo/foo.yaml",
-				"clusters/default/my-cluster/ns-foo/foo.yaml",
+				"clusters/default/foo/kustomization.yaml",
+				"clusters/management/clusters/default/foo.yaml",
 			}),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNames:  []string{"foo"},
@@ -1105,8 +1108,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		{
 			name: "create delete pull request with namespaced cluster names including multiple files in tree",
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
-				"ns-foo/foo.yaml",
-				"clusters/default/my-cluster/ns-foo/foo.yaml",
+				"clusters/ns-foo/foo/kustomization.yaml",
+				"clusters/management/clusters/ns-foo/foo.yaml",
 			}),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
@@ -1271,15 +1274,17 @@ func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, r
 
 	var treeEntries []*gitprovider.TreeEntry
 	for _, filePath := range p.originalFiles {
-		treeEntries = append(treeEntries, &gitprovider.TreeEntry{
-			Path:    filePath,
-			Mode:    "",
-			Type:    "",
-			Size:    0,
-			SHA:     "",
-			Content: "",
-			URL:     "",
-		})
+		if path == "" || (path != "" && strings.HasPrefix(filePath, path)) {
+			treeEntries = append(treeEntries, &gitprovider.TreeEntry{
+				Path:    filePath,
+				Mode:    "",
+				Type:    "",
+				Size:    0,
+				SHA:     "",
+				Content: "",
+				URL:     "",
+			})
+		}
 
 	}
 	return treeEntries, nil

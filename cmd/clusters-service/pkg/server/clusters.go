@@ -284,6 +284,19 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	var filesList []gitprovider.CommitFile
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
+			// Files in manifest path
+			path := getClusterManifestPath(
+				types.NamespacedName{
+					Name:      clusterNamespacedName.Name,
+					Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
+				},
+			)
+			filesList = append(filesList, gitprovider.CommitFile{
+				Path:    &path,
+				Content: nil,
+			})
+
+			// Files in cluster path
 			clusterDirPath := getClusterDirPath(types.NamespacedName{
 				Name:      clusterNamespacedName.Name,
 				Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
@@ -304,6 +317,19 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {
+			//Files in manifest path
+			path := getClusterManifestPath(
+				types.NamespacedName{
+					Name:      clusterName,
+					Namespace: getClusterNamespace(""),
+				},
+			)
+			filesList = append(filesList, gitprovider.CommitFile{
+				Path:    &path,
+				Content: nil,
+			})
+
+			// Files in cluster path
 			clusterDirPath := getClusterDirPath(types.NamespacedName{
 				Name:      clusterName,
 				Namespace: getClusterNamespace(""),
