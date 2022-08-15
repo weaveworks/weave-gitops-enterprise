@@ -9,8 +9,6 @@ import { useListVersion } from '../../hooks/versions';
 import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
-import { MultiRequestError } from '@weaveworks/weave-gitops/ui/lib/types';
-import _ from 'lodash';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
@@ -104,9 +102,7 @@ export const ContentWrapper: FC<Props> = ({
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
-  const filteredErrors = _.uniqBy(errors, error => {
-    [error.clusterName, error.message].join();
-  }) as MultiRequestError[];
+
   if (loading) {
     return (
       <Box marginTop={4}>
@@ -137,7 +133,7 @@ export const ContentWrapper: FC<Props> = ({
           {entitlement}
         </Alert>
       )}
-      <AlertListErrors errors={filteredErrors} />
+      <AlertListErrors errors={errors} />
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
