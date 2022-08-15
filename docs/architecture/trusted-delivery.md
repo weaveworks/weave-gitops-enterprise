@@ -99,8 +99,6 @@ C4Container
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")          
 ```
 
-- Pipelines: enables a user to deliver application changes across different environment in an orchestrated manner. 
-- Progressive Delivery: enables a user to deliver an application change into a given environment in a safe manner to optimise for application availability.
 
 
 ### Application Delivery - Pipelines Capability - Component Diagram
@@ -144,45 +142,6 @@ Next Steps:
 Capability could be seen in action via:
 - In development
 
-#### Progressive Delivery Capability
-
-Progressive Delivery enables a user to deliver an application change into a given environment in a safe manner to optimise for application availability.
-
-It is composed by the following sub-capabilities
-
-![Progressive Delivery](imgs/application-delivery-progressive-delivery.svg)
-
-```mermaid
-C4Component
-      title Application Delivery - Progressive Delivery Domain Component Diagram
-      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
-      Rel(weaveGitopsEnterpriseUi, Canary, "read canaries via api")
-      Rel(weaveGitopsEnterpriseUi, MetricTemplate, "read metric templates via api")
-      Container_Boundary(ProgressiveDelivery, "ProgressiveDelivery") {
-        Component(Canary, "Canary", "golang", "service layer to read flagger canary resources")
-        Component(MetricTemplate, "MetricTemplate", "golang", "service layer to read flagger metric template resources")
-        Rel(Canary, KubernetesApi, "reads canary resources via api")
-        Rel(MetricTemplate, KubernetesApi, "reads metric temaplate resources via api")      
-      }
-      Container_Boundary(Kubernetes, "Kubernetes Cluster") {
-        System_Ext(Flagger, "Flagger","controller that provides the runtime for progressive delivery")
-        System_Ext(KubernetesApi, "Kubernetes API")
-      }
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")       
-```
-
-- canaries: allows to interact with flagger [canaries](https://docs.flagger.app/usage/how-it-works#canary-resource)
-- metrics templates: allow to interact with flagger [metric templates](https://docs.flagger.app/usage/metrics#custom-metrics)
-
-Its api could be seen [here](https://github.com/weaveworks/progressive-delivery/blob/main/api/prog/prog.proto)
-
-Next Steps:
-- [progressive delivery repo](https://github.com/weaveworks/progressive-delivery)
-- [weave gitops enterprise](https://github.com/weaveworks/weave-gitops-enterprise)
-- [user documentation](https://docs.gitops.weave.works/docs/guides/delivery/0)
-
-This capability is available in weave gitops enterprise and could be seen in 
-action in our [demo environments](https://demo-01.wge.dev.weave.works/applications/delivery)
 
 
 
