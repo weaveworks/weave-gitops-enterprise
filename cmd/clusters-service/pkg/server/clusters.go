@@ -284,24 +284,14 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	var filesList []gitprovider.CommitFile
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
-			// Get file paths belonging to the cluster not in the management cluster directory
-			clusterDirPath := getClusterDirPath(
-				types.NamespacedName{
-					Name:      clusterNamespacedName.Name,
-					Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
-				},
-			)
+			clusterDirPath := getClusterDirPath(types.NamespacedName{
+				Name:      clusterNamespacedName.Name,
+				Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
+			})
 
 			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, clusterDirPath, true)
 			if err != nil {
 				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
-			}
-
-			if clusterDirPath == "" {
-				treeEntries, err = filterTreeFilesByClusterName(treeEntries, clusterNamespacedName)
-				if err != nil {
-					return nil, fmt.Errorf("error filtering retrieved tree files in repo: %s@%s: %w", repositoryURL, baseBranch, err)
-				}
 			}
 
 			for _, treeEntry := range treeEntries {
@@ -314,16 +304,22 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {
-			path := getClusterManifestPath(
-				types.NamespacedName{
-					Name:      clusterName,
-					Namespace: getClusterNamespace(""),
-				},
-			)
-			filesList = append(filesList, gitprovider.CommitFile{
-				Path:    &path,
-				Content: nil,
+			clusterDirPath := getClusterDirPath(types.NamespacedName{
+				Name:      clusterName,
+				Namespace: getClusterNamespace(""),
 			})
+
+			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, clusterDirPath, true)
+			if err != nil {
+				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
+			}
+
+			for _, treeEntry := range treeEntries {
+				filesList = append(filesList, gitprovider.CommitFile{
+					Path:    &treeEntry.Path,
+					Content: nil,
+				})
+			}
 		}
 
 	}
@@ -829,18 +825,14 @@ func getClusterDirPath(cluster types.NamespacedName) string {
 
 func getCommonKustomizationPath(cluster types.NamespacedName) string {
 	return filepath.Join(
-		viper.GetString("capi-repository-clusters-path"),
-		cluster.Namespace,
-		cluster.Name,
+		getClusterDirPath(cluster),
 		"clusters-bases-kustomization.yaml",
 	)
 }
 
 func getClusterProfilesPath(cluster types.NamespacedName) string {
 	return filepath.Join(
-		viper.GetString("capi-repository-clusters-path"),
-		cluster.Namespace,
-		cluster.Name,
+		getClusterDirPath(cluster),
 		profiles.ManifestFileName,
 	)
 }
@@ -929,22 +921,6 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 	}
 
 	return clusters, nil
-}
-
-// filterTreeFilesByClusterName filters out tree entries that don't belong to the clustername and namespace given in clusterNamespacedName.
-func filterTreeFilesByClusterName(treeEntries []*gitprovider.TreeEntry, clusterNamespacedName *capiv1_proto.ClusterNamespacedName) ([]*gitprovider.TreeEntry, error) {
-	filteredTreeEntries := []*gitprovider.TreeEntry{}
-	for _, treeEntry := range treeEntries {
-
-		if strings.Contains(treeEntry.Path, clusterNamespacedName.Name) &&
-			strings.Contains(treeEntry.Path, clusterNamespacedName.Namespace) {
-
-			filteredTreeEntries = append(filteredTreeEntries, treeEntry)
-		}
-
-	}
-	return filteredTreeEntries, nil
-
 }
 
 // getManagementCluster returns the management cluster as a gitops cluster

@@ -1047,28 +1047,29 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 			req:  &capiv1_protos.DeleteClustersPullRequestRequest{},
 			err:  errors.New(deleteClustersRequiredErr),
 		},
-		//
-		// -- FIXME: consider checking the contents of git before trying to delete
-		//
-		// {
-		// 	name:     "cluster does not exist",
-		// 	provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
-		// 	req: &capiv1_protos.DeleteClustersPullRequestRequest{
-		// 		ClusterNames:  []string{"foo"},
-		// 		RepositoryUrl: "https://github.com/org/repo.git",
-		// 		HeadBranch:    "feature-02",
-		// 		BaseBranch:    "feature-01",
-		// 		Title:         "Delete Cluster",
-		// 		Description:   "Deletes a cluster",
-		// 		CommitMessage: "Remove cluster manifest",
-		// 	},
-		// },
-		//
+
 		{
 			name:     "create delete pull request",
 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNames:  []string{"foo", "bar"},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-02",
+				BaseBranch:    "feature-01",
+				Title:         "Delete Cluster",
+				Description:   "Deletes a cluster",
+				CommitMessage: "Remove cluster manifest",
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "create delete pull request including multiple files in tree",
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
+				"ns-foo/foo.yaml",
+				"clusters/default/my-cluster/ns-foo/foo.yaml",
+			}),
+			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+				ClusterNames:  []string{"foo"},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-02",
 				BaseBranch:    "feature-01",
@@ -1103,15 +1104,9 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		},
 		{
 			name: "create delete pull request with namespaced cluster names including multiple files in tree",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []CommittedFile{
-				{
-					Path:    "ns-foo/foo.yaml",
-					Content: "",
-				},
-				{
-					Path:    "clusters/default/my-cluster/ns-foo/foo.yaml",
-					Content: "",
-				},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
+				"ns-foo/foo.yaml",
+				"clusters/default/my-cluster/ns-foo/foo.yaml",
 			}),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
@@ -1163,18 +1158,14 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 						nextFile := *fakeGitProvider.committedFiles[j].Path
 						return currFile < nextFile
 					})
-					sort.Slice(fakeGitProvider.originalFiles[:], func(i, j int) bool {
-						currFile := fakeGitProvider.originalFiles[i].Path
-						nextFile := fakeGitProvider.originalFiles[j].Path
-						return currFile < nextFile
-					})
+					sort.Strings(fakeGitProvider.originalFiles)
 
 					if len(fakeGitProvider.committedFiles) != len(fakeGitProvider.originalFiles) {
 						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.committedFiles), len(fakeGitProvider.originalFiles))
 					}
 					for ind, committedFile := range fakeGitProvider.committedFiles {
-						if *committedFile.Path != fakeGitProvider.originalFiles[ind].Path {
-							t.Fatalf("committed file does not match expected file\n%v\n%v", *committedFile.Path, fakeGitProvider.originalFiles[ind].Path)
+						if *committedFile.Path != fakeGitProvider.originalFiles[ind] {
+							t.Fatalf("committed file does not match expected file\n%v\n%v", *committedFile.Path, fakeGitProvider.originalFiles[ind])
 
 						}
 					}
@@ -1223,12 +1214,12 @@ func makeTestGitopsCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv
 	return c
 }
 
-func NewFakeGitProvider(url string, repo *git.GitRepo, err error, originalFiles []CommittedFile) git.Provider {
+func NewFakeGitProvider(url string, repo *git.GitRepo, err error, originalFilesPaths []string) git.Provider {
 	return &FakeGitProvider{
 		url:           url,
 		repo:          repo,
 		err:           err,
-		originalFiles: originalFiles,
+		originalFiles: originalFilesPaths,
 	}
 }
 
@@ -1237,7 +1228,7 @@ type FakeGitProvider struct {
 	repo           *git.GitRepo
 	err            error
 	committedFiles []gitprovider.CommitFile
-	originalFiles  []CommittedFile
+	originalFiles  []string
 }
 
 func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
@@ -1279,14 +1270,14 @@ func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, r
 	}
 
 	var treeEntries []*gitprovider.TreeEntry
-	for _, f := range p.originalFiles {
+	for _, filePath := range p.originalFiles {
 		treeEntries = append(treeEntries, &gitprovider.TreeEntry{
-			Path:    f.Path,
+			Path:    filePath,
 			Mode:    "",
 			Type:    "",
 			Size:    0,
 			SHA:     "",
-			Content: f.Content,
+			Content: "",
 			URL:     "",
 		})
 
