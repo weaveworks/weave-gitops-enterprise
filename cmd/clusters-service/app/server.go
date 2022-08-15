@@ -122,7 +122,6 @@ type Params struct {
 	TLSKey                            string
 	NoTLS                             bool
 	devMode                           bool
-	devUser                           string
 }
 
 type OIDCAuthenticationOptions struct {
@@ -185,7 +184,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	cmd.Flags().BoolVar(&p.devMode, "dev-mode", false, "starts the server in development mode")
-	cmd.Flags().StringVar(&p.devUser, "dev-user", "wego-admin", "sets development mode user")
 
 	return cmd
 }
@@ -417,7 +415,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCAPIEnabled(p.capiEnabled),
 		WithRuntimeNamespace(p.runtimeNamespace),
 		WithDevMode(p.devMode),
-		WithDevUser(p.devUser),
 	)
 }
 
@@ -537,7 +534,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	if args.DevMode {
-		tsv.SetDevMode(args.DevUser)
+		tsv.SetDevMode(args.DevMode)
 	}
 
 	authServerConfig, err := auth.NewAuthServerConfig(

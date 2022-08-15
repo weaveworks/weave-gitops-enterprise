@@ -42,7 +42,7 @@ type Options struct {
 	TLSKey                       string
 	NoTLS                        bool
 	DevMode                      bool
-	DevUser                      string
+	string
 }
 
 type Option func(*Options)
@@ -220,12 +220,5 @@ func WithCAPIEnabled(capiEnabled bool) Option {
 func WithDevMode(devMode bool) Option {
 	return func(o *Options) {
 		o.DevMode = devMode
-	}
-}
-
-// WithDevUser sets the user that will be logged in when running dev. mode
-func WithDevUser(devUser string) Option {
-	return func(o *Options) {
-		o.DevUser = devUser
 	}
 }
