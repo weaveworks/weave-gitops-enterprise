@@ -71,6 +71,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
+	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
@@ -415,6 +416,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCAPIEnabled(p.capiEnabled),
 		WithRuntimeNamespace(p.runtimeNamespace),
 		WithDevMode(p.devMode),
+		WithClientsFactory(clusterClientsFactory),
 	)
 }
 
@@ -501,6 +503,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		Logger:        args.Log,
 	}); err != nil {
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
+	}
+
+	if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
+		ClientsFactory: args.ClientsFactory,
+	}); err != nil {
+		return fmt.Errorf("hydrating pipelines server: %w", err)
 	}
 
 	// UI

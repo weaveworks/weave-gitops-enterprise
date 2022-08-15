@@ -42,6 +42,7 @@ type Options struct {
 	TLSKey                       string
 	NoTLS                        bool
 	DevMode                      bool
+	ClientsFactory               clustersmngr.ClientsFactory
 }
 
 type Option func(*Options)
@@ -219,5 +220,12 @@ func WithCAPIEnabled(capiEnabled bool) Option {
 func WithDevMode(devMode bool) Option {
 	return func(o *Options) {
 		o.DevMode = devMode
+	}
+}
+
+// WithClientFactory defines the clients factory that will be use for cross-cluster queries.
+func WithClientsFactory(factory clustersmngr.ClientsFactory) Option {
+	return func(o *Options) {
+		o.ClientsFactory = factory
 	}
 }

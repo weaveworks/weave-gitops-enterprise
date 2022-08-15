@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -34,10 +36,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	pipectrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
+	pipepb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 )
 
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -45,79 +50,11 @@ var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGl
 func TestWeaveGitOpsHandlers(t *testing.T) {
 	ctx := context.Background()
 	defer ctx.Done()
-
 	password := "my-secret-password"
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	assert.NoError(t, err)
-
 	runtimeNamespace := "flux-system"
+	c := createK8sClient(t, password, runtimeNamespace)
 
-	hashedSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "cluster-user-auth",
-			Namespace: runtimeNamespace,
-		},
-		Data: map[string][]byte{
-			"username": []byte("testsuite"),
-			"password": hashed,
-		},
-	}
-
-	c := createFakeClient(t, createSecret(validEntitlement), hashedSecret)
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		corev1.AddToScheme,
-		capiv1.AddToScheme,
-		sourcev1.AddToScheme,
-	}
-	err = schemeBuilder.AddToScheme(scheme)
-	if err != nil {
-		t.Fatalf("expected no errors but got %v", err)
-	}
-
-	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
-	if err != nil {
-		t.Fatalf("expected no errors but got %v", err)
-	}
-
-	log, err := logger.New("debug", false)
-	if err != nil {
-		t.Fatalf("expected no errors but got %v", err)
-	}
-
-	go func(ctx context.Context) {
-		coreConfig := fakeCoreConfig(t, log)
-		appsConfig := fakeAppsConfig(c, log)
-		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001",
-			app.WithCAPIClustersNamespace("default"),
-			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
-			app.WithKubernetesClient(c),
-			app.WithDiscoveryClient(dc),
-			app.WithCoreConfig(coreConfig),
-			app.WithApplicationsConfig(appsConfig),
-			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(c))),
-			app.WithTemplateLibrary(&templates.CRDLibrary{
-				Log:           log,
-				ClientGetter:  kubefakes.NewFakeClientGetter(c),
-				CAPINamespace: "default",
-			}),
-			app.WithRuntimeNamespace(runtimeNamespace),
-			app.WithGitProvider(git.NewGitProviderService(log)),
-			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
-			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
-		)
-		t.Logf("%v", err)
-	}(ctx)
-
-	jar, err := cookiejar.New(&cookiejar.Options{})
-	assert.NoError(t, err)
-	client := &http.Client{
-		Jar: jar,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
-	time.Sleep(1 * time.Second)
+	client := runServer(t, ctx, c, runtimeNamespace)
 
 	// login
 	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
@@ -139,6 +76,129 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 		t.Fatalf("expected status code to be %d but got %d instead", http.StatusNotFound, res.StatusCode)
 	}
 
+}
+
+func TestPipelinesServer(t *testing.T) {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	password := "my-secret-password"
+	runtimeNamespace := "flux-system"
+	c := createK8sClient(t, password, runtimeNamespace)
+
+	client := runServer(t, ctx, c, runtimeNamespace)
+
+	p := &pipectrl.Pipeline{}
+	p.Name = "my-pipeline"
+	p.Namespace = "flux-system"
+
+	assert.NoError(t, c.Create(ctx, p))
+
+	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res1.StatusCode)
+
+	res, err := client.Get("https://localhost:8001/v1/pipelines")
+	assert.NoError(t, err)
+
+	body, err := ioutil.ReadAll(res.Body)
+	assert.NoError(t, err)
+
+	assert.Equal(t, res.StatusCode, http.StatusOK, string(body))
+
+	msg := pipepb.ListPipelinesResponse{}
+
+	assert.NoError(t, json.Unmarshal(body, &msg))
+
+	assert.Len(t, msg.Pipelines, 1)
+	assert.Equal(t, msg.Pipelines[0].Name, "my-pipeline")
+
+}
+
+func createK8sClient(t *testing.T, pw string, ns string, objects ...runtime.Object) client.Client {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
+	runtimeNamespace := ns
+
+	hashedSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-user-auth",
+			Namespace: runtimeNamespace,
+		},
+		Data: map[string][]byte{
+			"username": []byte("testsuite"),
+			"password": hashed,
+		},
+	}
+
+	objs := []runtime.Object{createSecret(validEntitlement), hashedSecret}
+	objs = append(objs, objects...)
+
+	return createFakeClient(t, objs...)
+}
+
+func runServer(t *testing.T, ctx context.Context, k client.Client, ns string) *http.Client {
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		corev1.AddToScheme,
+		capiv1.AddToScheme,
+		sourcev1.AddToScheme,
+		pipectrl.AddToScheme,
+	}
+
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatalf("expected no errors but got %v", err)
+	}
+
+	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
+	if err != nil {
+		t.Fatalf("expected no errors but got %v", err)
+	}
+
+	log, err := logger.New("debug", false)
+	if err != nil {
+		t.Fatalf("expected no errors but got %v", err)
+	}
+
+	go func(ctx context.Context) {
+		coreConfig := fakeCoreConfig(t, log)
+		appsConfig := fakeAppsConfig(k, log)
+
+		err = app.RunInProcessGateway(ctx, "0.0.0.0:8001",
+			app.WithCAPIClustersNamespace("default"),
+			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
+			app.WithKubernetesClient(k),
+			app.WithDiscoveryClient(dc),
+			app.WithCoreConfig(coreConfig),
+			app.WithApplicationsConfig(appsConfig),
+			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
+			app.WithTemplateLibrary(&templates.CRDLibrary{
+				Log:           log,
+				ClientGetter:  kubefakes.NewFakeClientGetter(k),
+				CAPINamespace: "default",
+			}),
+			app.WithRuntimeNamespace(ns),
+			app.WithGitProvider(git.NewGitProviderService(log)),
+			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
+			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
+			app.WithClientsFactory(pipetesting.MakeClientsFactory(k)),
+		)
+		t.Logf("%v", err)
+	}(ctx)
+
+	jar, err := cookiejar.New(&cookiejar.Options{})
+	assert.NoError(t, err)
+	client := &http.Client{
+		Jar: jar,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	time.Sleep(1 * time.Second)
+
+	return client
 }
 
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
@@ -178,6 +238,7 @@ func createFakeClient(t *testing.T, clusterState ...runtime.Object) client.Clien
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
+		pipectrl.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
