@@ -37,7 +37,7 @@ func TestSetSeparateValues(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -76,7 +76,7 @@ func TestSetMultipleValues(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -112,7 +112,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -129,7 +129,7 @@ func TestSetMultipleAndSeparateValues(t *testing.T) {
 
 func TestEndpointNotSet(t *testing.T) {
 	client := adapters.NewHTTPClient()
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -164,7 +164,7 @@ func TestGitProviderToken(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -183,7 +183,7 @@ func TestGitProviderToken(t *testing.T) {
 func TestGitProviderToken_NoURL(t *testing.T) {
 	client := adapters.NewHTTPClient()
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -201,7 +201,7 @@ func TestGitProviderToken_NoURL(t *testing.T) {
 func TestGitProviderToken_InvalidURL(t *testing.T) {
 	client := adapters.NewHTTPClient()
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -237,7 +237,7 @@ func TestParseProfiles_ValidRequest(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -274,7 +274,7 @@ func TestParseProfiles_InvalidKey(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",
@@ -311,7 +311,7 @@ func TestParseProfiles_InvalidValue(t *testing.T) {
 		},
 	)
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 		"--from-template=cluster-template-eks-fargate",

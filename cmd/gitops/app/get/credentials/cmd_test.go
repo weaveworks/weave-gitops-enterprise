@@ -10,7 +10,7 @@ import (
 
 func TestEndpointNotSet(t *testing.T) {
 	client := adapters.NewHTTPClient()
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"get", "credentials",
 	})

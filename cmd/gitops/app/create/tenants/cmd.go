@@ -28,7 +28,7 @@ type tenantCommandFlags struct {
 
 var flags tenantCommandFlags
 
-var TenantsCommand = &cobra.Command{
+var CreateCommand = &cobra.Command{
 	Use:   "tenants",
 	Short: "Create or update tenant resources",
 	Example: `
@@ -48,18 +48,18 @@ var TenantsCommand = &cobra.Command{
 }
 
 func init() {
-	TenantsCommand.Flags().StringVar(&flags.name, "name", "", "the name of the tenant to be created")
-	TenantsCommand.Flags().StringSliceVar(&flags.namespaces, "namespace", []string{}, "a list of namespaces for the tenant")
-	TenantsCommand.Flags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
-	TenantsCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
-	TenantsCommand.Flags().BoolVar(&flags.skipPreFlightChecks, "skip-preflight-checks", false, "skip preflight checks before creating resources in cluster")
+	CreateCommand.Flags().StringVar(&flags.name, "name", "", "the name of the tenant to be created")
+	CreateCommand.Flags().StringSliceVar(&flags.namespaces, "namespace", []string{}, "a list of namespaces for the tenant")
+	CreateCommand.Flags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
+	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
+	CreateCommand.Flags().BoolVar(&flags.skipPreFlightChecks, "skip-preflight-checks", false, "skip preflight checks before creating resources in cluster")
 
-	cobra.CheckErr(TenantsCommand.MarkFlagRequired("from-file"))
+	cobra.CheckErr(CreateCommand.MarkFlagRequired("from-file"))
 }
 
 func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		tenants := []tenancy.Tenant{}
+		var tenants []tenancy.Tenant
 
 		if flags.fromFile != "" {
 			parsedTenants, err := tenancy.Parse(flags.fromFile)
