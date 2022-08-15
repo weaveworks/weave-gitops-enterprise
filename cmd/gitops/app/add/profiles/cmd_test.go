@@ -13,7 +13,7 @@ var _ = Describe("Add a Profile", func() {
 
 	BeforeEach(func() {
 		client := adapters.NewHTTPClient()
-		cmd = root.RootCmd(client)
+		cmd = root.Command(client)
 	})
 
 	When("the flags are valid", func() {

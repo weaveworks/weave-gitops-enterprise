@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/bcrypt"
 )
 
-func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func Command(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Display one or many Weave GitOps resources",
@@ -28,14 +28,14 @@ gitops get credentials
 gitops get clusters`,
 	}
 
-	templateCommand := templates.TemplateCommand(opts, client)
-	terraformCommand := terraform.TerraformCommand(opts, client)
+	templateCommand := templates.GetCommand(opts, client)
+	terraformCommand := terraform.GetCommand(opts, client)
 	templateCommand.AddCommand(terraformCommand)
 
 	cmd.AddCommand(templateCommand)
-	cmd.AddCommand(credentials.CredentialCommand(opts, client))
-	cmd.AddCommand(clusters.ClusterCommand(opts, client))
-	cmd.AddCommand(profiles.ProfilesCommand(opts, client))
+	cmd.AddCommand(credentials.GetCommand(opts, client))
+	cmd.AddCommand(clusters.GetCommand(opts, client))
+	cmd.AddCommand(profiles.GetCommand(opts, client))
 	cmd.AddCommand(bcrypt.HashCommand(opts))
 
 	return cmd

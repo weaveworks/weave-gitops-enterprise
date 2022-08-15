@@ -25,7 +25,7 @@ type clustersDeleteFlags struct {
 
 var flags clustersDeleteFlags
 
-func ClusterCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func DeleteCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},

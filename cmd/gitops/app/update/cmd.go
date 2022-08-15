@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func UpdateCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func Command(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
 		Short: "Update a Weave GitOps resource",

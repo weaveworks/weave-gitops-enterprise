@@ -10,7 +10,7 @@ import (
 
 func TestEndpointNotSet(t *testing.T) {
 	client := adapters.NewHTTPClient()
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"get", "templates",
 	})
@@ -22,7 +22,7 @@ func TestEndpointNotSet(t *testing.T) {
 func TestProviderIsNotValid(t *testing.T) {
 	client := adapters.NewHTTPClient()
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"get", "template",
 		"--provider",
@@ -36,7 +36,7 @@ func TestProviderIsNotValid(t *testing.T) {
 func TestTemplateNameIsRequired(t *testing.T) {
 	client := adapters.NewHTTPClient()
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"get", "template",
 		"--list-parameters",

@@ -18,7 +18,7 @@ type clustersGetFlags struct {
 
 var clustersGetCmdFlags clustersGetFlags
 
-func ClusterCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},

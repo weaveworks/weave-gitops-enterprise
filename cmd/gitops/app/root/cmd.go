@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/create"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/delete"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/get"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/update"
@@ -39,7 +40,7 @@ func init() {
 	viper.AutomaticEnv()
 }
 
-func RootCmd(client *adapters.HTTPClient) *cobra.Command {
+func Command(client *adapters.HTTPClient) *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,
@@ -103,10 +104,11 @@ func RootCmd(client *adapters.HTTPClient) *cobra.Command {
 	cobra.CheckErr(rootCmd.PersistentFlags().MarkHidden("git-host-types"))
 
 	rootCmd.AddCommand(version.Cmd)
-	rootCmd.AddCommand(get.GetCommand(options, client))
-	rootCmd.AddCommand(add.GetCommand(options, client))
-	rootCmd.AddCommand(update.UpdateCommand(options, client))
-	rootCmd.AddCommand(delete.DeleteCommand(options, client))
+	rootCmd.AddCommand(get.Command(options, client))
+	rootCmd.AddCommand(add.Command(options, client))
+	rootCmd.AddCommand(create.Command())
+	rootCmd.AddCommand(update.Command(options, client))
+	rootCmd.AddCommand(delete.Command(options, client))
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)

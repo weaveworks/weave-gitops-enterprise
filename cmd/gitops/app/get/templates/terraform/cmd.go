@@ -19,7 +19,7 @@ type templateCommandFlags struct {
 
 var flags templateCommandFlags
 
-func TerraformCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "terraform",
 		Aliases: []string{"terraform"},
