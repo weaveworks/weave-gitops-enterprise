@@ -104,7 +104,9 @@ export const ContentWrapper: FC<Props> = ({
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
-  const FilteredErrors = _.uniqBy(errors, 'clusterName') as MultiRequestError[];
+  const filteredErrors = _.uniqBy(errors, error => {
+    [error.clusterName, error.message].join();
+  }) as MultiRequestError[];
   if (loading) {
     return (
       <Box marginTop={4}>
@@ -135,7 +137,7 @@ export const ContentWrapper: FC<Props> = ({
           {entitlement}
         </Alert>
       )}
-      <AlertListErrors errors={FilteredErrors} />
+      <AlertListErrors errors={filteredErrors} />
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
