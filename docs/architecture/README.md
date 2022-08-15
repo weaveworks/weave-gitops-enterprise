@@ -8,3 +8,4 @@ To provide an entry point and high-level overview of weave gitops architecture.
 Business Domains 
 
 - [Application Delivery](application-delivery.md) 
+- [Trusted Delivery](trusted-delivery.md)
