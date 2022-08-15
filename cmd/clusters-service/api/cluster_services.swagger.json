@@ -836,6 +836,10 @@
         },
         "helmRelease": {
           "$ref": "#/definitions/v1HelmRelease"
+        },
+        "filePath": {
+          "type": "string",
+          "title": "A path to write the resource to in the management git repo"
         }
       }
     },
@@ -908,10 +912,6 @@
             "$ref": "#/definitions/v1ClusterAutomation"
           },
           "title": "A list of cluster and kustomization"
-        },
-        "filePath": {
-          "type": "string",
-          "title": "A path to write the resource to in the management git repo"
         }
       }
     },

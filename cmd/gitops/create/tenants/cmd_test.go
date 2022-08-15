@@ -68,7 +68,7 @@ func Test_PreFlightChecks(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "tenant contains policy and crd does not exist",
+			name: "tenant contains allowed repo policy and crd does not exist",
 			tenants: []tenancy.Tenant{
 				{
 					Name:       "test-tenant-01",
@@ -77,6 +77,22 @@ func Test_PreFlightChecks(t *testing.T) {
 						{
 							URL:  "https://github.com/testorg/testrepo",
 							Kind: "GitRepository",
+						},
+					},
+				},
+			},
+			clusterState: []runtime.Object{},
+			expectError:  true,
+		},
+		{
+			name: "tenant contains allowed cluster policy and crd does not exist",
+			tenants: []tenancy.Tenant{
+				{
+					Name:       "test-tenant-01",
+					Namespaces: []string{"test-ns-01"},
+					AllowedClusters: []tenancy.AllowedCluster{
+						{
+							Name: "some-cluster-name",
 						},
 					},
 				},

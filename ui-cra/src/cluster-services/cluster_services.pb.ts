@@ -321,7 +321,6 @@ export type CreateAutomationsPullRequestRequest = {
   commitMessage?: string
   repositoryApiUrl?: string
   clusterAutomations?: ClusterAutomation[]
-  filePath?: string
 }
 
 export type ClusterAutomation = {
@@ -329,6 +328,7 @@ export type ClusterAutomation = {
   isControlPlane?: boolean
   kustomization?: Kustomization
   helmRelease?: HelmRelease
+  filePath?: string
 }
 
 export type Kustomization = {

@@ -29,6 +29,7 @@ type Options struct {
 	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
+	RuntimeNamespace             string
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
@@ -120,6 +121,14 @@ func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
 func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
 	return func(o *Options) {
 		o.ProfilesConfig = profilesConfig
+	}
+}
+
+// WithRuntimeNamespace set the namespace that holds any authentication
+// secrets (e.g. cluster-user-auth or oidc-auth).
+func WithRuntimeNamespace(RuntimeNamespace string) Option {
+	return func(o *Options) {
+		o.RuntimeNamespace = RuntimeNamespace
 	}
 }
 

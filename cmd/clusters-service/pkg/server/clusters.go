@@ -427,7 +427,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
 		if c.Kustomization != nil {
-			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, msg.FilePath)
+			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
 
 			if err != nil {
 				return nil, err
@@ -437,7 +437,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		}
 
 		if c.HelmRelease != nil {
-			helmRelease, err := generateHelmReleaseFile(ctx, c.IsControlPlane, cluster, client, c.HelmRelease, msg.FilePath)
+			helmRelease, err := generateHelmReleaseFile(ctx, c.IsControlPlane, cluster, client, c.HelmRelease, c.FilePath)
 
 			if err != nil {
 				return nil, err
