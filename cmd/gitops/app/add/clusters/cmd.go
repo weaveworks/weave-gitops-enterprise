@@ -33,7 +33,8 @@ type clusterCommandFlags struct {
 
 var flags clusterCommandFlags
 
-func ClusterCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+// AddCommand returns a cobra command that provides support for adding a cluster.
+func AddCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Add a new cluster using a CAPI template",

@@ -12,7 +12,7 @@ import (
 func TestInsecureSkipVerifyFalse(t *testing.T) {
 	client := adapters.NewHTTPClient()
 
-	cmd := root.RootCmd(client)
+	cmd := root.Command(client)
 	cmd.SetArgs([]string{
 		"add", "cluster",
 	})

@@ -66,7 +66,7 @@ func TestGetCluster(t *testing.T) {
 				},
 			)
 
-			cmd := root.RootCmd(client)
+			cmd := root.Command(client)
 			cmd.SetArgs(tt.args)
 
 			err := cmd.Execute()
