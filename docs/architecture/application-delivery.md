@@ -1,9 +1,7 @@
 # Application Delivery 
-
 This document outlines an architecture documentation for Weave Gitops Application Delivery domain.
 
 ## Motivation
-
 As software business, value is delivered to the users or customers by enabling them to do actions.
 That enablement of the user is rarely a thing that happens statically but evolves over time.
 
@@ -24,7 +22,6 @@ You would be interested in know about application delivery domain if
 3. You are not working in the context of the domain nor dependent, but want to understand a bit more
 of the wider weave gitops architecture.
 
-
 ## Glossary
 
 - Application Delivery Domain:
@@ -33,10 +30,14 @@ of the wider weave gitops architecture.
 
 ## Application Delivery Architecture
 
-The document uses [C4 Model](https://c4model.com/) 
+Diagarms are based on [C4 Model](https://c4model.com/)  
 
 ### Weave Gitops Enterprise - Application Delivery Domain - Context Diagram
-//TODO add note
+
+This section shows the context where personas could make use of application delivery capabilities within weave gitops.
+
+![Context Diagram](./imgs/application-delivery-context.svg)
+
 ```mermaid
 C4Context
 
@@ -44,11 +45,12 @@ C4Context
       Person(platformOperator, "Platform Operator")
       Person(developer, "Application Developer")      
       System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
+      System(ignore, "ignore")
 
-      Rel(platformOperator, weaveGitopsEnterprise, "Manages Delivery Capabilities")
+      Rel(platformOperator, weaveGitopsEnterprise, "Manages Platform")
       Rel(developer, weaveGitopsEnterprise, "Delivers Application")
-      Rel(weaveGitopsEnterprise, Git, "sync application and delivery resources from")
-      Rel(weaveGitopsEnterprise, KubernetesCluster, "consumes delivery resources via kubernetes api")
+      Rel(weaveGitopsEnterprise, Git, "sync resources from")
+      Rel(weaveGitopsEnterprise, KubernetesCluster, "read resources via api")
 
       System_Ext(KubernetesCluster, "Kubernetes Cluster")
       System_Ext(Git, "Git") 
