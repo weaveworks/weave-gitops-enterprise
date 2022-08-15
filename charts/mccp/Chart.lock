@@ -4,6 +4,6 @@ dependencies:
   version: 1.0.0
 - name: policy-agent
   repository: https://weaveworks.github.io/policy-agent
-  version: 0.4.2
-digest: sha256:b451491f39121f0530c6c70c5c2d8f6cf827b7ded060a43315639ee65f469e2a
-generated: "2022-08-08T09:22:17.892878331+02:00"
+  version: 0.4.3
+digest: sha256:87b4dea5865cae50a6c6dfeb85f239b8cf7cbc9a4c217a247741ca74ce01f86e
+generated: "2022-08-15T09:24:23.966198961+02:00"
