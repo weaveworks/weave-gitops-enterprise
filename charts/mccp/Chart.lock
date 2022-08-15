@@ -2,5 +2,8 @@ dependencies:
 - name: cluster-controller
   repository: file://../cluster-controller
   version: 1.0.0
-digest: sha256:708fb87f78a71f16c87bd580044c1ced87710f55b88cb86efa3797722756f413
-generated: "2022-05-18T22:48:47.550126+02:00"
+- name: policy-agent
+  repository: https://weaveworks.github.io/policy-agent
+  version: 0.4.3
+digest: sha256:87b4dea5865cae50a6c6dfeb85f239b8cf7cbc9a4c217a247741ca74ce01f86e
+generated: "2022-08-15T09:24:23.966198961+02:00"

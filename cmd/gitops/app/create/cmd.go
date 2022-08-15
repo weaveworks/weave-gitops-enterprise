@@ -2,10 +2,10 @@ package create
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/create/tenants"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/create/tenants"
 )
 
-func CreateCommand() *cobra.Command {
+func Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create new resources",
@@ -14,7 +14,7 @@ func CreateCommand() *cobra.Command {
 gitops create tenants --from-file tenants.yaml`,
 	}
 
-	cmd.AddCommand(tenants.TenantsCommand)
+	cmd.AddCommand(tenants.CreateCommand)
 
 	return cmd
 }

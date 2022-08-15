@@ -4,6 +4,15 @@
 
 How to release a new version of weave-gitops-enterprise
 
+## Make sure dependencies are up to date
+
+In particular:
+- weave-gitops
+- cluster-controller
+- cluster-bootstrap-controller
+
+Check [../CONTRIBUTING.md](../CONTRIBUTING.md) for instructions.
+
 ## Prerequisites
 
 Install [GnuPG](https://gnupg.org/) and [generate a GPG key and add it to your Github account](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key).

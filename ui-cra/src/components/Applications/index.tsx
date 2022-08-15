@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -24,11 +24,11 @@ const WGApplicationsDashboard: FC = () => {
           },
         ]}
       />
-      <ContentWrapper>
+      <ContentWrapper errors={automations?.errors}>
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={automations} />
+          <AutomationsTable automations={automations?.result} />
         )}
       </ContentWrapper>
     </PageTemplate>
