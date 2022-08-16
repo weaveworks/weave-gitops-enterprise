@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -10,7 +10,6 @@ import {
   IconType,
   LoadingPage,
   useListAutomations,
-  applicationsClient,
   theme,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
@@ -31,24 +30,11 @@ const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const applicationsCount = useApplicationsCount();
   const history = useHistory();
-  const { data } = useListConfig();
-  const repositoryURL = data?.repositoryURL || '';
-  const [repoLink, setRepoLink] = useState<string>('');
+  const { repoLink } = useListConfig();
 
   const handleAddApplication = () => {
     history.push('/applications/create');
   };
-
-  useEffect(() => {
-    repositoryURL &&
-      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
-        if (res.provider === 'GitHub') {
-          setRepoLink(repositoryURL + `/pulls`);
-        } else if (res.provider === 'GitLab') {
-          setRepoLink(repositoryURL + `/-/merge_requests`);
-        }
-      });
-  }, [repositoryURL]);
 
   return (
     <PageTemplate documentTitle="WeGO · Applications">
