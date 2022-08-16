@@ -5,7 +5,7 @@ import Alert from '@material-ui/lab/Alert';
 import AlertTitle from '@material-ui/lab/AlertTitle';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { ListItem, ListItemText } from '@material-ui/core';
-import { isArray, uniqBy, sortBy } from 'lodash';
+import { uniqBy, sortBy } from 'lodash';
 
 const useStyles = makeStyles(() =>
   createStyles({
