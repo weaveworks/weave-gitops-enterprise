@@ -10,7 +10,7 @@ import {
 } from '@weaveworks/weave-gitops';
 
 const WGApplicationsDashboard: FC = () => {
-  const { data, isLoading } = useListAutomations();
+  const { data: automations, isLoading } = useListAutomations();
   const applicationsCount = useApplicationsCount();
 
   return (
@@ -24,11 +24,11 @@ const WGApplicationsDashboard: FC = () => {
           },
         ]}
       />
-      <ContentWrapper>
+      <ContentWrapper errors={automations?.errors}>
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={data?.result} />
+          <AutomationsTable automations={automations?.result} />
         )}
       </ContentWrapper>
     </PageTemplate>

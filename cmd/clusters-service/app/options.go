@@ -29,6 +29,7 @@ type Options struct {
 	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
+	RuntimeNamespace             string
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
@@ -40,6 +41,7 @@ type Options struct {
 	TLSCert                      string
 	TLSKey                       string
 	NoTLS                        bool
+	DevMode                      bool
 }
 
 type Option func(*Options)
@@ -123,6 +125,14 @@ func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
 	}
 }
 
+// WithRuntimeNamespace set the namespace that holds any authentication
+// secrets (e.g. cluster-user-auth or oidc-auth).
+func WithRuntimeNamespace(RuntimeNamespace string) Option {
+	return func(o *Options) {
+		o.RuntimeNamespace = RuntimeNamespace
+	}
+}
+
 // WithProfileHelmRepository is used to set the name of the Flux
 // HelmRepository object that will be inspected for Helm charts
 // that include the profile annotation.
@@ -202,5 +212,12 @@ func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 func WithCAPIEnabled(capiEnabled bool) Option {
 	return func(o *Options) {
 		o.CAPIEnabled = capiEnabled
+	}
+}
+
+// WithDevMode starts the server in development mode
+func WithDevMode(devMode bool) Option {
+	return func(o *Options) {
+		o.DevMode = devMode
 	}
 }

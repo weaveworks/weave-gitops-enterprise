@@ -14,8 +14,8 @@ export type Target = {
 }
 
 export type Environment = {
-  namespace?: string
-  clusterRef?: ClusterRef
+  name?: string
+  targets?: Target[]
 }
 
 export type ObjectRef = {
