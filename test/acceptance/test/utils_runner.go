@@ -267,13 +267,13 @@ func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace st
 	// Restart the deployment pods
 	var err error
 	for i := 1; i < 5; i++ {
+		time.Sleep(POLL_INTERVAL_1SECONDS)
 		err = runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
 		if err == nil {
 			// Wait for all the deployments replicas to rolled out successfully
 			err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
 			break
 		}
-		time.Sleep(POLL_INTERVAL_1SECONDS)
 	}
 
 	return err
