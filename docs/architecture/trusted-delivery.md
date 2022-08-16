@@ -3,7 +3,6 @@ This document outlines an architecture documentation for Weave Gitops Trusted De
 
 ## Motivation
 
-//TODO add why trusted delivery within weave gitops business domain
 
 ## Audience
 You would be interested in know about Trusted Delivery Domain if
@@ -14,10 +13,8 @@ of the wider weave gitops architecture.
 
 ## Glossary
 
-//TODO add other and complete existing
 - Trusted Delivery
 - Policy 
-- other terms 
 
 ## Trusted Architecture
 
@@ -77,64 +74,35 @@ C4Container
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")              
 ```
-Looking into Trusted Delivery Domain capabilities we could see the following
-
-![Container Diagram Capabilities](imgs/trusted-delivery-container.svg)
-
-```mermaid
-C4Container
-    title "Application Delivery - Container Diagram - Capabilities"
-    Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
-    Rel(weaveGitopsEnterpriseUi, Pipelines, "uses pipelines api")
-    Rel(weaveGitopsEnterpriseUi, ProgressiveDelivery, "uses progressive delivery api")
-    Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
-      Container(Policy, "Policy", "golang", "provides policy capabilities")
-      Rel(Policy, KubernetesCluster, "read policy resourcess")
-    }
-    Container_Boundary(external, "external") {
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")
-    }
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")          
-```
 
 ### Trusted Delivery - Policy Capabilities - Component Diagram
 
+Looking into Trusted Delivery Domain capabilities we could see the following
 
-It is composed by the following sub-capabilities
-
-![Policy](imgs/trusted-delivery-policy.svg)
+![Component Diagram Capabilities](./imgs/trusted-delivery-container.svg)
 
 ```mermaid
-
 C4Component
-      title Trusted Delivery - Policy Component Diagram
-      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
-      Rel(weaveGitopsEnterpriseUi, Policy, "read policy definitions")
-      Rel(weaveGitopsEnterpriseUi, Violation, "read policy violations")
-      Container_Boundary(Pipelines, "Pipelines") {
-        Component(Policy, "Policy", "golang","policy definitions")
-        Component(Violation, "Violation", "golang","policy violations")
-        Rel(Policy, PolicyRuntime, "enforces policies")
-        Rel(Violation, PolicyRuntime, "created by")
-      }
-      Container_Boundary(Kuberetes, "Kubernetes") {
-        System_Ext(PolicyRuntime, "Policy Runtime")
-      }
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")        
-                    
+    title "Application Delivery - Container Diagram - Capabilities"
+    Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
+    Rel(weaveGitopsEnterpriseUi, Policy, "uses policy api")
+    Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
+      Container(Policy, "Policy", "golang", "provides policy capabilities")
+      Rel(Policy, KubernetesApi, "read policy resourcess")
+    }
+    Container_Boundary(KubernetesCluster, "KubernetesCluster") {
+      Component(KubernetesApi, "Kubernetes Api")
+      Component(PolicyAgent, "Policy Agent")
+      Rel(PolicyAgent, KubernetesApi, "enforce policies from")
+    }
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")          
 ```
-
-- policy definitions 
-- policy violations
-
-//TODO add policy api
-Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/af0da2a895d205d837d1c7afaf29977225e01957/api/pipelines/pipelines.proto)
+Its api could be found [here](https://github.com/weaveworks/policy-agent/tree/dev/api)
 
 Next Steps:
-//TODO REVIEW
 - [code](https://github.com/weaveworks/weave-gitops-enterprise)
+- [policy agent repo](https://github.com/weaveworks/policy-agent)
 - [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
-
 
 
 
