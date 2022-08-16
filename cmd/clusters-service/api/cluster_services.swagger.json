@@ -773,6 +773,23 @@
         },
         "status": {
           "$ref": "#/definitions/v1CapiClusterStatus"
+        },
+        "infrastructureRef": {
+          "$ref": "#/definitions/v1CapiClusterInfrastructureRef"
+        }
+      }
+    },
+    "v1CapiClusterInfrastructureRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },

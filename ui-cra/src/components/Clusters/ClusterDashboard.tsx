@@ -19,7 +19,7 @@ import {
   Button as WeaveButton,
   KubeStatusIndicator,
 } from '@weaveworks/weave-gitops';
-import { Box, Button, Typography } from '@material-ui/core';
+import { Box, Button,Typography} from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
 import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
@@ -36,6 +36,11 @@ const ClusterDashbordWrapper = styled.div`
     padding: 0;
   }
 `;
+const ClusterInfrastructureWrapper = styled.div`
+  .cluster-infrastructure {
+    padding: 0;
+  }
+`;
 
 const ClusterDashboard = ({ clusterName }: Props) => {
   const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
@@ -44,6 +49,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     useState<GitopsClusterEnriched | null>(null);
   const { path } = useRouteMatch();
   const labels = currentCluster?.labels || {};
+  const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef || {}
   const dashboardAnnotations = getDashboardAnnotations(
     currentCluster as GitopsClusterEnriched,
   );
@@ -65,6 +71,8 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     ],
     ['Namespace', currentCluster?.namespace],
   ];
+
+  const infrastructureRefInfo = infrastructureRef? [['Kind', infrastructureRef?.kind]] :[];
 
   useEffect(
     () => setCurrentCluster(getCluster(clusterName)),
@@ -146,6 +154,17 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                     status={currentCluster?.capiCluster?.status}
                   />
                 </Box>
+                {Object.keys(infrastructureRef).length > 0 ? (
+                  <>
+                  <Divider variant="middle" />
+                    <Box margin={2}>
+                      <Typography variant="h6" gutterBottom component="div">
+                        Infrastructure
+                      </Typography>
+                      <InfoList items={infrastructureRefInfo as [string, any][]} />
+                    </Box>
+                  </>
+                ) : null}
               </ClusterDashbordWrapper>
             </RouterTab>
           </SubRouterTabs>
