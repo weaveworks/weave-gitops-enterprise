@@ -20,14 +20,15 @@ require (
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.24.2
-	k8s.io/apimachinery v0.24.2
-	k8s.io/cli-runtime v0.24.2 // indirect
+	k8s.io/apimachinery v0.24.3
+	k8s.io/cli-runtime v0.24.2
 	k8s.io/client-go v0.24.2
-	sigs.k8s.io/controller-runtime v0.12.1
+	sigs.k8s.io/controller-runtime v0.12.3
 )
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
+	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.6.0
 	github.com/fluxcd/helm-controller/api v0.22.1
@@ -35,11 +36,13 @@ require (
 	github.com/fluxcd/pkg/apis/meta v0.14.2
 	github.com/fluxcd/pkg/runtime v0.16.2
 	github.com/fluxcd/source-controller/api v0.26.0
+	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.2
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/jarcoal/httpmock v1.0.8
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/spf13/pflag v1.0.5
@@ -65,9 +68,19 @@ require (
 )
 
 require (
+	github.com/alecthomas/colour v0.0.0-20160524082231-60882d9e2721 // indirect
+	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
+)
+
+require (
 	github.com/bufbuild/connect-go v0.2.0 // indirect
+	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/fluxcd/flux2 v0.31.3 // indirect
+	github.com/fluxcd/pkg/kustomize v0.5.2 // indirect
+	github.com/fluxcd/pkg/untar v0.1.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
@@ -75,12 +88,19 @@ require (
 	github.com/jdxcode/netrc v0.0.0-20210204082910-926c7f70242a // indirect
 	github.com/jhump/protocompile v0.0.0-20220216033700-d705409f108f // indirect
 	github.com/jhump/protoreflect v1.12.1-0.20220721211354-060cc04fc18b // indirect
+	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
+	github.com/manifoldco/promptui v0.9.0 // indirect
+	github.com/minio/md5-simd v1.1.0 // indirect
+	github.com/minio/minio-go/v7 v7.0.31 // indirect
+	github.com/minio/sha256-simd v0.1.1 // indirect
 	github.com/moby/buildkit v0.10.3 // indirect
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pkg/profile v1.6.0 // indirect
 	github.com/rs/cors v1.8.2 // indirect
+	github.com/rs/xid v1.2.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/weaveworks/pipeline-controller/api v0.0.0-20220811104203-03b0aca0dc3a
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.33.0 // indirect
 	go.opentelemetry.io/otel v1.8.0 // indirect
@@ -101,7 +121,7 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/Masterminds/semver/v3 v3.1.1 // indirect
+	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/Masterminds/squirrel v1.5.3 // indirect
@@ -169,7 +189,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/helm/helm v2.17.0+incompatible // indirect
+	github.com/helm/helm v2.17.0+incompatible
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect

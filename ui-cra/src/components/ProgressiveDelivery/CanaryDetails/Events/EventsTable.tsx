@@ -35,7 +35,6 @@ export const EventsTable = ({ events }: { events: Event[] }) => {
             label: 'Last Updated',
             value: (e: Event) => moment(e.timestamp).fromNow() || '--',
             defaultSort: true,
-
             sortValue: (e: Event) => {
               const t = e.timestamp && new Date(e.timestamp);
               // Invert the timestamp so the default sort shows the most recent first
