@@ -100,10 +100,10 @@ service ClustersService {
   }
 
   // Creates a pull request for the given list of Kustomizations.
-  rpc CreateKustomizationsPullRequest(CreateKustomizationsPullRequestRequest)
-      returns (CreateKustomizationsPullRequestResponse) {
+  rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest)
+      returns (CreateAutomationsPullRequestResponse) {
     option (google.api.http) = {
-      post : "/v1/enterprise/kustomizations"
+      post : "/v1/enterprise/automations"
       body : "*"
     };
   }
@@ -309,26 +309,6 @@ message CreatePullRequestResponse {
   string web_url = 1;
 }
 
-message Kustomization {
-  Metadata metadata = 1;
-  Spec spec = 2;
-}
-
-message Metadata {
-  string name = 1;
-  string namespace = 2;
-}
-
-message Spec {
-  string path = 1;
-  SourceRef source_ref = 2;
-}
-
-message SourceRef {
-  string name = 1;
-  string namespace = 2;
-}
-
 message CreateTfControllerPullRequestRequest {
   // The repository to use.
   string repository_url = 1;
@@ -490,7 +470,7 @@ message GetEnterpriseVersionResponse {
   string version = 1;
 }
 
-message CreateKustomizationsPullRequestRequest {
+message CreateAutomationsPullRequestRequest {
   // The repository to use.
   string repository_url = 1;
   // The new branch that will be created.
@@ -506,16 +486,58 @@ message CreateKustomizationsPullRequestRequest {
   // The repo api url.
   string repository_api_url = 7;
   // A list of cluster and kustomization
-  repeated ClusterKustomization cluster_kustomizations = 8;
+  repeated ClusterAutomation cluster_automations = 8;
 }
 
-message ClusterKustomization {
+message ClusterAutomation {
   ClusterNamespacedName cluster = 1;
   bool is_control_plane = 2;
   Kustomization kustomization = 3;
+  HelmRelease helm_release = 4;
+  // A path to write the resource to in the management git repo
+  string file_path = 5;
 }
 
-message CreateKustomizationsPullRequestResponse {
+message Kustomization {
+  Metadata metadata = 1;
+  KustomizationSpec spec = 2;
+}
+
+message KustomizationSpec {
+  string path = 1;
+  SourceRef source_ref = 2;
+}
+
+message HelmRelease {
+  Metadata metadata = 1;
+  HelmReleaseSpec spec = 2;
+}
+
+message HelmReleaseSpec {
+  Chart chart = 1;
+  string values = 2;
+}
+
+message Chart {
+  ChartSpec spec = 1;
+}
+
+message ChartSpec {
+  string chart = 1;
+  SourceRef source_ref = 2;
+}
+
+message Metadata {
+  string name = 1;
+  string namespace = 2;
+}
+
+message SourceRef {
+  string name = 1;
+  string namespace = 2;
+}
+
+message CreateAutomationsPullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
 }
