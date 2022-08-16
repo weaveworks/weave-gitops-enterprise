@@ -78,6 +78,10 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					Eventually(violationInfo.Severity).Should(MatchText(violationSeverity), fmt.Sprintf("Failed to have expected vioilation Severity: %s", violationSeverity))
 				})
 
+				By(fmt.Sprintf("And verify '%s' violation Validated Policy", policyName), func() {
+					Eventually(violationInfo.ValidatedPolicy).Should(MatchText(policyName), fmt.Sprintf("Failed to have expected vioilation Valodate Policy: %s", policyName))
+				})
+
 				By(fmt.Sprintf("And verify '%s' violation cluster", policyName), func() {
 					Eventually(violationInfo.Cluster).Should(MatchText(voliationClusterName), fmt.Sprintf("Failed to have expected violation cluster name: %s", voliationClusterName))
 				})
@@ -228,6 +232,10 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					Eventually(violationInfo.Severity).Should(MatchText(violationSeverity), fmt.Sprintf("Failed to have expected vioilation Severity: %s", violationSeverity))
 				})
 
+				By(fmt.Sprintf("And verify '%s' violation Validated Policy", policyName), func() {
+					Eventually(violationInfo.ValidatedPolicy).Should(MatchText(policyName), fmt.Sprintf("Failed to have expected vioilation Valodate Policy: %s", policyName))
+				})
+
 				By(fmt.Sprintf("And verify '%s' violation cluster", policyName), func() {
 					Eventually(violationInfo.Cluster).Should(MatchText(leafClusterNamespace+`/`+leafClusterName), fmt.Sprintf("Failed to have expected violation cluster name: %s", leafClusterNamespace+`/`+leafClusterName))
 				})
@@ -237,7 +245,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And navigate to '%s' Violation page", policyName), func() {
-					Eventually(violationInfo.Message.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+					Eventually(violationInfo.NameMgmtUI.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 				})
 
 				violationDetailPage := pages.GetViolationDetailPage(webDriver)
