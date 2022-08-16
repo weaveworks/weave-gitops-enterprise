@@ -75,8 +75,8 @@ func Test_CreateTenants(t *testing.T) {
 							"bar-tenant",
 							[]string{"bar-ns", "foobar-ns"},
 							[]AllowedCluster{
-								{Name: "cluster-1-kubeconfig"},
-								{Name: "cluster-2-kubeconfig"},
+								{KubeConfig: "cluster-1-kubeconfig"},
+								{KubeConfig: "cluster-2-kubeconfig"},
 							},
 							map[string]string{
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
@@ -117,7 +117,7 @@ func Test_CreateTenants(t *testing.T) {
 						"bar-tenant",
 						[]string{"bar-ns", "foobar-ns"},
 						[]AllowedCluster{
-							{Name: "cluster-3-kubeconfig"},
+							{KubeConfig: "cluster-3-kubeconfig"},
 						},
 						map[string]string{
 							"toolkit.fluxcd.io/tenant": "bar-tenant",
@@ -168,8 +168,8 @@ func Test_CreateTenants(t *testing.T) {
 							"bar-tenant",
 							[]string{"bar-ns", "foobar-ns"},
 							[]AllowedCluster{
-								{Name: "cluster-1-kubeconfig"},
-								{Name: "cluster-2-kubeconfig"},
+								{KubeConfig: "cluster-1-kubeconfig"},
+								{KubeConfig: "cluster-2-kubeconfig"},
 							},
 							map[string]string{
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
@@ -528,7 +528,7 @@ func Test_newAllowedClustersPolicy(t *testing.T) {
 	pol, err := newAllowedClustersPolicy(
 		"test-tenant",
 		namespaces,
-		[]AllowedCluster{{Name: "demo-kubeconfig"}},
+		[]AllowedCluster{{KubeConfig: "demo-kubeconfig"}},
 		labels,
 	)
 	if err != nil {
