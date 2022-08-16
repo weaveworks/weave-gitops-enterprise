@@ -168,26 +168,6 @@ export type CreatePullRequestResponse = {
   webUrl?: string
 }
 
-export type Kustomization = {
-  metadata?: Metadata
-  spec?: Spec
-}
-
-export type Metadata = {
-  name?: string
-  namespace?: string
-}
-
-export type Spec = {
-  path?: string
-  sourceRef?: SourceRef
-}
-
-export type SourceRef = {
-  name?: string
-  namespace?: string
-}
-
 export type CreateTfControllerPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
@@ -332,7 +312,7 @@ export type GetEnterpriseVersionResponse = {
   version?: string
 }
 
-export type CreateKustomizationsPullRequestRequest = {
+export type CreateAutomationsPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
   baseBranch?: string
@@ -340,16 +320,57 @@ export type CreateKustomizationsPullRequestRequest = {
   description?: string
   commitMessage?: string
   repositoryApiUrl?: string
-  clusterKustomizations?: ClusterKustomization[]
+  clusterAutomations?: ClusterAutomation[]
 }
 
-export type ClusterKustomization = {
+export type ClusterAutomation = {
   cluster?: ClusterNamespacedName
   isControlPlane?: boolean
   kustomization?: Kustomization
+  helmRelease?: HelmRelease
+  filePath?: string
 }
 
-export type CreateKustomizationsPullRequestResponse = {
+export type Kustomization = {
+  metadata?: Metadata
+  spec?: KustomizationSpec
+}
+
+export type KustomizationSpec = {
+  path?: string
+  sourceRef?: SourceRef
+}
+
+export type HelmRelease = {
+  metadata?: Metadata
+  spec?: HelmReleaseSpec
+}
+
+export type HelmReleaseSpec = {
+  chart?: Chart
+  values?: string
+}
+
+export type Chart = {
+  spec?: ChartSpec
+}
+
+export type ChartSpec = {
+  chart?: string
+  sourceRef?: SourceRef
+}
+
+export type Metadata = {
+  name?: string
+  namespace?: string
+}
+
+export type SourceRef = {
+  name?: string
+  namespace?: string
+}
+
+export type CreateAutomationsPullRequestResponse = {
   webUrl?: string
 }
 
@@ -498,8 +519,8 @@ export class ClustersService {
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
-  static CreateKustomizationsPullRequest(req: CreateKustomizationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateKustomizationsPullRequestResponse> {
-    return fm.fetchReq<CreateKustomizationsPullRequestRequest, CreateKustomizationsPullRequestResponse>(`/v1/enterprise/kustomizations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static CreateAutomationsPullRequest(req: CreateAutomationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateAutomationsPullRequestResponse> {
+    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/enterprise/automations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
