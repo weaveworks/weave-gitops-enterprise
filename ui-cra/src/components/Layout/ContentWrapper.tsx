@@ -12,6 +12,7 @@ import { AlertListErrors } from './AlertListErrors';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
+const base = theme.spacing.base;
 const medium = theme.spacing.medium;
 const large = theme.spacing.large;
 
@@ -29,8 +30,8 @@ export const PageWrapper = styled.div`
 `;
 
 export const contentCss = css`
-  margin: ${medium} ${small} 0 ${small};
-  padding: ${large} ${medium} ${medium} ${large};
+  margin: ${xs} ${base};
+  padding: ${medium};
   background-color: ${theme.colors.white};
   border-radius: ${xs};
 `;

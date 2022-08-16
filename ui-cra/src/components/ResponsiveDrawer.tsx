@@ -111,7 +111,7 @@ const useStyles = makeStyles((theme: Theme) =>
       overflowY: 'hidden',
       width: drawerWidth,
       border: 'none',
-      background: weaveTheme.colors.neutral10,
+      background: 'none',
     },
     content: {
       flexGrow: 1,
@@ -214,7 +214,7 @@ const App = () => {
                 keepMounted: true, // Better open performance on mobile.
               }}
             >
-              <div className={classes.toolbar}>
+              <div>
                 <Navigation />
               </div>
             </Drawer>
@@ -227,9 +227,7 @@ const App = () => {
               variant="permanent"
               open
             >
-              <div className={classes.toolbar}>
-                <Navigation />
-              </div>
+              <Navigation />
             </Drawer>
           </Hidden>
         </nav>

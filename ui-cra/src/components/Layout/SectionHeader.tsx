@@ -14,7 +14,6 @@ const Wrapper = styled.div<Size>`
   color: ${({ size }) =>
     size === 'small' ? theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
-  background: ${theme.colors.primary};
   height: ${80}px;
   flex-grow: 1;
   padding-left: ${theme.spacing.large};
@@ -24,6 +23,14 @@ const Wrapper = styled.div<Size>`
 
   .MuiListItemIcon-root {
     min-width: 30px;
+  }
+`;
+
+
+// This should be removed once CORE change the icon in UserSettings 
+const CustomUserSettings = styled(UserSettings)`
+  svg {
+    fill: ${({ theme }) => theme.colors.primary} !important;
   }
 `;
 
@@ -43,7 +50,7 @@ export const SectionHeader: FC<Props> = ({
     <Wrapper className={className} size={size}>
       {path ? <Breadcrumbs path={path} /> : null}
       {children}
-      <UserSettings />
+      <CustomUserSettings />
     </Wrapper>
   );
 };

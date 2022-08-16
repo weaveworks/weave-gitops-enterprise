@@ -8,13 +8,15 @@ import { ListItem, ListItemText } from '@material-ui/core';
 import { MultiRequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { uniqBy } from 'lodash';
 
+const xs = theme.spacing.xs;
+const base = theme.spacing.base;
+
 const useStyles = makeStyles(() =>
   createStyles({
     alertWrapper: {
-      margin: `${theme.spacing.medium} ${theme.spacing.small} 0 ${theme.spacing.small} `,
-      paddingRight: theme.spacing.medium,
-      paddingLeft: theme.spacing.medium,
-      borderRadius: theme.spacing.xs,
+      padding: base,
+      margin: `${xs} ${base}`,
+      borderRadius: '10px',
     },
     warning: {
       backgroundColor: theme.colors.feedbackLight,

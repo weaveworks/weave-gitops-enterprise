@@ -28,7 +28,7 @@ export const muiTheme = createTheme({
       },
       paper: {
         padding: 0,
-        backgroundColor: weaveTheme.colors.white,
+        // backgroundColor: weaveTheme.colors.white,
       },
     },
     MuiDialogActions: {
