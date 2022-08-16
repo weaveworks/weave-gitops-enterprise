@@ -7,12 +7,12 @@ export const useApplicationsCount = (): number => {
 };
 
 export const useSourcesCount = (): number => {
-  const { data: sources } = useListSources(undefined,undefined, {});
+  const { data: sources } = useListSources(undefined, undefined, {});
   return sources?.result?.length || 0;
 };
 
 export const AddApplicationRequest = ({ ...data }, token: string) => {
-  return request('POST', `/v1/enterprise/kustomizations`, {
+  return request('POST', `/v1/enterprise/automations`, {
     body: JSON.stringify(data),
     headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
   });

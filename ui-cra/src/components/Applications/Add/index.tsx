@@ -90,7 +90,7 @@ const AddApplication = () => {
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
-      clusterKustomizations: [
+      clusterAutomations: [
         {
           cluster: {
             name: formData.cluster_name,
