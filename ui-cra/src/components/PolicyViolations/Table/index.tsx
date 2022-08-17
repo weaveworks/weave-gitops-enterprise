@@ -20,11 +20,13 @@ export enum FieldsType {
 interface Props {
   violations: PolicyValidation[];
   tableType?: FieldsType;
+  sourcePath?: string;
 }
 
 export const PolicyViolationsTable: FC<Props> = ({
   violations,
   tableType = FieldsType.policy,
+  sourcePath
 }) => {
   const initialFilterState = {
     ...filterConfig(violations, 'severity'),
@@ -86,7 +88,7 @@ export const PolicyViolationsTable: FC<Props> = ({
       label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
+          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}&source=applications&sourcePath=${sourcePath}`}
           className={classes.link}
           data-violation-message={message}
         >
@@ -126,11 +128,13 @@ export const PolicyViolationsTable: FC<Props> = ({
 interface PolicyViolationsListProp {
   req: ListPolicyValidationsRequest;
   tableType?: FieldsType;
+  sourcePath?: string;
 }
 
 export const PolicyViolationsList = ({
   req,
   tableType,
+  sourcePath
 }: PolicyViolationsListProp) => {
   const { data, error, isLoading } = useListPolicyValidations(req);
 
@@ -142,6 +146,7 @@ export const PolicyViolationsList = ({
         <PolicyViolationsTable
           violations={data?.violations || []}
           tableType={tableType}
+          sourcePath={sourcePath}
         />
       )}
     </>
