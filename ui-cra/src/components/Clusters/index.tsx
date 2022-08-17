@@ -23,7 +23,6 @@ import {
   LoadingPage,
   KubeStatusIndicator,
   statusSortHelper,
-  applicationsClient,
 } from '@weaveworks/weave-gitops';
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -131,9 +130,8 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const { data } = useListConfig();
+  const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
-  const [repoLink, setRepoLink] = useState<string>('');
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
@@ -249,17 +247,6 @@ const MCCP: FC = () => {
 
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
-
-  useEffect(() => {
-    repositoryURL &&
-      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
-        if (res.provider === 'GitHub') {
-          setRepoLink(repositoryURL + `/pulls`);
-        } else if (res.provider === 'GitLab') {
-          setRepoLink(repositoryURL + `/-/merge_requests`);
-        }
-      });
-  }, [repositoryURL]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>

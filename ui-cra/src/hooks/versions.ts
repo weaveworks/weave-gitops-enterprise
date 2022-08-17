@@ -1,4 +1,5 @@
-import { useContext } from 'react';
+import { applicationsClient } from '@weaveworks/weave-gitops';
+import { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
@@ -14,5 +15,24 @@ export function useListVersion() {
 
 export function useListConfig() {
   const { api } = useContext(EnterpriseClientContext);
-  return useQuery<GetConfigResponse, Error>('config', () => api.GetConfig({}));
+  const [repoLink, setRepoLink] = useState<string>('');
+  const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
+    api.GetConfig({}),
+  );
+  const repositoryURL = queryResponse?.data?.repositoryURL || '';
+  useEffect(() => {
+    repositoryURL &&
+      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+        if (res.provider === 'GitHub') {
+          setRepoLink(repositoryURL + `/pulls`);
+        } else if (res.provider === 'GitLab') {
+          setRepoLink(repositoryURL + `/-/merge_requests`);
+        }
+      });
+  }, [repositoryURL]);
+
+  return {
+    ...queryResponse,
+    repoLink,
+  };
 }
