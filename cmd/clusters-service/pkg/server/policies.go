@@ -12,7 +12,6 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -74,7 +73,7 @@ func getPolicyParamValue(param pacv2beta1.PolicyParameters, policyID string) (*a
 	return anyValue, nil
 }
 
-func toPolicyResponse(policyCRD pacv2beta1.Policy, clusterName string, tenant string) (*capiv1_proto.Policy, error) {
+func toPolicyResponse(policyCRD pacv2beta1.Policy, clusterName string) (*capiv1_proto.Policy, error) {
 	policySpec := policyCRD.Spec
 
 	var policyLabels []*capiv1_proto.PolicyTargetLabel
@@ -123,7 +122,7 @@ func toPolicyResponse(policyCRD pacv2beta1.Policy, clusterName string, tenant st
 		Parameters:  policyParams,
 		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
 		ClusterName: clusterName,
-		Tenant: 	 tenant, 
+		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
 	}
 
 	return policy, nil
@@ -169,8 +168,6 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		lists = map[string][]client.ObjectList{m.ClusterName: {list}}
 	}
 
-	clusterUserNamespaces := s.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
-
 	var policies []*capiv1_proto.Policy
 	for clusterName, lists := range lists {
 		for _, l := range lists {
@@ -179,9 +176,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				continue
 			}
 			for i := range list.Items {
-				tenant := core.GetTenant(list.Items[i].Namespace, clusterName, clusterUserNamespaces)
-
-				policy, err := toPolicyResponse(list.Items[i], clusterName, tenant)
+				policy, err := toPolicyResponse(list.Items[i], clusterName)
 				if err != nil {
 					return nil, err
 				}
@@ -213,11 +208,7 @@ func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest
 		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
 	}
 
-	clusterUserNamespaces := s.clientsFactory.GetUserNamespaces(auth.Principal(ctx))
-
-	tenant := core.GetTenant(policyCR.Namespace, m.ClusterName, clusterUserNamespaces)
-
-	policy, err := toPolicyResponse(policyCR, m.ClusterName, tenant)
+	policy, err := toPolicyResponse(policyCR, m.ClusterName)
 	if err != nil {
 		return nil, err
 	}
