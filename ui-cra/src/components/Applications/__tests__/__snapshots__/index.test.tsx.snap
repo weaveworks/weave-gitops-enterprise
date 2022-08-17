@@ -35,9 +35,9 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c8 svg {
-  fill: !important;
-  height: 24px;
-  width: 24px;
+  fill: #fff !important;
+  height: 32px;
+  width: 32px;
 }
 
 .c8.downward {
@@ -87,15 +87,6 @@ exports[`Applications index test snapshots loading 1`] = `
   border-color: #d8d8d8;
 }
 
-.c6.MuiIconButton-root {
-  background-color: #fff;
-}
-
-.c6.MuiIconButton-root:hover {
-  background-color: #fff;
-  color: #009CCC;
-}
-
 .c5 {
   padding-right: 12px;
 }
@@ -106,8 +97,8 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c9 {
-  margin: 24px 12px 0 12px;
-  padding: 32px 24px 24px 32px;
+  margin: 8px 16px;
+  padding: 24px;
   background-color: #fff;
   border-radius: 8px;
 }
@@ -196,6 +187,10 @@ exports[`Applications index test snapshots loading 1`] = `
   min-width: 30px;
 }
 
+.c6 svg {
+  fill: #00b3ec !important;
+}
+
 .c10 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -244,7 +239,7 @@ exports[`Applications index test snapshots loading 1`] = `
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c6"
+          class="MuiButtonBase-root MuiIconButton-root"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -262,7 +257,7 @@ exports[`Applications index test snapshots loading 1`] = `
                 viewBox="0 0 24 24"
               >
                 <path
-                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
                 />
               </svg>
             </div>
@@ -535,9 +530,9 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c8 svg {
-  fill: !important;
-  height: 24px;
-  width: 24px;
+  fill: #fff !important;
+  height: 32px;
+  width: 32px;
 }
 
 .c8.downward {
@@ -554,6 +549,7 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c8 .c30 {
   margin-left: 4px;
+  color: #fff;
 }
 
 .c12 svg {
@@ -643,8 +639,8 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c19.MuiButton-root {
   border-radius: 50%;
-  min-width: 38px;
-  height: 38px;
+  min-width: 48px;
+  height: 48px;
   padding: 0;
 }
 
@@ -801,15 +797,6 @@ exports[`Applications index test snapshots success 1`] = `
   word-wrap: break-word;
 }
 
-.c6.MuiIconButton-root {
-  background-color: #fff;
-}
-
-.c6.MuiIconButton-root:hover {
-  background-color: #fff;
-  color: #009CCC;
-}
-
 .c5 {
   padding-right: 12px;
 }
@@ -820,8 +807,8 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c9 {
-  margin: 24px 12px 0 12px;
-  padding: 32px 24px 24px 32px;
+  margin: 8px 16px;
+  padding: 24px;
   background-color: #fff;
   border-radius: 8px;
 }
@@ -910,6 +897,10 @@ exports[`Applications index test snapshots success 1`] = `
   min-width: 30px;
 }
 
+.c6 svg {
+  fill: #00b3ec !important;
+}
+
 .c10 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -958,7 +949,7 @@ exports[`Applications index test snapshots success 1`] = `
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c6"
+          class="MuiButtonBase-root MuiIconButton-root"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -976,7 +967,7 @@ exports[`Applications index test snapshots success 1`] = `
                 viewBox="0 0 24 24"
               >
                 <path
-                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
                 />
               </svg>
             </div>
