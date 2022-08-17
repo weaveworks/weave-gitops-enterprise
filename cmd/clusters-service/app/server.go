@@ -121,6 +121,7 @@ type Params struct {
 	TLSCert                           string
 	TLSKey                            string
 	NoTLS                             bool
+	devMode                           bool
 }
 
 type OIDCAuthenticationOptions struct {
@@ -181,6 +182,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+
+	cmd.Flags().BoolVar(&p.devMode, "dev-mode", false, "starts the server in development mode")
 
 	return cmd
 }
@@ -411,6 +414,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 		WithCAPIEnabled(p.capiEnabled),
 		WithRuntimeNamespace(p.runtimeNamespace),
+		WithDevMode(p.devMode),
 	)
 }
 
@@ -527,6 +531,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if args.OIDC.IssuerURL != "" {
 		authMethods[auth.OIDC] = true
+	}
+
+	if args.DevMode {
+		tsv.SetDevMode(args.DevMode)
 	}
 
 	authServerConfig, err := auth.NewAuthServerConfig(
