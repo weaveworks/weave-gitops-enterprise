@@ -455,6 +455,7 @@ message Parameter {
   string description = 2;
   bool required = 3;
   repeated string options = 4;
+  string default = 5;
 }
 
 message TemplateProfile {

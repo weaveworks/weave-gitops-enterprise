@@ -2976,6 +2976,7 @@ type Parameter struct {
 	Description string   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	Required    bool     `protobuf:"varint,3,opt,name=required,proto3" json:"required,omitempty"`
 	Options     []string `protobuf:"bytes,4,rep,name=options,proto3" json:"options,omitempty"`
+	Default     string   `protobuf:"bytes,5,opt,name=default,proto3" json:"default,omitempty"`
 }
 
 func (x *Parameter) Reset() {
@@ -3036,6 +3037,13 @@ func (x *Parameter) GetOptions() []string {
 		return x.Options
 	}
 	return nil
+}
+
+func (x *Parameter) GetDefault() string {
+	if x != nil {
+		return x.Default
+	}
+	return ""
 }
 
 type TemplateProfile struct {
