@@ -427,8 +427,6 @@ message CapiClusterInfrastructureRef {
   string name = 3;
 }
 
-
-
 message GitopsClusterRef { string name = 1; }
 
 message Credential {
