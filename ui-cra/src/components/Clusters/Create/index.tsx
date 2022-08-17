@@ -34,6 +34,7 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useListConfig } from '../../../hooks/versions';
+import { ApplicationsWrapper } from './Form/Partials/ApplicationsWrapper';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -112,6 +113,7 @@ const AddCluster: FC = () => {
     pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
+    kustomization: [],
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -363,6 +365,15 @@ const AddCluster: FC = () => {
                   setSelectedProfiles={setSelectedProfiles}
                 />
               )}
+              <Grid item xs={12} sm={10} md={10} lg={8}>
+                {
+                  <ApplicationsWrapper
+                    formData={formData}
+                    setFormData={setFormData}
+                  ></ApplicationsWrapper>
+                }
+              </Grid>
+
               {openPreview && PRPreview ? (
                 <Preview
                   openPreview={openPreview}
