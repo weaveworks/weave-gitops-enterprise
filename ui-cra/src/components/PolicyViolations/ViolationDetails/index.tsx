@@ -30,20 +30,15 @@ const PolicyViolationDetails = ({
     clusterName,
     violationId: id,
   });
-  const { message, namespace, entity } = data?.violation || {
-    message: '',
-    namespace: '',
-    entity: '',
-  };
 
   const headerPath: Breadcrumb[] = !!source
     ? [
         { label: 'Applications', url: '/applications', count },
         {
-          label: entity || '',
-          url: `/${sourcePath}/violations?clusterName=${clusterName}&name=${entity}&namespace=${namespace}`,
+          label: data?.violation?.entity || '',
+          url: `/${sourcePath}/violations?clusterName=${clusterName}&name=${data?.violation?.entity}&namespace=${data?.violation?.namespace}`,
         },
-        { label: message || '' },
+        { label: data?.violation?.message || '' },
       ]
     : [
         { label: 'Clusters', url: '/clusters', count },
@@ -52,14 +47,14 @@ const PolicyViolationDetails = ({
           url: '/clusters/violations',
           count: policyViolationsCount,
         },
-        { label: message || '' },
+        { label: data?.violation?.message || '' },
       ];
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Violation Logs">
         <SectionHeader className="count-header" path={headerPath} />
         <ContentWrapper>
-          <Title>{message}</Title>
+          <Title>{data?.violation?.message}</Title>
           {isLoading && <LoadingPage />}
           {error && <Alert severity="error">{error.message}</Alert>}
           {data?.violation && (
