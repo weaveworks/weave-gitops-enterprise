@@ -16,8 +16,8 @@ message Target {
 }
 
 message Environment {
-    string     namespace  = 1;
-    ClusterRef clusterRef = 2;
+    string name = 1;
+    repeated Target targets = 2;
 }
 
 message ObjectRef {
