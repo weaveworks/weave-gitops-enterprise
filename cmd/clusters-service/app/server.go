@@ -261,7 +261,7 @@ func bindFlagValues(cmd *cobra.Command) {
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
 
 	featureflags.SetFromEnv(os.Environ())
-	
+
 	if p.capiTemplatesNamespace == "" {
 		return errors.New("CAPI templates namespace not set")
 	}
