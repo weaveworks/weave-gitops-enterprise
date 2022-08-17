@@ -298,6 +298,13 @@ const AddCluster: FC = () => {
     }
   }, [callbackState, infraCredential, repositoryURL, profiles]);
 
+  useEffect(() => {
+    setFormData((prevState: any) => ({
+      ...prevState,
+      pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
+    }));
+  }, [formData.CLUSTER_NAME, setFormData]);
+
   return useMemo(() => {
     return (
       <PageTemplate documentTitle="WeGo · Create new cluster">
