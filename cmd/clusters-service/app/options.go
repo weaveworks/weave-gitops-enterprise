@@ -41,6 +41,7 @@ type Options struct {
 	TLSCert                      string
 	TLSKey                       string
 	NoTLS                        bool
+	DevMode                      bool
 }
 
 type Option func(*Options)
@@ -211,5 +212,12 @@ func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 func WithCAPIEnabled(capiEnabled bool) Option {
 	return func(o *Options) {
 		o.CAPIEnabled = capiEnabled
+	}
+}
+
+// WithDevMode starts the server in development mode
+func WithDevMode(devMode bool) Option {
+	return func(o *Options) {
+		o.DevMode = devMode
 	}
 }
