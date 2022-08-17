@@ -26,7 +26,7 @@ const WGApplicationsSources: FC = () => {
           },
         ]}
       />
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper errors={sources?.errors} loading={isLoading}>
         {error && <Alert severity="error">{error.message}</Alert>}
         {sources && <SourcesTable sources={sources?.result} />}
       </ContentWrapper>
