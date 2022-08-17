@@ -39,6 +39,7 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 			Description: p.Description,
 			Options:     p.Options,
 			Required:    p.Required,
+			Default:     p.Default,
 		})
 	}
 	for _, o := range meta.Objects {

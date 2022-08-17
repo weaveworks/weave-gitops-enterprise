@@ -57,6 +57,7 @@ import ProgressiveDelivery from './ProgressiveDelivery';
 import ClusterDashboard from './Clusters/ClusterDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
+import AddApplication from './Applications/Add';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -270,6 +271,11 @@ const App = () => {
                 )}
                 exact
                 path={V2Routes.Automations}
+              />
+              <Route
+                component={AddApplication}
+                exact
+                path="/applications/create"
               />
               <Route
                 component={() => (
