@@ -72,7 +72,6 @@ const AppFields: FC<{
         label="APPLICATION NAME"
         value={formData.name}
         onChange={event => handleFormData(event, 'name')}
-        description="define application name"
       />
       <Input
         className="form-section"
@@ -81,7 +80,6 @@ const AppFields: FC<{
         label="APPLICATION NAMESPACE"
         value={formData.namespace}
         onChange={event => handleFormData(event, 'namespace')}
-        description="define application namespace"
       />
       <div>
         {!isLoading ? (
@@ -141,7 +139,7 @@ const AppFields: FC<{
         label="SELECT PATH/CHART"
         value={formData.path}
         onChange={event => handleFormData(event, 'path')}
-        description="The name of the path"
+        description="Path within the git repository to read yaml files"
       />
     </FormWrapper>
   );
