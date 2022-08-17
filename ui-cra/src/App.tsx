@@ -43,12 +43,11 @@ const GlobalStyle = createGlobalStyle`
 
   html, body {
     height: 100%;
+    background-color:#EEF0F4 !important;
   }
 
   body {
-    background: right bottom url(${Background}) no-repeat fixed ${
-  theme.colors.neutral10
-}; 
+    background: right bottom url(${Background}) no-repeat fixed #edf0f3;
     background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
@@ -57,6 +56,7 @@ const GlobalStyle = createGlobalStyle`
     display: flex;
     flex-direction: column;
     margin: 0;
+    
   }
 
   a {

@@ -14,18 +14,13 @@ const xs = theme.spacing.xs;
 const small = theme.spacing.small;
 const base = theme.spacing.base;
 const medium = theme.spacing.medium;
-const large = theme.spacing.large;
 
 export const Title = styled.h2`
   margin-top: 0px;
 `;
 
-export const pageDimensionsCss = css`
-  width: 100%;
-`;
-
 export const PageWrapper = styled.div`
-  ${pageDimensionsCss}
+  width: 100%;
   margin: 0 auto;
 `;
 
