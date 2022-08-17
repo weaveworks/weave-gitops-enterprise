@@ -41,7 +41,7 @@ type AllowedRepository struct {
 }
 
 type AllowedCluster struct {
-	Name string `yaml:"name"`
+	KubeConfig string `yaml:"kubeConfig"`
 }
 
 // Tenant represents a tenant that we generate resources for in the tenancy
@@ -97,6 +97,7 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client, out i
 // patching them with type specific elements.
 func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, out io.Writer) error {
 	existing := runtimeObjectFromObject(obj)
+	objectID := fmt.Sprintf("%s/%s", strings.ToLower(obj.GetObjectKind().GroupVersionKind().GroupKind().String()), obj.GetName())
 
 	err := kubeClient.Get(ctx, client.ObjectKeyFromObject(obj), existing)
 	if err != nil {
@@ -104,7 +105,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Create(ctx, obj); err != nil {
 				return err
 			}
-			fmt.Fprintf(out, "%s created\n", objectID(obj))
+			fmt.Fprintf(out, "%s created\n", objectID)
 
 			return nil
 		}
@@ -128,7 +129,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Create(ctx, to); err != nil {
 				return err
 			}
-			fmt.Fprintf(out, "%s recreated\n", objectID(to))
+			fmt.Fprintf(out, "%s recreated\n", objectID)
 		}
 	case *pacv2beta1.Policy:
 		existingPolicy := existing.(*pacv2beta1.Policy)
@@ -145,7 +146,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := patchHelper.Patch(ctx, existing); err != nil {
 				return fmt.Errorf("failed to patch existing policy: %w", err)
 			}
-			fmt.Fprintf(out, "%s updated\n", objectID(existing))
+			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
@@ -153,14 +154,10 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Update(ctx, existing); err != nil {
 				return err
 			}
-			fmt.Fprintf(out, "%s updated\n", objectID(existing))
+			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	}
 	return nil
-}
-
-func objectID(obj client.Object) string {
-	return fmt.Sprintf("%s/%s", strings.ToLower(obj.GetObjectKind().GroupVersionKind().GroupKind().String()), obj.GetName())
 }
 
 func runtimeObjectFromObject(o client.Object) client.Object {
@@ -345,7 +342,7 @@ func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClu
 	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-clusters", tenantName)
 	var clusterSecrets []string
 	for _, allowedCluster := range allowedClusters {
-		clusterSecrets = append(clusterSecrets, allowedCluster.Name)
+		clusterSecrets = append(clusterSecrets, allowedCluster.KubeConfig)
 	}
 	clusterSecretstBytes, err := json.Marshal(clusterSecrets)
 	if err != nil {
@@ -365,7 +362,7 @@ func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClu
 			Severity:    "high",
 			Description: "Controls the allowed clusters to be added",
 			Targets: pacv2beta1.PolicyTargets{
-				Kinds:      []string{policyClusterskind},
+				Kinds:      []string{policyClustersKind, policyKustomizationKind},
 				Namespaces: namespaces,
 			},
 			Code: clusterPolicyCode,
