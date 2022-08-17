@@ -19,7 +19,7 @@ import {
   Button as WeaveButton,
   KubeStatusIndicator,
 } from '@weaveworks/weave-gitops';
-import { Box, Button,Typography} from '@material-ui/core';
+import { Box, Button, Typography } from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
 import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
