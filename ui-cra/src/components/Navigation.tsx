@@ -10,6 +10,19 @@ import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 
+interface SubNavItem {
+  name: string;
+  link: string;
+  isVisible: boolean;
+}
+interface NavigationItem {
+  icon?: any;
+  name: string;
+  link: string;
+  subItems?: Array<SubNavItem>;
+}
+
+
 const NavWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -31,7 +44,7 @@ const NavWrapper = styled.div`
     margin-left: ${({ theme }) => theme.spacing.xs};
   }
   a:not(a.nav-link-active):hover {
-    background: ${({ theme }) => theme.colors.neutral10}; //rgb(0 179 236 / 7%);
+    background: ${({ theme }) => theme.colors.neutral10};
   }
   .subroute-container {
     width: 100%;
@@ -72,18 +85,8 @@ const useStyles = makeStyles({
   },
 });
 
-interface ISubNavItem {
-  name: string;
-  link: string;
-  isVisible: boolean;
-}
-interface INavItem {
-  icon?: any;
-  name: string;
-  link: string;
-  subItems?: Array<ISubNavItem>;
-}
-const NavItems = (navItems: Array<INavItem>) => {
+
+const NavItems = (navItems: Array<NavigationItem>) => {
   return navItems.map(item => {
     return (
       <NavWrapper key={item.name}>
@@ -116,7 +119,7 @@ const NavItems = (navItems: Array<INavItem>) => {
 
 export const Navigation: FC = () => {
   const classes = useStyles();
-  const navItems: Array<INavItem> = [
+  const navItems: Array<NavigationItem> = [
     {
       name: 'Clusters',
       link: '/clusters',
