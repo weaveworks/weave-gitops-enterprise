@@ -65,8 +65,11 @@ brews:
       name: weave-gitops-bot
       email: weave-gitops-bot@weave.works
     folder: Formula
+    url_template: "https://artifacts.wge.dev.weave.works/releases/bin/gitops-{{ .Version }}"
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
+    custom_require: "./lib/curl_user_download_strategy"
+    download_strategy: CurlUserDownloadStrategy
     install: |
         bin.install "gitops"
         # Install bash completion
@@ -77,7 +80,6 @@ brews:
         output = Utils.popen_read("#{bin}/gitops completion zsh")
         (zsh_completion/"_gitops").write output
 blobs:
-# TODO fill in
-#  - provider: gs
-#    bucket: robin-gitops-test
-#    folder: "gitops-ee/{{.Version}}"
+ - provider: s3
+   bucket: weave-gitops-enterprise
+   folder: "releases/bin/gitops-{{.Version}}"
