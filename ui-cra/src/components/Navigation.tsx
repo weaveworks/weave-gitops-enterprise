@@ -52,9 +52,7 @@ const NavWrapper = styled.div`
   .subroute-nav {
     padding: ${({ theme }) => theme.spacing.xs}
       ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.xs}
-      calc(
-        ${({ theme }) => theme.spacing.medium} * 2
-      );
+      calc(${({ theme }) => theme.spacing.medium} * 2);
     color: ${({ theme }) => theme.colors.neutral30};
     font-weight: 600;
   }
@@ -79,6 +77,9 @@ const useStyles = makeStyles({
     alignItems: 'center',
     height: '100vh',
     borderTopRightRadius: '10px',
+  },
+  logo: {
+    padding: `calc(${theme.spacing.medium} - ${theme.spacing.xxs})`,
   },
 });
 
@@ -168,7 +169,7 @@ export const Navigation: FC = () => {
   ];
   return (
     <>
-      <div title="Home" style={{ padding: theme.spacing.medium }}>
+      <div title="Home" className={classes.logo}>
         <img src={WeaveGitOps} alt="Home" />
       </div>
       <Box className={classes.root} bgcolor={theme.colors.white}>

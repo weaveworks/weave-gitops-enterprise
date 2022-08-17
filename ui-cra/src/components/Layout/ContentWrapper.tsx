@@ -10,10 +10,8 @@ import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 
-const xs = theme.spacing.xs;
-const small = theme.spacing.small;
-const base = theme.spacing.base;
-const medium = theme.spacing.medium;
+const { xs, small, medium, base } = theme.spacing;
+const { feedbackLight, white } = theme.colors;
 
 export const Title = styled.h2`
   margin-top: 0px;
@@ -25,9 +23,9 @@ export const PageWrapper = styled.div`
 `;
 
 export const contentCss = css`
-  margin: ${xs} ${base};
+  margin: 0 ${base};
   padding: ${medium};
-  background-color: ${theme.colors.white};
+  background-color: ${white};
   border-radius: ${xs};
 `;
 
@@ -38,7 +36,7 @@ export const Content = styled.div<{ backgroundColor?: string }>`
 
 export const WGContent = styled.div`
   margin: ${medium} ${small} 0 ${small};
-  background-color: ${theme.colors.white};
+  background-color: ${white};
   border-radius: ${xs};
   > div > div {
     border-radius: ${xs};
@@ -49,7 +47,7 @@ export const WGContent = styled.div`
 const HelpLinkWrapper = styled.div`
   padding: ${small} ${medium};
   margin: ${small};
-  background-color: ${theme.colors.white};
+  background-color: ${white};
   color: ${({ theme }) => theme.colors.neutral40};
   border-radius: ${xs};
   display: flex;
@@ -62,16 +60,16 @@ const HelpLinkWrapper = styled.div`
 const useStyles = makeStyles(() =>
   createStyles({
     alertWrapper: {
-      marginTop: theme.spacing.medium,
-      marginRight: theme.spacing.small,
+      marginTop: medium,
+      marginRight: small,
       marginBottom: 0,
-      marginLeft: theme.spacing.small,
-      paddingRight: theme.spacing.medium,
-      paddingLeft: theme.spacing.medium,
-      borderRadius: theme.spacing.xs,
+      marginLeft: small,
+      paddingRight: medium,
+      paddingLeft: medium,
+      borderRadius: xs,
     },
     warning: {
-      backgroundColor: theme.colors.feedbackLight,
+      backgroundColor: feedbackLight,
     },
   }),
 );

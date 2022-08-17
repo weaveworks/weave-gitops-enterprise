@@ -48,7 +48,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: url(${Background}) right bottom / 100% no-repeat fixed rgb(245, 245, 245);
+    background: url(${Background}) right bottom / 100% no-repeat fixed;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};

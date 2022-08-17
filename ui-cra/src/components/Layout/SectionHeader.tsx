@@ -21,13 +21,13 @@ const Wrapper = styled.div<Size>`
   top: 0;
   z-index: 2;
 
+  background: inherit;
   .MuiListItemIcon-root {
     min-width: 30px;
   }
 `;
 
-
-// This should be removed once CORE change the icon in UserSettings 
+// This should be removed once CORE change the icon in UserSettings
 const CustomUserSettings = styled(UserSettings)`
   svg {
     fill: ${({ theme }) => theme.colors.primary} !important;
