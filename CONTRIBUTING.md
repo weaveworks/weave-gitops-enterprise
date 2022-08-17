@@ -576,23 +576,22 @@ git add --patch
 
 Update `images.clusterBootstrapController` in https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
 
-
 ## Demo clusters
 
 We have 3 demo clusters currently that we use to demonstrate our work and test
 new features.
 
-| UI                                  | GitOps                                             | CAPI |
-| ----------------------------------- | -------------------------------------------------- | ---- |
-| http://34.67.250.163:30080          | https://github.com/wkp-example-org/capd-demo-simon | CAPD |
-| https://demo-01.wge.dev.weave.works | https://gitlab.git.dev.weave.works/wge/demo-01     | CAPG |
-| https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02         | CAPG |
+| UI                                  | GitOps                                                | CAPI |
+| ----------------------------------- | ----------------------------------------------------- | ---- |
+| http://35.188.40.143:30080          | https://github.com/wkp-example-org/capd-demo-reloaded | CAPD |
+| https://demo-01.wge.dev.weave.works | https://gitlab.git.dev.weave.works/wge/demo-01        | CAPG |
+| https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02            | CAPG |
 
 ---
 
 ## Managing multiple clusters
 
-As enterprise features are deployed, the multi-cluster permissions may need to be updated as well.  For example viewing canaries from a leaf cluster did not work.  Below is an example rbac config that resolved the canary issue:
+As enterprise features are deployed, the multi-cluster permissions may need to be updated as well. For example viewing canaries from a leaf cluster did not work. Below is an example rbac config that resolved the canary issue:
 
 ```yaml
 apiVersion: v1
@@ -645,12 +644,12 @@ manually updated to the latest release of Weave GitOps Enterprise. The following
 sections describe how to get kubectl access to each of those clusters and how to
 update them to a newer version of Weave GitOps Enterprise.
 
-#### 34.67.250.163
+#### 35.188.40.143
 
 The test cluster currently lives at a static ip but will hopefully move behind a
 DNS address with auth _soon_.
 
-Hit up http://34.67.250.163:30080
+Hit up http://35.188.40.143:30080
 
 The private ssh key to the server lives in the `pesto test cluster ssh key`
 secret in 1Password.
@@ -660,11 +659,11 @@ secret in 1Password.
 1. Add it to your current ssh agent session with `ssh-add ~/.ssh/cluster-key`
 1. Copy `kubeconfig` using this ssh key
    ```
-   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@34.67.250.163:.kube/config demokubeconfig.txt
+   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@35.188.40.143:.kube/config demokubeconfig.txt
    ```
 1. Port forward the api-server port (6443) in another tab
    ```
-   ssh wks@34.67.250.163 -L 6443:localhost:6443
+   ssh wks@35.188.40.143 -L 6443:localhost:6443
    ```
 1. Use the `kubeconfig`:
    ```
@@ -741,12 +740,11 @@ Enterprise](https://gitlab.git.dev.weave.works/wge) group or get added to the
 
 ---
 
-**NOTE FOR UPDATING 34.67.250.163**
-
-As of writing the `HelmRelease` for 34.67.250.163 lives in
-[.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml),
-but may have moved, so look around for the Helm release file, if this has gone
-missing.
+> **Note**
+>
+> As of writing the `HelmRelease` for 35.188.40.143 lives in
+> https://github.com/wkp-example-org/capd-demo-reloaded/blob/main/clusters/management/weave-gitops-enterprise.yaml
+> but may have moved, so look around for the Helm release file, if this has gone missing.
 
 ---
 
