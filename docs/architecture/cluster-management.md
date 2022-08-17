@@ -69,11 +69,10 @@ Rel(capiAWSController, capiController, "Update cluster state")
 %% UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 
-Its api could be found [here](https://github.com/weaveworks/policy-agent/tree/dev/api)
+Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/cmd/clusters-service/api/cluster_services.proto)
 
 Next Steps:
 - [code](https://github.com/weaveworks/weave-gitops-enterprise)
-- [policy agent repo](https://github.com/weaveworks/policy-agent)
 - [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
 
 
