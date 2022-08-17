@@ -44,11 +44,11 @@ const GlobalStyle = createGlobalStyle`
   html, body {
     height: 100%;
     background-color:#EEF0F4 !important;
+    overflow: scroll;
   }
 
   body {
-    background: right bottom url(${Background}) no-repeat fixed #edf0f3;
-    background-size: 100%;
+    background: url(${Background}) right bottom / 100% no-repeat fixed rgb(245, 245, 245);
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.normal};

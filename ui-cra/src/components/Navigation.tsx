@@ -22,7 +22,6 @@ interface NavigationItem {
   subItems?: Array<SubNavItem>;
 }
 
-
 const NavWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -54,11 +53,9 @@ const NavWrapper = styled.div`
     padding: ${({ theme }) => theme.spacing.xs}
       ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.xs}
       calc(
-        ${({ theme }) => theme.spacing.medium} +
-          ${({ theme }) => theme.spacing.small} +
-          ${({ theme }) => theme.spacing.xs}
+        ${({ theme }) => theme.spacing.medium} * 2
       );
-    color: #737373; //${({ theme }) => theme.colors.neutral30}
+    color: ${({ theme }) => theme.colors.neutral30};
     font-weight: 600;
   }
 `;
@@ -81,16 +78,19 @@ const useStyles = makeStyles({
     paddingTop: theme.spacing.medium,
     alignItems: 'center',
     height: '100vh',
-    borderTopRightRadius: '10px', //theme.spacing.xs,
+    borderTopRightRadius: '10px',
   },
 });
-
 
 const NavItems = (navItems: Array<NavigationItem>) => {
   return navItems.map(item => {
     return (
       <NavWrapper key={item.name}>
-        <NavItem exact to={item.link} className="route-nav">
+        <NavItem
+          exact={!!item.subItems ? true : false}
+          to={item.link}
+          className="route-nav"
+        >
           {item.icon && item.icon}
           <span className="parent-route">{item.name}</span>
         </NavItem>
