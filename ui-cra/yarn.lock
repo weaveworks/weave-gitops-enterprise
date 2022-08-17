@@ -2339,6 +2339,7 @@
   version "0.9.3-7-g0ce5831b"
   resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.9.3-7-g0ce5831b/c5ece24b71e6a2da10042298d5a1f0a5f5732d42#c5ece24b71e6a2da10042298d5a1f0a5f5732d42"
   integrity sha512-PYfvCO+a3qLKWxrPhW/DwE8yptk5pTdbSj7+rwqyObE3zCmulT8Nfy/nfNlx0KNJHXSePN/olEwR/Gc9FpYxYw==
+
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"

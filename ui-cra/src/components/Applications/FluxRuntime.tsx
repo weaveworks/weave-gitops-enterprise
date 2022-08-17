@@ -21,7 +21,7 @@ const WGApplicationsFluxRuntime: FC = () => {
           },
         ]}
       />
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper errors={data?.errors} loading={isLoading}>
         <FluxRuntime deployments={data?.deployments} />
       </ContentWrapper>
     </PageTemplate>
