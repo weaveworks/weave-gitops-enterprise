@@ -288,6 +288,7 @@ export type Parameter = {
   description?: string
   required?: boolean
   options?: string[]
+  default?: string
 }
 
 export type TemplateProfile = {

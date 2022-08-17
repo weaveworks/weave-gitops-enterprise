@@ -58,6 +58,10 @@ type TemplateParam struct {
 	// +optional
 	Required bool     `json:"required,omitempty"`
 	Options  []string `json:"options,omitempty"`
+
+	// Default specifies the default value for the parameter
+	// +optional
+	Default string `json:"default,omitempty"`
 }
 
 // ResourceTemplate describes a resource to create.
