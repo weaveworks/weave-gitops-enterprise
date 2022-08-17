@@ -3,8 +3,6 @@ This document outlines an architecture documentation for Weave Gitops Cluster Ma
 
 ## Motivation
 
-TBA
-
 ## Audience
 You would be interested in know about Cluster Management Domain if
 1. You are working in a capability within the domain.
@@ -25,7 +23,7 @@ diagrams due to c4models integration with mermaid and markdown.
 
 This section shows the context where personas could make use of application delivery capabilities within weave gitops.
 
-![Context Diagram](./imgs/cluster-mangement-context.svg)
+![Context Diagram](./imgs/cluster-management-context.svg)
 
 ```mermaid
 C4Context
@@ -65,8 +63,6 @@ Rel(sourceController, github, "Archive source")
 Rel(capiAWSController, aws, "Create and update clusters")
 Rel(clusterBootstrapController, clusterController, "Track cluster state")
 Rel(capiAWSController, capiController, "Update cluster state")
-
-%% UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 
 Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/cmd/clusters-service/api/cluster_services.proto)
@@ -74,14 +70,3 @@ Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterpr
 Next Steps:
 - [code](https://github.com/weaveworks/weave-gitops-enterprise)
 - [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
-
-
-
-
-
-
-
-
-
-
-
