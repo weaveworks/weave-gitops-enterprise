@@ -223,7 +223,7 @@ func WithDevMode(devMode bool) Option {
 	}
 }
 
-// WithClientFactory defines the clients factory that will be use for cross-cluster queries.
+// WithClientsFactory defines the clients factory that will be use for cross-cluster queries.
 func WithClientsFactory(factory clustersmngr.ClientsFactory) Option {
 	return func(o *Options) {
 		o.ClientsFactory = factory
