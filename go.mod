@@ -2,8 +2,6 @@ module github.com/weaveworks/weave-gitops-enterprise
 
 go 1.18
 
-replace github.com/weaveworks/weave-gitops => /Users/alina/Desktop/projects/weave-gitops
-
 require (
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/go-logr/logr v1.2.3
