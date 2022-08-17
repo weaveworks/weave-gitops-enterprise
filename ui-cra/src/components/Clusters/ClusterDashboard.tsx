@@ -36,11 +36,7 @@ const ClusterDashbordWrapper = styled.div`
     padding: 0;
   }
 `;
-const ClusterInfrastructureWrapper = styled.div`
-  .cluster-infrastructure {
-    padding: 0;
-  }
-`;
+
 
 const ClusterDashboard = ({ clusterName }: Props) => {
   const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
