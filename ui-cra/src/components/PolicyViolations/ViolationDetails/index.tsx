@@ -42,7 +42,6 @@ const PolicyViolationDetails = ({
         {
           label: entity || '',
           url: `/${sourcePath}/violations?clusterName=${clusterName}&name=${entity}&namespace=${namespace}`,
-          count: policyViolationsCount,
         },
         { label: message || '' },
       ]
