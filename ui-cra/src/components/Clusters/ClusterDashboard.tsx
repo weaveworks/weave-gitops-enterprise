@@ -45,7 +45,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     useState<GitopsClusterEnriched | null>(null);
   const { path } = useRouteMatch();
   const labels = currentCluster?.labels || {};
-  const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef || {}
+  const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef;
   const dashboardAnnotations = getDashboardAnnotations(
     currentCluster as GitopsClusterEnriched,
   );
@@ -68,7 +68,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     ['Namespace', currentCluster?.namespace],
   ];
 
-  const infrastructureRefInfo = infrastructureRef? [['Kind', infrastructureRef?.kind]] :[];
+  const infrastructureRefInfo: InfoField[] = infrastructureRef ? [['Kind', infrastructureRef.kind]] :[];
 
   useEffect(
     () => setCurrentCluster(getCluster(clusterName)),
@@ -150,14 +150,14 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                     status={currentCluster?.capiCluster?.status}
                   />
                 </Box>
-                {Object.keys(infrastructureRef).length > 0 ? (
+                {infrastructureRef ? (
                   <>
                   <Divider variant="middle" />
                     <Box margin={2}>
                       <Typography variant="h6" gutterBottom component="div">
                         Infrastructure
                       </Typography>
-                      <InfoList items={infrastructureRefInfo as [string, any][]} />
+                      <InfoList items={infrastructureRefInfo} />
                     </Box>
                   </>
                 ) : null}
