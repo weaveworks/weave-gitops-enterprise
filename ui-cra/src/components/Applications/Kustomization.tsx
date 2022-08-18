@@ -37,6 +37,7 @@ const WGApplicationsKustomization: FC<Props> = ({
             <PolicyViolationsList
               req={{ clusterName, namespace, application: name }}
               tableType={FieldsType.application}
+              sourcePath="kustomization"
             />
           </div>
         );
