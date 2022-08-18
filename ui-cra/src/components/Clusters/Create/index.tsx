@@ -113,7 +113,7 @@ const AddCluster: FC = () => {
     pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
-    kustomization: [],
+    kustomizations: [{ name: '', namespace: '', path: '' }],
   };
 
   let initialProfiles = [] as UpdatedProfile[];

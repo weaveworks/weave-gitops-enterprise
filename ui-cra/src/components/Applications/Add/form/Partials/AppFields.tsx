@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import useClusters from '../../../../../contexts/Clusters';
 import { Input, Select } from '../../../../../utils/form';
 import { useListGitRepos } from '../../../../../hooks/gitReposSource';
-import _ from 'lodash';
+import _, { isNumber } from 'lodash';
 import { Loader } from '../../../../Loader';
 import { MenuItem } from '@material-ui/core';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
@@ -20,8 +20,10 @@ const FormWrapper = styled.form`
 
 const AppFields: FC<{
   formData: any;
-  setFormData: Dispatch<React.SetStateAction<any>>;
-}> = ({ formData, setFormData }) => {
+  setFormData: Dispatch<React.SetStateAction<any>> | any;
+  index?: number;
+  kustomization?: any;
+}> = ({ formData, setFormData, index, kustomization }) => {
   const { clusters, isLoading } = useClusters();
   const { data: GitRepoResponse } = useListGitRepos();
 
@@ -60,7 +62,17 @@ const AppFields: FC<{
     fieldName?: string,
   ) => {
     const { value } = event?.target;
-    setFormData({ ...formData, [fieldName as string]: value });
+    if (isNumber(index)) {
+      let currentKustom = [...formData.kustomizations];
+      currentKustom[index] = {
+        ...currentKustom[index],
+        [fieldName as string]: value,
+      };
+      setFormData({
+        ...formData,
+        kustomizations: [...currentKustom],
+      });
+    }
   };
 
   return (
@@ -70,7 +82,7 @@ const AppFields: FC<{
         required={true}
         name="name"
         label="APPLICATION NAME"
-        value={formData.name}
+        value={kustomization.name}
         onChange={event => handleFormData(event, 'name')}
       />
       <Input
@@ -78,7 +90,7 @@ const AppFields: FC<{
         required={true}
         name="namespace"
         label="APPLICATION NAMESPACE"
-        value={formData.namespace}
+        value={kustomization.namespace}
         onChange={event => handleFormData(event, 'namespace')}
       />
       <div>
@@ -88,7 +100,7 @@ const AppFields: FC<{
             name="cluster_name"
             required={true}
             label="SELECT CLUSTER"
-            value={formData.cluster || ''}
+            value={kustomization.cluster || ''}
             onChange={handleSelectCluster}
             defaultValue={''}
             description="select target cluster"
@@ -113,7 +125,7 @@ const AppFields: FC<{
         name="source"
         required={true}
         label="SELECT SOURCE"
-        value={formData.source || ''}
+        value={kustomization.source || ''}
         onChange={handleSelectSource}
         defaultValue={''}
         description="The name and type of source"
@@ -137,7 +149,7 @@ const AppFields: FC<{
         required={true}
         name="path"
         label="SELECT PATH/CHART"
-        value={formData.path}
+        value={kustomization.path}
         onChange={event => handleFormData(event, 'path')}
         description="Path within the git repository to read yaml files"
       />
