@@ -101,7 +101,7 @@ func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 func GetApplicationsDetailPage(webDriver *agouti.Page) *ApplicationDetailPage {
 	return &ApplicationDetailPage{
 		Header:  webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div`),
-		Title:   webDriver.Find(`[class*=DetailTitle]`),
+		Title:   webDriver.FindByXPath(`//span[.="my-podinfo"]/parent::node()[contains(@class, "AutomationDetail")]`),
 		Sync:    webDriver.FindByButton(`Sync`),
 		Details: webDriver.First(`div[role="tablist"] a[href*="/kustomization/detail"`),
 		Events:  webDriver.First(`div[role="tablist"] a[href*="/kustomization/event"`),

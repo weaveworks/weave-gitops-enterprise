@@ -45,12 +45,25 @@ export const withContext = (contexts: any[]) => {
   };
 };
 
+// Give an object that looks like a request so things like .json() work for tests
+const mockRes = {
+  ok: true,
+  clone() {
+    return this;
+  },
+  json() {
+    return this;
+  },
+  then() {},
+  catch() {},
+};
+
 export const defaultContexts = () => [
   [ThemeProvider, { theme: theme }],
   [MuiThemeProvider, { theme: muiTheme }],
   [
     RequestContextProvider,
-    { fetch: () => new Promise(accept => accept(null)) },
+    { fetch: () => new Promise(accept => accept(mockRes)) },
   ],
   [QueryClientProvider, { client: new QueryClient() }],
   [

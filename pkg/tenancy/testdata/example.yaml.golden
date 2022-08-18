@@ -124,19 +124,44 @@ metadata:
   name: weave.policies.tenancy.bar-tenant-allowed-repositories
 spec:
   category: weave.categories.tenancy
-  code: "\npackage weave.tenancy.allowed_repositories\n\ncontroller_input := input.review.object\nnamespace
-    := controller_input.metadata.namespace\nviolation[result] {\n\tcontroller_input.kind
-    == \"GitRepository\"\n\turls := input.parameters.git_urls\n\turl := controller_input.spec.url\n\tnot
-    contains_array(url, urls)\n\tresult = {\t\n\t\"issue detected\": true,\n\t\"msg\":
-    sprintf(\"Git repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\nviolation[result]
-    {\n\tcontroller_input.kind == \"Bucket\"\n\turls := input.parameters.bucket_endpoints\n\turl
-    := controller_input.spec.endpoint\n\tnot contains_array(url, urls)\n\tresult =
-    {\t\n\t\"issue detected\": true,\n\t\"msg\": sprintf(\"Bucket endpoint %v is not
-    allowed for namespace %v\", [url, namespace]),\n\t}\n}\nviolation[result] {\n\tcontroller_input.kind
-    == \"HelmRepository\"\n\turls := input.parameters.helm_urls\n\turl := controller_input.spec.url\n\tnot
-    contains_array(url, urls)\n\tresult = {\t\n\t\"issue detected\": true,\n\t\"msg\":
-    sprintf(\"Helm repository url %v is not allowed for namespace %v\", [url, namespace]),\n\t}\n}\ncontains_array(item,
-    items) {\n\titems[_] = item\n}\n"
+  code: |
+    package weave.tenancy.allowed_repositories
+
+    controller_input := input.review.object
+    namespace := controller_input.metadata.namespace
+    violation[result] {
+        controller_input.kind == "GitRepository"
+        urls := input.parameters.git_urls
+        url := controller_input.spec.url
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("Git repository url %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
+    violation[result] {
+        controller_input.kind == "Bucket"
+        urls := input.parameters.bucket_endpoints
+        url := controller_input.spec.endpoint
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("Bucket endpoint %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
+    violation[result] {
+        controller_input.kind == "HelmRepository"
+        urls := input.parameters.helm_urls
+        url := controller_input.spec.url
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("Helm repository url %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
   description: Controls the allowed repositories to be used as sources
   how_to_solve: ""
   id: weave.policies.tenancy.bar-tenant-allowed-repositories
@@ -167,6 +192,66 @@ spec:
     - GitRepository
     - Bucket
     - HelmRepository
+    labels: null
+    namespaces:
+    - bar-ns
+    - foobar-ns
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: weave.policies.tenancy.bar-tenant-allowed-clusters
+spec:
+  category: weave.categories.tenancy
+  code: |
+    package weave.tenancy.allowed_clusters
+
+    controller_input := input.review.object
+    namespace := controller_input.metadata.namespace
+    secrets := input.parameters.cluster_secrets
+    violation[result] {
+        controller_input.kind == "GitopsCluster"
+        secret := controller_input.spec.secretRef.name
+        not contains_array(secret, secrets)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("cluster secretRef %v is not allowed for namespace %v", [secret, namespace]),
+        }
+    }
+    violation[result] {
+        controller_input.kind == "Kustomization"
+        secret := controller_input.spec.kubeConfig.secretRef.name
+        not contains_array(secret, secrets)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("kustomization kubeconfig secretRef %v is not allowed for namespace %v", [secret, namespace]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
+  description: Controls the allowed clusters to be added
+  how_to_solve: ""
+  id: weave.policies.tenancy.bar-tenant-allowed-clusters
+  name: bar-tenant allowed clusters
+  parameters:
+  - name: cluster_secrets
+    required: false
+    type: array
+    value:
+    - cluster-1-kubeconfig
+    - cluster-2-kubeconfig
+  severity: high
+  standards: null
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - GitopsCluster
+    - Kustomization
     labels: null
     namespaces:
     - bar-ns

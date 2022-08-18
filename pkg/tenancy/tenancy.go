@@ -2,17 +2,20 @@ package tenancy
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/go-multierror"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	errs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,6 +40,10 @@ type AllowedRepository struct {
 	Kind string `yaml:"kind"`
 }
 
+type AllowedCluster struct {
+	KubeConfig string `yaml:"kubeConfig"`
+}
+
 // Tenant represents a tenant that we generate resources for in the tenancy
 // system.
 type Tenant struct {
@@ -45,6 +52,7 @@ type Tenant struct {
 	ClusterRole         string              `yaml:"clusterRole"`
 	Labels              map[string]string   `yaml:"labels"`
 	AllowedRepositories []AllowedRepository `yaml:"allowedRepositories"`
+	AllowedClusters     []AllowedCluster    `yaml:"allowedClusters"`
 }
 
 // Validate returns an error if any of the fields isn't valid
@@ -69,14 +77,14 @@ func (t Tenant) Validate() error {
 }
 
 // CreateTenants creates resources for tenants given a file for definition.
-func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error {
+func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client, out io.Writer) error {
 	resources, err := GenerateTenantResources(tenants...)
 	if err != nil {
 		return fmt.Errorf("failed to generate tenant output: %w", err)
 	}
 
 	for _, resource := range resources {
-		err := upsert(ctx, c, resource)
+		err := upsert(ctx, c, resource, out)
 		if err != nil {
 			return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
 		}
@@ -87,8 +95,9 @@ func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client) error
 
 // upsert applies runtime objects to the cluster, if they already exist,
 // patching them with type specific elements.
-func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) error {
+func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, out io.Writer) error {
 	existing := runtimeObjectFromObject(obj)
+	objectID := fmt.Sprintf("%s/%s", strings.ToLower(obj.GetObjectKind().GroupVersionKind().GroupKind().String()), obj.GetName())
 
 	err := kubeClient.Get(ctx, client.ObjectKeyFromObject(obj), existing)
 	if err != nil {
@@ -96,6 +105,8 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := kubeClient.Create(ctx, obj); err != nil {
 				return err
 			}
+			fmt.Fprintf(out, "%s created\n", objectID)
+
 			return nil
 		}
 		return err
@@ -118,6 +129,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := kubeClient.Create(ctx, to); err != nil {
 				return err
 			}
+			fmt.Fprintf(out, "%s recreated\n", objectID)
 		}
 	case *pacv2beta1.Policy:
 		existingPolicy := existing.(*pacv2beta1.Policy)
@@ -134,6 +146,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := patchHelper.Patch(ctx, existing); err != nil {
 				return fmt.Errorf("failed to patch existing policy: %w", err)
 			}
+			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
@@ -141,6 +154,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object) er
 			if err := kubeClient.Update(ctx, existing); err != nil {
 				return err
 			}
+			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	}
 	return nil
@@ -210,7 +224,15 @@ func GenerateTenantResources(tenants ...Tenant) ([]client.Object, error) {
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, tenant.ClusterRole, tenantLabels))
 		}
 		if len(tenant.AllowedRepositories) != 0 {
-			policy, err := newPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
+			policy, err := newAllowedRepositoriesPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
+			if err != nil {
+				return nil, err
+			}
+			generated = append(generated, policy)
+		}
+
+		if len(tenant.AllowedClusters) != 0 {
+			policy, err := newAllowedClustersPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedClusters, tenantLabels)
 			if err != nil {
 				return nil, err
 			}
@@ -274,7 +296,7 @@ func newRoleBinding(name, namespace, clusterRole string, labels map[string]strin
 	}
 }
 
-func newPolicy(tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) (*pacv2beta1.Policy, error) {
+func newAllowedRepositoriesPolicy(tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) (*pacv2beta1.Policy, error) {
 	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-repositories", tenantName)
 	policy := &pacv2beta1.Policy{
 		TypeMeta: policyTypeMeta,
@@ -292,7 +314,7 @@ func newPolicy(tenantName string, namespaces []string, allowedRepositories []All
 				Kinds:      policyRepoKinds,
 				Namespaces: namespaces,
 			},
-			Code: policyCode,
+			Code: repoPolicyCode,
 			Tags: []string{"tenancy"},
 		},
 	}
@@ -313,6 +335,50 @@ func newPolicy(tenantName string, namespaces []string, allowedRepositories []All
 		return nil, err
 	}
 	policy.Spec.Parameters = policyParams
+	return policy, nil
+}
+
+func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) (*pacv2beta1.Policy, error) {
+	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-clusters", tenantName)
+	var clusterSecrets []string
+	for _, allowedCluster := range allowedClusters {
+		clusterSecrets = append(clusterSecrets, allowedCluster.KubeConfig)
+	}
+	clusterSecretstBytes, err := json.Marshal(clusterSecrets)
+	if err != nil {
+		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
+	}
+
+	policy := &pacv2beta1.Policy{
+		TypeMeta: policyTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   policyName,
+			Labels: labels,
+		},
+		Spec: pacv2beta1.PolicySpec{
+			ID:          policyName,
+			Name:        fmt.Sprintf("%s allowed clusters", tenantName),
+			Category:    "weave.categories.tenancy",
+			Severity:    "high",
+			Description: "Controls the allowed clusters to be added",
+			Targets: pacv2beta1.PolicyTargets{
+				Kinds:      []string{policyClustersKind, policyKustomizationKind},
+				Namespaces: namespaces,
+			},
+			Code: clusterPolicyCode,
+			Tags: []string{"tenancy"},
+			Parameters: []pacv2beta1.PolicyParameters{
+				{
+					Name: "cluster_secrets",
+					Type: "array",
+					Value: &apiextensionsv1.JSON{
+						Raw: clusterSecretstBytes,
+					},
+				},
+			},
+		},
+	}
+
 	return policy, nil
 }
 

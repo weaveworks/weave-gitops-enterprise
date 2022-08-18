@@ -1,11 +1,13 @@
-.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
 # All this must go at top of file I'm afraid.
+BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 IMAGE_PREFIX := docker.io/weaveworks/weave-gitops-enterprise-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
+CORE_REVISION := $(shell grep 'weaveworks/weave-gitops ' $(PWD)/go.mod | cut -d' ' -f2)
 VERSION=$(shell git describe --always --match "v*" --abbrev=7)
 WEAVE_GITOPS_VERSION=$(shell git describe --always --match "v*" --abbrev=7 | sed 's/^[^0-9]*//')
 TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -18,6 +20,10 @@ else
 	# darwin doesn't like -static
 	cgo_ldflags=-linkmode external -w
 endif
+
+CLI_LDFLAGS?=-X 'github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) Enterprise Edition, from $(CORE_REVISION)' \
+	  -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
+	  -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_REVISION)
 
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
@@ -50,6 +56,10 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 		.
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
+
+
+cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
+	CGO_ENABLED=0 go build -ldflags "$(CLI_LDFLAGS)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
 ui-cra/.uptodate: ui-cra/*
@@ -139,10 +149,11 @@ unit-tests-with-coverage: $(GENERATED)
 	cd common && go test -v -cover -coverprofile=.coverprofile ./...
 	cd cmd/clusters-service && go test -v -cover -coverprofile=.coverprofile ./...
 
+TEST_V?="-v"
 unit-tests: $(GENERATED)
-	go test -v ./cmd/... ./pkg/...
-	cd common && go test -v ./...
-	cd cmd/clusters-service && go test -v ./...
+	go test $(TEST_V) ./cmd/... ./pkg/...
+	cd common && go test $(TEST_V) ./...
+	cd cmd/clusters-service && go test $(TEST_V) ./...
 
 ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
@@ -163,4 +174,11 @@ push:
 		fi \
 	done
 
+proto: ## Generate protobuf files
+	buf generate
+
+
 FORCE:
+
+echo-ldflags:
+	@echo "$(CLI_LDFLAGS)"

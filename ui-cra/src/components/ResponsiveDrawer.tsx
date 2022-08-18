@@ -57,6 +57,7 @@ import ProgressiveDelivery from './ProgressiveDelivery';
 import ClusterDashboard from './Clusters/ClusterDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
+import AddApplication from './Applications/Add';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -274,6 +275,11 @@ const App = () => {
                 path={V2Routes.Automations}
               />
               <Route
+                component={AddApplication}
+                exact
+                path="/applications/create"
+              />
+              <Route
                 component={() => (
                   <CoreWrapper>
                     <WGApplicationsSources />
@@ -332,7 +338,6 @@ const App = () => {
               />
               <Route
                 component={WGApplicationsFluxRuntime}
-                exact
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
