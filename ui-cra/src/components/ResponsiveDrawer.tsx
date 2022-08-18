@@ -335,7 +335,11 @@ const App = () => {
                 path={V2Routes.HelmChart}
               />
               <Route
-                component={WGApplicationsFluxRuntime}
+                component={() => (
+                  <CoreWrapper>
+                    <WGApplicationsFluxRuntime />
+                  </CoreWrapper>
+                )}
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
