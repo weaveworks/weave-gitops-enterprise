@@ -34,6 +34,7 @@ import (
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
+	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -363,6 +364,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clientsFactoryScheme))
+	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clientsFactoryScheme))
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
