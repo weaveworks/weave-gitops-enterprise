@@ -92,7 +92,7 @@ func Test_PreFlightChecks(t *testing.T) {
 					Namespaces: []string{"test-ns-01"},
 					AllowedClusters: []tenancy.AllowedCluster{
 						{
-							Name: "some-cluster-name",
+							KubeConfig: "some-cluster-name",
 						},
 					},
 				},

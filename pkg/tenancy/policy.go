@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	policyRepoGitKind    = "GitRepository"
-	policyRepoBucketKind = "Bucket"
-	policyRepoHelmKind   = "HelmRepository"
-	policyClusterskind   = "GitopsCluster"
+	policyRepoGitKind       = "GitRepository"
+	policyRepoBucketKind    = "Bucket"
+	policyRepoHelmKind      = "HelmRepository"
+	policyClustersKind      = "GitopsCluster"
+	policyKustomizationKind = "Kustomization"
 )
 
 var (
