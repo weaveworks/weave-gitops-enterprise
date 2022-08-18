@@ -65,7 +65,7 @@ brews:
       name: weave-gitops-bot
       email: weave-gitops-bot@weave.works
     folder: Formula
-    url_template: "https://artifacts.wge.dev.weave.works/releases/bin/gitops-{{ .Version }}"
+    url_template: "https://artifacts.wge.dev.weave.works/releases/bin/{{ .Version }}/gitops-{{.Os}}-{{.Arch}}"
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
     custom_require: "./lib/wge_auth_download_strategy"
@@ -82,4 +82,4 @@ brews:
 blobs:
   - provider: s3
     bucket: weave-gitops-enterprise
-    folder: "releases/bin/gitops-{{.Version}}"
+    folder: "releases/bin/{{.Version}}"
