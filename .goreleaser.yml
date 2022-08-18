@@ -1,4 +1,4 @@
-project_name: gitops
+project_name: gitops-ee
 release:
   disable: true
 env:
@@ -65,7 +65,7 @@ brews:
       name: weave-gitops-bot
       email: weave-gitops-bot@weave.works
     folder: Formula
-    url_template: "https://artifacts.wge.dev.weave.works/releases/bin/{{ .Version }}/gitops-{{.Os}}-{{.Arch}}"
+    url_template: "https://artifacts.wge.dev.weave.works/releases/bin/{{ .Version }}/{{ .ArtifactName }}"
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
     custom_require: "./lib/wge_auth_download_strategy"
