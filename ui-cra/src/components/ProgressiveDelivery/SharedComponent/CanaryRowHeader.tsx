@@ -47,9 +47,7 @@ function CanaryRowHeader({
   return (
     <div className={classes.rowHeaderWrapper} data-testid={rowkey}>
       <div className={classes.cardTitle}>{rowkey}:</div>
-      <span className={classes.body1}>
-        {!!children ? children : value || '--'}
-      </span>
+      <span className={classes.body1}>{children || value || '--'}</span>
     </div>
   );
 }

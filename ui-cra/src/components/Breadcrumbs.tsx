@@ -85,7 +85,7 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
             </div>
           )}
           {isEmpty(url) ? (
-            <Span>{label}</Span>
+            <Span title={label}>{label}</Span>
           ) : (
             <>
               <Title role="heading" size={size}>
