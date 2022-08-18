@@ -97,7 +97,7 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c9 {
-  margin: 8px 16px;
+  margin: 0 16px;
   padding: 24px;
   background-color: #fff;
   border-radius: 8px;
@@ -181,6 +181,7 @@ exports[`Applications index test snapshots loading 1`] = `
   position: sticky;
   top: 0;
   z-index: 2;
+  background: inherit;
 }
 
 .c1 .MuiListItemIcon-root {
@@ -266,7 +267,7 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 90px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
         class="c9"
@@ -807,7 +808,7 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c9 {
-  margin: 8px 16px;
+  margin: 0 16px;
   padding: 24px;
   background-color: #fff;
   border-radius: 8px;
@@ -891,6 +892,7 @@ exports[`Applications index test snapshots success 1`] = `
   position: sticky;
   top: 0;
   z-index: 2;
+  background: inherit;
 }
 
 .c1 .MuiListItemIcon-root {
@@ -979,7 +981,7 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 90px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
         class="c9"
