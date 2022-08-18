@@ -6,7 +6,6 @@ import useClusters from '../../contexts/Clusters';
 import useTemplates from '../../contexts/Templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { Loader } from '../Loader';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
 import { ReactComponent as ListView } from '../../assets/img/list-view.svg';
