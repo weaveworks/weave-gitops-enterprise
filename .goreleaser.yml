@@ -83,3 +83,4 @@ blobs:
   - provider: s3
     bucket: weave-gitops-enterprise
     folder: "releases/bin/{{.Version}}"
+    region: "us-east-1"
