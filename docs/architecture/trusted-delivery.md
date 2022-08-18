@@ -1,39 +1,36 @@
-# Architecture Documentation
+# Trusted Delivery 
+This document outlines an architecture documentation for Weave Gitops Trusted Delivery domain.
 
-## Motivation and Audience
-To make visible Weave Gitops Enterprise architecture. 
+## Motivation
 
-You would be interested on it 
 
-2. You are working in a capability within the domain.
-3. You are working in a capability in another domain that has a dependency with it.
-4. You are not working in the context of the domain nor dependent, but want to understand a bit more
-   of the wider weave gitops architecture.
+## Audience
+You would be interested in know about Trusted Delivery Domain if
+1. You are working in a capability within the domain.
+2. You are working in a capability in another domain that has a dependency with it.
+3. You are not working in the context of the domain nor dependent, but want to understand a bit more
+of the wider weave gitops architecture.
 
 ## Glossary
 
-TBA
+- Trusted Delivery
+- Policy 
 
-## Weave Gitops Enterprise
+## Trusted Architecture
 
-### Assumptions
+Diagrams are based on [C4 Model](https://c4model.com/). Note that there are some limitations with the visualization of 
+diagrams due to c4models integration with mermaid and markdown.
 
-Diagrams aim to be self-explanatory but 
+### Weave Gitops Enterprise - Trusted Delivery Domain - Context Diagram
 
-1. They are based on [C4 Model](https://c4model.com/). If you have problems understanding them please take some time 
-to get familiar via skimming [abstractions](https://c4model.com/#Abstractions) and [notation](https://c4model.com/#Notation) 
-or  [watch this](https://www.youtube.com/watch?v=x2-rSnhpw0g).
-2. They are using concepts from Domain Driven Design. If it gets difficult to read, please have a look to 
-the following [article](https://medium.com/@ruxijitianu/summary-of-the-domain-driven-design-concepts-9dd1a6f90091). 
+This section shows the context where personas could make use of application delivery capabilities within weave gitops.
 
-### System Diagram 
-
-![Weave Gitops System Diagram](./imgs/system-context.svg)
+![Context Diagram](./imgs/trusted-delivery-context.svg)
 
 ```mermaid
 C4Context
 
-      title Weave Gitops Enterprise - Context Diagram
+      title Trusted Delivery - System Context Diagram
       Person(platformOperator, "Platform Operator")
       Person(developer, "Application Developer")      
       System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
@@ -47,18 +44,17 @@ C4Context
       System_Ext(KubernetesCluster, "Kubernetes Cluster")
       System_Ext(Git, "Git") 
       UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
-
 ```
 
-### Tiers
+### Weave Gitops Enterprise - Trusted Delivery Domain - Container Diagram
 
 Weave Gitops Enterprise as tiered application that could be seen in the following diagram
 
-![Container Diagram Capabilities](imgs/tiers.svg)
+![Container Diagram Capabilities](imgs/trusted-delivery-container-tiers.svg)
 
 ```mermaid
 C4Container
-  title Weave Gitops Enterprise - Tiers
+  title "Trusted Delivery - Container Diagram - Tiers"
   Person(platformOperator, "Platform Operator")
   Person(developer, "Application Developer")      
   Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
@@ -78,31 +74,43 @@ C4Container
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")              
 ```
-Looking into application delivery domain capabilities we could see the following
 
-### Business Domains 
+### Trusted Delivery - Policy Capabilities - Component Diagram
 
-Looking into application delivery domain capabilities we could see the following
+Looking into Trusted Delivery Domain capabilities we could see the following
 
-![Container Diagram Capabilities](imgs/domains.svg)
+![Component Diagram Capabilities](./imgs/trusted-delivery-container.svg)
 
 ```mermaid
-C4Container
-    title Weave Gitops Enterprise - Domains
+C4Component
+    title "Application Delivery - Container Diagram - Capabilities"
     Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
+    Rel(weaveGitopsEnterpriseUi, Policy, "uses policy api")
     Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
-      Container(ClusterManagement, "Cluster Management Domain",, "provides capabilities around managing kuberetens cluster via CAPI")
-      Container(ApplicationDelivery, "Application Delivery Domain",, "provides capabilities around delivery application into clusters and release safety")
-      Container(TrustedDelivery, "Trusted Delivery Domain", "golang", "provides capabilities around policy for workloads")
+      Container(Policy, "Policy", "golang", "provides policy capabilities")
+      Rel(Policy, KubernetesApi, "read policy resourcess")
     }
-    Container_Boundary(external, "external") {
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")
+    Container_Boundary(KubernetesCluster, "KubernetesCluster") {
+      Component(KubernetesApi, "Kubernetes Api")
+      Component(PolicyAgent, "Policy Agent")
+      Rel(PolicyAgent, KubernetesApi, "enforce policies from")
     }
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")          
 ```
+Its api could be found [here](https://github.com/weaveworks/policy-agent/tree/dev/api)
 
-Business Domains 
+Next Steps:
+- [code](https://github.com/weaveworks/weave-gitops-enterprise)
+- [policy agent repo](https://github.com/weaveworks/policy-agent)
+- [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
 
-- [Cluster Management](cluster-management.md)
-- [Application Delivery](application-delivery.md) 
-- [Trusted Delivery](trusted-delivery.md)
+
+
+
+
+
+
+
+
+
+
