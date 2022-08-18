@@ -12,6 +12,7 @@ import { TableWrapper } from '../../Shared';
 import { useListPolicyValidations } from '../../../contexts/PolicyViolations';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 
 export enum FieldsType {
   policy = 'POLICY',
@@ -26,29 +27,15 @@ interface Props {
 export const PolicyViolationsTable: FC<Props> = ({
   violations,
   tableType = FieldsType.policy,
-  sourcePath
+  sourcePath,
 }) => {
   const initialFilterState = {
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
-  const policyFields = [
+  const policyFields: Field[] = [
     {
       label: 'Name configured in management UI',
-      value: ({ message, clusterName, id }: PolicyValidation) => (
-        <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
-          className={classes.link}
-          data-violation-message={message}
-        >
-          {message}
-        </Link>
-      ),
-      textSearchable: true,
-      maxWidth: 650,
-    },
-    {
-      label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
           to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
@@ -83,7 +70,7 @@ export const PolicyViolationsTable: FC<Props> = ({
     },
   ];
 
-  const applicationFields = [
+  const applicationFields: Field[] = [
     {
       label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
@@ -96,7 +83,6 @@ export const PolicyViolationsTable: FC<Props> = ({
         </Link>
       ),
       textSearchable: true,
-      maxWidth: 650,
     },
     {
       label: 'Severity',
@@ -134,7 +120,7 @@ interface PolicyViolationsListProp {
 export const PolicyViolationsList = ({
   req,
   tableType,
-  sourcePath
+  sourcePath,
 }: PolicyViolationsListProp) => {
   const { data, error, isLoading } = useListPolicyValidations(req);
 
