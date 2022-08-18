@@ -82,7 +82,7 @@ C4Container
     System_Ext(KubernetesCluster, "Kubernetes Cluster")
     System_Ext(Git, "Git")     
   }
-`  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
+  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
   Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes resources from")  
 
   UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")              
