@@ -68,18 +68,18 @@ brews:
     url_template: "https://artifacts.wge.dev.weave.works/releases/bin/gitops-{{ .Version }}"
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
-    custom_require: "./lib/curl_user_download_strategy"
-    download_strategy: CurlUserDownloadStrategy
+    custom_require: "./lib/wge_auth_download_strategy"
+    download_strategy: WGEAuthDownloadStrategy
     install: |
-        bin.install "gitops"
-        # Install bash completion
-        output = Utils.popen_read("#{bin}/gitops completion bash")
-        (bash_completion/"gitops").write output
+      bin.install "gitops"
+      # Install bash completion
+      output = Utils.popen_read("#{bin}/gitops completion bash")
+      (bash_completion/"gitops").write output
 
-        # Install zsh completion
-        output = Utils.popen_read("#{bin}/gitops completion zsh")
-        (zsh_completion/"_gitops").write output
+      # Install zsh completion
+      output = Utils.popen_read("#{bin}/gitops completion zsh")
+      (zsh_completion/"_gitops").write output
 blobs:
- - provider: s3
-   bucket: weave-gitops-enterprise
-   folder: "releases/bin/gitops-{{.Version}}"
+  - provider: s3
+    bucket: weave-gitops-enterprise
+    folder: "releases/bin/gitops-{{.Version}}"
