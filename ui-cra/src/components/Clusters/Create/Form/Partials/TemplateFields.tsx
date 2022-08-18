@@ -51,20 +51,19 @@ const TemplateFields: FC<{
       {activeTemplate?.parameters?.map((param, index) => {
         const name = param.name || '';
         const options = param?.options || [];
-        param.required = !!param.default ?  false : param.required
+        const required = Boolean(!param.default && param.required);
         if (options.length > 0) {
           return (
             <Select
               key={index}
               className="form-section"
               name={name}
-              required={param.required}
+              required={required}
               label={name}
-              value={formData[name]}
+              value={formData[name] || param.default}
               onChange={event => handleFormData(event, name)}
               items={options}
               description={param.description}
-              placeholder={param.default}
             />
           );
         } else
@@ -72,7 +71,7 @@ const TemplateFields: FC<{
             <Input
               key={index}
               className="form-section"
-              required={param.required}
+              required={required}
               name={name}
               label={name}
               value={formData[name]}
