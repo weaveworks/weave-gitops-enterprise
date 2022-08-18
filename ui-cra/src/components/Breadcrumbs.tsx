@@ -19,6 +19,10 @@ const Container = styled.div`
 `;
 const Span = styled.span`
   color: ${({ theme }) => theme.colors.white};
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 300px;
 `;
 export const Title = styled.div<Size>`
   margin-right: ${({ size }) =>
