@@ -117,6 +117,9 @@ export const ContentWrapper: FC<Props> = ({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
+        height: 'calc(100vh - 90px)',
+        overflowWrap: 'normal',
+        overflowX: 'scroll',
       }}
     >
       {entitlement && (
