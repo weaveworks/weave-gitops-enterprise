@@ -53,13 +53,13 @@ const DetailsSection = ({
           )
         }
       />
-      <CanaryRowHeader
-        rowkey="Deployment Strategy"
-        value={canary.deploymentStrategy}
-      >
-        <span className={classes.straegyIcon}>
-          {getDeploymentStrategyIcon(canary.deploymentStrategy || '')}
-        </span>
+      <CanaryRowHeader rowkey="Deployment Strategy" value={undefined}>
+        {!!canary.deploymentStrategy && (
+          <span className={classes.straegyIcon}>
+            {canary.deploymentStrategy}{' '}
+            {getDeploymentStrategyIcon(canary.deploymentStrategy)}
+          </span>
+        )}
       </CanaryRowHeader>
       <CanaryRowHeader rowkey="Provider" value={canary.provider} />
 
