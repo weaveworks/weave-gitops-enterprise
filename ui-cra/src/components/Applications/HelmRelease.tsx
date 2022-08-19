@@ -35,6 +35,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
             <PolicyViolationsList
               req={{ clusterName, namespace, application: name }}
               tableType={FieldsType.application}
+              sourcePath="helm_release"
             />
           </div>
         );
