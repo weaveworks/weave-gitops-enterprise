@@ -346,11 +346,11 @@ exports[`Applications index test snapshots loading 1`] = `
         class="c14"
       >
         <div>
-          Need help? Contact us at 
+          Need help? Raise a 
           <a
-            href="mailto:support@weave.works"
+            href="https://weavesupport.zendesk.com/"
           >
-            support@weave.works
+            support ticket
           </a>
         </div>
         <div
@@ -1743,11 +1743,11 @@ exports[`Applications index test snapshots success 1`] = `
         class="c39"
       >
         <div>
-          Need help? Contact us at 
+          Need help? Raise a 
           <a
-            href="mailto:support@weave.works"
+            href="https://weavesupport.zendesk.com/"
           >
-            support@weave.works
+            support ticket
           </a>
         </div>
         <div

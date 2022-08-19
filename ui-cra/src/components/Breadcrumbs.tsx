@@ -19,6 +19,10 @@ const Container = styled.div`
 `;
 const Span = styled.span`
   color: ${({ theme }) => theme.colors.white};
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 300px;
 `;
 export const Title = styled.div<Size>`
   margin-right: ${({ size }) =>
@@ -88,7 +92,7 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
             </div>
           )}
           {isEmpty(url) ? (
-            <Span className={classes.labelLink}>{label}</Span>
+            <Span className={classes.labelLink} title={label}>{label}</Span>
           ) : (
               <Title role="heading" size={size}>
                 <Link to={url || ''} className={classes.link}>

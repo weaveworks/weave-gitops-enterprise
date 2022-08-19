@@ -6,56 +6,99 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import CanaryRowHeader from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+import { Link } from 'react-router-dom';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
+  source?: string;
 }
 
-function ViolationDetails({ violation }: IViolationDetailsProps) {
+const generateRowHeaders = (
+  rows: Array<{
+    children?: any;
+    rowkey: string;
+    value?: string | JSX.Element | undefined;
+  }>,
+) => {
+  return rows.map(r => {
+    return !!r.children ? (
+      <CanaryRowHeader rowkey={r.rowkey} value={undefined} key={r.rowkey}>
+        {r.children}
+      </CanaryRowHeader>
+    ) : (
+      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey} />
+    );
+  });
+};
+
+function ViolationDetails({
+  violation,
+  source,
+}: IViolationDetailsProps) {
   const classes = usePolicyStyle();
   const {
     severity,
     createdAt,
     category,
     howToSolve,
-    message,
     description,
     violatingEntity,
     entity,
     namespace,
     occurrences,
     clusterName,
+    name,
+    id,
   } = violation || {};
+
+  const defaultHeaders = [
+    {
+      rowkey: 'Violation Time',
+      value: moment(createdAt).fromNow(),
+    },
+    {
+      rowkey: 'Severity',
+      children: <Severity severity={severity || ''} />,
+    },
+    {
+      rowkey: 'Category',
+      value: category,
+    },
+  ];
+
+  const applicationHeaderDetails = [
+    {
+      rowkey: 'Policy Name',
+      children: (
+        <Link
+          to={`/policies/details?clusterName=${clusterName}&id=${id}`}
+          className={classes.link}
+          data-violation-message={name}
+        >
+          {name}
+        </Link>
+      ),
+    },
+    ...defaultHeaders,
+  ];
+  const headerDetails = [
+    {
+      rowkey: 'Cluster Name',
+      value: clusterName,
+    },
+    ...defaultHeaders,
+    {
+      rowkey: 'Application',
+      value: `${namespace}/${entity}`,
+    },
+  ];
+  const displayedHeaders = !!source ? applicationHeaderDetails : headerDetails;
 
   return (
     <>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Message:</div>
-        <span className={classes.body1}>{message}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Cluster Name:</div>
-        <span className={classes.body1}>{clusterName}</span>
-      </div>
+      {generateRowHeaders(displayedHeaders)}
 
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Violation Time:</div>
-        <span className={classes.body1}>{moment(createdAt).fromNow()}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={`${classes.cardTitle} ${classes.marginrightSmall}`}>
-          Severity:
-        </div>
-        <Severity severity={severity || ''} />
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Category:</div>
-        <span className={classes.body1}>{category}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Application:</div>
-        <span className={classes.body1}>{`${namespace}/${entity}`}</span>
-      </div>
       <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>

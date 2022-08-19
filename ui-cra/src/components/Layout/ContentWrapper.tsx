@@ -138,8 +138,8 @@ export const ContentWrapper: FC<Props> = ({
       )}
       <HelpLinkWrapper>
         <div>
-          Need help? Contact us at&nbsp;
-          <a href="mailto:support@weave.works">support@weave.works</a>
+          Need help? Raise a&nbsp;
+          <a href="https://weavesupport.zendesk.com/">support ticket</a>
         </div>
         <Tooltip
           title={`Server Version ${versions?.capiServer}`}
