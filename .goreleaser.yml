@@ -68,8 +68,6 @@ brews:
     url_template: "https://artifacts.wge.dev.weave.works/releases/bin/{{ .Version }}/{{ .ArtifactName }}"
     homepage: "https://docs.gitops.weave.works/docs/getting-started"
     description: "GitOps support for Kubernetes"
-    custom_require: "./lib/wge_auth_download_strategy"
-    download_strategy: WGEAuthDownloadStrategy
     install: |
       bin.install "gitops"
       # Install bash completion
