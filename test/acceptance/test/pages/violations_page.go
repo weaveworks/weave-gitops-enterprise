@@ -14,7 +14,6 @@ type ViolationsPage struct {
 
 type ViolationInformation struct {
 	NameMgmtUI      *agouti.Selection
-	Message         *agouti.Selection
 	Severity        *agouti.Selection
 	ValidatedPolicy *agouti.Selection
 	Cluster         *agouti.Selection
@@ -42,12 +41,11 @@ func (v ViolationsPage) FindViolationInList(violationMsg string) *ViolationInfor
 	violation := v.ViolationList.FirstByXPath(fmt.Sprintf(`//tr[.//a[contains(text(), "%s")]]`, violationMsg))
 	return &ViolationInformation{
 		NameMgmtUI:      violation.FindByXPath(`td[1]//a`),
-		Message:         violation.FindByXPath(`td[2]`),
-		Severity:        violation.FindByXPath(`td[3]`),
-		ValidatedPolicy: violation.FindByXPath(`td[4]`),
-		Cluster:         violation.FindByXPath(`td[5]`),
-		Time:            violation.FindByXPath(`td[6]`),
-		Application:     violation.FindByXPath(`td[7]`),
+		Severity:        violation.FindByXPath(`td[2]`),
+		ValidatedPolicy: violation.FindByXPath(`td[3]`),
+		Cluster:         violation.FindByXPath(`td[4]`),
+		Time:            violation.FindByXPath(`td[5]`),
+		Application:     violation.FindByXPath(`td[6]`),
 	}
 }
 
