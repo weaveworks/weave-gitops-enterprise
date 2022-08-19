@@ -112,3 +112,12 @@ rules:
 - apiGroups: ["cluster.x-k8s.io"]
   resources: ["clusters"]
   verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-pipelines-reader
+rules:
+- apiGroups: ["pipelines.weave.works"]
+  resources: ["pipelines"]
+  verbs: ["get", "list", "watch"]
