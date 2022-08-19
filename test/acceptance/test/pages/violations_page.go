@@ -14,7 +14,6 @@ type ViolationsPage struct {
 
 type ViolationInformation struct {
 	NameMgmtUI      *agouti.Selection
-	Message         *agouti.Selection
 	Severity        *agouti.Selection
 	ValidatedPolicy *agouti.Selection
 	Cluster         *agouti.Selection
