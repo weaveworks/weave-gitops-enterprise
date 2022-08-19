@@ -17,10 +17,14 @@ import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
+import useProfiles from '../../../contexts/Profiles';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import AddProfileFields from './form/Partials/AppFields';
+import AppFields from './form/Partials/AppFields';
+import Profiles from '../../Clusters/Create/Form/Partials/Profiles';
+import { UpdatedProfile } from '../../../types/custom';
+import ProfilesProvider from '../../../contexts/Profiles/Provider';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -28,9 +32,12 @@ const AddApplication = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const { setNotifications } = useNotifications();
+  const { profiles } = useProfiles();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+
+  console.log(profiles);
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -52,7 +59,10 @@ const AddApplication = () => {
     source_name: '',
     source_namespace: '',
     source: '',
+    source_type: '',
   };
+
+  let initialProfiles = [] as UpdatedProfile[];
 
   const callbackState = getCallbackState();
 
@@ -61,8 +71,14 @@ const AddApplication = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
+    initialProfiles = [
+      ...initialProfiles,
+      ...callbackState.state.selectedProfiles,
+    ];
   }
   const [formData, setFormData] = useState<any>(initialFormData);
+  const [selectedProfiles, setSelectedProfiles] =
+    useState<UpdatedProfile[]>(initialProfiles);
 
   useEffect(() => {
     if (repositoryURL != null) {
@@ -73,16 +89,16 @@ const AddApplication = () => {
     }
   }, [repositoryURL]);
 
-  useEffect(() => {
-    clearCallbackState();
-  }, []);
+  useEffect(() => clearCallbackState(), []);
 
-  useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      pullRequestTitle: `Add application ${formData.name || ''}`,
-    }));
-  }, [formData.name]);
+  useEffect(
+    () =>
+      setFormData((prevState: any) => ({
+        ...prevState,
+        pullRequestTitle: `Add application ${formData.name || ''}`,
+      })),
+    [formData.name],
+  );
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -149,51 +165,70 @@ const AddApplication = () => {
       .finally(() => setLoading(false));
   }, [formData, history, setNotifications]);
 
-  return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Add new application">
-        <CallbackStateContextProvider
-          callbackState={{
-            page: authRedirectPage as PageRoute,
-            state: {
-              formData,
-            },
-          }}
-        >
-          <SectionHeader
-            className="count-header"
-            path={[
-              {
-                label: 'Applications',
-                url: '/applications',
-                count: applicationsCount,
+  return useMemo(() => {
+    return (
+      <ThemeProvider theme={localEEMuiTheme}>
+        <PageTemplate documentTitle="WeGo · Add new application">
+          <CallbackStateContextProvider
+            callbackState={{
+              page: authRedirectPage as PageRoute,
+              state: {
+                formData,
+                selectedProfiles,
               },
-              { label: 'Add new application' },
-            ]}
-          />
-          <ContentWrapper>
-            <Grid container>
-              <Grid item xs={12} sm={10} md={10} lg={8}>
-                <AddProfileFields
-                  formData={formData}
-                  setFormData={setFormData}
-                ></AddProfileFields>
+            }}
+          >
+            <SectionHeader
+              className="count-header"
+              path={[
+                {
+                  label: 'Applications',
+                  url: '/applications',
+                  count: applicationsCount,
+                },
+                { label: 'Add new application' },
+              ]}
+            />
+            <ContentWrapper>
+              <Grid container>
+                <Grid item xs={12} sm={10} md={10} lg={8}>
+                  <AppFields formData={formData} setFormData={setFormData} />
+                  {profiles.length > 0 &&
+                  formData.source_type === 'KindHelmRepository' ? (
+                    <Profiles
+                      selectedProfiles={selectedProfiles}
+                      setSelectedProfiles={setSelectedProfiles}
+                    />
+                  ) : null}
+                  <GitOps
+                    loading={loading}
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleAddApplication}
+                    showAuthDialog={showAuthDialog}
+                    setShowAuthDialog={setShowAuthDialog}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={10} md={10} lg={8}>
-                <GitOps
-                  loading={loading}
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleAddApplication}
-                  showAuthDialog={showAuthDialog}
-                  setShowAuthDialog={setShowAuthDialog}
-                />
-              </Grid>
-            </Grid>
-          </ContentWrapper>
-        </CallbackStateContextProvider>
-      </PageTemplate>
-    </ThemeProvider>
-  );
+            </ContentWrapper>
+          </CallbackStateContextProvider>
+        </PageTemplate>
+      </ThemeProvider>
+    );
+  }, [
+    applicationsCount,
+    authRedirectPage,
+    formData,
+    handleAddApplication,
+    loading,
+    profiles.length,
+    selectedProfiles,
+    showAuthDialog,
+  ]);
 };
-export default AddApplication;
+
+export default () => (
+  <ProfilesProvider>
+    <AddApplication />
+  </ProfilesProvider>
+);

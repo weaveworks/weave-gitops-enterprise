@@ -2,12 +2,12 @@ import React, { FC, Dispatch } from 'react';
 import styled from 'styled-components';
 import useClusters from '../../../../../contexts/Clusters';
 import { Input, Select } from '../../../../../utils/form';
-import { useListGitRepos } from '../../../../../hooks/gitReposSource';
 import _ from 'lodash';
 import { Loader } from '../../../../Loader';
 import { MenuItem } from '@material-ui/core';
-import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { GitopsClusterEnriched } from '../../../../../types/custom';
+import { useListSources } from '@weaveworks/weave-gitops';
+import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -23,7 +23,9 @@ const AppFields: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ formData, setFormData }) => {
   const { clusters, isLoading } = useClusters();
-  const { data: GitRepoResponse } = useListGitRepos();
+  const { data } = useListSources();
+
+  console.log(data);
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
@@ -35,20 +37,26 @@ const AppFields: FC<{
       cluster: value,
     });
   };
+
   const clusterName = formData.cluster_namespace
     ? `${formData.cluster_namespace}/${formData.cluster_name}`
     : `${formData.cluster_name}`;
-  const gitResposFilterdList = _.filter(GitRepoResponse?.gitRepositories, [
-    'clusterName',
-    clusterName,
-  ]);
+
+  const repos = data?.result.filter(
+    object =>
+      object.clusterName === clusterName &&
+      (object.kind === 'KindGitRepository' ||
+        object.kind === 'KindHelmRepository'),
+  );
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
-    const value = event.target.value;
+    const { value } = event.target;
+
     setFormData({
       ...formData,
       source_name: JSON.parse(value).name,
       source_namespace: JSON.parse(value).namespace,
+      source_type: JSON.parse(value).kind,
       source: value,
     });
   };
@@ -107,7 +115,6 @@ const AppFields: FC<{
           </div>
         )}
       </div>
-
       <Select
         className="form-section"
         name="source"
@@ -118,8 +125,8 @@ const AppFields: FC<{
         defaultValue={''}
         description="The name and type of source"
       >
-        {gitResposFilterdList.length > 0 ? (
-          gitResposFilterdList?.map((option: GitRepository, index: number) => {
+        {repos ? (
+          repos.map((option: Source, index: number) => {
             return (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}
@@ -128,19 +135,21 @@ const AppFields: FC<{
           })
         ) : (
           <MenuItem disabled={true}>
-            No GitRepository available please select another cluster
+            No repositories available, please select another cluster.
           </MenuItem>
         )}
       </Select>
-      <Input
-        className="form-section"
-        required={true}
-        name="path"
-        label="SELECT PATH/CHART"
-        value={formData.path}
-        onChange={event => handleFormData(event, 'path')}
-        description="Path within the git repository to read yaml files"
-      />
+      {formData.source_type === 'KindGitRepository' ? (
+        <Input
+          className="form-section"
+          required={true}
+          name="path"
+          label="SELECT PATH/CHART"
+          value={formData.path}
+          onChange={event => handleFormData(event, 'path')}
+          description="Path within the git repository to read yaml files"
+        />
+      ) : null}
     </FormWrapper>
   );
 };
