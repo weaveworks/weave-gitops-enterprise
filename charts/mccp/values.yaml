@@ -88,6 +88,9 @@ policy-agent:
   enabled: false
   accountId: ""
   clusterId: ""
+  # FIXME: should be fixed in upstream policy-agent
+  persistence:
+    storageClassName: "standard"
 
 ingress:
   enabled: false
