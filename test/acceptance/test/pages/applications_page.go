@@ -92,7 +92,7 @@ func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
 		ApplicationCount:  webDriver.Find(`.section-header-count`),
 		ApplicationsList:  webDriver.First(`table tbody`),
-		SupportEmailLink:  webDriver.FindByLink(`https://weavesupport.zendesk.com/`),
+		SupportEmailLink:  webDriver.FindByLink(`support ticket`),
 		MessageBar:        webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
 		Version:           webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
