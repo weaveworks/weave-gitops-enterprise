@@ -44,7 +44,6 @@ const GlobalStyle = createGlobalStyle`
   html, body {
     height: 100%;
     background-color:#EEF0F4 !important;
-    overflow: scroll;
   }
 
   body {

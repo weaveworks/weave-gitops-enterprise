@@ -121,7 +121,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const SignInWrapper = styled.div`
-  height: 100vh;
+  height: calc(100vh - 90px);
   .MuiAlert-root {
     width: 470px;
   }

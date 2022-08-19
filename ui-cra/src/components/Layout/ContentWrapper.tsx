@@ -26,7 +26,8 @@ export const contentCss = css`
   margin: 0 ${base};
   padding: ${medium};
   background-color: ${white};
-  border-radius: ${xs};
+  border-radius: ${xs} ${xs} 0 0;
+  height: inherit;
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
@@ -37,7 +38,7 @@ export const Content = styled.div<{ backgroundColor?: string }>`
 export const WGContent = styled.div`
   margin: ${medium} ${small} 0 ${small};
   background-color: ${white};
-  border-radius: ${xs};
+  border-radius: ${xs} ${xs} 0 0;
   > div > div {
     border-radius: ${xs};
     max-width: none;
@@ -46,10 +47,10 @@ export const WGContent = styled.div`
 
 const HelpLinkWrapper = styled.div`
   padding: ${small} ${medium};
-  margin: ${small};
-  background-color: ${white};
-  color: ${({ theme }) => theme.colors.neutral40};
-  border-radius: ${xs};
+  margin: 0 ${base};
+  background-color: rgba(255, 255, 255, 0.85);
+  color: ${({ theme }) => theme.colors.neutral30};
+  border-radius: 0 0 ${xs} ${xs};
   display: flex;
   justify-content: space-between;
   a {
@@ -117,7 +118,7 @@ export const ContentWrapper: FC<Props> = ({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        height: 'calc(100vh - 90px)',
+        height: 'calc(100vh - 80px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
       }}
