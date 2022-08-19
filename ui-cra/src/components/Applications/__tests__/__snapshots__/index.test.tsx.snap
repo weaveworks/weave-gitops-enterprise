@@ -100,15 +100,16 @@ exports[`Applications index test snapshots loading 1`] = `
   margin: 0 16px;
   padding: 24px;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
+  height: inherit;
 }
 
 .c14 {
   padding: 12px 24px;
-  margin: 12px;
-  background-color: #fff;
-  color: #1a1a1a;
-  border-radius: 8px;
+  margin: 0 16px;
+  background-color: rgba(255,255,255,0.85);
+  color: #737373;
+  border-radius: 0 0 8px 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -267,7 +268,7 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 90px); overflow-wrap: normal; overflow-x: scroll;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
         class="c9"
@@ -811,15 +812,16 @@ exports[`Applications index test snapshots success 1`] = `
   margin: 0 16px;
   padding: 24px;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
+  height: inherit;
 }
 
 .c39 {
   padding: 12px 24px;
-  margin: 12px;
-  background-color: #fff;
-  color: #1a1a1a;
-  border-radius: 8px;
+  margin: 0 16px;
+  background-color: rgba(255,255,255,0.85);
+  color: #737373;
+  border-radius: 0 0 8px 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -981,7 +983,7 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 90px); overflow-wrap: normal; overflow-x: scroll;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
         class="c9"
