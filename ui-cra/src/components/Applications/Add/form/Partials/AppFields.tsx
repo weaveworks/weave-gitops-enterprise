@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import useClusters from '../../../../../contexts/Clusters';
 import { Input, Select } from '../../../../../utils/form';
 import { useListGitRepos } from '../../../../../hooks/gitReposSource';
-import _, { isNumber } from 'lodash';
+import _ from 'lodash';
 import { Loader } from '../../../../Loader';
 import { MenuItem } from '@material-ui/core';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
@@ -22,36 +22,49 @@ const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
-  kustomization?: any;
-}> = ({ formData, setFormData, index, kustomization }) => {
+  isMultiple?: boolean;
+}> = ({ formData, setFormData, index = 0, isMultiple = false }) => {
   const { clusters, isLoading } = useClusters();
   const { data: GitRepoResponse } = useListGitRepos();
+  let gitResposFilterdList: GitRepository[] = [];
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
-    setFormData({
-      ...formData,
+    let currentAutomation = [...formData.clusterAutomations];
+    currentAutomation[index] = {
+      ...currentAutomation[index],
       cluster_name: JSON.parse(value).name,
       cluster_namespace: JSON.parse(value).namespace,
       cluster_isControlPlane: JSON.parse(value).controlPlane,
       cluster: value,
+    };
+    setFormData({
+      ...formData,
+      clusterAutomations: [...currentAutomation],
     });
   };
-  const clusterName = formData.cluster_namespace
-    ? `${formData.cluster_namespace}/${formData.cluster_name}`
-    : `${formData.cluster_name}`;
-  const gitResposFilterdList = _.filter(GitRepoResponse?.gitRepositories, [
-    'clusterName',
-    clusterName,
-  ]);
+  if (!isMultiple) {
+    const clusterName = formData.clusterAutomations[0].cluster_namespace
+      ? `${formData.clusterAutomations[0].cluster_namespace}/${formData.clusterAutomations[0].cluster_name}`
+      : `${formData.clusterAutomations[0].cluster_name}`;
+    gitResposFilterdList = _.filter(GitRepoResponse?.gitRepositories, [
+      'clusterName',
+      clusterName,
+    ]);
+  }
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
-    setFormData({
-      ...formData,
+    let currentAutomation = [...formData.clusterAutomations];
+    currentAutomation[index] = {
+      ...currentAutomation[index],
       source_name: JSON.parse(value).name,
       source_namespace: JSON.parse(value).namespace,
       source: value,
+    };
+    setFormData({
+      ...formData,
+      clusterAutomations: [...currentAutomation],
     });
   };
 
@@ -62,17 +75,16 @@ const AppFields: FC<{
     fieldName?: string,
   ) => {
     const { value } = event?.target;
-    if (isNumber(index)) {
-      let currentKustom = [...formData.kustomizations];
-      currentKustom[index] = {
-        ...currentKustom[index],
-        [fieldName as string]: value,
-      };
-      setFormData({
-        ...formData,
-        kustomizations: [...currentKustom],
-      });
-    }
+
+    let currentAutomation = [...formData.clusterAutomations];
+    currentAutomation[index] = {
+      ...currentAutomation[index],
+      [fieldName as string]: value,
+    };
+    setFormData({
+      ...formData,
+      clusterAutomations: [...currentAutomation],
+    });
   };
 
   return (
@@ -82,7 +94,7 @@ const AppFields: FC<{
         required={true}
         name="name"
         label="APPLICATION NAME"
-        value={kustomization.name}
+        value={formData.clusterAutomations[index].name}
         onChange={event => handleFormData(event, 'name')}
       />
       <Input
@@ -90,66 +102,74 @@ const AppFields: FC<{
         required={true}
         name="namespace"
         label="APPLICATION NAMESPACE"
-        value={kustomization.namespace}
+        value={formData.clusterAutomations[index].namespace}
         onChange={event => handleFormData(event, 'namespace')}
       />
-      <div>
-        {!isLoading ? (
+      {!isMultiple && (
+        <>
+          <div>
+            {!isLoading ? (
+              <Select
+                className="form-section"
+                name="cluster_name"
+                required={true}
+                label="SELECT CLUSTER"
+                value={formData.clusterAutomations[index].cluster || ''}
+                onChange={handleSelectCluster}
+                defaultValue={''}
+                description="select target cluster"
+              >
+                {clusters?.map(
+                  (option: GitopsClusterEnriched, index: number) => {
+                    return (
+                      <MenuItem key={index} value={JSON.stringify(option)}>
+                        {option.name}
+                      </MenuItem>
+                    );
+                  },
+                )}
+              </Select>
+            ) : (
+              <div className="loader">
+                <Loader />
+              </div>
+            )}
+          </div>
+
           <Select
             className="form-section"
-            name="cluster_name"
+            name="source"
             required={true}
-            label="SELECT CLUSTER"
-            value={kustomization.cluster || ''}
-            onChange={handleSelectCluster}
+            label="SELECT SOURCE"
+            value={formData.clusterAutomations[index].source || ''}
+            onChange={handleSelectSource}
             defaultValue={''}
-            description="select target cluster"
+            description="The name and type of source"
           >
-            {clusters?.map((option: GitopsClusterEnriched, index: number) => {
-              return (
-                <MenuItem key={index} value={JSON.stringify(option)}>
-                  {option.name}
-                </MenuItem>
-              );
-            })}
-          </Select>
-        ) : (
-          <div className="loader">
-            <Loader />
-          </div>
-        )}
-      </div>
-
-      <Select
-        className="form-section"
-        name="source"
-        required={true}
-        label="SELECT SOURCE"
-        value={kustomization.source || ''}
-        onChange={handleSelectSource}
-        defaultValue={''}
-        description="The name and type of source"
-      >
-        {gitResposFilterdList.length > 0 ? (
-          gitResposFilterdList?.map((option: GitRepository, index: number) => {
-            return (
-              <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}
+            {gitResposFilterdList.length > 0 ? (
+              gitResposFilterdList?.map(
+                (option: GitRepository, index: number) => {
+                  return (
+                    <MenuItem key={index} value={JSON.stringify(option)}>
+                      {option.name}
+                    </MenuItem>
+                  );
+                },
+              )
+            ) : (
+              <MenuItem disabled={true}>
+                No GitRepository available please select another cluster
               </MenuItem>
-            );
-          })
-        ) : (
-          <MenuItem disabled={true}>
-            No GitRepository available please select another cluster
-          </MenuItem>
-        )}
-      </Select>
+            )}
+          </Select>
+        </>
+      )}
       <Input
         className="form-section"
         required={true}
         name="path"
         label="SELECT PATH/CHART"
-        value={kustomization.path}
+        value={formData.clusterAutomations[index].path}
         onChange={event => handleFormData(event, 'path')}
         description="Path within the git repository to read yaml files"
       />

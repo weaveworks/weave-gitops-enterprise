@@ -35,6 +35,7 @@ import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useListConfig } from '../../../hooks/versions';
 import { ApplicationsWrapper } from './Form/Partials/ApplicationsWrapper';
+import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -113,7 +114,7 @@ const AddCluster: FC = () => {
     pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
-    kustomizations: [{ name: '', namespace: '', path: '' }],
+    clusterAutomations: [{ name: '', namespace: '', path: '' }],
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -211,6 +212,26 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(() => {
+    const kustomizations = formData.clusterAutomations.map(
+      (kustomization: any): ClusterAutomation => {
+        return {
+          kustomization: {
+            metadata: {
+              name: kustomization.name,
+              namespace: kustomization.namespace,
+            },
+            spec: {
+              path: kustomization.path,
+              sourceRef: {
+                name: kustomization.source_name || 'flux-system',
+                namespace: kustomization.source_namespace || 'flux-system',
+              },
+            },
+          },
+        };
+      },
+    );
+
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
@@ -220,6 +241,7 @@ const AddCluster: FC = () => {
       template_name: activeTemplate?.name,
       parameter_values: {
         ...formData,
+        kustomizations,
       },
       values: encodedProfiles(selectedProfiles),
     };
