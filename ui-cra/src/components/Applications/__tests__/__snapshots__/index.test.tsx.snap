@@ -101,7 +101,6 @@ exports[`Applications index test snapshots loading 1`] = `
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
-  height: inherit;
 }
 
 .c14 {
@@ -813,7 +812,6 @@ exports[`Applications index test snapshots success 1`] = `
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
-  height: inherit;
 }
 
 .c39 {
