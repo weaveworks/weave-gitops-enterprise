@@ -32,14 +32,13 @@ const ActionsWrapper = styled.div`
   justify-content: end;
   svg {
     width: 32px;
+    cursor: pointer;
   }
   svg.active {
     fill: ${({ theme }) => theme.colors.primary};
-    cursor: pointer;
   }
   svg.inactive {
     fill: ${({ theme }) => theme.colors.neutral30};
-    cursor: pointer;
   }
 `;
 
@@ -124,7 +123,7 @@ const TemplatesDashboard: FC = () => {
         {/* backgroundColor={view === 'grid' ? 'transparent' : undefined} */}
         <ContentWrapper loading={isLoading}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <ActionsWrapper>
+            <ActionsWrapper id='display-action'>
               <GridView
                 className={view === 'grid' ? 'active' : 'inactive'}
                 onClick={() => setView('grid')}
