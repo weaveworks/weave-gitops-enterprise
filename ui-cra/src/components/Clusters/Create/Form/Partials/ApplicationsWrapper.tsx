@@ -1,12 +1,32 @@
-import { Grid } from '@material-ui/core';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Grid, makeStyles, createStyles } from '@material-ui/core';
+import { Button, Icon, IconType, theme } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
 import AppFields from '../../../../Applications/Add/form/Partials/AppFields';
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    removeApplicationWrapper: {
+      paddingRight: theme.spacing.base,
+    },
+    addApplicationSectionWrapper: {
+      paddingBottom: theme.spacing.xl,
+    },
+    applicationWrapper: {
+      border: `1px solid ${theme.colors.neutral20}`,
+      padding: theme.spacing.small,
+      marginBottom: theme.spacing.small,
+      borderRadius: theme.spacing.xxs,
+      borderStyle: 'dashed',
+    },
+  }),
+);
 
 export const ApplicationsWrapper: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ formData, setFormData }) => {
+  const classes = useStyles();
+
   const handleAddApplication = () => {
     let newAutomations = [...formData.clusterAutomations];
     newAutomations.push({ name: '', namespace: '', path: '' });
@@ -19,11 +39,12 @@ export const ApplicationsWrapper: FC<{
   };
 
   return (
-    <>
+    <div className={classes.addApplicationSectionWrapper}>
       <h2>Applications</h2>
       {formData.clusterAutomations.map((kustomization: any, index: number) => {
         return (
-          <div key={index}>
+          <div key={index} className={classes.applicationWrapper}>
+            <h3>Applications No.{index + 1}</h3>
             <Grid container className="">
               <Grid item xs={12} sm={8} md={8} lg={8}>
                 <AppFields
@@ -39,17 +60,19 @@ export const ApplicationsWrapper: FC<{
                 sm={4}
                 md={4}
                 lg={4}
-                justifyContent="center"
+                justifyContent="flex-end"
                 alignItems="center"
                 container
               >
-                <Button
-                  id="remove-application"
-                  startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
-                  onClick={() => handleRemoveApplication(index)}
-                >
-                  REMOVE APPLICATION
-                </Button>
+                <div className={classes.removeApplicationWrapper}>
+                  <Button
+                    id="remove-application"
+                    startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+                    onClick={() => handleRemoveApplication(index)}
+                  >
+                    REMOVE APPLICATION
+                  </Button>
+                </div>
               </Grid>
             </Grid>
           </div>
@@ -62,6 +85,6 @@ export const ApplicationsWrapper: FC<{
       >
         ADD AN APPLICATION
       </Button>
-    </>
+    </div>
   );
 };
