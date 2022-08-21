@@ -27,18 +27,27 @@ import {
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { localEEMuiTheme } from '../../muiTheme';
-import { Checkbox, withStyles} from '@material-ui/core';
+import {
+  Checkbox,
+  withStyles,
+  createStyles,
+  makeStyles,
+} from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { EKS, Kubernetes, GKE, Kind } from '../../utils/icons';
-import Octicon, { Icon as ReactIcon} from '@primer/octicons-react'  ;
+import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 
 interface Size {
   size?: 'small';
 }
+
+type Props = {
+  cluster: GitopsClusterEnriched;
+};
 
 const ActionsWrapper = styled.div<Size>`
   display: flex;
@@ -88,6 +97,34 @@ export function computeMessage(conditions: Condition[]) {
   return readyCondition ? readyCondition.message : 'unknown error';
 }
 
+const useStyles = makeStyles(() =>
+  createStyles({
+    clusterIcon: {
+      marginRight: theme.spacing.small,
+      color: theme.colors.primary,
+    },
+  }),
+);
+
+export const ClusterIcon: FC<Props> = ({ cluster }) => {
+  const classes = useStyles();
+  return cluster.capiCluster?.infrastructureRef?.kind ? (
+    <Octicon
+      className={classes.clusterIcon}
+      icon={getClusterTypeIcon(cluster.capiCluster?.infrastructureRef?.kind)}
+      size="medium"
+      verticalAlign="middle"
+    />
+  ) : (
+    <Octicon
+      className={classes.clusterIcon}
+      icon={Kubernetes}
+      size="medium"
+      verticalAlign="middle"
+    />
+  );
+};
+
 const IndividualCheckbox = withStyles({
   root: {
     color: theme.colors.primary,
@@ -121,9 +158,15 @@ const ClusterRowCheckbox = ({
 const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
   if (clusterType === 'DockerCluster') {
     return Kind;
-  } else if (clusterType === 'AWSCluster' || clusterType === 'AWSManagedCluster') {
+  } else if (
+    clusterType === 'AWSCluster' ||
+    clusterType === 'AWSManagedCluster'
+  ) {
     return EKS;
-  } else if (clusterType === 'AzureCluster' || clusterType === 'AzureManagedCluster') {
+  } else if (
+    clusterType === 'AzureCluster' ||
+    clusterType === 'AzureManagedCluster'
+  ) {
     return Kind; // tODO change to a default or kubernetes
   } else if (clusterType === 'GCPCluster') {
     return GKE;
@@ -263,7 +306,6 @@ const MCCP: FC = () => {
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
 
-
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Clusters">
@@ -388,80 +430,24 @@ const MCCP: FC = () => {
                       ),
                       maxWidth: 25,
                     },
-                  //   { label: '',
-                  //     value: (c: GitopsClusterEnriched) =>
-                  //     c.capiCluster?.infrastructureRef?.kind? (
-                  //     <Octicon 
-                  //       // className={classes.icon}
-                  //       icon={getClusterTypeIcon(c.capiCluster?.infrastructureRef?.kind)} 
-                  //       size='medium'
-                  //       verticalAlign="middle"
-                  //       // style={theme.colors.neutral20}
-                  //       // fill={theme.colors.neutral20}
-                  //     />
-                  //     ):(
-                  //       <Octicon 
-                  //       // className={classes.icon}
-                  //       icon={Kubernetes} 
-                  //       size='medium'
-                  //       verticalAlign="middle"
-                  //       // style={theme.colors.neutral20}
-                  //       // fill={theme.colors.neutral20}
-                  //     />
-                  //     ),
-                  //     maxWidth: 18,
-                    
-                  // } ,
                     {
                       label: 'Name',
                       value: (c: GitopsClusterEnriched) =>
                         c.controlPlane === true ? (
                           <>
-                          c.capiCluster?.infrastructureRef?.kind? (
-                            <>
-                            <Octicon 
-                              icon={getClusterTypeIcon(c.capiCluster?.infrastructureRef?.kind)} 
-                              size='small'
-                              verticalAlign="middle"
-                            />
-                            </>
-                            ):(
-                            <>
-                            <Octicon 
-                              icon={Kubernetes} 
-                              size='small'
-                              verticalAlign="middle"
-                            />
-                            </>
-                          )
-                          <span data-cluster-name={c.name}>{c.name}</span>
+                            <ClusterIcon cluster={c}></ClusterIcon>
+                            <span data-cluster-name={c.name}>{c.name}</span>
                           </>
                         ) : (
                           <>
-                          c.capiCluster?.infrastructureRef?.kind? (
-                            <>
-                            <Octicon 
-                              icon={getClusterTypeIcon(c.capiCluster?.infrastructureRef?.kind)} 
-                              size='small'
-                              verticalAlign="middle"
-                            />
-                            </>
-                            ):(
-                            <>
-                            <Octicon 
-                              icon={Kubernetes} 
-                              size='small'
-                              verticalAlign="middle"
-                            />
-                            </>
-                          )
-                          <Link
-                            to={`/cluster?clusterName=${c.name}`}
-                            color={theme.colors.primary}
-                            data-cluster-name={c.name}
-                          >
-                            {c.name}
-                          </Link>
+                            <ClusterIcon cluster={c}></ClusterIcon>
+                            <Link
+                              to={`/cluster?clusterName=${c.name}`}
+                              color={theme.colors.primary}
+                              data-cluster-name={c.name}
+                            >
+                              {c.name}
+                            </Link>
                           </>
                         ),
                       sortValue: ({ name }) => name,
