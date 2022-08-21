@@ -34,6 +34,7 @@ import (
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
+	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -71,6 +72,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
+	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
@@ -362,6 +364,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clientsFactoryScheme))
+	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clientsFactoryScheme))
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
@@ -415,6 +418,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCAPIEnabled(p.capiEnabled),
 		WithRuntimeNamespace(p.runtimeNamespace),
 		WithDevMode(p.devMode),
+		WithClientsFactory(clusterClientsFactory),
 	)
 }
 
@@ -501,6 +505,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		Logger:        args.Log,
 	}); err != nil {
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
+	}
+
+	if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
+		ClientsFactory: args.ClientsFactory,
+	}); err != nil {
+		return fmt.Errorf("hydrating pipelines server: %w", err)
 	}
 
 	// UI

@@ -6,15 +6,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/internal/pipetesting"
 )
 
 func TestListPipelines(t *testing.T) {
 	p := &ctrl.Pipeline{}
 	p.Name = "my-pipeline"
 
-	k8s, factory := pipetesting.MakeClientsFactory(p)
+	k8s, factory := pipetesting.MakeFactoryWithObjects(p)
 
 	c := pipetesting.SetupServer(t, factory)
 

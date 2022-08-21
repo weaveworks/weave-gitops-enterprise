@@ -12,6 +12,7 @@ import { TableWrapper } from '../../Shared';
 import { useListPolicyValidations } from '../../../contexts/PolicyViolations';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 
 export enum FieldsType {
   policy = 'POLICY',
@@ -20,33 +21,21 @@ export enum FieldsType {
 interface Props {
   violations: PolicyValidation[];
   tableType?: FieldsType;
+  sourcePath?: string;
 }
 
 export const PolicyViolationsTable: FC<Props> = ({
   violations,
   tableType = FieldsType.policy,
+  sourcePath,
 }) => {
   const initialFilterState = {
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
-  const policyFields = [
+  const policyFields: Field[] = [
     {
       label: 'Name configured in management UI',
-      value: ({ message, clusterName, id }: PolicyValidation) => (
-        <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
-          className={classes.link}
-          data-violation-message={message}
-        >
-          {message}
-        </Link>
-      ),
-      textSearchable: true,
-      maxWidth: 650,
-    },
-    {
-      label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
           to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
@@ -81,12 +70,12 @@ export const PolicyViolationsTable: FC<Props> = ({
     },
   ];
 
-  const applicationFields = [
+  const applicationFields: Field[] = [
     {
       label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
+          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}&source=applications&sourcePath=${sourcePath}`}
           className={classes.link}
           data-violation-message={message}
         >
@@ -94,7 +83,6 @@ export const PolicyViolationsTable: FC<Props> = ({
         </Link>
       ),
       textSearchable: true,
-      maxWidth: 650,
     },
     {
       label: 'Severity',
@@ -126,11 +114,13 @@ export const PolicyViolationsTable: FC<Props> = ({
 interface PolicyViolationsListProp {
   req: ListPolicyValidationsRequest;
   tableType?: FieldsType;
+  sourcePath?: string;
 }
 
 export const PolicyViolationsList = ({
   req,
   tableType,
+  sourcePath,
 }: PolicyViolationsListProp) => {
   const { data, error, isLoading } = useListPolicyValidations(req);
 
@@ -142,6 +132,7 @@ export const PolicyViolationsList = ({
         <PolicyViolationsTable
           violations={data?.violations || []}
           tableType={tableType}
+          sourcePath={sourcePath}
         />
       )}
     </>
