@@ -123,7 +123,7 @@ export const Navigation: FC = () => {
   const navItems: Array<NavigationItem> = [
     {
       name: 'Clusters',
-      link: '/clusters',
+      link: '/',
       icon: <Clusters />,
       subItems: [
         {

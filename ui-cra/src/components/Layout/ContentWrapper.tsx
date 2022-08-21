@@ -27,7 +27,6 @@ export const contentCss = css`
   padding: ${medium};
   background-color: ${white};
   border-radius: ${xs} ${xs} 0 0;
-  height: inherit;
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
