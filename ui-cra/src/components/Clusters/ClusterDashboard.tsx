@@ -69,7 +69,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     ['Namespace', currentCluster?.namespace],
   ];
 
-  const infrastructureRefInfo: InfoField[] = infrastructureRef ? [['Kind', infrastructureRef.kind]] :[];
+  const infrastructureRefInfo: InfoField[] = infrastructureRef ? [['Kind', infrastructureRef.kind],['APIVersion', infrastructureRef.apiVersion]] :[];
 
   useEffect(
     () => setCurrentCluster(getCluster(clusterName)),
