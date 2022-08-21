@@ -27,12 +27,14 @@ import {
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { localEEMuiTheme } from '../../muiTheme';
-import { Checkbox, withStyles } from '@material-ui/core';
+import { Checkbox, withStyles} from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import { EKS, Kubernetes, GKE, Kind } from '../../utils/icons';
+import Octicon, { Icon as ReactIcon} from '@primer/octicons-react'  ;
 
 interface Size {
   size?: 'small';
@@ -115,6 +117,19 @@ const ClusterRowCheckbox = ({
     name={name}
   />
 );
+
+const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
+  if (clusterType === 'DockerCluster') {
+    return Kind;
+  } else if (clusterType === 'AWSCluster' || clusterType == 'AWSManagedCluster') {
+    return EKS;
+  } else if (clusterType === 'AzureCluster' || clusterType == 'AzureManagedCluster') {
+    return Kind; // tODO change to a default or kubernetes
+  } else if (clusterType === 'GCPCluster') {
+    return GKE;
+  }
+  return Kubernetes;
+};
 
 interface FormData {
   url: string | null;
@@ -248,6 +263,7 @@ const MCCP: FC = () => {
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
 
+
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Clusters">
@@ -372,12 +388,73 @@ const MCCP: FC = () => {
                       ),
                       maxWidth: 25,
                     },
+                  //   { label: '',
+                  //     value: (c: GitopsClusterEnriched) =>
+                  //     c.capiCluster?.infrastructureRef?.kind? (
+                  //     <Octicon 
+                  //       // className={classes.icon}
+                  //       icon={getClusterTypeIcon(c.capiCluster?.infrastructureRef?.kind)} 
+                  //       size='medium'
+                  //       verticalAlign="middle"
+                  //       // style={theme.colors.neutral20}
+                  //       // fill={theme.colors.neutral20}
+                  //     />
+                  //     ):(
+                  //       <Octicon 
+                  //       // className={classes.icon}
+                  //       icon={Kubernetes} 
+                  //       size='medium'
+                  //       verticalAlign="middle"
+                  //       // style={theme.colors.neutral20}
+                  //       // fill={theme.colors.neutral20}
+                  //     />
+                  //     ),
+                  //     maxWidth: 18,
+                    
+                  // } ,
                     {
                       label: 'Name',
                       value: (c: GitopsClusterEnriched) =>
                         c.controlPlane === true ? (
+                          <>
+                          c.capiCluster?.infrastructureRef?.kind? (
+                            <>
+                            <Octicon 
+                              icon={getClusterTypeIcon(c.capiCluster?.infrastructureRef?.kind)} 
+                              size='small'
+                              verticalAlign="middle"
+                            />
+                            </>
+                            ):(
+                            <>
+                            <Octicon 
+                              icon={Kubernetes} 
+                              size='small'
+                              verticalAlign="middle"
+                            />
+                            </>
+                          )
                           <span data-cluster-name={c.name}>{c.name}</span>
+                          </>
                         ) : (
+                          <>
+                          c.capiCluster?.infrastructureRef?.kind? (
+                            <>
+                            <Octicon 
+                              icon={getClusterTypeIcon(c.capiCluster?.infrastructureRef?.kind)} 
+                              size='small'
+                              verticalAlign="middle"
+                            />
+                            </>
+                            ):(
+                            <>
+                            <Octicon 
+                              icon={Kubernetes} 
+                              size='small'
+                              verticalAlign="middle"
+                            />
+                            </>
+                          )
                           <Link
                             to={`/cluster?clusterName=${c.name}`}
                             color={theme.colors.primary}
@@ -385,6 +462,7 @@ const MCCP: FC = () => {
                           >
                             {c.name}
                           </Link>
+                          </>
                         ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,

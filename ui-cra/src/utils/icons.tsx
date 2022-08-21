@@ -85,7 +85,7 @@ const Helm = createIcon(
 
 // From: https://iconify.design/icon-sets/logos/kubernetes.html
 // License: CC0
-const Kubernetes = createIcon(
+export const Kubernetes = createIcon(
   () => (
     <>
       <path
