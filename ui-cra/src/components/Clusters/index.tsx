@@ -121,9 +121,9 @@ const ClusterRowCheckbox = ({
 const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
   if (clusterType === 'DockerCluster') {
     return Kind;
-  } else if (clusterType === 'AWSCluster' || clusterType == 'AWSManagedCluster') {
+  } else if (clusterType === 'AWSCluster' || clusterType === 'AWSManagedCluster') {
     return EKS;
-  } else if (clusterType === 'AzureCluster' || clusterType == 'AzureManagedCluster') {
+  } else if (clusterType === 'AzureCluster' || clusterType === 'AzureManagedCluster') {
     return Kind; // tODO change to a default or kubernetes
   } else if (clusterType === 'GCPCluster') {
     return GKE;
