@@ -35,7 +35,7 @@ import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useListConfig } from '../../../hooks/versions';
 import { ApplicationsWrapper } from './Form/Partials/ApplicationsWrapper';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import { Kustomization } from '../../../cluster-services/cluster_services.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -213,25 +213,23 @@ const AddCluster: FC = () => {
 
   const handleAddCluster = useCallback(() => {
     const kustomizations = formData.clusterAutomations.map(
-      (kustomization: any): ClusterAutomation => {
+      (kustomization: any): Kustomization => {
         return {
-          kustomization: {
-            metadata: {
-              name: kustomization.name,
-              namespace: kustomization.namespace,
-            },
-            spec: {
-              path: kustomization.path,
-              sourceRef: {
-                name: kustomization.source_name || 'flux-system',
-                namespace: kustomization.source_namespace || 'flux-system',
-              },
+          metadata: {
+            name: kustomization.name,
+            namespace: kustomization.namespace,
+          },
+          spec: {
+            path: kustomization.path,
+            sourceRef: {
+              name: kustomization.source_name || 'flux-system',
+              namespace: kustomization.source_namespace || 'flux-system',
             },
           },
         };
       },
     );
-
+    const { clusterAutomations, ...rest } = formData;
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
@@ -240,9 +238,9 @@ const AddCluster: FC = () => {
       credentials: infraCredential,
       template_name: activeTemplate?.name,
       parameter_values: {
-        ...formData,
-        kustomizations,
+        ...rest,
       },
+      kustomizations,
       values: encodedProfiles(selectedProfiles),
     };
     setLoading(true);
