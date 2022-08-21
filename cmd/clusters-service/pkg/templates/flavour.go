@@ -14,4 +14,5 @@ type Param struct {
 	Description string   `json:"description"`
 	Required    bool     `json:"required"`
 	Options     []string `json:"options"`
+	Default     string   `json:"default"`
 }

@@ -528,6 +528,23 @@ go mod tidy
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 ```
 
+## How to update `weave-gitops` to `main` during development
+
+This will update WGE to use the latest `main` of `weave-gitops`
+
+```bash
+# 1.update the backend golang code
+go get -d github.com/weaveworks/weave-gitops@main
+go mod tidy
+
+# 2. Update the frontend typescript/javascript code
+cd ui-cra
+yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main
+```
+
+You can commit and push this to GitHub and CI will be able to build and test. It is fine to merge this to main too, just be careful before a release. We always want to release WGE with a released version of WG under the hood.
+
+
 ## How to update the version of `cluster-controller`
 
 When a new release of the cluster-controller is made we'll usually want to update it in WGE.
@@ -559,23 +576,22 @@ git add --patch
 
 Update `images.clusterBootstrapController` in https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
 
-
 ## Demo clusters
 
 We have 3 demo clusters currently that we use to demonstrate our work and test
 new features.
 
-| UI                                  | GitOps                                             | CAPI |
-| ----------------------------------- | -------------------------------------------------- | ---- |
-| http://34.67.250.163:30080          | https://github.com/wkp-example-org/capd-demo-simon | CAPD |
-| https://demo-01.wge.dev.weave.works | https://gitlab.git.dev.weave.works/wge/demo-01     | CAPG |
-| https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02         | CAPG |
+| UI                                  | GitOps                                                | CAPI |
+| ----------------------------------- | ----------------------------------------------------- | ---- |
+| http://35.188.40.143:30080          | https://github.com/wkp-example-org/capd-demo-reloaded | CAPD |
+| https://demo-01.wge.dev.weave.works | https://gitlab.git.dev.weave.works/wge/demo-01        | CAPG |
+| https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02            | CAPG |
 
 ---
 
 ## Managing multiple clusters
 
-As enterprise features are deployed, the multi-cluster permissions may need to be updated as well.  For example viewing canaries from a leaf cluster did not work.  Below is an example rbac config that resolved the canary issue:
+As enterprise features are deployed, the multi-cluster permissions may need to be updated as well. For example viewing canaries from a leaf cluster did not work. Below is an example rbac config that resolved the canary issue:
 
 ```yaml
 apiVersion: v1
@@ -602,15 +618,15 @@ kind: ClusterRole
 metadata:
   name: user-groups-impersonator
 rules:
-- apiGroups: [""]
-  resources: ["users", "groups"]
-  verbs: ["impersonate"]
-- apiGroups: [""]
-  resources: ["namespaces"]
-  verbs: ["get", "list"]
-- apiGroups: ["apiextensions.k8s.io"] # required for canary support
-  resources: ["customresourcedefinitions"]
-  verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["users", "groups"]
+    verbs: ["impersonate"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apiextensions.k8s.io"] # required for canary support
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list"]
 ```
 
 **CAPI NAME COLLISION WARNING**
@@ -628,12 +644,12 @@ manually updated to the latest release of Weave GitOps Enterprise. The following
 sections describe how to get kubectl access to each of those clusters and how to
 update them to a newer version of Weave GitOps Enterprise.
 
-#### 34.67.250.163
+#### 35.188.40.143
 
 The test cluster currently lives at a static ip but will hopefully move behind a
 DNS address with auth _soon_.
 
-Hit up http://34.67.250.163:30080
+Hit up http://35.188.40.143:30080
 
 The private ssh key to the server lives in the `pesto test cluster ssh key`
 secret in 1Password.
@@ -643,11 +659,11 @@ secret in 1Password.
 1. Add it to your current ssh agent session with `ssh-add ~/.ssh/cluster-key`
 1. Copy `kubeconfig` using this ssh key
    ```
-   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@34.67.250.163:.kube/config demokubeconfig.txt
+   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@35.188.40.143:.kube/config demokubeconfig.txt
    ```
 1. Port forward the api-server port (6443) in another tab
    ```
-   ssh wks@34.67.250.163 -L 6443:localhost:6443
+   ssh wks@35.188.40.143 -L 6443:localhost:6443
    ```
 1. Use the `kubeconfig`:
    ```
@@ -724,12 +740,11 @@ Enterprise](https://gitlab.git.dev.weave.works/wge) group or get added to the
 
 ---
 
-**NOTE FOR UPDATING 34.67.250.163**
-
-As of writing the `HelmRelease` for 34.67.250.163 lives in
-[.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml](https://github.com/wkp-example-org/capd-demo-simon/blob/main/.weave-gitops/clusters/kind-kind/system/weave-gitops-enterprise.yaml),
-but may have moved, so look around for the Helm release file, if this has gone
-missing.
+> **Note**
+>
+> As of writing the `HelmRelease` for 35.188.40.143 lives in
+> https://github.com/wkp-example-org/capd-demo-reloaded/blob/main/clusters/management/weave-gitops-enterprise.yaml
+> but may have moved, so look around for the Helm release file, if this has gone missing.
 
 ---
 
@@ -766,7 +781,7 @@ where `e4e540d` is your commit sha. This will return `wkp/mccp 0.0.17-88-ge4e540
 
 ## How to search for a Helm release from GCP OCI registry
 
-1. If you are using a Helm verion prior to `v3.8.0` set the `HELM_EXPERIMENTAL_OCI` environment variable.  Helm versions `v3.8.0` and newer have OCI support enabled by default
+1. If you are using a Helm verion prior to `v3.8.0` set the `HELM_EXPERIMENTAL_OCI` environment variable. Helm versions `v3.8.0` and newer have OCI support enabled by default
 
 ```bash
 export HELM_EXPERIMENTAL_OCI=1
@@ -775,14 +790,14 @@ export HELM_EXPERIMENTAL_OCI=1
 2. If you haven't already, install and configure the [gcloud CLI](https://cloud.google.com/sdk/docs/install)
 
 3. Use the gcloud cli to query registry artifacts
-    > The Google Artifact Registry Docker repository can hold both helm charts and docker images. If both types will be deployed to the same registry, charts should be stored in the `charts` namespace and images in the `images` namespace as documented [here](https://cloud.google.com/artifact-registry/docs/helm)
+   > The Google Artifact Registry Docker repository can hold both helm charts and docker images. If both types will be deployed to the same registry, charts should be stored in the `charts` namespace and images in the `images` namespace as documented [here](https://cloud.google.com/artifact-registry/docs/helm)
 
 ```bash
 gcloud artifacts docker images list europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise --include-tags
 ```
 
 4. Once you know the version tag you can use the oci image url and version to run helm show/pull/install commands
-    > With oci registries the `--version` flag is required
+   > With oci registries the `--version` flag is required
 
 ```bash
 helm show all oci://europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops-enterprise/charts/mccp --version 0.8.1-55

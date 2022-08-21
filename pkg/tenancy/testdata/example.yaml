@@ -16,5 +16,5 @@ tenants:
     - kind: HelmRepository
       url: https://testorg.github.io/testrepo
     allowedClusters:
-    - name: cluster-1-kubeconfig
-    - name: cluster-2-kubeconfig
+    - kubeConfig: cluster-1-kubeconfig
+    - kubeConfig: cluster-2-kubeconfig
