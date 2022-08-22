@@ -103,13 +103,13 @@ export const ContentWrapper: FC<Props> = ({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
 
-  useEffect(
-    () =>
+  useEffect(() => {
+    if (error) {
       setNotifications([
         { message: { text: error?.message }, variant: 'danger' },
-      ]),
-    [error?.message, setNotifications],
-  );
+      ]);
+    }
+  }, [error, setNotifications]);
 
   if (loading) {
     return (
