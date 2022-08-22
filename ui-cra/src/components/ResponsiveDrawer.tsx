@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Route } from 'react-router-dom';
+import { Switch, Route, Redirect } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
@@ -235,7 +235,10 @@ const App = () => {
         <main className={classes.content}>
           <ErrorBoundary>
             <Switch>
-              <Route component={MCCP} exact path={['/', '/clusters']} />
+              <Route exact path="/">
+                <Redirect to="/clusters" />
+              </Route>
+              <Route component={MCCP} exact path={'/clusters'} />
               <Route component={MCCP} exact path="/clusters/delete" />
               <Route
                 component={withSearchParams((props: any) => (
