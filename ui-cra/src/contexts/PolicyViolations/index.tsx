@@ -12,7 +12,7 @@ import {
 } from '../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../EnterpriseClient';
 
-const LIST_POLICIES_QUERY_KEY = 'list-policy-violations';
+const LIST_POLICIES_QUERY_KEY = 'list-policy';
 
 export function useListListPolicies(req: ListPoliciesRequest) {
   const { api } = useContext(EnterpriseClientContext);

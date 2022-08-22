@@ -33,9 +33,30 @@ export const PolicyViolationsTable: FC<Props> = ({
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
+  const defaultFields: Field[] = [
+    {
+      label: 'Severity',
+      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
+    },
+    {
+      label: 'Violated Policy',
+      value: 'name',
+      textSearchable: true,
+    },
+
+    {
+      label: 'Violation Time',
+      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
+      defaultSort: true,
+      sortValue: (v: PolicyValidation) => {
+        const t = v.createdAt && new Date(v.createdAt);
+        return v.createdAt ? (Number(t) * -1).toString() : '';
+      },
+    },
+  ];
   const policyFields: Field[] = [
     {
-      label: 'Name configured in management UI',
+      label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
           to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
@@ -46,28 +67,18 @@ export const PolicyViolationsTable: FC<Props> = ({
         </Link>
       ),
       textSearchable: true,
+      sortValue: ({ message }) => message,
       maxWidth: 650,
-    },
-    {
-      label: 'Severity',
-      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
-    },
-    {
-      label: 'Violated Policy',
-      value: 'name',
     },
     {
       label: 'Cluster',
       value: 'clusterName',
     },
     {
-      label: 'Violation Time',
-      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
-    },
-    {
       label: 'Application',
       value: (v: PolicyValidation) => `${v.namespace}/${v.entity}`,
     },
+    ...defaultFields,
   ];
 
   const applicationFields: Field[] = [
@@ -83,19 +94,10 @@ export const PolicyViolationsTable: FC<Props> = ({
         </Link>
       ),
       textSearchable: true,
+      sortValue: ({ message }) => message,
+      maxWidth: 650,
     },
-    {
-      label: 'Severity',
-      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
-    },
-    {
-      label: 'Violated Policy',
-      value: 'name',
-    },
-    {
-      label: 'Violation Time',
-      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
-    },
+    ...defaultFields,
   ];
 
   const fields =
