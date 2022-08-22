@@ -7,13 +7,14 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import { ListItem, ListItemText } from '@material-ui/core';
 import { uniqBy, sortBy } from 'lodash';
 
+const { base } = theme.spacing;
+
 const useStyles = makeStyles(() =>
   createStyles({
     alertWrapper: {
-      margin: `${theme.spacing.medium} ${theme.spacing.small} 0 ${theme.spacing.small} `,
-      paddingRight: theme.spacing.medium,
-      paddingLeft: theme.spacing.medium,
-      borderRadius: theme.spacing.xs,
+      padding: base,
+      margin: `0 ${base} ${base} ${base}`,
+      borderRadius: '10px',
     },
     warning: {
       backgroundColor: theme.colors.feedbackLight,
