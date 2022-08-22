@@ -240,6 +240,7 @@ function reset {
   kubectl delete ClusterResourceSet --all
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
+  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works
   # Delete policy agent
   kubectl delete ValidatingWebhookConfiguration policy-agent
   kubectl delete namespaces policy-system  

@@ -70,12 +70,12 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				violationInfo := violationsPage.FindViolationInList(policyName)
-				By(fmt.Sprintf("And verify '%s' violation Message", policyName), func() {
-					Eventually(violationInfo.Message.Text).Should(MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in vioilations table", violationMsg))
-				})
-
 				By(fmt.Sprintf("And verify '%s' violation Severity", policyName), func() {
 					Eventually(violationInfo.Severity).Should(MatchText(violationSeverity), fmt.Sprintf("Failed to have expected vioilation Severity: %s", violationSeverity))
+				})
+
+				By(fmt.Sprintf("And verify '%s' violation Validated Policy", policyName), func() {
+					Eventually(violationInfo.ValidatedPolicy).Should(MatchText(policyName), fmt.Sprintf("Failed to have expected vioilation Valodate Policy: %s", policyName))
 				})
 
 				By(fmt.Sprintf("And verify '%s' violation cluster", policyName), func() {
@@ -87,7 +87,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And navigate to '%s' Violation page", policyName), func() {
-					Eventually(violationInfo.Message.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+					Eventually(violationInfo.NameMgmtUI.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 				})
 
 				violationDetailPage := pages.GetViolationDetailPage(webDriver)
@@ -220,12 +220,12 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				violationInfo := violationsPage.FindViolationInList(policyName)
-				By(fmt.Sprintf("And verify '%s' violation Message", policyName), func() {
-					Eventually(violationInfo.Message.Text).Should(MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in vioilations table", violationMsg))
-				})
-
 				By(fmt.Sprintf("And verify '%s' violation Severity", policyName), func() {
 					Eventually(violationInfo.Severity).Should(MatchText(violationSeverity), fmt.Sprintf("Failed to have expected vioilation Severity: %s", violationSeverity))
+				})
+
+				By(fmt.Sprintf("And verify '%s' violation Validated Policy", policyName), func() {
+					Eventually(violationInfo.ValidatedPolicy).Should(MatchText(policyName), fmt.Sprintf("Failed to have expected vioilation Valodate Policy: %s", policyName))
 				})
 
 				By(fmt.Sprintf("And verify '%s' violation cluster", policyName), func() {
@@ -237,7 +237,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And navigate to '%s' Violation page", policyName), func() {
-					Eventually(violationInfo.Message.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+					Eventually(violationInfo.NameMgmtUI.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 				})
 
 				violationDetailPage := pages.GetViolationDetailPage(webDriver)

@@ -117,7 +117,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) => {
       color: theme.colors.primary,
       fontWeight: 600,
       display: 'flex',
-      justifyContent: 'center',
+      justifyContent: 'start',
       alignItems: 'center',
     },
     code: {

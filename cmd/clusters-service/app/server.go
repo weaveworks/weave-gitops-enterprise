@@ -34,6 +34,7 @@ import (
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
+	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -71,6 +72,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
+	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
 
@@ -110,7 +112,7 @@ type Params struct {
 	capiTemplatesNamespace            string
 	injectPruneAnnotation             string
 	addBasesKustomization             string
-	capiEnabled                       string
+	capiEnabled                       bool
 	capiTemplatesRepositoryUrl        string
 	capiRepositoryPath                string
 	capiRepositoryClustersPath        string
@@ -121,6 +123,7 @@ type Params struct {
 	TLSCert                           string
 	TLSKey                            string
 	NoTLS                             bool
+	devMode                           bool
 }
 
 type OIDCAuthenticationOptions struct {
@@ -160,7 +163,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.htmlRootPath, "html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().StringVar(&p.gitProviderType, "git-provider-type", "", "")
 	cmd.Flags().StringVar(&p.gitProviderHostname, "git-provider-hostname", "", "")
-	cmd.Flags().StringVar(&p.capiEnabled, "capi-enabled", "true", "")
+	cmd.Flags().BoolVar(&p.capiEnabled, "capi-enabled", true, "")
 	cmd.Flags().StringVar(&p.capiClustersNamespace, "capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
 	cmd.Flags().StringVar(&p.capiTemplatesNamespace, "capi-templates-namespace", "", "where to look for CAPI template resources, required")
 	cmd.Flags().StringVar(&p.injectPruneAnnotation, "inject-prune-annotation", "", "")
@@ -170,7 +173,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.capiRepositoryClustersPath, "capi-repository-clusters-path", "./clusters", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryApiUrl, "capi-templates-repository-api-url", "", "")
 	cmd.Flags().StringVar(&p.capiTemplatesRepositoryBaseBranch, "capi-templates-repository-base-branch", "", "")
-	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "", "")
+	cmd.Flags().StringVar(&p.runtimeNamespace, "runtime-namespace", "flux-system", "Namespace hosting Gitops configuration objects (e.g. cluster-user-auth secrets)")
 	cmd.Flags().StringVar(&p.gitProviderToken, "git-provider-token", "", "")
 	cmd.Flags().StringVar(&p.TLSCert, "tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
@@ -181,6 +184,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().StringVar(&p.OIDC.RedirectURL, "oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().DurationVar(&p.OIDC.TokenDuration, "oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+
+	cmd.Flags().BoolVar(&p.devMode, "dev-mode", false, "starts the server in development mode")
 
 	return cmd
 }
@@ -268,7 +273,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		authv1.AddToScheme,
 	}
 
-	if p.capiEnabled == "true" {
+	if p.capiEnabled {
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
@@ -359,6 +364,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clientsFactoryScheme))
+	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clientsFactoryScheme))
 	clusterClientsFactory := clustersmngr.NewClientFactory(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
@@ -409,6 +415,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithClientGetter(clientGetter),
 		WithOIDCConfig(p.OIDC),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
+		WithCAPIEnabled(p.capiEnabled),
+		WithRuntimeNamespace(p.runtimeNamespace),
+		WithDevMode(p.devMode),
+		WithClientsFactory(clusterClientsFactory),
 	)
 }
 
@@ -497,6 +507,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
+	if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
+		ClientsFactory: args.ClientsFactory,
+	}); err != nil {
+		return fmt.Errorf("hydrating pipelines server: %w", err)
+	}
+
 	// UI
 	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
 	staticAssets := http.StripPrefix("/", http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)}))
@@ -518,6 +534,19 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("could not create HMAC token signer: %w", err)
 	}
 
+	authMethods := map[auth.AuthMethod]bool{
+		auth.UserAccount:      true,
+		auth.TokenPassthrough: true,
+	}
+
+	if args.OIDC.IssuerURL != "" {
+		authMethods[auth.OIDC] = true
+	}
+
+	if args.DevMode {
+		tsv.SetDevMode(args.DevMode)
+	}
+
 	authServerConfig, err := auth.NewAuthServerConfig(
 		args.Log,
 		auth.OIDCConfig{
@@ -529,6 +558,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		},
 		args.KubernetesClient,
 		tsv,
+		args.RuntimeNamespace,
+		authMethods,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create auth server: %w", err)

@@ -13,11 +13,12 @@ type ViolationsPage struct {
 }
 
 type ViolationInformation struct {
-	Message     *agouti.Selection
-	Severity    *agouti.Selection
-	Cluster     *agouti.Selection
-	Time        *agouti.Selection
-	Application *agouti.Selection
+	NameMgmtUI      *agouti.Selection
+	Severity        *agouti.Selection
+	ValidatedPolicy *agouti.Selection
+	Cluster         *agouti.Selection
+	Time            *agouti.Selection
+	Application     *agouti.Selection
 }
 
 type ViolationDetailPage struct {
@@ -39,11 +40,12 @@ type ViolationDetailPage struct {
 func (v ViolationsPage) FindViolationInList(violationMsg string) *ViolationInformation {
 	violation := v.ViolationList.FirstByXPath(fmt.Sprintf(`//tr[.//a[contains(text(), "%s")]]`, violationMsg))
 	return &ViolationInformation{
-		Message:     violation.FindByXPath(`td[1]`),
-		Severity:    violation.FindByXPath(`td[2]`),
-		Cluster:     violation.FindByXPath(`td[3]`),
-		Time:        violation.FindByXPath(`td[4]`),
-		Application: violation.FindByXPath(`td[5]`),
+		NameMgmtUI:      violation.FindByXPath(`td[1]//a`),
+		Severity:        violation.FindByXPath(`td[2]`),
+		ValidatedPolicy: violation.FindByXPath(`td[3]`),
+		Cluster:         violation.FindByXPath(`td[4]`),
+		Time:            violation.FindByXPath(`td[5]`),
+		Application:     violation.FindByXPath(`td[6]`),
 	}
 }
 

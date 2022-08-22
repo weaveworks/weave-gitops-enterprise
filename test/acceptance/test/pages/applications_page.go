@@ -92,7 +92,7 @@ func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
 		ApplicationCount:  webDriver.Find(`.section-header-count`),
 		ApplicationsList:  webDriver.First(`table tbody`),
-		SupportEmailLink:  webDriver.FindByLink(`support@weave.works`),
+		SupportEmailLink:  webDriver.FindByLink(`support ticket`),
 		MessageBar:        webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
 		Version:           webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
@@ -101,7 +101,7 @@ func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 func GetApplicationsDetailPage(webDriver *agouti.Page) *ApplicationDetailPage {
 	return &ApplicationDetailPage{
 		Header:  webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div`),
-		Title:   webDriver.Find(`[class*=DetailTitle]`),
+		Title:   webDriver.FindByXPath(`//span[.="my-podinfo"]/parent::node()[contains(@class, "AutomationDetail")]`),
 		Sync:    webDriver.FindByButton(`Sync`),
 		Details: webDriver.First(`div[role="tablist"] a[href*="/kustomization/detail"`),
 		Events:  webDriver.First(`div[role="tablist"] a[href*="/kustomization/event"`),

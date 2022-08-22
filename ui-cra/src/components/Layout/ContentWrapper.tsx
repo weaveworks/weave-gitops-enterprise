@@ -1,14 +1,14 @@
-import React, { FC } from 'react';
-import styled, { css } from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
-import { Tooltip } from '../Shared';
-import { ListError } from '../../cluster-services/cluster_services.pb';
+import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
-import AlertTitle from '@material-ui/lab/AlertTitle';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { ListItem } from '@material-ui/core';
+import { Flex, theme } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import styled, { css } from 'styled-components';
+import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
+import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
+import { AlertListErrors } from './AlertListErrors';
 
 const xs = theme.spacing.xs;
 const small = theme.spacing.small;
@@ -80,11 +80,20 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const ContentWrapper: FC<{
+interface Props {
   type?: string;
   backgroundColor?: string;
   errors?: ListError[];
-}> = ({ children, type, backgroundColor, errors }) => {
+  loading?: boolean;
+}
+
+export const ContentWrapper: FC<Props> = ({
+  children,
+  type,
+  backgroundColor,
+  errors,
+  loading,
+}) => {
   const classes = useStyles();
   const { setNotifications } = useNotifications();
   const { data, error } = useListVersion();
@@ -93,6 +102,16 @@ export const ContentWrapper: FC<{
     capiServer: data?.data.version,
     // ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
+
+  if (loading) {
+    return (
+      <Box marginTop={4}>
+        <Flex wide center>
+          <CircularProgress />
+        </Flex>
+      </Box>
+    );
+  }
 
   if (error) {
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
@@ -114,18 +133,7 @@ export const ContentWrapper: FC<{
           {entitlement}
         </Alert>
       )}
-      {!!(errors && errors.length) && (
-        <Alert className={classes.alertWrapper} severity="error">
-          <AlertTitle>
-            There was a problem retrieving results from some clusters:
-          </AlertTitle>
-          {errors?.map((item: ListError) => (
-            <ListItem key={item.clusterName}>
-              - Cluster {item.clusterName} {item.message}
-            </ListItem>
-          ))}
-        </Alert>
-      )}
+      <AlertListErrors errors={errors} />
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
@@ -133,8 +141,8 @@ export const ContentWrapper: FC<{
       )}
       <HelpLinkWrapper>
         <div>
-          Need help? Contact us at&nbsp;
-          <a href="mailto:support@weave.works">support@weave.works</a>
+          Need help? Raise a&nbsp;
+          <a href="https://weavesupport.zendesk.com/">support ticket</a>
         </div>
         <Tooltip
           title={`Server Version ${versions?.capiServer}`}

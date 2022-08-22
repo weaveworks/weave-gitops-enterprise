@@ -69,6 +69,7 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 			m.Description = v.Description
 			m.Options = v.Options
 			m.Required = v.Required
+			m.Default = v.Default
 			paramsMeta[v.Name] = m
 		}
 	}
@@ -94,13 +95,17 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 	}
 
 	for _, param := range params {
-		_, ok := vars[param.Name]
-		if !ok {
-			if param.Required {
-				return nil, fmt.Errorf("missing required parameter: %s", param.Name)
+		val, ok := vars[param.Name]
+		if !ok || val == "" {
+			if param.Default != "" {
+				vars[param.Name] = param.Default
+			} else {
+				if param.Required {
+					return nil, fmt.Errorf("missing required parameter: %s", param.Name)
+				}
+				vars[param.Name] = ""
 			}
 
-			vars[param.Name] = ""
 		}
 	}
 

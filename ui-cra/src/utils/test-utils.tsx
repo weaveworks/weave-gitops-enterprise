@@ -1,4 +1,4 @@
-import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
+import { MuiThemeProvider } from '@material-ui/core';
 import {
   GetCanaryResponse,
   IsFlaggerAvailableResponse,
@@ -10,7 +10,7 @@ import {
   ListHelmReleasesResponse,
   ListKustomizationsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import * as _ from 'lodash';
+import _ from 'lodash';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -45,28 +45,39 @@ export const withContext = (contexts: any[]) => {
   };
 };
 
-export const defaultContexts = () => {
-  return [
-    [ThemeProvider, { theme: theme }],
-    [MuiThemeProvider, { theme: muiTheme }],
-    [
-      RequestContextProvider,
-      { fetch: () => new Promise(accept => accept(null)) },
-    ],
-    [QueryClientProvider, { client: new QueryClient() }],
-    [
-      EnterpriseClientProvider,
-      {
-        api: new EnterpriseClientMock(),
-      },
-    ],
-    [CoreClientContextProvider, { api: new CoreClientMock() }],
-    [MemoryRouter],
-    [NotificationProvider],
-    [TemplatesProvider],
-    [ClustersProvider],
-  ];
+// Give an object that looks like a request so things like .json() work for tests
+const mockRes = {
+  ok: true,
+  clone() {
+    return this;
+  },
+  json() {
+    return this;
+  },
+  then() {},
+  catch() {},
 };
+
+export const defaultContexts = () => [
+  [ThemeProvider, { theme: theme }],
+  [MuiThemeProvider, { theme: muiTheme }],
+  [
+    RequestContextProvider,
+    { fetch: () => new Promise(accept => accept(mockRes)) },
+  ],
+  [QueryClientProvider, { client: new QueryClient() }],
+  [
+    EnterpriseClientProvider,
+    {
+      api: new EnterpriseClientMock(),
+    },
+  ],
+  [CoreClientContextProvider, { api: new CoreClientMock() }],
+  [MemoryRouter],
+  [NotificationProvider],
+  [TemplatesProvider],
+  [ClustersProvider],
+];
 
 const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {
