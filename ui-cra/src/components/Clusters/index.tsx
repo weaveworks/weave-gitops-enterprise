@@ -40,6 +40,7 @@ import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { EKS, Kubernetes, GKE, Kind } from '../../utils/icons';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
+import Clusters from '../../contexts/Clusters';
 
 interface Size {
   size?: 'small';
@@ -106,19 +107,34 @@ const useStyles = makeStyles(() =>
   }),
 );
 
+function annotationExists(annotations:  {[key: string]: string} | undefined,annotationKey: string) {
+  if (annotations === undefined){
+    return;
+  }
+  let annotationsList = Object.entries(annotations);
+  for (const [key, value] of annotationsList) {
+    if (key.includes(annotationKey)) {
+      return value;
+    }
+  }
+  
+}
+
 export const ClusterIcon: FC<Props> = ({ cluster }) => {
   const classes = useStyles();
-  return cluster.capiCluster?.infrastructureRef?.kind ? (
+  let clusterKind = "";
+  let clusterKindFromAnnotation = annotationExists(cluster?.annotations,"weave.works/cluster-kind")
+  if (clusterKindFromAnnotation) {
+    clusterKind = clusterKindFromAnnotation;
+  }
+  else if (cluster.capiCluster?.infrastructureRef?.kind) {
+    clusterKind = cluster.capiCluster?.infrastructureRef?.kind;
+  }
+  
+  return (
     <Octicon
       className={classes.clusterIcon}
-      icon={getClusterTypeIcon(cluster.capiCluster?.infrastructureRef?.kind)}
-      size="medium"
-      verticalAlign="middle"
-    />
-  ) : (
-    <Octicon
-      className={classes.clusterIcon}
-      icon={Kubernetes}
+      icon={getClusterTypeIcon(clusterKind)}
       size="medium"
       verticalAlign="middle"
     />
@@ -167,7 +183,7 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     clusterType === 'AzureCluster' ||
     clusterType === 'AzureManagedCluster'
   ) {
-    return Kind; // tODO change to a default or kubernetes
+    return Kubernetes;
   } else if (clusterType === 'GCPCluster') {
     return GKE;
   }
