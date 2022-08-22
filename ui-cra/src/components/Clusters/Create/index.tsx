@@ -212,7 +212,8 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(() => {
-    const kustomizations = formData.clusterAutomations.map(
+    const { clusterAutomations, ...rest } = formData;
+    const kustomizations = clusterAutomations.map(
       (kustomization: any): Kustomization => {
         return {
           metadata: {
@@ -229,7 +230,6 @@ const AddCluster: FC = () => {
         };
       },
     );
-    const { clusterAutomations, ...rest } = formData;
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
