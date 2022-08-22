@@ -24,22 +24,34 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func MakeClientsFactory(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClientsFactory) {
+func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClientsFactory) {
+	scheme := runtime.NewScheme()
+	utilruntime.Must(v1.AddToScheme(scheme))
+	utilruntime.Must(ctrl.AddToScheme(scheme))
+
+	k8s := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
+
+	factory := MakeClientsFactory(k8s)
+
+	return k8s, factory
+}
+
+func MakeClientsFactory(k8s client.Client) *clustersmngrfakes.FakeClientsFactory {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(v1.AddToScheme(scheme))
 	utilruntime.Must(ctrl.AddToScheme(scheme))
 
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
-	k8s := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
 
 	clientsPool.ClientsReturns(map[string]client.Client{"Default": k8s})
 	clientsPool.ClientReturns(k8s, nil)
-	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	nsMap := map[string][]v1.Namespace{"Default": {}}
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	factory := &clustersmngrfakes.FakeClientsFactory{}
 	factory.GetImpersonatedClientReturns(clustersClient, nil)
 
-	return k8s, factory
+	return factory
 }
 
 func SetupServer(t *testing.T, fact clustersmngr.ClientsFactory) pb.PipelinesClient {
