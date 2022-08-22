@@ -22,6 +22,9 @@ import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import useClusters from '../../../contexts/Clusters';
+import { useListGitRepos } from '../../../hooks/gitReposSource';
+import { Loader } from '../../Loader';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -32,6 +35,8 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+  const { clusters, isLoading } = useClusters();
+  const { data: GitRepoResponse } = useListGitRepos();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -84,9 +89,11 @@ const AddApplication = () => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      pullRequestTitle: `Add application ${formData.name || ''}`,
+      pullRequestTitle: `Add application ${
+        formData.clusterAutomations[0].name || ''
+      }`,
     }));
-  }, [formData.name]);
+  }, [formData.clusterAutomations]);
 
   const handleAddApplication = useCallback(() => {
     const clusterAutomations = formData.clusterAutomations.map(
@@ -181,10 +188,16 @@ const AddApplication = () => {
           <ContentWrapper>
             <Grid container>
               <Grid item xs={12} sm={10} md={10} lg={8}>
-                <AppFields
-                  formData={formData}
-                  setFormData={setFormData}
-                ></AppFields>
+                {!isLoading ? (
+                  <AppFields
+                    formData={formData}
+                    setFormData={setFormData}
+                    clusters={clusters}
+                    GitRepoResponse={GitRepoResponse}
+                  ></AppFields>
+                ) : (
+                  <Loader />
+                )}
               </Grid>
               <Grid item xs={12} sm={10} md={10} lg={8}>
                 <GitOps

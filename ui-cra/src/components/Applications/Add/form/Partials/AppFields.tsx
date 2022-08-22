@@ -1,13 +1,11 @@
 import React, { FC, Dispatch } from 'react';
 import styled from 'styled-components';
-import useClusters from '../../../../../contexts/Clusters';
 import { Input, Select } from '../../../../../utils/form';
-import { useListGitRepos } from '../../../../../hooks/gitReposSource';
 import _ from 'lodash';
-import { Loader } from '../../../../Loader';
 import { MenuItem } from '@material-ui/core';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { GitopsClusterEnriched } from '../../../../../types/custom';
+import { ListGitRepositoriesResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -22,10 +20,15 @@ const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
-  isMultiple?: boolean;
-}> = ({ formData, setFormData, index = 0, isMultiple = false }) => {
-  const { clusters, isLoading } = useClusters();
-  const { data: GitRepoResponse } = useListGitRepos();
+  clusters?: GitopsClusterEnriched[];
+  GitRepoResponse?: ListGitRepositoriesResponse;
+}> = ({
+  formData,
+  setFormData,
+  index = 0,
+  clusters = undefined,
+  GitRepoResponse = undefined,
+}) => {
   let gitResposFilterdList: GitRepository[] = [];
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
@@ -43,7 +46,7 @@ const AppFields: FC<{
       clusterAutomations: [...currentAutomation],
     });
   };
-  if (!isMultiple) {
+  if (clusters) {
     const clusterName = formData.clusterAutomations[0].cluster_namespace
       ? `${formData.clusterAutomations[0].cluster_namespace}/${formData.clusterAutomations[0].cluster_name}`
       : `${formData.clusterAutomations[0].cluster_name}`;
@@ -105,37 +108,26 @@ const AppFields: FC<{
         value={formData.clusterAutomations[index].namespace}
         onChange={event => handleFormData(event, 'namespace')}
       />
-      {!isMultiple && (
+      {!!clusters && (
         <>
-          <div>
-            {!isLoading ? (
-              <Select
-                className="form-section"
-                name="cluster_name"
-                required={true}
-                label="SELECT CLUSTER"
-                value={formData.clusterAutomations[index].cluster || ''}
-                onChange={handleSelectCluster}
-                defaultValue={''}
-                description="select target cluster"
-              >
-                {clusters?.map(
-                  (option: GitopsClusterEnriched, index: number) => {
-                    return (
-                      <MenuItem key={index} value={JSON.stringify(option)}>
-                        {option.name}
-                      </MenuItem>
-                    );
-                  },
-                )}
-              </Select>
-            ) : (
-              <div className="loader">
-                <Loader />
-              </div>
-            )}
-          </div>
-
+          <Select
+            className="form-section"
+            name="cluster_name"
+            required={true}
+            label="SELECT CLUSTER"
+            value={formData.clusterAutomations[index].cluster || ''}
+            onChange={handleSelectCluster}
+            defaultValue={''}
+            description="select target cluster"
+          >
+            {clusters?.map((option: GitopsClusterEnriched, index: number) => {
+              return (
+                <MenuItem key={index} value={JSON.stringify(option)}>
+                  {option.name}
+                </MenuItem>
+              );
+            })}
+          </Select>
           <Select
             className="form-section"
             name="source"

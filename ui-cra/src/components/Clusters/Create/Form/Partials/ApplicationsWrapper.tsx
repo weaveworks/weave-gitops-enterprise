@@ -44,14 +44,13 @@ export const ApplicationsWrapper: FC<{
       {formData.clusterAutomations.map((kustomization: any, index: number) => {
         return (
           <div key={index} className={classes.applicationWrapper}>
-            <h3>Applications No.{index + 1}</h3>
+            <h3>Application No.{index + 1}</h3>
             <Grid container className="">
               <Grid item xs={12} sm={8} md={8} lg={8}>
                 <AppFields
                   formData={formData}
                   setFormData={setFormData}
                   index={index}
-                  isMultiple={true}
                 ></AppFields>
               </Grid>
               <Grid
