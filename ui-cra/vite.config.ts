@@ -1,4 +1,4 @@
-/// <reference types="vitest/globals" />
+/// <reference types="vitest" />
 
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -17,6 +17,10 @@ const proxyConfig = {
   secure,
 };
 
+const localAlias = process.env.PROXY_LOCAL
+  ? { '@weaveworks/weave-gitops': `${process.env.PWD}/../../weave-gitops/ui` }
+  : {};
+
 //
 // https://vitejs.dev/config/
 //
@@ -26,27 +30,21 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
     deps: {
+      // So node esm module resolution doesn't work on this yet..
+      // So transform it into commonjs
       inline: ['@weaveworks/weave-gitops'],
     },
   },
-  // ssr: {
-  //   noExternal: ['styled-components'],
-  // },
   resolve: {
     // This doesn't seem to be observed in package.json/resolutions so force it here for dev mode
     dedupe: ['@material-ui/styles'],
-    // alias: {
-    //   '@weaveworks/weave-gitops': '/Users/simon/weave/weave-gitops/ui',
-    // },
+    alias: {
+      ...localAlias,
+    },
   },
   build: {
+    // Same as CRA for now.
     outDir: 'build',
-  },
-  optimizeDeps: {
-    // include: ['@weaveworks/weave-gitops'],
-    // esbuildOptions: {
-    //   target: 'es2020',
-    // },
   },
   server: {
     proxy: {
