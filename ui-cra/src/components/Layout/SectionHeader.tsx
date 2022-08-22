@@ -28,11 +28,14 @@ const Wrapper = styled.div<Size>`
   }
 `;
 
-// This should be removed once CORE change the icon in UserSettings
+// This should be removed once CORE change the icon in UserSettings or We create our own component
 const CustomUserSettings = styled(UserSettings)`
   svg {
-    fill: ${({ theme }) => theme.colors.primary} !important;
+    fill: ${({ theme }) => theme.colors.primary};
   }
+  button {
+    background-color: ${({ theme }) => theme.colors.neutral10};
+}
 `;
 
 interface Props extends Size {
