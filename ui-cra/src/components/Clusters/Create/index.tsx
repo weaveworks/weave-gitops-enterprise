@@ -156,7 +156,7 @@ const AddCluster: FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const handlePRPreview = useCallback(() => {
-    const { url, provider, ...templateFields } = formData;
+    const { url, provider, clusterAutomations, ...templateFields } = formData;
     setPreviewLoading(true);
     return renderTemplate({
       values: templateFields,
