@@ -46,7 +46,6 @@ const Profiles: FC<{
 }> = ({ selectedProfiles, setSelectedProfiles }) => {
   const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
     profiles.map(p => p.name);
-
   const { profiles, isLoading } = useProfiles();
   const [selected, setSelected] = useState<UpdatedProfile['name'][]>(
     getNamesFromProfiles(selectedProfiles),
@@ -126,7 +125,9 @@ const Profiles: FC<{
                 checked={selected.indexOf(profile.name) > -1}
                 disabled={profile.required}
                 style={{
-                  color: profile.required ? undefined : weaveTheme.colors.primary,
+                  color: profile.required
+                    ? undefined
+                    : weaveTheme.colors.primary,
                 }}
               />
             ),

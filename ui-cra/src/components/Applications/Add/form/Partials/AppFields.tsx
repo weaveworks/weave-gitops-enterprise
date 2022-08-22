@@ -1,6 +1,7 @@
 import React, { FC, Dispatch } from 'react';
 import styled from 'styled-components';
 import useClusters from '../../../../../contexts/Clusters';
+import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
 import { Loader } from '../../../../Loader';
 import { MenuItem } from '@material-ui/core';
@@ -22,6 +23,7 @@ const AppFields: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ formData, setFormData }) => {
   const { clusters, isLoading } = useClusters();
+  const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
@@ -48,7 +50,6 @@ const AppFields: FC<{
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
-
     setFormData({
       ...formData,
       source_name: JSON.parse(value).name,
@@ -56,6 +57,12 @@ const AppFields: FC<{
       source_type: JSON.parse(value).kind,
       source: value,
     });
+    if (JSON.parse(value).kind === 'KindHelmRepository') {
+      setHelmRepo({
+        name: JSON.parse(value).name,
+        namespace: JSON.parse(value).namespace,
+      });
+    }
   };
 
   const handleFormData = (

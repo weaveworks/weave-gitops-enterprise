@@ -37,8 +37,6 @@ const AddApplication = () => {
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
 
-  console.log(profiles);
-
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   let initialFormData = {
@@ -195,7 +193,6 @@ const AddApplication = () => {
                   <AppFields formData={formData} setFormData={setFormData} />
                 </Grid>
                 {profiles.length > 0 &&
-                // TO DO: GetProfiles needs to take into account name and namespace of HelmRepo
                 formData.source_type === 'KindHelmRepository' ? (
                   <Profiles
                     selectedProfiles={selectedProfiles}

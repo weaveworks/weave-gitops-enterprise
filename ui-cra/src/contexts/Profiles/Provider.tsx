@@ -14,24 +14,16 @@ import { Template } from '../../cluster-services/cluster_services.pb';
 
 const profilesUrl = '/v1/profiles';
 
-export function useGetProfiles(name?: string, namespace?: string) {
-  return useQuery<ListProfilesResponse, Error>('profiles', () =>
-    request(
-      'GET',
-      name !== '' && namespace !== ''
-        ? profilesUrl + `?helmRepoName=${name}&helmRepoName=${namespace}`
-        : profilesUrl,
-    ),
-  );
-}
-
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
   const [initialProfiles, setInitialProfiles] = useState<UpdatedProfile[]>([]);
   const [profiles, setProfiles] = useState<UpdatedProfile[]>([]);
-  const { isLoading, data, error } = useGetProfiles();
+  const [helmRepo, setHelmRepo] = useState<{
+    name: string;
+    namespace: string;
+  }>({ name: '', namespace: '' });
 
   const history = useHistory();
 
@@ -137,18 +129,32 @@ const ProfilesProvider: FC = ({ children }) => {
     return accumulator;
   }, []);
 
-  useEffect(() => {
-    if (data?.code === 2) {
+  const onError = (error: Error) =>
+    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
+
+  const onSuccess = (data: ListProfilesResponse) => {
+    if (data.code === 2) {
       setProfiles([]);
-    } else {
-      setInitialProfiles(getProfiles(data?.profiles));
+      return;
     }
-    if (error) {
-      setNotifications([
-        { message: { text: error.message }, variant: 'danger' },
-      ]);
-    }
-  }, [data?.code, data?.profiles, error, getProfiles, setNotifications]);
+    setInitialProfiles(getProfiles(data?.profiles));
+  };
+
+  const { isLoading } = useQuery<ListProfilesResponse, Error>(
+    ['profiles', helmRepo?.name, helmRepo?.namespace],
+    () =>
+      request(
+        'GET',
+        helmRepo?.name !== '' && helmRepo?.name !== ''
+          ? profilesUrl +
+              `?helmRepoName=${helmRepo?.name}&helmRepoNamespace=${helmRepo?.namespace}`
+          : profilesUrl,
+      ),
+    {
+      onSuccess,
+      onError,
+    },
+  );
 
   useEffect(() => {
     // get default / required profiles for the active template
@@ -174,6 +180,7 @@ const ProfilesProvider: FC = ({ children }) => {
       value={{
         loading,
         isLoading,
+        setHelmRepo,
         profiles,
         getProfileYaml,
       }}
