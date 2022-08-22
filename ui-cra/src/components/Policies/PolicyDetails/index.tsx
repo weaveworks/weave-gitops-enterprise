@@ -2,7 +2,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 
 import HeaderSection from './HeaderSection';
 import ParametersSection from './ParametersSection';
@@ -37,7 +37,6 @@ const PolicyDetails = ({
           {error && <Alert severity="error">{error.message}</Alert>}
           {data?.policy && (
             <>
-              <Title>{data?.policy?.name}</Title>
               <HeaderSection
                 id={policy?.id}
                 clusterName={policy?.clusterName}
