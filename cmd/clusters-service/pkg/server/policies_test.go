@@ -440,7 +440,7 @@ func TestGetPolicy(t *testing.T) {
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 
 			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
-			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+			fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
 				clientsFactory: fakeFactory,
