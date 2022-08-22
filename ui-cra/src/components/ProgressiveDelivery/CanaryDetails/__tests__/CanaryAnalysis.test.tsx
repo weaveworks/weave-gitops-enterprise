@@ -52,7 +52,7 @@ describe('CanaryMetricsTable', () => {
     await act(async () => {
       const c = wrap(
         <CanaryMetricsTable
-          metrics={api.GetCanaryReturns.canary?.analysis?.metrics}
+          metrics={api.GetCanaryReturns.canary?.analysis?.metrics || []}
         />,
       );
       render(c);
@@ -64,8 +64,8 @@ describe('CanaryMetricsTable', () => {
     expect(rows).toHaveLength(1);
     assertCanaryMetric(
       tbl,
-      rows.item(0),
-      api.GetCanaryReturns.canary?.analysis?.metrics[0],
+      rows?.item(0),
+      api.GetCanaryReturns.canary?.analysis?.metrics?.[0],
     );
   });
   it('renders metrics table for a canary with metrics with metric templates', async () => {
@@ -108,7 +108,7 @@ describe('CanaryMetricsTable', () => {
     await act(async () => {
       const c = wrap(
         <CanaryMetricsTable
-          metrics={api.GetCanaryReturns.canary?.analysis?.metrics}
+          metrics={api.GetCanaryReturns.canary?.analysis?.metrics || []}
         />,
       );
       render(c);
@@ -120,17 +120,23 @@ describe('CanaryMetricsTable', () => {
     expect(rows).toHaveLength(1);
     assertCanaryMetric(
       tbl,
-      rows.item(0),
-      api.GetCanaryReturns.canary?.analysis?.metrics[0],
+      rows?.item(0),
+      api.GetCanaryReturns?.canary?.analysis?.metrics?.[0],
     );
   });
 });
 
 function assertCanaryMetric(
-  table: Element,
-  metricAsElement: Element,
-  metric: CanaryMetric,
+  table?: Element | null,
+  metricAsElement?: Element,
+  metric?: CanaryMetric,
 ) {
+  // type assertions to make the typing a bit simpler after this point
+  // (don't have to worry about undefined / null values)
+  assert(table, 'Cananry metric table is falsey');
+  assert(metricAsElement, 'metricAsElement is falsey');
+  assert(metric, 'metric is falsey');
+
   //assert name
   const nameText = findTextByHeading(table, metricAsElement, 'Name');
   expect(nameText).toEqual(metric.name);

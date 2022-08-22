@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { act, render, screen } from '@testing-library/react';
 import CanaryDetails from '../CanaryDetails';
 import { ProgressiveDeliveryProvider } from '../../../contexts/ProgressiveDelivery';

@@ -169,7 +169,7 @@ export function findTextByHeading(
   row: Element,
   headingName: string,
 ) {
-  const cols = table?.querySelectorAll('thead th');
+  const cols = table.querySelectorAll('thead th');
   const index = findColByHeading(cols, headingName) as number;
   return row.childNodes.item(index).textContent;
 }
