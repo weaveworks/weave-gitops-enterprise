@@ -1,10 +1,9 @@
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 
-import Dialog from '@material-ui/core/Dialog';
 import { CanaryMetricTemplate } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import React, { Dispatch, FC } from 'react';
 
-import { DialogContent, DialogTitle } from '@material-ui/core';
+import { Dialog, DialogContent, DialogTitle } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import YamlView from '../../../YamlView';

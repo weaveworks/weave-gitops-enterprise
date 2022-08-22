@@ -1,4 +1,4 @@
-import { MuiThemeProvider } from '@material-ui/core';
+import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
 import {
   GetCanaryResponse,
   IsFlaggerAvailableResponse,
@@ -45,26 +45,28 @@ export const withContext = (contexts: any[]) => {
   };
 };
 
-export const defaultContexts = () => [
-  [ThemeProvider, { theme: theme }],
-  [MuiThemeProvider, { theme: muiTheme }],
-  [
-    RequestContextProvider,
-    { fetch: () => new Promise(accept => accept(null)) },
-  ],
-  [QueryClientProvider, { client: new QueryClient() }],
-  [
-    EnterpriseClientProvider,
-    {
-      api: new EnterpriseClientMock(),
-    },
-  ],
-  [CoreClientContextProvider, { api: new CoreClientMock() }],
-  [MemoryRouter],
-  [NotificationProvider],
-  [TemplatesProvider],
-  [ClustersProvider],
-];
+export const defaultContexts = () => {
+  return [
+    [ThemeProvider, { theme: theme }],
+    [MuiThemeProvider, { theme: muiTheme }],
+    [
+      RequestContextProvider,
+      { fetch: () => new Promise(accept => accept(null)) },
+    ],
+    [QueryClientProvider, { client: new QueryClient() }],
+    [
+      EnterpriseClientProvider,
+      {
+        api: new EnterpriseClientMock(),
+      },
+    ],
+    [CoreClientContextProvider, { api: new CoreClientMock() }],
+    [MemoryRouter],
+    [NotificationProvider],
+    [TemplatesProvider],
+    [ClustersProvider],
+  ];
+};
 
 const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {

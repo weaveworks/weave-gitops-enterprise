@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`Applications index test snapshots loading 1`] = `
+exports[`Applications index test > snapshots > loading 1`] = `
 .c6 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -260,7 +260,7 @@ exports[`Applications index test snapshots loading 1`] = `
         <div
           class=""
         >
-          Weave GitOps Enterprise 
+          Weave GitOps Enterprise dev
         </div>
       </div>
     </div>
@@ -268,7 +268,7 @@ exports[`Applications index test snapshots loading 1`] = `
 </div>
 `;
 
-exports[`Applications index test snapshots success 1`] = `
+exports[`Applications index test > snapshots > success 1`] = `
 .c6 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -1591,7 +1591,7 @@ exports[`Applications index test snapshots success 1`] = `
         <div
           class=""
         >
-          Weave GitOps Enterprise 
+          Weave GitOps Enterprise dev
         </div>
       </div>
     </div>

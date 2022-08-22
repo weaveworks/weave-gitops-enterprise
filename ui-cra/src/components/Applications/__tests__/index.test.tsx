@@ -1,6 +1,6 @@
 import Applications from '../';
 
-import { MuiThemeProvider } from '@material-ui/core';
+import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
 import { act, render, RenderResult, screen } from '@testing-library/react';
 import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import { QueryClient, QueryClientProvider } from 'react-query';

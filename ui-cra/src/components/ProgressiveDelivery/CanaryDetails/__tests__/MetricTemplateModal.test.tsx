@@ -65,7 +65,7 @@ describe('MetricTemplateModal', () => {
     const metrics = canary?.analysis?.metrics;
     const metric = (metrics || [])[0];
     const metricTemplate = metric.metricTemplate as CanaryMetricTemplate;
-    const handler = jest.fn();
+    const handler = vi.fn();
 
     await act(async () => {
       const c = wrap(
