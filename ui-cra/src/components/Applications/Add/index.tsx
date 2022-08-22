@@ -193,13 +193,16 @@ const AddApplication = () => {
               <Grid container>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
                   <AppFields formData={formData} setFormData={setFormData} />
-                  {profiles.length > 0 &&
-                  formData.source_type === 'KindHelmRepository' ? (
-                    <Profiles
-                      selectedProfiles={selectedProfiles}
-                      setSelectedProfiles={setSelectedProfiles}
-                    />
-                  ) : null}
+                </Grid>
+                {profiles.length > 0 &&
+                // TO DO: GetProfiles needs to take into account name and namespace of HelmRepo
+                formData.source_type === 'KindHelmRepository' ? (
+                  <Profiles
+                    selectedProfiles={selectedProfiles}
+                    setSelectedProfiles={setSelectedProfiles}
+                  />
+                ) : null}
+                <Grid item xs={12} sm={10} md={10} lg={8}>
                   <GitOps
                     loading={loading}
                     formData={formData}

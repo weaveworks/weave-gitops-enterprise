@@ -2,7 +2,6 @@ import React, { FC, Dispatch } from 'react';
 import styled from 'styled-components';
 import useClusters from '../../../../../contexts/Clusters';
 import { Input, Select } from '../../../../../utils/form';
-import _ from 'lodash';
 import { Loader } from '../../../../Loader';
 import { MenuItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../../../../types/custom';
@@ -24,8 +23,6 @@ const AppFields: FC<{
 }> = ({ formData, setFormData }) => {
   const { clusters, isLoading } = useClusters();
   const { data } = useListSources();
-
-  console.log(data);
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;

@@ -12,14 +12,26 @@ import useTemplates from './../Templates';
 import { useQuery } from 'react-query';
 import { Template } from '../../cluster-services/cluster_services.pb';
 
+const profilesUrl = '/v1/profiles';
+
+export function useGetProfiles(name?: string, namespace?: string) {
+  return useQuery<ListProfilesResponse, Error>('profiles', () =>
+    request(
+      'GET',
+      name !== '' && namespace !== ''
+        ? profilesUrl + `?helmRepoName=${name}&helmRepoName=${namespace}`
+        : profilesUrl,
+    ),
+  );
+}
+
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
   const [initialProfiles, setInitialProfiles] = useState<UpdatedProfile[]>([]);
   const [profiles, setProfiles] = useState<UpdatedProfile[]>([]);
-
-  const profilesUrl = '/v1/profiles';
+  const { isLoading, data, error } = useGetProfiles();
 
   const history = useHistory();
 
@@ -125,25 +137,18 @@ const ProfilesProvider: FC = ({ children }) => {
     return accumulator;
   }, []);
 
-  const onError = (error: Error) =>
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
-
-  const onSuccess = (data: ListProfilesResponse) => {
-    if (data.code === 2) {
+  useEffect(() => {
+    if (data?.code === 2) {
       setProfiles([]);
-      return;
+    } else {
+      setInitialProfiles(getProfiles(data?.profiles));
     }
-    setInitialProfiles(getProfiles(data?.profiles));
-  };
-
-  const { isLoading } = useQuery<ListProfilesResponse, Error>(
-    'profiles',
-    () => request('GET', profilesUrl),
-    {
-      onSuccess,
-      onError,
-    },
-  );
+    if (error) {
+      setNotifications([
+        { message: { text: error.message }, variant: 'danger' },
+      ]);
+    }
+  }, [data?.code, data?.profiles, error, getProfiles, setNotifications]);
 
   useEffect(() => {
     // get default / required profiles for the active template
