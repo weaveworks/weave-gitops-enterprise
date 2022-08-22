@@ -119,8 +119,6 @@ const TemplatesDashboard: FC = () => {
             },
           ]}
         />
-
-        {/* backgroundColor={view === 'grid' ? 'transparent' : undefined} */}
         <ContentWrapper loading={isLoading}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <ActionsWrapper id='display-action'>
