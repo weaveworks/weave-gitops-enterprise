@@ -168,7 +168,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 func RunUIServer(ctx context.Context) {
 	// is configured to proxy to
 	// - 8000 for clusters-service
-	cmd := exec.CommandContext(ctx, "node", "server.js")
+	cmd := exec.CommandContext(ctx, "yarn", "preview", "--port", "5000")
 	cmd.Dir = getLocalPath("ui-cra")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

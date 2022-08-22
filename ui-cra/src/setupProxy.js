@@ -1,4 +1,4 @@
-const { createProxyMiddleware } = require('http-proxy-middleware');
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const DEFAULT_PROXY_HOST = 'http://34.67.250.163:30080/';
 const proxyHost = process.env.PROXY_HOST || DEFAULT_PROXY_HOST;
@@ -8,7 +8,7 @@ const wegoServerHost = process.env.WEGO_SERVER_HOST || capiServerHost;
 // Localhost is running tls by default now
 const secure = process.env.PROXY_SECURE === 'true';
 
-module.exports = function (app) {
+export default function (app) {
   app.use(
     '/gitops',
     createProxyMiddleware({
@@ -41,4 +41,4 @@ module.exports = function (app) {
       secure,
     }),
   );
-};
+}

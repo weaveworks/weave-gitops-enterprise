@@ -1,6 +1,6 @@
-const fs = require('fs');
-const express = require('express');
-const setupProxy = require('./src/setupProxy');
+import fs from 'fs';
+import express from 'express';
+import setupProxy from './src/setupProxy.js';
 
 const app = express();
 

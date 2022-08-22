@@ -174,7 +174,7 @@ jobs:
       - name: Install modules
         run: cd ui-cra && yarn --pure-lockfile
       - name: Run Front-end Unit Tests
-        run: cd ui-cra && ./node_modules/.bin/react-scripts test
+        run: cd ui-cra && yarn test
 
   ui-integration-tests:
     runs-on: ubuntu-latest
