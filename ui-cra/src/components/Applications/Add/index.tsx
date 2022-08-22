@@ -118,7 +118,7 @@ const AddApplication = () => {
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
-      clusterAutomations: clusterAutomations,
+      clusterAutomations,
     };
     setLoading(true);
     return AddApplicationRequest(
