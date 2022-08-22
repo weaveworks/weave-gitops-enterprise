@@ -56,18 +56,18 @@ export const PolicyViolationsTable: FC<Props> = ({
   ];
   const policyFields: Field[] = [
     {
-      label: 'Name',
-      value: ({ name, clusterName, id }: PolicyValidation) => (
+      label: 'Message',
+      value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
           to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
           className={classes.link}
-          data-violation-message={name}
+          data-violation-message={message}
         >
-          {name}
+          {message}
         </Link>
       ),
       textSearchable: true,
-      sortValue: ({ name }) => name,
+      sortValue: ({ message }) => message,
       maxWidth: 650,
     },
     {
@@ -83,18 +83,18 @@ export const PolicyViolationsTable: FC<Props> = ({
 
   const applicationFields: Field[] = [
     {
-      label: 'Name',
-      value: ({ name, clusterName, id }: PolicyValidation) => (
+      label: 'Message',
+      value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
           to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}&source=applications&sourcePath=${sourcePath}`}
           className={classes.link}
-          data-violation-message={name}
+          data-violation-message={message}
         >
-          {name}
+          {message}
         </Link>
       ),
       textSearchable: true,
-      sortValue: ({ name }) => name,
+      sortValue: ({ message }) => message,
       maxWidth: 650,
     },
     ...defaultFields,
