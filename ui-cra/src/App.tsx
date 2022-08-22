@@ -1,5 +1,5 @@
 import '@fortawesome/fontawesome-free/css/all.css';
-import { ThemeProvider as MuiThemeProvider } from '@material-ui/core/styles';
+import { MuiThemeProvider } from '@material-ui/core/styles';
 import { FC } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';

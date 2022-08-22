@@ -2,8 +2,8 @@ import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
 
-export const usePolicyStyle = makeStyles((wtheme: Theme) => {
-  return createStyles({
+export const usePolicyStyle = makeStyles((wtheme: Theme) =>
+  createStyles({
     contentWrapper: {
       margin: `${theme.spacing.small} 0`,
     },
@@ -132,5 +132,5 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) => {
     messageWrape: {
       whiteSpace: 'normal',
     },
-  });
-});
+  }),
+);

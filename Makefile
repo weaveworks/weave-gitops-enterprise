@@ -135,16 +135,6 @@ ui-audit:
 	# Check js packages for any high or critical vulnerabilities
 	cd ui-cra && yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
 
-ui-core-lib:
-	cd ../weave-gitops && \
-	yarn link && \
-	cd ../weave-gitops-enterprise && \
-	yarn link @weaveworks/weave-gitops
-
-ui-core-lib-unlink:
-	yarn unlink @weaveworks/weave-gitops
-	yarn install --force
-
 lint:
 	bin/go-lint
 

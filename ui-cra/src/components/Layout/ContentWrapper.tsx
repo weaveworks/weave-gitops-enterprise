@@ -100,7 +100,7 @@ export const ContentWrapper: FC<Props> = ({
   const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
-    // ui: process.env.REACT_APP_VERSION || 'no version specified',
+    ui: import.meta.env.VITE_APP_VERSION || 'no version specified',
   };
 
   if (loading) {
@@ -148,8 +148,12 @@ export const ContentWrapper: FC<Props> = ({
           title={`Server Version ${versions?.capiServer}`}
           placement="top"
         >
-          {/* <div>Weave GitOps Enterprise {import.meta.env.VITE_APP_VERSION}</div> */}
-          <div>Weave GitOps Enterprise dev</div>
+          <>
+            <div>
+              Weave GitOps Enterprise {import.meta.env.VITE_APP_VERSION}
+            </div>
+            <div>Weave GitOps Enterprise dev</div>
+          </>
         </Tooltip>
       </HelpLinkWrapper>
     </div>
