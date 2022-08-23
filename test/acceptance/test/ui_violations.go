@@ -94,7 +94,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("And verify '%s' violation page", policyName), func() {
 					Eventually(violationDetailPage.Header.Text).Should(MatchRegexp(policyName), "Failed to verify dashboard violation name ")
 					Eventually(violationDetailPage.Title.Text).Should(MatchRegexp(policyName), "Failed to verify violation title on violation page")
-					Eventually(violationDetailPage.Message.Text).Should(MatchRegexp(violationMsg), "Failed to verify violation Message on violation page")
 					Eventually(violationDetailPage.ClusterName.Text).Should(MatchRegexp(voliationClusterName), "Failed to verify violation Cluster name on violation page")
 					Eventually(violationDetailPage.Severity.Text).Should(MatchRegexp(violationSeverity), "Failed to verify violation Severity on violation page")
 					Eventually(violationDetailPage.Category.Text).Should(MatchRegexp(violationCategory), "Failed to verify violation category on violation page")
@@ -154,7 +153,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName}, "")
+				deleteCluster("kind", leafClusterName, "")
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 			})
@@ -244,7 +243,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("And verify '%s' violation page", policyName), func() {
 					Eventually(violationDetailPage.Header.Text).Should(MatchRegexp(policyName), "Failed to verify dashboard violation name ")
 					Eventually(violationDetailPage.Title.Text).Should(MatchRegexp(policyName), "Failed to verify violation title on violation page")
-					Eventually(violationDetailPage.Message.Text).Should(MatchRegexp(violationMsg), "Failed to verify violation Message on violation page")
 					Eventually(violationDetailPage.ClusterName.Text).Should(MatchRegexp(leafClusterNamespace+`/`+leafClusterName), "Failed to verify violation Cluster name on violation page")
 					Eventually(violationDetailPage.Severity.Text).Should(MatchRegexp(violationSeverity), "Failed to verify violation Severity on violation page")
 					Eventually(violationDetailPage.Category.Text).Should(MatchRegexp(violationCategory), "Failed to verify violation category on violation page")

@@ -27,15 +27,28 @@ func verifyUsageText(output string) {
 
 	By("And Flags category", func() {
 		Eventually(output).Should(MatchRegexp("Flags:"))
-		Eventually(output).Should(MatchRegexp(`-e, --endpoint string[\s]+.+`))
-		Eventually(output).Should(MatchRegexp(`-h, --help[\s]+help for gitops`))
-		Eventually(output).Should(MatchRegexp(`--namespace string[\s]`))
+		Eventually(output).Should(MatchRegexp(`-e, --endpoint WEAVE_GITOPS_ENTERPRISE_API_URL[\s]+.+`))
+		Eventually(output).Should(MatchRegexp(`--insecure-skip-tls-verify [\s]+.+`))
+		Eventually(output).Should(MatchRegexp(`--namespace string[\s]+.+`))
+		Eventually(output).Should(MatchRegexp(`-p, --password WEAVE_GITOPS_PASSWORD[\s]+.+`))
+		Eventually(output).Should(MatchRegexp(`-u, --username WEAVE_GITOPS_USERNAME[\s]+.+`))
 	})
 
 	By("And command help usage", func() {
 		Eventually(output).Should(MatchRegexp(`Use "gitops \[command\] --help".+`))
 	})
 
+}
+
+func verifyGlobalFlags(stdOut string) {
+	By("And  Global Flags category", func() {
+		Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
+		Eventually(stdOut).Should(MatchRegexp(`-e, --endpoint WEAVE_GITOPS_ENTERPRISE_API_URL[\s]+.+`))
+		Eventually(stdOut).Should(MatchRegexp(`--insecure-skip-tls-verify [\s]+.+`))
+		Eventually(stdOut).Should(MatchRegexp(`--namespace string[\s]+.+`))
+		Eventually(stdOut).Should(MatchRegexp(`-p, --password WEAVE_GITOPS_PASSWORD[\s]+.+`))
+		Eventually(stdOut).Should(MatchRegexp(`-u, --username WEAVE_GITOPS_USERNAME[\s]+.+`))
+	})
 }
 
 func DescribeCliHelp() {
@@ -51,7 +64,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops displays help text when provided with the wrong flag", func() {
 
 				By("When I run 'gitops foo'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s foo", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("foo")
 				})
 
 				By("Then I should see gitops error message", func() {
@@ -63,7 +76,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops help flag prints the help text", func() {
 
 				By("When I run the command 'gitops --help' ", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s --help", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("--help")
 				})
 
 				verifyUsageText(stdOut)
@@ -72,7 +85,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the help text", func() {
 
 				By("When I run the command 'gitops'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(gitops_bin_path)
+					stdOut, stdErr = runGitopsCommand("")
 				})
 
 				verifyUsageText(stdOut)
@@ -82,7 +95,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops command prints the help text for get command", func() {
 
 				By("When I run the command 'gitops get --help' ", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get --help", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("get --help")
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -101,8 +114,10 @@ func DescribeCliHelp() {
 
 				By("And Available commands category", func() {
 					Eventually(stdOut).Should(MatchRegexp("Available Commands:"))
+					Eventually(stdOut).Should(MatchRegexp(`bcrypt-hash[\s]+.+`))
 					Eventually(stdOut).Should(MatchRegexp(`cluster[\s]+.+`))
 					Eventually(stdOut).Should(MatchRegexp(`credential[\s]+.+`))
+					Eventually(stdOut).Should(MatchRegexp(`profile[\s]+.+`))
 					Eventually(stdOut).Should(MatchRegexp(`template[\s]+.+`))
 				})
 
@@ -111,16 +126,13 @@ func DescribeCliHelp() {
 					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for get`))
 				})
 
-				By("And  Global Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-e, --endpoint string\s+.+`))
-				})
+				verifyGlobalFlags(stdOut)
 			})
 
 			It("Verify that gitops command prints the sub help text for the get templates command", func() {
 
 				By("When I run the command 'gitops get templates --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --help", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("get templates --help")
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -139,20 +151,20 @@ func DescribeCliHelp() {
 
 				By("And Flags category", func() {
 					Eventually(stdOut).Should(MatchRegexp("Flags:"))
+					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+.+`))
 					Eventually(stdOut).Should(MatchRegexp(`--list-parameters[\s]+.+`))
+					Eventually(stdOut).Should(MatchRegexp(`--list-profiles [\s]+.+`))
+					Eventually(stdOut).Should(MatchRegexp(`--provider string[\s]+.+`))
 				})
 
-				By("And  Global Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-e, --endpoint string\s+.+`))
-				})
+				verifyGlobalFlags(stdOut)
 
 			})
 
 			It("Verify that gitops command prints the sub help text for the get credentials command", func() {
 
 				By("When I run the command 'gitops get credentials --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get credentials --help", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("get credentials --help")
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -174,18 +186,14 @@ func DescribeCliHelp() {
 					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for credential`))
 				})
 
-				By("And  Global Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-v, --verbose[\s]+.+`))
-				})
+				verifyGlobalFlags(stdOut)
 
 			})
 
 			It("Verify that gitops command prints the sub help text for the get clusters command", func() {
 
 				By("When I run the command 'gitops get clusters --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get clusters --help", gitops_bin_path))
-
+					stdOut, stdErr = runGitopsCommand("get clusters --help")
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -204,19 +212,45 @@ func DescribeCliHelp() {
 
 				By("And Flags category", func() {
 					Eventually(stdOut).Should(MatchRegexp("Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`--kubeconfig[\s]+.+`))
+					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for cluster`))
+					Eventually(stdOut).Should(MatchRegexp(`--print-kubeconfig[\s]+.+`))
 				})
 
-				By("And  Global Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-e, --endpoint string\s+.+`))
+				verifyGlobalFlags(stdOut)
+			})
+
+			It("Verify that gitops command prints the sub help text for the get profile command", func() {
+
+				By("When I run the command 'gitops get profile --help'", func() {
+					stdOut, stdErr = runGitopsCommand("get profiles --help")
 				})
+
+				By("Then I should see help message printed with the command discreption", func() {
+					Eventually(stdOut).Should(MatchRegexp("Show information about available profiles"))
+				})
+
+				By("And Usage category", func() {
+					Eventually(stdOut).Should(MatchRegexp("Usage:"))
+					Eventually(stdOut).Should(MatchRegexp("gitops get profile.+"))
+				})
+
+				By("And Examples category", func() {
+					Eventually(stdOut).Should(MatchRegexp("Examples:"))
+					Eventually(stdOut).Should(MatchRegexp("gitops get profiles"))
+				})
+
+				By("And Flags category", func() {
+					Eventually(stdOut).Should(MatchRegexp("Flags:"))
+					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for profile`))
+				})
+
+				verifyGlobalFlags(stdOut)
 			})
 
 			It("Verify that gitops command prints the help text for add command", func() {
 
 				By("When I run the command 'gitops add --help' ", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add --help", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("add --help")
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -236,6 +270,8 @@ func DescribeCliHelp() {
 				By("And Available commands category", func() {
 					Eventually(stdOut).Should(MatchRegexp("Available Commands:"))
 					Eventually(stdOut).Should(MatchRegexp(`cluster[\s]+.+`))
+					Eventually(stdOut).Should(MatchRegexp(`profile[\s]+.+`))
+					Eventually(stdOut).Should(MatchRegexp(`terraform[\s]+.+`))
 				})
 
 				By("And Flags category", func() {
@@ -243,16 +279,13 @@ func DescribeCliHelp() {
 					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for add`))
 				})
 
-				By("And  Global Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`namespace string\s+.+`))
-				})
+				verifyGlobalFlags(stdOut)
 			})
 
 			It("Verify that gitops command prints the sub help text for the add cluster command", func() {
 
 				By("When I run the command 'gitops add cluster --help'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add cluster --help", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("add cluster --help")
 				})
 
 				By("Then I should see help message printed with the command discreption", func() {
@@ -287,16 +320,54 @@ func DescribeCliHelp() {
 					Eventually(output).Should(MatchRegexp(`--url string[\s]+.+`))
 				})
 
-				By("And  Global Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-e, --endpoint string\s+.+`))
-				})
+				verifyGlobalFlags(stdOut)
 			})
+		})
+
+		It("Verify that gitops command prints the sub help text for the add profile command", func() {
+
+			By("When I run the command 'gitops add profile --help'", func() {
+				stdOut, stdErr = runGitopsCommand("add profile --help")
+			})
+
+			By("Then I should see help message printed with the command discreption", func() {
+				Eventually(stdOut).Should(MatchRegexp("Add a profile to a cluster"))
+			})
+
+			By("And Usage category", func() {
+				Eventually(stdOut).Should(MatchRegexp("Usage:"))
+				Eventually(stdOut).Should(MatchRegexp("gitops add profile.+"))
+			})
+
+			By("And Examples category", func() {
+				Eventually(stdOut).Should(MatchRegexp("Examples:"))
+				Eventually(stdOut).Should(MatchRegexp("gitops add profile --name=.+"))
+			})
+
+			By("And Flags category", func() {
+				Eventually(stdOut).Should(MatchRegexp("Flags:"))
+
+				output := stdOut
+
+				Eventually(output).Should(MatchRegexp(`--auto-merge[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`--base string[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`--branch string[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`--cluster string[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`--commit-message string[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`--config-repo string[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`--description string[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`-h, --help[\s]+help for profile`))
+				Eventually(output).Should(MatchRegexp(`--name string[\s]+.+`))
+				Eventually(output).Should(MatchRegexp(`--title string[\s].+`))
+				Eventually(output).Should(MatchRegexp(`--version string[\s]+.+`))
+			})
+
+			verifyGlobalFlags(stdOut)
 		})
 
 		Context("[CLI] When gitops command required parameters are missing", func() {
 			It("Verify that gitops displays error text when listing parameters without specifying a template", func() {
-				stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --list-parameters  --endpoint %s", gitops_bin_path, capi_endpoint_url))
+				stdOut, stdErr = runGitopsCommand("get templates --list-parameters")
 
 				By("Then I should see gitops error message", func() {
 					Eventually(stdErr).Should(MatchRegexp("Error: template name is required"))
@@ -306,7 +377,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops displays error text when listing templates without specifying a provider name", func() {
 
 				By(fmt.Sprintf("When I run 'gitops get templates --provider --endpoint %s'", capi_endpoint_url), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --provider  --endpoint %s", gitops_bin_path, capi_endpoint_url))
+					stdOut, stdErr = runGitopsCommand("get templates --provider")
 				})
 
 				By("Then I should see gitops error message", func() {
@@ -317,7 +388,7 @@ func DescribeCliHelp() {
 			It("Verify that gitops displays error text when performing actions on resources without specifying api endpoint", func() {
 
 				By("When I run 'gitops get templates'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s get templates --provider", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("get templates --provider")
 				})
 
 				By("Then I should see gitops error message", func() {
@@ -325,7 +396,7 @@ func DescribeCliHelp() {
 				})
 
 				By("When I run 'gitops add cluster'", func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("%s add cluster", gitops_bin_path))
+					stdOut, stdErr = runGitopsCommand("add cluster")
 				})
 
 				By("Then I should see gitops error message", func() {

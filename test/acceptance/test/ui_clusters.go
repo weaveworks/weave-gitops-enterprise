@@ -92,6 +92,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[UI] When no leaf cluster is connected", func() {
 			It("Verify connected cluster dashboard shows only management cluster", Label("integration"), func() {
+				pages.NavigateToPage(webDriver, "Clusters")
 
 				pages.NavigateToPage(webDriver, "Clusters")
 
@@ -155,7 +156,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName}, "")
+				deleteCluster("kind", leafClusterName, "")
 			})
 
 			It("Verify a cluster can be connected and dashboard is updated accordingly", Label("kind-gitops-cluster", "integration", "browser-logs"), func() {
