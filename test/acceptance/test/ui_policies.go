@@ -192,7 +192,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName}, "")
+				deleteCluster("kind", leafClusterName, "")
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 			})

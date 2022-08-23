@@ -54,6 +54,7 @@ type Account struct {
 }
 
 type DexLoginPage struct {
+	Title        *agouti.Selection
 	Github       *agouti.Selection
 	GitlabOnPrem *agouti.Selection
 	GrantAccess  *agouti.Selection
@@ -138,7 +139,7 @@ func GetAccount(webDriver *agouti.Page) *Account {
 
 func GetDexLoginPage(webDriver *agouti.Page) *DexLoginPage {
 	loginPage := DexLoginPage{
-
+		Title:        webDriver.FindByXPath(`//h2[contains(., "Log in to dex")]`),
 		Github:       webDriver.Find(`[class*=github] + .dex-btn-text`),
 		GitlabOnPrem: webDriver.Find(`[class*=gitlab] + .dex-btn-text`),
 		GrantAccess:  webDriver.FindByXPath(`//button[contains(., "Grant Access")]`),

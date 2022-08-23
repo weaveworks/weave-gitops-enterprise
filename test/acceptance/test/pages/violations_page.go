@@ -24,7 +24,6 @@ type ViolationInformation struct {
 type ViolationDetailPage struct {
 	Header           *agouti.Selection
 	Title            *agouti.Selection
-	Message          *agouti.Selection
 	ClusterName      *agouti.Selection
 	Time             *agouti.Selection
 	Severity         *agouti.Selection
@@ -67,12 +66,11 @@ func GetViolationDetailPage(webDriver *agouti.Page) *ViolationDetailPage {
 	return &ViolationDetailPage{
 		Header:           webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/clusters/violations"]/parent::node()/parent::node()/following-sibling::div`),
 		Title:            webDriver.First(`h2`),
-		Message:          webDriver.FindByXPath(`//div[text()="Message:"]/following-sibling::*[1]`),
-		ClusterName:      webDriver.FindByXPath(`//div[text()="Cluster Name:"]/following-sibling::*[1]`),
-		Time:             webDriver.FindByXPath(`//div/*[text()="Violation Time:"]/following-sibling::*[1]`),
-		Severity:         webDriver.FindByXPath(`//div[text()="Severity:"]/following-sibling::*[1]`),
-		Category:         webDriver.FindByXPath(`//div[text()="Category:"]/following-sibling::*[1]`),
-		Application:      webDriver.FindByXPath(`//div[text()="Application:"]/following-sibling::*[1]`),
+		ClusterName:      webDriver.FindByXPath(`//div[text()="Cluster Name"]/following-sibling::*[1]`),
+		Time:             webDriver.FindByXPath(`//div/*[text()="Violation Time"]/following-sibling::*[1]`),
+		Severity:         webDriver.FindByXPath(`//div[text()="Severity"]/following-sibling::*[1]`),
+		Category:         webDriver.FindByXPath(`//div[text()="Category"]/following-sibling::*[1]`),
+		Application:      webDriver.FindByXPath(`//div[text()="Application"]/following-sibling::*[1]`),
 		OccurrencesCount: webDriver.FindByXPath(`//div[text()="Occurences"]/span`),
 		Occurrences:      webDriver.AllByXPath(`//div[text()="Occurences"]/following-sibling::*[1]/li`),
 		Description:      webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
