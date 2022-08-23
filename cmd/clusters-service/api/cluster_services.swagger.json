@@ -1580,6 +1580,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },

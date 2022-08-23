@@ -6,36 +6,15 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import CanaryRowHeader from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
 import { Link } from 'react-router-dom';
+import { generateRowHeaders } from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
   source?: string;
 }
 
-const generateRowHeaders = (
-  rows: Array<{
-    children?: any;
-    rowkey: string;
-    value?: string | JSX.Element | undefined;
-  }>,
-) => {
-  return rows.map(r => {
-    return !!r.children ? (
-      <CanaryRowHeader rowkey={r.rowkey} value={undefined} key={r.rowkey}>
-        {r.children}
-      </CanaryRowHeader>
-    ) : (
-      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey} />
-    );
-  });
-};
-
-function ViolationDetails({
-  violation,
-  source,
-}: IViolationDetailsProps) {
+function ViolationDetails({ violation, source }: IViolationDetailsProps) {
   const classes = usePolicyStyle();
   const {
     severity,
@@ -99,7 +78,6 @@ function ViolationDetails({
     <>
       {generateRowHeaders(displayedHeaders)}
 
-      <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>
           Occurences{' '}
@@ -116,7 +94,6 @@ function ViolationDetails({
         </ul>
       </div>
 
-      <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
@@ -131,7 +108,7 @@ function ViolationDetails({
           children={howToSolve || ''}
           className={classes.editor}
           remarkPlugins={[remarkGfm]}
-        />{' '}
+        />
       </div>
 
       <div className={classes.sectionSeperator}>

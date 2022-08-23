@@ -18,16 +18,22 @@ const (
 )
 
 type UserCredentials struct {
-	UserType     string
-	UserName     string
-	UserPassword string
+	UserType            string
+	UserName            string
+	UserPassword        string
+	UserKubeconfig      string
+	ClusterUserName     string
+	ClusterUserPassword string
 }
 
 func initUserCredentials() UserCredentials {
 	userCredentials := UserCredentials{
-		UserType:     GetEnv("LOGIN_USER_TYPE", ClusterUserLogin),
-		UserName:     AdminUserName,
-		UserPassword: GetEnv("CLUSTER_ADMIN_PASSWORD", ""),
+		UserType:            GetEnv("LOGIN_USER_TYPE", ClusterUserLogin),
+		UserName:            AdminUserName,
+		UserPassword:        GetEnv("CLUSTER_ADMIN_PASSWORD", ""),
+		UserKubeconfig:      GetEnv("OIDC_KUBECONFIG", ""),
+		ClusterUserName:     AdminUserName,
+		ClusterUserPassword: GetEnv("CLUSTER_ADMIN_PASSWORD", ""),
 	}
 
 	if userCredentials.UserType == OidcUserLogin {
@@ -113,10 +119,83 @@ func LoginUserFlow(uc UserCredentials) {
 func logoutUser() {
 	loginPage := pages.GetLoginPage(webDriver)
 
-	if pages.ElementExist(loginPage.AccountSettings, 10) {
+	if pages.ElementExist(loginPage.AccountSettings, 5) {
 		Eventually(loginPage.AccountSettings.Click).Should(Succeed())
 		account := pages.GetAccount(webDriver)
 		Eventually(account.Logout.Click).Should(Succeed())
+		Eventually(loginPage.LoginOIDC).Should(BeVisible(), "Failed to logout")
+	}
+}
+
+func cliOidcLogin() {
+	switch mgmtClusterKind {
+	case EKSMgmtCluster:
+		go func() {
+			err := runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get pods --kubeconfig=%s", userCredentials.UserKubeconfig))
+			Expect(err).ShouldNot(HaveOccurred())
+		}()
+
+		redirectUrl := "http://localhost:8000"
+		pages.OpenWindowInBg(webDriver, redirectUrl, "cli-oidc-auth")
+		Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to 'cli-oidc-auth' window")
+		cliOidcAuthFlow(userCredentials)
+		Eventually(webDriver.CloseWindow).Should(Succeed(), "Failed to close 'cli-oidc-auth' dashboard window")
+		Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
+
+	case GKEMgmtCluster:
+		logger.Info("GKE cli oidc auth is not implemented yet")
+		// kubectl oidc login --cluster=CLUSTER_NAME --login-config=client-config.yaml --kubeconfig=${OIDC_KUBECONFIG}
+	}
+}
+
+func cliOidcAuthFlow(uc UserCredentials) {
+	dexLogin := pages.GetDexLoginPage(webDriver)
+
+	if pages.ElementExist(dexLogin.Title, 5) {
+		Eventually(dexLogin.Title).Should(BeVisible())
+
+		switch gitProviderEnv.Type {
+		case GitProviderGitHub:
+			Eventually(dexLogin.Github.Click).Should(Succeed())
+
+			authenticate := pages.ActivateDeviceGithub(webDriver)
+
+			if pages.ElementExist(authenticate.Username) {
+				Eventually(authenticate.Username).Should(BeVisible())
+				Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
+				Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
+				Expect(authenticate.Signin.Click()).To(Succeed())
+			}
+
+			if pages.ElementExist(authenticate.AuthCode) {
+				Eventually(authenticate.AuthCode).Should(BeVisible())
+				// Generate 6 digit authentication OTP for MFA
+				authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
+				Expect(authenticate.AuthCode.SendKeys(authCode)).To(Succeed())
+			}
+			Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
+
+		case GitProviderGitLab:
+			Eventually(dexLogin.GitlabOnPrem.Click).Should(Succeed())
+
+			var authenticate *pages.AuthenticateGitlab
+			if gitProviderEnv.Hostname == gitlab.DefaultDomain {
+				authenticate = pages.AuthenticateWithGitlab(webDriver)
+			} else {
+				authenticate = pages.AuthenticateWithOnPremGitlab(webDriver)
+			}
+			if pages.ElementExist(authenticate.Username) {
+				Eventually(authenticate.Username).Should(BeVisible())
+				Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
+				Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
+				Expect(authenticate.Signin.Click()).To(Succeed())
+			}
+			Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
+		default:
+			Expect(fmt.Errorf("error: Provided oidc issuer '%s' is not supported", gitProviderEnv.Type))
+		}
+	} else {
+		logger.Infof("%s user already logged in", uc.UserType)
 	}
 }
 

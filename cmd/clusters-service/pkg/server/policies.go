@@ -122,6 +122,7 @@ func toPolicyResponse(policyCRD pacv2beta1.Policy, clusterName string) (*capiv1_
 		Parameters:  policyParams,
 		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
 		ClusterName: clusterName,
+		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
 	}
 
 	return policy, nil
@@ -179,6 +180,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				if err != nil {
 					return nil, err
 				}
+
 				policies = append(policies, policy)
 			}
 		}

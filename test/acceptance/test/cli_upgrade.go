@@ -86,7 +86,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				err := runCommandPassThrough("kubectl", "config", "use-context", currentContext)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				deleteClusters("kind", []string{kind_upgrade_cluster_name}, "")
+				deleteCluster("kind", kind_upgrade_cluster_name, "")
 
 				// Login to management cluster console, in case it has been logged out
 				InitializeWebdriver(test_ui_url)
