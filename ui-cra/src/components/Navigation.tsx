@@ -66,8 +66,13 @@ export const NavItem = styled(NavLink).attrs({
   color: ${({ theme }) => theme.colors.neutral40};
   font-weight: 600;
   &.${props => props.activeClassName} {
-    border-right: 4px solid ${({ theme }) => theme.colors.primary};
+    border-right: 3px solid ${({ theme }) => theme.colors.primary};
     background: rgba(0, 179, 236, 0.1);
+    color: ${({ theme }) => theme.colors.primary};
+
+    svg {
+      fill: ${({ theme }) => theme.colors.primary};
+    }
   }
 `;
 
