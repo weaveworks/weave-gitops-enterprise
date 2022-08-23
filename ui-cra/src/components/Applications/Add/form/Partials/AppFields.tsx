@@ -97,7 +97,7 @@ const AppFields: FC<{
         className="form-section"
         required={true}
         name="name"
-        label="APPLICATION NAME"
+        label="KUSTOMIZATION NAME"
         value={formData.clusterAutomations[index].name}
         onChange={event => handleFormData(event, 'name')}
       />
@@ -105,7 +105,7 @@ const AppFields: FC<{
         className="form-section"
         required={true}
         name="namespace"
-        label="APPLICATION NAMESPACE"
+        label="KUSTOMIZATION NAMESPACE"
         value={formData.clusterAutomations[index].namespace}
         onChange={event => handleFormData(event, 'namespace')}
       />
