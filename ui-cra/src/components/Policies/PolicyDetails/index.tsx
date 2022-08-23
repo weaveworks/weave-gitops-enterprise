@@ -56,10 +56,9 @@ const PolicyDetails = ({
                   description={policy?.description}
                   howToSolve={policy?.howToSolve}
                   code={policy?.code}
-                ></HeaderSection>
-                <ParametersSection
-                  parameters={policy?.parameters}
-                ></ParametersSection>
+                  tenant={policy?.tenant}
+                />
+                <ParametersSection parameters={policy?.parameters} />
               </>
             )}
           </LoadingError>

@@ -619,6 +619,7 @@ message Policy {
   PolicyTargets targets = 12;
   string created_at = 13;
   string clusterName = 14;
+  string tenant = 15;
 }
 
 message ObjectRef {
