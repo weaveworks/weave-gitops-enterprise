@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Route } from 'react-router-dom';
+import { Switch, Route, Redirect } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
@@ -112,7 +112,7 @@ const useStyles = makeStyles((theme: Theme) =>
       overflowY: 'hidden',
       width: drawerWidth,
       border: 'none',
-      background: weaveTheme.colors.neutral10,
+      background: 'none',
     },
     content: {
       flexGrow: 1,
@@ -121,7 +121,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const SignInWrapper = styled.div`
-  height: 100vh;
+  height: calc(100vh - 90px);
   .MuiAlert-root {
     width: 470px;
   }
@@ -215,7 +215,7 @@ const App = () => {
                 keepMounted: true, // Better open performance on mobile.
               }}
             >
-              <div className={classes.toolbar}>
+              <div>
                 <Navigation />
               </div>
             </Drawer>
@@ -228,16 +228,17 @@ const App = () => {
               variant="permanent"
               open
             >
-              <div className={classes.toolbar}>
-                <Navigation />
-              </div>
+              <Navigation />
             </Drawer>
           </Hidden>
         </nav>
         <main className={classes.content}>
           <ErrorBoundary>
             <Switch>
-              <Route component={MCCP} exact path={['/', '/clusters']} />
+              <Route exact path="/">
+                <Redirect to="/clusters" />
+              </Route>
+              <Route component={MCCP} exact path={'/clusters'} />
               <Route component={MCCP} exact path="/clusters/delete" />
               <Route
                 component={withSearchParams((props: any) => (
@@ -337,7 +338,11 @@ const App = () => {
                 path={V2Routes.HelmChart}
               />
               <Route
-                component={WGApplicationsFluxRuntime}
+                component={() => (
+                  <CoreWrapper>
+                    <WGApplicationsFluxRuntime />
+                  </CoreWrapper>
+                )}
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />

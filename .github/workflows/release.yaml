@@ -55,15 +55,16 @@ jobs:
         echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
         echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
         echo "GORELEASER_CURRENT_TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
-
-    - name: "Make All"
-      run: make all
-    - name: Check Git State
-      run: git diff --no-ext-diff --exit-code
-    #- name: Run GoReleaser
-    #  uses: goreleaser/goreleaser-action@v1
-    #  with:
-    #    version: latest
-    #    args: release --rm-dist
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v1
+      with:
+        version: latest
+        args: release --rm-dist
+      env:
+        GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
