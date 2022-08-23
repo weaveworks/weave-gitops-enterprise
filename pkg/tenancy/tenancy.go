@@ -310,7 +310,9 @@ func newAllowedRepositoriesPolicy(tenantName string, namespaces []string, allowe
 			Category:    "weave.categories.tenancy",
 			Severity:    "high",
 			Description: "Controls the allowed repositories to be used as sources",
+			Standards:   []pacv2beta1.PolicyStandard{},
 			Targets: pacv2beta1.PolicyTargets{
+				Labels:     []map[string]string{},
 				Kinds:      policyRepoKinds,
 				Namespaces: namespaces,
 			},
@@ -361,7 +363,9 @@ func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClu
 			Category:    "weave.categories.tenancy",
 			Severity:    "high",
 			Description: "Controls the allowed clusters to be added",
+			Standards:   []pacv2beta1.PolicyStandard{},
 			Targets: pacv2beta1.PolicyTargets{
+				Labels:     []map[string]string{},
 				Kinds:      []string{policyClustersKind, policyKustomizationKind},
 				Namespaces: namespaces,
 			},
