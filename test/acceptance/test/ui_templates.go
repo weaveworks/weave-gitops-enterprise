@@ -960,41 +960,18 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 				pages.ScrollWindow(webDriver, 0, 500)
 
-				podInfo := Profile{
-					Name:      "podinfo",
-					Namespace: "flux-system",
-					Version:   "6.0.1",
-					Values:    "",
-					Layer:     "layer-1",
-				}
-
-				By(fmt.Sprintf("And verify default %s profile values.yaml", podInfo.Name), func() {
-					profile := createPage.FindProfileInList(podInfo.Name)
-					Eventually(profile.Layer.Text).Should(MatchRegexp(podInfo.Layer))
-
-					Eventually(profile.Values.Click).Should(Succeed())
-					valuesYaml := pages.GetValuesYaml(webDriver)
-
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp(podInfo.Name))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("tag: " + podInfo.Version))
-					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
-				})
-
 				certManager := Profile{
 					Name:      "cert-manager",
 					Namespace: "cert-manager",
-					Version:   "0.0.7",
+					Version:   "0.0.8",
 					Values:    "installCRDs: true",
 					Layer:     "layer-0",
 				}
 
-				By(fmt.Sprintf("And select the %s profile to install", certManager.Name), func() {
+				By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", certManager.Name), func() {
 					profile := createPage.FindProfileInList(certManager.Name)
-					Eventually(profile.Checkbox.Click).Should(Succeed(), fmt.Sprintf("Failed to select the %s profile", certManager.Name))
-				})
-
-				By(fmt.Sprintf("And verify selected %s profile values.yaml", certManager.Name), func() {
-					profile := createPage.FindProfileInList(certManager.Name)
+					Eventually(profile.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to find %s profile", certManager.Name))
+					Eventually(profile.Checkbox.Check).Should(Succeed(), fmt.Sprintf("Failed to select the %s profile", certManager.Name))
 
 					Eventually(profile.Version.Click).Should(Succeed())
 					Eventually(pages.GetOption(webDriver, certManager.Version).Click).Should(Succeed(), fmt.Sprintf("Failed to select %s version: %s", certManager.Name, certManager.Version))
@@ -1010,21 +987,40 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
 				})
 
+				metallb := Profile{
+					Name:      "metallb",
+					Namespace: "flux-system",
+					Version:   "0.0.2",
+					Values:    `prometheus.namespace: \${NAMESPACE}`,
+					Layer:     "layer-0",
+				}
+
+				By(fmt.Sprintf("And verify default %s profile values.yaml", metallb.Name), func() {
+					profile := createPage.FindProfileInList(metallb.Name)
+					Eventually(profile.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to find %s profile", metallb.Name))
+					Eventually(profile.Layer.Text).Should(MatchRegexp(metallb.Layer))
+
+					Eventually(profile.Values.Click).Should(Succeed())
+					valuesYaml := pages.GetValuesYaml(webDriver)
+
+					Eventually(valuesYaml.Title.Text).Should(MatchRegexp(metallb.Name))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp(metallb.Values))
+					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
+				})
+
+				pages.ScrollWindow(webDriver, 0, 1500)
 				policyAgent := Profile{
 					Name:      "weave-policy-agent",
 					Namespace: "policy-system",
-					Version:   "0.3.1",
+					Version:   "0.3.0",
 					Values:    fmt.Sprintf(`accountId: "weaveworks",clusterId: "%s"`, clusterName),
 					Layer:     "layer-1",
 				}
 
-				By(fmt.Sprintf("And select the %s profile to install", policyAgent.Name), func() {
+				By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", policyAgent.Name), func() {
 					profile := createPage.FindProfileInList(policyAgent.Name)
-					Eventually(profile.Checkbox.Click).Should(Succeed(), fmt.Sprintf("Failed to select the %s profile", policyAgent))
-				})
-
-				By(fmt.Sprintf("And verify selected %s  profile values.yaml", policyAgent.Name), func() {
-					profile := createPage.FindProfileInList(policyAgent.Name)
+					Eventually(profile.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to find %s profile", policyAgent.Name))
+					Eventually(profile.Checkbox.Check).Should(Succeed(), fmt.Sprintf("Failed to select the %s profile", policyAgent.Name))
 
 					Eventually(profile.Version.Click).Should(Succeed())
 					Eventually(pages.GetOption(webDriver, policyAgent.Version).Click).Should(Succeed(), fmt.Sprintf("Failed to select %s version: %s", policyAgent.Name, policyAgent.Version))
@@ -1036,7 +1032,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
 					Eventually(valuesYaml.Title.Text).Should(MatchRegexp(policyAgent.Name))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("namespace: " + policyAgent.Namespace))
+					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("image: magalixcorp/policy-agent"))
 
 					text, _ := valuesYaml.TextArea.Text()
 					text = strings.ReplaceAll(text, `accountId: ""`, strings.Split(policyAgent.Values, ",")[0])
@@ -1047,6 +1043,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(valuesYaml.Save.Click).Should(Succeed(), fmt.Sprintf("Failed to save values.yaml for %s profile", policyAgent.Name))
 				})
 
+				pages.ScrollWindow(webDriver, 0, 500)
 				By("Then I should preview the PR", func() {
 					preview := pages.GetPreview(webDriver)
 					Eventually(func(g Gomega) {
@@ -1133,7 +1130,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(downloadedKubeconfigPath, []Profile{certManager, policyAgent, podInfo})
+					verifyCapiClusterHealth(downloadedKubeconfigPath, []Profile{certManager, metallb, policyAgent})
 				})
 
 				existingAppCount := getApplicationCount()
@@ -1146,7 +1143,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.WaitForPageToLoad(webDriver)
 
 				By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
-					totalAppCount := existingAppCount + 5 // flux-system, clusters-bases-kustomization, podinfo, cert-manager, policy-agent
+					totalAppCount := existingAppCount + 6 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library
 					Eventually(func(g Gomega) int {
 						return applicationsPage.CountApplications()
 					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
@@ -1161,7 +1158,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(applicationsPage.CountApplications).Should(Equal(3), "There should be 3 application enteries in application table")
 				})
 
-				verifyAppInformation(applicationsPage, "podinfo", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-podinfo", "Ready")
+				verifyAppInformation(applicationsPage, "metallb", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-metallb", "Ready")
 				verifyAppInformation(applicationsPage, "cert-manager", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-cert-manager", "Ready")
 				verifyAppInformation(applicationsPage, "weave-policy-agent", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-weave-policy-agent", "Ready")
 
