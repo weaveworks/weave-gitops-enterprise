@@ -223,8 +223,8 @@ const AddCluster: FC = () => {
           spec: {
             path: kustomization.path,
             sourceRef: {
-              name: kustomization.source_name || 'flux-system',
-              namespace: kustomization.source_namespace || 'flux-system',
+              name: 'flux-system',
+              namespace: 'flux-system',
             },
           },
         };

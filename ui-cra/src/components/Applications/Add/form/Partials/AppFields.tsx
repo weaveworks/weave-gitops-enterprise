@@ -29,13 +29,14 @@ const AppFields: FC<{
   clusters = undefined,
   GitRepoResponse = undefined,
 }) => {
+  const automation = formData.clusterAutomations[index];
   let gitResposFilterdList: GitRepository[] = [];
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
     let currentAutomation = [...formData.clusterAutomations];
     currentAutomation[index] = {
-      ...currentAutomation[index],
+      ...automation,
       cluster_name: JSON.parse(value).name,
       cluster_namespace: JSON.parse(value).namespace,
       cluster_isControlPlane: JSON.parse(value).controlPlane,
@@ -43,13 +44,13 @@ const AppFields: FC<{
     };
     setFormData({
       ...formData,
-      clusterAutomations: [...currentAutomation],
+      clusterAutomations: currentAutomation,
     });
   };
   if (clusters) {
-    const clusterName = formData.clusterAutomations[0].cluster_namespace
-      ? `${formData.clusterAutomations[0].cluster_namespace}/${formData.clusterAutomations[0].cluster_name}`
-      : `${formData.clusterAutomations[0].cluster_name}`;
+    const clusterName = automation.cluster_namespace
+      ? `${automation.cluster_namespace}/${automation.cluster_name}`
+      : `${automation.cluster_name}`;
     gitResposFilterdList = _.filter(GitRepoResponse?.gitRepositories, [
       'clusterName',
       clusterName,
@@ -60,14 +61,14 @@ const AppFields: FC<{
     const value = event.target.value;
     let currentAutomation = [...formData.clusterAutomations];
     currentAutomation[index] = {
-      ...currentAutomation[index],
+      ...automation,
       source_name: JSON.parse(value).name,
       source_namespace: JSON.parse(value).namespace,
       source: value,
     };
     setFormData({
       ...formData,
-      clusterAutomations: [...currentAutomation],
+      clusterAutomations: currentAutomation,
     });
   };
 
@@ -81,12 +82,12 @@ const AppFields: FC<{
 
     let currentAutomation = [...formData.clusterAutomations];
     currentAutomation[index] = {
-      ...currentAutomation[index],
+      ...automation,
       [fieldName as string]: value,
     };
     setFormData({
       ...formData,
-      clusterAutomations: [...currentAutomation],
+      clusterAutomations: currentAutomation,
     });
   };
 

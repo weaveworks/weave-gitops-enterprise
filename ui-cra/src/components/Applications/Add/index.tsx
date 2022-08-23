@@ -89,9 +89,9 @@ const AddApplication = () => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      pullRequestTitle: `Add application ${
-        formData.clusterAutomations[0].name || ''
-      }`,
+      pullRequestTitle: `Add application ${(formData.clusterAutomations || [])
+        .map((a: any) => a.name)
+        .join(', ')}`,
     }));
   }, [formData.clusterAutomations]);
 
@@ -100,10 +100,10 @@ const AddApplication = () => {
       (kustomization: any): ClusterAutomation => {
         return {
           cluster: {
-            name: kustomization.cluster_name || undefined,
-            namespace: kustomization.cluster_namespace || undefined,
+            name: kustomization.cluster_name,
+            namespace: kustomization.cluster_namespace,
           },
-          isControlPlane: kustomization.cluster_isControlPlane || undefined,
+          isControlPlane: kustomization.cluster_isControlPlane,
           kustomization: {
             metadata: {
               name: kustomization.name,
@@ -112,8 +112,8 @@ const AddApplication = () => {
             spec: {
               path: kustomization.path,
               sourceRef: {
-                name: kustomization.source_name || 'flux-system',
-                namespace: kustomization.source_namespace || 'flux-system',
+                name: kustomization.source_name,
+                namespace: kustomization.source_namespace,
               },
             },
           },
@@ -188,16 +188,22 @@ const AddApplication = () => {
           <ContentWrapper>
             <Grid container>
               <Grid item xs={12} sm={10} md={10} lg={8}>
-                {!isLoading ? (
-                  <AppFields
-                    formData={formData}
-                    setFormData={setFormData}
-                    clusters={clusters}
-                    GitRepoResponse={GitRepoResponse}
-                  ></AppFields>
-                ) : (
-                  <Loader />
-                )}
+                {!isLoading &&
+                  formData.clusterAutomations.map(
+                    (kustomization: any, index: number) => {
+                      return (
+                        <AppFields
+                          key={index}
+                          formData={formData}
+                          setFormData={setFormData}
+                          clusters={clusters}
+                          GitRepoResponse={GitRepoResponse}
+                          index={index}
+                        ></AppFields>
+                      );
+                    },
+                  )}
+                {isLoading && <Loader></Loader>}
               </Grid>
               <Grid item xs={12} sm={10} md={10} lg={8}>
                 <GitOps
