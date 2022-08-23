@@ -99,35 +99,57 @@ const AddApplication = () => {
   );
 
   const handleAddApplication = useCallback(() => {
+    const clusterAutomations = selectedProfiles.map(profile => {
+      let values;
+      let version;
+      profile.values.forEach(value => {
+        if (value.selected === true) {
+          (version = value.version), (values = btoa(value.yaml));
+        }
+      });
+      return {
+        cluster: {
+          name: formData.cluster_name,
+          namespace: formData.cluster_namespace,
+        },
+        isControlPlane: formData.cluster_isControlPlane,
+        kustomization: {
+          metadata: {
+            name: formData.name,
+            namespace: formData.namespace,
+          },
+          spec: {
+            path: formData.path,
+            sourceRef: {
+              name: formData.source_name,
+              namespace: formData.source_namespace,
+            },
+          },
+        },
+        helmRelease: {
+          metadata: { name: profile.name, namespace: profile.namespace },
+          spec: {
+            chart: {
+              spec: {
+                chart: profile.name,
+                sourceRef: {
+                  name: formData.source_name,
+                  namespace: formData.source_namespace,
+                },
+                version,
+              },
+            },
+            values,
+          },
+        },
+      };
+    });
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
-      // array of clusterAutomations - one per each helmRelease
-      clusterAutomations: [
-        {
-          cluster: {
-            name: formData.cluster_name,
-            namespace: formData.cluster_namespace,
-          },
-          isControlPlane: formData.cluster_isControlPlane,
-          kustomization: {
-            metadata: {
-              name: formData.name,
-              namespace: formData.namespace,
-            },
-            spec: {
-              path: formData.path,
-              sourceRef: {
-                name: formData.source_name,
-                namespace: formData.source_namespace,
-              },
-            },
-          },
-          // helmRelease.. 
-        },
-      ],
+      clusterAutomations,
     };
     setLoading(true);
     return AddApplicationRequest(
