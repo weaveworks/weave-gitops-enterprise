@@ -28,19 +28,16 @@ export interface SectionRowHeader {
   children?: any;
   rowkey: string;
   value?: string | JSX.Element | undefined;
-  isVisible?: boolean;
+  hidden?: boolean;
 }
 export const generateRowHeaders = (rows: Array<SectionRowHeader>) => {
   return rows.map(r => {
-    return r.isVisible === undefined || r.isVisible === true ? (
-      <CanaryRowHeader
-        rowkey={r.rowkey}
-        value={!!r.children ? undefined : r.value}
-        key={r.rowkey}
-      >
+
+    return r.hidden === true ? null : (
+      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
         {r.children}
       </CanaryRowHeader>
-    ) : null;
+    );
   });
 };
 
