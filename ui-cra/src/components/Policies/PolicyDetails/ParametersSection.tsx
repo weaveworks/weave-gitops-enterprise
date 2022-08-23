@@ -1,50 +1,11 @@
-import { Policy, PolicyParam } from '../../../cluster-services/cluster_services.pb';
-import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
+import {
+  Policy,
+  PolicyParam,
+} from '../../../cluster-services/cluster_services.pb';
+import { usePolicyStyle } from '../PolicyStyles';
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    cardTitle: {
-      fontWeight: 700,
-      fontSize: theme.fontSizes.small,
-      color: theme.colors.neutral30,
-    },
-    body1: {
-      fontWeight: 400,
-      fontSize: theme.fontSizes.small,
-      color: theme.colors.black,
-    },
-    labelText: {
-      fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
-      color: theme.colors.neutral30,
-    },
-    parameterWrapper: {
-      border: `1px solid ${theme.colors.neutral20}`,
-      boxSizing: 'border-box',
-      borderRadius: theme.spacing.xxs,
-      padding: theme.spacing.base,
-      display: 'flex',
-      marginBottom: theme.spacing.base,
-      marginTop: theme.spacing.base,
-    },
-    parameterInfo: {
-      display: 'flex',
-      alignItems: 'start',
-      flexDirection: 'column',
-      width: '100%',
-    },
-    chip: {
-      background: theme.colors.neutral10,
-      borderRadius: theme.spacing.xxs,
-      padding: `${theme.spacing.xxs} ${theme.spacing.xs}`,
-      fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
-    },
-  }),
-);
 function ParametersSection({ parameters }: Policy) {
-  const classes = useStyles();
+  const classes = usePolicyStyle();
   const parseValue = (parameter: PolicyParam) => {
     switch (parameter.type) {
       case 'boolean':
@@ -59,8 +20,8 @@ function ParametersSection({ parameters }: Policy) {
   };
   return (
     <>
-      <div>
-        <span className={classes.cardTitle}>Parameters Definition</span>
+      <div className={classes.sectionSeperator}>
+        <div className={classes.cardTitle}>Parameters Definition:</div>
         {parameters?.map((parameter: PolicyParam) => (
           <div key={parameter.name} className={classes.parameterWrapper}>
             <div className={classes.parameterInfo}>
