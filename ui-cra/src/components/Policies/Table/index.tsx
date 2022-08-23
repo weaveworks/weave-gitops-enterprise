@@ -3,7 +3,11 @@ import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { Shadows } from '@material-ui/core/styles/shadows';
 import { Policy } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../PolicyStyles';
-import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
+import {
+  FilterableTable,
+  filterConfig,
+  useFeatureFlags,
+} from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import Severity from '../Severity';
 import moment from 'moment';
@@ -21,11 +25,20 @@ interface Props {
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
 
-  const initialFilterState = {
+  let initialFilterState = {
     ...filterConfig(policies, 'clusterName'),
     ...filterConfig(policies, 'severity'),
   };
+
+  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true') {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(policies, 'tenant'),
+    };
+  }
 
   return (
     <div className={classes.root}>
@@ -55,6 +68,9 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
                 label: 'Category',
                 value: 'category',
               },
+              ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
+                ? [{ label: 'Tenant', value: 'tenant' }]
+                : []),
               {
                 label: 'Severity',
                 value: (p: Policy) => <Severity severity={p.severity || ''} />,

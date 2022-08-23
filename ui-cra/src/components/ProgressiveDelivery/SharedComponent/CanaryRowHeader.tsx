@@ -24,22 +24,23 @@ const RowBody = styled.div`
   margin-left: ${xs};
   color: ${neutral40};
 `;
-
-export const generateRowHeaders = (
-  rows: Array<{
-    children?: any;
-    rowkey: string;
-    value?: string | JSX.Element | undefined;
-  }>,
-) => {
+export interface SectionRowHeader {
+  children?: any;
+  rowkey: string;
+  value?: string | JSX.Element | undefined;
+  isVisible?: boolean;
+}
+export const generateRowHeaders = (rows: Array<SectionRowHeader>) => {
   return rows.map(r => {
-    return !!r.children ? (
-      <CanaryRowHeader rowkey={r.rowkey} value={undefined} key={r.rowkey}>
+    return r.isVisible === undefined || r.isVisible === true ? (
+      <CanaryRowHeader
+        rowkey={r.rowkey}
+        value={!!r.children ? undefined : r.value}
+        key={r.rowkey}
+      >
         {r.children}
       </CanaryRowHeader>
-    ) : (
-      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey} />
-    );
+    ) : null;
   });
 };
 

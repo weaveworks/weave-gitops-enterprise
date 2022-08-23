@@ -47,6 +47,7 @@ const PolicyDetails = ({
                 description={policy?.description}
                 howToSolve={policy?.howToSolve}
                 code={policy?.code}
+                tenant={policy?.tenant}
               ></HeaderSection>
               <ParametersSection
                 parameters={policy?.parameters}

@@ -2,7 +2,7 @@ import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Flex, theme } from '@weaveworks/weave-gitops';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
@@ -97,6 +97,14 @@ export const ContentWrapper: FC<Props> = ({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
 
+  useEffect(() => {
+    if (error) {
+      setNotifications([
+        { message: { text: error?.message }, variant: 'danger' },
+      ]);
+    }
+  }, [error, setNotifications]);
+
   if (loading) {
     return (
       <Box marginTop={4}>
@@ -105,10 +113,6 @@ export const ContentWrapper: FC<Props> = ({
         </Flex>
       </Box>
     );
-  }
-
-  if (error) {
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
   }
 
   return (

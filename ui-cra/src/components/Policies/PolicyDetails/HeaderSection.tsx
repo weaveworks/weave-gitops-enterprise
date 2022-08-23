@@ -5,7 +5,11 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { usePolicyStyle } from '../PolicyStyles';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { generateRowHeaders } from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+import {
+  generateRowHeaders,
+  SectionRowHeader,
+} from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+import { useFeatureFlags } from '@weaveworks/weave-gitops';
 
 function HeaderSection({
   id,
@@ -17,10 +21,12 @@ function HeaderSection({
   description,
   howToSolve,
   code,
+  tenant,
 }: Policy) {
   const classes = usePolicyStyle();
-
-  const defaultHeaders = [
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+  const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
       value: id,
@@ -28,6 +34,11 @@ function HeaderSection({
     {
       rowkey: 'Cluster Name',
       value: clusterName,
+    },
+    {
+      rowkey: 'Tenant',
+      value: tenant,
+      isVisible: flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true',
     },
     {
       rowkey: 'Tags',

@@ -115,6 +115,10 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+envVars:
+  - name: WEAVE_GITOPS_FEATURE_TENANCY
+    value: "true"
+
 networkPolicy:
   enabled: true
 
