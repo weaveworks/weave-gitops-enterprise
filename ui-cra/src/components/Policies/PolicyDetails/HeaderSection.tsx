@@ -5,6 +5,7 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { usePolicyStyle } from '../PolicyStyles';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useFeatureFlags } from '@weaveworks/weave-gitops';
 
 function HeaderSection({
   id,
@@ -16,8 +17,11 @@ function HeaderSection({
   description,
   howToSolve,
   code,
+  tenant,
 }: Policy) {
   const classes = usePolicyStyle();
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
 
   return (
     <>
@@ -29,6 +33,12 @@ function HeaderSection({
         <div className={classes.cardTitle}>Cluster Name:</div>
         <span className={classes.body1}>{clusterName}</span>
       </div>
+      {flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true' && tenant ? (
+        <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
+          <div className={classes.cardTitle}>Tenant:</div>
+          <span className={classes.body1}>{tenant}</span>
+        </div>
+      ) : null}
       <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
         <span className={classes.cardTitle}>Tags:</span>
         {!!tags && tags?.length > 0 ? (
