@@ -12,9 +12,6 @@ import (
 func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 	var _ = Describe("Gitops Get Tests", func() {
 
-		// Using self signed certs, all `gitops get clusters` etc commands should use insecure tls connections
-		insecureFlag := "--insecure-skip-tls-verify"
-
 		templateFiles := []string{}
 		var stdOut string
 		var stdErr string
@@ -30,10 +27,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When no Capi Templates are available in the cluster", func() {
 			It("Verify gitops lists no templates", func() {
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates`)
 
 				By("Then gitops lists no templates", func() {
 					Eventually(stdOut).Should(MatchRegexp("No templates were found"))
@@ -49,10 +43,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates`)
 
 				By("Then I should see template table header", func() {
 					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
@@ -80,10 +71,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = append(templateFiles, invalid_captemplate...)
 				})
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates`)
 
 				By("Then I should see template table header", func() {
 					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
@@ -109,10 +97,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s get templates cluster-invalid-template-0 --list-parameters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates cluster-invalid-template-0 --list-parameters`)
 
 				By("Then I should not see template parameter table header", func() {
 					Eventually(stdOut).ShouldNot(MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
@@ -130,10 +115,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				noOfTemplates := 5
 				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-azure.yaml")
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates`)
 
 				By("Then I should see template table header", func() {
 					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
@@ -156,10 +138,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					}
 				})
 
-				cmd = fmt.Sprintf(`%s get templates --namespace foo --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf(`When I run '%s'`, cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand("get templates --namespace foo")
 
 				// By("Then I should see an error message", func() {
 				// 	Eventually(stdErr).Should(MatchRegexp(`No templates were found`))
@@ -177,10 +156,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
 				})
 
-				cmd := fmt.Sprintf(`%s get templates --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates`)
 
 				By("And I should see template list table header", func() {
 					Eventually(stdOut).Should(MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
@@ -211,10 +187,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				cmd = fmt.Sprintf(`%s get templates --provider aws --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates --provider aws`)
 
 				By("And I should see templates list filtered by provider", func() {
 					awsCluster_list := make([]string, awsTemplateCount+eksFargateTemplateCount)
@@ -237,11 +210,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				cmd = fmt.Sprintf(`%s get templates --provider foobar --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("Then I run '%s'", capi_endpoint_url), func() {
-					_, stdErr = runCommandAndReturnStringOutput(cmd)
-
-				})
+				_, stdErr = runGitopsCommand(`get templates --provider foobar`)
 
 				By("And I should see error message for invalid provider", func() {
 					Eventually(stdErr).Should(MatchRegexp(`Error:\s+provider "foobar" is not valid.*`))
@@ -251,31 +220,27 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 			It("Verify gitops can list template parameters of a template from template library", func() {
 
 				By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
-				cmd := fmt.Sprintf(`%s get templates cluster-template-development-0 --list-parameters --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				})
+				stdOut, stdErr = runGitopsCommand(`get templates eks-fargate-template-0 --list-parameters`)
 
 				By("Then I should see template parameter table header", func() {
 					Eventually(stdOut).Should(MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
 				})
 
 				By("And I should see parameter rows", func() {
-					Eventually(stdOut).Should(MatchRegexp(`CLUSTER_NAME+\s+true\s+This is used for the cluster naming.\s+KUBERNETES_VERSION\s+false\s+Kubernetes version to use for the cluster\s+1.19.11, 1.21.1, 1.22.0, 1.23.0\s+NAMESPACE\s+false\s+Namespace to create the cluster in`))
-
+					Eventually(stdOut).Should(MatchRegexp(`CLUSTER_NAME+\s+true\s+This is used for the cluster naming`))
+					Expect(stdOut).Should(MatchRegexp(`AWS_REGION+\s+true\s+AWS Region to create cluster`))
+					Expect(stdOut).Should(MatchRegexp(`AWS_SSH_KEY_NAME+\s+false\s+AWS ssh key name`))
+					Expect(stdOut).Should(MatchRegexp(`KUBERNETES_VERSION+\s+false`))
 				})
 			})
 		})
 
 		Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
 			It("Verify gitops lists no credentials", func() {
-				cmd := fmt.Sprintf(`%s get credentials --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", capi_endpoint_url), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
-				})
+				stdOut, stdErr = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
 
 				By("Then gitops lists no credentials", func() {
 					Eventually(stdOut).Should(MatchRegexp("No credentials were found"))
@@ -292,10 +257,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.CreateIPCredentials("AWS")
 				})
 
-				cmd := fmt.Sprintf(`%s get credentials --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
-				})
+				stdOut, stdErr = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
 
 				By("Then gitops lists AWS credentials", func() {
 					Eventually(stdOut).Should(MatchRegexp(`aws-test-identity`))
@@ -306,10 +268,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.CreateIPCredentials("AZURE")
 				})
 
-				cmd = fmt.Sprintf(`%s get credentials --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				By(fmt.Sprintf("And I run '%s'", cmd), func() {
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
-				})
+				stdOut, stdErr = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
 
 				By("Then gitops lists AZURE credentials", func() {
 					Eventually(stdOut).Should(MatchRegexp(`azure-cluster-identity`))
@@ -324,18 +283,22 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					gitopsTestRunner.VerifyWegoPodsRunning()
 				})
 
-				cmd := fmt.Sprintf(`%s get cluster --endpoint %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag)
-				checkoutput := func() string {
-					stdOut, _ = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
-					return stdOut
-
-				}
-				By(fmt.Sprintf("Then I run '%s'", cmd), func() {
-					checkoutput()
-				})
+				stdOut, stdErr = runGitopsCommand(`get cluster`)
 
 				By("Then gitops lists no clusters", func() {
-					Eventually(checkoutput).Should(MatchRegexp("No clusters found"))
+					Eventually(stdOut).Should(MatchRegexp(`management\s+Ready`))
+				})
+			})
+		})
+
+		Context("[CLI] When profiles are available in the management cluster", func() {
+			It("Verify gitops can list profiles from profile repository", func() {
+				stdOut, stdErr = runGitopsCommand(`get profiles`)
+
+				By("Then gitops lists no clusters", func() {
+					Eventually(stdOut).Should(MatchRegexp(`cert-manager\s+A Weaveworks Helm chart for the Certificate Profile\s+0.0.7`))
+					Eventually(stdOut).Should(MatchRegexp(`weave-policy-agent\s+A Weaveworks Helm chart for Kubernetes to configure the policy agent\s+0.3.1`))
+					Eventually(stdOut).Should(MatchRegexp(`podinfo\s+Podinfo Helm chart for Kubernetes\s+6.0.1,6.0`))
 				})
 			})
 		})
@@ -346,8 +309,8 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 			checkEntitlement := func(typeEntitelment string, beFound bool) {
 				checkOutput := func() bool {
-					cmd := fmt.Sprintf(`%s get %s --endpoint %s %s`, gitops_bin_path, resourceName, capi_endpoint_url, insecureFlag)
-					stdOut, stdErr = runCommandAndReturnStringOutput(cmd, ASSERTION_1MINUTE_TIME_OUT)
+					cmd := fmt.Sprintf(`get %s`, resourceName)
+					stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_1MINUTE_TIME_OUT)
 
 					msg := stdErr + " " + stdOut
 
@@ -400,7 +363,8 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					checkEntitlement("invalid", false)
 				})
 
-				gitopsTestRunner.DeleteIPCredentials("AWS")
+				// Login to the dashbord because the logout automatically when the cluster service restarts for entitlement checking
+				loginUser()
 			})
 
 			It("Verify cluster service acknowledges the entitlement presences", func() {

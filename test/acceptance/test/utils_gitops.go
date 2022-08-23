@@ -183,10 +183,36 @@ func waitForGitopsResources(ctx context.Context, resourceName string, timeout ti
 	}, waitCtx.Done())
 }
 
-func runWegoAddCommand(repoAbsolutePath string, addCommand string, namespace string) {
-	logger.Infof("Add command to run: %s in namespace %s from dir %s", addCommand, namespace, repoAbsolutePath)
-	_, errOutput := runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s %s", repoAbsolutePath, gitops_bin_path, addCommand))
-	Expect(errOutput).Should(BeEmpty())
+func runGitopsCommand(cmd string, timeout ...time.Duration) (stdOut, stdErr string) {
+	// Using self signed certs, all `gitops get clusters` etc commands should use insecure tls connections
+	insecureFlag := "--insecure-skip-tls-verify"
+	var authFlag string
+
+	// // Login via cluster user account (basic authentication)
+	authFlag = fmt.Sprintf("--username %s --password %s", userCredentials.ClusterUserName, userCredentials.ClusterUserPassword)
+	if mgmtClusterKind != KindMgmtCluster {
+		switch userCredentials.UserType {
+		case ClusterUserLogin:
+			if mgmtClusterKind == GKEMgmtCluster {
+				authFlag = "" // Login via native cluster admin/token
+			}
+		case OidcUserLogin:
+			authFlag = fmt.Sprintf("--kubeconfig=%s", userCredentials.UserKubeconfig)
+		default:
+			Expect(fmt.Errorf("error: Provided authento=ication type '%s' is not supported for CLI", userCredentials.UserType))
+		}
+	}
+
+	cmd = fmt.Sprintf(`%s --endpoint %s %s %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag, authFlag, cmd)
+	By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
+		assert_timeout := ASSERTION_DEFAULT_TIME_OUT
+		if len(timeout) > 0 {
+			assert_timeout = timeout[0]
+		}
+		stdOut, stdErr = runCommandAndReturnStringOutput(cmd, assert_timeout)
+	})
+
+	return stdOut, stdErr
 }
 
 func waitForGitRepoReady(appName string, namespace string) {
@@ -217,17 +243,10 @@ func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestR
 	Expect(verifyGitRepositories).Should(BeTrue(), "GitRepositories resource has failed to become READY.")
 }
 
-func removeGitopsCapiClusters(clusternames []string, nameSpace string) {
-	deleteClusters("capi", clusternames, nameSpace)
-}
-
-func listGitopsApplication(appName string, nameSpace string) string {
-	var stdOut string
-	cmd := fmt.Sprintf("%s get app %s", gitops_bin_path, appName)
-	By(fmt.Sprintf("And I run '%s'", cmd), func() {
-		stdOut, _ = runCommandAndReturnStringOutput(cmd)
-	})
-	return stdOut
+func removeGitopsCapiClusters(capiClusters []CapiClusterConfig) {
+	for _, cluster := range capiClusters {
+		deleteCluster(cluster.Type, cluster.Name, cluster.Namespace)
+	}
 }
 
 func deleteGitopsGitRepository(nameSpace string) {
@@ -269,21 +288,19 @@ func createCluster(clusterType string, clusterName string, configFile string) {
 	}
 }
 
-func deleteClusters(clusterType string, clusters []string, nameSpace string) {
-	for _, cluster := range clusters {
-		if clusterType == "kind" {
-			logger.Infof("Deleting cluster: %s", cluster)
-			err := runCommandPassThrough("kind", "delete", "cluster", "--name", cluster)
+func deleteCluster(clusterType string, cluster string, nameSpace string) {
+	if clusterType == "kind" {
+		logger.Infof("Deleting cluster: %s", cluster)
+		err := runCommandPassThrough("kind", "delete", "cluster", "--name", cluster)
+		Expect(err).ShouldNot(HaveOccurred())
+	} else {
+		err := runCommandPassThrough("kubectl", "get", "cluster", cluster, "-n", nameSpace)
+		if err == nil {
+			logger.Infof("Deleting cluster %s in namespace %s", cluster, nameSpace)
+			err := runCommandPassThrough("kubectl", "delete", "cluster", cluster, "-n", nameSpace)
 			Expect(err).ShouldNot(HaveOccurred())
-		} else {
-			err := runCommandPassThrough("kubectl", "get", "cluster", cluster, "-n", nameSpace)
-			if err == nil {
-				logger.Infof("Deleting cluster %s in namespace %s", cluster, nameSpace)
-				err := runCommandPassThrough("kubectl", "delete", "cluster", cluster, "-n", nameSpace)
-				Expect(err).ShouldNot(HaveOccurred())
-				err = runCommandPassThrough("kubectl", "get", "cluster", cluster, "-n", nameSpace)
-				Expect(err).Should(HaveOccurred(), fmt.Sprintf("Failed to delete cluster %s", cluster))
-			}
+			err = runCommandPassThrough("kubectl", "get", "cluster", cluster, "-n", nameSpace)
+			Expect(err).Should(HaveOccurred(), fmt.Sprintf("Failed to delete cluster %s", cluster))
 		}
 	}
 }
@@ -300,7 +317,7 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 	}
 }
 
-func verifyCapiClusterHealth(kubeconfigPath string, profiles []string, namespaces []string) {
+func verifyCapiClusterHealth(kubeconfigPath string, profiles []Profile) {
 
 	Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 	waitForResourceState("Ready", "true", "nodes", "default", "", kubeconfigPath, ASSERTION_5MINUTE_TIME_OUT)
@@ -308,22 +325,22 @@ func verifyCapiClusterHealth(kubeconfigPath string, profiles []string, namespace
 	Expect(waitForResource("pods", "", GITOPS_DEFAULT_NAMESPACE, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 	waitForResourceState("Ready", "true", "pods", GITOPS_DEFAULT_NAMESPACE, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 
-	for i, profile := range profiles {
+	for _, profile := range profiles {
 		// Check all profiles are installed in layering order
-		switch profile {
+		switch profile.Name {
 		case "observability":
-			Expect(waitForResource("deploy", "observability-grafana", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			Expect(waitForResource("deploy", "observability-kube-state-metrics", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespaces[i], "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "observability-grafana", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			Expect(waitForResource("deploy", "observability-kube-state-metrics", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", profile.Namespace, "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
-			Expect(waitForResource("deploy", "podinfo ", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespaces[i], "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "podinfo ", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", profile.Namespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "cert-manager":
-			Expect(waitForResource("deploy", "cert-manager-cert-manager", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespaces[i], "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "cert-manager-cert-manager", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", profile.Namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "weave-policy-agent":
-			Expect(waitForResource("deploy", "policy-agent", namespaces[i], kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
-			waitForResourceState("Ready", "true", "pods", namespaces[i], "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			Expect(waitForResource("deploy", "policy-agent", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", profile.Namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
 }
@@ -500,8 +517,12 @@ func deleteNamespace(namespaces []string) {
 
 func getApplicationCount() int {
 	stdOut, _ := runCommandAndReturnStringOutput("kubectl get Kustomization -A --output name | wc -l")
-	aCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
-	return aCount
+	kCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	stdOut, _ = runCommandAndReturnStringOutput("kubectl get HelmRelease -A --output name | wc -l")
+	hCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	return kCount + hCount
 }
 
 func getClustersCount() int {

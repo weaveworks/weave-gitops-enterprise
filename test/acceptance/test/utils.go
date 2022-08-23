@@ -32,6 +32,7 @@ var (
 	logFile              *os.File
 	gitProviderEnv       GitProviderEnv
 	userCredentials      UserCredentials
+	mgmtClusterKind      string
 	git_repository_url   string
 	selenium_service_url string
 	gitops_bin_path      string
@@ -41,6 +42,12 @@ var (
 	artifacts_base_dir   string
 
 	webDriver *agouti.Page
+)
+
+const (
+	KindMgmtCluster = "kind"
+	EKSMgmtCluster  = "eks"
+	GKEMgmtCluster  = "gke"
 )
 
 const (
@@ -83,10 +90,9 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 
 // Describes all the CLI acceptance tests
 func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
-	// FIXME: CLI acceptances are disabled due to authentication not being supported
-	// DescribeCliHelp()
-	// DescribeCliGet(gitopsTestRunner)
-	// DescribeCliAddDelete(gitopsTestRunner)
+	DescribeCliHelp()
+	DescribeCliGet(gitopsTestRunner)
+	DescribeCliAddDelete(gitopsTestRunner)
 	DescribeCliUpgrade(gitopsTestRunner)
 }
 
@@ -127,6 +133,7 @@ func getCheckoutRepoPath() string {
 }
 
 func SetupTestEnvironment() {
+	mgmtClusterKind = GetEnv("MANAGEMENT_CLUSTER_KIND", "kind")
 	selenium_service_url = "http://localhost:4444/wd/hub"
 	test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
@@ -311,7 +318,7 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 
 	command := exec.Command("sh", "-c", commandToRun)
 	session, err := gexec.Start(command, logger.WriterLevel(logrus.TraceLevel), logger.WriterLevel(logrus.TraceLevel))
-	Expect(err).ShouldNot(HaveOccurred())
+	Expect(err).ShouldNot(HaveOccurred(), "Error starting Cmd: "+commandToRun)
 	Eventually(session, assert_timeout).Should(gexec.Exit())
 
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")

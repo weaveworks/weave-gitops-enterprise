@@ -7,6 +7,7 @@ interface Size {
   size?: 'small';
 }
 
+const { medium, small } = theme.spacing;
 const Wrapper = styled.div<Size>`
   align-items: center;
   justify-content: space-between;
@@ -14,17 +15,27 @@ const Wrapper = styled.div<Size>`
   color: ${({ size }) =>
     size === 'small' ? theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
-  background: ${theme.colors.primary};
   height: ${80}px;
   flex-grow: 1;
-  padding-left: ${theme.spacing.large};
+  padding: 0 ${small} 0 ${medium};
   position: sticky;
   top: 0;
   z-index: 2;
 
+  background: inherit;
   .MuiListItemIcon-root {
     min-width: 30px;
   }
+`;
+
+// This should be removed once CORE change the icon in UserSettings or We create our own component
+const CustomUserSettings = styled(UserSettings)`
+  svg {
+    fill: ${({ theme }) => theme.colors.primary};
+  }
+  button {
+    background-color: ${({ theme }) => theme.colors.neutral10};
+}
 `;
 
 interface Props extends Size {
@@ -43,7 +54,7 @@ export const SectionHeader: FC<Props> = ({
     <Wrapper className={className} size={size}>
       {path ? <Breadcrumbs path={path} /> : null}
       {children}
-      <UserSettings />
+      <CustomUserSettings />
     </Wrapper>
   );
 };

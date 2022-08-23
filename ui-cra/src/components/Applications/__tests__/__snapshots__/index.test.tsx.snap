@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Applications index test snapshots loading 1`] = `
-.c7 {
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -15,7 +15,7 @@ exports[`Applications index test snapshots loading 1`] = `
   align-items: center;
 }
 
-.c13 {
+.c14 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -34,43 +34,43 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: center;
 }
 
-.c8 svg {
+.c9 svg {
   fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c8.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c8.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c12 svg {
+.c13 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c12.downward {
+.c13.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c12.upward {
+.c13.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c11.MuiButton-root {
+.c12.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -82,16 +82,16 @@ exports[`Applications index test snapshots loading 1`] = `
   font-weight: 600;
 }
 
-.c11.MuiButton-outlined {
+.c12.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
 }
 
-.c6.MuiIconButton-root {
+.c7.MuiIconButton-root {
   background-color: #fff;
 }
 
-.c6.MuiIconButton-root:hover {
+.c7.MuiIconButton-root:hover {
   background-color: #fff;
   color: #009CCC;
 }
@@ -105,19 +105,19 @@ exports[`Applications index test snapshots loading 1`] = `
   margin: 0 auto;
 }
 
-.c9 {
-  margin: 24px 12px 0 12px;
-  padding: 32px 24px 24px 32px;
+.c10 {
+  margin: 0 16px;
+  padding: 24px;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
 }
 
-.c14 {
+.c15 {
   padding: 12px 24px;
-  margin: 12px;
-  background-color: #fff;
-  color: #1a1a1a;
-  border-radius: 8px;
+  margin: 0 16px;
+  background-color: rgba(255,255,255,0.85);
+  color: #737373;
+  border-radius: 0 0 8px 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -128,7 +128,7 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: space-between;
 }
 
-.c14 a {
+.c15 a {
   color: #00b3ec;
 }
 
@@ -155,12 +155,12 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c4 {
-  background: #fff;
+  background: #98E0F7;
   padding: 0 4px;
   -webkit-align-self: center;
   -ms-flex-item-align: center;
   align-self: center;
-  color: #00b3ec;
+  color: #1a1a1a;
   margin-left: 4px;
   border-radius: 2px;
 }
@@ -180,31 +180,39 @@ exports[`Applications index test snapshots loading 1`] = `
   display: flex;
   color: inherit;
   font-size: 20px;
-  background: #00b3ec;
   height: 80px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
-  padding-left: 32px;
+  padding: 0 12px 0 24px;
   position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 2;
+  background: inherit;
 }
 
 .c1 .MuiListItemIcon-root {
   min-width: 30px;
 }
 
-.c10 {
+.c6 svg {
+  fill: #00b3ec;
+}
+
+.c6 button {
+  background-color: #f5f5f5;
+}
+
+.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.c10 > * {
+.c11 > * {
   margin-right: 24px;
 }
 
@@ -219,7 +227,7 @@ exports[`Applications index test snapshots loading 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-13"
+          class="makeStyles-path-15"
           style="align-items: center;"
         >
           <div
@@ -227,7 +235,7 @@ exports[`Applications index test snapshots loading 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-15"
+              class="makeStyles-link-18"
               href="/applications"
             >
               Applications
@@ -241,11 +249,11 @@ exports[`Applications index test snapshots loading 1`] = `
         </div>
       </div>
       <div
-        class="c5"
+        class="c5 c6"
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c6"
+          class="MuiButtonBase-root MuiIconButton-root c7"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -254,7 +262,7 @@ exports[`Applications index test snapshots loading 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c7 c8"
+              class="c8 c9"
             >
               <svg
                 aria-hidden="true"
@@ -272,19 +280,19 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
-        class="c9"
+        class="c10"
       >
         <div
           style="display: flex; align-items: center; justify-content: space-between;"
         >
           <div
-            class="c10"
+            class="c11"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
               id="add-application"
               tabindex="0"
               type="button"
@@ -296,7 +304,7 @@ exports[`Applications index test snapshots loading 1`] = `
                   class="MuiButton-startIcon MuiButton-iconSizeMedium"
                 >
                   <div
-                    class="c7 c12"
+                    class="c8 c13"
                   >
                     <svg
                       aria-hidden="true"
@@ -324,7 +332,7 @@ exports[`Applications index test snapshots loading 1`] = `
           </a>
         </div>
         <div
-          class="c13 "
+          class="c14 "
         >
           <div
             class="MuiCircularProgress-root MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
@@ -348,7 +356,7 @@ exports[`Applications index test snapshots loading 1`] = `
         </div>
       </div>
       <div
-        class="c14"
+        class="c15"
       >
         <div>
           Need help? Raise a 
@@ -370,7 +378,7 @@ exports[`Applications index test snapshots loading 1`] = `
 `;
 
 exports[`Applications index test snapshots success 1`] = `
-.c7 {
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -384,7 +392,7 @@ exports[`Applications index test snapshots success 1`] = `
   align-items: center;
 }
 
-.c13 {
+.c14 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -400,7 +408,7 @@ exports[`Applications index test snapshots success 1`] = `
   width: 100%;
 }
 
-.c15 {
+.c16 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -419,7 +427,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: flex-end;
 }
 
-.c16 {
+.c17 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -438,7 +446,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: flex-start;
 }
 
-.c22 {
+.c23 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -454,7 +462,7 @@ exports[`Applications index test snapshots success 1`] = `
   width: 100%;
 }
 
-.c24 {
+.c25 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -472,7 +480,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: flex-start;
 }
 
-.c28 {
+.c29 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -490,7 +498,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: center;
 }
 
-.c35 {
+.c36 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -508,7 +516,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: flex-start;
 }
 
-.c31 {
+.c32 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -517,7 +525,7 @@ exports[`Applications index test snapshots success 1`] = `
   color: #737373;
 }
 
-.c37 {
+.c38 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 20px;
   font-weight: 400;
@@ -526,7 +534,7 @@ exports[`Applications index test snapshots success 1`] = `
   color: #737373;
 }
 
-.c38 {
+.c39 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 12px;
   font-weight: 600;
@@ -535,97 +543,97 @@ exports[`Applications index test snapshots success 1`] = `
   color: #737373;
 }
 
-.c8 svg {
+.c9 svg {
   fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c8.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c8.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c8 .c30 {
+.c9 .c31 {
   margin-left: 4px;
 }
 
-.c12 svg {
+.c13 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c12.downward {
+.c13.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c12.upward {
+.c13.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c12 .c30 {
+.c13 .c31 {
   margin-left: 4px;
 }
 
-.c20 svg {
+.c21 svg {
   fill: #737373 !important;
   height: 24px;
   width: 24px;
 }
 
-.c20.downward {
+.c21.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c20.upward {
+.c21.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c20 .c30 {
+.c21 .c31 {
   margin-left: 4px;
   color: #737373;
 }
 
-.c29 svg {
+.c30 svg {
   fill: #d8d8d8 !important;
   height: 16px;
   width: 16px;
 }
 
-.c29.downward {
+.c30.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c29.upward {
+.c30.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c29 .c30 {
+.c30 .c31 {
   margin-left: 4px;
   color: #d8d8d8;
 }
 
-.c11.MuiButton-root {
+.c12.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -637,23 +645,23 @@ exports[`Applications index test snapshots success 1`] = `
   font-weight: 600;
 }
 
-.c11.MuiButton-outlined {
+.c12.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
 }
 
-.c19.MuiButton-root {
+.c20.MuiButton-root {
   border-radius: 50%;
   min-width: 38px;
   height: 38px;
   padding: 0;
 }
 
-.c19.MuiButton-text {
+.c20.MuiButton-text {
   padding: 0;
 }
 
-.c17 {
+.c18 {
   padding: 4px 0px;
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
@@ -661,23 +669,23 @@ exports[`Applications index test snapshots success 1`] = `
   overflow-x: auto;
 }
 
-.c17 .MuiChip-root {
+.c18 .MuiChip-root {
   margin-right: 4px;
 }
 
-.c26 {
+.c27 {
   padding: 4px;
 }
 
-.c32 {
+.c33 {
   padding: 8px;
 }
 
-.c27 td {
+.c28 td {
   text-align: center;
 }
 
-.c25.MuiButton-root {
+.c26.MuiButton-root {
   margin: 0;
   text-transform: none;
   -webkit-letter-spacing: 0;
@@ -686,19 +694,19 @@ exports[`Applications index test snapshots success 1`] = `
   letter-spacing: 0;
 }
 
-.c25.MuiButton-text {
+.c26.MuiButton-text {
   min-width: 0px;
 }
 
-.c25.MuiButton-text .selected {
+.c26.MuiButton-text .selected {
   color: #1a1a1a;
 }
 
-.c25.arrow {
+.c26.arrow {
   min-width: 0px;
 }
 
-.c23 {
+.c24 {
   width: 100%;
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
@@ -706,7 +714,7 @@ exports[`Applications index test snapshots success 1`] = `
   overflow-x: auto;
 }
 
-.c23 h2 {
+.c24 h2 {
   padding: 8px;
   font-size: 14px;
   font-weight: 600;
@@ -715,33 +723,33 @@ exports[`Applications index test snapshots success 1`] = `
   white-space: nowrap;
 }
 
-.c23 .MuiTableRow-root {
+.c24 .MuiTableRow-root {
   -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
 }
 
-.c23 .MuiTableRow-root:not(.MuiTableRow-head):hover {
+.c24 .MuiTableRow-root:not(.MuiTableRow-head):hover {
   background: #f5f5f5;
   -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
 }
 
-.c23 table {
+.c24 table {
   margin-top: 12px;
 }
 
-.c23 th {
+.c24 th {
   padding: 8px;
   background: #F6F7F9;
 }
 
-.c23 td {
+.c24 td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.c33 {
+.c34 {
   position: relative;
   height: 100%;
   width: 0px;
@@ -754,12 +762,12 @@ exports[`Applications index test snapshots success 1`] = `
   transition-timing-function: ease-in-out;
 }
 
-.c33.open {
+.c34.open {
   left: 0px;
   width: 350px;
 }
 
-.c34 {
+.c35 {
   background: rbga(255,255,255,0.75);
   height: 100%;
   width: 100%;
@@ -768,45 +776,45 @@ exports[`Applications index test snapshots success 1`] = `
   padding-left: 32px;
 }
 
-.c36 .MuiListItem-gutters {
+.c37 .MuiListItem-gutters {
   padding-left: 0px;
 }
 
-.c36 .MuiCheckbox-root {
+.c37 .MuiCheckbox-root {
   padding: 0px;
 }
 
-.c36 .MuiCheckbox-colorSecondary.Mui-checked {
+.c37 .MuiCheckbox-colorSecondary.Mui-checked {
   color: #00b3ec;
 }
 
-.c21 {
+.c22 {
   width: 0px;
   -webkit-transition: width 0.3s ease-in-out;
   transition: width 0.3s ease-in-out;
   margin-left: 4px;
 }
 
-.c21.expanded {
+.c22.expanded {
   width: 200px;
 }
 
-.c18 {
+.c19 {
   position: relative;
   padding: 0 12px;
 }
 
-.c14 td:nth-child(7) {
+.c15 td:nth-child(7) {
   white-space: pre-wrap;
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
 
-.c6.MuiIconButton-root {
+.c7.MuiIconButton-root {
   background-color: #fff;
 }
 
-.c6.MuiIconButton-root:hover {
+.c7.MuiIconButton-root:hover {
   background-color: #fff;
   color: #009CCC;
 }
@@ -820,19 +828,19 @@ exports[`Applications index test snapshots success 1`] = `
   margin: 0 auto;
 }
 
-.c9 {
-  margin: 24px 12px 0 12px;
-  padding: 32px 24px 24px 32px;
+.c10 {
+  margin: 0 16px;
+  padding: 24px;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
 }
 
-.c39 {
+.c40 {
   padding: 12px 24px;
-  margin: 12px;
-  background-color: #fff;
-  color: #1a1a1a;
-  border-radius: 8px;
+  margin: 0 16px;
+  background-color: rgba(255,255,255,0.85);
+  color: #737373;
+  border-radius: 0 0 8px 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -843,7 +851,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: space-between;
 }
 
-.c39 a {
+.c40 a {
   color: #00b3ec;
 }
 
@@ -870,12 +878,12 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c4 {
-  background: #fff;
+  background: #98E0F7;
   padding: 0 4px;
   -webkit-align-self: center;
   -ms-flex-item-align: center;
   align-self: center;
-  color: #00b3ec;
+  color: #1a1a1a;
   margin-left: 4px;
   border-radius: 2px;
 }
@@ -895,31 +903,39 @@ exports[`Applications index test snapshots success 1`] = `
   display: flex;
   color: inherit;
   font-size: 20px;
-  background: #00b3ec;
   height: 80px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
-  padding-left: 32px;
+  padding: 0 12px 0 24px;
   position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 2;
+  background: inherit;
 }
 
 .c1 .MuiListItemIcon-root {
   min-width: 30px;
 }
 
-.c10 {
+.c6 svg {
+  fill: #00b3ec;
+}
+
+.c6 button {
+  background-color: #f5f5f5;
+}
+
+.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.c10 > * {
+.c11 > * {
   margin-right: 24px;
 }
 
@@ -934,7 +950,7 @@ exports[`Applications index test snapshots success 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-25"
+          class="makeStyles-path-29"
           style="align-items: center;"
         >
           <div
@@ -942,7 +958,7 @@ exports[`Applications index test snapshots success 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-27"
+              class="makeStyles-link-32"
               href="/applications"
             >
               Applications
@@ -956,11 +972,11 @@ exports[`Applications index test snapshots success 1`] = `
         </div>
       </div>
       <div
-        class="c5"
+        class="c5 c6"
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c6"
+          class="MuiButtonBase-root MuiIconButton-root c7"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -969,7 +985,7 @@ exports[`Applications index test snapshots success 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c7 c8"
+              class="c8 c9"
             >
               <svg
                 aria-hidden="true"
@@ -990,19 +1006,19 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
-        class="c9"
+        class="c10"
       >
         <div
           style="display: flex; align-items: center; justify-content: space-between;"
         >
           <div
-            class="c10"
+            class="c11"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
               id="add-application"
               tabindex="0"
               type="button"
@@ -1014,7 +1030,7 @@ exports[`Applications index test snapshots success 1`] = `
                   class="MuiButton-startIcon MuiButton-iconSizeMedium"
                 >
                   <div
-                    class="c7 c12"
+                    class="c8 c13"
                   >
                     <svg
                       aria-hidden="true"
@@ -1045,22 +1061,22 @@ exports[`Applications index test snapshots success 1`] = `
           </a>
         </div>
         <div
-          class="c13 c14 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
+          class="c14 c15 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
         >
           <div
-            class="c15"
+            class="c16"
           >
             <div
-              class="c16 c17 $9121bed0097d59fd$var$ChipGroup"
+              class="c17 c18 $9121bed0097d59fd$var$ChipGroup"
             />
             <div
-              class="c7 c18"
+              class="c8 c19"
             >
               <div
-                class="c7 $621c541edae1f860$var$SearchField"
+                class="c8 $621c541edae1f860$var$SearchField"
               >
                 <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text c19 $621c541edae1f860$var$SearchField MuiButton-colorInherit MuiButton-disableElevation"
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text c20 $621c541edae1f860$var$SearchField MuiButton-colorInherit MuiButton-disableElevation"
                   tabindex="0"
                   type="button"
                 >
@@ -1068,7 +1084,7 @@ exports[`Applications index test snapshots success 1`] = `
                     class="MuiButton-label"
                   >
                     <div
-                      class="c7 c20"
+                      class="c8 c21"
                     >
                       <svg
                         aria-hidden="true"
@@ -1087,7 +1103,7 @@ exports[`Applications index test snapshots success 1`] = `
                   />
                 </button>
                 <div
-                  class="c21 "
+                  class="c22 "
                 >
                   <form>
                     <div
@@ -1110,7 +1126,7 @@ exports[`Applications index test snapshots success 1`] = `
                 </div>
               </div>
               <button
-                class="MuiButtonBase-root MuiButton-root MuiButton-text c19 c14 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable MuiButton-colorInherit MuiButton-disableElevation"
+                class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c15 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable MuiButton-colorInherit MuiButton-disableElevation"
                 tabindex="0"
                 type="button"
               >
@@ -1118,7 +1134,7 @@ exports[`Applications index test snapshots success 1`] = `
                   class="MuiButton-label"
                 >
                   <div
-                    class="c7 c20"
+                    class="c8 c21"
                   >
                     <svg
                       aria-hidden="true"
@@ -1139,10 +1155,10 @@ exports[`Applications index test snapshots success 1`] = `
             </div>
           </div>
           <div
-            class="c22"
+            class="c23"
           >
             <div
-              class="c23 c14 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
+              class="c24 c15 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
             >
               <div
                 class="MuiTableContainer-root"
@@ -1162,10 +1178,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1183,7 +1199,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1195,10 +1211,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1216,7 +1232,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1228,10 +1244,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1249,7 +1265,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1261,10 +1277,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1282,7 +1298,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1294,10 +1310,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1315,7 +1331,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1327,10 +1343,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1348,10 +1364,10 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
-                            class="c7 c12 downward"
+                            class="c8 c13 downward"
                           >
                             <svg
                               aria-hidden="true"
@@ -1371,10 +1387,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1392,7 +1408,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1404,10 +1420,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1425,7 +1441,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1437,10 +1453,10 @@ exports[`Applications index test snapshots success 1`] = `
                         scope="col"
                       >
                         <div
-                          class="c24"
+                          class="c25"
                         >
                           <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c11 c25 MuiButton-colorInherit MuiButton-disableElevation"
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c26 MuiButton-colorInherit MuiButton-disableElevation"
                             tabindex="0"
                             type="button"
                           >
@@ -1458,7 +1474,7 @@ exports[`Applications index test snapshots success 1`] = `
                             />
                           </button>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <div
                             style="width: 16px;"
@@ -1471,7 +1487,7 @@ exports[`Applications index test snapshots success 1`] = `
                     class="MuiTableBody-root"
                   >
                     <tr
-                      class="MuiTableRow-root c27"
+                      class="MuiTableRow-root c28"
                       colspan="9"
                     >
                       <td
@@ -1479,10 +1495,10 @@ exports[`Applications index test snapshots success 1`] = `
                         colspan="9"
                       >
                         <div
-                          class="c28"
+                          class="c29"
                         >
                           <div
-                            class="c7 c29"
+                            class="c8 c30"
                           >
                             <svg
                               aria-hidden="true"
@@ -1496,10 +1512,10 @@ exports[`Applications index test snapshots success 1`] = `
                             </svg>
                           </div>
                           <div
-                            class="c26"
+                            class="c27"
                           />
                           <span
-                            class="c30 c31"
+                            class="c31 c32"
                             color="neutral30"
                           >
                             No data
@@ -1511,24 +1527,24 @@ exports[`Applications index test snapshots success 1`] = `
                 </table>
               </div>
               <div
-                class="c32"
+                class="c33"
               />
             </div>
             <div
-              class="c33"
+              class="c34"
               data-testid="container"
             >
               <div
-                class="c34"
+                class="c35"
               >
                 <div
-                  class="c35 c36"
+                  class="c36 c37"
                 >
                   <div
-                    class="c16"
+                    class="c17"
                   >
                     <span
-                      class="c30 c37"
+                      class="c31 c38"
                       color="neutral30"
                     >
                       Filters
@@ -1554,14 +1570,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-33 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-35 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-39 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-41 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-36"
+                                    class="PrivateSwitchBase-input-42"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="clusterName"
@@ -1582,7 +1598,7 @@ exports[`Applications index test snapshots success 1`] = `
                               </span>
                             </div>
                             <span
-                              class="c30 c38"
+                              class="c31 c39"
                               color="neutral30"
                             >
                               cluster
@@ -1604,14 +1620,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-33 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-35 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-39 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-41 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-36"
+                                    class="PrivateSwitchBase-input-42"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="namespace"
@@ -1632,7 +1648,7 @@ exports[`Applications index test snapshots success 1`] = `
                               </span>
                             </div>
                             <span
-                              class="c30 c38"
+                              class="c31 c39"
                               color="neutral30"
                             >
                               namespace
@@ -1654,14 +1670,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-33 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-35 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-39 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-41 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-36"
+                                    class="PrivateSwitchBase-input-42"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="status"
@@ -1682,7 +1698,7 @@ exports[`Applications index test snapshots success 1`] = `
                               </span>
                             </div>
                             <span
-                              class="c30 c38"
+                              class="c31 c39"
                               color="neutral30"
                             >
                               status
@@ -1704,14 +1720,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-33 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-35 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-39 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-41 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-36"
+                                    class="PrivateSwitchBase-input-42"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="type"
@@ -1732,7 +1748,7 @@ exports[`Applications index test snapshots success 1`] = `
                               </span>
                             </div>
                             <span
-                              class="c30 c38"
+                              class="c31 c39"
                               color="neutral30"
                             >
                               type
@@ -1749,7 +1765,7 @@ exports[`Applications index test snapshots success 1`] = `
         </div>
       </div>
       <div
-        class="c39"
+        class="c40"
       >
         <div>
           Need help? Raise a 
