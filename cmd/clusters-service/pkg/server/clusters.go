@@ -1107,6 +1107,7 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) *helmv2.HelmRelease {
 						Name:       hr.Spec.Chart.Spec.SourceRef.Name,
 						Namespace:  hr.Spec.Chart.Spec.SourceRef.Namespace,
 					},
+					Version: hr.Spec.Chart.Spec.Version,
 				},
 			},
 			Interval: metav1.Duration{Duration: time.Minute * 10},

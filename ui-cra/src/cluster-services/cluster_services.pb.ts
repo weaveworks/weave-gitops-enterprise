@@ -359,6 +359,7 @@ export type Chart = {
 export type ChartSpec = {
   chart?: string
   sourceRef?: SourceRef
+  version?: string
 }
 
 export type Metadata = {

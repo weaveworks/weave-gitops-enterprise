@@ -526,6 +526,7 @@ message Chart {
 message ChartSpec {
   string chart = 1;
   SourceRef source_ref = 2;
+  string version = 3; 
 }
 
 message Metadata {
