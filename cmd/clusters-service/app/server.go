@@ -44,6 +44,7 @@ import (
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -260,6 +261,9 @@ func bindFlagValues(cmd *cobra.Command) {
 }
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+
+	featureflags.SetFromEnv(os.Environ())
+
 	if p.capiTemplatesNamespace == "" {
 		return errors.New("CAPI templates namespace not set")
 	}
