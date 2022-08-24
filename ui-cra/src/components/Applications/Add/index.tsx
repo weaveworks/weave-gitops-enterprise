@@ -101,72 +101,79 @@ const AddApplication = () => {
   const handleAddApplication = useCallback(() => {
     const clusterAutomations =
       formData.source_type === 'KindHelmRepository'
-        ? selectedProfiles.map(profile => {
-            let values;
-            let version;
-            profile.values.forEach(value => {
-              if (value.selected === true) {
-                version = value.version;
-                values =value.yaml;
-              }
-            });
-            return {
-              cluster: {
-                name: formData.cluster_name,
-                namespace: formData.cluster_namespace,
-              },
-              isControlPlane: formData.cluster_isControlPlane,
-              kustomization: {
-                metadata: {
-                  name: formData.name,
-                  namespace: formData.namespace,
+        ? formData.clusterAutomations.map((kustomization: any) =>
+            selectedProfiles.map(profile => {
+              let values;
+              let version;
+              profile.values.forEach(value => {
+                if (value.selected === true) {
+                  version = value.version;
+                  values = value.yaml;
+                }
+              });
+              return {
+                cluster: {
+                  name: kustomization.cluster_name,
+                  namespace: kustomization.cluster_namespace,
                 },
-                spec: {
-                  // path: formData.path,
-                  sourceRef: {
-                    name: formData.source_name,
-                    namespace: formData.source_namespace,
+                isControlPlane: kustomization.cluster_isControlPlane,
+                kustomization: {
+                  metadata: {
+                    name: kustomization.name,
+                    namespace: kustomization.namespace,
                   },
-                },
-              },
-              helmRelease: {
-                metadata: { name: profile.name, namespace: profile.namespace },
-                spec: {
-                  chart: {
-                    spec: {
-                      chart: profile.name,
-                      sourceRef: {
-                        name: formData.source_name,
-                        namespace: formData.source_namespace,
-                      },
-                      version,
+                  spec: {
+                    // path: kustomization.path,
+                    sourceRef: {
+                      name: kustomization.source_name,
+                      namespace: kustomization.source_namespace,
                     },
                   },
-                  values,
+                },
+                helmRelease: {
+                  metadata: {
+                    name: profile.name,
+                    namespace: profile.namespace,
+                  },
+                  spec: {
+                    chart: {
+                      spec: {
+                        chart: profile.name,
+                        sourceRef: {
+                          name: formData.source_name,
+                          namespace: formData.source_namespace,
+                        },
+                        version,
+                      },
+                    },
+                    values,
+                  },
+                },
+              };
+            }),
+          )
+        : formData.clusterAutomations.map((kustomization: any) => {
+            return {
+              cluster: {
+                name: kustomization.cluster_name,
+                namespace: kustomization.cluster_namespace,
+              },
+              isControlPlane: kustomization.cluster_isControlPlane,
+              kustomization: {
+                metadata: {
+                  name: kustomization.name,
+                  namespace: kustomization.namespace,
+                },
+                spec: {
+                  path: kustomization.path,
+                  sourceRef: {
+                    name: kustomization.source_name,
+                    namespace: kustomization.source_namespace,
+                  },
                 },
               },
             };
-          })
-        : {
-            cluster: {
-              name: formData.cluster_name,
-              namespace: formData.cluster_namespace,
-            },
-            isControlPlane: formData.cluster_isControlPlane,
-            kustomization: {
-              metadata: {
-                name: formData.name,
-                namespace: formData.namespace,
-              },
-              spec: {
-                path: formData.path,
-                sourceRef: {
-                  name: formData.source_name,
-                  namespace: formData.source_namespace,
-                },
-              },
-            },
-          };
+          });
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
