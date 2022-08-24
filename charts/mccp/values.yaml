@@ -20,6 +20,10 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+# -- If set to true, OCI repositories will be included in the source view.
+# This requires flux 0.32 or later.
+listOCIRepositories: false
+
 config:
   cluster:
     name: default
