@@ -25,6 +25,9 @@ import AppFields from './form/Partials/AppFields';
 import Profiles from '../../Clusters/Create/Form/Partials/Profiles';
 import { UpdatedProfile } from '../../../types/custom';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
+import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import useClusters from '../../../contexts/Clusters';
+import { Loader } from '../../Loader';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -36,6 +39,7 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+  const { clusters, isLoading } = useClusters();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -46,18 +50,21 @@ const AddApplication = () => {
     title: 'Add application',
     commitMessage: 'Add application',
     pullRequestDescription: 'This PR adds a new application',
-    clusterKustomizations: [{}],
-    name: '',
-    namespace: '',
-    cluster_name: '',
-    cluster_namespace: '',
-    cluster: '',
-    cluster_isControlPlane: false,
-    path: '',
-    source_name: '',
-    source_namespace: '',
-    source: '',
-    source_type: '',
+    clusterAutomations: [
+      {
+        name: '',
+        namespace: '',
+        cluster_name: '',
+        cluster_namespace: '',
+        cluster: '',
+        cluster_isControlPlane: false,
+        path: '',
+        source_name: '',
+        source_namespace: '',
+        source: '',
+        source_type: '',
+      },
+    ],
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -89,14 +96,14 @@ const AddApplication = () => {
 
   useEffect(() => clearCallbackState(), []);
 
-  useEffect(
-    () =>
-      setFormData((prevState: any) => ({
-        ...prevState,
-        pullRequestTitle: `Add application ${formData.name || ''}`,
-      })),
-    [formData.name],
-  );
+  useEffect(() => {
+    setFormData((prevState: any) => ({
+      ...prevState,
+      pullRequestTitle: `Add application ${(formData.clusterAutomations || [])
+        .map((a: any) => a.name)
+        .join(', ')}`,
+    }));
+  }, [formData.clusterAutomations]);
 
   const handleAddApplication = useCallback(() => {
     const clusterAutomations =
@@ -244,7 +251,21 @@ const AddApplication = () => {
             <ContentWrapper>
               <Grid container>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
-                  <AppFields formData={formData} setFormData={setFormData} />
+                  {!isLoading &&
+                    formData.clusterAutomations.map(
+                      (automation: ClusterAutomation, index: number) => {
+                        return (
+                          <AppFields
+                            key={index}
+                            index={index}
+                            formData={formData}
+                            setFormData={setFormData}
+                            clusters={clusters}
+                          />
+                        );
+                      },
+                    )}
+                  {isLoading && <Loader></Loader>}
                 </Grid>
                 {profiles.length > 0 &&
                 formData.source_type === 'KindHelmRepository' ? (
@@ -280,6 +301,8 @@ const AddApplication = () => {
     profiles.length,
     selectedProfiles,
     showAuthDialog,
+    clusters,
+    isLoading,
   ]);
 };
 
