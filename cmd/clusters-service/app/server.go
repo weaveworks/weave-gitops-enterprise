@@ -121,6 +121,7 @@ type Params struct {
 	capiTemplatesRepositoryBaseBranch string
 	runtimeNamespace                  string
 	gitProviderToken                  string
+	authMethods                       []string
 	TLSCert                           string
 	TLSKey                            string
 	NoTLS                             bool
@@ -180,6 +181,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().StringVar(&p.TLSKey, "tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().BoolVar(&p.NoTLS, "no-tls", false, "do not attempt to read TLS certificates")
 
+	cmd.Flags().StringSliceVar(&p.authMethods, "auth-methods", []string{"oidc", "token-pass-through", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmd.Flags().StringVar(&p.OIDC.IssuerURL, "oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().StringVar(&p.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmd.Flags().StringVar(&p.OIDC.ClientSecret, "oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
