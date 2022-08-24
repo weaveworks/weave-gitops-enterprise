@@ -33,6 +33,8 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
 
+	applyCreateAutomationDefaults(msg)
+
 	if err := validateCreateAutomationsPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
@@ -180,6 +182,17 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) *helmv2.HelmRelease {
 	}
 
 	return &generatedHelmRelease
+}
+
+func applyCreateAutomationDefaults(msg *capiv1_proto.CreateAutomationsPullRequestRequest) {
+	for _, c := range msg.ClusterAutomations {
+		if c.HelmRelease != nil && c.HelmRelease.Metadata != nil && c.HelmRelease.Metadata.Namespace == "" {
+			c.HelmRelease.Metadata.Namespace = defaultAutomationNamespace
+		}
+		if c.Kustomization != nil && c.Kustomization.Metadata != nil && c.Kustomization.Metadata.Namespace == "" {
+			c.Kustomization.Metadata.Namespace = defaultAutomationNamespace
+		}
+	}
 }
 
 func validateCreateAutomationsPR(msg *capiv1_proto.CreateAutomationsPullRequestRequest) error {

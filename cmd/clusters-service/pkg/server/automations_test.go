@@ -172,6 +172,85 @@ status: {}
 				},
 			},
 			expected: "https://github.com/org/repo/pull/1",
+		}, {
+			name: "default values for namespace in kustomizations and helm releases",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster Kustomization",
+				Description:   "Creates cluster Kustomizations",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: testNewMetadata(t, "apps-capi", ""),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:      "./apps/capi",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+							},
+						},
+					},
+					{
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: testNewMetadata(t, "test-profile", ""),
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []CommittedFile{
+				{
+					Path: "clusters/management/flux-system-apps-capi-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-capi
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/capi
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/dev/billing/flux-system-test-profile-helmrelease.yaml",
+					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: test-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: test-chart
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+  interval: 10m0s
+  values: null
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
 			name: "committed files for helm release",

@@ -124,6 +124,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
 
+	applyCreateClusterDefaults(msg)
+
 	if err := validateCreateClusterPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
@@ -602,6 +604,14 @@ func validateNamespace(namespace string) error {
 	}
 
 	return nil
+}
+
+func applyCreateClusterDefaults(msg *capiv1_proto.CreatePullRequestRequest) {
+	for _, k := range msg.Kustomizations {
+		if k != nil && k.Metadata != nil && k.Metadata.Namespace == "" {
+			k.Metadata.Namespace = defaultAutomationNamespace
+		}
+	}
 }
 
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
