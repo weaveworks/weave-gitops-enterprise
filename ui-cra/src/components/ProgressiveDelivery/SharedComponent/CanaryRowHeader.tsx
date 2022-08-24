@@ -1,5 +1,45 @@
 import { TableCell, TableRow } from '@material-ui/core';
-import { useCanaryStyle } from '../CanaryStyles';
+import styled from 'styled-components';
+import { theme } from '@weaveworks/weave-gitops';
+
+const { normal } = theme.fontSizes;
+const { small, xs } = theme.spacing;
+const { neutral30, neutral40 } = theme.colors;
+
+const RowHeader = styled.div`
+  margin: ${small} 0;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+`;
+const RowTitle = styled.div`
+  font-weight: 600;
+  font-size: ${normal};
+  color: ${neutral30};
+`;
+
+const RowBody = styled.div`
+  font-weight: 400;
+  font-size: ${normal};
+  margin-left: ${xs};
+  color: ${neutral40};
+`;
+export interface SectionRowHeader {
+  children?: any;
+  rowkey: string;
+  value?: string | JSX.Element | undefined;
+  hidden?: boolean;
+}
+export const generateRowHeaders = (rows: Array<SectionRowHeader>) => {
+  return rows.map(r => {
+
+    return r.hidden === true ? null : (
+      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
+        {r.children}
+      </CanaryRowHeader>
+    );
+  });
+};
 
 export function KeyValueRow({
   entryObj,
@@ -43,12 +83,11 @@ function CanaryRowHeader({
   rowkey: string;
   value: string | JSX.Element | undefined;
 }) {
-  const classes = useCanaryStyle();
   return (
-    <div className={classes.rowHeaderWrapper} data-testid={rowkey}>
-      <div className={classes.cardTitle}>{rowkey}:</div>
-      <span className={classes.body1}>{children || value || '--'}</span>
-    </div>
+    <RowHeader data-testid={rowkey}>
+      <RowTitle>{rowkey} :</RowTitle>
+      <RowBody>{children || value || '--'}</RowBody>
+    </RowHeader>
   );
 }
 
