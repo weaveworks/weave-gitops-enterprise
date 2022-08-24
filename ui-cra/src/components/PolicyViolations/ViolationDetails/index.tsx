@@ -2,7 +2,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import ViolationDetails from './ViolationDetails';
@@ -30,7 +30,6 @@ const PolicyViolationDetails = ({
     clusterName,
     violationId: id,
   });
-  const title = !!source ? data?.violation?.message : data?.violation?.name;
   const headerPath: Breadcrumb[] = !!source
     ? [
         { label: 'Applications', url: '/applications', count },
@@ -54,7 +53,6 @@ const PolicyViolationDetails = ({
       <PageTemplate documentTitle="WeGo · Violation Logs">
         <SectionHeader className="count-header" path={headerPath} />
         <ContentWrapper>
-          <Title>{title}</Title>
           {isLoading && <LoadingPage />}
           {error && <Alert severity="error">{error.message}</Alert>}
           {data?.violation && (

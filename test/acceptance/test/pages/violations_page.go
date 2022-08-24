@@ -13,17 +13,16 @@ type ViolationsPage struct {
 }
 
 type ViolationInformation struct {
-	NameMgmtUI      *agouti.Selection
+	Message         *agouti.Selection
+	Cluster         *agouti.Selection
+	Application     *agouti.Selection
 	Severity        *agouti.Selection
 	ValidatedPolicy *agouti.Selection
-	Cluster         *agouti.Selection
 	Time            *agouti.Selection
-	Application     *agouti.Selection
 }
 
 type ViolationDetailPage struct {
 	Header           *agouti.Selection
-	Title            *agouti.Selection
 	ClusterName      *agouti.Selection
 	Time             *agouti.Selection
 	Severity         *agouti.Selection
@@ -39,12 +38,12 @@ type ViolationDetailPage struct {
 func (v ViolationsPage) FindViolationInList(violationMsg string) *ViolationInformation {
 	violation := v.ViolationList.FirstByXPath(fmt.Sprintf(`//tr[.//a[contains(text(), "%s")]]`, violationMsg))
 	return &ViolationInformation{
-		NameMgmtUI:      violation.FindByXPath(`td[1]//a`),
-		Severity:        violation.FindByXPath(`td[2]`),
-		ValidatedPolicy: violation.FindByXPath(`td[3]`),
-		Cluster:         violation.FindByXPath(`td[4]`),
-		Time:            violation.FindByXPath(`td[5]`),
-		Application:     violation.FindByXPath(`td[6]`),
+		Message:         violation.FindByXPath(`td[1]//a`),
+		Cluster:         violation.FindByXPath(`td[2]`),
+		Application:     violation.FindByXPath(`td[3]`),
+		Severity:        violation.FindByXPath(`td[4]`),
+		ValidatedPolicy: violation.FindByXPath(`td[5]`),
+		Time:            violation.FindByXPath(`td[6]`),
 	}
 }
 
@@ -56,7 +55,7 @@ func (v ViolationsPage) CountViolations() int {
 
 func GetViolationsPage(webDriver *agouti.Page) *ViolationsPage {
 	return &ViolationsPage{
-		ViolationHeader: webDriver.Find(`div[role="heading"] a[href="/clusters/violations"]`),
+		ViolationHeader: webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
 		ViolationCount:  webDriver.First(`.section-header-count`),
 		ViolationList:   webDriver.First(`table tbody`),
 	}
@@ -64,8 +63,7 @@ func GetViolationsPage(webDriver *agouti.Page) *ViolationsPage {
 
 func GetViolationDetailPage(webDriver *agouti.Page) *ViolationDetailPage {
 	return &ViolationDetailPage{
-		Header:           webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/clusters/violations"]/parent::node()/parent::node()/following-sibling::div`),
-		Title:            webDriver.First(`h2`),
+		Header:           webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/clusters"]/parent::node()/parent::node()/following-sibling::div[2]`),
 		ClusterName:      webDriver.FindByXPath(`//div[text()="Cluster Name"]/following-sibling::*[1]`),
 		Time:             webDriver.FindByXPath(`//div/*[text()="Violation Time"]/following-sibling::*[1]`),
 		Severity:         webDriver.FindByXPath(`//div[text()="Severity"]/following-sibling::*[1]`),

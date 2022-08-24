@@ -8,11 +8,11 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       margin: `${theme.spacing.small} 0`,
     },
     sectionSeperator: {
-      margin: `${theme.spacing.medium} 0`,
+      margin: `calc(${theme.spacing.medium}*2) 0`,
     },
     cardTitle: {
       fontWeight: 700,
-      fontSize: theme.fontSizes.small,
+      fontSize: theme.fontSizes.normal,
       color: theme.colors.neutral30,
     },
     body1: {
@@ -26,8 +26,6 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       borderRadius: theme.spacing.xxs,
       padding: `${theme.spacing.xxs} ${theme.spacing.xs}`,
       marginLeft: theme.spacing.xs,
-      fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
     },
     codeWrapper: {
       background: theme.colors.neutral10,
@@ -131,6 +129,26 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     messageWrape: {
       whiteSpace: 'normal',
+    },
+    labelText: {
+      fontWeight: 400,
+      fontSize: theme.fontSizes.tiny,
+      color: theme.colors.neutral30,
+    },
+    parameterWrapper: {
+      border: `1px solid ${theme.colors.neutral20}`,
+      boxSizing: 'border-box',
+      borderRadius: theme.spacing.xxs,
+      padding: theme.spacing.base,
+      display: 'flex',
+      marginBottom: theme.spacing.base,
+      marginTop: theme.spacing.base,
+    },
+    parameterInfo: {
+      display: 'flex',
+      alignItems: 'start',
+      flexDirection: 'column',
+      width: '100%',
     },
   }),
 );
