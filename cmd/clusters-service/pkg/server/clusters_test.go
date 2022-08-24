@@ -725,7 +725,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/clusters-namespace/dev/flux-system/apps-capi-kustomization.yaml",
+					Path: "clusters/clusters-namespace/dev/flux-system-apps-capi-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -744,7 +744,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/clusters-namespace/dev/flux-system/apps-billing-kustomization.yaml",
+					Path: "clusters/clusters-namespace/dev/flux-system-apps-billing-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
