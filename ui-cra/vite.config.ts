@@ -5,15 +5,10 @@ import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import svgrPlugin from 'vite-plugin-svgr';
 
-const DEFAULT_PROXY_HOST = 'https://demo-01.wge.dev.weave.works/';
-const proxyHost = process.env.PROXY_HOST || DEFAULT_PROXY_HOST;
-// Localhost is running tls by default now
-const secure = process.env.PROXY_SECURE === 'true';
-
 const proxyConfig = {
-  target: proxyHost,
+  target: process.env.PROXY_HOST || 'https://demo-01.wge.dev.weave.works/',
   changeOrigin: true,
-  secure,
+  secure: process.env.PROXY_SECURE === 'true',
 };
 
 const localAlias = process.env.PROXY_LOCAL
@@ -24,6 +19,7 @@ const localAlias = process.env.PROXY_LOCAL
 // https://vitejs.dev/config/
 //
 export default defineConfig({
+  // FIXME: I cannot figure out why the types here aren't getting resolved
   test: {
     globals: true,
     environment: 'jsdom',
