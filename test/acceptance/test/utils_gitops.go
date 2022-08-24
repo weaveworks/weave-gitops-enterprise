@@ -335,6 +335,9 @@ func verifyCapiClusterHealth(kubeconfigPath string, profiles []Profile) {
 		case "podinfo":
 			Expect(waitForResource("deploy", "podinfo ", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 			waitForResourceState("Ready", "true", "pods", profile.Namespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "metallb":
+			Expect(waitForResource("deploy", "metallb-controller ", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
+			waitForResourceState("Ready", "true", "pods", profile.Namespace, "app.kubernetes.io/name="+"metallb", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "cert-manager":
 			Expect(waitForResource("deploy", "cert-manager-cert-manager", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(Succeed())
 			waitForResourceState("Ready", "true", "pods", profile.Namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
