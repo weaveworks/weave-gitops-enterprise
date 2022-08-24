@@ -114,7 +114,7 @@ const AddCluster: FC = () => {
     pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
-    clusterAutomations: [{ name: '', namespace: '', path: '' }],
+    clusterAutomations: [],
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -213,7 +213,12 @@ const AddCluster: FC = () => {
 
   const handleAddCluster = useCallback(() => {
     const { clusterAutomations, ...rest } = formData;
-    const kustomizations = clusterAutomations.map(
+    // filter out empty kustomization
+    const filteredKustomizations = clusterAutomations.filter(
+      (kustomization: any) =>
+        Object.values(kustomization).join('').trim() !== '',
+    );
+    const kustomizations = filteredKustomizations.map(
       (kustomization: any): Kustomization => {
         return {
           metadata: {
