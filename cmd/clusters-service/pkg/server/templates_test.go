@@ -17,7 +17,6 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -618,7 +617,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: false,
 					})
@@ -647,7 +646,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: true, // Default being set overrides this field
 						Default:  "foo",
@@ -733,7 +732,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.Spec.RenderType = "templating"
-					ct.Spec.Params = append(ct.Spec.Params, apitemplates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: false,
 					})
