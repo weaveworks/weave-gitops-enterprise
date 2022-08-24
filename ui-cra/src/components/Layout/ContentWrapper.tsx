@@ -148,12 +148,7 @@ export const ContentWrapper: FC<Props> = ({
           title={`Server Version ${versions?.capiServer}`}
           placement="top"
         >
-          <>
-            <div>
-              Weave GitOps Enterprise {import.meta.env.VITE_APP_VERSION}
-            </div>
-            <div>Weave GitOps Enterprise dev</div>
-          </>
+          <div>Weave GitOps Enterprise {import.meta.env.VITE_APP_VERSION}</div>
         </Tooltip>
       </HelpLinkWrapper>
     </div>
