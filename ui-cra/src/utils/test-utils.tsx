@@ -18,6 +18,7 @@ import { ThemeProvider } from 'styled-components';
 import {
   GetConfigResponse,
   GetPolicyResponse,
+  GetPolicyValidationResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
   ListPolicyValidationsResponse,
@@ -159,19 +160,24 @@ export class PolicyClientMock {
     this.ListPolicies = this.ListPolicies.bind(this);
     this.ListPolicyValidations = this.ListPolicyValidations.bind(this);
     this.GetPolicy = this.GetPolicy.bind(this);
+    this.GetPolicyValidation = this.GetPolicyValidation.bind(this);
   }
   ListPoliciesReturns: ListPoliciesResponse = {};
   ListPolicyValidationsReturns: ListPolicyValidationsResponse = {};
   GetPolicyReturns: GetPolicyResponse = {};
+  GetPolicyValidationReturns: GetPolicyValidationResponse = {};
 
   ListPolicies() {
     return promisify(this.ListPoliciesReturns);
   }
+  GetPolicy() {
+    return promisify(this.GetPolicyReturns);
+  }
   ListPolicyValidations() {
     return promisify(this.ListPolicyValidationsReturns);
   }
-  GetPolicy() {
-    return promisify(this.GetPolicyReturns);
+  GetPolicyValidation() {
+    return promisify(this.GetPolicyValidationReturns);
   }
 }
 export function findCellInCol(cell: string, tableSelector: string) {

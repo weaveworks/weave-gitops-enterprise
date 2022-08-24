@@ -17,7 +17,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     body1: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.small,
+      fontSize: theme.fontSizes.normal,
       color: theme.colors.black,
       marginLeft: theme.spacing.xs,
     },

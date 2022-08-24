@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
 import { generateRowHeaders } from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+import { Title } from '../../Layout/ContentWrapper';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
@@ -85,7 +86,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
             ( {occurrences?.length} )
           </span>
         </div>
-        <ul className={classes.occurrencesList}>
+        <ul className={classes.occurrencesList} id="occurrences">
           {occurrences?.map(item => (
             <li key={item.message} className={classes.body1}>
               {item.message}
@@ -94,7 +95,8 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
         </ul>
       </div>
 
-      <div className={classes.sectionSeperator}>
+          
+      <div className={classes.sectionSeperator} data-testid="description" >
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
@@ -102,7 +104,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="howToSolve">
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
@@ -111,7 +113,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="violatingEntity">
         <div className={classes.cardTitle}>Violating Entity:</div>
         <div>
           <SyntaxHighlighter
