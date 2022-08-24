@@ -36,12 +36,14 @@ export const PolicyViolationsTable: FC<Props> = ({
   const defaultFields: Field[] = [
     {
       label: 'Severity',
-      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
+      value: ({ severity }) => <Severity severity={severity || ''} />,
+      sortValue: ({ severity }) => severity,
     },
     {
       label: 'Violated Policy',
       value: 'name',
       textSearchable: true,
+      sortValue: ({ name }) => name,
     },
 
     {
@@ -73,6 +75,7 @@ export const PolicyViolationsTable: FC<Props> = ({
     {
       label: 'Cluster',
       value: 'clusterName',
+      sortValue: ({ clusterName }) => clusterName,
     },
     {
       label: 'Application',
@@ -103,7 +106,7 @@ export const PolicyViolationsTable: FC<Props> = ({
   const fields =
     tableType === FieldsType.policy ? policyFields : applicationFields;
   return (
-    <TableWrapper>
+    <TableWrapper id="violations-list">
       <FilterableTable
         filters={initialFilterState}
         rows={violations}

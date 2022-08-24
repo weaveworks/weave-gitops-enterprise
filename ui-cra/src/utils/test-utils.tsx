@@ -17,7 +17,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
   GetConfigResponse,
+  GetPolicyResponse,
   ListGitopsClustersResponse,
+  ListPoliciesResponse,
+  ListPolicyValidationsResponse,
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
@@ -151,6 +154,26 @@ export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   }
 }
 
+export class PolicyClientMock {
+  constructor() {
+    this.ListPolicies = this.ListPolicies.bind(this);
+    this.ListPolicyValidations = this.ListPolicyValidations.bind(this);
+    this.GetPolicy = this.GetPolicy.bind(this);
+  }
+  ListPoliciesReturns: ListPoliciesResponse = {};
+  ListPolicyValidationsReturns: ListPolicyValidationsResponse = {};
+  GetPolicyReturns: GetPolicyResponse = {};
+
+  ListPolicies() {
+    return promisify(this.ListPoliciesReturns);
+  }
+  ListPolicyValidations() {
+    return promisify(this.ListPolicyValidationsReturns);
+  }
+  GetPolicy() {
+    return promisify(this.GetPolicyReturns);
+  }
+}
 export function findCellInCol(cell: string, tableSelector: string) {
   const tbl = document.querySelector(tableSelector);
 

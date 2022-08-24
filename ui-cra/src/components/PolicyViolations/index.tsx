@@ -1,5 +1,3 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -14,30 +12,28 @@ const PoliciesViolations = () => {
   const { data, isLoading, error } = useListPolicyValidations({});
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Violation Log">
-        <SectionHeader
-          className="count-header"
-          path={[
-            { label: 'Clusters', url: '/clusters', count: clustersCount },
-            {
-              label: 'Violation Log',
-              count: data?.total,
-            },
-          ]}
-        />
-        <ContentWrapper errors={data?.errors}>
-          {isLoading && <LoadingPage />}
-          {error && <Alert severity="error">{error.message}</Alert>}
-          {data?.violations && (
-            <PolicyViolationsTable
-              violations={data?.violations || []}
-              tableType={FieldsType.policy}
-            />
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate documentTitle="WeGo · Violation Log">
+      <SectionHeader
+        className="count-header"
+        path={[
+          { label: 'Clusters', url: '/clusters', count: clustersCount },
+          {
+            label: 'Violation Log',
+            count: data?.total,
+          },
+        ]}
+      />
+      <ContentWrapper errors={data?.errors}>
+        {isLoading && <LoadingPage />}
+        {error && <Alert severity="error">{error.message}</Alert>}
+        {data?.violations && (
+          <PolicyViolationsTable
+            violations={data?.violations || []}
+            tableType={FieldsType.policy}
+          />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 
