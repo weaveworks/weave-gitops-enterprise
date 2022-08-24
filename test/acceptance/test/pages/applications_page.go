@@ -19,6 +19,7 @@ type ApplicationInformation struct {
 	Name        *agouti.Selection
 	Type        *agouti.Selection
 	Namespace   *agouti.Selection
+	Tenant      *agouti.Selection
 	Cluster     *agouti.Selection
 	Source      *agouti.Selection
 	Status      *agouti.Selection
@@ -72,12 +73,13 @@ func (a ApplicationsPage) FindApplicationInList(applicationName string) *Applica
 		Name:        application.FindByXPath(`td[1]//a`),
 		Type:        application.FindByXPath(`td[2]`),
 		Namespace:   application.FindByXPath(`td[3]`),
-		Cluster:     application.FindByXPath(`td[4]`),
-		Source:      application.FindByXPath(`td[5]`),
-		Status:      application.FindByXPath(`td[6]`),
-		Message:     application.FindByXPath(`td[7]`),
-		Revision:    application.FindByXPath(`td[8]`),
-		LastUpdated: application.FindByXPath(`td[9]`),
+		Tenant:      application.FindByXPath(`td[4]`),
+		Cluster:     application.FindByXPath(`td[5]`),
+		Source:      application.FindByXPath(`td[6]`),
+		Status:      application.FindByXPath(`td[7]`),
+		Message:     application.FindByXPath(`td[8]`),
+		Revision:    application.FindByXPath(`td[9]`),
+		LastUpdated: application.FindByXPath(`td[10]`),
 	}
 }
 
