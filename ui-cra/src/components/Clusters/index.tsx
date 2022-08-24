@@ -102,13 +102,16 @@ const useStyles = makeStyles(() =>
   createStyles({
     clusterIcon: {
       marginRight: theme.spacing.small,
-      color: theme.colors.primary,
+      color: theme.colors.neutral30,
     },
   }),
 );
 
-function annotationExists(annotations:  {[key: string]: string} | undefined,annotationKey: string) {
-  if (annotations === undefined){
+function annotationExists(
+  annotations: { [key: string]: string } | undefined,
+  annotationKey: string,
+) {
+  if (annotations === undefined) {
     return;
   }
   let annotationsList = Object.entries(annotations);
@@ -117,20 +120,21 @@ function annotationExists(annotations:  {[key: string]: string} | undefined,anno
       return value;
     }
   }
-  
 }
 
 export const ClusterIcon: FC<Props> = ({ cluster }) => {
   const classes = useStyles();
-  let clusterKind = "";
-  let clusterKindFromAnnotation = annotationExists(cluster?.annotations,"weave.works/cluster-kind")
+  let clusterKind = '';
+  let clusterKindFromAnnotation = annotationExists(
+    cluster?.annotations,
+    'weave.works/cluster-kind',
+  );
   if (clusterKindFromAnnotation) {
     clusterKind = clusterKindFromAnnotation;
-  }
-  else if (cluster.capiCluster?.infrastructureRef?.kind) {
+  } else if (cluster.capiCluster?.infrastructureRef?.kind) {
     clusterKind = cluster.capiCluster?.infrastructureRef?.kind;
   }
-  
+
   return (
     <Octicon
       className={classes.clusterIcon}
@@ -450,21 +454,15 @@ const MCCP: FC = () => {
                       label: 'Name',
                       value: (c: GitopsClusterEnriched) =>
                         c.controlPlane === true ? (
-                          <>
-                            <ClusterIcon cluster={c}></ClusterIcon>
-                            <span data-cluster-name={c.name}>{c.name}</span>
-                          </>
+                          <span data-cluster-name={c.name}>{c.name}</span>
                         ) : (
-                          <>
-                            <ClusterIcon cluster={c}></ClusterIcon>
-                            <Link
-                              to={`/cluster?clusterName=${c.name}`}
-                              color={theme.colors.primary}
-                              data-cluster-name={c.name}
-                            >
-                              {c.name}
-                            </Link>
-                          </>
+                          <Link
+                            to={`/cluster?clusterName=${c.name}`}
+                            color={theme.colors.primary}
+                            data-cluster-name={c.name}
+                          >
+                            {c.name}
+                          </Link>
                         ),
                       sortValue: ({ name }) => name,
                       textSearchable: true,
@@ -478,8 +476,9 @@ const MCCP: FC = () => {
                     },
                     {
                       label: 'Type',
-                      value: (c: GitopsClusterEnriched) =>
-                        c.capiClusterRef ? 'capi' : 'other',
+                      value: (c: GitopsClusterEnriched) => (
+                        <ClusterIcon cluster={c}></ClusterIcon>
+                      ),
                     },
                     {
                       label: 'Namespace',
