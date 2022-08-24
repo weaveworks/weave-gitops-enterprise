@@ -1,4 +1,6 @@
-import { CallReceived, CallMade, Remove } from '@material-ui/icons';
+import CallReceived from '@material-ui/icons/CallReceived';
+import CallMade from '@material-ui/icons/CallMade';
+import Remove from '@material-ui/icons/Remove';
 import { usePolicyStyle } from './PolicyStyles';
 
 function Severity({ severity }: { severity: string }) {

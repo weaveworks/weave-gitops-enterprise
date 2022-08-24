@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { IconButton, IconButtonProps } from '@material-ui/core';
 import { withStyles } from '@material-ui/styles';
-import { Close } from '@material-ui/icons';
+import Close from '@material-ui/icons/Close';
 import { theme } from '@weaveworks/weave-gitops';
 
 const StyledIconButton = withStyles(() => ({

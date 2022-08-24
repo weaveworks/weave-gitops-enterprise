@@ -1,4 +1,6 @@
-import { CheckCircle, Error, RemoveCircle } from '@material-ui/icons';
+import CheckCircle from '@material-ui/icons/CheckCircle';
+import Error from '@material-ui/icons/Error';
+import RemoveCircle from '@material-ui/icons/RemoveCircle';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
 import { useCanaryStyle } from '../CanaryStyles';

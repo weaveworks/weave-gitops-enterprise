@@ -1046,22 +1046,22 @@ exports[`Applications index test > snapshots > success 1`] = `
           </a>
         </div>
         <div
-          class="c13 c14 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
+          class="c13 c14 $8a768a89bfdd724e$var$AutomationsTable $7069621d70cad2a2$var$URLAddressableTable $d841c5c5e0a94efe$var$FilterableTable"
         >
           <div
             class="c15"
           >
             <div
-              class="c16 c17 $9121bed0097d59fd$var$ChipGroup"
+              class="c16 c17 $41d092a10aeb0589$var$ChipGroup"
             />
             <div
               class="c7 c18"
             >
               <div
-                class="c7 $621c541edae1f860$var$SearchField"
+                class="c7 $3187eb35c01a187b$var$SearchField"
               >
                 <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text c19 $621c541edae1f860$var$SearchField MuiButton-colorInherit MuiButton-disableElevation"
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text c19 $3187eb35c01a187b$var$SearchField MuiButton-colorInherit MuiButton-disableElevation"
                   tabindex="0"
                   type="button"
                 >
@@ -1092,7 +1092,7 @@ exports[`Applications index test > snapshots > success 1`] = `
                 >
                   <form>
                     <div
-                      class="MuiFormControl-root MuiTextField-root $66a683f19021b9f2$var$Input"
+                      class="MuiFormControl-root MuiTextField-root $20a9a7b274305749$var$Input"
                     >
                       <div
                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1111,7 +1111,7 @@ exports[`Applications index test > snapshots > success 1`] = `
                 </div>
               </div>
               <button
-                class="MuiButtonBase-root MuiButton-root MuiButton-text c19 c14 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable MuiButton-colorInherit MuiButton-disableElevation"
+                class="MuiButtonBase-root MuiButton-root MuiButton-text c19 c14 $8a768a89bfdd724e$var$AutomationsTable $7069621d70cad2a2$var$URLAddressableTable $d841c5c5e0a94efe$var$FilterableTable MuiButton-colorInherit MuiButton-disableElevation"
                 tabindex="0"
                 type="button"
               >
@@ -1143,7 +1143,7 @@ exports[`Applications index test > snapshots > success 1`] = `
             class="c22"
           >
             <div
-              class="c23 c14 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
+              class="c23 c14 $8a768a89bfdd724e$var$AutomationsTable $7069621d70cad2a2$var$URLAddressableTable $d841c5c5e0a94efe$var$FilterableTable"
             >
               <div
                 class="MuiTableContainer-root"
@@ -1536,7 +1536,7 @@ exports[`Applications index test > snapshots > success 1`] = `
                     </span>
                   </div>
                   <form
-                    class="$311205a5eac77e9e$var$ControlledForm"
+                    class="$f25a5dec10d2a75b$var$ControlledForm"
                   >
                     <ul
                       class="MuiList-root MuiList-padding"

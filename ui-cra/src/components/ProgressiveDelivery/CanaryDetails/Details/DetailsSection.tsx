@@ -1,4 +1,5 @@
-import { ExpandLess, ChevronRight } from '@material-ui/icons';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ChevronRight from '@material-ui/icons/ChevronRight';
 import {
   Automation,
   Canary,

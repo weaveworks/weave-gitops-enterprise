@@ -17,7 +17,7 @@ FROM alpine:3.9
 RUN apk add --no-cache bash openssh-client
 
 WORKDIR /
-COPY --from=build /home/node/build /html
+COPY --from=build /home/node/dist /html
 
 ARG now
 ARG revision

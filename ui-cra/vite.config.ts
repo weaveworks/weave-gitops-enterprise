@@ -35,19 +35,25 @@ export default defineConfig({
     },
   },
   resolve: {
-    // This doesn't seem to be observed in package.json/resolutions so force it here for dev mode
+    // This needs dedup'ing when hot-reloading weave-gitops
     dedupe: ['@material-ui/styles'],
     alias: {
+      // Allow (encourage) importing icons via full path, so that vite doesn't transform the
+      // entire '@material-ui/icons' module during dev/build.
+      // (10000 icons can take 30s when running `vite build`)
+      '@material-ui/icons': '@material-ui/icons/esm',
+
+      // In case an import or an import in a dependency (weave-gitops) imports something
+      // "too deep" in mui and skips mui's CJS/ESM compat layers. e.g.
+      // "import Button from @material-ui/core/Button/Button";
+      // (vs "import Button from @material-ui/core/Button" which works okay)
+      '@material-ui/core/': '@material-ui/core/esm/',
+
       ...localAlias,
     },
   },
-  build: {
-    // Same as CRA for now.
-    outDir: 'build',
-  },
   server: {
     proxy: {
-      '/gitops': proxyConfig,
       '/v1': proxyConfig,
       '/oauth2': proxyConfig,
     },
