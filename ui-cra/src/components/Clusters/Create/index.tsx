@@ -215,7 +215,8 @@ const AddCluster: FC = () => {
     const { clusterAutomations, ...rest } = formData;
     // filter out empty kustomization
     const filteredKustomizations = clusterAutomations.filter(
-      (kustomization: any) => Object.values(kustomization).join('') !== '',
+      (kustomization: any) =>
+        Object.values(kustomization).join('').trim() !== '',
     );
     const kustomizations = filteredKustomizations.map(
       (kustomization: any): Kustomization => {
