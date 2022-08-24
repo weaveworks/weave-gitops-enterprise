@@ -47,48 +47,6 @@
         ]
       }
     },
-    "/v1/pipelines/status": {
-      "get": {
-        "operationId": "Pipelines_GetPipelineStatusForObject",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPipelineStatusForObjectResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "object.kind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "object.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "object.namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Pipelines"
-        ]
-      }
-    },
     "/v1/pipelines/{name}": {
       "get": {
         "operationId": "Pipelines_GetPipeline",
@@ -187,14 +145,6 @@
         }
       }
     },
-    "v1GetPipelineStatusForObjectResponse": {
-      "type": "object",
-      "properties": {
-        "pipelineStatus": {
-          "$ref": "#/definitions/v1PipelineStatus"
-        }
-      }
-    },
     "v1ListPipelinesResponse": {
       "type": "object",
       "properties": {
@@ -203,20 +153,6 @@
           "items": {
             "$ref": "#/definitions/v1Pipeline"
           }
-        }
-      }
-    },
-    "v1ObjectRef": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
         }
       }
     },
