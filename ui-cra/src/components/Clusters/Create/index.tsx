@@ -359,6 +359,7 @@ const AddCluster: FC = () => {
               </Grid>
               {profiles.length > 0 && (
                 <Profiles
+                  context="app"
                   selectedProfiles={selectedProfiles}
                   setSelectedProfiles={setSelectedProfiles}
                 />

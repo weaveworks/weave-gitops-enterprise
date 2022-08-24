@@ -41,9 +41,10 @@ const ProfileDetailsLabelRenderer = () => (
 );
 
 const Profiles: FC<{
+  context: string;
   selectedProfiles: UpdatedProfile[];
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
-}> = ({ selectedProfiles, setSelectedProfiles }) => {
+}> = ({ context, selectedProfiles, setSelectedProfiles }) => {
   const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
     profiles.map(p => p.name);
   const { profiles, isLoading } = useProfiles();
@@ -141,20 +142,25 @@ const Profiles: FC<{
             sortValue: ({ name }) => name,
             maxWidth: 220,
           },
-          {
-            label: 'Layer',
-            value: (p: UpdatedProfile) =>
-              p.layer ? (
-                <div className="profile-layer">
-                  <span>{p.layer}</span>
-                </div>
-              ) : null,
-          },
+          ...(context !== 'app'
+            ? [
+                {
+                  label: 'Layer',
+                  value: (p: UpdatedProfile) =>
+                    p.layer ? (
+                      <div className="profile-layer">
+                        <span>{p.layer}</span>
+                      </div>
+                    ) : null,
+                },
+              ]
+            : []),
           {
             label: 'Version',
             labelRenderer: () => <ProfileDetailsLabelRenderer />,
             value: (p: UpdatedProfile) => (
               <ProfilesListItem
+                context={context}
                 profile={p}
                 selectedProfiles={selectedProfiles}
                 setSelectedProfiles={setSelectedProfiles}

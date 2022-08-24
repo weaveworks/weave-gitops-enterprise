@@ -99,51 +99,74 @@ const AddApplication = () => {
   );
 
   const handleAddApplication = useCallback(() => {
-    const clusterAutomations = selectedProfiles.map(profile => {
-      let values;
-      let version;
-      profile.values.forEach(value => {
-        if (value.selected === true) {
-          (version = value.version), (values = btoa(value.yaml));
-        }
-      });
-      return {
-        cluster: {
-          name: formData.cluster_name,
-          namespace: formData.cluster_namespace,
-        },
-        isControlPlane: formData.cluster_isControlPlane,
-        kustomization: {
-          metadata: {
-            name: formData.name,
-            namespace: formData.namespace,
-          },
-          spec: {
-            path: formData.path,
-            sourceRef: {
-              name: formData.source_name,
-              namespace: formData.source_namespace,
+    const clusterAutomations =
+      formData.source_type === 'KindHelmRepository'
+        ? selectedProfiles.map(profile => {
+            let values;
+            let version;
+            profile.values.forEach(value => {
+              if (value.selected === true) {
+                version = value.version;
+                values =value.yaml;
+              }
+            });
+            return {
+              cluster: {
+                name: formData.cluster_name,
+                namespace: formData.cluster_namespace,
+              },
+              isControlPlane: formData.cluster_isControlPlane,
+              kustomization: {
+                metadata: {
+                  name: formData.name,
+                  namespace: formData.namespace,
+                },
+                spec: {
+                  // path: formData.path,
+                  sourceRef: {
+                    name: formData.source_name,
+                    namespace: formData.source_namespace,
+                  },
+                },
+              },
+              helmRelease: {
+                metadata: { name: profile.name, namespace: profile.namespace },
+                spec: {
+                  chart: {
+                    spec: {
+                      chart: profile.name,
+                      sourceRef: {
+                        name: formData.source_name,
+                        namespace: formData.source_namespace,
+                      },
+                      version,
+                    },
+                  },
+                  values,
+                },
+              },
+            };
+          })
+        : {
+            cluster: {
+              name: formData.cluster_name,
+              namespace: formData.cluster_namespace,
             },
-          },
-        },
-        helmRelease: {
-          metadata: { name: profile.name, namespace: profile.namespace },
-          spec: {
-            chart: {
+            isControlPlane: formData.cluster_isControlPlane,
+            kustomization: {
+              metadata: {
+                name: formData.name,
+                namespace: formData.namespace,
+              },
               spec: {
-                chart: profile.name,
+                path: formData.path,
                 sourceRef: {
                   name: formData.source_name,
                   namespace: formData.source_namespace,
                 },
-                version,
               },
             },
-            values,
-          },
-        },
-      };
-    });
+          };
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
@@ -185,7 +208,7 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, setNotifications]);
+  }, [formData, history, setNotifications, selectedProfiles]);
 
   return useMemo(() => {
     return (
@@ -219,6 +242,8 @@ const AddApplication = () => {
                 {profiles.length > 0 &&
                 formData.source_type === 'KindHelmRepository' ? (
                   <Profiles
+                    // Temp fix to hide layers when using profiles in Add App until we update the BE
+                    context="app"
                     selectedProfiles={selectedProfiles}
                     setSelectedProfiles={setSelectedProfiles}
                   />

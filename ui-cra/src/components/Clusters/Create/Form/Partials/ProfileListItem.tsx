@@ -51,9 +51,10 @@ const ProfileWrapper = styled.div`
 
 const ProfilesListItem: FC<{
   profile: UpdatedProfile;
+  context: string;
   selectedProfiles: UpdatedProfile[];
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
-}> = ({ profile, selectedProfiles, setSelectedProfiles }) => {
+}> = ({ profile, context, selectedProfiles, setSelectedProfiles }) => {
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
@@ -186,15 +187,9 @@ const ProfilesListItem: FC<{
             />
           </FormControl>
         </div>
-        {/* <div> */}
-        <Button
-          // style={{ minWidth: '155px' }}
-          variant="text"
-          onClick={handleYamlPreview}
-        >
+        <Button variant="text" onClick={handleYamlPreview}>
           Values.yaml
         </Button>
-        {/* </div> */}
       </ProfileWrapper>
 
       <Dialog
@@ -224,10 +219,7 @@ const ProfilesListItem: FC<{
             id="edit-yaml"
             startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
             onClick={handleUpdateProfiles}
-            disabled={
-              profile.required &&
-              (profile.editable !== true)
-            }
+            disabled={profile.required && profile.editable !== true}
           >
             SAVE CHANGES
           </Button>
