@@ -163,6 +163,7 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*
 	policyValidation := &capiv1_proto.PolicyValidation{
 		Id:          getAnnotation(item.GetLabels(), "pac.weave.works/id"),
 		Name:        getAnnotation(annotations, "policy_name"),
+		PolicyId:    getAnnotation(annotations, "policy_id"),
 		ClusterId:   getAnnotation(annotations, "cluster_id"),
 		Category:    getAnnotation(annotations, "category"),
 		Severity:    getAnnotation(annotations, "severity"),

@@ -280,6 +280,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	var filesList []gitprovider.CommitFile
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
+			// Files in manifest path
 			path := getClusterManifestPath(
 				createNamespacedName(
 					clusterNamespacedName.Name,
@@ -289,9 +290,29 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 				Path:    &path,
 				Content: nil,
 			})
+
+			// Files in cluster path
+			clusterDirPath := getClusterDirPath(types.NamespacedName{
+				Name:      clusterNamespacedName.Name,
+				Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
+			})
+
+			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, clusterDirPath, true)
+			if err != nil {
+				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
+			}
+
+			for _, treeEntry := range treeEntries {
+				filesList = append(filesList, gitprovider.CommitFile{
+					Path:    &treeEntry.Path,
+					Content: nil,
+				})
+			}
+
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {
+			//Files in manifest path
 			path := getClusterManifestPath(
 				createNamespacedName(clusterName, getClusterNamespace("")),
 			)
@@ -299,7 +320,26 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 				Path:    &path,
 				Content: nil,
 			})
+
+			// Files in cluster path
+			clusterDirPath := getClusterDirPath(types.NamespacedName{
+				Name:      clusterName,
+				Namespace: getClusterNamespace(""),
+			})
+
+			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, clusterDirPath, true)
+			if err != nil {
+				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
+			}
+
+			for _, treeEntry := range treeEntries {
+				filesList = append(filesList, gitprovider.CommitFile{
+					Path:    &treeEntry.Path,
+					Content: nil,
+				})
+			}
 		}
+
 	}
 
 	if msg.HeadBranch == "" {
@@ -695,20 +735,24 @@ func getClusterManifestPath(cluster types.NamespacedName) string {
 	)
 }
 
-func getCommonKustomizationPath(cluster types.NamespacedName) string {
+func getClusterDirPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		cluster.Namespace,
 		cluster.Name,
+	)
+}
+
+func getCommonKustomizationPath(cluster types.NamespacedName) string {
+	return filepath.Join(
+		getClusterDirPath(cluster),
 		"clusters-bases-kustomization.yaml",
 	)
 }
 
 func getClusterProfilesPath(cluster types.NamespacedName) string {
 	return filepath.Join(
-		viper.GetString("capi-repository-clusters-path"),
-		cluster.Namespace,
-		cluster.Name,
+		getClusterDirPath(cluster),
 		profiles.ManifestFileName,
 	)
 }
