@@ -73,10 +73,11 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           },
           {
             label: 'Age',
-            value: (p: Policy) => moment(p.createdAt).fromNow(),
-            sortValue: (p: Policy) => {
-              const t = p.createdAt && new Date(p.createdAt);
-              return p.createdAt ? (Number(t) * -1).toString() : '';
+            value: ({ createdAt }) => moment(createdAt).fromNow(),
+            defaultSort: true,
+            sortValue: ({ createdAt }) => {
+              const t = createdAt && new Date(createdAt).getTime();
+              return t * -1;
             },
           },
         ]}

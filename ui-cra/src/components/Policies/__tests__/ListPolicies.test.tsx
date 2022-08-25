@@ -142,7 +142,7 @@ describe('ListPolicies', () => {
     const text = document.querySelector(
       '#policy-list table tbody tr td',
     )?.textContent;
-    expect(text).toMatch('dev-team allowed clusters');
+    expect(text).toMatch('Containers Running With Privilege Escalation');
   });
   it('sort policies by severity', async () => {
     api.ListPoliciesReturns = {

@@ -50,9 +50,9 @@ export const PolicyViolationsTable: FC<Props> = ({
       label: 'Violation Time',
       value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
       defaultSort: true,
-      sortValue: (v: PolicyValidation) => {
-        const t = v.createdAt && new Date(v.createdAt);
-        return v.createdAt ? (Number(t) * -1).toString() : '';
+      sortValue: ({ createdAt }) => {
+        const t = createdAt && new Date(createdAt).getTime();
+        return t * -1;
       },
     },
   ];
