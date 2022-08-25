@@ -25,7 +25,7 @@ const ProgressiveDelivery = () => {
       <ContentWrapper
         loading={isLoading}
         errors={data?.errors}
-        fetchError={error}
+        errorMessage={error?.message}
       >
         {data?.canaries && <CanaryTable canaries={data.canaries} />}
       </ContentWrapper>
