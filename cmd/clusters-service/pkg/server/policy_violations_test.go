@@ -37,6 +37,7 @@ func TestGetPolicyViolation(t *testing.T) {
 				Violation: &capiv1_proto.PolicyValidation{
 					Id:              "66101548-12c1-4f79-a09a-a12979903fba",
 					Name:            "Missing app Label",
+					PolicyId:        "weave.policies.missing-app-label",
 					ClusterId:       "cluster-1",
 					Category:        "Access Control",
 					Severity:        "high",
@@ -132,6 +133,7 @@ func TestListPolicyValidations(t *testing.T) {
 					e.InvolvedObject.Namespace = "weave-system"
 					e.ObjectMeta.Namespace = "weave-system"
 					e.Annotations["policy_name"] = "Missing Owner Label"
+					e.Annotations["policy_id"] = "weave.policies.missing-app-label"
 					e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979903"
 				}),
 			},
@@ -140,6 +142,7 @@ func TestListPolicyValidations(t *testing.T) {
 					{
 						Id:          "66101548-12c1-4f79-a09a-a12979903fba",
 						Name:        "Missing app Label",
+						PolicyId:    "weave.policies.missing-app-label",
 						ClusterId:   "cluster-1",
 						Category:    "Access Control",
 						Severity:    "high",
@@ -152,6 +155,7 @@ func TestListPolicyValidations(t *testing.T) {
 					{
 						Id:          "56701548-12c1-4f79-a09a-a12979903",
 						Name:        "Missing Owner Label",
+						PolicyId:    "weave.policies.missing-app-label",
 						ClusterId:   "cluster-1",
 						Category:    "Access Control",
 						Severity:    "high",
@@ -244,6 +248,7 @@ func TestPartialPolicyValidationsConnectionErrors(t *testing.T) {
 			{
 				Id:          "66101548-12c1-4f79-a09a-a12979903fba",
 				Name:        "Missing app Label",
+				PolicyId:    "weave.policies.missing-app-label",
 				ClusterId:   "cluster-1",
 				Category:    "Access Control",
 				Severity:    "high",
