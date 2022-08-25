@@ -10,6 +10,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -37,6 +38,7 @@ type Options struct {
 	EntitlementSecretKey         client.ObjectKey
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
+	AuthMethods                  map[auth.AuthMethod]bool
 	OIDC                         OIDCAuthenticationOptions
 	TLSCert                      string
 	TLSKey                       string
@@ -191,9 +193,10 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 	}
 }
 
-// WithOIDCConfig is used to set the OIDC configuration.
-func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
+// WithAuthConfig is used to set the auth configuration including OIDC
+func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions) Option {
 	return func(o *Options) {
+		o.AuthMethods = authMethods
 		o.OIDC = oidc
 	}
 }

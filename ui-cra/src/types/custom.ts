@@ -101,3 +101,9 @@ export type ListGitopsClustersResponseEnriched = {
   gitopsClusters: GitopsClusterEnriched[];
   total: number;
 };
+
+export type PRDefaults = {
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+};
