@@ -22,8 +22,8 @@ import {
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
-import { PRdefaults } from '.';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import { PRDefaults } from '../../types/custom';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {
@@ -42,6 +42,7 @@ interface Props {
   setFormData: Dispatch<React.SetStateAction<any>>;
   selectedCapiClusters: ClusterNamespacedName[];
   setOpenDeletePR: Dispatch<React.SetStateAction<boolean>>;
+  prDefaults: PRDefaults;
 }
 
 export const DeleteClusterDialog: FC<Props> = ({
@@ -49,6 +50,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   setFormData,
   selectedCapiClusters,
   setOpenDeletePR,
+  prDefaults,
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
@@ -137,9 +139,9 @@ export const DeleteClusterDialog: FC<Props> = ({
     clearCallbackState();
     setShowAuthDialog(false);
     setSelectedClusters([]);
-    setFormData(PRdefaults);
+    setFormData(prDefaults);
     setOpenDeletePR(false);
-  }, [setSelectedClusters, setFormData, setOpenDeletePR]);
+  }, [setSelectedClusters, setFormData, setOpenDeletePR, prDefaults]);
 
   return (
     <DeleteClusterWrapper open maxWidth="md" fullWidth onClose={cleanUp}>
