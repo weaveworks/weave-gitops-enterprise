@@ -22,7 +22,6 @@ import {
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
-// import { PRdefaults } from '.';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 
 const DeleteClusterWrapper = styled(Dialog)`
