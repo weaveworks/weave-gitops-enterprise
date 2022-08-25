@@ -92,83 +92,89 @@ const Profiles: FC<{
     }
   }, [profiles, setSelectedProfiles, selectedProfiles.length]);
 
-  return isLoading ? (
-    <Loader />
-  ) : (
+  return (
     <ProfilesWrapper>
-      <h2>Profiles</h2>
-      <DataTable
-        className="profiles-table"
-        rows={_.orderBy(
-          [
-            ..._.differenceBy(profiles, selectedProfiles, 'name'),
-            ...selectedProfiles,
-          ],
-          ['name'],
-          ['asc'],
-        )}
-        fields={[
-          {
-            label: 'checkbox',
-            labelRenderer: () => (
-              <Checkbox
-                onChange={handleSelectAllClick}
-                checked={rowCount > 0 && numSelected === rowCount}
-                indeterminate={numSelected > 0 && numSelected < rowCount}
-                style={{
-                  color: weaveTheme.colors.primary,
-                }}
-              />
-            ),
-            value: (profile: UpdatedProfile) => (
-              <Checkbox
-                onChange={event => handleIndividualClick(event, profile.name)}
-                checked={selected.indexOf(profile.name) > -1}
-                disabled={profile.required}
-                style={{
-                  color: profile.required
-                    ? undefined
-                    : weaveTheme.colors.primary,
-                }}
-              />
-            ),
-            maxWidth: 25,
-          },
-          {
-            label: 'Name',
-            value: (p: UpdatedProfile) => (
-              <span data-profile-name={p.name}>{p.name}</span>
-            ),
-            sortValue: ({ name }) => name,
-            maxWidth: 220,
-          },
-          ...(context !== 'app'
-            ? [
-                {
-                  label: 'Layer',
-                  value: (p: UpdatedProfile) =>
-                    p.layer ? (
-                      <div className="profile-layer">
-                        <span>{p.layer}</span>
-                      </div>
-                    ) : null,
-                },
-              ]
-            : []),
-          {
-            label: 'Version',
-            labelRenderer: () => <ProfileDetailsLabelRenderer />,
-            value: (p: UpdatedProfile) => (
-              <ProfilesListItem
-                context={context}
-                profile={p}
-                selectedProfiles={selectedProfiles}
-                setSelectedProfiles={setSelectedProfiles}
-              />
-            ),
-          },
-        ]}
-      />
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
+          <DataTable
+            className="profiles-table"
+            rows={_.orderBy(
+              [
+                ..._.differenceBy(profiles, selectedProfiles, 'name'),
+                ...selectedProfiles,
+              ],
+              ['name'],
+              ['asc'],
+            )}
+            fields={[
+              {
+                label: 'checkbox',
+                labelRenderer: () => (
+                  <Checkbox
+                    onChange={handleSelectAllClick}
+                    checked={rowCount > 0 && numSelected === rowCount}
+                    indeterminate={numSelected > 0 && numSelected < rowCount}
+                    style={{
+                      color: weaveTheme.colors.primary,
+                    }}
+                  />
+                ),
+                value: (profile: UpdatedProfile) => (
+                  <Checkbox
+                    onChange={event =>
+                      handleIndividualClick(event, profile.name)
+                    }
+                    checked={selected.indexOf(profile.name) > -1}
+                    disabled={profile.required}
+                    style={{
+                      color: profile.required
+                        ? undefined
+                        : weaveTheme.colors.primary,
+                    }}
+                  />
+                ),
+                maxWidth: 25,
+              },
+              {
+                label: 'Name',
+                value: (p: UpdatedProfile) => (
+                  <span data-profile-name={p.name}>{p.name}</span>
+                ),
+                sortValue: ({ name }) => name,
+                maxWidth: 220,
+              },
+              ...(context !== 'app'
+                ? [
+                    {
+                      label: 'Layer',
+                      value: (p: UpdatedProfile) =>
+                        p.layer ? (
+                          <div className="profile-layer">
+                            <span>{p.layer}</span>
+                          </div>
+                        ) : null,
+                    },
+                  ]
+                : []),
+              {
+                label: 'Version',
+                labelRenderer: () => <ProfileDetailsLabelRenderer />,
+                value: (p: UpdatedProfile) => (
+                  <ProfilesListItem
+                    context={context}
+                    profile={p}
+                    selectedProfiles={selectedProfiles}
+                    setSelectedProfiles={setSelectedProfiles}
+                  />
+                ),
+              },
+            ]}
+          />
+        </>
+      )}
     </ProfilesWrapper>
   );
 };

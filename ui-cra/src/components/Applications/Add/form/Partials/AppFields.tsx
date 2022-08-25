@@ -6,7 +6,6 @@ import { MenuItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../../../../types/custom';
 import { useListSources } from '@weaveworks/weave-gitops';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
-import { ListGitRepositoriesResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -22,7 +21,6 @@ const AppFields: FC<{
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
   clusters?: GitopsClusterEnriched[];
-  GitRepoResponse?: ListGitRepositoriesResponse;
 }> = ({ formData, setFormData, index = 0, clusters = undefined }) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
@@ -44,7 +42,7 @@ const AppFields: FC<{
     });
   };
 
-  let repos: any = [];
+  let repos: Source[] | undefined = [];
 
   if (clusters) {
     const clusterName = automation.cluster_namespace
@@ -100,6 +98,7 @@ const AppFields: FC<{
       ...automation,
       [fieldName as string]: value,
     };
+
     setFormData({
       ...formData,
       clusterAutomations: currentAutomation,
@@ -158,13 +157,13 @@ const AppFields: FC<{
               repos.map((option: Source, index: number) => {
                 return (
                   <MenuItem key={index} value={JSON.stringify(option)}>
-                    {option.name}
+                    {option?.kind?.slice(4)} : {option.name}
                   </MenuItem>
                 );
               })
             ) : (
               <MenuItem disabled={true}>
-                No GitRepository available please select another cluster
+                No repository available, please select another cluster.
               </MenuItem>
             )}
           </Select>

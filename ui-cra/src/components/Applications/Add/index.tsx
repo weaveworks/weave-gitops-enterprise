@@ -106,19 +106,17 @@ const AddApplication = () => {
   }, [formData.clusterAutomations]);
 
   const handleAddApplication = useCallback(() => {
-    const clusterAutomations =
-      formData.source_type === 'KindHelmRepository'
-        ? formData.clusterAutomations.map((kustomization: any) =>
-            selectedProfiles.map(profile => {
-              let values;
-              let version;
-              profile.values.forEach(value => {
-                if (value.selected === true) {
-                  version = value.version;
-                  values = value.yaml;
-                }
-              });
-              return {
+    let clusterAutomations: ClusterAutomation[] = [];
+    if (formData.source_type === 'KindHelmRepository') {
+      for (let kustomization of formData.clusterAutomations) {
+        for (let profile of selectedProfiles) {
+          let values: string = '';
+          let version: string = '';
+          for (let value of profile.values) {
+            if (value.selected === true) {
+              version = value.version;
+              values = value.yaml;
+              clusterAutomations.push({
                 cluster: {
                   name: kustomization.cluster_name,
                   namespace: kustomization.cluster_namespace,
@@ -130,7 +128,6 @@ const AddApplication = () => {
                     namespace: kustomization.namespace,
                   },
                   spec: {
-                    // path: kustomization.path,
                     sourceRef: {
                       name: kustomization.source_name,
                       namespace: kustomization.source_namespace,
@@ -156,31 +153,37 @@ const AddApplication = () => {
                     values,
                   },
                 },
-              };
-            }),
-          )
-        : formData.clusterAutomations.map((kustomization: any) => {
-            return {
-              cluster: {
-                name: kustomization.cluster_name,
-                namespace: kustomization.cluster_namespace,
+              });
+            }
+          }
+        }
+      }
+    } else {
+      clusterAutomations = formData.clusterAutomations.map(
+        (kustomization: any) => {
+          return {
+            cluster: {
+              name: kustomization.cluster_name,
+              namespace: kustomization.cluster_namespace,
+            },
+            isControlPlane: kustomization.cluster_isControlPlane,
+            kustomization: {
+              metadata: {
+                name: kustomization.name,
+                namespace: kustomization.namespace,
               },
-              isControlPlane: kustomization.cluster_isControlPlane,
-              kustomization: {
-                metadata: {
-                  name: kustomization.name,
-                  namespace: kustomization.namespace,
-                },
-                spec: {
-                  path: kustomization.path,
-                  sourceRef: {
-                    name: kustomization.source_name,
-                    namespace: kustomization.source_namespace,
-                  },
+              spec: {
+                path: kustomization.path,
+                sourceRef: {
+                  name: kustomization.source_name,
+                  namespace: kustomization.source_namespace,
                 },
               },
-            };
-          });
+            },
+          };
+        },
+      );
+    }
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
