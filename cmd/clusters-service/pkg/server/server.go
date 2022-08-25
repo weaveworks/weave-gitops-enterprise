@@ -12,6 +12,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
+const defaultAutomationNamespace = "flux-system"
+
 var providers = map[string]string{
 	"AWSCluster":             "aws",
 	"AWSManagedCluster":      "aws",

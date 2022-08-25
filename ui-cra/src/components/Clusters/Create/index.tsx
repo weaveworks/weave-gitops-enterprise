@@ -36,6 +36,10 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { useListConfig } from '../../../hooks/versions';
 import { ApplicationsWrapper } from './Form/Partials/ApplicationsWrapper';
 import { Kustomization } from '../../../cluster-services/cluster_services.pb';
+import {
+  FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+  FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+} from '../../../utils/config';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -114,7 +118,7 @@ const AddCluster: FC = () => {
     pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
-    clusterAutomations: [{ name: '', namespace: '', path: '' }],
+    clusterAutomations: [],
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -213,7 +217,12 @@ const AddCluster: FC = () => {
 
   const handleAddCluster = useCallback(() => {
     const { clusterAutomations, ...rest } = formData;
-    const kustomizations = clusterAutomations.map(
+    // filter out empty kustomization
+    const filteredKustomizations = clusterAutomations.filter(
+      (kustomization: any) =>
+        Object.values(kustomization).join('').trim() !== '',
+    );
+    const kustomizations = filteredKustomizations.map(
       (kustomization: any): Kustomization => {
         return {
           metadata: {
@@ -223,8 +232,8 @@ const AddCluster: FC = () => {
           spec: {
             path: kustomization.path,
             sourceRef: {
-              name: 'flux-system',
-              namespace: 'flux-system',
+              name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+              namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
             },
           },
         };
