@@ -24,8 +24,6 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 
-	corev1 "k8s.io/api/core/v1"
-
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -53,7 +51,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
@@ -199,6 +197,15 @@ func checkParams(params Params) error {
 	clientSecret := params.OIDC.ClientSecret
 	redirectURL := params.OIDC.RedirectURL
 
+	authMethods, err := auth.ParseAuthMethodArray(params.authMethods)
+	if err != nil {
+		return fmt.Errorf("could not parse auth methods while checking params: %w", err)
+	}
+
+	if !authMethods[auth.OIDC] {
+		return nil
+	}
+
 	if issuerURL != "" || clientID != "" || clientSecret != "" || redirectURL != "" {
 		if issuerURL == "" {
 			return ErrNoIssuerURL
@@ -257,7 +264,15 @@ func bindFlagValues(cmd *cobra.Command) {
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
 		if !f.Changed && viper.IsSet(f.Name) {
 			val := viper.Get(f.Name)
-			_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			valStringSlice, ok := val.([]string)
+			if ok {
+				fmt.Printf("hi %v\n", val)
+				for _, val := range valStringSlice {
+					_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+				}
+			} else {
+				_ = cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			}
 		}
 	})
 }
@@ -272,7 +287,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
+		corev1.AddToScheme,
 		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
@@ -368,6 +383,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create scheme: %w", err)
 	}
 
+	authMethods, err := auth.ParseAuthMethodArray(p.authMethods)
+	if err != nil {
+		return fmt.Errorf("could not parse auth methods: %w", err)
+	}
+
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clientsFactoryScheme))
@@ -419,7 +439,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithHelmRepositoryCacheDirectory(tempDir),
 		WithHtmlRootPath(p.htmlRootPath),
 		WithClientGetter(clientGetter),
-		WithOIDCConfig(p.OIDC),
+		WithAuthConfig(authMethods, p.OIDC),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 		WithCAPIEnabled(p.capiEnabled),
 		WithRuntimeNamespace(p.runtimeNamespace),
@@ -540,14 +560,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("could not create HMAC token signer: %w", err)
 	}
 
-	authMethods := map[auth.AuthMethod]bool{
-		auth.UserAccount:      true,
-		auth.TokenPassthrough: true,
+	// FIXME: Slightly awkward bit of logging..
+	authMethodsStrings := []string{}
+	for authMethod, enabled := range args.AuthMethods {
+		if enabled {
+			authMethodsStrings = append(authMethodsStrings, authMethod.String())
+		}
 	}
-
-	if args.OIDC.IssuerURL != "" {
-		authMethods[auth.OIDC] = true
-	}
+	args.Log.Info("setting enabled auth methods", "enabled", authMethodsStrings)
 
 	if args.DevMode {
 		tsv.SetDevMode(args.DevMode)
@@ -565,7 +585,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.KubernetesClient,
 		tsv,
 		args.RuntimeNamespace,
-		authMethods,
+		args.AuthMethods,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create auth server: %w", err)
