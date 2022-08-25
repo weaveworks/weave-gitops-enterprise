@@ -252,6 +252,7 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				"policy_name":     "Missing app Label",
+				"policy_id":       "weave.policies.missing-app-label",
 				"cluster_id":      "cluster-1",
 				"category":        "Access Control",
 				"severity":        "high",

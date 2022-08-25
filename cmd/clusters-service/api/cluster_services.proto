@@ -276,6 +276,7 @@ message PolicyValidation{
   string name=12;
   string clusterName = 13;
   repeated PolicyValidationOccurrence occurrences = 14;
+  string policy_id = 15;
 }
 
 message CreatePullRequestRequest {

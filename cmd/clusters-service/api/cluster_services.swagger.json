@@ -1699,6 +1699,9 @@
           "items": {
             "$ref": "#/definitions/v1PolicyValidationOccurrence"
           }
+        },
+        "policyId": {
+          "type": "string"
         }
       }
     },
