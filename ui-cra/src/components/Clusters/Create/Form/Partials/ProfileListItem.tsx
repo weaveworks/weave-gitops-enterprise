@@ -33,6 +33,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import useProfiles from './../../../../../contexts/Profiles';
 import { Loader } from '../../../../Loader';
+import { DEFAULT_PROFILE_NAMESPACE } from '../../../../../utils/config';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -181,7 +182,7 @@ const ProfilesListItem: FC<{
             <Input
               id="profile-namespace"
               value={namespace}
-              placeholder="flux-system"
+              placeholder={DEFAULT_PROFILE_NAMESPACE}
               onChange={handleChangeNamespace}
               error={!isNamespaceValid}
             />
