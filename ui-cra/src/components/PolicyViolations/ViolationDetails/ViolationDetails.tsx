@@ -7,7 +7,7 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
-import { generateRowHeaders } from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+import { generateRowHeaders } from '../../RowHeader';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
