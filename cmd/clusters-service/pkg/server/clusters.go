@@ -887,68 +887,6 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 	return generatedKustomization
 }
 
-func generateHelmReleaseFile(
-	ctx context.Context,
-	isControlPlane bool,
-	cluster types.NamespacedName,
-	kubeClient client.Client,
-	helmRelease *capiv1_proto.HelmRelease,
-	filePath string) (gitprovider.CommitFile, error) {
-	kustomizationYAML := createHelmReleaseObject(helmRelease)
-
-	b, err := yaml.Marshal(kustomizationYAML)
-	if err != nil {
-		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s helmrelease, %w", helmRelease.Metadata.Name, err)
-	}
-
-	hr := createNamespacedName(helmRelease.Metadata.Name, helmRelease.Metadata.Namespace)
-
-	helmReleasePath := getClusterResourcePath(isControlPlane, "helmrelease", cluster, hr)
-	if filePath != "" {
-		helmReleasePath = filePath
-	}
-
-	helmReleaseContent := string(b)
-
-	file := &gitprovider.CommitFile{
-		Path:    &helmReleasePath,
-		Content: &helmReleaseContent,
-	}
-
-	return *file, nil
-}
-
-func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) *helmv2.HelmRelease {
-	generatedHelmRelease := helmv2.HelmRelease{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: helmv2.GroupVersion.Identifier(),
-			Kind:       helmv2.HelmReleaseKind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      hr.Metadata.Name,
-			Namespace: hr.Metadata.Namespace,
-		},
-		Spec: helmv2.HelmReleaseSpec{
-			Chart: helmv2.HelmChartTemplate{
-				Spec: helmv2.HelmChartTemplateSpec{
-					Chart: hr.Spec.Chart.Spec.Chart,
-					SourceRef: helmv2.CrossNamespaceObjectReference{
-						APIVersion: sourcev1.GroupVersion.Identifier(),
-						Kind:       sourcev1.HelmRepositoryKind,
-						Name:       hr.Spec.Chart.Spec.SourceRef.Name,
-						Namespace:  hr.Spec.Chart.Spec.SourceRef.Namespace,
-					},
-					Version: hr.Spec.Chart.Spec.Version,
-				},
-			},
-			Interval: metav1.Duration{Duration: time.Minute * 10},
-			Values:   &apiextensionsv1.JSON{Raw: []byte(hr.Spec.Values)},
-		},
-	}
-
-	return &generatedHelmRelease
-}
-
 func kubeConfigFromSecret(s corev1.Secret) ([]byte, bool) {
 	val, ok := s.Data["value.yaml"]
 	if ok {
