@@ -382,8 +382,8 @@ github.com/fluxcd/flagger v1.21.0 h1:/h3z1BlGhKZfVCTsS50APjAfRyXvGsq0siIhO2UQO3o
 github.com/fluxcd/flagger v1.21.0/go.mod h1:v7b10ylvAhTDloWbu6R0WJ/HY+DP5rVH1d9UTMZXtkI=
 github.com/fluxcd/flux2 v0.31.3 h1:TRBDZfddzKw29uTLxjFycQp2kVrBQdagziEbvzWYoNc=
 github.com/fluxcd/flux2 v0.31.3/go.mod h1:HwyXdj1WcNPeYpXfAzKZwxHyyi2IUceD2J7mRYxg/SA=
-github.com/fluxcd/go-git-providers v0.8.0 h1:80UMu7yvRoEVfEIg0eGb9bJ0bSceizNJrEVvwLo+0YI=
-github.com/fluxcd/go-git-providers v0.8.0/go.mod h1:krF+f3UFciy5QmFaYfaORCVxaEj7u2qD7R/WrfKCLWk=
+github.com/fluxcd/go-git-providers v0.8.1-0.20220823125407-dd5c65fdaf4e h1:x+pJ5rxH1tyuu+V+HvYu9TtJf8HneplKVI0BsjjCWkY=
+github.com/fluxcd/go-git-providers v0.8.1-0.20220823125407-dd5c65fdaf4e/go.mod h1:krF+f3UFciy5QmFaYfaORCVxaEj7u2qD7R/WrfKCLWk=
 github.com/fluxcd/helm-controller/api v0.22.1 h1:J+i6AZMj0SCuQxcpHmyf1qmPdgDKP0nTkyS4/oLHx0M=
 github.com/fluxcd/helm-controller/api v0.22.1/go.mod h1:2xuHOYjbRv86ekTYkF7VzTwu5hEHYawrdi7FZrvpr4g=
 github.com/fluxcd/kustomize-controller/api v0.26.2 h1:ll54Lhc/8mWQmyveLZvlo/aMgBrdctO3dL/EivT5Qik=

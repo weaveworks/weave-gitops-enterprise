@@ -30,7 +30,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
 	github.com/fluxcd/flagger v1.21.0
-	github.com/fluxcd/go-git-providers v0.8.0
+	github.com/fluxcd/go-git-providers v0.8.1-0.20220823125407-dd5c65fdaf4e
 	github.com/fluxcd/helm-controller/api v0.22.1
 	github.com/fluxcd/kustomize-controller/api v0.26.2
 	github.com/fluxcd/pkg/apis/meta v0.14.2
