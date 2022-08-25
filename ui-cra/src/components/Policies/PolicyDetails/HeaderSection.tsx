@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import {
   generateRowHeaders,
   SectionRowHeader,
-} from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+} from '../../RowHeader';
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
 
 function HeaderSection({
