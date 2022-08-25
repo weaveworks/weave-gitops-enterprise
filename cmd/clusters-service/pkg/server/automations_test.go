@@ -133,7 +133,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 			},
 			committedFiles: []CommittedFile{
 				{
-					Path: "clusters/management/flux-system-apps-capi-kustomization.yaml",
+					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -152,7 +152,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/dev/billing/flux-system-apps-billing-kustomization.yaml",
+					Path: "clusters/dev/billing/apps-billing-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -209,7 +209,7 @@ status: {}
 			},
 			committedFiles: []CommittedFile{
 				{
-					Path: "clusters/management/flux-system-apps-capi-kustomization.yaml",
+					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -228,7 +228,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/dev/billing/flux-system-test-profile-helmrelease.yaml",
+					Path: "clusters/dev/billing/test-profile-flux-system-helmrelease.yaml",
 					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -290,7 +290,7 @@ status: {}
 			},
 			committedFiles: []CommittedFile{
 				{
-					Path: "clusters/management/flux-system-first-profile-helmrelease.yaml",
+					Path: "clusters/management/first-profile-flux-system-helmrelease.yaml",
 					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
@@ -312,7 +312,7 @@ status: {}
 `,
 				},
 				{
-					Path: "clusters/dev/billing/flux-system-second-profile-helmrelease.yaml",
+					Path: "clusters/dev/billing/second-profile-flux-system-helmrelease.yaml",
 					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:

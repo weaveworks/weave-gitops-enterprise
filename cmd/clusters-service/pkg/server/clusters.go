@@ -858,7 +858,7 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
 		cluster.Name,
-		fmt.Sprintf("%s-%s-%s.yaml", resource.Namespace, resource.Name, resourceType),
+		fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType),
 	)
 }
 
