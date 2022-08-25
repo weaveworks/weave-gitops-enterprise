@@ -51,7 +51,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
       rowkey: 'Policy Name',
       children: (
         <Link
-          to={`/policies/details?clusterName=${clusterName}&id=${id}`}
+          to={`/policies/details?clusterName=${clusterName}&id=${violation?.policyId}`}
           className={classes.link}
           data-violation-message={name}
         >
