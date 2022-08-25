@@ -7,6 +7,10 @@ import { GitopsClusterEnriched } from '../../../../../types/custom';
 import { useListSources } from '@weaveworks/weave-gitops';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
+import {
+  GitRepository,
+  HelmRepository,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -43,7 +47,7 @@ const AppFields: FC<{
     });
   };
 
-  let repos: Source[] | undefined = [];
+  let repos = [] as (GitRepository | HelmRepository)[];
 
   if (clusters) {
     const clusterName = automation.cluster_namespace
@@ -55,7 +59,7 @@ const AppFields: FC<{
         object.clusterName === clusterName &&
         (object.kind === 'KindGitRepository' ||
           object.kind === 'KindHelmRepository'),
-    );
+    ) as (GitRepository | HelmRepository)[];
   }
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
@@ -155,13 +159,20 @@ const AppFields: FC<{
             description="The name and type of source"
           >
             {repos ? (
-              repos.map((option: Source, index: number) => {
-                return (
-                  <MenuItem key={index} value={JSON.stringify(option)}>
-                    {option?.kind?.slice(4)} : {option.name}
-                  </MenuItem>
-                );
-              })
+              repos.map(
+                (option: GitRepository | HelmRepository, index: number) => {
+                  console.log(option);
+                  return (
+                    <MenuItem key={index} value={JSON.stringify(option)}>
+                      {/* Slicing to remove the "Kind" suffix */}
+                      {option?.kind?.slice(4)} : {option.name} ( {option.url}
+                      {option instanceof GitRepository
+                        ? option.reference.branch
+                        : null}
+                    </MenuItem>
+                  );
+                },
+              )
             ) : (
               <MenuItem disabled={true}>
                 No repository available, please select another cluster.

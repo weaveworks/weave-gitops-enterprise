@@ -122,18 +122,6 @@ const AddApplication = () => {
                   namespace: kustomization.cluster_namespace,
                 },
                 isControlPlane: kustomization.cluster_isControlPlane,
-                kustomization: {
-                  metadata: {
-                    name: kustomization.name,
-                    namespace: kustomization.namespace,
-                  },
-                  spec: {
-                    sourceRef: {
-                      name: kustomization.source_name,
-                      namespace: kustomization.source_namespace,
-                    },
-                  },
-                },
                 helmRelease: {
                   metadata: {
                     name: profile.name,

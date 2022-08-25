@@ -52,7 +52,7 @@ const ProfileWrapper = styled.div`
 
 const ProfilesListItem: FC<{
   profile: UpdatedProfile;
-  context: string;
+  context?: string;
   selectedProfiles: UpdatedProfile[];
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({ profile, context, selectedProfiles, setSelectedProfiles }) => {

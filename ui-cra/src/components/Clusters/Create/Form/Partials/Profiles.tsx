@@ -41,7 +41,7 @@ const ProfileDetailsLabelRenderer = () => (
 );
 
 const Profiles: FC<{
-  context: string;
+  context?: string;
   selectedProfiles: UpdatedProfile[];
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({ context, selectedProfiles, setSelectedProfiles }) => {
