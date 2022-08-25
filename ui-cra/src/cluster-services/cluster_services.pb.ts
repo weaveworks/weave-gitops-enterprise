@@ -146,6 +146,7 @@ export type PolicyValidation = {
   name?: string
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
+  policyId?: string
 }
 
 export type CreatePullRequestRequest = {
