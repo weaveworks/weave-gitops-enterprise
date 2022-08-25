@@ -576,6 +576,8 @@ git add --patch
 
 Update `images.clusterBootstrapController` in https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
 
+Manually copy across any big changes to the deployment or CRDs from cluster-controller/config into weave-gitops-enterprise/charts/mccp/
+
 ## Demo clusters
 
 We have 3 demo clusters currently that we use to demonstrate our work and test

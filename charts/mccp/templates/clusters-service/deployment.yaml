@@ -54,6 +54,15 @@ spec:
                   name: {{ .Values.config.oidc.clientCredentialsSecret }}
                   key: clientSecret
             {{- end }}
+            {{- if .Values.listOCIRepositories }}
+            - name: WEAVE_GITOPS_FEATURE_OCI_REPOSITORIES
+              value: "true"
+            {{- end }}
+            {{- if .Values.envVars }}
+            {{- with .Values.envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
           volumeMounts:
             - name: ui-server-volume
               mountPath: /html

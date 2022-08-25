@@ -78,8 +78,11 @@ on:
         description: "Cluster user admin password hash"
         required: true
       WGE_DEX_CLIENT_SECRET:
-        description: "client credential secret for OIDC (dex)"
+        description: "client credential secret for managment cluster OIDC (dex)"
         required: true
+      WGE_DEX_CLI_CLIENT_SECRET:
+        description: "client credential secret for CLI OIDC (dex)"
+        required: false
       WGE_GIT_PROVIDER_PRIVATE_KEY:
         description: "Key for accessing git provider e.g. github or gitlab"
         required: false      
@@ -140,6 +143,9 @@ env:
   OIDC_ISSUER_URL: https://dex-01.wge.dev.weave.works
   DEX_CLIENT_ID: weave-gitops-enterprise
   DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+  DEX_CLI_CLIENT_ID: kubernetes-oidc-login
+  DEX_CLI_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLI_CLIENT_SECRET }}
+  OIDC_KUBECONFIG: /tmp/oidc-kubeconfig
   GIT_PROVIDER: ${{ inputs.git-provider }}
   GIT_PROVIDER_HOSTNAME: ${{ inputs.git-provider_hostname }}
   GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
@@ -232,6 +238,13 @@ jobs:
           chmod +x /tmp/aws-iam-authenticator
           sudo mv /tmp/aws-iam-authenticator /usr/local/bin
           aws-iam-authenticator version
+      - name: Install kubelogin
+        run: |
+          wget https://github.com/int128/kubelogin/releases/latest/download/kubelogin_${{ inputs.os-name }}_amd64.zip -O /tmp/kubelogin.zip
+          unzip /tmp/kubelogin.zip -d /tmp
+          chmod +x /tmp/kubelogin
+          mv /tmp/kubelogin /usr/local/bin/kubectl-oidc_login
+          kubectl-oidc_login version
       - name: Authenticate to Google Cloud
         if: ${{ inputs.management-cluster-kind == 'gke' }}
         uses: google-github-actions/auth@v0.4.4
@@ -319,40 +332,18 @@ jobs:
       - name: Setup management cluster
         run: |
           if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
-            export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
-            export CLUSTER_VERSION=1.21
-            export AWS_REGION=us-east-1
+            export CLUSTER_NAME=wego-enterprise-nightly-eks-${{ inputs.os-name }}
+            export CLUSTER_REGION=us-east-1
 
-            export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
-            if [ -z $CLUSTER_EXISTS ]
-            then
-              eksctl create cluster --name=$CLUSTER_NAME --version=$CLUSTER_VERSION
-            fi
-            eksctl utils write-kubeconfig --cluster=$CLUSTER_NAME --kubeconfig=$HOME/.kube/config
-            kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
-            ls -la $HOME/.kube
-            kubectl get nodes -A
-            kubectl get all --all-namespaces -o wide
           elif [ ${{ inputs.management-cluster-kind }} = 'gke' ]; then
-            export CLUSTER_NAME=wego-enterprise-nightly-cluster-${{ inputs.os-name }}
-            export CLUSTER_VERSION=1.21
+            export CLUSTER_NAME=wego-enterprise-nightly-gke-${{ inputs.os-name }}
             export CLUSTER_REGION=us-central1-a
 
-            export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
-            if [ -z $CLUSTER_EXISTS ]
-            then
-              gcloud container clusters create $CLUSTER_NAME --cluster-version=$CLUSTER_VERSION --zone $CLUSTER_REGION
-            fi
-            gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_REGION
-            kubectl config rename-context $(kubectl config current-context) $(kubectl config get-clusters | grep $CLUSTER_NAME | sed s/_/-/g)
-
-            ls -la $HOME/.kube
-            kubectl get nodes -A
-            kubectl get all --all-namespaces -o wide
-          elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
-            kind create cluster --name management-${{ github.run_id }}-${{ github.run_number}} --image=kindest/node:v1.23.4 --config test/utils/data/local-kind-config.yaml
-            kubectl get pods -A
+          elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then           
+            export CLUSTER_NAME=management-${{ github.run_id }}-${{ github.run_number}}
           fi
+
+          ./test/utils/scripts/mgmt-cluster-setup.sh  ${{ inputs.management-cluster-kind }} $(pwd) $CLUSTER_NAME $CLUSTER_REGION
       - name: Run Acceptance tests
         run: |
           export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)

@@ -20,7 +20,11 @@ import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import AddProfileFields from './form/Partials/AppFields';
+import AppFields from './form/Partials/AppFields';
+import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import useClusters from '../../../contexts/Clusters';
+import { useListGitRepos } from '../../../hooks/gitReposSource';
+import { Loader } from '../../Loader';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -31,6 +35,8 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+  const { clusters, isLoading } = useClusters();
+  const { data: GitRepoResponse } = useListGitRepos();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -41,17 +47,20 @@ const AddApplication = () => {
     title: 'Add application',
     commitMessage: 'Add application',
     pullRequestDescription: 'This PR adds a new application',
-    clusterKustomizations: [{}],
-    name: '',
-    namespace: '',
-    cluster_name: '',
-    cluster_namespace: '',
-    cluster: '',
-    cluster_isControlPlane: false,
-    path: '',
-    source_name: '',
-    source_namespace: '',
-    source: '',
+    clusterAutomations: [
+      {
+        name: '',
+        namespace: '',
+        cluster_name: '',
+        cluster_namespace: '',
+        cluster: '',
+        cluster_isControlPlane: false,
+        path: '',
+        source_name: '',
+        source_namespace: '',
+        source: '',
+      },
+    ],
   };
 
   const callbackState = getCallbackState();
@@ -80,38 +89,43 @@ const AddApplication = () => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      pullRequestTitle: `Add application ${formData.name || ''}`,
+      pullRequestTitle: `Add application ${(formData.clusterAutomations || [])
+        .map((a: any) => a.name)
+        .join(', ')}`,
     }));
-  }, [formData.name]);
+  }, [formData.clusterAutomations]);
 
   const handleAddApplication = useCallback(() => {
+    const clusterAutomations = formData.clusterAutomations.map(
+      (kustomization: any): ClusterAutomation => {
+        return {
+          cluster: {
+            name: kustomization.cluster_name,
+            namespace: kustomization.cluster_namespace,
+          },
+          isControlPlane: kustomization.cluster_isControlPlane,
+          kustomization: {
+            metadata: {
+              name: kustomization.name,
+              namespace: kustomization.namespace,
+            },
+            spec: {
+              path: kustomization.path,
+              sourceRef: {
+                name: kustomization.source_name,
+                namespace: kustomization.source_namespace,
+              },
+            },
+          },
+        };
+      },
+    );
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
-      clusterAutomations: [
-        {
-          cluster: {
-            name: formData.cluster_name,
-            namespace: formData.cluster_namespace,
-          },
-          isControlPlane: formData.cluster_isControlPlane,
-          kustomization: {
-            metadata: {
-              name: formData.name,
-              namespace: formData.namespace,
-            },
-            spec: {
-              path: formData.path,
-              sourceRef: {
-                name: formData.source_name,
-                namespace: formData.source_namespace,
-              },
-            },
-          },
-        },
-      ],
+      clusterAutomations,
     };
     setLoading(true);
     return AddApplicationRequest(
@@ -174,10 +188,22 @@ const AddApplication = () => {
           <ContentWrapper>
             <Grid container>
               <Grid item xs={12} sm={10} md={10} lg={8}>
-                <AddProfileFields
-                  formData={formData}
-                  setFormData={setFormData}
-                ></AddProfileFields>
+                {!isLoading &&
+                  formData.clusterAutomations.map(
+                    (kustomization: any, index: number) => {
+                      return (
+                        <AppFields
+                          key={index}
+                          formData={formData}
+                          setFormData={setFormData}
+                          clusters={clusters}
+                          GitRepoResponse={GitRepoResponse}
+                          index={index}
+                        ></AppFields>
+                      );
+                    },
+                  )}
+                {isLoading && <Loader></Loader>}
               </Grid>
               <Grid item xs={12} sm={10} md={10} lg={8}>
                 <GitOps

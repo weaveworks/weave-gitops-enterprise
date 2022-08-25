@@ -5,6 +5,11 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { usePolicyStyle } from '../PolicyStyles';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {
+  generateRowHeaders,
+  SectionRowHeader,
+} from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+import { useFeatureFlags } from '@weaveworks/weave-gitops';
 
 function HeaderSection({
   id,
@@ -16,53 +21,67 @@ function HeaderSection({
   description,
   howToSolve,
   code,
+  tenant,
 }: Policy) {
   const classes = usePolicyStyle();
+  const { data } = useFeatureFlags();
+  const flags = data?.flags || {};
+  const defaultHeaders: Array<SectionRowHeader> = [
+    {
+      rowkey: 'Policy ID',
+      value: id,
+    },
+    {
+      rowkey: 'Cluster Name',
+      value: clusterName,
+    },
+    {
+      rowkey: 'Tenant',
+      value: tenant,
+      hidden: flags.WEAVE_GITOPS_FEATURE_TENANCY !== 'true',
+    },
+    {
+      rowkey: 'Tags',
+      children: (
+        <>
+          {!!tags && tags?.length > 0 ? (
+            tags?.map(tag => (
+              <span key={tag} className={classes.chip}>
+                {tag}
+              </span>
+            ))
+          ) : (
+            <span>There is no tags for this policy</span>
+          )}
+        </>
+      ),
+    },
+    {
+      rowkey: 'Severity',
+      children: <Severity severity={severity || ''} />,
+    },
+    {
+      rowkey: 'Category',
+      value: category,
+    },
+    {
+      rowkey: 'Targeted K8s Kind',
+      children: (
+        <>
+          {targets?.kinds?.map(kind => (
+            <span key={kind} className={classes.chip}>
+              {kind}
+            </span>
+          ))}
+        </>
+      ),
+    },
+  ];
 
   return (
     <>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Policy ID:</div>
-        <span className={classes.body1}>{id}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Cluster Name:</div>
-        <span className={classes.body1}>{clusterName}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <span className={classes.cardTitle}>Tags:</span>
-        {!!tags && tags?.length > 0 ? (
-          tags?.map(tag => (
-            <span key={tag} className={classes.chip}>
-              {tag}
-            </span>
-          ))
-        ) : (
-          <span className={classes.body1}>
-            There is no tags for this policy
-          </span>
-        )}
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={`${classes.cardTitle} ${classes.marginrightSmall}`}>
-          Severity:
-        </div>
-        <Severity severity={severity || ''} />
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Category:</div>
-        <span className={classes.body1}>{category}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Targeted K8s Kind:</div>
-        {targets?.kinds?.map(kind => (
-          <span key={kind} className={classes.chip}>
-            {kind}
-          </span>
-        ))}
-      </div>
+      {generateRowHeaders(defaultHeaders)}
 
-      <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown

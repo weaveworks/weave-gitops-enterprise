@@ -184,7 +184,7 @@ spec:
     value:
     - https://testorg.github.io/testrepo
   severity: high
-  standards: null
+  standards: []
   tags:
   - tenancy
   targets:
@@ -192,7 +192,7 @@ spec:
     - GitRepository
     - Bucket
     - HelmRepository
-    labels: null
+    labels: []
     namespaces:
     - bar-ns
     - foobar-ns
@@ -245,14 +245,14 @@ spec:
     - cluster-1-kubeconfig
     - cluster-2-kubeconfig
   severity: high
-  standards: null
+  standards: []
   tags:
   - tenancy
   targets:
     kinds:
     - GitopsCluster
     - Kustomization
-    labels: null
+    labels: []
     namespaces:
     - bar-ns
     - foobar-ns

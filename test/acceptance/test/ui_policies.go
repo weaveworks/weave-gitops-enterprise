@@ -105,7 +105,6 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				policyDetailPage := pages.GetPolicyDetailPage(webDriver)
 				By(fmt.Sprintf("And verify '%s' policy page", policyName), func() {
 					Eventually(policyDetailPage.Header.Text).Should(MatchRegexp(policyName), "Failed to verify dashboard policy name ")
-					Eventually(policyDetailPage.Title.Text).Should(MatchRegexp(policyName), "Failed to verify policy title on policy page")
 					Eventually(policyDetailPage.ID.Text).Should(MatchRegexp(policyID), "Failed to verify policy ID on policy page")
 					Eventually(policyDetailPage.ClusterName.Text).Should(MatchRegexp(policyClusterName), "Failed to verify policy cluster on policy page")
 					Eventually(policyDetailPage.Severity.Text).Should(MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
@@ -192,7 +191,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName}, "")
+				deleteCluster("kind", leafClusterName, "")
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 			})
@@ -280,7 +279,6 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				policyDetailPage := pages.GetPolicyDetailPage(webDriver)
 				By(fmt.Sprintf("And verify '%s' policy page", policyName), func() {
 					Eventually(policyDetailPage.Header.Text).Should(MatchRegexp(policyName), "Failed to verify dashboard policy name ")
-					Eventually(policyDetailPage.Title.Text).Should(MatchRegexp(policyName), "Failed to verify policy title on policy page")
 					Eventually(policyDetailPage.ID.Text).Should(MatchRegexp(policyID), "Failed to verify policy ID on policy page")
 					Eventually(policyDetailPage.ClusterName.Text).Should(MatchRegexp(leafClusterName), "Failed to verify policy cluster on policy page")
 					Eventually(policyDetailPage.Severity.Text).Should(MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")

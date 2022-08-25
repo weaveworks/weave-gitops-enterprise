@@ -34,6 +34,12 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useListConfig } from '../../../hooks/versions';
+import { ApplicationsWrapper } from './Form/Partials/ApplicationsWrapper';
+import { Kustomization } from '../../../cluster-services/cluster_services.pb';
+import {
+  FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+  FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+} from '../../../utils/config';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -112,6 +118,7 @@ const AddCluster: FC = () => {
     pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
+    clusterAutomations: [],
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -153,7 +160,7 @@ const AddCluster: FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const handlePRPreview = useCallback(() => {
-    const { url, provider, ...templateFields } = formData;
+    const { url, provider, clusterAutomations, ...templateFields } = formData;
     setPreviewLoading(true);
     return renderTemplate({
       values: templateFields,
@@ -209,6 +216,29 @@ const AddCluster: FC = () => {
   );
 
   const handleAddCluster = useCallback(() => {
+    const { clusterAutomations, ...rest } = formData;
+    // filter out empty kustomization
+    const filteredKustomizations = clusterAutomations.filter(
+      (kustomization: any) =>
+        Object.values(kustomization).join('').trim() !== '',
+    );
+    const kustomizations = filteredKustomizations.map(
+      (kustomization: any): Kustomization => {
+        return {
+          metadata: {
+            name: kustomization.name,
+            namespace: kustomization.namespace,
+          },
+          spec: {
+            path: kustomization.path,
+            sourceRef: {
+              name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+              namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+            },
+          },
+        };
+      },
+    );
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
@@ -217,8 +247,9 @@ const AddCluster: FC = () => {
       credentials: infraCredential,
       template_name: activeTemplate?.name,
       parameter_values: {
-        ...formData,
+        ...rest,
       },
+      kustomizations,
       values: encodedProfiles(selectedProfiles),
     };
     setLoading(true);
@@ -363,6 +394,15 @@ const AddCluster: FC = () => {
                   setSelectedProfiles={setSelectedProfiles}
                 />
               )}
+              <Grid item xs={12} sm={10} md={10} lg={8}>
+                {
+                  <ApplicationsWrapper
+                    formData={formData}
+                    setFormData={setFormData}
+                  ></ApplicationsWrapper>
+                }
+              </Grid>
+
               {openPreview && PRPreview ? (
                 <Preview
                   openPreview={openPreview}

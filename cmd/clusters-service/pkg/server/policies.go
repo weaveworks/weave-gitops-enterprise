@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/hashicorp/go-multierror"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -122,15 +123,23 @@ func toPolicyResponse(policyCRD pacv2beta1.Policy, clusterName string) (*capiv1_
 		Parameters:  policyParams,
 		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
 		ClusterName: clusterName,
+		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
 	}
 
 	return policy, nil
 }
 
 func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesRequest) (*capiv1_proto.ListPoliciesResponse, error) {
+	respErrors := []*capiv1_proto.ListError{}
 	clustersClient, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+				}
+			}
+		}
 	}
 
 	opts := []client.ListOption{}
@@ -139,7 +148,6 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		opts = append(opts, client.Continue(m.Pagination.PageToken))
 	}
 
-	respErrors := []*capiv1_proto.ListError{}
 	var continueToken string
 	var lists map[string][]client.ObjectList
 	if m.ClusterName == "" {
@@ -179,6 +187,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				if err != nil {
 					return nil, err
 				}
+
 				policies = append(policies, policy)
 			}
 		}
@@ -192,9 +201,9 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 }
 
 func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest) (*capiv1_proto.GetPolicyResponse, error) {
-	clustersClient, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	clustersClient, err := s.clientsFactory.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	if m.ClusterName == "" {

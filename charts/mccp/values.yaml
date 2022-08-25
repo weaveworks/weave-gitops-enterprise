@@ -9,7 +9,7 @@ fullnameOverride: ""
 images:
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.1.0
+  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.2.0
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -19,6 +19,10 @@ serviceAccount:
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
+# -- If set to true, OCI repositories will be included in the source view.
+# This requires flux 0.32 or later.
+listOCIRepositories: false
 
 config:
   cluster:
@@ -88,6 +92,10 @@ policy-agent:
   enabled: false
   accountId: ""
   clusterId: ""
+  # FIXME: default needs to be fixed upstream in policy-agent chart
+  # https://github.com/weaveworks/policy-agent/issues/67
+  persistence:
+    storageClassName: "standard"
 
 ingress:
   enabled: false
@@ -110,6 +118,10 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+envVars:
+  - name: WEAVE_GITOPS_FEATURE_TENANCY
+    value: "true"
 
 networkPolicy:
   enabled: true

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -104,15 +105,21 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 }
 
 func (s *server) listEvents(ctx context.Context, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
+	respErrors := []*capiv1_proto.ListError{}
 	clustersClient, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+				}
+			}
+		}
 	}
 	clist := clustersmngr.NewClusteredList(func() sigsClient.ObjectList {
 		return &v1.EventList{}
 	})
 
-	respErrors := []*capiv1_proto.ListError{}
 	if err := clustersClient.ClusteredList(ctx, clist, true, opts...); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {

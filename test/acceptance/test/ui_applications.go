@@ -274,7 +274,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName}, "")
+				deleteCluster("kind", leafClusterName, "")
 				cleanGitRepository(appDir)
 				deleteNamespace([]string{leafClusterNamespace})
 

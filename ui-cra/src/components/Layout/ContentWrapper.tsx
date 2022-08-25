@@ -2,7 +2,7 @@ import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Flex, theme } from '@weaveworks/weave-gitops';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
@@ -10,29 +10,23 @@ import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 
-const xs = theme.spacing.xs;
-const small = theme.spacing.small;
-const medium = theme.spacing.medium;
-const large = theme.spacing.large;
+const { xs, small, medium, base } = theme.spacing;
+const { feedbackLight, white } = theme.colors;
 
 export const Title = styled.h2`
   margin-top: 0px;
 `;
 
-export const pageDimensionsCss = css`
-  width: 100%;
-`;
-
 export const PageWrapper = styled.div`
-  ${pageDimensionsCss}
+  width: 100%;
   margin: 0 auto;
 `;
 
 export const contentCss = css`
-  margin: ${medium} ${small} 0 ${small};
-  padding: ${large} ${medium} ${medium} ${large};
-  background-color: ${theme.colors.white};
-  border-radius: ${xs};
+  margin: 0 ${base};
+  padding: ${medium};
+  background-color: ${white};
+  border-radius: ${xs} ${xs} 0 0;
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
@@ -42,8 +36,8 @@ export const Content = styled.div<{ backgroundColor?: string }>`
 
 export const WGContent = styled.div`
   margin: ${medium} ${small} 0 ${small};
-  background-color: ${theme.colors.white};
-  border-radius: ${xs};
+  background-color: ${white};
+  border-radius: ${xs} ${xs} 0 0;
   > div > div {
     border-radius: ${xs};
     max-width: none;
@@ -52,10 +46,10 @@ export const WGContent = styled.div`
 
 const HelpLinkWrapper = styled.div`
   padding: ${small} ${medium};
-  margin: ${small};
-  background-color: ${theme.colors.white};
-  color: ${({ theme }) => theme.colors.neutral40};
-  border-radius: ${xs};
+  margin: 0 ${base};
+  background-color: rgba(255, 255, 255, 0.85);
+  color: ${({ theme }) => theme.colors.neutral30};
+  border-radius: 0 0 ${xs} ${xs};
   display: flex;
   justify-content: space-between;
   a {
@@ -66,16 +60,16 @@ const HelpLinkWrapper = styled.div`
 const useStyles = makeStyles(() =>
   createStyles({
     alertWrapper: {
-      marginTop: theme.spacing.medium,
-      marginRight: theme.spacing.small,
+      marginTop: medium,
+      marginRight: small,
       marginBottom: 0,
-      marginLeft: theme.spacing.small,
-      paddingRight: theme.spacing.medium,
-      paddingLeft: theme.spacing.medium,
-      borderRadius: theme.spacing.xs,
+      marginLeft: small,
+      paddingRight: medium,
+      paddingLeft: medium,
+      borderRadius: xs,
     },
     warning: {
-      backgroundColor: theme.colors.feedbackLight,
+      backgroundColor: feedbackLight,
     },
   }),
 );
@@ -103,6 +97,14 @@ export const ContentWrapper: FC<Props> = ({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
 
+  useEffect(() => {
+    if (error) {
+      setNotifications([
+        { message: { text: error?.message }, variant: 'danger' },
+      ]);
+    }
+  }, [error, setNotifications]);
+
   if (loading) {
     return (
       <Box marginTop={4}>
@@ -113,16 +115,15 @@ export const ContentWrapper: FC<Props> = ({
     );
   }
 
-  if (error) {
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
-  }
-
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
+        height: 'calc(100vh - 80px)',
+        overflowWrap: 'normal',
+        overflowX: 'scroll',
       }}
     >
       {entitlement && (

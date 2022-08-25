@@ -463,6 +463,7 @@ export type Policy = {
   targets?: PolicyTargets
   createdAt?: string
   clusterName?: string
+  tenant?: string
 }
 
 export type ObjectRef = {
