@@ -59,17 +59,17 @@ describe('ListPolicViolations', () => {
 
     // Details
    
-    expect(await screen.getByTestId('Cluster Name')).toHaveTextContent(
+    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
       'default/tw-cluster-2',
     );
-    expect(await screen.getByTestId('Violation Time')).toHaveTextContent(
+    expect(screen.getByTestId('Violation Time')).toHaveTextContent(
       moment('2022-08-24T19:39:11Z').fromNow(),
     );
-    expect(await screen.getByTestId('Severity')).toHaveTextContent('high');
-    expect(await screen.getByTestId('Category')).toHaveTextContent(
+    expect(screen.getByTestId('Severity')).toHaveTextContent('high');
+    expect(screen.getByTestId('Category')).toHaveTextContent(
       'weave.categories.access-control',
     );
-    expect(await screen.getByTestId('Application')).toHaveTextContent(
+    expect(screen.getByTestId('Application')).toHaveTextContent(
       'flux-system/helm-controller',
     );
 
@@ -78,17 +78,17 @@ describe('ListPolicViolations', () => {
     expect(occurrences).toHaveLength(1);
 
     // description
-    expect(await screen.getByTestId('description')).toHaveTextContent(
+    expect(screen.getByTestId('description')).toHaveTextContent(
       'test description',
     );
 
     // how to solve
-    expect(await screen.getByTestId('howToSolve')).toHaveTextContent(
+    expect(screen.getByTestId('howToSolve')).toHaveTextContent(
       'test howToSolve',
     );
 
     // Violating Entity
-    expect(await screen.getByTestId('violatingEntity')).toHaveTextContent(
+    expect(screen.getByTestId('violatingEntity')).toHaveTextContent(
       'test violatingEntity',
     );
   });
@@ -129,11 +129,11 @@ describe('ListPolicViolations', () => {
       render(c);
     });
 
-    expect(await screen.getByTestId('Cluster Name')).toHaveTextContent(
+    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
       '--',
     );
-    expect(await screen.getByTestId('Severity')).toHaveTextContent('test');
-    expect(await screen.getByTestId('Category')).toHaveTextContent(
+    expect(screen.getByTestId('Severity')).toHaveTextContent('test');
+    expect(screen.getByTestId('Category')).toHaveTextContent(
       '--',
     );
    
@@ -180,19 +180,19 @@ describe('ListPolicViolations', () => {
     expect(await screen.findByText('helm-controller')).toBeTruthy();
 
     // Details
-    expect(await screen.getByTestId('Policy Name')).toHaveTextContent(
+    expect(screen.getByTestId('Policy Name')).toHaveTextContent(
       'Controller ServiceAccount Tokens Automount',
     );
     
-    expect(await screen.getByTestId('Violation Time')).toHaveTextContent(
+    expect(screen.getByTestId('Violation Time')).toHaveTextContent(
       moment('2022-08-24T19:39:11Z').fromNow(),
     );
-    expect(await screen.getByTestId('Severity')).toHaveTextContent('high');
-    expect(await screen.getByTestId('Category')).toHaveTextContent(
+    expect(screen.getByTestId('Severity')).toHaveTextContent('high');
+    expect(screen.getByTestId('Category')).toHaveTextContent(
       'weave.categories.access-control',
     );
-    expect(await screen.queryByTestId('Application')).toBeNull()
-    expect(await screen.queryByTestId('Cluster Name')).toBeNull()
+    expect(screen.queryByTestId('Application')).toBeNull()
+    expect(screen.queryByTestId('Cluster Name')).toBeNull()
 
   });
 });

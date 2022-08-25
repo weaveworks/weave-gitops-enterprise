@@ -8,10 +8,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-multierror"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/testing/protocmp"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -20,6 +22,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestListPolicies(t *testing.T) {
@@ -335,15 +338,135 @@ func TestListPolicies(t *testing.T) {
 	}
 }
 
+func TestPartialPoliciesConnectionErrors(t *testing.T) {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	fakeCl := createClient(t, makePolicy(t))
+	clients := map[string]client.Client{"Default": fakeCl}
+	clientsPool.ClientsReturns(clients)
+	clientsPool.ClientReturns(fakeCl, nil)
+
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
+	fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+	fakeFactory.GetImpersonatedClientStub = func(ctx context.Context, user *auth.UserPrincipal) (clustersmngr.Client, error) {
+		var multi *multierror.Error
+		multi = multierror.Append(multi, &clusterErr)
+		return clustersClient, multi
+	}
+	s := createServer(t, serverOptions{
+		clientsFactory: fakeFactory,
+	})
+
+	req := capiv1_proto.ListPoliciesRequest{}
+	gotResponse, err := s.ListPolicies(context.Background(), &req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedPolicy := &capiv1_proto.ListPoliciesResponse{
+		Policies: []*capiv1_proto.Policy{
+			{
+				Name:      "Missing Owner Label",
+				Severity:  "high",
+				Code:      "foo",
+				CreatedAt: "0001-01-01T00:00:00Z",
+				Targets: &capiv1_proto.PolicyTargets{
+					Labels: []*capiv1_proto.PolicyTargetLabel{
+						{
+							Values: map[string]string{"my-label": "my-value"},
+						},
+					},
+				},
+				ClusterName: "Default",
+			},
+		},
+		Total:  int32(1),
+		Errors: []*capiv1_proto.ListError{{Message: clusterErr.Error(), ClusterName: clusterErr.ClusterName}},
+	}
+	if !cmpPoliciesResp(t, expectedPolicy, gotResponse) {
+		t.Fatalf("policies didn't match expected:\n%+v\n%+v", expectedPolicy, gotResponse)
+	}
+}
+
+func TestPartialPoliciesUnregisteredErrors(t *testing.T) {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	fakeClDefault := createClient(t, makePolicy(t))
+
+	fakeClDemo := fake.NewClientBuilder().Build()
+
+	clients := map[string]client.Client{"Default": fakeClDefault, "demo": fakeClDemo}
+	clientsPool.ClientsReturns(clients)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clients[name]; found && c != nil {
+			return c, nil
+		}
+
+		return nil, fmt.Errorf("cluster %s not found", name)
+	}
+
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("no kind is registered for the type v2beta1.PolicyList in scheme \"pkg/runtime/scheme.go:100\"")}
+	fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+	s := createServer(t, serverOptions{
+		clientsFactory: fakeFactory,
+	})
+
+	req := capiv1_proto.ListPoliciesRequest{}
+	gotResponse, err := s.ListPolicies(context.Background(), &req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedPolicy := &capiv1_proto.ListPoliciesResponse{
+		Policies: []*capiv1_proto.Policy{
+			{
+				Name:      "Missing Owner Label",
+				Severity:  "high",
+				Code:      "foo",
+				CreatedAt: "0001-01-01T00:00:00Z",
+				Targets: &capiv1_proto.PolicyTargets{
+					Labels: []*capiv1_proto.PolicyTargetLabel{
+						{
+							Values: map[string]string{"my-label": "my-value"},
+						},
+					},
+				},
+				ClusterName: "Default",
+			},
+		},
+		Total:  int32(1),
+		Errors: []*capiv1_proto.ListError{{Message: clusterErr.Error(), ClusterName: clusterErr.ClusterName}},
+	}
+	if !cmpPoliciesResp(t, expectedPolicy, gotResponse) {
+		t.Fatalf("policies didn't match expected:\n%+v\n%+v", expectedPolicy, gotResponse)
+	}
+}
+
 func cmpPoliciesResp(t *testing.T, pol1 *capiv1_proto.ListPoliciesResponse, pol2 *capiv1_proto.ListPoliciesResponse) bool {
 	t.Helper()
 	if len(pol1.Policies) != len(pol2.Policies) {
+		return false
+	}
+
+	if len(pol1.Errors) != len(pol2.Errors) {
 		return false
 	}
 	for i := range pol1.Policies {
 		if !cmpPolicy(t, pol1.Policies[i], pol2.Policies[i]) {
 			return false
 		}
+	}
+
+	for i := range pol1.Errors {
+		if pol1.Errors[i].ClusterName != pol2.Errors[i].ClusterName {
+			return false
+		}
+
+		if pol1.Errors[i].Message != pol2.Errors[i].Message {
+			return false
+		}
+
 	}
 
 	return cmp.Equal(pol1.Total, pol2.Total)
@@ -440,7 +563,7 @@ func TestGetPolicy(t *testing.T) {
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 
 			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
-			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+			fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
 				clientsFactory: fakeFactory,
