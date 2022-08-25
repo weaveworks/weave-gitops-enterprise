@@ -38,7 +38,7 @@ import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import { EKS, Kubernetes, GKE, Kind } from '../../utils/icons';
+import { EKSDefault, Kubernetes, GKEDefault, Kind } from '../../utils/icons';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import Clusters from '../../contexts/Clusters';
 
@@ -182,14 +182,14 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     clusterType === 'AWSCluster' ||
     clusterType === 'AWSManagedCluster'
   ) {
-    return EKS;
+    return EKSDefault;
   } else if (
     clusterType === 'AzureCluster' ||
     clusterType === 'AzureManagedCluster'
   ) {
     return Kubernetes;
   } else if (clusterType === 'GCPCluster') {
-    return GKE;
+    return GKEDefault;
   }
   return Kubernetes;
 };
