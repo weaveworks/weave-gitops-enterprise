@@ -27,8 +27,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
     namespace,
     occurrences,
     clusterName,
-    name,
-    id,
+    name
   } = violation || {};
 
   const defaultHeaders = [
