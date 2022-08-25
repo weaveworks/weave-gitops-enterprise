@@ -28,7 +28,7 @@ import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Checkbox, withStyles } from '@material-ui/core';
-import { GitopsClusterEnriched } from '../../types/custom';
+import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
@@ -145,7 +145,7 @@ const MCCP: FC = () => {
     }
   }, [openDeletePR]);
 
-  const PRdefaults = {
+  const PRdefaults: PRDefaults = {
     branchName: `delete-clusters-branch-${random}`,
     pullRequestTitle: 'Deletes capi cluster(s)',
     commitMessage: 'Deletes capi cluster(s)',

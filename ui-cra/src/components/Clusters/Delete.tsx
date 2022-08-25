@@ -23,6 +23,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from './Create/Form/Partials/GitAuth';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import { PRDefaults } from '../../types/custom';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {
@@ -41,7 +42,7 @@ interface Props {
   setFormData: Dispatch<React.SetStateAction<any>>;
   selectedCapiClusters: ClusterNamespacedName[];
   setOpenDeletePR: Dispatch<React.SetStateAction<boolean>>;
-  prDefaults: any;
+  prDefaults: PRDefaults;
 }
 
 export const DeleteClusterDialog: FC<Props> = ({
