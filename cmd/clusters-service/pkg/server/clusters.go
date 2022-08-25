@@ -26,7 +26,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/helm/pkg/chartutil"
@@ -124,6 +123,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
+
+	applyCreateClusterDefaults(msg)
 
 	if err := validateCreateClusterPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
@@ -391,103 +392,6 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	}, nil
 }
 
-// CreateAutomationsPullRequest receives a list of {kustomization, helmrelease, cluster}
-// generates a kustomization file and/or a helm release file for each provided cluster in the list
-// and creates a pull request for the generated files
-func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_proto.CreateAutomationsPullRequestRequest) (*capiv1_proto.CreateAutomationsPullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
-	}
-
-	if err := validateCreateAutomationsPR(msg); err != nil {
-		s.log.Error(err, "Failed to create pull request, message payload was invalid")
-		return nil, err
-	}
-
-	client, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	repositoryURL := viper.GetString("capi-templates-repository-url")
-	if msg.RepositoryUrl != "" {
-		repositoryURL = msg.RepositoryUrl
-	}
-	baseBranch := viper.GetString("capi-templates-repository-base-branch")
-	if msg.BaseBranch != "" {
-		baseBranch = msg.BaseBranch
-	}
-
-	var clusters []string
-
-	var files []gitprovider.CommitFile
-
-	for _, c := range msg.ClusterAutomations {
-		cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
-
-		if c.Kustomization != nil {
-			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
-
-			if err != nil {
-				return nil, err
-			}
-
-			files = append(files, kustomization)
-		}
-
-		if c.HelmRelease != nil {
-			helmRelease, err := generateHelmReleaseFile(ctx, c.IsControlPlane, cluster, client, c.HelmRelease, c.FilePath)
-
-			if err != nil {
-				return nil, err
-			}
-
-			files = append(files, helmRelease)
-		}
-
-		clusters = append(clusters, c.Cluster.Name)
-	}
-
-	if msg.HeadBranch == "" {
-		clusters := strings.Join(clusters, "")
-		msg.HeadBranch = getHash(msg.RepositoryUrl, clusters, msg.BaseBranch)
-	}
-	if msg.Title == "" {
-		msg.Title = "Gitops add cluster workloads"
-	}
-	if msg.Description == "" {
-		msg.Description = "Pull request to create cluster workloads"
-	}
-	if msg.CommitMessage == "" {
-		msg.CommitMessage = "Add Kustomization Manifests"
-	}
-	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
-	}
-
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:       *gp,
-		RepositoryURL:     repositoryURL,
-		ReposistoryAPIURL: msg.RepositoryApiUrl,
-		HeadBranch:        msg.HeadBranch,
-		BaseBranch:        baseBranch,
-		Title:             msg.Title,
-		Description:       msg.Description,
-		CommitMessage:     msg.CommitMessage,
-		Files:             files,
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("unable to create pull request: %w", err)
-	}
-
-	return &capiv1_proto.CreateAutomationsPullRequestResponse{
-		WebUrl: res.WebURL,
-	}, nil
-}
-
 func getHash(inputs ...string) string {
 	final := []byte(strings.Join(inputs, ""))
 	return fmt.Sprintf("wego-%x", md5.Sum(final))
@@ -702,6 +606,14 @@ func validateNamespace(namespace string) error {
 	return nil
 }
 
+func applyCreateClusterDefaults(msg *capiv1_proto.CreatePullRequestRequest) {
+	for _, k := range msg.Kustomizations {
+		if k != nil && k.Metadata != nil && k.Metadata.Namespace == "" {
+			k.Metadata.Namespace = defaultAutomationNamespace
+		}
+	}
+}
+
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	var err error
 
@@ -742,39 +654,6 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 	return err
 }
 
-func validateCreateAutomationsPR(msg *capiv1_proto.CreateAutomationsPullRequestRequest) error {
-	var err error
-
-	if len(msg.ClusterAutomations) == 0 {
-		err = multierror.Append(err, fmt.Errorf(createClusterAutomationsRequiredErr))
-	}
-
-	for _, c := range msg.ClusterAutomations {
-		if c.Cluster == nil {
-			err = multierror.Append(err, fmt.Errorf("cluster object must be specified"))
-		} else {
-			if c.Cluster.Name == "" {
-				err = multierror.Append(err, fmt.Errorf("cluster name must be specified"))
-			}
-
-			invalidNamespaceErr := validateNamespace(c.Cluster.Namespace)
-			if invalidNamespaceErr != nil {
-				err = multierror.Append(err, invalidNamespaceErr)
-			}
-		}
-
-		if c.Kustomization != nil {
-			err = multierror.Append(err, validateKustomization(c.Kustomization))
-		} else if c.HelmRelease != nil {
-			err = multierror.Append(err, validateHelmRelease(c.HelmRelease))
-		} else {
-			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release"))
-		}
-	}
-
-	return err
-}
-
 func validateKustomization(kustomization *capiv1_proto.Kustomization) error {
 	var err error
 
@@ -802,53 +681,6 @@ func validateKustomization(kustomization *capiv1_proto.Kustomization) error {
 		invalidNamespaceErr := validateNamespace(kustomization.Spec.SourceRef.Namespace)
 		if invalidNamespaceErr != nil {
 			err = multierror.Append(err, invalidNamespaceErr)
-		}
-	}
-
-	return err
-}
-
-func validateHelmRelease(helmRelease *capiv1_proto.HelmRelease) error {
-	var err error
-
-	if helmRelease.Metadata == nil {
-		err = multierror.Append(err, errors.New("helmrelease metadata must be specified"))
-	} else {
-		if helmRelease.Metadata.Name == "" {
-			err = multierror.Append(err, fmt.Errorf("helmrelease name must be specified"))
-		}
-
-		invalidNamespaceErr := validateNamespace(helmRelease.Metadata.Namespace)
-		if invalidNamespaceErr != nil {
-			err = multierror.Append(err, invalidNamespaceErr)
-		}
-	}
-
-	if helmRelease.Spec.Chart == nil {
-		err = multierror.Append(
-			err,
-			fmt.Errorf("chart must be specified in HelmRelease %s",
-				helmRelease.Metadata.Name))
-	} else {
-		if helmRelease.Spec.Chart.Spec.Chart == "" {
-			err = multierror.Append(
-				err,
-				fmt.Errorf("chart name must be specified in HelmRelease %s",
-					helmRelease.Metadata.Name))
-		}
-
-		if helmRelease.Spec.Chart.Spec.SourceRef != nil {
-			if helmRelease.Spec.Chart.Spec.SourceRef.Name == "" {
-				err = multierror.Append(
-					err,
-					fmt.Errorf("sourceRef name must be specified in chart %s in HelmRelease %s",
-						helmRelease.Spec.Chart.Spec.Chart, helmRelease.Metadata.Name))
-			}
-
-			invalidNamespaceErr := validateNamespace(helmRelease.Spec.Chart.Spec.SourceRef.Namespace)
-			if invalidNamespaceErr != nil {
-				err = multierror.Append(err, invalidNamespaceErr)
-			}
 		}
 	}
 
@@ -1026,8 +858,7 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
 		cluster.Name,
-		resource.Namespace,
-		fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType),
+		fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType),
 	)
 }
 

@@ -36,6 +36,10 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { useListConfig } from '../../../hooks/versions';
 import { ApplicationsWrapper } from './Form/Partials/ApplicationsWrapper';
 import { Kustomization } from '../../../cluster-services/cluster_services.pb';
+import {
+  FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+  FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+} from '../../../utils/config';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -228,8 +232,8 @@ const AddCluster: FC = () => {
           spec: {
             path: kustomization.path,
             sourceRef: {
-              name: 'flux-system',
-              namespace: 'flux-system',
+              name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+              namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
             },
           },
         };

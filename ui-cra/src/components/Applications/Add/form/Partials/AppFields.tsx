@@ -6,6 +6,7 @@ import { MenuItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../../../../types/custom';
 import { useListSources } from '@weaveworks/weave-gitops';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
+import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -117,9 +118,9 @@ const AppFields: FC<{
       />
       <Input
         className="form-section"
-        required={true}
         name="namespace"
         label="KUSTOMIZATION NAMESPACE"
+        placeholder={DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE}
         value={formData.clusterAutomations[index].namespace}
         onChange={event => handleFormData(event, 'namespace')}
       />
