@@ -70,14 +70,6 @@ const LoadingWrapper = styled.div`
   ${contentCss};
 `;
 
-const random = Math.random().toString(36).substring(7);
-
-export const PRdefaults = {
-  branchName: `delete-clusters-branch-${random}`,
-  pullRequestTitle: 'Deletes capi cluster(s)',
-  commitMessage: 'Deletes capi cluster(s)',
-};
-
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
     c => c.type === 'Ready' || c.type === 'Available',
@@ -143,6 +135,18 @@ const MCCP: FC = () => {
       ),
     [capiClusters, selectedClusters],
   );
+
+  const random = useMemo(() => {
+    if (openDeletePR === true) {
+      Math.random().toString(36).substring(7);
+    }
+  }, [openDeletePR]);
+
+  const PRdefaults = {
+    branchName: `delete-clusters-branch-${random}`,
+    pullRequestTitle: 'Deletes capi cluster(s)',
+    commitMessage: 'Deletes capi cluster(s)',
+  };
 
   const authRedirectPage = `/clusters`;
 
@@ -314,6 +318,7 @@ const MCCP: FC = () => {
                     setFormData={setFormData}
                     selectedCapiClusters={selectedCapiClusters}
                     setOpenDeletePR={setOpenDeletePR}
+                    prDefaults={PRdefaults}
                   />
                 )}
                 {openConnectInfo && (
