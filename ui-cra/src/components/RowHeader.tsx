@@ -6,7 +6,7 @@ const { normal } = theme.fontSizes;
 const { small, xs } = theme.spacing;
 const { neutral30, neutral40 } = theme.colors;
 
-const RowHeader = styled.div`
+const RowHeaderWrapper = styled.div`
   margin: ${small} 0;
   display: flex;
   justify-content: start;
@@ -34,9 +34,9 @@ export const generateRowHeaders = (rows: Array<SectionRowHeader>) => {
   return rows.map(r => {
 
     return r.hidden === true ? null : (
-      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
+      <RowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
         {r.children}
-      </CanaryRowHeader>
+      </RowHeader>
     );
   });
 };
@@ -74,7 +74,7 @@ export function KeyValueRow({
   );
 }
 
-function CanaryRowHeader({
+function RowHeader({
   children,
   rowkey,
   value,
@@ -84,11 +84,11 @@ function CanaryRowHeader({
   value: string | JSX.Element | undefined;
 }) {
   return (
-    <RowHeader data-testid={rowkey}>
+    <RowHeaderWrapper data-testid={rowkey}>
       <RowTitle>{rowkey} :</RowTitle>
       <RowBody>{children || value || '--'}</RowBody>
-    </RowHeader>
+    </RowHeaderWrapper>
   );
 }
 
-export default CanaryRowHeader;
+export default RowHeader;
