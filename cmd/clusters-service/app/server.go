@@ -187,7 +187,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
 
-	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-pass-through", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
+	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmd.Flags().String("oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmd.Flags().String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
