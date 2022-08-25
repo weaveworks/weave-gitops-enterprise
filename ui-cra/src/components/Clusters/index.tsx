@@ -135,10 +135,13 @@ const MCCP: FC = () => {
       ),
     [capiClusters, selectedClusters],
   );
+  const [random, setRandom] = useState<string>(
+    Math.random().toString(36).substring(7),
+  );
 
-  const random = useMemo(() => {
+  useEffect(() => {
     if (openDeletePR === true) {
-      Math.random().toString(36).substring(7);
+      setRandom(Math.random().toString(36).substring(7));
     }
   }, [openDeletePR]);
 
