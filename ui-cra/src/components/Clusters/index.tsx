@@ -40,7 +40,6 @@ import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { EKSDefault, Kubernetes, GKEDefault, Kind } from '../../utils/icons';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
-import Clusters from '../../contexts/Clusters';
 
 interface Size {
   size?: 'small';
