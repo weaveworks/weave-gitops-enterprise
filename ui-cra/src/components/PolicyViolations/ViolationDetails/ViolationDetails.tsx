@@ -8,7 +8,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
 import { generateRowHeaders } from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
-import { Title } from '../../Layout/ContentWrapper';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;

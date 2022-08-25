@@ -76,7 +76,6 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             value: (p: Policy) => moment(p.createdAt).fromNow(),
             sortValue: (p: Policy) => {
               const t = p.createdAt && new Date(p.createdAt);
-              // Invert the timestamp so the default sort shows the most recent first
               return p.createdAt ? (Number(t) * -1).toString() : '';
             },
           },
