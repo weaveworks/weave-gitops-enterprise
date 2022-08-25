@@ -1,16 +1,34 @@
-import { Alert } from '@material-ui/lab';
-import { LoadingPage } from '@weaveworks/weave-gitops';
 import { useListCanaries } from '../../../contexts/ProgressiveDelivery';
+import { useApplicationsCount } from '../../Applications/utils';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { SectionHeader } from '../../Layout/SectionHeader';
 import { CanaryTable } from './Table';
 
 const ProgressiveDelivery = () => {
+  const applicationsCount = useApplicationsCount();
+
   const { error, data, isLoading } = useListCanaries();
 
   return (
     <>
-      {isLoading && <LoadingPage />}
-      {error && <Alert severity="error">{error.message}</Alert>}
-      {data?.canaries && <CanaryTable canaries={data.canaries} />}
+      <SectionHeader
+        className="count-header"
+        path={[
+          {
+            label: 'Applications',
+            url: '/applications',
+            count: applicationsCount,
+          },
+          { label: 'Delivery', count: data?.canaries?.length },
+        ]}
+      />
+      <ContentWrapper
+        loading={isLoading}
+        errors={data?.errors}
+        fetchError={error}
+      >
+        {data?.canaries && <CanaryTable canaries={data.canaries} />}
+      </ContentWrapper>
     </>
   );
 };
