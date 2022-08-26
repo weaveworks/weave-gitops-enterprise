@@ -12,7 +12,6 @@ jobs:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
       WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
 
@@ -50,6 +49,12 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.18.X
+    - name: Configure git for private modules
+      env:
+        GITHUB_BUILD_USERNAME: wge-build-bot
+        GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      run: |
+        git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
     - name: Set env var
       run: |
         echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
