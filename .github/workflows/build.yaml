@@ -208,5 +208,5 @@ jobs:
     - name: Publish gitops binary to s3 
       if: ${{ (github.ref_name == 'main') && (github.event_name == 'push') }}
       run: |
-        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops-${{matrix.os}}
-        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
+        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}
+        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
