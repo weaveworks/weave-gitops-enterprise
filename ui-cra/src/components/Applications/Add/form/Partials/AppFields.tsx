@@ -5,7 +5,7 @@ import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
 import { ListSubheader, MenuItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../../../../types/custom';
-import { useListSources } from '@weaveworks/weave-gitops';
+import { useListSources, theme } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 
@@ -84,8 +84,6 @@ const AppFields: FC<{
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
-    console.log(value);
-    console.log(JSON.parse(value).kind);
     let currentAutomation = [...formData.clusterAutomations];
 
     currentAutomation[index] = {
@@ -132,6 +130,17 @@ const AppFields: FC<{
     });
   };
 
+  const optionUrl = (url?: string) => (
+    <a
+      style={{ color: theme.colors.primary }}
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Go to repo
+    </a>
+  );
+
   return (
     <FormWrapper>
       {!!clusters && (
@@ -174,9 +183,9 @@ const AppFields: FC<{
             )}
             {gitRepos?.map((option: SourceEnriched, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}
-                {option.url}
-                {option?.reference?.branch}
+                {option.name}&nbsp;&nbsp; branch: {option?.reference?.branch}
+                &nbsp;&nbsp;
+                {optionUrl(option.url)}
               </MenuItem>
             ))}
             {helmRepos.length !== 0 && (
@@ -184,7 +193,8 @@ const AppFields: FC<{
             )}
             {helmRepos?.map((option: SourceEnriched, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name} {option.url}
+                {option.name}&nbsp;&nbsp;
+                {optionUrl(option.url)}
               </MenuItem>
             ))}
           </Select>
@@ -208,18 +218,16 @@ const AppFields: FC<{
             value={formData.clusterAutomations[index].namespace}
             onChange={event => handleFormData(event, 'namespace')}
           />
+          <Input
+            className="form-section"
+            required={true}
+            name="path"
+            label="SELECT PATH/CHART"
+            value={formData.clusterAutomations[index].path}
+            onChange={event => handleFormData(event, 'path')}
+            description="Path within the git repository to read yaml files"
+          />
         </>
-      ) : null}
-      {formData.source_type === 'KindGitRepository' ? (
-        <Input
-          className="form-section"
-          required={true}
-          name="path"
-          label="SELECT PATH/CHART"
-          value={formData.clusterAutomations[index].path}
-          onChange={event => handleFormData(event, 'path')}
-          description="Path within the git repository to read yaml files"
-        />
       ) : null}
     </FormWrapper>
   );
