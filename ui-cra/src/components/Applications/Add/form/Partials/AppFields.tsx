@@ -8,6 +8,8 @@ import { GitopsClusterEnriched } from '../../../../../types/custom';
 import { useListSources, theme } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
+import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
+import { isAllowedLink } from '@weaveworks/weave-gitops';
 
 interface SourceEnriched extends Source {
   url?: string;
@@ -130,16 +132,39 @@ const AppFields: FC<{
     });
   };
 
-  const optionUrl = (url?: string) => (
-    <a
-      style={{ color: theme.colors.primary }}
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Go to repo
-    </a>
-  );
+  const optionUrl = (url?: string, branch?: string) => {
+    if (branch) {
+      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
+        <a
+          title="Visit repository"
+          style={{ color: theme.colors.primary, fontSize: '10px' }}
+          href={getGitRepoHTTPSURL(url, branch)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {url}@<strong>{branch}</strong>
+        </a>
+      ) : (
+        <span>
+          {url}@<strong>{branch}</strong>
+        </span>
+      );
+    } else {
+      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
+        <a
+          title="Visit repository"
+          style={{ color: theme.colors.primary, fontSize: '10px' }}
+          href={getGitRepoHTTPSURL(url)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {url}
+        </a>
+      ) : (
+        <span>{url}</span>
+      );
+    }
+  };
 
   return (
     <FormWrapper>
@@ -183,9 +208,8 @@ const AppFields: FC<{
             )}
             {gitRepos?.map((option: SourceEnriched, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}&nbsp;&nbsp; branch: {option?.reference?.branch}
-                &nbsp;&nbsp;
-                {optionUrl(option.url)}
+                {option.name}&nbsp;&nbsp;
+                {optionUrl(option?.url, option?.reference?.branch)}
               </MenuItem>
             ))}
             {helmRepos.length !== 0 && (
@@ -194,7 +218,7 @@ const AppFields: FC<{
             {helmRepos?.map((option: SourceEnriched, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}&nbsp;&nbsp;
-                {optionUrl(option.url)}
+                {optionUrl(option?.url)}
               </MenuItem>
             ))}
           </Select>
