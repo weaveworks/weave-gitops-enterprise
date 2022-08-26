@@ -137,7 +137,10 @@ const AppFields: FC<{
       return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
         <a
           title="Visit repository"
-          style={{ color: theme.colors.primary, fontSize: '10px' }}
+          style={{
+            color: theme.colors.primary,
+            fontSize: theme.fontSizes.small,
+          }}
           href={getGitRepoHTTPSURL(url, branch)}
           target="_blank"
           rel="noopener noreferrer"
@@ -153,7 +156,10 @@ const AppFields: FC<{
       return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
         <a
           title="Visit repository"
-          style={{ color: theme.colors.primary, fontSize: '10px' }}
+          style={{
+            color: theme.colors.primary,
+            fontSize: theme.fontSizes.small,
+          }}
           href={getGitRepoHTTPSURL(url)}
           target="_blank"
           rel="noopener noreferrer"
