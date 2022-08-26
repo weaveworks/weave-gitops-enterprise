@@ -77,7 +77,7 @@ const GlobalStyle = createGlobalStyle`
     margin-top: 50px;
   }
  ::-webkit-scrollbar-thumb {
-    background-color: ${props => props.theme.colors.neutral20};
+    background-color: ${props => props.theme.colors.neutral30};
     border-radius: 5px;
   }
  ::-webkit-scrollbar-thumb:hover {
