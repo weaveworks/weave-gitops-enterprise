@@ -14,7 +14,6 @@ jobs:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
       WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
       WGE_HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
@@ -69,14 +68,8 @@ jobs:
             ${{ env.ARTEFACTS_BASE_DIR }}
           retention-days: 7
 
-  gitops-binary:
-    uses: ./.github/workflows/gitops-binary.yaml
-    with:
-      runs-on: ubuntu-latest
-      ref: main
-
   smoke-tests-github:
-    needs: [build, coverage, gitops-binary]
+    needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -104,7 +97,7 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
 
   smoke-tests-gitlab:
-    needs: [build, coverage, gitops-binary]
+    needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -134,7 +127,7 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_SAS_GITLAB_CLIENT_SECRET }}
 
   smoke-tests-gitlab-on-prem:
-    needs: [build, coverage, gitops-binary]
+    needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest

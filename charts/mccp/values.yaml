@@ -97,10 +97,8 @@ policy-agent:
   enabled: false
   accountId: ""
   clusterId: ""
-  # FIXME: default needs to be fixed upstream in policy-agent chart
-  # https://github.com/weaveworks/policy-agent/issues/67
   persistence:
-    storageClassName: "standard"
+    enabled: false
 
 ingress:
   enabled: false
