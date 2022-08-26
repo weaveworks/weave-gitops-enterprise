@@ -23,7 +23,11 @@ export const getGitRepoHTTPSURL = (
 ): string => {
   if (repoUrl) {
     const parsedRepo = GitUrlParse(repoUrl);
-    return `https://${parsedRepo.resource}/${parsedRepo.full_name}/tree/${repoBranch}`;
+    if (repoBranch) {
+      return `https://${parsedRepo.resource}/${parsedRepo.full_name}/tree/${repoBranch}`;
+    } else {
+      return `https://${parsedRepo.resource}/${parsedRepo.full_name}`;
+    }
   }
   return '';
 };
