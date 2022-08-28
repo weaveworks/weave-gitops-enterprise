@@ -123,16 +123,9 @@ function annotationExists(
 
 export const ClusterIcon: FC<Props> = ({ cluster }) => {
   const classes = useStyles();
-  let clusterKind = '';
-  let clusterKindFromAnnotation = annotationExists(
-    cluster?.annotations,
-    'weave.works/cluster-kind',
-  );
-  if (clusterKindFromAnnotation) {
-    clusterKind = clusterKindFromAnnotation;
-  } else if (cluster.capiCluster?.infrastructureRef?.kind) {
-    clusterKind = cluster.capiCluster?.infrastructureRef?.kind;
-  }
+  const clusterKind =
+    cluster.annotations?.['weave.works/cluster-kind'] ||
+    cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
     <Octicon
