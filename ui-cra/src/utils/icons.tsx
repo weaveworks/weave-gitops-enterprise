@@ -32,7 +32,7 @@ export const Kind = createIcon(
     </g>
     // </>
   ),
-  [35, 35],
+  [35, 30],
 );
 
 // From: https://iconify.design/icon-sets/fa-solid/people-carry.html

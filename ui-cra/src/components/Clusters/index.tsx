@@ -128,12 +128,19 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
-    <Octicon
-      className={classes.clusterIcon}
-      icon={getClusterTypeIcon(clusterKind)}
-      size="medium"
-      verticalAlign="middle"
-    />
+    <Tooltip
+      title={clusterKind || "unknown"}
+      placement="bottom"
+    >
+      <span>
+        <Octicon
+          className={classes.clusterIcon}
+          icon={getClusterTypeIcon(clusterKind)}
+          size="medium"
+          verticalAlign="middle"
+        />
+        </span>
+    </Tooltip>
   );
 };
 
