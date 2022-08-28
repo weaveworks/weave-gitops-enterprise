@@ -193,6 +193,29 @@ func Test_CreateTenants(t *testing.T) {
 				),
 			},
 		},
+		{
+			name: "replace existing role",
+			clusterState: []runtime.Object{
+				setResourceVersion(newTeamRole("bar-tenant", "bar-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "bar-tenant",
+				}, []rbacv1.PolicyRule{{
+					APIGroups: []string{""},
+					Resources: []string{"pods"},
+					Verbs:     []string{"get"},
+				}}), 1),
+			},
+			verifications: []verifyFunc{
+				verifyRoles(
+					setResourceVersion(newTeamRole("bar-tenant", "bar-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "bar-tenant",
+					}, []rbacv1.PolicyRule{{
+						APIGroups: []string{""},
+						Resources: []string{"namespaces", "pods"},
+						Verbs:     []string{"list", "get"},
+					}}), 2),
+				),
+			},
+		},
 	}
 
 	for _, tt := range testCases {
@@ -466,6 +489,50 @@ func Test_newRoleBinding(t *testing.T) {
 	assert.Equal(t, rb.RoleRef.Name, "test-cluster-role")
 }
 
+func Test_newTeamRoleBinding(t *testing.T) {
+	labels := map[string]string{
+		"toolkit.fluxcd.io/tenant": "test-tenant",
+	}
+	groupName := "test-group"
+
+	subjects := []rbacv1.Subject{
+		{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Group",
+			Name:     groupName,
+		},
+	}
+
+	rb := newTeamRoleBinding("test-tenant", "test-namespace", groupName, labels)
+	assert.Equal(t, rb.Name, "test-tenant-team-rolebiding")
+	assert.Equal(t, rb.Namespace, "test-namespace")
+	assert.Equal(t, rb.RoleRef.Name, "test-tenant-team-role")
+	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
+	assert.Equal(t, rb.Subjects, subjects)
+
+}
+
+func Test_newTeamRole(t *testing.T) {
+	labels := map[string]string{
+		"toolkit.fluxcd.io/tenant": "test-tenant",
+	}
+
+	rules := []rbacv1.PolicyRule{
+		{
+			Verbs:     []string{"get"},
+			APIGroups: []string{""},
+			Resources: []string{"pods"},
+		},
+	}
+
+	rb := newTeamRole("test-tenant", "test-namespace", labels, rules)
+	assert.Equal(t, rb.Name, "test-tenant-team-role")
+	assert.Equal(t, rb.Namespace, "test-namespace")
+	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
+	assert.Equal(t, rb.Rules, rules)
+
+}
+
 func Test_newAllowedRepositoriesPolicy(t *testing.T) {
 	labels := map[string]string{
 		"toolkit.fluxcd.io/tenant": "test-tenant",
@@ -624,6 +691,21 @@ func verifyRoleBindings(rb ...*rbacv1.RoleBinding) func(t *testing.T, cl client.
 		sort.Slice(roleBindings.Items, func(i, j int) bool { return roleBindings.Items[i].GetName() < roleBindings.Items[j].GetName() })
 		for i := range rb {
 			assert.Equal(t, rb[i], &roleBindings.Items[i])
+		}
+	}
+}
+
+func verifyRoles(rb ...*rbacv1.Role) func(t *testing.T, cl client.Client) {
+	return func(t *testing.T, cl client.Client) {
+		sort.Slice(rb, func(i, j int) bool { return rb[i].GetName() < rb[j].GetName() })
+		roles := rbacv1.RoleList{}
+		if err := cl.List(context.TODO(), &roles, client.InNamespace("bar-ns")); err != nil {
+			t.Fatal(err)
+		}
+
+		sort.Slice(roles.Items, func(i, j int) bool { return roles.Items[i].GetName() < roles.Items[j].GetName() })
+		for i := range rb {
+			assert.Equal(t, rb[i], &roles.Items[i])
 		}
 	}
 }
