@@ -106,21 +106,6 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-function annotationExists(
-  annotations: { [key: string]: string } | undefined,
-  annotationKey: string,
-) {
-  if (annotations === undefined) {
-    return;
-  }
-  let annotationsList = Object.entries(annotations);
-  for (const [key, value] of annotationsList) {
-    if (key.includes(annotationKey)) {
-      return value;
-    }
-  }
-}
-
 export const ClusterIcon: FC<Props> = ({ cluster }) => {
   const classes = useStyles();
   const clusterKind =
