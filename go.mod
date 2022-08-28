@@ -71,6 +71,7 @@ require (
 	github.com/alecthomas/colour v0.0.0-20160524082231-60882d9e2721 // indirect
 	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
 	github.com/google/go-github/v45 v45.2.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 )
 
 require (

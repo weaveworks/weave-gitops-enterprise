@@ -1,4 +1,4 @@
-../cmd/clusters-service/pkg/protos/cluster_services.pb.goimport React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
