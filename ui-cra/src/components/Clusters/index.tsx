@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+../cmd/clusters-service/pkg/protos/cluster_services.pb.goimport React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
@@ -33,7 +33,7 @@ import {
   createStyles,
   makeStyles,
 } from '@material-ui/core';
-import { GitopsClusterEnriched } from '../../types/custom';
+import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
@@ -80,14 +80,6 @@ const ClustersTableWrapper = styled(TableWrapper)`
 const LoadingWrapper = styled.div`
   ${contentCss};
 `;
-
-const random = Math.random().toString(36).substring(7);
-
-export const PRdefaults = {
-  branchName: `delete-clusters-branch-${random}`,
-  pullRequestTitle: 'Deletes capi cluster(s)',
-  commitMessage: 'Deletes capi cluster(s)',
-};
 
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
@@ -205,6 +197,21 @@ const MCCP: FC = () => {
       ),
     [capiClusters, selectedClusters],
   );
+  const [random, setRandom] = useState<string>(
+    Math.random().toString(36).substring(7),
+  );
+
+  useEffect(() => {
+    if (openDeletePR === true) {
+      setRandom(Math.random().toString(36).substring(7));
+    }
+  }, [openDeletePR]);
+
+  const PRdefaults: PRDefaults = {
+    branchName: `delete-clusters-branch-${random}`,
+    pullRequestTitle: 'Deletes capi cluster(s)',
+    commitMessage: 'Deletes capi cluster(s)',
+  };
 
   const authRedirectPage = `/clusters`;
 
@@ -376,6 +383,7 @@ const MCCP: FC = () => {
                     setFormData={setFormData}
                     selectedCapiClusters={selectedCapiClusters}
                     setOpenDeletePR={setOpenDeletePR}
+                    prDefaults={PRdefaults}
                   />
                 )}
                 {openConnectInfo && (

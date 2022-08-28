@@ -51,6 +51,11 @@ config:
     cookieDuration: 1h
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
     clientCredentialsSecret: ""
+  auth:
+    userAccount:
+      enabled: true
+    tokenPassthrough:
+      enabled: true
 
 tls:
   enabled: true
@@ -92,10 +97,8 @@ policy-agent:
   enabled: false
   accountId: ""
   clusterId: ""
-  # FIXME: default needs to be fixed upstream in policy-agent chart
-  # https://github.com/weaveworks/policy-agent/issues/67
   persistence:
-    storageClassName: "standard"
+    enabled: false
 
 ingress:
   enabled: false
