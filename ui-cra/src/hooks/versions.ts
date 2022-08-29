@@ -24,9 +24,9 @@ export function useListConfig() {
     repositoryURL &&
       applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
         if (res.provider === 'GitHub') {
-          setRepoLink(repositoryURL + `/pulls`);
+          setRepoLink(`https://${res.owner}/${res.name}/pulls`);
         } else if (res.provider === 'GitLab') {
-          setRepoLink(repositoryURL + `/-/merge_requests`);
+          setRepoLink(`https://${res.owner}/${res.name}/-/merge_requests`);
         }
       });
   }, [repositoryURL]);
