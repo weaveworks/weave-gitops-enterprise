@@ -14,11 +14,11 @@ export const useCanaryStyle = makeStyles(() =>
     },
     cardTitle: {
       fontWeight: 600,
-      fontSize: theme.fontSizes.normal,
+      fontSize: theme.fontSizes.medium,
     },
     body1: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.normal,
+      fontSize: theme.fontSizes.medium,
       color: theme.colors.black,
       marginLeft: xs,
       display: 'flex',
@@ -113,7 +113,7 @@ export const Header4 = styled.div`
 `;
 
 export const TextWrapper = styled.p`
-  font-size: ${theme.fontSizes.normal};
+  font-size: ${theme.fontSizes.medium};
   color: ${theme.colors.neutral30};
   font-weight: 400;
 `;

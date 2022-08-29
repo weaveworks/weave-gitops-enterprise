@@ -1,17 +1,22 @@
 import 'styled-components';
+
 export namespace colors {
   const black: string;
   const white: string;
   const primary: string;
   const primaryLight: string;
-  const primaryDark: string;
+  const primary10: string;
+  const primary20: string;
   const success: string;
   const alert: string;
+  const suspended: string;
+  const neutralGray: string;
   const neutral00: string;
   const neutral10: string;
   const neutral20: string;
   const neutral30: string;
   const neutral40: string;
+  const backGrey: string;
   const feedbackLight: string;
 }
 export namespace spacing {
@@ -30,7 +35,7 @@ export namespace fontSizes {
   const huge: string;
   const extraLarge: string;
   const large: string;
-  const normal: string;
+  const medium: string;
   const small: string;
   const tiny: string;
 }
