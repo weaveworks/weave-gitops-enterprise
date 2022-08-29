@@ -96,11 +96,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
-  name: bar-tenant-team-rolebiding
+  name: bar-tenant-team-rolebinding
   namespace: bar-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: Role
   name: bar-tenant-team-role
 subjects:
 - apiGroup: rbac.authorization.k8s.io
@@ -166,11 +166,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
-  name: bar-tenant-team-rolebiding
+  name: bar-tenant-team-rolebinding
   namespace: foobar-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: Role
   name: bar-tenant-team-role
 subjects:
 - apiGroup: rbac.authorization.k8s.io

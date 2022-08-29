@@ -504,7 +504,7 @@ func Test_newTeamRoleBinding(t *testing.T) {
 	}
 
 	rb := newTeamRoleBinding("test-tenant", "test-namespace", groupName, labels)
-	assert.Equal(t, rb.Name, "test-tenant-team-rolebiding")
+	assert.Equal(t, rb.Name, "test-tenant-team-rolebinding")
 	assert.Equal(t, rb.Namespace, "test-namespace")
 	assert.Equal(t, rb.RoleRef.Name, "test-tenant-team-role")
 	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")

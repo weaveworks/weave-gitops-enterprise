@@ -336,13 +336,13 @@ func newTeamRoleBinding(name, namespace, groupName string, labels map[string]str
 	return &rbacv1.RoleBinding{
 		TypeMeta: roleBindingTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-team-rolebiding", name),
+			Name:      fmt.Sprintf("%s-team-rolebinding", name),
 			Namespace: namespace,
 			Labels:    labels,
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
+			Kind:     "Role",
 			Name:     fmt.Sprintf("%s-team-role", name),
 		},
 		Subjects: []rbacv1.Subject{
