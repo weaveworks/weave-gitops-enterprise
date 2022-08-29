@@ -69,7 +69,7 @@ function HeaderSection({
       rowkey: 'Targeted K8s Kind',
       children: (
         <div id="policy-details-header-kinds">
-          {!!targets?.kinds && targets.kinds.length > 0 ? (
+          {targets?.kinds?.length ? (
             targets?.kinds?.map(kind => (
               <span key={kind} className={classes.chip}>
                 {kind}
