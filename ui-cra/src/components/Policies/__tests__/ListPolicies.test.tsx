@@ -45,8 +45,8 @@ describe('ListPolicies', () => {
 
     expect(await screen.findByText('There were errors while listing some resources:')).toBeTruthy();
 
-    const alert = document.querySelector('#alert-wrapper');
-    const alerts = alert?.querySelectorAll('#alert-wrapper li');
+    const alert = document.querySelector('#alert-list-errors');
+    const alerts = alert?.querySelectorAll('#alert-list-errors li');
 
     expect(alerts).toHaveLength(1);
   });

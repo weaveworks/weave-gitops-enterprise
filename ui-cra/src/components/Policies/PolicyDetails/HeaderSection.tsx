@@ -44,7 +44,7 @@ function HeaderSection({
     {
       rowkey: 'Tags',
       children: (
-        <div id="tags">
+        <div id="policy-details-header-tags">
           {!!tags && tags?.length > 0 ? (
             tags?.map(tag => (
               <span key={tag} className={classes.chip}>
@@ -68,7 +68,7 @@ function HeaderSection({
     {
       rowkey: 'Targeted K8s Kind',
       children: (
-        <div id="kinds">
+        <div id="policy-details-header-kinds">
           {!!targets?.kinds && targets.kinds.length > 0 ? (
             targets?.kinds?.map(kind => (
               <span key={kind} className={classes.chip}>

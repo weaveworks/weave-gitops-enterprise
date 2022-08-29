@@ -136,11 +136,11 @@ describe('ListPolicViolations', () => {
       'weave.categories.pod-security',
     );
     // Tags
-    const tags = document.querySelectorAll('#tags span');
+    const tags = document.querySelectorAll('#policy-details-header-tags span');
     expect(tags).toHaveLength(6);
 
      // Targeted K8s Kind
-     const kinds = document.querySelectorAll('#kinds span');
+     const kinds = document.querySelectorAll('#policy-details-header-kinds span');
      expect(kinds).toHaveLength(7);
 
     // description
