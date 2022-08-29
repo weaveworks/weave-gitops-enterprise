@@ -2,6 +2,8 @@ import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
 
+console.log(theme.fontSizes);
+
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
@@ -17,7 +19,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     body1: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.normal,
+      fontSize: theme.fontSizes.medium,
       color: theme.colors.black,
       marginLeft: theme.spacing.xs,
     },
