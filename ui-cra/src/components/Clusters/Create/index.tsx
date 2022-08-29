@@ -402,7 +402,6 @@ const AddCluster: FC = () => {
                   ></ApplicationsWrapper>
                 }
               </Grid>
-
               {openPreview && PRPreview ? (
                 <Preview
                   openPreview={openPreview}

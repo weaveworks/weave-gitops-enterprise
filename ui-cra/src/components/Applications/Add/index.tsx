@@ -17,13 +17,16 @@ import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
+import useProfiles from '../../../contexts/Profiles';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
+import Profiles from '../../Clusters/Create/Form/Partials/Profiles';
+import { UpdatedProfile } from '../../../types/custom';
+import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
 import useClusters from '../../../contexts/Clusters';
-import { useListGitRepos } from '../../../hooks/gitReposSource';
 import { Loader } from '../../Loader';
 
 const AddApplication = () => {
@@ -32,11 +35,11 @@ const AddApplication = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const { setNotifications } = useNotifications();
+  const { profiles } = useProfiles();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
   const { clusters, isLoading } = useClusters();
-  const { data: GitRepoResponse } = useListGitRepos();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -59,9 +62,12 @@ const AddApplication = () => {
         source_name: '',
         source_namespace: '',
         source: '',
+        source_type: '',
       },
     ],
   };
+
+  let initialProfiles = [] as UpdatedProfile[];
 
   const callbackState = getCallbackState();
 
@@ -70,8 +76,14 @@ const AddApplication = () => {
       ...initialFormData,
       ...callbackState.state.formData,
     };
+    initialProfiles = [
+      ...initialProfiles,
+      ...callbackState.state.selectedProfiles,
+    ];
   }
   const [formData, setFormData] = useState<any>(initialFormData);
+  const [selectedProfiles, setSelectedProfiles] =
+    useState<UpdatedProfile[]>(initialProfiles);
 
   useEffect(() => {
     if (repositoryURL != null) {
@@ -82,9 +94,7 @@ const AddApplication = () => {
     }
   }, [repositoryURL]);
 
-  useEffect(() => {
-    clearCallbackState();
-  }, []);
+  useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
     setFormData((prevState: any) => ({
@@ -96,30 +106,72 @@ const AddApplication = () => {
   }, [formData.clusterAutomations]);
 
   const handleAddApplication = useCallback(() => {
-    const clusterAutomations = formData.clusterAutomations.map(
-      (kustomization: any): ClusterAutomation => {
-        return {
-          cluster: {
-            name: kustomization.cluster_name,
-            namespace: kustomization.cluster_namespace,
-          },
-          isControlPlane: kustomization.cluster_isControlPlane,
-          kustomization: {
-            metadata: {
-              name: kustomization.name,
-              namespace: kustomization.namespace,
+    let clusterAutomations: ClusterAutomation[] = [];
+    if (formData.source_type === 'KindHelmRepository') {
+      for (let kustomization of formData.clusterAutomations) {
+        for (let profile of selectedProfiles) {
+          let values: string = '';
+          let version: string = '';
+          for (let value of profile.values) {
+            if (value.selected === true) {
+              version = value.version;
+              values = value.yaml;
+              clusterAutomations.push({
+                cluster: {
+                  name: kustomization.cluster_name,
+                  namespace: kustomization.cluster_namespace,
+                },
+                isControlPlane: kustomization.cluster_isControlPlane,
+                helmRelease: {
+                  metadata: {
+                    name: profile.name,
+                    namespace: profile.namespace,
+                  },
+                  spec: {
+                    chart: {
+                      spec: {
+                        chart: profile.name,
+                        sourceRef: {
+                          name: formData.source_name,
+                          namespace: formData.source_namespace,
+                        },
+                        version,
+                      },
+                    },
+                    values,
+                  },
+                },
+              });
+            }
+          }
+        }
+      }
+    } else {
+      clusterAutomations = formData.clusterAutomations.map(
+        (kustomization: any) => {
+          return {
+            cluster: {
+              name: kustomization.cluster_name,
+              namespace: kustomization.cluster_namespace,
             },
-            spec: {
-              path: kustomization.path,
-              sourceRef: {
-                name: kustomization.source_name,
-                namespace: kustomization.source_namespace,
+            isControlPlane: kustomization.cluster_isControlPlane,
+            kustomization: {
+              metadata: {
+                name: kustomization.name,
+                namespace: kustomization.namespace,
+              },
+              spec: {
+                path: kustomization.path,
+                sourceRef: {
+                  name: kustomization.source_name,
+                  namespace: kustomization.source_namespace,
+                },
               },
             },
-          },
-        };
-      },
-    );
+          };
+        },
+      );
+    }
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
@@ -161,65 +213,92 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, setNotifications]);
+  }, [formData, history, setNotifications, selectedProfiles]);
 
-  return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Add new application">
-        <CallbackStateContextProvider
-          callbackState={{
-            page: authRedirectPage as PageRoute,
-            state: {
-              formData,
-            },
-          }}
-        >
-          <SectionHeader
-            className="count-header"
-            path={[
-              {
-                label: 'Applications',
-                url: '/applications',
-                count: applicationsCount,
+  return useMemo(() => {
+    return (
+      <ThemeProvider theme={localEEMuiTheme}>
+        <PageTemplate documentTitle="WeGo · Add new application">
+          <CallbackStateContextProvider
+            callbackState={{
+              page: authRedirectPage as PageRoute,
+              state: {
+                formData,
+                selectedProfiles,
               },
-              { label: 'Add new application' },
-            ]}
-          />
-          <ContentWrapper>
-            <Grid container>
-              <Grid item xs={12} sm={10} md={10} lg={8}>
-                {!isLoading &&
-                  formData.clusterAutomations.map(
-                    (kustomization: any, index: number) => {
-                      return (
-                        <AppFields
-                          key={index}
-                          formData={formData}
-                          setFormData={setFormData}
-                          clusters={clusters}
-                          GitRepoResponse={GitRepoResponse}
-                          index={index}
-                        ></AppFields>
-                      );
-                    },
-                  )}
-                {isLoading && <Loader></Loader>}
+            }}
+          >
+            <SectionHeader
+              className="count-header"
+              path={[
+                {
+                  label: 'Applications',
+                  url: '/applications',
+                  count: applicationsCount,
+                },
+                { label: 'Add new application' },
+              ]}
+            />
+            <ContentWrapper>
+              <Grid container>
+                <Grid item xs={12} sm={10} md={10} lg={8}>
+                  {!isLoading &&
+                    formData.clusterAutomations.map(
+                      (automation: ClusterAutomation, index: number) => {
+                        return (
+                          <AppFields
+                            key={index}
+                            index={index}
+                            formData={formData}
+                            setFormData={setFormData}
+                            clusters={clusters}
+                          />
+                        );
+                      },
+                    )}
+                  {isLoading && <Loader></Loader>}
+                </Grid>
+                {profiles.length > 0 &&
+                formData.source_type === 'KindHelmRepository' ? (
+                  <Profiles
+                    // Temp fix to hide layers when using profiles in Add App until we update the BE
+                    context="app"
+                    selectedProfiles={selectedProfiles}
+                    setSelectedProfiles={setSelectedProfiles}
+                  />
+                ) : null}
+                <Grid item xs={12} sm={10} md={10} lg={8}>
+                  <GitOps
+                    loading={loading}
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleAddApplication}
+                    showAuthDialog={showAuthDialog}
+                    setShowAuthDialog={setShowAuthDialog}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={10} md={10} lg={8}>
-                <GitOps
-                  loading={loading}
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleAddApplication}
-                  showAuthDialog={showAuthDialog}
-                  setShowAuthDialog={setShowAuthDialog}
-                />
-              </Grid>
-            </Grid>
-          </ContentWrapper>
-        </CallbackStateContextProvider>
-      </PageTemplate>
-    </ThemeProvider>
-  );
+            </ContentWrapper>
+          </CallbackStateContextProvider>
+        </PageTemplate>
+      </ThemeProvider>
+    );
+  }, [
+    applicationsCount,
+    authRedirectPage,
+    formData,
+    handleAddApplication,
+    loading,
+    profiles.length,
+    selectedProfiles,
+    showAuthDialog,
+    clusters,
+    isLoading,
+  ]);
 };
-export default AddApplication;
+
+export default () => (
+  <ProfilesProvider>
+    <AddApplication />
+  </ProfilesProvider>
+);

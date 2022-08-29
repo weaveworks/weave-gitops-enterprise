@@ -1,8 +1,11 @@
-import { createContext, useContext } from 'react';
+import { createContext, Dispatch, useContext } from 'react';
 import { UpdatedProfile } from '../../types/custom';
 
 interface ProfilesContext {
   loading: boolean;
+  setHelmRepo: Dispatch<
+    React.SetStateAction<{ name: string; namespace: string }>
+  >;
   isLoading: boolean;
   profiles: UpdatedProfile[];
   getProfileYaml: (name: string, version: string) => Promise<any>;
