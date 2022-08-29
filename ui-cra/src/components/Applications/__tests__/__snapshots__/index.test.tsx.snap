@@ -160,6 +160,7 @@ exports[`Applications index test snapshots loading 1`] = `
   -webkit-align-self: center;
   -ms-flex-item-align: center;
   align-self: center;
+  font-size: 14px;
   color: #1a1a1a;
   margin-left: 4px;
   border-radius: 2px;
@@ -883,6 +884,7 @@ exports[`Applications index test snapshots success 1`] = `
   -webkit-align-self: center;
   -ms-flex-item-align: center;
   align-self: center;
+  font-size: 14px;
   color: #1a1a1a;
   margin-left: 4px;
   border-radius: 2px;

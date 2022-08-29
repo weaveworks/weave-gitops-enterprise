@@ -50,7 +50,7 @@ const GlobalStyle = createGlobalStyle`
     background: url(${Background}) right bottom / 100% no-repeat fixed;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
-    font-size: ${theme.fontSizes.normal};
+    font-size: ${theme.fontSizes.medium};
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
