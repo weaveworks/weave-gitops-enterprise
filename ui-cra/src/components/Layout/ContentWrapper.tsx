@@ -79,6 +79,7 @@ interface Props {
   backgroundColor?: string;
   errors?: ListError[];
   loading?: boolean;
+  errorMessage?: string;
 }
 
 export const ContentWrapper: FC<Props> = ({
@@ -87,6 +88,7 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
+  errorMessage
 }) => {
   const classes = useStyles();
   const { setNotifications } = useNotifications();
@@ -134,7 +136,8 @@ export const ContentWrapper: FC<Props> = ({
           {entitlement}
         </Alert>
       )}
-      <AlertListErrors errors={errors} />
+      {errors && <AlertListErrors errors={errors} />}
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
