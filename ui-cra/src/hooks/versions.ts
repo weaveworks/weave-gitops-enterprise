@@ -24,11 +24,13 @@ export function useListConfig() {
   useEffect(() => {
     repositoryURL &&
       applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
-        const { resource, full_name } = GitUrlParse(repositoryURL);
+        const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
         if (res.provider === 'GitHub') {
           setRepoLink(`https://github.com/${full_name}/pulls`);
         } else if (res.provider === 'GitLab') {
-          setRepoLink(`${resource}/${full_name}/-/merge_requests`);
+          setRepoLink(
+            `${protocol}://${resource}/${full_name}/-/merge_requests`,
+          );
         }
       });
   }, [repositoryURL]);
