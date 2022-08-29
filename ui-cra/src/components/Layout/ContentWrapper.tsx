@@ -88,7 +88,7 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
-  errorMessage
+  errorMessage,
 }) => {
   const classes = useStyles();
   const { setNotifications } = useNotifications();

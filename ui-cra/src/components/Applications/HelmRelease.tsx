@@ -43,6 +43,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
       visible: true,
     },
   ];
+
   return (
     <PageTemplate documentTitle="WeGO · Helm Release">
       <SectionHeader
@@ -59,7 +60,9 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
       />
       <ContentWrapper
         loading={isLoading}
-        errors={[{ clusterName, namespace, message: error?.message }]}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
       >
         {!error && !isLoading && (
           <HelmReleaseDetail
