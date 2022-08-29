@@ -3,7 +3,8 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { useApplicationsCount, useSourcesCount } from './utils';
-import { HelmRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
+import { HelmRepositoryDetail, useGetObject, useListSources } from '@weaveworks/weave-gitops';
+import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -12,9 +13,21 @@ type Props = {
 };
 
 const WGApplicationsHelmRepository: FC<Props> = props => {
+  const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
   const sourcesCount = useSourcesCount();
-  const { isLoading } = useListSources();
+
+  const {
+    data: helmRepository,
+    isLoading,
+    error,
+  } = useGetObject<HelmRepository>(
+    name,
+    namespace,
+    Kind.HelmRepository,
+    clusterName
+  );
+
 
   return (
     <PageTemplate documentTitle="WeGO · Helm Repository">
@@ -36,7 +49,7 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
         ]}
       />
       <ContentWrapper loading={isLoading}>
-        <HelmRepositoryDetail {...props} />
+        <HelmRepositoryDetail helmRepository={helmRepository} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

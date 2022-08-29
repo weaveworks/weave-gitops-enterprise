@@ -135,3 +135,112 @@ export type PRDefaults = {
   pullRequestTitle: string;
   commitMessage: string;
 };
+
+export type Kustomization = {
+  namespace?: string;
+  name?: string;
+  path?: string;
+  sourceRef?: FluxObjectRef;
+  interval?: Interval;
+  conditions?: Condition[];
+  lastAppliedRevision?: string;
+  lastAttemptedRevision?: string;
+  inventory?: GroupVersionKind[];
+  suspended?: boolean;
+  clusterName?: string;
+  apiVersion?: string;
+  tenant?: string;
+};
+
+export type HelmChart = {
+  namespace?: string;
+  name?: string;
+  sourceRef?: FluxObjectRef;
+  chart?: string;
+  version?: string;
+  interval?: Interval;
+  conditions?: Condition[];
+  suspended?: boolean;
+  lastUpdatedAt?: string;
+  clusterName?: string;
+  apiVersion?: string;
+  tenant?: string;
+};
+
+export type HelmRelease = {
+  releaseName?: string;
+  namespace?: string;
+  name?: string;
+  interval?: Interval;
+  helmChart?: HelmChart;
+  conditions?: Condition[];
+  inventory?: GroupVersionKind[];
+  suspended?: boolean;
+  clusterName?: string;
+  helmChartName?: string;
+  lastAppliedRevision?: string;
+  lastAttemptedRevision?: string;
+  apiVersion?: string;
+  tenant?: string;
+};
+
+export type GitRepository = {
+  namespace?: string;
+  name?: string;
+  url?: string;
+  reference?: GitRepositoryRef;
+  secretRef?: string;
+  interval?: Interval;
+  conditions?: Condition[];
+  suspended?: boolean;
+  lastUpdatedAt?: string;
+  clusterName?: string;
+  apiVersion?: string;
+  tenant?: string;
+};
+
+export type HelmRepository = {
+  namespace?: string;
+  name?: string;
+  url?: string;
+  interval?: Interval;
+  conditions?: Condition[];
+  suspended?: boolean;
+  lastUpdatedAt?: string;
+  clusterName?: string;
+  apiVersion?: string;
+  repositoryType?: HelmRepositoryType;
+  tenant?: string;
+};
+
+export type Bucket = {
+  namespace?: string;
+  name?: string;
+  endpoint?: string;
+  insecure?: boolean;
+  interval?: Interval;
+  provider?: BucketProvider;
+  region?: string;
+  secretRefName?: string;
+  timeout?: number;
+  conditions?: Condition[];
+  bucketName?: string;
+  suspended?: boolean;
+  lastUpdatedAt?: string;
+  clusterName?: string;
+  apiVersion?: string;
+  tenant?: string;
+};
+
+export type OCIRepository = {
+  namespace?: string;
+  name?: string;
+  url?: string;
+  interval?: Interval;
+  conditions?: Condition[];
+  suspended?: boolean;
+  lastUpdatedAt?: string;
+  clusterName?: string;
+  apiVersion?: string;
+  tenant?: string;
+};
