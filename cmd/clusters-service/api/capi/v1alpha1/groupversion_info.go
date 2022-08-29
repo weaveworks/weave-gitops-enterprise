@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1alpha1 contains API Schema definitions for the capi v1alpha1 API group
-//+kubebuilder:object:generate=true
-//+groupName=capi.weave.works
+// +kubebuilder:object:generate=true
+// +groupName=capi.weave.works
 package v1alpha1
 
 import (
