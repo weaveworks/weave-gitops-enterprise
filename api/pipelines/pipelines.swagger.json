@@ -112,6 +112,20 @@
         }
       }
     },
+    "v1AppRef": {
+      "type": "object",
+      "properties": {
+        "APIVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1ClusterRef": {
       "type": "object",
       "properties": {
@@ -164,6 +178,9 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "appRef": {
+          "$ref": "#/definitions/v1AppRef"
         },
         "environments": {
           "type": "array",

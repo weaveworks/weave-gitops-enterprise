@@ -26,6 +26,12 @@ message ObjectRef {
     string namespace = 3;
 }
 
+message AppRef {
+    string APIVersion = 1;
+    string kind       = 2;
+    string name       = 3;
+}
+
 message WorkloadStatus {
     string kind    = 1;
     string name    = 2;
@@ -45,7 +51,8 @@ message PipelineStatus {
 message Pipeline {
     string         name                     = 1;
     string         namespace                = 2;
-    repeated       Environment environments = 3;
-    repeated       Target targets           = 4;
-    PipelineStatus status                   = 5;
+    AppRef         appRef                   = 3;
+    repeated       Environment environments = 4;
+    repeated       Target targets           = 5;
+    PipelineStatus status                   = 6;
 }
