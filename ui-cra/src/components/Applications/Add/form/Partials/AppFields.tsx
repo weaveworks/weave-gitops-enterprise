@@ -133,6 +133,13 @@ const AppFields: FC<{
   };
 
   const optionUrl = (url?: string, branch?: string) => {
+    const linkText = branch ? (
+      <>
+        {url}@<strong>${branch}</strong>
+      </>
+    ) : (
+      url
+    );
     if (branch) {
       return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
         <a
@@ -145,12 +152,10 @@ const AppFields: FC<{
           target="_blank"
           rel="noopener noreferrer"
         >
-          {url}@<strong>{branch}</strong>
+          {linkText}
         </a>
       ) : (
-        <span>
-          {url}@<strong>{branch}</strong>
-        </span>
+        <span>{linkText}</span>
       );
     } else {
       return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
@@ -164,10 +169,10 @@ const AppFields: FC<{
           target="_blank"
           rel="noopener noreferrer"
         >
-          {url}
+          {linkText}
         </a>
       ) : (
-        <span>{url}</span>
+        <span>{linkText}</span>
       );
     }
   };
