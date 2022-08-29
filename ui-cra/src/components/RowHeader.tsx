@@ -2,7 +2,7 @@ import { TableCell, TableRow } from '@material-ui/core';
 import styled from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
 
-const { normal } = theme.fontSizes;
+const { medium } = theme.fontSizes;
 const { small, xs } = theme.spacing;
 const { neutral30, neutral40 } = theme.colors;
 
@@ -14,16 +14,17 @@ const RowHeaderWrapper = styled.div`
 `;
 const RowTitle = styled.div`
   font-weight: 600;
-  font-size: ${normal};
+  font-size: ${medium};
   color: ${neutral30};
 `;
 
 const RowBody = styled.div`
   font-weight: 400;
-  font-size: ${normal};
+  font-size: ${medium};
   margin-left: ${xs};
   color: ${neutral40};
 `;
+
 export interface SectionRowHeader {
   children?: any;
   rowkey: string;
@@ -32,7 +33,6 @@ export interface SectionRowHeader {
 }
 export const generateRowHeaders = (rows: Array<SectionRowHeader>) => {
   return rows.map(r => {
-
     return r.hidden === true ? null : (
       <RowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
         {r.children}

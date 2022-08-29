@@ -139,7 +139,7 @@ const AppFields: FC<{
           title="Visit repository"
           style={{
             color: theme.colors.primary,
-            fontSize: theme.fontSizes.small,
+            fontSize: theme.fontSizes.medium,
           }}
           href={getGitRepoHTTPSURL(url, branch)}
           target="_blank"
@@ -158,7 +158,7 @@ const AppFields: FC<{
           title="Visit repository"
           style={{
             color: theme.colors.primary,
-            fontSize: theme.fontSizes.small,
+            fontSize: theme.fontSizes.medium,
           }}
           href={getGitRepoHTTPSURL(url)}
           target="_blank"
