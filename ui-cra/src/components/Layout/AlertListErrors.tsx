@@ -6,6 +6,7 @@ import AlertTitle from '@material-ui/lab/AlertTitle';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { ListItem, ListItemText } from '@material-ui/core';
 import { uniqBy, sortBy } from 'lodash';
+import styled from 'styled-components';
 
 const { base } = theme.spacing;
 
@@ -24,6 +25,12 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
+
+const AlertWrapper = styled(Alert)`
+  padding: ${base};
+  margin: 0 ${base} ${base} ${base};
+  borderradius: 10px;
+`;
 
 function errorInfo(item: ListError): string {
   const msg = `Cluster: ${item.clusterName}`;
@@ -47,7 +54,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   );
 
   return (
-    <Alert className={classes.alertWrapper} severity="error">
+    <AlertWrapper severity="error">
       <AlertTitle>There were errors while listing some resources:</AlertTitle>
       {filteredErrors?.map((item: ListError, index: number) => (
         <ListItem key={index} dense={true}>
@@ -58,6 +65,6 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
           />
         </ListItem>
       ))}
-    </Alert>
+    </AlertWrapper>
   );
 };
