@@ -1,9 +1,10 @@
-import { applicationsClient } from '@weaveworks/weave-gitops';
 import { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { useRequest } from '../contexts/Request';
+import GitUrlParse from 'git-url-parse';
+import { applicationsClient } from '@weaveworks/weave-gitops';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();
@@ -23,10 +24,13 @@ export function useListConfig() {
   useEffect(() => {
     repositoryURL &&
       applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+        const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
         if (res.provider === 'GitHub') {
-          setRepoLink(repositoryURL + `/pulls`);
+          setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
         } else if (res.provider === 'GitLab') {
-          setRepoLink(repositoryURL + `/-/merge_requests`);
+          setRepoLink(
+            `${protocol}://${resource}/${full_name}/-/merge_requests`,
+          );
         }
       });
   }, [repositoryURL]);
