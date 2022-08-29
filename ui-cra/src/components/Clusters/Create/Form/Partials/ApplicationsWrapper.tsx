@@ -51,7 +51,7 @@ export const ApplicationsWrapper: FC<{
                   formData={formData}
                   setFormData={setFormData}
                   index={index}
-                ></AppFields>
+                />
               </Grid>
               <Grid
                 item

@@ -1,4 +1,5 @@
 import { URL } from '../types/global';
+import GitUrlParse from 'git-url-parse';
 
 export const toPercent = (value: number, precision = 0) =>
   `${(100 * value).toFixed(precision)}%`;
@@ -15,3 +16,18 @@ export const intersperse = <T>(arr: T[], separator: (n: number) => T): T[] =>
       ...(isLast ? [] : [separator(currentIndex)]),
     ];
   }, []);
+
+export const getGitRepoHTTPSURL = (
+  repoUrl?: string,
+  repoBranch?: string,
+): string => {
+  if (repoUrl) {
+    const parsedRepo = GitUrlParse(repoUrl);
+    if (repoBranch) {
+      return `https://${parsedRepo.resource}/${parsedRepo.full_name}/tree/${repoBranch}`;
+    } else {
+      return `https://${parsedRepo.resource}/${parsedRepo.full_name}`;
+    }
+  }
+  return '';
+};

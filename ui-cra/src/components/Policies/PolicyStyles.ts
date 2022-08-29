@@ -12,7 +12,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     cardTitle: {
       fontWeight: 700,
-      fontSize: theme.fontSizes.normal,
+      fontSize: theme.fontSizes.medium,
       color: theme.colors.neutral30,
     },
     body1: {
