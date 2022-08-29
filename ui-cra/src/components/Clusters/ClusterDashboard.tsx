@@ -34,6 +34,8 @@ type Props = {
 const ClusterDashbordWrapper = styled.div`
   .kubeconfig-download {
     padding: 0;
+    font-weight: bold;
+    color: ${theme.colors.primary};
   }
 `;
 
@@ -60,7 +62,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     [
       'kubeconfig',
       <Button className="kubeconfig-download" onClick={handleClick}>
-        Download the kubeconfig here
+        Kubeconfig
       </Button>,
     ],
     ['Namespace', currentCluster?.namespace],
