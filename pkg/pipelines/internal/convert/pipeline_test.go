@@ -42,7 +42,7 @@ func TestPipelineToProto(t *testing.T) {
 		Name:      name,
 		Namespace: ns,
 		AppRef: &pb.AppRef{
-			APIVersion: "helm.toolkit.fluxcd.io/v2beta1",
+			ApiVersion: "helm.toolkit.fluxcd.io/v2beta1",
 			Kind:       "HelmRelease",
 			Name:       name,
 		},
@@ -63,7 +63,7 @@ func TestPipelineToProto(t *testing.T) {
 	assert.Equal(t, expected.Name, converted.Name)
 	assert.Equal(t, expected.Namespace, converted.Namespace)
 
-	assert.Equal(t, expected.AppRef.APIVersion, converted.AppRef.APIVersion)
+	assert.Equal(t, expected.AppRef.ApiVersion, converted.AppRef.ApiVersion)
 	assert.Equal(t, expected.AppRef.Kind, converted.AppRef.Kind)
 	assert.Equal(t, expected.AppRef.Name, converted.AppRef.Name)
 

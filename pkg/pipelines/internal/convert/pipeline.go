@@ -12,7 +12,7 @@ func PipelineToProto(list []ctrl.Pipeline, cluster string) []*pb.Pipeline {
 			Name:      p.Name,
 			Namespace: p.Namespace,
 			AppRef: &pb.AppRef{
-				APIVersion: p.Spec.AppRef.APIVersion,
+				ApiVersion: p.Spec.AppRef.APIVersion,
 				Kind:       p.Spec.AppRef.Kind,
 				Name:       p.Spec.AppRef.Name,
 			},
