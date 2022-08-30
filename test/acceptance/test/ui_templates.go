@@ -1125,6 +1125,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Eventually(fileErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).ShouldNot(HaveOccurred())
 				})
 
+				By("And I verify cluster infrastructure for the CAPD capi cluster", func() {
+					clusterInfra := pages.GertClusterInfrastructure(webDriver)
+					Expect(clusterInfra.Kind.Text()).To(MatchRegexp(`DockerCluster`), "Failed to verify CAPD infarstructure provider")
+				})
+
 				By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", clusterName), func() {
 					verifyCapiClusterKubeconfig(downloadedKubeconfigPath, clusterName)
 				})
