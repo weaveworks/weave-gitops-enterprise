@@ -1,15 +1,24 @@
 import { ThemeProvider } from '@material-ui/core/styles';
+import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
+import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPiplines } from '../../contexts/Pipelines';
 import { localEEMuiTheme } from '../../muiTheme';
 import { useApplicationsCount } from '../Applications/utils';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
+import { LinkWrapper } from '../Policies/PolicyStyles';
+import { TableWrapper } from '../Shared';
+
 
 const Piplines = () => {
   const applicationsCount = useApplicationsCount();
-
   const { error, data, isLoading } = useListPiplines();
+
+  const initialFilterState = {
+    ...filterConfig(data?.pipelines, 'namespace'),
+  };
+
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Piplines">
@@ -25,7 +34,33 @@ const Piplines = () => {
           ]}
         />
         <ContentWrapper loading={isLoading} errorMessage={error?.message}>
-          {data?.pipelines && <p>It works</p>}
+          {data?.pipelines && (
+            <TableWrapper id="piplines-list">
+              <FilterableTable
+                filters={initialFilterState}
+                rows={data?.pipelines}
+                fields={[
+                  {
+                    label: 'Name',
+                    value: (p: Pipeline) => (
+                      <LinkWrapper to={`/applications/piplines/details?name=${p.name}`}>
+                        {p.name}
+                      </LinkWrapper>
+                    ),
+                  },
+                  // {
+                  //   label: 'Cluster',
+                  //   value: 'clusterName',
+                  //   textSearchable: true,
+                  // },
+                  {
+                    label: 'Namespace',
+                    value: 'namespace',
+                  },
+                ]}
+              />
+            </TableWrapper>
+          )}
         </ContentWrapper>
       </PageTemplate>
     </ThemeProvider>
