@@ -54,7 +54,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   );
 
   return (
-    <AlertWrapper severity="error">
+    <AlertWrapper severity="error" id="alert-list-errors">
       <AlertTitle>There were errors while listing some resources:</AlertTitle>
       {filteredErrors?.map((item: ListError, index: number) => (
         <ListItem key={index} dense={true}>
