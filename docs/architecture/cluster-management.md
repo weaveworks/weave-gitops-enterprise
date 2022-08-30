@@ -30,7 +30,7 @@ This section shows the context where personas could make use of application deli
 
 ![Context Diagram](./imgs/cluster-management-context.svg)
 
-```mermaid
+```mermaid-source
 C4Context
   title Weave Gitops Enterprise
 

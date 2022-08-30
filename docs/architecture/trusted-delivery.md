@@ -27,7 +27,7 @@ This section shows the context where personas could make use of application deli
 
 ![Context Diagram](./imgs/trusted-delivery-context.svg)
 
-```mermaid
+```mermaid-source
 C4Context
 
       title Trusted Delivery - System Context Diagram
@@ -52,7 +52,7 @@ Weave Gitops Enterprise as tiered application that could be seen in the followin
 
 ![Container Diagram Capabilities](imgs/trusted-delivery-container-tiers.svg)
 
-```mermaid
+```mermaid-source
 C4Container
   title "Trusted Delivery - Container Diagram - Tiers"
   Person(platformOperator, "Platform Operator")
@@ -81,7 +81,7 @@ Looking into Trusted Delivery Domain capabilities we could see the following
 
 ![Component Diagram Capabilities](./imgs/trusted-delivery-container.svg)
 
-```mermaid
+```mermaid-source
 C4Component
     title "Application Delivery - Container Diagram - Capabilities"
     Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
