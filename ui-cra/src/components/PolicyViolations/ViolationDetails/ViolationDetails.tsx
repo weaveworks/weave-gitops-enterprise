@@ -27,10 +27,14 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
     namespace,
     occurrences,
     clusterName,
-    name
+    name,
   } = violation || {};
 
   const defaultHeaders = [
+    {
+      rowkey: 'Cluster Name',
+      value: clusterName,
+    },
     {
       rowkey: 'Violation Time',
       value: moment(createdAt).fromNow(),
@@ -61,10 +65,6 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
     ...defaultHeaders,
   ];
   const headerDetails = [
-    {
-      rowkey: 'Cluster Name',
-      value: clusterName,
-    },
     ...defaultHeaders,
     {
       rowkey: 'Application',
@@ -93,8 +93,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
         </ul>
       </div>
 
-          
-      <div className={classes.sectionSeperator} data-testid="description" >
+      <div className={classes.sectionSeperator} data-testid="description">
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}

@@ -180,6 +180,10 @@ describe('ListPolicViolations', () => {
     expect(await screen.findByText('helm-controller')).toBeTruthy();
 
     // Details
+    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
+      'default/tw-cluster-2',
+    );
+
     expect(screen.getByTestId('Policy Name')).toHaveTextContent(
       'Controller ServiceAccount Tokens Automount',
     );
@@ -192,7 +196,5 @@ describe('ListPolicViolations', () => {
       'weave.categories.access-control',
     );
     expect(screen.queryByTestId('Application')).toBeNull()
-    expect(screen.queryByTestId('Cluster Name')).toBeNull()
-
   });
 });

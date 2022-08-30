@@ -95,6 +95,12 @@ describe('ListPolicViolations', () => {
     const rows = tbl?.querySelectorAll('tbody tr');
 
     expect(rows).toHaveLength(2);
+    const text = document.querySelector(
+      '#violations-list table tbody tr td',
+    )?.textContent;
+    expect(text).toMatch(
+      'Controller ServiceAccount Tokens Automount in deployment helm-controller (1 occurrences)',
+    );
   });
 
   it('sort policy violations by violated time', async () => {
