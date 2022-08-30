@@ -121,7 +121,7 @@ const TemplatesDashboard: FC = () => {
         />
         <ContentWrapper loading={isLoading}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <ActionsWrapper id='display-action'>
+            <ActionsWrapper id="display-action">
               <GridView
                 className={view === 'grid' ? 'active' : 'inactive'}
                 onClick={() => setView('grid')}

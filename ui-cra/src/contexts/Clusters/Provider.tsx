@@ -23,6 +23,8 @@ const ClustersProvider: FC = ({ children }) => {
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
+  const [activeCluster, setActiveCluster] =
+    useState<GitopsClusterEnriched | null>(null);
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
@@ -124,6 +126,8 @@ const ClustersProvider: FC = ({ children }) => {
         getKubeconfig,
         getDashboardAnnotations,
         getCluster,
+        activeCluster,
+        setActiveCluster,
       }}
     >
       {children}

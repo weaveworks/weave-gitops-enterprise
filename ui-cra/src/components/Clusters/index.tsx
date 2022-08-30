@@ -105,10 +105,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
-    <Tooltip
-      title={clusterKind || "unknown"}
-      placement="bottom"
-    >
+    <Tooltip title={clusterKind || 'unknown'} placement="bottom">
       <span>
         <Octicon
           className={classes.clusterIcon}
@@ -116,7 +113,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
           size="medium"
           verticalAlign="middle"
         />
-        </span>
+      </span>
     </Tooltip>
   );
 };
@@ -179,8 +176,14 @@ interface FormData {
 }
 
 const MCCP: FC = () => {
-  const { clusters, isLoading, count, selectedClusters, setSelectedClusters } =
-    useClusters();
+  const {
+    clusters,
+    isLoading,
+    count,
+    selectedClusters,
+    setSelectedClusters,
+    setActiveCluster,
+  } = useClusters();
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
@@ -250,6 +253,17 @@ const MCCP: FC = () => {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
   };
+
+  const handleEditCluster = useCallback(
+    (event, c) => {
+      setActiveCluster(c);
+      const templateName = JSON.parse(
+        c.annotations['templates.weave.works/create-request'],
+      ).template_name;
+      history.push(`/clusters/templates/${templateName}/create`);
+    },
+    [history, setActiveCluster],
+  );
 
   useEffect(() => {
     if (!callbackState) {
@@ -493,6 +507,20 @@ const MCCP: FC = () => {
                         (c.conditions && c.conditions[0]?.message) || null,
                       sortValue: ({ conditions }) => computeMessage(conditions),
                       maxWidth: 600,
+                    },
+                    {
+                      label: '',
+                      value: (c: GitopsClusterEnriched) => (
+                        <Button
+                          id="create-cluster"
+                          startIcon={
+                            <Icon type={IconType.AddIcon} size="base" />
+                          }
+                          onClick={event => handleEditCluster(event, c)}
+                        >
+                          EDIT CLUSTER
+                        </Button>
+                      ),
                     },
                   ]}
                 />

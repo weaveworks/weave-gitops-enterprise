@@ -105,11 +105,18 @@ const AddCluster: FC = () => {
     renderTemplate,
     addCluster,
   } = useTemplates();
+  const { activeCluster } = useClusters();
   const clustersCount = useClusters().count;
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const { profiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
+
+  const clusterData =
+    activeCluster?.annotations &&
+    JSON.parse(
+      activeCluster?.annotations['templates.weave.works/create-request'],
+    );
 
   let initialFormData = {
     url: '',
