@@ -1,5 +1,3 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -12,7 +10,6 @@ const Policies = () => {
   const { data, isLoading, error } = useListListPolicies({});
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Policies">
         <SectionHeader
           className="count-header"
@@ -24,7 +21,6 @@ const Policies = () => {
           {data?.policies && <PolicyTable policies={data.policies} />}
         </ContentWrapper>
       </PageTemplate>
-    </ThemeProvider>
   );
 };
 
