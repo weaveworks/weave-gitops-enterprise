@@ -12,14 +12,18 @@ import useTemplates from './../Templates';
 import { useQuery } from 'react-query';
 import { Template } from '../../cluster-services/cluster_services.pb';
 
+const profilesUrl = '/v1/profiles';
+
 const ProfilesProvider: FC = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const { setNotifications } = useNotifications();
   const { activeTemplate } = useTemplates();
   const [initialProfiles, setInitialProfiles] = useState<UpdatedProfile[]>([]);
   const [profiles, setProfiles] = useState<UpdatedProfile[]>([]);
-
-  const profilesUrl = '/v1/profiles';
+  const [helmRepo, setHelmRepo] = useState<{
+    name: string;
+    namespace: string;
+  }>({ name: '', namespace: '' });
 
   const history = useHistory();
 
@@ -137,8 +141,15 @@ const ProfilesProvider: FC = ({ children }) => {
   };
 
   const { isLoading } = useQuery<ListProfilesResponse, Error>(
-    'profiles',
-    () => request('GET', profilesUrl),
+    ['profiles', helmRepo?.name, helmRepo?.namespace],
+    () =>
+      request(
+        'GET',
+        helmRepo?.name !== '' && helmRepo?.name !== ''
+          ? profilesUrl +
+              `?helmRepoName=${helmRepo?.name}&helmRepoNamespace=${helmRepo?.namespace}`
+          : profilesUrl,
+      ),
     {
       onSuccess,
       onError,
@@ -169,6 +180,7 @@ const ProfilesProvider: FC = ({ children }) => {
       value={{
         loading,
         isLoading,
+        setHelmRepo,
         profiles,
         getProfileYaml,
       }}

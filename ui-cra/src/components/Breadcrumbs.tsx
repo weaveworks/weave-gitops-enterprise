@@ -39,7 +39,7 @@ export const Count = styled.div<Size>`
   font-size: ${({ size }) =>
     size === 'small'
       ? weaveTheme.fontSizes.small
-      : weaveTheme.fontSizes.normal};
+      : weaveTheme.fontSizes.medium};
   color: ${weaveTheme.colors.black};
   margin-left: ${weaveTheme.spacing.xxs};
   border-radius: ${weaveTheme.borderRadius.soft};
@@ -64,7 +64,7 @@ const useStyles = makeStyles(() =>
       padding: ` 0 ${weaveTheme.spacing.small}`,
     },
     iconDivider: {
-      fontSize:'16px',
+      fontSize: '16px',
     },
     link: {
       color: weaveTheme.colors.black,
@@ -73,7 +73,7 @@ const useStyles = makeStyles(() =>
     labelLink: {
       color: weaveTheme.colors.black,
       fontWeight: 700,
-    }
+    },
   }),
 );
 export const Breadcrumbs: FC<Props> = ({ path, size }) => {
@@ -88,17 +88,19 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
         >
           {index > 0 && (
             <div className={classes.divider}>
-              <ArrowForward  className={classes.iconDivider}/>
+              <ArrowForward className={classes.iconDivider} />
             </div>
           )}
           {isEmpty(url) ? (
-            <Span className={classes.labelLink} title={label}>{label}</Span>
+            <Span className={classes.labelLink} title={label}>
+              {label}
+            </Span>
           ) : (
-              <Title role="heading" size={size}>
-                <Link to={url || ''} className={classes.link}>
-                  {label}
-                </Link>
-              </Title>
+            <Title role="heading" size={size}>
+              <Link to={url || ''} className={classes.link}>
+                {label}
+              </Link>
+            </Title>
           )}
           {!(count === undefined || count === null) && (
             <Count className="section-header-count" size={size}>

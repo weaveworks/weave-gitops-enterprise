@@ -36,9 +36,37 @@ export type Maintainer = {
   url?: string;
 };
 
+export enum HelmRepositoryType {
+  Default = 'Default',
+  OCI = 'OCI',
+}
+
+export type Interval = {
+  hours?: string;
+  minutes?: string;
+  seconds?: string;
+};
+
+export type Condition = {
+  type?: string;
+  status?: string;
+  reason?: string;
+  message?: string;
+  timestamp?: string;
+};
+
 export type HelmRepository = {
-  name?: string;
   namespace?: string;
+  name?: string;
+  url?: string;
+  interval?: Interval;
+  conditions?: Condition[];
+  suspended?: boolean;
+  lastUpdatedAt?: string;
+  clusterName?: string;
+  apiVersion?: string;
+  repositoryType?: HelmRepositoryType;
+  tenant?: string;
 };
 
 export type Profile = {

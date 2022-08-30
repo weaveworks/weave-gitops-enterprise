@@ -106,7 +106,6 @@ export const localEEMuiTheme = createTheme({
         width: '100%',
         padding: '8px 12px',
         '&:focus': {
-          borderColor: weaveTheme.colors.primaryDark,
           borderRadius: 2,
         },
       },

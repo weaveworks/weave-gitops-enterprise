@@ -28,10 +28,13 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
     occurrences,
     clusterName,
     name,
-    id,
   } = violation || {};
 
   const defaultHeaders = [
+    {
+      rowkey: 'Cluster Name',
+      value: clusterName,
+    },
     {
       rowkey: 'Violation Time',
       value: moment(createdAt).fromNow(),
@@ -51,7 +54,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
       rowkey: 'Policy Name',
       children: (
         <Link
-          to={`/policies/details?clusterName=${clusterName}&id=${id}`}
+          to={`/policies/details?clusterName=${clusterName}&id=${violation?.policyId}`}
           className={classes.link}
           data-violation-message={name}
         >
@@ -62,10 +65,6 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
     ...defaultHeaders,
   ];
   const headerDetails = [
-    {
-      rowkey: 'Cluster Name',
-      value: clusterName,
-    },
     ...defaultHeaders,
     {
       rowkey: 'Application',
@@ -85,7 +84,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
             ( {occurrences?.length} )
           </span>
         </div>
-        <ul className={classes.occurrencesList}>
+        <ul className={classes.occurrencesList} id="occurrences">
           {occurrences?.map(item => (
             <li key={item.message} className={classes.body1}>
               {item.message}
@@ -94,7 +93,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
         </ul>
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="description">
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
@@ -102,7 +101,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="howToSolve">
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
@@ -111,7 +110,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="violatingEntity">
         <div className={classes.cardTitle}>Violating Entity:</div>
         <div>
           <SyntaxHighlighter
