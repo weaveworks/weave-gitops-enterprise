@@ -250,6 +250,7 @@ export type CapiCluster = {
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
   status?: CapiClusterStatus
+  infrastructureRef?: CapiClusterInfrastructureRef
 }
 
 export type CapiClusterStatus = {
@@ -259,6 +260,12 @@ export type CapiClusterStatus = {
   controlPlaneReady?: boolean
   conditions?: Condition[]
   observedGeneration?: string
+}
+
+export type CapiClusterInfrastructureRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
 }
 
 export type GitopsClusterRef = {

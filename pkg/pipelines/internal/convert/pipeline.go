@@ -9,8 +9,13 @@ func PipelineToProto(list []ctrl.Pipeline, cluster string) []*pb.Pipeline {
 	out := []*pb.Pipeline{}
 	for _, p := range list {
 		r := &pb.Pipeline{
-			Name:         p.Name,
-			Namespace:    p.Namespace,
+			Name:      p.Name,
+			Namespace: p.Namespace,
+			AppRef: &pb.AppRef{
+				ApiVersion: p.Spec.AppRef.APIVersion,
+				Kind:       p.Spec.AppRef.Kind,
+				Name:       p.Spec.AppRef.Name,
+			},
 			Environments: []*pb.Environment{},
 		}
 
