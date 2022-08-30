@@ -15,7 +15,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
-import { ListPipelinesResponse } from '../api/pipelines/pipelines.pb';
+import { ListPipelinesResponse, Pipelines } from '../api/pipelines/pipelines.pb';
 import {
   GetConfigResponse,
   GetPolicyResponse,
@@ -182,12 +182,12 @@ export class PolicyClientMock {
   }
 }
 
-export class PiplinesClientMock{
+export class PiplinesClientMock implements Pipelines{
   constructor() {
-    this.ListPiplines = this.ListPiplines.bind(this);
+    this.ListPipelines = this.ListPipelines.bind(this);
   }
   ListPiplinesReturns: ListPipelinesResponse = {};
-  ListPiplines() {
+  ListPipelines() {
     return promisify(this.ListPiplinesReturns);
   }
 }
