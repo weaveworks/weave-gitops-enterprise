@@ -25,7 +25,7 @@ export type ObjectRef = {
 }
 
 export type AppRef = {
-  aPIVersion?: string
+  apiVersion?: string
   kind?: string
   name?: string
 }

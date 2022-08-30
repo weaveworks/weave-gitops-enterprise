@@ -115,7 +115,7 @@
     "v1AppRef": {
       "type": "object",
       "properties": {
-        "APIVersion": {
+        "apiVersion": {
           "type": "string"
         },
         "kind": {
