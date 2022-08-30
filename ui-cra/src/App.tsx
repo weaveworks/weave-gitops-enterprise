@@ -18,6 +18,8 @@ import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
+import { PipelinesProvider } from './contexts/Pipelines';
+import { Pipelines } from './api/pipelines/pipelines.pb';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -102,9 +104,11 @@ const App: FC = () => {
             <BrowserRouter basename={process.env.PUBLIC_URL}>
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
-                <AppContextProvider applicationsClient={applicationsClient}>
-                  <ResponsiveDrawer />
-                </AppContextProvider>
+                <PipelinesProvider api={Pipelines}>
+                  <AppContextProvider applicationsClient={applicationsClient}>
+                    <ResponsiveDrawer />
+                  </AppContextProvider>
+                </PipelinesProvider>
               </ProgressiveDeliveryProvider>
             </BrowserRouter>
           </QueryClientProvider>

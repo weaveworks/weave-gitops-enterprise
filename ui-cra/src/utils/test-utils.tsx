@@ -15,6 +15,7 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
+import { ListPipelinesResponse } from '../api/pipelines/pipelines.pb';
 import {
   GetConfigResponse,
   GetPolicyResponse,
@@ -178,6 +179,16 @@ export class PolicyClientMock {
   }
   GetPolicyValidation() {
     return promisify(this.GetPolicyValidationReturns);
+  }
+}
+
+export class PiplinesClientMock{
+  constructor() {
+    this.ListPiplines = this.ListPiplines.bind(this);
+  }
+  ListPiplinesReturns: ListPipelinesResponse = {};
+  ListPiplines() {
+    return promisify(this.ListPiplinesReturns);
   }
 }
 export function findCellInCol(cell: string, tableSelector: string) {

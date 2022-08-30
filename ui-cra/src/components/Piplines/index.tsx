@@ -10,7 +10,6 @@ import { SectionHeader } from '../Layout/SectionHeader';
 import { LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
-
 const Piplines = () => {
   const applicationsCount = useApplicationsCount();
   const { error, data, isLoading } = useListPiplines();
@@ -43,19 +42,25 @@ const Piplines = () => {
                   {
                     label: 'Name',
                     value: (p: Pipeline) => (
-                      <LinkWrapper to={`/applications/piplines/details?name=${p.name}`}>
+                      <LinkWrapper
+                        to={`/applications/piplines/details?name=${p.name}`}
+                      >
                         {p.name}
                       </LinkWrapper>
                     ),
                   },
-                  // {
-                  //   label: 'Cluster',
-                  //   value: 'clusterName',
-                  //   textSearchable: true,
-                  // },
+
                   {
                     label: 'Namespace',
                     value: 'namespace',
+                  },
+                  {
+                    label: 'Application Name',
+                    value: ({ appRef }: Pipeline) => <>{appRef?.name}</>,
+                  },
+                  {
+                    label: 'Application Kind',
+                    value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
                   },
                 ]}
               />
