@@ -41,18 +41,19 @@ const Piplines = () => {
                 fields={[
                   {
                     label: 'Name',
-                    value: (p: Pipeline) => (
+                    value: ({ name }: Pipeline) => (
                       <LinkWrapper
-                        to={`/applications/piplines/details?name=${p.name}`}
+                        to={`/applications/piplines/details?name=${name}`}
                       >
-                        {p.name}
+                        {name}
                       </LinkWrapper>
                     ),
+                    textSearchable: true,
                   },
-
                   {
                     label: 'Namespace',
                     value: 'namespace',
+                    textSearchable: true,
                   },
                   {
                     label: 'Application Name',
