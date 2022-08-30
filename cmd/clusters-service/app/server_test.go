@@ -24,6 +24,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -187,7 +188,10 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithRuntimeNamespace(ns),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
-			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
+			app.WithAuthConfig(
+				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
+				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
+			),
 			app.WithClientsFactory(pipetesting.MakeClientsFactory(k)),
 		)
 		t.Logf("%v", err)

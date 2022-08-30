@@ -22,6 +22,11 @@ type ClusterStatus struct {
 	KubeConfigButton *agouti.Selection
 }
 
+type ClusterInfrastructure struct {
+	Kind       *agouti.Selection
+	ApiVersion *agouti.Selection
+}
+
 type DeletePullRequestPopup struct {
 	Title               *agouti.Selection
 	ClosePopup          *agouti.Selection
@@ -90,10 +95,17 @@ func (c ClustersPage) CountClusters() int {
 func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
 	clusterStatus := ClusterStatus{
 		Phase:            webDriver.FindByXPath(`//tr/th[.="phase"]/following-sibling::td`),
-		KubeConfigButton: webDriver.FindByXPath(`//button[.="Download the kubeconfig here"]`),
+		KubeConfigButton: webDriver.FindByButton(`Kubeconfig`),
 	}
 
 	return &clusterStatus
+}
+
+func GertClusterInfrastructure(webDriver *agouti.Page) *ClusterInfrastructure {
+	return &ClusterInfrastructure{
+		Kind:       webDriver.FindByXPath(`//tr/td[.="Kind:"]/following-sibling::td`),
+		ApiVersion: webDriver.FindByButton(`//tr/td[.="APIVersion:"]/following-sibling::td`),
+	}
 }
 
 func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {

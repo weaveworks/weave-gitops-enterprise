@@ -61,7 +61,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("", nil, errors.New("oops")),
+			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -83,7 +83,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{

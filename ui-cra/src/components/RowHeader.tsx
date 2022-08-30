@@ -2,11 +2,11 @@ import { TableCell, TableRow } from '@material-ui/core';
 import styled from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
 
-const { normal } = theme.fontSizes;
+const { medium } = theme.fontSizes;
 const { small, xs } = theme.spacing;
 const { neutral30, neutral40 } = theme.colors;
 
-const RowHeader = styled.div`
+const RowHeaderWrapper = styled.div`
   margin: ${small} 0;
   display: flex;
   justify-content: start;
@@ -14,16 +14,17 @@ const RowHeader = styled.div`
 `;
 const RowTitle = styled.div`
   font-weight: 600;
-  font-size: ${normal};
+  font-size: ${medium};
   color: ${neutral30};
 `;
 
 const RowBody = styled.div`
   font-weight: 400;
-  font-size: ${normal};
+  font-size: ${medium};
   margin-left: ${xs};
   color: ${neutral40};
 `;
+
 export interface SectionRowHeader {
   children?: any;
   rowkey: string;
@@ -32,11 +33,10 @@ export interface SectionRowHeader {
 }
 export const generateRowHeaders = (rows: Array<SectionRowHeader>) => {
   return rows.map(r => {
-
     return r.hidden === true ? null : (
-      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
+      <RowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
         {r.children}
-      </CanaryRowHeader>
+      </RowHeader>
     );
   });
 };
@@ -74,7 +74,7 @@ export function KeyValueRow({
   );
 }
 
-function CanaryRowHeader({
+function RowHeader({
   children,
   rowkey,
   value,
@@ -84,11 +84,11 @@ function CanaryRowHeader({
   value: string | JSX.Element | undefined;
 }) {
   return (
-    <RowHeader data-testid={rowkey}>
+    <RowHeaderWrapper data-testid={rowkey}>
       <RowTitle>{rowkey} :</RowTitle>
       <RowBody>{children || value || '--'}</RowBody>
-    </RowHeader>
+    </RowHeaderWrapper>
   );
 }
 
-export default CanaryRowHeader;
+export default RowHeader;

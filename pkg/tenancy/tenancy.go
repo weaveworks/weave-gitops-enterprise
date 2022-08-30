@@ -32,6 +32,7 @@ var (
 	serviceAccountTypeMeta = typeMeta("ServiceAccount", "v1")
 	roleBindingTypeMeta    = typeMeta("RoleBinding", "rbac.authorization.k8s.io/v1")
 	policyTypeMeta         = typeMeta(pacv2beta1.PolicyKind, pacv2beta1.GroupVersion.String())
+	roleTypeMeta           = typeMeta("Role", "rbac.authorization.k8s.io/v1")
 )
 
 // AllowedRepository defines the allowed urls for each source type
@@ -40,8 +41,15 @@ type AllowedRepository struct {
 	Kind string `yaml:"kind"`
 }
 
+// AllowedCluster defines the allowed secret names that contains cluster's kubeconfig
 type AllowedCluster struct {
 	KubeConfig string `yaml:"kubeConfig"`
+}
+
+// TenanTeamRBAC defines the permissions of a tenant
+type TenantTeamRBAC struct {
+	GroupName string              `yaml:"groupName"`
+	Rules     []rbacv1.PolicyRule `yaml:"rules"`
 }
 
 // Tenant represents a tenant that we generate resources for in the tenancy
@@ -53,6 +61,7 @@ type Tenant struct {
 	Labels              map[string]string   `yaml:"labels"`
 	AllowedRepositories []AllowedRepository `yaml:"allowedRepositories"`
 	AllowedClusters     []AllowedCluster    `yaml:"allowedClusters"`
+	TeamRBAC            *TenantTeamRBAC     `yaml:"teamRBAC,omitempty"`
 }
 
 // Validate returns an error if any of the fields isn't valid
@@ -70,6 +79,12 @@ func (t Tenant) Validate() error {
 	for _, allowedRepository := range t.AllowedRepositories {
 		if err := validatePolicyRepoKind(allowedRepository.Kind); err != nil {
 			result = multierror.Append(result, err)
+		}
+	}
+
+	if t.TeamRBAC != nil {
+		if t.TeamRBAC.GroupName == "" || len(t.TeamRBAC.Rules) == 0 {
+			result = multierror.Append(result, errors.New("must provide group name and team rules in team RBAC"))
 		}
 	}
 
@@ -130,6 +145,23 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 				return err
 			}
 			fmt.Fprintf(out, "%s recreated\n", objectID)
+		}
+	case *rbacv1.Role:
+		existingRole := existing.(*rbacv1.Role)
+		var changed bool
+		if !equality.Semantic.DeepDerivative(to.GetLabels(), existingRole.GetLabels()) {
+			existingRole.SetLabels(to.GetLabels())
+			changed = true
+		}
+		if !equality.Semantic.DeepDerivative(to.Rules, existingRole.Rules) {
+			existingRole.Rules = to.Rules
+			changed = true
+		}
+		if changed {
+			if err := kubeClient.Update(ctx, existing); err != nil {
+				return fmt.Errorf("failed to update existing role: %w", err)
+			}
+			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	case *pacv2beta1.Policy:
 		existingPolicy := existing.(*pacv2beta1.Policy)
@@ -222,6 +254,10 @@ func GenerateTenantResources(tenants ...Tenant) ([]client.Object, error) {
 			generated = append(generated, newNamespace(namespace, tenantLabels))
 			generated = append(generated, newServiceAccount(tenant.Name, namespace, tenantLabels))
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, tenant.ClusterRole, tenantLabels))
+			if tenant.TeamRBAC != nil {
+				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, tenant.TeamRBAC.Rules))
+				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupName, tenant.Labels))
+			}
 		}
 		if len(tenant.AllowedRepositories) != 0 {
 			policy, err := newAllowedRepositoriesPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
@@ -293,6 +329,41 @@ func newRoleBinding(name, namespace, clusterRole string, labels map[string]strin
 				Namespace: namespace,
 			},
 		},
+	}
+}
+
+func newTeamRoleBinding(name, namespace, groupName string, labels map[string]string) *rbacv1.RoleBinding {
+	return &rbacv1.RoleBinding{
+		TypeMeta: roleBindingTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-team-rolebinding", name),
+			Namespace: namespace,
+			Labels:    labels,
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Role",
+			Name:     fmt.Sprintf("%s-team-role", name),
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				APIGroup: "rbac.authorization.k8s.io",
+				Kind:     "Group",
+				Name:     groupName,
+			},
+		},
+	}
+}
+
+func newTeamRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
+	return &rbacv1.Role{
+		TypeMeta: roleTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%s-team-role", name),
+			Namespace: namespace,
+			Labels:    labels,
+		},
+		Rules: rules,
 	}
 }
 

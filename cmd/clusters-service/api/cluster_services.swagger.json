@@ -773,6 +773,23 @@
         },
         "status": {
           "$ref": "#/definitions/v1CapiClusterStatus"
+        },
+        "infrastructureRef": {
+          "$ref": "#/definitions/v1CapiClusterInfrastructureRef"
+        }
+      }
+    },
+    "v1CapiClusterInfrastructureRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
@@ -819,6 +836,9 @@
         },
         "sourceRef": {
           "$ref": "#/definitions/v1SourceRef"
+        },
+        "version": {
+          "type": "string"
         }
       }
     },
@@ -1696,6 +1716,9 @@
           "items": {
             "$ref": "#/definitions/v1PolicyValidationOccurrence"
           }
+        },
+        "policyId": {
+          "type": "string"
         }
       }
     },

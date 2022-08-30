@@ -18,3 +18,14 @@ tenants:
     allowedClusters:
     - kubeConfig: cluster-1-kubeconfig
     - kubeConfig: cluster-2-kubeconfig
+    teamRBAC:
+      groupName: bar-group
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'

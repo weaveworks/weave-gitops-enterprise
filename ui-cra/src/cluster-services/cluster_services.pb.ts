@@ -146,6 +146,7 @@ export type PolicyValidation = {
   name?: string
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
+  policyId?: string
 }
 
 export type CreatePullRequestRequest = {
@@ -249,6 +250,7 @@ export type CapiCluster = {
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
   status?: CapiClusterStatus
+  infrastructureRef?: CapiClusterInfrastructureRef
 }
 
 export type CapiClusterStatus = {
@@ -258,6 +260,12 @@ export type CapiClusterStatus = {
   controlPlaneReady?: boolean
   conditions?: Condition[]
   observedGeneration?: string
+}
+
+export type CapiClusterInfrastructureRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
 }
 
 export type GitopsClusterRef = {
@@ -359,6 +367,7 @@ export type Chart = {
 export type ChartSpec = {
   chart?: string
   sourceRef?: SourceRef
+  version?: string
 }
 
 export type Metadata = {

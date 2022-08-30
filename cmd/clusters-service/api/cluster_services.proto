@@ -276,6 +276,7 @@ message PolicyValidation{
   string name=12;
   string clusterName = 13;
   repeated PolicyValidationOccurrence occurrences = 14;
+  string policy_id = 15;
 }
 
 message CreatePullRequestRequest {
@@ -409,6 +410,7 @@ message CapiCluster {
   map<string, string> annotations = 3;
   map<string, string> labels = 4;
   CapiClusterStatus status = 5;
+  CapiClusterInfrastructureRef infrastructureRef = 6;
 }
 
 message CapiClusterStatus {
@@ -418,6 +420,12 @@ message CapiClusterStatus {
   bool controlPlaneReady = 4;
   repeated Condition conditions = 5;
   int64 observedGeneration = 6;
+}
+
+message CapiClusterInfrastructureRef {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
 }
 
 message GitopsClusterRef { string name = 1; }
@@ -526,6 +534,7 @@ message Chart {
 message ChartSpec {
   string chart = 1;
   SourceRef source_ref = 2;
+  string version = 3; 
 }
 
 message Metadata {

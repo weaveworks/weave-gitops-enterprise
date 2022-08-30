@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import {
   generateRowHeaders,
   SectionRowHeader,
-} from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
+} from '../../RowHeader';
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
 
 function HeaderSection({
@@ -26,6 +26,7 @@ function HeaderSection({
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
+
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
@@ -43,7 +44,7 @@ function HeaderSection({
     {
       rowkey: 'Tags',
       children: (
-        <>
+        <div id="policy-details-header-tags">
           {!!tags && tags?.length > 0 ? (
             tags?.map(tag => (
               <span key={tag} className={classes.chip}>
@@ -53,7 +54,7 @@ function HeaderSection({
           ) : (
             <span>There is no tags for this policy</span>
           )}
-        </>
+        </div>
       ),
     },
     {
@@ -67,13 +68,17 @@ function HeaderSection({
     {
       rowkey: 'Targeted K8s Kind',
       children: (
-        <>
-          {targets?.kinds?.map(kind => (
-            <span key={kind} className={classes.chip}>
-              {kind}
-            </span>
-          ))}
-        </>
+        <div id="policy-details-header-kinds">
+          {targets?.kinds?.length ? (
+            targets?.kinds?.map(kind => (
+              <span key={kind} className={classes.chip}>
+                {kind}
+              </span>
+            ))
+          ) : (
+            <span>There is no kinds for this policy</span>
+          )}
+        </div>
       ),
     },
   ];
@@ -82,7 +87,7 @@ function HeaderSection({
     <>
       {generateRowHeaders(defaultHeaders)}
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="description">
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
@@ -90,7 +95,7 @@ function HeaderSection({
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="howToSolve">
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
@@ -99,7 +104,7 @@ function HeaderSection({
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="policyCode">
         <div className={classes.cardTitle}>Policy Code:</div>
         <div>
           <SyntaxHighlighter

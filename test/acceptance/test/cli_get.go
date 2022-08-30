@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"sort"
@@ -293,12 +294,16 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 		Context("[CLI] When profiles are available in the management cluster", func() {
 			It("Verify gitops can list profiles from profile repository", func() {
+				By("And wait for cluster-service to cache profiles", func() {
+					Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/profiles ")
+				})
+
 				stdOut, stdErr = runGitopsCommand(`get profiles`)
 
-				By("Then gitops lists no clusters", func() {
-					Eventually(stdOut).Should(MatchRegexp(`cert-manager\s+A Weaveworks Helm chart for the Certificate Profile\s+0.0.7`))
-					Eventually(stdOut).Should(MatchRegexp(`weave-policy-agent\s+A Weaveworks Helm chart for Kubernetes to configure the policy agent\s+0.3.1`))
-					Eventually(stdOut).Should(MatchRegexp(`podinfo\s+Podinfo Helm chart for Kubernetes\s+6.0.1,6.0`))
+				By("Then gitops lists profiles", func() {
+					Eventually(stdOut).Should(MatchRegexp(`cert-manager\s+A Weaveworks Helm chart for the Certificate Profile[\w\s]+0.0.8,0.0.7`))
+					Eventually(stdOut).Should(MatchRegexp(`weave-policy-agent\s+A Weaveworks Helm chart for Kubernetes to configure the policy agent[\w\s]+0.4.0`))
+					Eventually(stdOut).Should(MatchRegexp(`metallb\s+A Weaveworks Helm chart for a network load-balancer implementation[\w\s]+0.0.2,0.0.1`))
 				})
 			})
 		})
