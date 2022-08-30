@@ -21,7 +21,7 @@ func TestPipelineToProto(t *testing.T) {
 		},
 		Spec: ctrl.PipelineSpec{
 			AppRef: ctrl.LocalAppReference{
-				APIVersion: "pipelines.weave.works/v1alpha1",
+				APIVersion: "helm.toolkit.fluxcd.io/v2beta1",
 				Kind:       "HelmRelease",
 				Name:       name,
 			},
