@@ -62,11 +62,15 @@ const ClustersProvider: FC = ({ children }) => {
 
   const getKubeconfig = useCallback(
     (clusterName: string, clusterNamespace: string, filename: string) => {
-      request('GET', `/v1/clusters/${clusterName}/kubeconfig?cluster_namespace=${clusterNamespace}`, {
-        headers: {
-          Accept: 'application/octet-stream',
+      return request(
+        'GET',
+        `/v1/clusters/${clusterName}/kubeconfig?cluster_namespace=${clusterNamespace}`,
+        {
+          headers: {
+            Accept: 'application/octet-stream',
+          },
         },
-      })
+      )
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
           setNotifications([

@@ -12,7 +12,7 @@ import {
   applicationsClient,
   theme,
 } from '@weaveworks/weave-gitops';
-import Background from './assets/img/background.svg';
+import bg from './assets/img/bg.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
@@ -47,7 +47,9 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: url(${Background}) right bottom / 100% no-repeat fixed;
+    background: right bottom no-repeat fixed; 
+    background-image: url(${bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);
+    background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.medium};

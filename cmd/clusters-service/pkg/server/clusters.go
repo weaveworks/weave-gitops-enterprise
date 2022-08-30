@@ -142,6 +142,11 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
+	tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+	}
+
 	err = templates.ValidateRenderedTemplates(tmplWithValues)
 	if err != nil {
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
