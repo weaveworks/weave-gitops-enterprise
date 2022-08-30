@@ -39,7 +39,7 @@ This section shows the context where personas could make use of application deli
 
 ![Context Diagram](./imgs/application-delivery-context.svg)
 
-```mermaid
+```mermaid-source
 C4Context
 
       title Application Delivery - System Context Diagram
@@ -65,7 +65,7 @@ Weave Gitops Enterprise as tiered application that could be seen in the followin
 
 ![Container Diagram Capabilities](imgs/application-delivery-container-tiers.svg)
 
-```mermaid
+```mermaid-source
 C4Container
   title "Application Delivery - Container Diagram - Tiers"
   Person(platformOperator, "Platform Operator")
@@ -91,7 +91,7 @@ Looking into application delivery domain capabilities we could see the following
 
 ![Container Diagram Capabilities](imgs/application-delivery-container.svg)
 
-```mermaid
+```mermaid-source
 C4Container
     title "Application Delivery - Container Diagram - Capabilities"
     Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
@@ -121,7 +121,7 @@ It is composed by the following sub-capabilities
 
 ![Pipelines](imgs/application-delivery-pipelines.svg)
 
-```mermaid
+```mermaid-source
 
 C4Component
       title Application Delivery - Pipelines Domain Component Diagram
@@ -162,7 +162,7 @@ It is composed by the following sub-capabilities
 
 ![Progressive Delivery](imgs/application-delivery-progressive-delivery.svg)
 
-```mermaid
+```mermaid-source
 C4Component
       title Application Delivery - Progressive Delivery Domain Component Diagram
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
