@@ -410,6 +410,7 @@ message CapiCluster {
   map<string, string> annotations = 3;
   map<string, string> labels = 4;
   CapiClusterStatus status = 5;
+  CapiClusterInfrastructureRef infrastructureRef = 6;
 }
 
 message CapiClusterStatus {
@@ -419,6 +420,12 @@ message CapiClusterStatus {
   bool controlPlaneReady = 4;
   repeated Condition conditions = 5;
   int64 observedGeneration = 6;
+}
+
+message CapiClusterInfrastructureRef {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
 }
 
 message GitopsClusterRef { string name = 1; }
