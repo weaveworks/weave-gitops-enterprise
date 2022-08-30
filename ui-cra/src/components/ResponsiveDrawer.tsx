@@ -58,10 +58,12 @@ import ClusterDashboard from './Clusters/ClusterDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 import AddApplication from './Applications/Add';
+import Pipelines from './Pipelines';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
+const PIPELINES = '/applications/pipelines';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -346,6 +348,7 @@ const App = () => {
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
+              <Route exact path={PIPELINES} component={Pipelines} />
               <Route
                 path="/applications/delivery/:id"
                 component={withSearchParams(CanaryDetails)}
