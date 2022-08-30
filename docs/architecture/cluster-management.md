@@ -8,25 +8,18 @@ Preparing that cluster for workloads can require a bit more work, the Cluster Ma
 
 Our cluster-management functionality sets up a collaboration between CAPI, Flux and Helm (Profiles) for customer clusters, and provides a single-pane-of-glass view of the workloads on these clusters.
 
-## Audience
-You would be interested in know about Cluster Management Domain if
-1. You are working in a capability within the domain.
-2. You are working in a capability in another domain that has a dependency with it.
-3. You are not working in the context of the domain nor dependent, but want to understand a bit more
-of the wider weave gitops architecture.
-
 ## Glossary
 
 - Cluster Management
 
-## Cluster Management Architecture
+## Cluster Management Domains
 
 Diagrams are based on [C4 Model](https://c4model.com/). Note that there are some limitations with the visualization of 
 diagrams due to c4models integration with mermaid and markdown.
 
-### Weave Gitops Enterprise - Cluster Management Domain - Context Diagram
+### Cluster Domain
 
-This section shows the context where personas could make use of application delivery capabilities within weave gitops.
+It is composed by the following aggregates or capabilities
 
 ![Context Diagram](./imgs/cluster-management-context.svg)
 
@@ -70,8 +63,11 @@ Rel(clusterBootstrapController, clusterController, "Track cluster state")
 Rel(capiAWSController, capiController, "Update cluster state")
 ```
 
-Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/cmd/clusters-service/api/cluster_services.proto)
+**In Action**
+- Available via weave gitops enterprise [clusters experience](https://demo-01.wge.dev.weave.works/clusters)
 
-Next Steps:
+
+**Documentation and Next Steps**
+- [API](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/cmd/clusters-service/api/cluster_services.proto)
 - [code](https://github.com/weaveworks/weave-gitops-enterprise)
 - [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
