@@ -49,6 +49,12 @@ type TemplateProcessor struct {
 	Processor
 }
 
+// Params returns the set of parameters discovered in the resource templates.
+//
+// These are discovered in the templates, and enriched from the parameters
+// declared on the template.
+//
+// The returned slice is sorted by Name.
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
 	for _, v := range p.GetSpec().ResourceTemplates {
