@@ -47,48 +47,6 @@
         ]
       }
     },
-    "/v1/pipelines/status": {
-      "get": {
-        "operationId": "Pipelines_GetPipelineStatusForObject",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPipelineStatusForObjectResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "object.kind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "object.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "object.namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Pipelines"
-        ]
-      }
-    },
     "/v1/pipelines/{name}": {
       "get": {
         "operationId": "Pipelines_GetPipeline",
@@ -154,6 +112,20 @@
         }
       }
     },
+    "v1AppRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1ClusterRef": {
       "type": "object",
       "properties": {
@@ -187,14 +159,6 @@
         }
       }
     },
-    "v1GetPipelineStatusForObjectResponse": {
-      "type": "object",
-      "properties": {
-        "pipelineStatus": {
-          "$ref": "#/definitions/v1PipelineStatus"
-        }
-      }
-    },
     "v1ListPipelinesResponse": {
       "type": "object",
       "properties": {
@@ -206,20 +170,6 @@
         }
       }
     },
-    "v1ObjectRef": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        }
-      }
-    },
     "v1Pipeline": {
       "type": "object",
       "properties": {
@@ -228,6 +178,9 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "appRef": {
+          "$ref": "#/definitions/v1AppRef"
         },
         "environments": {
           "type": "array",

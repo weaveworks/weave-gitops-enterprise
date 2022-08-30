@@ -37,7 +37,7 @@ type DeletePullRequestPopup struct {
 	GitCredentials      *agouti.Selection
 }
 
-//ClustersPage elements
+// ClustersPage elements
 type ClustersPage struct {
 	ClusterHeader         *agouti.Selection
 	ClusterCount          *agouti.Selection
@@ -122,7 +122,7 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 	return &deletePRPopup
 }
 
-//GetClustersPage initialises the webDriver object
+// GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
 		ClusterHeader:         webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
