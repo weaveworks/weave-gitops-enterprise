@@ -110,7 +110,7 @@ C4Container
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")         
 ```
 
-Business Domains 
+Extend understanding on any of the domain by going into their page 
 
 - [Cluster Management](cluster-management.md)
 - [Application Delivery](application-delivery.md) 
