@@ -91,15 +91,16 @@ C4Component
 - Canary: allows to read flagger [canaries](https://docs.flagger.app/usage/how-it-works#canary-resource).
 - Metric Template: allow to read flagger [metric templates](https://docs.flagger.app/usage/metrics#custom-metrics).
 
-Its api could be seen [here](https://github.com/weaveworks/progressive-delivery/blob/main/api/prog/prog.proto)
 
-Next Steps:
+**In Action**
+- Available via weave gitops enterprise [delivery experience](https://demo-01.wge.dev.weave.works/applications/delivery)
+
+**Documentation and Next Steps**
+- [API](https://github.com/weaveworks/progressive-delivery/blob/main/api/prog/prog.proto)
 - [progressive delivery repo](https://github.com/weaveworks/progressive-delivery)
 - [weave gitops enterprise](https://github.com/weaveworks/weave-gitops-enterprise)
 - [user documentation](https://docs.gitops.weave.works/docs/guides/delivery/0)
 
-In Action:
-- Available via weave gitops enterprise [delivery experience](https://demo-01.wge.dev.weave.works/applications/delivery)
 
 
 
