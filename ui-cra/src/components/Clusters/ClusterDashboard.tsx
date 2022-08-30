@@ -35,6 +35,8 @@ type Props = {
 const ClusterDashbordWrapper = styled.div`
   .kubeconfig-download {
     padding: 0;
+    font-weight: bold;
+    color: ${theme.colors.primary};
   }
 `;
 
@@ -51,19 +53,28 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     currentCluster as GitopsClusterEnriched,
   );
   const history = useHistory();
+  const [disabled, setDisabled] = useState<boolean>(false);
 
-  const handleClick = () =>
+  const handleClick = () => {
+    setDisabled(true);
     getKubeconfig(
       clusterName,
       currentCluster?.namespace || '',
       `${clusterName}.kubeconfig`,
-    );
+    ).finally(() => {
+      setDisabled(false);
+    });
+  };
 
   const info = [
     [
       'kubeconfig',
-      <Button className="kubeconfig-download" onClick={handleClick}>
-        Download the kubeconfig here
+      <Button
+        className="kubeconfig-download"
+        onClick={handleClick}
+        disabled={disabled}
+      >
+        Kubeconfig
       </Button>,
     ],
     ['Namespace', currentCluster?.namespace],

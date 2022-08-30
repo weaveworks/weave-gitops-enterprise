@@ -18,7 +18,11 @@ interface ClustersContext {
     data: DeleteClustersPRRequestEnriched,
     token: string,
   ) => Promise<any>;
-  getKubeconfig: (clusterName: string, clusterNamespace: string, fileName: string) => void;
+  getKubeconfig: (
+    clusterName: string,
+    clusterNamespace: string,
+    fileName: string,
+  ) => Promise<any>;
   getDashboardAnnotations: (cluster: GitopsClusterEnriched) => {
     [key: string]: string;
   };
