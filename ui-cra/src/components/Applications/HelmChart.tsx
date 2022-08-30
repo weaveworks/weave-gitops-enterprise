@@ -3,8 +3,8 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useApplicationsCount, useSourcesCount } from './utils';
-import { HelmChartDetail, useGetObject, useListSources } from '@weaveworks/weave-gitops';
-import { HelmChart, Kind } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { HelmChartDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
+import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -15,7 +15,7 @@ type Props = {
 const WGApplicationsHelmChart: FC<Props> = props => {
   const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
-  const sourcesCount = useSourcesCount()
+  const sourcesCount = useSourcesCount();
   const {
     data: helmChart,
     isLoading,
@@ -41,7 +41,12 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           },
         ]}
       />
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
         <HelmChartDetail helmChart={helmChart} {...props} />
       </ContentWrapper>
     </PageTemplate>

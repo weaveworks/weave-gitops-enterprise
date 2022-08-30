@@ -67,8 +67,8 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         {!error && !isLoading && (
           <HelmReleaseDetail
             helmRelease={helmRelease}
-            {...props}
             customTabs={customTabs}
+            {...props}
           />
         )}
       </ContentWrapper>

@@ -45,7 +45,6 @@ require (
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.1.4
-	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.12.0
 	github.com/weaveworks/cluster-controller v1.2.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
@@ -71,6 +70,7 @@ require (
 	github.com/alecthomas/colour v0.0.0-20160524082231-60882d9e2721 // indirect
 	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
 	github.com/google/go-github/v45 v45.2.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 )
 
 require (
