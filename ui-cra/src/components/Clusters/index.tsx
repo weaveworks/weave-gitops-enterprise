@@ -27,16 +27,27 @@ import {
 import { DeleteClusterDialog } from './Delete';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { localEEMuiTheme } from '../../muiTheme';
-import { Checkbox, withStyles } from '@material-ui/core';
+import {
+  Checkbox,
+  withStyles,
+  createStyles,
+  makeStyles,
+} from '@material-ui/core';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import { EKSDefault, Kubernetes, GKEDefault, Kind } from '../../utils/icons';
+import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 
 interface Size {
   size?: 'small';
 }
+
+type Props = {
+  cluster: GitopsClusterEnriched;
+};
 
 const ActionsWrapper = styled.div<Size>`
   display: flex;
@@ -78,6 +89,38 @@ export function computeMessage(conditions: Condition[]) {
   return readyCondition ? readyCondition.message : 'unknown error';
 }
 
+const useStyles = makeStyles(() =>
+  createStyles({
+    clusterIcon: {
+      marginRight: theme.spacing.small,
+      color: theme.colors.neutral30,
+    },
+  }),
+);
+
+export const ClusterIcon: FC<Props> = ({ cluster }) => {
+  const classes = useStyles();
+  const clusterKind =
+    cluster.annotations?.['weave.works/cluster-kind'] ||
+    cluster.capiCluster?.infrastructureRef?.kind;
+
+  return (
+    <Tooltip
+      title={clusterKind || "unknown"}
+      placement="bottom"
+    >
+      <span>
+        <Octicon
+          className={classes.clusterIcon}
+          icon={getClusterTypeIcon(clusterKind)}
+          size="medium"
+          verticalAlign="middle"
+        />
+        </span>
+    </Tooltip>
+  );
+};
+
 const IndividualCheckbox = withStyles({
   root: {
     color: theme.colors.primary,
@@ -107,6 +150,25 @@ const ClusterRowCheckbox = ({
     name={name}
   />
 );
+
+const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
+  if (clusterType === 'DockerCluster') {
+    return Kind;
+  } else if (
+    clusterType === 'AWSCluster' ||
+    clusterType === 'AWSManagedCluster'
+  ) {
+    return EKSDefault;
+  } else if (
+    clusterType === 'AzureCluster' ||
+    clusterType === 'AzureManagedCluster'
+  ) {
+    return Kubernetes;
+  } else if (clusterType === 'GCPCluster') {
+    return GKEDefault;
+  }
+  return Kubernetes;
+};
 
 interface FormData {
   url: string | null;
@@ -406,8 +468,9 @@ const MCCP: FC = () => {
                     },
                     {
                       label: 'Type',
-                      value: (c: GitopsClusterEnriched) =>
-                        c.capiClusterRef ? 'capi' : 'other',
+                      value: (c: GitopsClusterEnriched) => (
+                        <ClusterIcon cluster={c}></ClusterIcon>
+                      ),
                     },
                     {
                       label: 'Namespace',

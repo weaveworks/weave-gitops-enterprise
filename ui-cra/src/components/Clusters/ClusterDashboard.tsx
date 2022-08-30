@@ -19,6 +19,7 @@ import {
   Button as WeaveButton,
   KubeStatusIndicator,
 } from '@weaveworks/weave-gitops';
+import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { Box, Button, Typography } from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
 import Chip from '@material-ui/core/Chip';
@@ -39,6 +40,7 @@ const ClusterDashbordWrapper = styled.div`
   }
 `;
 
+
 const ClusterDashboard = ({ clusterName }: Props) => {
   const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
     useClusters();
@@ -46,6 +48,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     useState<GitopsClusterEnriched | null>(null);
   const { path } = useRouteMatch();
   const labels = currentCluster?.labels || {};
+  const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef;
   const dashboardAnnotations = getDashboardAnnotations(
     currentCluster as GitopsClusterEnriched,
   );
@@ -76,6 +79,8 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     ],
     ['Namespace', currentCluster?.namespace],
   ];
+
+  const infrastructureRefInfo: InfoField[] = infrastructureRef ? [['Kind', infrastructureRef.kind],['APIVersion', infrastructureRef.apiVersion]] :[];
 
   useEffect(
     () => setCurrentCluster(getCluster(clusterName)),
@@ -157,6 +162,17 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                     status={currentCluster?.capiCluster?.status}
                   />
                 </Box>
+                {infrastructureRef ? (
+                  <>
+                  <Divider variant="middle" />
+                    <Box margin={2}>
+                      <Typography variant="h6" gutterBottom component="div">
+                        Infrastructure
+                      </Typography>
+                      <InfoList items={infrastructureRefInfo} />
+                    </Box>
+                  </>
+                ) : null}
               </ClusterDashbordWrapper>
             </RouterTab>
           </SubRouterTabs>
