@@ -50,18 +50,27 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     currentCluster as GitopsClusterEnriched,
   );
   const history = useHistory();
+  const [disabled, setDisabled] = useState<boolean>(false);
 
-  const handleClick = () =>
+  const handleClick = () => {
+    setDisabled(true);
     getKubeconfig(
       clusterName,
       currentCluster?.namespace || '',
       `${clusterName}.kubeconfig`,
-    );
+    ).finally(() => {
+      setDisabled(false);
+    });
+  };
 
   const info = [
     [
       'kubeconfig',
-      <Button className="kubeconfig-download" onClick={handleClick}>
+      <Button
+        className="kubeconfig-download"
+        onClick={handleClick}
+        disabled={disabled}
+      >
         Kubeconfig
       </Button>,
     ],
