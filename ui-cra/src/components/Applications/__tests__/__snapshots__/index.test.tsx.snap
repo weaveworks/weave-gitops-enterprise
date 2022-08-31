@@ -118,9 +118,7 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c15 {
-  padding: 24px;
-  font-size: 14px;
-  line-height: 12px;
+  padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
   color: #737373;
@@ -220,8 +218,8 @@ exports[`Applications index test snapshots loading 1`] = `
   display: flex;
 }
 
-.c11 > * {
-  margin-right: 12px !important;
+.c11 > .actionButton.btn {
+  margin-right: 12px;
 }
 
 <div>
@@ -300,7 +298,7 @@ exports[`Applications index test snapshots loading 1`] = `
             class="c11"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
               id="add-application"
               tabindex="0"
               type="button"
@@ -331,7 +329,7 @@ exports[`Applications index test snapshots loading 1`] = `
             </button>
             <a
               aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
               href="/"
               rel="noopener noreferrer"
               tabindex="0"
@@ -869,9 +867,7 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c40 {
-  padding: 24px;
-  font-size: 14px;
-  line-height: 12px;
+  padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
   color: #737373;
@@ -971,8 +967,8 @@ exports[`Applications index test snapshots success 1`] = `
   display: flex;
 }
 
-.c11 > * {
-  margin-right: 12px !important;
+.c11 > .actionButton.btn {
+  margin-right: 12px;
 }
 
 <div>
@@ -1054,7 +1050,7 @@ exports[`Applications index test snapshots success 1`] = `
             class="c11"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
               id="add-application"
               tabindex="0"
               type="button"
@@ -1088,7 +1084,7 @@ exports[`Applications index test snapshots success 1`] = `
             </button>
             <a
               aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
               href="/"
               rel="noopener noreferrer"
               tabindex="0"

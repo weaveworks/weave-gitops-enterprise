@@ -10,7 +10,7 @@ import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 
-const { xs, small, medium, base } = theme.spacing;
+const { xxs, xs, small, medium, base } = theme.spacing;
 const { feedbackLight, white } = theme.colors;
 
 export const Title = styled.h2`
@@ -45,9 +45,7 @@ export const WGContent = styled.div`
 `;
 
 const HelpLinkWrapper = styled.div`
-  padding: ${medium};
-  font-size: 14px;
-  line-height: ${small};
+  padding: calc(${medium} - ${xxs}) ${medium};
   margin: 0 ${base};
   background-color: rgba(255, 255, 255, 0.7);
   color: ${({ theme }) => theme.colors.neutral30};
