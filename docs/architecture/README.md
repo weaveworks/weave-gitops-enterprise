@@ -2,12 +2,14 @@
 
 ## Motivation
 
-To make visible Weave Gitops Enterprise architecture. You would be interested in this documentation if you are interested
-in any of the following views.
+This documentation tries to make visible Weave Gitops Enterprise architecture in a simple way. 
 
-1. Weave Gitops Enterprise as a whole system and how it fits into the world around it.
-2. Weave Gitops Enterprise as a set of high-level building blocks. In particular around application tiers. 
-3. Weave Gitops Enterprise as a set of lower-level building blocks, in particular around business domains using a DDD approach. 
+You would benefit of this documentation is you are in any of the following journeys.
+
+1. I want to understand how Weave Gitops Enterprise looks as a system in a simple way.
+2. I want to understand the high level  building blocks or component within Weave Gitops Enterprise in a simple way. 
+3. I want to understand the different business domains served by Weave Gitops Enterprise in a simple way.
+4. For any of the domains, I want to go deeper in terms of behaviour, api or code in. 
 
 ## Assumptions and Limitations
 
@@ -34,20 +36,23 @@ It aims to represent Weave Gitops Enterprise as a whole system and how it fits i
 
 ```mermaid-source
 C4Context
-
       title Weave Gitops Enterprise - System Context Diagram
       Person(platformOperator, "Platform Operator")
-      Person(developer, "Application Developer")      
+      Person(applicationDeveloper, "Application Developer")      
       System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
       System(ignore, "ignore")
 
       Rel(platformOperator, weaveGitopsEnterprise, "Manages Platform")
-      Rel(developer, weaveGitopsEnterprise, "Delivers Application")
-      Rel(weaveGitopsEnterprise, Git, "sync resources from")
+      Rel(applicationDeveloper, weaveGitopsEnterprise, "Delivers Application")
+      Rel(weaveGitopsEnterprise, Github, "gitops flows")
       Rel(weaveGitopsEnterprise, KubernetesCluster, "read resources via api")
 
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")
-      System_Ext(Git, "Git") 
+      System_Ext(KubernetesCluster, "Kubernetes Cluster", "")
+      System_Ext(Github, "GitHub", "Source storage in Git")      
+
+      Rel(platformOperator, Github, "GitHub Flow for changes")
+      Rel(applicationDeveloper, Github, "GitHub Flow for changes")
+
       UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 ```
 
