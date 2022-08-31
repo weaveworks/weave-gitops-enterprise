@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import Pipelines from '..';
 import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
@@ -195,7 +195,7 @@ describe('ListPipelines', () => {
       const c = wrap(<Pipelines />);
       render(c);
     });
-    
+
     const { rows } = searchTableByValue('pipelines-list', 'podinfo');
     expect(rows).toHaveLength(1);
   });
