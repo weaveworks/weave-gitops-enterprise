@@ -22,8 +22,6 @@ business domain.
 
 ## Application Delivery Domains
 
-You are familiar with [weave gitops enteprise business domains](README.md#Weave Gitops Enterprise as Business Domains)
-
 Where in the context of application delivery we could find two domains
 
 - Pipelines: enables a user to deliver application changes across different environment in an orchestrated manner. 
