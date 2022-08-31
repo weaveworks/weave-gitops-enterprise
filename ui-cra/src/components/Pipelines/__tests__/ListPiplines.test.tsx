@@ -153,7 +153,7 @@ describe('ListPipelines', () => {
           targets: [],
         },
         {
-          name: 'podinfo 2',
+          name: 'test pipline 2',
           namespace: 'flux-system',
           appRef: {
             apiVersion: '',
