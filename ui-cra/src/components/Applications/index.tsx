@@ -22,8 +22,8 @@ interface Size {
 }
 const ActionsWrapper = styled.div<Size>`
   display: flex;
-  & > * {
-    margin-right: ${({ theme }) => theme.spacing.small} !important;
+  & > .actionButton.btn {
+    margin-right: ${({ theme }) => theme.spacing.small};
   }
 `;
 
@@ -68,6 +68,7 @@ const WGApplicationsDashboard: FC = () => {
           <ActionsWrapper>
             <Button
               id="add-application"
+              className="actionButton btn"
               startIcon={<Icon type={IconType.AddIcon} size="base" />}
               onClick={handleAddApplication}
             >
@@ -75,6 +76,7 @@ const WGApplicationsDashboard: FC = () => {
             </Button>
             <Link
               target={'_blank'}
+              className="actionButton btn"
               rel="noopener noreferrer"
               component={Button}
               to={{ pathname: repoLink }}
