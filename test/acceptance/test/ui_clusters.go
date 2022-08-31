@@ -115,7 +115,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And verify GitopsCluster Type", func() {
-					Eventually(clusterInfo.Type).Should(MatchText("other"), "Failed to have expected management cluster type: other")
+					Eventually(clusterInfo.Type).Should(BeVisible(), "Failed to have expected management cluster type image/icon")
 				})
 
 				// By("And verify GitopsCluster Namespace", func() {
@@ -189,7 +189,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				By("And verify GitopsCluster Type", func() {
-					Eventually(clusterInfo.Type).Should(MatchText("other"), "Failed to have expected GitopsCluster type: other")
+					Eventually(clusterInfo.Type).Should(BeVisible(), "Failed to have expected GitopsCluster type image/icon")
 				})
 
 				By("And verify GitopsCluster Namespace", func() {
@@ -228,7 +228,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				By(fmt.Sprintf("And verify '%s' cluster page", leafClusterName), func() {
 					Eventually(clusterDetailPage.Header.Text).Should(MatchRegexp(leafClusterName), "Failed to verify leaf cluster name")
 
-					Eventually(clusterDetailPage.Kubeconfig.Text).Should(MatchRegexp("Download the kubeconfig here"), "Failed to verify download kubeconfig link.button on cluster page")
 					Eventually(func(g Gomega) error {
 						g.Expect(clusterDetailPage.Kubeconfig.Click()).To(Succeed())
 						_, err := os.Stat(downloadedKubeconfigPath)
