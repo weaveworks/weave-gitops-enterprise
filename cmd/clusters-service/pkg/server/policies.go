@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/any"
@@ -169,7 +170,12 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				if !errors.As(err, &errs) {
 					return nil, fmt.Errorf("error while listing policies: %w", err)
 				}
-
+			}
+			// FIXME: find better way to handle, v1 errors are the same as v2 but may miss some errors
+			for _, e := range errs.Errors {
+				if !strings.Contains(e.Err.Error(), "no matches for kind \"Policy\"") {
+					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
+				}
 			}
 		}
 		continueToken = clist.GetContinue()
