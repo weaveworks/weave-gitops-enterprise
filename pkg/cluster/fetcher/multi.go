@@ -18,9 +18,9 @@ import (
 )
 
 const (
-	dataKey        = "value"
-	yamlDataKey    = "value.yaml"
-	defaultCluster = "management"
+	dataKey               = "value"
+	yamlDataKey           = "value.yaml"
+	ManagementClusterName = "management"
 )
 
 type multiClusterFetcher struct {
@@ -60,7 +60,7 @@ func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) 
 
 func (f *multiClusterFetcher) self() mngr.Cluster {
 	return mngr.Cluster{
-		Name:        defaultCluster,
+		Name:        ManagementClusterName,
 		Server:      f.cfg.Host,
 		BearerToken: f.cfg.BearerToken,
 		TLSConfig:   f.cfg.TLSClientConfig,
