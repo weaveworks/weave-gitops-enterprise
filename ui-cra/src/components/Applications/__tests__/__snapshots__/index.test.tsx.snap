@@ -118,9 +118,11 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c15 {
-  padding: 12px 24px;
+  padding: 24px;
+  font-size: 14px;
+  line-height: 12px;
   margin: 0 16px;
-  background-color: rgba(255,255,255,0.85);
+  background-color: rgba(255,255,255,0.7);
   color: #737373;
   border-radius: 0 0 8px 8px;
   display: -webkit-box;
@@ -219,7 +221,7 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c11 > * {
-  margin-right: 24px;
+  margin-right: 12px !important;
 }
 
 <div>
@@ -233,7 +235,7 @@ exports[`Applications index test snapshots loading 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-15"
+          class="makeStyles-path-17"
           style="align-items: center;"
         >
           <div
@@ -241,7 +243,7 @@ exports[`Applications index test snapshots loading 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-18"
+              class="makeStyles-link-20"
               href="/applications"
             >
               Applications
@@ -327,15 +329,35 @@ exports[`Applications index test snapshots loading 1`] = `
                 ADD AN APPLICATION
               </span>
             </button>
+            <a
+              aria-disabled="false"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              href="/"
+              rel="noopener noreferrer"
+              tabindex="0"
+              target="_blank"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <div
+                  class="c8 c13 makeStyles-externalIcon-16"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
+                    />
+                  </svg>
+                </div>
+                GO TO OPEN PULL REQUESTS
+              </span>
+            </a>
           </div>
-          <a
-            href=""
-            rel="noopener noreferrer"
-            style="color: rgb(0, 179, 236); padding: 12px;"
-            target="_blank"
-          >
-            View open Pull Requests
-          </a>
         </div>
         <div
           class="c14 "
@@ -847,9 +869,11 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c40 {
-  padding: 12px 24px;
+  padding: 24px;
+  font-size: 14px;
+  line-height: 12px;
   margin: 0 16px;
-  background-color: rgba(255,255,255,0.85);
+  background-color: rgba(255,255,255,0.7);
   color: #737373;
   border-radius: 0 0 8px 8px;
   display: -webkit-box;
@@ -948,7 +972,7 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c11 > * {
-  margin-right: 24px;
+  margin-right: 12px !important;
 }
 
 <div>
@@ -962,7 +986,7 @@ exports[`Applications index test snapshots success 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-29"
+          class="makeStyles-path-32"
           style="align-items: center;"
         >
           <div
@@ -970,7 +994,7 @@ exports[`Applications index test snapshots success 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-32"
+              class="makeStyles-link-35"
               href="/applications"
             >
               Applications
@@ -1062,15 +1086,38 @@ exports[`Applications index test snapshots success 1`] = `
                 class="MuiTouchRipple-root"
               />
             </button>
+            <a
+              aria-disabled="false"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
+              href="/"
+              rel="noopener noreferrer"
+              tabindex="0"
+              target="_blank"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <div
+                  class="c8 c13 makeStyles-externalIcon-31"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
+                    />
+                  </svg>
+                </div>
+                GO TO OPEN PULL REQUESTS
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </a>
           </div>
-          <a
-            href=""
-            rel="noopener noreferrer"
-            style="color: rgb(0, 179, 236); padding: 12px;"
-            target="_blank"
-          >
-            View open Pull Requests
-          </a>
         </div>
         <div
           class="c14 c15 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
@@ -1549,14 +1596,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-39 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-41 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-44 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-42"
+                                    class="PrivateSwitchBase-input-45"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="namespace"
@@ -1599,14 +1646,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-39 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-41 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-44 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-42"
+                                    class="PrivateSwitchBase-input-45"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="status"
@@ -1649,14 +1696,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-39 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-41 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-44 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-42"
+                                    class="PrivateSwitchBase-input-45"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="type"
