@@ -69,7 +69,7 @@ C4Container
   Person(developer, "Application Developer")      
   Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
-      Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend","golang","monlith backend application with grpc api")
+      Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend","golang","backend application with grpc api")
       Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes via grpc")
       Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
   }
