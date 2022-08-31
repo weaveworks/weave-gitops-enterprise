@@ -18,7 +18,7 @@ const PipelineDetails = ({
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Pipelines">
+      <PageTemplate documentTitle="WeGo · Pipeline Details">
         <SectionHeader
           className="count-header"
           path={[
@@ -31,6 +31,9 @@ const PipelineDetails = ({
               label: 'Pipelines',
               url: '/applications/pipelines',
               count: pipelinesCount,
+            },
+            {
+              label: name,
             },
           ]}
         />
