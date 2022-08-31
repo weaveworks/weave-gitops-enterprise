@@ -1,4 +1,5 @@
 import { MuiThemeProvider } from '@material-ui/core';
+import { fireEvent } from '@testing-library/react';
 import {
   GetCanaryResponse,
   IsFlaggerAvailableResponse,
@@ -15,7 +16,10 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
-import { ListPipelinesResponse, Pipelines } from '../api/pipelines/pipelines.pb';
+import {
+  ListPipelinesResponse,
+  Pipelines,
+} from '../api/pipelines/pipelines.pb';
 import {
   GetConfigResponse,
   GetPolicyResponse,
@@ -182,13 +186,13 @@ export class PolicyClientMock {
   }
 }
 
-export class PiplinesClientMock implements Pipelines{
+export class PipelinesClientMock implements Pipelines {
   constructor() {
     this.ListPipelines = this.ListPipelines.bind(this);
   }
-  ListPiplinesReturns: ListPipelinesResponse = {};
+  ListPipelinesReturns: ListPipelinesResponse = {};
   ListPipelines() {
-    return promisify(this.ListPiplinesReturns);
+    return promisify(this.ListPipelinesReturns);
   }
 }
 export function findCellInCol(cell: string, tableSelector: string) {
@@ -214,6 +218,44 @@ export function findTextByHeading(
   return row.childNodes.item(index).textContent;
 }
 
+export function getTableInfo(id: string) {
+  const tbl = document.querySelector(`#${id} table`);
+  const rows = tbl?.querySelectorAll('tbody tr');
+  const headers = tbl?.querySelectorAll('thead tr th');
+
+  return { rows, headers };
+}
+
+export function sortTableByColumn(tableId: string, column: string) {
+  const btns = document.querySelectorAll<HTMLElement>(
+    `#${tableId} table thead tr th button`,
+  );
+  // Click on ${column} button
+  btns.forEach(ele => {
+    if (ele.textContent === column) {
+      ele.click();
+    }
+  });
+}
+
+export function searchTableByValue(tableId: string, searchVal: string) {
+  const searchBtn = document.querySelector<HTMLElement>(
+    "div[class*='SearchField'] > button",
+  );
+  searchBtn?.click();
+  const searchInput = document.getElementById(
+    'table-search',
+  ) as HTMLInputElement;
+
+  fireEvent.change(searchInput, { target: { value: searchVal } });
+
+  const searchForm = document.querySelector(
+    "div[class*='SearchField'] > form",
+  ) as Element;
+
+  fireEvent.submit(searchForm);
+  return getTableInfo(tableId);
+}
 // Helper to ensure that tests still pass if columns get re-ordered
 function findColByHeading(
   cols: NodeListOf<Element> | undefined,

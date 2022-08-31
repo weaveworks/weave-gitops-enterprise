@@ -20,12 +20,90 @@ export const PipelinesProvider = ({ api, children }: Props) => (
 
 export const usePipelines = () => React.useContext(PipelinesContext);
 
-const LIST_PIPLINES_KEY = 'list-piplines';
-export const useListPiplines = () => {
+const LIST_PIPLINES_KEY = 'list-pipelines';
+export const useListPipelines = () => {
   const pipelinsService = usePipelines();
   return useQuery<ListPipelinesResponse, Error>(
     [LIST_PIPLINES_KEY],
-    () => pipelinsService.ListPipelines({}),
+    () =>
+      new Promise((resolve, err) => {
+        resolve({
+          pipelines: [
+            {
+              name: 'podinfo',
+              namespace: 'default',
+              appRef: {
+                apiVersion: '',
+                kind: 'HelmRelease',
+                name: 'podinfo',
+              },
+              environments: [
+                {
+                  name: 'dev',
+                  targets: [
+                    {
+                      namespace: 'podinfo',
+                      clusterRef: {
+                        kind: 'GitopsCluster',
+                        name: 'dev',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'prod',
+                  targets: [
+                    {
+                      namespace: 'podinfo',
+                      clusterRef: {
+                        kind: 'GitopsCluster',
+                        name: 'prod',
+                      },
+                    },
+                  ],
+                },
+              ],
+              targets: [],
+            },
+            {
+              name: 'pipeline test',
+              namespace: 'flux-system',
+              appRef: {
+                apiVersion: '',
+                kind: 'HelmRelease',
+                name: 'podinfo 2',
+              },
+              environments: [
+                {
+                  name: 'dev',
+                  targets: [
+                    {
+                      namespace: 'podinfo',
+                      clusterRef: {
+                        kind: 'GitopsCluster',
+                        name: 'dev',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'prod',
+                  targets: [
+                    {
+                      namespace: 'podinfo',
+                      clusterRef: {
+                        kind: 'GitopsCluster',
+                        name: 'prod',
+                      },
+                    },
+                  ],
+                },
+              ],
+              targets: [],
+            },
+          ],
+        });
+      }),
     { retry: false },
   );
 };

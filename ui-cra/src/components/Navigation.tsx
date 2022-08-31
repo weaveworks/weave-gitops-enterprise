@@ -154,8 +154,8 @@ export const Navigation: FC = () => {
           isVisible: true,
         },
         {
-          name: 'Piplines',
-          link: '/applications/piplines',
+          name: 'Pipelines',
+          link: '/applications/pipelines',
           isVisible: true,
         },
         {

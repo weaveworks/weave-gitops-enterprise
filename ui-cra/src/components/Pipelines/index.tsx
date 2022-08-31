@@ -1,7 +1,7 @@
 import { ThemeProvider } from '@material-ui/core/styles';
 import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../api/pipelines/types.pb';
-import { useListPiplines } from '../../contexts/Pipelines';
+import { useListPipelines } from '../../contexts/Pipelines';
 import { localEEMuiTheme } from '../../muiTheme';
 import { useApplicationsCount } from '../Applications/utils';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -10,9 +10,9 @@ import { SectionHeader } from '../Layout/SectionHeader';
 import { LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
-const Piplines = () => {
+const Pipelines = () => {
   const applicationsCount = useApplicationsCount();
-  const { error, data, isLoading } = useListPiplines();
+  const { error, data, isLoading } = useListPipelines();
 
   const initialFilterState = {
     ...filterConfig(data?.pipelines, 'namespace'),
@@ -20,7 +20,7 @@ const Piplines = () => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Piplines">
+      <PageTemplate documentTitle="WeGo · Pipelines">
         <SectionHeader
           className="count-header"
           path={[
@@ -29,12 +29,12 @@ const Piplines = () => {
               url: '/applications',
               count: applicationsCount,
             },
-            { label: 'Piplines', count: data?.pipelines?.length },
+            { label: 'Pipelines', count: data?.pipelines?.length },
           ]}
         />
         <ContentWrapper loading={isLoading} errorMessage={error?.message}>
           {data?.pipelines && (
-            <TableWrapper id="piplines-list">
+            <TableWrapper id="pipelines-list">
               <FilterableTable
                 filters={initialFilterState}
                 rows={data?.pipelines}
@@ -43,11 +43,12 @@ const Piplines = () => {
                     label: 'Name',
                     value: ({ name }: Pipeline) => (
                       <LinkWrapper
-                        to={`/applications/piplines/details?name=${name}`}
+                        to={`/applications/pipelines/details?name=${name}`}
                       >
                         {name}
                       </LinkWrapper>
                     ),
+                    sortValue: ({ name }: Pipeline) => name,
                     textSearchable: true,
                   },
                   {
@@ -58,10 +59,12 @@ const Piplines = () => {
                   {
                     label: 'Application Name',
                     value: ({ appRef }: Pipeline) => <>{appRef?.name}</>,
+                    sortValue: ({ appRef }: Pipeline) => appRef?.name,
                   },
                   {
                     label: 'Application Kind',
                     value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
+                    sortValue: ({ appRef }: Pipeline) => appRef?.name,
                   },
                 ]}
               />
@@ -73,4 +76,4 @@ const Piplines = () => {
   );
 };
 
-export default Piplines;
+export default Pipelines;

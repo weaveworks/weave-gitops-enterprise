@@ -58,12 +58,12 @@ import ClusterDashboard from './Clusters/ClusterDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 import AddApplication from './Applications/Add';
-import Piplines from './Piplines';
+import Pipelines from './Pipelines';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
-const PIPLINES = '/applications/piplines';
+const PIPLINES = '/applications/pipelines';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -358,7 +358,7 @@ const App = () => {
                 path="/policies/details"
                 component={withSearchParams(PolicyDetails)}
               />
-              <Route exact path={PIPLINES} component={Piplines} />
+              <Route exact path={PIPLINES} component={Pipelines} />
 
               <Route
                 exact
