@@ -132,7 +132,7 @@ describe('ListPolicies', () => {
     const btns = document.querySelectorAll<HTMLElement>(
       '#policy-list table thead tr th button',
     );
-     // Click on Severity button  
+     // Click on Severity button to reverse order
      btns.forEach(ele => {
       if (ele.textContent === 'Age') {
         ele.click()
@@ -142,7 +142,7 @@ describe('ListPolicies', () => {
     const text = document.querySelector(
       '#policy-list table tbody tr td',
     )?.textContent;
-    expect(text).toMatch('Containers Running With Privilege Escalation');
+    expect(text).toMatch('dev-team allowed clusters');
   });
   it('sort policies by severity', async () => {
     api.ListPoliciesReturns = {
