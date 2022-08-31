@@ -122,8 +122,6 @@ const AddCluster: FC = () => {
       activeCluster?.annotations['templates.weave.works/create-request'],
     );
 
-  console.log(clusterData);
-
   let initialFormData = {
     url: '',
     provider: '',
@@ -139,24 +137,6 @@ const AddCluster: FC = () => {
   let initialInfraCredential = {} as Credential;
 
   const callbackState = getCallbackState();
-
-  // coming from the annotations
-  // 0:
-  // layer: "layer-0"
-  // name: "cert-manager"
-  // version: "0.0.7"
-
-  // selected profiles
-  // 0:
-  //     layer: ""
-  //     name: "dex"
-  //     required: false
-  //         values: Array(3)
-  //         0: {version: '0.0.4', yaml: '', selected: true}
-  //         1: {version: '0.0.3', yaml: '', selected: false}
-  //         2: {version: '0.0.2', yaml: '', selected: false}
-
-  console.log(callbackState && callbackState.state.selectedProfiles);
 
   if (callbackState) {
     initialFormData = {
@@ -181,13 +161,14 @@ const AddCluster: FC = () => {
 
     let clusterAutomations = [] as ClusterAutomation[];
 
-    clusterData.kustomizations.forEach((k: Kustomization) =>
-      clusterAutomations.push({
-        name: k.metadata?.name,
-        namespace: k.metadata?.namespace,
-        path: k.spec?.path,
-      }),
-    );
+    clusterData.kustomizations &&
+      clusterData.kustomizations.forEach((k: Kustomization) =>
+        clusterAutomations.push({
+          name: k.metadata?.name,
+          namespace: k.metadata?.namespace,
+          path: k.spec?.path,
+        }),
+      );
 
     initialFormData.clusterAutomations = clusterAutomations;
 
@@ -200,6 +181,24 @@ const AddCluster: FC = () => {
       ...initialInfraCredential,
       ...clusterData.credentials,
     };
+
+    let selectedProfiles = [] as UpdatedProfile[];
+
+    if (clusterData.values) {
+      for (let clusterDataProfile of clusterData.values) {
+        for (let profile of profiles) {
+          for (let value of profile.values) {
+            if (value.version === clusterDataProfile.version) {
+              value.yaml = atob(clusterDataProfile.values);
+              value.selected = true;
+              selectedProfiles.push(profile);
+            }
+          }
+        }
+      }
+    }
+
+    initialProfiles = [...initialProfiles, ...selectedProfiles];
   }
 
   const [formData, setFormData] = useState<any>(initialFormData);
