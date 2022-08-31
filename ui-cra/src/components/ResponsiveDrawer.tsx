@@ -64,7 +64,7 @@ import WGApplicationsOCIRepository from './Applications/OCIRepository';
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
-const PIPLINES = '/applications/pipelines';
+const PIPELINES = '/applications/pipelines';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -357,6 +357,7 @@ const App = () => {
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
+              <Route exact path={PIPELINES} component={Pipelines} />
               <Route
                 path="/applications/delivery/:id"
                 component={withSearchParams(CanaryDetails)}
@@ -367,7 +368,7 @@ const App = () => {
                 path="/policies/details"
                 component={withSearchParams(PolicyDetails)}
               />
-              <Route exact path={PIPLINES} component={Pipelines} />
+              <Route exact path={PIPELINES} component={Pipelines} />
 
               <Route
                 exact
