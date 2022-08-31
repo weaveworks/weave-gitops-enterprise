@@ -105,10 +105,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
-    <Tooltip
-      title={clusterKind || "unknown"}
-      placement="bottom"
-    >
+    <Tooltip title={clusterKind || 'unknown'} placement="bottom">
       <span>
         <Octicon
           className={classes.clusterIcon}
@@ -116,7 +113,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
           size="medium"
           verticalAlign="middle"
         />
-        </span>
+      </span>
     </Tooltip>
   );
 };
@@ -249,6 +246,7 @@ const MCCP: FC = () => {
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
+    ...filterConfig(clusters, 'name'),
   };
 
   useEffect(() => {
