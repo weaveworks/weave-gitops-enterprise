@@ -60,6 +60,7 @@ import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 import AddApplication from './Applications/Add';
 import Pipelines from './Pipelines';
 import WGApplicationsOCIRepository from './Applications/OCIRepository';
+import PipelineDetails from './Pipelines/PipelineDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -359,6 +360,11 @@ const App = () => {
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
               <Route exact path={PIPELINES} component={Pipelines} />
               <Route
+                exact
+                path="/applications/pipelines/details"
+                component={withSearchParams(PipelineDetails)}
+              />
+              <Route
                 path="/applications/delivery/:id"
                 component={withSearchParams(CanaryDetails)}
               />
@@ -368,8 +374,6 @@ const App = () => {
                 path="/policies/details"
                 component={withSearchParams(PolicyDetails)}
               />
-              <Route exact path={PIPELINES} component={Pipelines} />
-
               <Route
                 exact
                 path={GITLAB_OAUTH_CALLBACK}

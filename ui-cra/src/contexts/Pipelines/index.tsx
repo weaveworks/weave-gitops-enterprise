@@ -1,6 +1,8 @@
 import React from 'react';
 import { useQuery } from 'react-query';
 import {
+  GetPipelineRequest,
+  GetPipelineResponse,
   ListPipelinesResponse,
   Pipelines,
 } from '../../api/pipelines/pipelines.pb';
@@ -26,6 +28,26 @@ export const useListPipelines = () => {
   return useQuery<ListPipelinesResponse, Error>(
     [LIST_PIPLINES_KEY],
     () => pipelinsService.ListPipelines({}),
+    { retry: false },
+  );
+};
+
+export const useCountPipelines = () => {
+  const pipelinsService = usePipelines();
+  const { data } = useQuery<ListPipelinesResponse, Error>(
+    [LIST_PIPLINES_KEY],
+    () => pipelinsService.ListPipelines({}),
+    { retry: false },
+  );
+  return data?.pipelines?.length;
+};
+
+const GET_PIPLINES_KEY = 'get-pipline';
+export const useGetPipeline = (req: GetPipelineRequest) => {
+  const pipelinsService = usePipelines();
+  return useQuery<GetPipelineResponse, Error>(
+    [GET_PIPLINES_KEY],
+    () => pipelinsService.GetPipeline(req),
     { retry: false },
   );
 };
