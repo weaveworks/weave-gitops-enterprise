@@ -392,6 +392,7 @@ const AddCluster: FC = () => {
                 <Profiles
                   selectedProfiles={selectedProfiles}
                   setSelectedProfiles={setSelectedProfiles}
+                  templateAnnotations={activeTemplate?.annotations}
                 />
               )}
               <Grid item xs={12} sm={10} md={10} lg={8}>

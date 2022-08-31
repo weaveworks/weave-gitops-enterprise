@@ -44,7 +44,8 @@ const Profiles: FC<{
   context?: string;
   selectedProfiles: UpdatedProfile[];
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
-}> = ({ context, selectedProfiles, setSelectedProfiles }) => {
+  templateAnnotations?:{ [key: string]: string };
+}> = ({ context, selectedProfiles, setSelectedProfiles,templateAnnotations }) => {
   const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
     profiles.map(p => p.name);
   const { profiles, isLoading } = useProfiles();
@@ -166,6 +167,7 @@ const Profiles: FC<{
                   <ProfilesListItem
                     context={context}
                     profile={p}
+                    templateAnnotations={templateAnnotations}
                     selectedProfiles={selectedProfiles}
                     setSelectedProfiles={setSelectedProfiles}
                   />
