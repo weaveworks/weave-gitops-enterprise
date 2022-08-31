@@ -90,7 +90,6 @@ C4Container
 From the previous view, we could go a level deeper to understand the different 
 business domains provided weave gitops enterprise.
 
-//TODO update me
 ![Container Diagram Capabilities](imgs/domains.svg)
 
 ```mermaid-source
