@@ -178,6 +178,11 @@ export const Navigation: FC = () => {
       link: '/policies',
       icon: <Policies />,
     },
+    {
+      name: 'Terrform',
+      link: '/terraform',
+      icon: <Applications />,
+    },
   ];
   return (
     <>
