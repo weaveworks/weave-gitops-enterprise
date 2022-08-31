@@ -35,7 +35,6 @@ Pipelines enables a user to deliver application changes across different environ
 
 It is composed by the following aggregates or capabilities
 
-//TODO update
 ![Pipelines](imgs/application-delivery-pipelines.svg)
 
 ```mermaid-source
