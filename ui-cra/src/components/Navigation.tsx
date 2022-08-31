@@ -166,11 +166,6 @@ export const Navigation: FC = () => {
           isVisible:
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
         },
-        {
-          name: 'Pipelines',
-          link: '/applications/pipelines',
-          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
-        },
       ],
     },
     {
