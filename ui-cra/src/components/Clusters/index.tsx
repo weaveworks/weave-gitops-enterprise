@@ -246,6 +246,7 @@ const MCCP: FC = () => {
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
+    ...filterConfig(clusters, 'name'),
   };
 
   useEffect(() => {
