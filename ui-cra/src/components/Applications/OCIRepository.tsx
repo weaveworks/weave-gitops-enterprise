@@ -4,11 +4,11 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { useApplicationsCount, useSourcesCount } from './utils';
 import {
-  HelmRepositoryDetail,
+  OCIRepositoryDetail,
   Kind,
   useGetObject,
 } from '@weaveworks/weave-gitops';
-import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -16,24 +16,23 @@ type Props = {
   clusterName: string;
 };
 
-const WGApplicationsHelmRepository: FC<Props> = props => {
+const WGApplicationsOCIRepository: FC<Props> = props => {
   const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
   const sourcesCount = useSourcesCount();
-
   const {
-    data: helmRepository,
+    data: ociRepository,
     isLoading,
     error,
-  } = useGetObject<HelmRepository>(
+  } = useGetObject<OCIRepository>(
     name,
     namespace,
-    Kind.HelmRepository,
+    Kind.OCIRepository,
     clusterName,
   );
 
   return (
-    <PageTemplate documentTitle="WeGO · Helm Repository">
+    <PageTemplate documentTitle="WeGO · Git Repository">
       <SectionHeader
         path={[
           {
@@ -57,10 +56,10 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <HelmRepositoryDetail helmRepository={helmRepository} {...props} />
+        <OCIRepositoryDetail ociRepository={ociRepository} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsHelmRepository;
+export default WGApplicationsOCIRepository;

@@ -155,7 +155,7 @@ describe('ListPolicViolations', () => {
       '#violations-list table tbody tr td',
     )?.textContent;
     expect(text).toMatch(
-      'Controller ServiceAccount Tokens Automount in deployment helm-controller (1 occurrences)',
+      'Container Running As User in deployment helm-controller (1 occurrences)',
     );
   });
   it('sort policy violations by severity', async () => {

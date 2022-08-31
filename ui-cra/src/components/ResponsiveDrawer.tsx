@@ -58,6 +58,7 @@ import ClusterDashboard from './Clusters/ClusterDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 import AddApplication from './Applications/Add';
+import WGApplicationsOCIRepository from './Applications/OCIRepository';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -336,6 +337,14 @@ const App = () => {
                   </CoreWrapper>
                 ))}
                 path={V2Routes.HelmChart}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsOCIRepository {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.OCIRepository}
               />
               <Route
                 component={() => (

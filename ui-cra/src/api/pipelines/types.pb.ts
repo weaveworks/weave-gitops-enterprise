@@ -24,6 +24,12 @@ export type ObjectRef = {
   namespace?: string
 }
 
+export type AppRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
+}
+
 export type WorkloadStatus = {
   kind?: string
   name?: string
@@ -43,6 +49,7 @@ export type PipelineStatus = {
 export type Pipeline = {
   name?: string
   namespace?: string
+  appRef?: AppRef
   environments?: Environment[]
   targets?: Target[]
   status?: PipelineStatus

@@ -8,7 +8,7 @@ import (
 	. "github.com/sclevine/agouti/matchers"
 )
 
-//Header webDriver elements
+// Header webDriver elements
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection

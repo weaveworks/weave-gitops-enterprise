@@ -23,7 +23,11 @@ const WGApplicationsKustomization: FC<Props> = ({
   clusterName,
 }) => {
   const applicationsCount = useApplicationsCount();
-  const { data, isLoading } = useGetKustomization(name, namespace, clusterName);
+  const { data, isLoading, error } = useGetKustomization(
+    name,
+    namespace,
+    clusterName,
+  );
   const kustomization = data?.kustomization;
   const { path } = useRouteMatch();
 
@@ -60,7 +64,12 @@ const WGApplicationsKustomization: FC<Props> = ({
           },
         ]}
       />
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
         <KustomizationDetail
           kustomization={kustomization}
           customTabs={customTabs}
