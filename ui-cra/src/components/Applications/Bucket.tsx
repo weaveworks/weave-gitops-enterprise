@@ -1,9 +1,10 @@
 import { FC } from 'react';
-import { BucketDetail, useListSources } from '@weaveworks/weave-gitops';
+import { BucketDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { useApplicationsCount, useSourcesCount } from './utils';
+import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -12,9 +13,14 @@ type Props = {
 };
 
 const WGApplicationsBucket: FC<Props> = props => {
+  const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
-  const { isLoading } = useListSources();
   const sourcesCount = useSourcesCount();
+  const {
+    data: bucket,
+    isLoading,
+    error,
+  } = useGetObject<Bucket>(name, namespace, Kind.Bucket, clusterName);
 
   return (
     <PageTemplate documentTitle="WeGO · Bucket">
@@ -35,8 +41,13 @@ const WGApplicationsBucket: FC<Props> = props => {
           },
         ]}
       />
-      <ContentWrapper loading={isLoading}>
-        <BucketDetail {...props} />
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <BucketDetail bucket={bucket} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

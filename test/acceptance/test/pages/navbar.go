@@ -8,7 +8,7 @@ import (
 	"github.com/sclevine/agouti"
 )
 
-//NavbarwebDriver webDriver elements
+// NavbarwebDriver webDriver elements
 type NavbarwebDriver struct {
 	Title        *agouti.Selection
 	Clusters     *agouti.Selection
@@ -18,7 +18,7 @@ type NavbarwebDriver struct {
 	Violations   *agouti.Selection
 }
 
-//NavbarwebDriver initialises the webDriver object
+// NavbarwebDriver initialises the webDriver object
 func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 	navbar := NavbarwebDriver{
 		Title:        webDriver.Find(`nav a[title="Home"]`),
