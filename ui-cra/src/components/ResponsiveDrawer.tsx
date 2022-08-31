@@ -60,7 +60,6 @@ import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 import AddApplication from './Applications/Add';
 import Pipelines from './Pipelines';
 import WGApplicationsOCIRepository from './Applications/OCIRepository';
-import Pipelines from './Pipelines';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
