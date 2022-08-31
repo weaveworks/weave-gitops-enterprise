@@ -13,7 +13,11 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import Grid from '@material-ui/core/Grid';
 import Divider from '@material-ui/core/Divider';
 import { useHistory } from 'react-router-dom';
-import { Credential, UpdatedProfile } from '../../../types/custom';
+import {
+  ClusterAutomation,
+  Credential,
+  UpdatedProfile,
+} from '../../../types/custom';
 import styled from 'styled-components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { Loader } from '../../Loader';
@@ -127,7 +131,7 @@ const AddCluster: FC = () => {
     pullRequestTitle: 'Creates cluster',
     commitMessage: 'Creates capi cluster',
     pullRequestDescription: 'This PR creates a new cluster',
-    clusterAutomations: [],
+    clusterAutomations: [] as ClusterAutomation[],
   };
 
   let initialProfiles = [] as UpdatedProfile[];
@@ -135,6 +139,24 @@ const AddCluster: FC = () => {
   let initialInfraCredential = {} as Credential;
 
   const callbackState = getCallbackState();
+
+  // coming from the annotations
+  // 0:
+  // layer: "layer-0"
+  // name: "cert-manager"
+  // version: "0.0.7"
+
+  // selected profiles
+  // 0:
+  //     layer: ""
+  //     name: "dex"
+  //     required: false
+  //         values: Array(3)
+  //         0: {version: '0.0.4', yaml: '', selected: true}
+  //         1: {version: '0.0.3', yaml: '', selected: false}
+  //         2: {version: '0.0.2', yaml: '', selected: false}
+
+  console.log(callbackState && callbackState.state.selectedProfiles);
 
   if (callbackState) {
     initialFormData = {
@@ -156,6 +178,24 @@ const AddCluster: FC = () => {
       ...initialFormData,
       ...clusterData.parameter_values,
     };
+
+    let clusterAutomations = [] as ClusterAutomation[];
+
+    clusterData.kustomizations.forEach((k: Kustomization) =>
+      clusterAutomations.push({
+        name: k.metadata?.name,
+        namespace: k.metadata?.namespace,
+        path: k.spec?.path,
+      }),
+    );
+
+    initialFormData.clusterAutomations = clusterAutomations;
+
+    initialFormData = {
+      ...initialFormData,
+      ...clusterData.parameter_values,
+    };
+
     initialInfraCredential = {
       ...initialInfraCredential,
       ...clusterData.credentials,
@@ -417,12 +457,10 @@ const AddCluster: FC = () => {
                 />
               )}
               <Grid item xs={12} sm={10} md={10} lg={8}>
-                {
-                  <ApplicationsWrapper
-                    formData={formData}
-                    setFormData={setFormData}
-                  ></ApplicationsWrapper>
-                }
+                <ApplicationsWrapper
+                  formData={formData}
+                  setFormData={setFormData}
+                />
               </Grid>
               {openPreview && PRPreview ? (
                 <Preview

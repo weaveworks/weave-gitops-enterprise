@@ -135,3 +135,9 @@ export type PRDefaults = {
   pullRequestTitle: string;
   commitMessage: string;
 };
+
+export type ClusterAutomation = {
+  name?: string;
+  namespace?: string;
+  path?: string;
+};
