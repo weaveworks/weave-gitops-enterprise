@@ -23,8 +23,12 @@ func (s *server) ListPipelines(ctx context.Context, msg *pb.ListPipelinesRequest
 		return nil, fmt.Errorf("failed retrieving pipelines from API server: %w", err)
 	}
 
-	return &pb.ListPipelinesResponse{
-		Pipelines: convert.PipelineToProto(res.Items),
-	}, nil
+	pipelines := []*pb.Pipeline{}
+	for _, p := range res.Items {
+		pipelines = append(pipelines, convert.PipelineToProto(p))
+	}
 
+	return &pb.ListPipelinesResponse{
+		Pipelines: pipelines,
+	}, nil
 }
