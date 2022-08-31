@@ -1,5 +1,4 @@
 import { MuiThemeProvider } from '@material-ui/core';
-import { fireEvent } from '@testing-library/react';
 import {
   GetCanaryResponse,
   IsFlaggerAvailableResponse,
@@ -252,24 +251,7 @@ export function sortTableByColumn(tableId: string, column: string) {
   });
 }
 
-export function searchTableByValue(tableId: string, searchVal: string) {
-  const searchBtn = document.querySelector<HTMLElement>(
-    "div[class*='SearchField'] > button",
-  );
-  searchBtn?.click();
-  const searchInput = document.getElementById(
-    'table-search',
-  ) as HTMLInputElement;
 
-  fireEvent.change(searchInput, { target: { value: searchVal } });
-
-  const searchForm = document.querySelector(
-    "div[class*='SearchField'] > form",
-  ) as Element;
-
-  fireEvent.submit(searchForm);
-  return getTableInfo(tableId);
-}
 // Helper to ensure that tests still pass if columns get re-ordered
 function findColByHeading(
   cols: NodeListOf<Element> | undefined,

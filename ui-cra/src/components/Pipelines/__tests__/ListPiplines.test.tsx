@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import Pipelines from '..';
 import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
@@ -6,7 +6,6 @@ import {
   withContext,
   defaultContexts,
   getTableInfo,
-  searchTableByValue,
 } from '../../../utils/test-utils';
 
 describe('ListPipelines', () => {
@@ -200,3 +199,22 @@ describe('ListPipelines', () => {
     expect(rows).toHaveLength(1);
   });
 });
+
+export function searchTableByValue(tableId: string, searchVal: string) {
+  const searchBtn = document.querySelector<HTMLElement>(
+    "div[class*='SearchField'] > button",
+  );
+  searchBtn?.click();
+  const searchInput = document.getElementById(
+    'table-search',
+  ) as HTMLInputElement;
+
+  fireEvent.change(searchInput, { target: { value: searchVal } });
+
+  const searchForm = document.querySelector(
+    "div[class*='SearchField'] > form",
+  ) as Element;
+
+  fireEvent.submit(searchForm);
+  return getTableInfo(tableId);
+}
