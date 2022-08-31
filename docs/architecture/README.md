@@ -96,7 +96,6 @@ business domains provided weave gitops enterprise.
 ```mermaid-source
 C4Container
     title Weave Gitops Enterprise - Domains
-    Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
     Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
           Container_Boundary(clusterManagement, "Cluster Management") {
             Component(ClusterDomain, "Cluster Domain",, "provides capabilities around managing kuberetens cluster via CAPI")            
@@ -109,10 +108,7 @@ C4Container
             Component(Policy, "Policy Domain", "golang", "poilcy deifnition and enforcement capabilities based on magalix policy agent")
           }
     }
-    Container_Boundary(external, "external") {
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")
-    }
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")         
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")               
 ```
 
 Extend understanding on any of the domain by going into their page 
