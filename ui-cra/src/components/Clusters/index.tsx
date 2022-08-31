@@ -40,6 +40,7 @@ import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { EKSDefault, Kubernetes, GKEDefault, Kind } from '../../utils/icons';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
+import EditIcon from '@material-ui/icons/Edit';
 
 interface Size {
   size?: 'small';
@@ -512,11 +513,18 @@ const MCCP: FC = () => {
                       label: '',
                       value: (c: GitopsClusterEnriched) => (
                         <Button
-                          id="create-cluster"
-                          startIcon={
-                            <Icon type={IconType.AddIcon} size="base" />
-                          }
+                          id="edit-cluster"
+                          startIcon={<EditIcon fontSize="small" />}
                           onClick={event => handleEditCluster(event, c)}
+                          disabled={
+                            !Boolean(
+                              c.annotations &&
+                                c.annotations[
+                                  'templates.weave.works/create-request'
+                                ] &&
+                                c.capiClusterRef,
+                            )
+                          }
                         >
                           EDIT CLUSTER
                         </Button>
