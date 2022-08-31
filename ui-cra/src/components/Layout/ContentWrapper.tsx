@@ -45,9 +45,11 @@ export const WGContent = styled.div`
 `;
 
 const HelpLinkWrapper = styled.div`
-  padding: ${small} ${medium};
+  padding: ${medium};
+  font-size: 14px;
+  line-height: ${small};
   margin: 0 ${base};
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.7);
   color: ${({ theme }) => theme.colors.neutral30};
   border-radius: 0 0 ${xs} ${xs};
   display: flex;
