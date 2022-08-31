@@ -17,6 +17,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
+type ClusterConfig struct {
+	Type      string
+	Name      string
+	Namespace string
+}
+
 type TemplateField struct {
 	Name   string
 	Value  string
@@ -64,7 +70,7 @@ func selectCredentials(createPage *pages.CreateCluster, credentialName string, c
 func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Templates", func() {
 		templateFiles := []string{}
-		clusterPath := "./clusters/my-cluster/clusters"
+		clusterPath := "./clusters/management/clusters"
 
 		ginkgo.BeforeEach(func() {
 			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
@@ -446,6 +452,28 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
+				podinfo := Application{
+					Name:            "podinfo",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
+					Source:          "flux-system",
+					Path:            "apps/podinfo",
+				}
+				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+				application := pages.GetAddApplication(webDriver, 1)
+				AddKustomizationApp(application, podinfo)
+
+				postgres := Application{
+					Name:            "postgres",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
+					Path:            "apps/postgres",
+				}
+				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+				application = pages.GetAddApplication(webDriver, 2)
+				AddKustomizationApp(application, postgres)
+				gomega.Expect(application.RemoveApplication.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to remove application no. %d", 2))
+
 				ginkgo.By("Then I should preview the PR", func() {
 					preview := pages.GetPreview(webDriver)
 					gomega.Eventually(func(g gomega.Gomega) {
@@ -467,15 +495,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					pages.ScrollWindow(webDriver, 0, 4000)
 
-					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
-					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
-					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
-					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
+					pages.ClearFieldValue(gitops.BranchName)
+					gomega.Expect(gitops.BranchName.SendKeys(prBranch)).To(gomega.Succeed())
+					pages.ClearFieldValue(gitops.PullRequestTile)
+					gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
+					pages.ClearFieldValue(gitops.CommitMessage)
+					gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
@@ -506,6 +531,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, namespace, clusterName+".yaml"))
 					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Cluster config can not be found.")
+
+					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", namespace, clusterName, podinfo.Name+"-"+podinfo.Namespace+"-kustomization.yaml"))
+					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Cluster kustomizations are found when expected to be deleted.")
+
+					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", namespace, clusterName, postgres.Name+"-"+postgres.Namespace+"-kustomization.yaml"))
+					gomega.Expect(err).Should(gomega.MatchError(os.ErrNotExist), "Cluster kustomizations are found when expected to be deleted.")
 				})
 			})
 
@@ -581,15 +612,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					pages.ScrollWindow(webDriver, 0, 4000)
 
-					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
-					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(branchName)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
-					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
-					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
+					pages.ClearFieldValue(gitops.BranchName)
+					gomega.Expect(gitops.BranchName.SendKeys(branchName)).To(gomega.Succeed())
+					pages.ClearFieldValue(gitops.PullRequestTile)
+					gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
+					pages.ClearFieldValue(gitops.CommitMessage)
+					gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
@@ -845,7 +873,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			var clusterResourceSet string
 			var crsConfigmap string
 			var downloadedKubeconfigPath string
-			var capdCluster CapiClusterConfig
+			var capdCluster ClusterConfig
 
 			clusterNamespace := map[string]string{
 				GitProviderGitLab: "capi-test-system",
@@ -856,7 +884,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			patSecret := "capi-pat"
 
 			ginkgo.JustBeforeEach(func() {
-				capdCluster = CapiClusterConfig{"capd", "ui-end-to-end-capd-cluster", clusterNamespace[gitProviderEnv.Type]}
+				capdCluster = ClusterConfig{"capd", "ui-end-to-end-capd-cluster", clusterNamespace[gitProviderEnv.Type]}
 				downloadedKubeconfigPath = getDownloadedKubeconfigPath(capdCluster.Name)
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
@@ -874,14 +902,28 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
 
+				suspendReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
+				cleanGitRepository(path.Join("./clusters", capdCluster.Namespace, capdCluster.Name))
 				// Force delete capicluster incase delete PR fails to delete to free resources
-				removeGitopsCapiClusters([]CapiClusterConfig{capdCluster})
+				removeGitopsCapiClusters([]ClusterConfig{capdCluster})
+				resumeReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
 
 			ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+
+				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
+					pullGitRepo(repoAbsolutePath)
+					postgres := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", postgres, path.Join(repoAbsolutePath, "apps/postgres")))
+
+					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-manifest.yaml")
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
+
+					gitUpdateCommitPush(repoAbsolutePath, "Adding postgres kustomization")
+				})
 
 				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
@@ -952,43 +994,18 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 				pages.ScrollWindow(webDriver, 0, 500)
 
-				certManager := Profile{
-					Name:      "cert-manager",
-					Namespace: "cert-manager",
-					Version:   "0.0.8",
-					Values:    "installCRDs: true",
-					Layer:     "layer-0",
-				}
-
-				ginkgo.By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", certManager.Name), func() {
-					profile := createPage.FindProfileInList(certManager.Name)
-					gomega.Eventually(profile.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", certManager.Name))
-					gomega.Eventually(profile.Checkbox.Check).Should(gomega.Succeed(), fmt.Sprintf("Failed to select the %s profile", certManager.Name))
-
-					gomega.Eventually(profile.Version.Click).Should(gomega.Succeed())
-					gomega.Eventually(pages.GetOption(webDriver, certManager.Version).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", certManager.Name, certManager.Version))
-
-					gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(certManager.Layer))
-					gomega.Expect(profile.Namespace.SendKeys(certManager.Namespace)).To(gomega.Succeed())
-
-					gomega.Eventually(profile.Values.Click).Should(gomega.Succeed())
-					valuesYaml := pages.GetValuesYaml(webDriver)
-
-					gomega.Eventually(valuesYaml.Title.Text).Should(gomega.MatchRegexp(certManager.Name))
-					gomega.Eventually(valuesYaml.TextArea.Text).Should(gomega.MatchRegexp(certManager.Values))
-					gomega.Eventually(valuesYaml.Cancel.Click).Should(gomega.Succeed())
-				})
-
-				metallb := Profile{
-					Name:      "metallb",
-					Namespace: "flux-system",
-					Version:   "0.0.2",
-					Values:    `prometheus.namespace: \${NAMESPACE}`,
-					Layer:     "layer-0",
+				metallb := Application{
+					Type:            "helm_release",
+					Name:            "metallb",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
+					Version:         "0.0.2",
+					Values:          `prometheus.namespace: \${NAMESPACE}`,
+					Layer:           "layer-0",
 				}
 
 				ginkgo.By(fmt.Sprintf("And verify default %s profile values.yaml", metallb.Name), func() {
-					profile := createPage.FindProfileInList(metallb.Name)
+					profile := createPage.GetProfileInList(metallb.Name)
 					gomega.Eventually(profile.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", metallb.Name))
 					gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(metallb.Layer))
 
@@ -1000,40 +1017,54 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(valuesYaml.Cancel.Click).Should(gomega.Succeed())
 				})
 
-				pages.ScrollWindow(webDriver, 0, 1500)
-				policyAgent := Profile{
-					Name:      "weave-policy-agent",
-					Namespace: "policy-system",
-					Version:   "0.5.0",
-					Values:    fmt.Sprintf(`accountId: "weaveworks",clusterId: "%s"`, clusterName),
-					Layer:     "layer-1",
+				certManager := Application{
+					Type:            "helm_release",
+					Name:            "cert-manager",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: "cert-manager",
+					Version:         "0.0.8",
+					ValuesRegex:     "installCRDs: true",
+					Values:          "installCRDs: true",
+					Layer:           "layer-0",
 				}
+				profile := createPage.GetProfileInList(certManager.Name)
+				AddHelmReleaseApp(profile, certManager)
 
-				ginkgo.By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", policyAgent.Name), func() {
-					profile := createPage.FindProfileInList(policyAgent.Name)
-					gomega.Eventually(profile.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", policyAgent.Name))
-					gomega.Eventually(profile.Checkbox.Check).Should(gomega.Succeed(), fmt.Sprintf("Failed to select the %s profile", policyAgent.Name))
+				pages.ScrollWindow(webDriver, 0, 1500)
+				policyAgent := Application{
+					Type:            "helm_release",
+					Name:            "weave-policy-agent",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: "policy-system",
+					Version:         "0.5.0",
+					ValuesRegex:     `accountId: "",clusterId: ""`,
+					Values:          fmt.Sprintf(`accountId: "weaveworks",clusterId: "%s"`, clusterName),
+					Layer:           "layer-1",
+				}
+				profile = createPage.GetProfileInList(policyAgent.Name)
+				AddHelmReleaseApp(profile, policyAgent)
 
-					gomega.Eventually(profile.Version.Click).Should(gomega.Succeed())
-					gomega.Eventually(pages.GetOption(webDriver, policyAgent.Version).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", policyAgent.Name, policyAgent.Version))
+				postgres := Application{
+					Type:            "kustomization",
+					Name:            "postgres",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
+					Path:            "apps/postgres",
+				}
+				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+				application := pages.GetAddApplication(webDriver, 1)
+				AddKustomizationApp(application, postgres)
 
-					gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(policyAgent.Layer))
-					gomega.Expect(profile.Namespace.SendKeys(policyAgent.Namespace)).To(gomega.Succeed())
-
-					gomega.Eventually(profile.Values.Click).Should(gomega.Succeed())
-					valuesYaml := pages.GetValuesYaml(webDriver)
-
-					gomega.Eventually(valuesYaml.Title.Text).Should(gomega.MatchRegexp(policyAgent.Name))
-					gomega.Eventually(valuesYaml.TextArea.Text).Should(gomega.MatchRegexp("image: magalixcorp/policy-agent"))
-
-					text, _ := valuesYaml.TextArea.Text()
-					text = strings.ReplaceAll(text, `accountId: ""`, strings.Split(policyAgent.Values, ",")[0])
-					text = strings.ReplaceAll(text, `clusterId: ""`, strings.Split(policyAgent.Values, ",")[1])
-					gomega.Expect(valuesYaml.TextArea.Clear()).To(gomega.Succeed())
-					gomega.Expect(valuesYaml.TextArea.SendKeys(text)).To(gomega.Succeed(), fmt.Sprintf("Failed to change values.yaml for %s profile", policyAgent.Name))
-
-					gomega.Eventually(valuesYaml.Save.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to save values.yaml for %s profile", policyAgent.Name))
-				})
+				podinfo := Application{
+					Type:            "kustomization",
+					Name:            "podinfo",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
+					Path:            "apps/podinfo",
+				}
+				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+				application = pages.GetAddApplication(webDriver, 2)
+				AddKustomizationApp(application, podinfo)
 
 				pages.ScrollWindow(webDriver, 0, 500)
 				ginkgo.By("Then I should preview the PR", func() {
@@ -1050,32 +1081,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Pull request values
-				prBranch := fmt.Sprintf("br-%s", clusterName)
-				prTitle := "CAPD pull request"
-				prCommit := "CAPD capi template"
-
-				ginkgo.By("And set GitOps values for pull request", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
-
-					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
-					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
-					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
-					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
-					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
-
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
-
-					// Wait for template to be reloaded before submitting
-					gomega.Eventually(createPage.GetTemplateParameter(webDriver, parameters[0].Name).Label).Should(matchers.BeVisible(), "Create cluseter page failed to render after git provider authentication")
-
-					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
-				})
+				pullRequest := PullRequest{
+					Branch:  fmt.Sprintf("br-%s", clusterName),
+					Title:   "CAPD pull request",
+					Message: "CAPD capi template",
+				}
+				createGitopsPR(pullRequest)
 
 				clustersPage := pages.GetClustersPage(webDriver)
 
@@ -1127,37 +1138,43 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					verifyCapiClusterHealth(downloadedKubeconfigPath, []Profile{certManager, metallb, policyAgent})
+					verifyCapiClusterHealth(downloadedKubeconfigPath, []Application{certManager, metallb, policyAgent})
 				})
 
 				existingAppCount := getApplicationCount()
-				ginkgo.By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases("capi", clusterName, clusterNamespace)
-				})
+				addKustomizationBases("capi", clusterName, clusterNamespace)
 
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
 				ginkgo.By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
-					totalAppCount := existingAppCount + 6 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library
+					totalAppCount := existingAppCount + 8 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library, postgres, podinfo
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
 					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 
-					filterID := "type: HelmRelease"
+					filterID := "clusterName: " + clusterNamespace + `/` + clusterName
 					searchPage := pages.GetSearchPage(webDriver)
 					gomega.Eventually(searchPage.FilterBtn.Click).Should(gomega.Succeed(), "Failed to click filter buttton")
-					searchPage.SelectFilter("type", filterID)
+					searchPage.SelectFilter("cluster", filterID)
 
 					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
 
-					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(3), "There should be 3 application enteries in application table")
+					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(8), "There should be 7 application enteries in application table")
 				})
 
-				verifyAppInformation(applicationsPage, "metallb", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-metallb", "Ready")
-				verifyAppInformation(applicationsPage, "cert-manager", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-cert-manager", "Ready")
-				verifyAppInformation(applicationsPage, "weave-policy-agent", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-weave-policy-agent", "Ready")
+				leafCluster := ClusterConfig{
+					Type:      "capi",
+					Name:      clusterName,
+					Namespace: clusterNamespace,
+				}
+
+				verifyAppInformation(applicationsPage, metallb, leafCluster, "Ready")
+				verifyAppInformation(applicationsPage, certManager, leafCluster, "Ready")
+				verifyAppInformation(applicationsPage, policyAgent, leafCluster, "Ready")
+				verifyAppInformation(applicationsPage, postgres, leafCluster, "Ready")
+				verifyAppInformation(applicationsPage, podinfo, leafCluster, "Ready")
 
 				ginkgo.By("Then I should select the cluster to create the delete pull request", func() {
 					pages.NavigateToPage(webDriver, "Clusters")
@@ -1195,6 +1212,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, clusterNamespace, clusterName+".yaml"))
 					gomega.Expect(err).Should(gomega.MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
+
+					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", clusterNamespace, clusterName))
+					gomega.Expect(err).Should(gomega.MatchError(os.ErrNotExist), "Cluster kustomizations are found when expected to be deleted.")
 				})
 
 				ginkgo.By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {

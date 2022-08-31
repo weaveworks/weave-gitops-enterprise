@@ -92,7 +92,7 @@ function setup {
       --owner=${GITHUB_ORG} \
       --repository=${CLUSTER_REPOSITORY} \
       --branch=main \
-      --path=./clusters/my-cluster
+      --path=./clusters/management
 
   elif [ ${GIT_PROVIDER} == "gitlab" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
@@ -117,8 +117,12 @@ function setup {
       --repository=${CLUSTER_REPOSITORY} \
       --branch=main \
       --hostname=${GIT_PROVIDER_HOSTNAME} \
-      --path=./clusters/my-cluster
+      --path=./clusters/management
   fi  
+
+  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
+  # Create profiles HelmReposiotry 'weaveworks-charts'
+  flux create source helm weaveworks-charts --url="https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages" --interval=30s --namespace flux-system 
 
   # Create admin cluster user secret
   kubectl create secret generic cluster-user-auth \
@@ -148,7 +152,8 @@ function setup {
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
-  helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
+  # using default repository path '"./clusters/management/clusters"' so the application reconciliation always happen out of the box
+  # helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
@@ -215,9 +220,6 @@ function setup {
     clusterctl init --infrastructure docker    
   fi
 
-  # Install resources for bootstrapping and CNI
-  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
-  
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A

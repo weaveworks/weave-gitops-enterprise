@@ -222,7 +222,7 @@ func waitForGitRepoReady(appName string, namespace string) {
 }
 
 func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestRepoURL string) {
-	cmdInstall := fmt.Sprintf(`flux bootstrap %s --owner=%s --repository=%s --branch=main --hostname=%s --path=./clusters/my-cluster`, gp.Type, gp.Org, gp.Repo, gp.Hostname)
+	cmdInstall := fmt.Sprintf(`flux bootstrap %s --owner=%s --repository=%s --branch=main --hostname=%s --path=./clusters/management`, gp.Type, gp.Org, gp.Repo, gp.Hostname)
 	logger.Info(cmdInstall)
 
 	verifyGitRepositories := false
@@ -255,7 +255,7 @@ func resumeReconciliation(sourceType string, sourceName string, namespace string
 	_, _ = runCommandAndReturnStringOutput(cmdSuspend, ASSERTION_30SECONDS_TIME_OUT)
 }
 
-func removeGitopsCapiClusters(capiClusters []CapiClusterConfig) {
+func removeGitopsCapiClusters(capiClusters []ClusterConfig) {
 	for _, cluster := range capiClusters {
 		deleteCluster(cluster.Type, cluster.Name, cluster.Namespace)
 	}
@@ -329,7 +329,7 @@ func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
 	}
 }
 
-func verifyCapiClusterHealth(kubeconfigPath string, profiles []Profile) {
+func verifyCapiClusterHealth(kubeconfigPath string, applications []Application) {
 
 	gomega.Expect(waitForResource("nodes", "", "default", kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 	waitForResourceState("Ready", "true", "nodes", "default", "", kubeconfigPath, ASSERTION_5MINUTE_TIME_OUT)
@@ -337,32 +337,31 @@ func verifyCapiClusterHealth(kubeconfigPath string, profiles []Profile) {
 	gomega.Expect(waitForResource("pods", "", GITOPS_DEFAULT_NAMESPACE, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 	waitForResourceState("Ready", "true", "pods", GITOPS_DEFAULT_NAMESPACE, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 
-	for _, profile := range profiles {
+	for _, app := range applications {
 		// Check all profiles are installed in layering order
-		switch profile.Name {
+		switch app.Name {
 		case "observability":
-			gomega.Expect(waitForResource("deploy", "observability-grafana", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			gomega.Expect(waitForResource("deploy", "observability-kube-state-metrics", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			waitForResourceState("Ready", "true", "pods", profile.Namespace, "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			gomega.Expect(waitForResource("deploy", "observability-grafana", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			gomega.Expect(waitForResource("deploy", "observability-kube-state-metrics", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "podinfo":
-			gomega.Expect(waitForResource("deploy", "podinfo ", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			waitForResourceState("Ready", "true", "pods", profile.Namespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			gomega.Expect(waitForResource("deploy", "podinfo ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "metallb":
-			gomega.Expect(waitForResource("deploy", "metallb-controller ", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			waitForResourceState("Ready", "true", "pods", profile.Namespace, "app.kubernetes.io/name="+"metallb", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			gomega.Expect(waitForResource("deploy", "metallb-controller ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app.kubernetes.io/name="+"metallb", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "cert-manager":
-			gomega.Expect(waitForResource("deploy", "cert-manager-cert-manager", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			waitForResourceState("Ready", "true", "pods", profile.Namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			gomega.Expect(waitForResource("deploy", "cert-manager-cert-manager", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		case "weave-policy-agent":
-			gomega.Expect(waitForResource("deploy", "policy-agent", profile.Namespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			waitForResourceState("Ready", "true", "pods", profile.Namespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+			gomega.Expect(waitForResource("deploy", "policy-agent", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
 }
 
 func createPATSecret(clusterNamespace string, patSecret string) {
 	ginkgo.By("Create personal access token secret in management cluster for ClusterBootstrapConfig", func() {
-		// kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
 		tokenType := "GITHUB_TOKEN"
 		if gitProviderEnv.Type != GitProviderGitHub {
 			tokenType = "GITLAB_TOKEN"
@@ -486,29 +485,56 @@ func connectGitopsCuster(clusterName string, nameSpace string, bootstrapLabel st
 	return gitopsCluster
 }
 
+func addSource(sourceType, sourceName, namespace, url, kubeconfig string) {
+	ginkgo.By(fmt.Sprintf("Adding %s %s Source", sourceType, sourceName), func() {
+		if kubeconfig != "" {
+			kubeconfig = "--kubeconfig=" + kubeconfig
+		}
+
+		var err error
+		switch sourceType {
+		case "git":
+			err = runCommandPassThrough("sh", "-c", fmt.Sprintf("flux create source git %s --url=%s --branch=master --interval=30s --namespace %s %s", sourceName, url, namespace, kubeconfig))
+		case "helm":
+			err = runCommandPassThrough("sh", "-c", fmt.Sprintf("flux create source helm %s --url=%s --interval=30s --namespace %s %s", sourceName, url, namespace, kubeconfig))
+		}
+
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to create %srepository source: %s", sourceType, sourceName))
+	})
+}
+
+func deleteSource(sourceType, sourceName, namespace, kubeconfig string) {
+	ginkgo.By(fmt.Sprintf("Delete %s %s Source", sourceType, sourceName), func() {
+		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("flux delete source %s %s --silent --namespace %s %s", sourceType, sourceName, namespace, kubeconfig))
+	})
+}
+
 func addKustomizationBases(clusterType, clusterName, clusterNamespace string) {
-	repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
-	checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
-	leafClusterPath := path.Join(repoAbsolutePath, "clusters", clusterNamespace, clusterName)
-	clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
+	ginkgo.By("And add kustomization bases for common resources for leaf cluster)", func() {
+		repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
+		checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
+		leafClusterPath := path.Join(repoAbsolutePath, "clusters", clusterNamespace, clusterName)
+		clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
 
-	pathErr := func() error {
-		pullGitRepo(repoAbsolutePath)
-		_, err := os.Stat(path.Join(leafClusterPath, "flux-system", "kustomization.yaml"))
-		return err
+		pathErr := func() error {
+			pullGitRepo(repoAbsolutePath)
+			_, err := os.Stat(path.Join(leafClusterPath, "flux-system", "kustomization.yaml"))
+			return err
 
-	}
-	gomega.Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", clusterName))
+		}
+		gomega.Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", clusterName))
 
-	if clusterType != "capi" {
-		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
-	}
+		if clusterType != "capi" {
+			gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
+		}
 
-	gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
-	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
-	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
-	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
-	gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
+		gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
+
+		gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
+	})
 }
 
 func createNamespace(namespaces []string) {

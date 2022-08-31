@@ -9,10 +9,10 @@ type SourceDetailPage struct {
 	Title  *agouti.Selection
 }
 
-func GetSourceDetailPage(webDriver *agouti.Page) *ApplicationDetailPage {
-	detailPage := ApplicationDetailPage{
+func GetSourceDetailPage(webDriver *agouti.Page) *SourceDetailPage {
+	detailPage := SourceDetailPage{
 		Header: webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
-		Title:  webDriver.FindByXPath(`//span[.="my-podinfo"]/parent::node()[contains(@class, "SourceDetail")]`),
+		Title:  webDriver.Find(`div[class*="SourceDetail"]`),
 	}
 	return &detailPage
 }

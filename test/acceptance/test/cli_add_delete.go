@@ -13,20 +13,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type CapiClusterConfig struct {
-	Type      string
-	Name      string
-	Namespace string
-}
-
-type Profile struct {
-	Name      string
-	Namespace string
-	Version   string
-	Values    string
-	Layer     string
-}
-
 func createProfileValuesYaml(clusterName string) string {
 	profileValues := `/tmp/profile-values.yaml`
 
@@ -49,7 +35,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		var stdErr string
 		var repoAbsolutePath string
 		templateFiles := []string{}
-		clusterPath := "./clusters/my-cluster/clusters"
+		clusterPath := "./clusters/management/clusters"
 
 		ginkgo.AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
@@ -194,7 +180,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And the capd manifest is present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, capdPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(fmt.Sprintf("%s/clusters/my-cluster/clusters/%s/%s.yaml", repoAbsolutePath, capdNamespace, capdClusterName))
+					_, err := os.Stat(fmt.Sprintf("%s/clusters/management/clusters/%s/%s.yaml", repoAbsolutePath, capdNamespace, capdClusterName))
 					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Cluster config can not be found.")
 				})
 
@@ -344,7 +330,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 			var clusterBootstrapCopnfig string
 			var clusterResourceSet string
 			var crsConfigmap string
-			var capdClusters []CapiClusterConfig
+			var capdClusters []ClusterConfig
 			var kubeconfigPath string
 
 			clusterNamespace := map[string]string{
@@ -358,7 +344,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 				kubeconfigPath = path.Join(os.Getenv("HOME"), "capi.kubeconfig")
-				capdClusters = []CapiClusterConfig{
+				capdClusters = []ClusterConfig{
 					{"capd", "cli-end-to-end-capd-cluster-1", clusterNamespace[gitProviderEnv.Type]},
 					{"capd", "cli-end-to-end-capd-cluster-2", "default"},
 				}
@@ -396,7 +382,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				createCluster := func(clusterName string, namespace string, k8version string, profiles []Profile) {
+				createCluster := func(clusterName string, namespace string, k8version string, profiles []Application) {
 					//Pull request values
 					prBranch := fmt.Sprintf("br-%s", clusterName)
 					prTitle := "CAPD pull request"
@@ -450,7 +436,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				namespace := capdClusters[0].Namespace
 				k8version := "1.23.3"
 				profileValues := createProfileValuesYaml(clusterName)
-				profiles := []Profile{
+				profiles := []Application{
 					{
 						Name:      "cert-manager",
 						Namespace: "cert-manager",
@@ -478,7 +464,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					// 	Name:      "podinfo",
 					// 	Namespace: "flux-system",
 					// }
-					verifyCapiClusterHealth(kubeconfigPath, []Profile{})
+					verifyCapiClusterHealth(kubeconfigPath, []Application{})
 				})
 
 				clusterName2 := capdClusters[1].Name

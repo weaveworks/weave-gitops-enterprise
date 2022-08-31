@@ -66,3 +66,9 @@ func ClearFieldValue(field *agouti.Selection) {
 		gomega.Expect(field.SendKeys("\uE003")).To(gomega.Succeed())
 	}
 }
+
+func ClickElement(webDriver *agouti.Page, element *agouti.Selection, xOffset, yOffset int) error {
+	element.MouseToElement()
+	webDriver.MoveMouseBy(xOffset, yOffset)
+	return webDriver.Click(agouti.SingleClick, agouti.LeftButton)
+}
