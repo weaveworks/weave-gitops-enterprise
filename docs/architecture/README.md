@@ -47,7 +47,7 @@ C4Context
       Rel(weaveGitopsEnterprise, Github, "gitops flows")
       Rel(weaveGitopsEnterprise, KubernetesCluster, "read resources via api")
 
-      System_Ext(KubernetesCluster, "Kubernetes Cluster", "")
+      System_Ext(KubernetesCluster, "Kubernetes Cluster")
       System_Ext(Github, "GitHub", "Source storage in Git")      
 
       Rel(platformOperator, Github, "GitHub Flow for changes")
@@ -77,12 +77,12 @@ C4Container
   Rel(developer, weaveGitopsEnterpriseUi, "Delivers Application")
   Container_Boundary(external, "external") {
     System_Ext(KubernetesCluster, "Kubernetes Cluster")
-    System_Ext(Git, "Git")     
+    System_Ext(Github, "GitHub", "Source storage in Git")      
   }
-  Rel(weaveGitopsEnterpriseBackend, Git, "sync resources from")
+  Rel(weaveGitopsEnterpriseBackend, Github, "gitops flows")
   Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes resources from")  
 
-  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")              
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")                
 ```
 
 ## Weave Gitops Enterprise as Business Domains
