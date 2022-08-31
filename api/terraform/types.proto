@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package terraform.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/terraform/api";
+
+message TerraformObject {
+    
+}

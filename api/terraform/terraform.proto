@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package terraform.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/terraform/api";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+import "api/terraform/types.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Weave GitOps Terraform API",
+      version: "0.1";
+      description: "The API handles resources for the Terraform controller";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+service Terraform {
+
+    rpc ListTerraformObjects(ListTerraformObjectsRequest) returns (ListTerraformObjectsResponse) {
+        option (google.api.http) = {
+            get : "/v1/terraform_objects"
+        };
+    }
+
+}
+
+message ListTerraformObjectsRequest {
+    string clusterName = 1;
+    string namespace   = 2;
+}
+
+message ListTerraformObjectsResponse {
+    repeated TerraformObject objects = 1;
+}
