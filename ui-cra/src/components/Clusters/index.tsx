@@ -105,10 +105,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
-    <Tooltip
-      title={clusterKind || "unknown"}
-      placement="bottom"
-    >
+    <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       <span>
         <Octicon
           className={classes.clusterIcon}
@@ -116,7 +113,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
           size="medium"
           verticalAlign="middle"
         />
-        </span>
+      </span>
     </Tooltip>
   );
 };
