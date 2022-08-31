@@ -32,6 +32,7 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
+	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -349,6 +350,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
+		pacv1.AddToScheme,
 		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
@@ -375,6 +377,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
+	runtimeUtil.Must(pacv1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clientsFactoryScheme))
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clientsFactoryScheme))
