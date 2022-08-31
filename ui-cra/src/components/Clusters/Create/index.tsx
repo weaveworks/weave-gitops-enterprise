@@ -105,7 +105,7 @@ const AddCluster: FC = () => {
     renderTemplate,
     addCluster,
   } = useTemplates();
-  const { activeCluster } = useClusters();
+  const { activeCluster, setActiveCluster } = useClusters();
   const clustersCount = useClusters().count;
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
@@ -117,6 +117,8 @@ const AddCluster: FC = () => {
     JSON.parse(
       activeCluster?.annotations['templates.weave.works/create-request'],
     );
+
+  console.log(clusterData);
 
   let initialFormData = {
     url: '',
@@ -146,6 +148,17 @@ const AddCluster: FC = () => {
     initialInfraCredential = {
       ...initialInfraCredential,
       ...callbackState.state.infraCredential,
+    };
+  }
+
+  if (clusterData) {
+    initialFormData = {
+      ...initialFormData,
+      ...clusterData.parameter_values,
+    };
+    initialInfraCredential = {
+      ...initialInfraCredential,
+      ...clusterData.credentials,
     };
   }
 
@@ -315,6 +328,7 @@ const AddCluster: FC = () => {
     }
 
     return history.listen(() => {
+      setActiveCluster(null);
       setActiveTemplate(null);
       setPRPreview(null);
     });
@@ -325,6 +339,7 @@ const AddCluster: FC = () => {
     templateName,
     history,
     setPRPreview,
+    setActiveCluster,
   ]);
 
   useEffect(() => {
