@@ -54,13 +54,16 @@ C4Component
 
 - Pipeline: ability to define deployment pipelines for applications that you could follow across environments.  
 
-Its api could be found [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/api/pipelines/pipelines.proto)
+**In Action**
+- In development
 
-Next Steps:
+**Documentation and Next Steps**
+
+- [api](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/api/pipelines/pipelines.proto)
 - [code](https://github.com/weaveworks/weave-gitops-enterprise)
 - [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
 
-#### Progressive Delivery Capability
+### Progressive Delivery Domain
 
 Progressive Delivery enables a user to deliver an application change into a given environment in a safe manner to optimise for application availability.
 
