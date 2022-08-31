@@ -59,7 +59,6 @@ const GlobalStyle = createGlobalStyle`
     display: flex;
     flex-direction: column;
     margin: 0;
-    overflow:hidden;
   }
 
   a {
