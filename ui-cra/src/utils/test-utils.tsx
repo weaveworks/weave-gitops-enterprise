@@ -81,7 +81,12 @@ export const defaultContexts = () => [
       api: new EnterpriseClientMock(),
     },
   ],
-  [CoreClientContextProvider, { api: new CoreClientMock() }],
+  [
+    CoreClientContextProvider,
+    {
+      api: new CoreClientMock(),
+    },
+  ],
   [MemoryRouter],
   [NotificationProvider],
   [TemplatesProvider],
@@ -126,6 +131,15 @@ export class CoreClientMock {
   }
   ListKustomizationsReturns: ListKustomizationsResponse = {};
   ListHelmReleasesReturns: ListHelmReleasesResponse = {};
+
+  GetFeatureFlags() {
+    // FIXME: this is not working
+    return promisify({
+      flags: {
+        WEAVE_GITOPS_FEATURE_CLUSTER: 'true',
+      },
+    });
+  }
 
   ListKustomizations() {
     return promisify(this.ListKustomizationsReturns);
