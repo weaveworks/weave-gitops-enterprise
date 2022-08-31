@@ -21,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
@@ -91,6 +92,12 @@ func TestPipelinesServer(t *testing.T) {
 	c := createK8sClient(t, password, runtimeNamespace)
 
 	port := "8002"
+
+	ff := featureflags.Get("PIPELINES")
+	t.Cleanup(func() {
+		featureflags.Set("PIPELINES", ff)
+	})
+	featureflags.Set("PIPELINES", "true")
 
 	client := runServer(t, ctx, c, runtimeNamespace, "0.0.0.0:"+port)
 
