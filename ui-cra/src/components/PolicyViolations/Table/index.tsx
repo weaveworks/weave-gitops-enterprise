@@ -29,7 +29,11 @@ export const PolicyViolationsTable: FC<Props> = ({
   tableType = FieldsType.policy,
   sourcePath,
 }) => {
-  const initialFilterState = {
+  const initialPolicyFilter = {
+    ...filterConfig(violations, 'severity'),
+    ...filterConfig(violations, 'clusterName'),
+  };
+  const initialApplicationFilter = {
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
@@ -105,6 +109,10 @@ export const PolicyViolationsTable: FC<Props> = ({
 
   const fields =
     tableType === FieldsType.policy ? policyFields : applicationFields;
+  const initialFilterState =
+    tableType === FieldsType.policy
+      ? initialPolicyFilter
+      : initialApplicationFilter;
   return (
     <TableWrapper id="violations-list">
       <FilterableTable

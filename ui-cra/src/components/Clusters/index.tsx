@@ -105,7 +105,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
-    <Tooltip title={clusterKind || 'unknown'} placement="bottom">
+    <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       <span>
         <Octicon
           className={classes.clusterIcon}
@@ -252,6 +252,7 @@ const MCCP: FC = () => {
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
+    ...filterConfig(clusters, 'name'),
   };
 
   const handleEditCluster = useCallback(
