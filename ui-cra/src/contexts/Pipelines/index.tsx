@@ -21,7 +21,7 @@ export const PipelinesProvider = ({ api, children }: Props) => (
 export const usePipelines = () => React.useContext(PipelinesContext);
 
 const LIST_PIPLINES_KEY = 'list-piplines';
-export const useListPiplines = () => {
+export const useListPipelines = () => {
   const pipelinsService = usePipelines();
   return useQuery<ListPipelinesResponse, Error>(
     [LIST_PIPLINES_KEY],
