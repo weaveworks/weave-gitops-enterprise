@@ -41,7 +41,7 @@ export const ApplicationsWrapper: FC<{
   return (
     <div className={classes.addApplicationSectionWrapper}>
       <h2>Applications</h2>
-      {formData.clusterAutomations.map((kustomization: any, index: number) => {
+      {formData.clusterAutomations?.map((kustomization: any, index: number) => {
         return (
           <div key={index} className={classes.applicationWrapper}>
             <h3>Application No.{index + 1}</h3>

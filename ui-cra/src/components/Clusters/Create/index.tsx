@@ -122,15 +122,29 @@ const AddCluster: FC = () => {
       activeCluster?.annotations['templates.weave.works/create-request'],
     );
 
+  const clusterName = clusterData?.parameter_values.CLUSTER_NAME;
+
+  console.log(clusterName);
+
   let initialFormData = {
     url: '',
     provider: '',
-    branchName: `create-clusters-branch-${random}`,
-    pullRequestTitle: 'Creates cluster',
-    commitMessage: 'Creates capi cluster',
-    pullRequestDescription: 'This PR creates a new cluster',
+    branchName: clusterData
+      ? `edit-cluster-${clusterName}-branch-${random}`
+      : `create-clusters-branch-${random}`,
+    pullRequestTitle: clusterData
+      ? `Edits cluster ${clusterName}`
+      : 'Creates cluster',
+    commitMessage: clusterData
+      ? `Edits capi cluster ${clusterName}`
+      : 'Creates capi cluster',
+    pullRequestDescription: clusterData
+      ? 'This PR edits the cluster'
+      : 'This PR creates a new cluster',
     clusterAutomations: [] as ClusterAutomation[],
   };
+
+  // console.log(initialFormData);
 
   let initialProfiles = [] as UpdatedProfile[];
 
@@ -168,8 +182,11 @@ const AddCluster: FC = () => {
     initialFormData.clusterAutomations = clusterAutomations;
 
     initialFormData = {
-      ...initialFormData,
       ...clusterData.parameter_values,
+      branchName: initialFormData.branchName,
+      pullRequestTitle: initialFormData.pullRequestTitle,
+      commitMessage: initialFormData.commitMessage,
+      pullRequestDescription: initialFormData.pullRequestDescription,
     };
 
     initialInfraCredential = {
@@ -198,12 +215,14 @@ const AddCluster: FC = () => {
     initialProfiles = [...initialProfiles, ...selectedProfiles];
   }
 
+  console.log(initialFormData);
+
   const [formData, setFormData] = useState<any>(initialFormData);
   const [selectedProfiles, setSelectedProfiles] =
     useState<UpdatedProfile[]>(initialProfiles);
 
-  console.log(initialProfiles);
-  console.log(selectedProfiles);
+  // console.log(initialProfiles);
+  // console.log(selectedProfiles);
 
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
@@ -392,11 +411,13 @@ const AddCluster: FC = () => {
   }, [callbackState, infraCredential, repositoryURL, profiles]);
 
   useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
-    }));
-  }, [formData.CLUSTER_NAME, setFormData]);
+    if (!clusterData) {
+      setFormData((prevState: any) => ({
+        ...prevState,
+        pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
+      }));
+    }
+  }, [formData.CLUSTER_NAME, setFormData, clusterData]);
 
   return useMemo(() => {
     return (
