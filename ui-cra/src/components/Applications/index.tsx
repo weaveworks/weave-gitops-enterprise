@@ -13,24 +13,34 @@ import {
   theme,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { useListConfig } from '../../hooks/versions';
+import { makeStyles, createStyles } from '@material-ui/core';
 
 interface Size {
   size?: 'small';
 }
 const ActionsWrapper = styled.div<Size>`
   display: flex;
-  & > * {
-    margin-right: ${({ theme }) => theme.spacing.medium};
+  & > .actionButton.btn {
+    margin-right: ${({ theme }) => theme.spacing.small};
   }
 `;
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    externalIcon: {
+      marginRight: theme.spacing.small,
+    },
+  }),
+);
 
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const applicationsCount = useApplicationsCount();
   const history = useHistory();
   const { repoLink } = useListConfig();
+  const classes = useStyles();
 
   const handleAddApplication = () => {
     history.push('/applications/create');
@@ -58,23 +68,27 @@ const WGApplicationsDashboard: FC = () => {
           <ActionsWrapper>
             <Button
               id="add-application"
+              className="actionButton btn"
               startIcon={<Icon type={IconType.AddIcon} size="base" />}
               onClick={handleAddApplication}
             >
               ADD AN APPLICATION
             </Button>
+            <Link
+              target={'_blank'}
+              className="actionButton btn"
+              rel="noopener noreferrer"
+              component={Button}
+              to={{ pathname: repoLink }}
+            >
+              <Icon
+                className={classes.externalIcon}
+                type={IconType.ExternalTab}
+                size="base"
+              />
+              GO TO OPEN PULL REQUESTS
+            </Link>
           </ActionsWrapper>
-          <a
-            style={{
-              color: theme.colors.primary,
-              padding: theme.spacing.small,
-            }}
-            href={repoLink}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View open Pull Requests
-          </a>
         </div>
         {isLoading ? (
           <LoadingPage />

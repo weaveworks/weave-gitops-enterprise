@@ -51,9 +51,6 @@ type Props = {
 
 const ActionsWrapper = styled.div<Size>`
   display: flex;
-  & > * {
-    margin-right: ${({ theme }) => theme.spacing.medium};
-  }
 `;
 
 const ClustersTableWrapper = styled(TableWrapper)`
@@ -94,6 +91,9 @@ const useStyles = makeStyles(() =>
     clusterIcon: {
       marginRight: theme.spacing.small,
       color: theme.colors.neutral30,
+    },
+    externalIcon: {
+      marginRight: theme.spacing.small,
     },
   }),
 );
@@ -197,6 +197,7 @@ const MCCP: FC = () => {
   const [random, setRandom] = useState<string>(
     Math.random().toString(36).substring(7),
   );
+  const classes = useStyles();
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -389,18 +390,20 @@ const MCCP: FC = () => {
                     onFinish={() => setOpenConnectInfo(false)}
                   />
                 )}
+                <Link
+                  target={'_blank'}
+                  rel="noopener noreferrer"
+                  component={Button}
+                  to={{ pathname: repoLink }}
+                >
+                  <Icon
+                    className={classes.externalIcon}
+                    type={IconType.ExternalTab}
+                    size="base"
+                  />
+                  GO TO OPEN PULL REQUESTS
+                </Link>
               </ActionsWrapper>
-              <a
-                style={{
-                  color: theme.colors.primary,
-                  padding: theme.spacing.small,
-                }}
-                href={repoLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View open Pull Requests
-              </a>
             </div>
             {!isLoading ? (
               <ClustersTableWrapper id="clusters-list">
