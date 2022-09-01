@@ -154,11 +154,6 @@ const AddCluster: FC = () => {
   }
 
   if (clusterData) {
-    initialFormData = {
-      ...initialFormData,
-      ...clusterData.parameter_values,
-    };
-
     let clusterAutomations = [] as ClusterAutomation[];
 
     clusterData.kustomizations &&
@@ -187,11 +182,13 @@ const AddCluster: FC = () => {
     if (clusterData.values) {
       for (let clusterDataProfile of clusterData.values) {
         for (let profile of profiles) {
-          for (let value of profile.values) {
-            if (value.version === clusterDataProfile.version) {
-              value.yaml = atob(clusterDataProfile.values);
-              value.selected = true;
-              selectedProfiles.push(profile);
+          if (clusterDataProfile.name === profile.name) {
+            for (let value of profile.values) {
+              if (value.version === clusterDataProfile.version) {
+                value.yaml = atob(clusterDataProfile.values);
+                value.selected = true;
+                selectedProfiles.push(profile);
+              }
             }
           }
         }
@@ -204,6 +201,10 @@ const AddCluster: FC = () => {
   const [formData, setFormData] = useState<any>(initialFormData);
   const [selectedProfiles, setSelectedProfiles] =
     useState<UpdatedProfile[]>(initialProfiles);
+
+  console.log(initialProfiles);
+  console.log(selectedProfiles);
+
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
