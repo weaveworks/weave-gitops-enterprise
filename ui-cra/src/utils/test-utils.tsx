@@ -16,6 +16,10 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
+  ListPipelinesResponse,
+  Pipelines,
+} from '../api/pipelines/pipelines.pb';
+import {
   GetConfigResponse,
   GetPolicyResponse,
   GetPolicyValidationResponse,
@@ -76,7 +80,12 @@ export const defaultContexts = () => [
       api: new EnterpriseClientMock(),
     },
   ],
-  [CoreClientContextProvider, { api: new CoreClientMock() }],
+  [
+    CoreClientContextProvider,
+    {
+      api: new CoreClientMock(),
+    },
+  ],
   [MemoryRouter],
   [NotificationProvider],
   [TemplatesProvider],
@@ -121,6 +130,15 @@ export class CoreClientMock {
   }
   ListKustomizationsReturns: ListKustomizationsResponse = {};
   ListHelmReleasesReturns: ListHelmReleasesResponse = {};
+
+  GetFeatureFlags() {
+    // FIXME: this is not working
+    return promisify({
+      flags: {
+        WEAVE_GITOPS_FEATURE_CLUSTER: 'true',
+      },
+    });
+  }
 
   ListKustomizations() {
     return promisify(this.ListKustomizationsReturns);
@@ -180,6 +198,16 @@ export class PolicyClientMock {
     return promisify(this.GetPolicyValidationReturns);
   }
 }
+
+export class PipelinesClientMock implements Pipelines {
+  constructor() {
+    this.ListPipelines = this.ListPipelines.bind(this);
+  }
+  ListPipelinesReturns: ListPipelinesResponse = {};
+  ListPipelines() {
+    return promisify(this.ListPipelinesReturns);
+  }
+}
 export function findCellInCol(cell: string, tableSelector: string) {
   const tbl = document.querySelector(tableSelector);
 
@@ -202,6 +230,27 @@ export function findTextByHeading(
   const index = findColByHeading(cols, headingName) as number;
   return row.childNodes.item(index).textContent;
 }
+
+export function getTableInfo(id: string) {
+  const tbl = document.querySelector(`#${id} table`);
+  const rows = tbl?.querySelectorAll('tbody tr');
+  const headers = tbl?.querySelectorAll('thead tr th');
+
+  return { rows, headers };
+}
+
+export function sortTableByColumn(tableId: string, column: string) {
+  const btns = document.querySelectorAll<HTMLElement>(
+    `#${tableId} table thead tr th button`,
+  );
+  // Click on ${column} button
+  btns.forEach(ele => {
+    if (ele.textContent === column) {
+      ele.click();
+    }
+  });
+}
+
 
 // Helper to ensure that tests still pass if columns get re-ordered
 function findColByHeading(

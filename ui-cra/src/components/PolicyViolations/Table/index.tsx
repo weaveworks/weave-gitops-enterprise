@@ -4,8 +4,7 @@ import {
   PolicyValidation,
 } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
-import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
-import { Link } from 'react-router-dom';
+import { FilterableTable, filterConfig, Link } from '@weaveworks/weave-gitops';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';
 import { TableWrapper } from '../../Shared';
@@ -29,7 +28,11 @@ export const PolicyViolationsTable: FC<Props> = ({
   tableType = FieldsType.policy,
   sourcePath,
 }) => {
-  const initialFilterState = {
+  const initialPolicyFilter = {
+    ...filterConfig(violations, 'severity'),
+    ...filterConfig(violations, 'clusterName'),
+  };
+  const initialApplicationFilter = {
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
@@ -62,7 +65,6 @@ export const PolicyViolationsTable: FC<Props> = ({
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
           to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
-          className={classes.link}
           data-violation-message={message}
         >
           {message}
@@ -105,6 +107,10 @@ export const PolicyViolationsTable: FC<Props> = ({
 
   const fields =
     tableType === FieldsType.policy ? policyFields : applicationFields;
+  const initialFilterState =
+    tableType === FieldsType.policy
+      ? initialPolicyFilter
+      : initialApplicationFilter;
   return (
     <TableWrapper id="violations-list">
       <FilterableTable

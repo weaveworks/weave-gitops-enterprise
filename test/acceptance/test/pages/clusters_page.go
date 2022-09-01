@@ -22,6 +22,11 @@ type ClusterStatus struct {
 	KubeConfigButton *agouti.Selection
 }
 
+type ClusterInfrastructure struct {
+	Kind       *agouti.Selection
+	ApiVersion *agouti.Selection
+}
+
 type DeletePullRequestPopup struct {
 	Title               *agouti.Selection
 	ClosePopup          *agouti.Selection
@@ -32,7 +37,7 @@ type DeletePullRequestPopup struct {
 	GitCredentials      *agouti.Selection
 }
 
-//ClustersPage elements
+// ClustersPage elements
 type ClustersPage struct {
 	ClusterHeader         *agouti.Selection
 	ClusterCount          *agouti.Selection
@@ -71,7 +76,7 @@ func (c ClustersPage) FindClusterInList(clusterName string) *ClusterInformation 
 		Checkbox:   cluster.FindByXPath(`td[1]`).Find("input"),
 		Name:       cluster.FindByXPath(`td[2]`),
 		Dashboards: cluster.FindByXPath(`td[3]`),
-		Type:       cluster.FindByXPath(`td[4]`),
+		Type:       cluster.FindByXPath(`td[4]//*[@role="img"]`),
 		Namespace:  cluster.FindByXPath(`td[5]`),
 		Status:     cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
 	}
@@ -90,10 +95,17 @@ func (c ClustersPage) CountClusters() int {
 func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
 	clusterStatus := ClusterStatus{
 		Phase:            webDriver.FindByXPath(`//tr/th[.="phase"]/following-sibling::td`),
-		KubeConfigButton: webDriver.FindByXPath(`//button[.="Download the kubeconfig here"]`),
+		KubeConfigButton: webDriver.FindByButton(`Kubeconfig`),
 	}
 
 	return &clusterStatus
+}
+
+func GertClusterInfrastructure(webDriver *agouti.Page) *ClusterInfrastructure {
+	return &ClusterInfrastructure{
+		Kind:       webDriver.FindByXPath(`//tr/td[.="Kind:"]/following-sibling::td`),
+		ApiVersion: webDriver.FindByButton(`//tr/td[.="APIVersion:"]/following-sibling::td`),
+	}
 }
 
 func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
@@ -110,7 +122,7 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 	return &deletePRPopup
 }
 
-//GetClustersPage initialises the webDriver object
+// GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
 		ClusterHeader:         webDriver.Find(`div[role="heading"] a[href="/clusters"]`),

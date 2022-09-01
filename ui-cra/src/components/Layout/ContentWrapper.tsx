@@ -10,7 +10,7 @@ import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 
-const { xs, small, medium, base } = theme.spacing;
+const { xxs, xs, small, medium, base } = theme.spacing;
 const { feedbackLight, white } = theme.colors;
 
 export const Title = styled.h2`
@@ -45,9 +45,9 @@ export const WGContent = styled.div`
 `;
 
 const HelpLinkWrapper = styled.div`
-  padding: ${small} ${medium};
+  padding: calc(${medium} - ${xxs}) ${medium};
   margin: 0 ${base};
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.7);
   color: ${({ theme }) => theme.colors.neutral30};
   border-radius: 0 0 ${xs} ${xs};
   display: flex;
@@ -60,13 +60,9 @@ const HelpLinkWrapper = styled.div`
 const useStyles = makeStyles(() =>
   createStyles({
     alertWrapper: {
-      marginTop: medium,
-      marginRight: small,
-      marginBottom: 0,
-      marginLeft: small,
-      paddingRight: medium,
-      paddingLeft: medium,
-      borderRadius: xs,
+      padding: base,
+      margin: `0 ${base} ${base} ${base}`,
+      borderRadius: '10px',
     },
     warning: {
       backgroundColor: feedbackLight,
@@ -88,7 +84,7 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
-  errorMessage
+  errorMessage,
 }) => {
   const classes = useStyles();
   const { setNotifications } = useNotifications();
@@ -116,7 +112,13 @@ export const ContentWrapper: FC<Props> = ({
       </Box>
     );
   }
-
+  if (errorMessage) {
+    return (
+      <Alert severity="error" className={classes.alertWrapper}>
+        {errorMessage}
+      </Alert>
+    );
+  }
   return (
     <div
       style={{
@@ -137,7 +139,6 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (

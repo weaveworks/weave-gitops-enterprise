@@ -22,7 +22,6 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestListPolicies(t *testing.T) {
@@ -388,61 +387,6 @@ func TestPartialPoliciesConnectionErrors(t *testing.T) {
 	}
 }
 
-func TestPartialPoliciesUnregisteredErrors(t *testing.T) {
-	clientsPool := &clustersmngrfakes.FakeClientsPool{}
-	fakeClDefault := createClient(t, makePolicy(t))
-
-	fakeClDemo := fake.NewClientBuilder().Build()
-
-	clients := map[string]client.Client{"Default": fakeClDefault, "demo": fakeClDemo}
-	clientsPool.ClientsReturns(clients)
-	clientsPool.ClientStub = func(name string) (client.Client, error) {
-		if c, found := clients[name]; found && c != nil {
-			return c, nil
-		}
-
-		return nil, fmt.Errorf("cluster %s not found", name)
-	}
-
-	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
-	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("no kind is registered for the type v2beta1.PolicyList in scheme \"pkg/runtime/scheme.go:100\"")}
-	fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
-	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
-	s := createServer(t, serverOptions{
-		clientsFactory: fakeFactory,
-	})
-
-	req := capiv1_proto.ListPoliciesRequest{}
-	gotResponse, err := s.ListPolicies(context.Background(), &req)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expectedPolicy := &capiv1_proto.ListPoliciesResponse{
-		Policies: []*capiv1_proto.Policy{
-			{
-				Name:      "Missing Owner Label",
-				Severity:  "high",
-				Code:      "foo",
-				CreatedAt: "0001-01-01T00:00:00Z",
-				Targets: &capiv1_proto.PolicyTargets{
-					Labels: []*capiv1_proto.PolicyTargetLabel{
-						{
-							Values: map[string]string{"my-label": "my-value"},
-						},
-					},
-				},
-				ClusterName: "Default",
-			},
-		},
-		Total:  int32(1),
-		Errors: []*capiv1_proto.ListError{{Message: clusterErr.Error(), ClusterName: clusterErr.ClusterName}},
-	}
-	if !cmpPoliciesResp(t, expectedPolicy, gotResponse) {
-		t.Fatalf("policies didn't match expected:\n%+v\n%+v", expectedPolicy, gotResponse)
-	}
-}
-
 func cmpPoliciesResp(t *testing.T, pol1 *capiv1_proto.ListPoliciesResponse, pol2 *capiv1_proto.ListPoliciesResponse) bool {
 	t.Helper()
 	if len(pol1.Policies) != len(pol2.Policies) {
@@ -542,16 +486,6 @@ func TestGetPolicy(t *testing.T) {
 					ClusterName: "Default",
 				},
 			},
-		},
-		{
-			name:        "policy not found",
-			policyName:  "weave.policies.not-found",
-			clusterName: "Default",
-			err:         errors.New("error while getting policy weave.policies.not-found from cluster Default: policies.pac.weave.works \"weave.policies.not-found\" not found"),
-		},
-		{
-			name: "cluster name not specified",
-			err:  requiredClusterNameErr,
 		},
 	}
 	for _, tt := range tests {

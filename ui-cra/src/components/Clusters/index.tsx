@@ -51,9 +51,6 @@ type Props = {
 
 const ActionsWrapper = styled.div<Size>`
   display: flex;
-  & > * {
-    margin-right: ${({ theme }) => theme.spacing.medium};
-  }
 `;
 
 const ClustersTableWrapper = styled(TableWrapper)`
@@ -95,6 +92,9 @@ const useStyles = makeStyles(() =>
       marginRight: theme.spacing.small,
       color: theme.colors.neutral30,
     },
+    externalIcon: {
+      marginRight: theme.spacing.small,
+    },
   }),
 );
 
@@ -105,10 +105,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
-    <Tooltip
-      title={clusterKind || "unknown"}
-      placement="bottom"
-    >
+    <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       <span>
         <Octicon
           className={classes.clusterIcon}
@@ -116,7 +113,7 @@ export const ClusterIcon: FC<Props> = ({ cluster }) => {
           size="medium"
           verticalAlign="middle"
         />
-        </span>
+      </span>
     </Tooltip>
   );
 };
@@ -200,6 +197,7 @@ const MCCP: FC = () => {
   const [random, setRandom] = useState<string>(
     Math.random().toString(36).substring(7),
   );
+  const classes = useStyles();
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -249,6 +247,7 @@ const MCCP: FC = () => {
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
+    ...filterConfig(clusters, 'name'),
   };
 
   useEffect(() => {
@@ -391,18 +390,20 @@ const MCCP: FC = () => {
                     onFinish={() => setOpenConnectInfo(false)}
                   />
                 )}
+                <Link
+                  target={'_blank'}
+                  rel="noopener noreferrer"
+                  component={Button}
+                  to={{ pathname: repoLink }}
+                >
+                  <Icon
+                    className={classes.externalIcon}
+                    type={IconType.ExternalTab}
+                    size="base"
+                  />
+                  GO TO OPEN PULL REQUESTS
+                </Link>
               </ActionsWrapper>
-              <a
-                style={{
-                  color: theme.colors.primary,
-                  padding: theme.spacing.small,
-                }}
-                href={repoLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View open Pull Requests
-              </a>
             </div>
             {!isLoading ? (
               <ClustersTableWrapper id="clusters-list">

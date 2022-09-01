@@ -1,13 +1,10 @@
-import {
-  act,
-  render,
-  screen,
-} from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import Policies from '..';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
   PolicyClientMock,
+  sortTableByColumn,
   withContext,
 } from '../../../utils/test-utils';
 
@@ -24,9 +21,7 @@ describe('ListPolicies', () => {
   });
   it('renders list policies errors', async () => {
     api.ListPoliciesReturns = {
-      policies: [
-        
-      ],
+      policies: [],
       total: 0,
       errors: [
         {
@@ -43,7 +38,11 @@ describe('ListPolicies', () => {
       render(c);
     });
 
-    expect(await screen.findByText('There were errors while listing some resources:')).toBeTruthy();
+    expect(
+      await screen.findByText(
+        'There were errors while listing some resources:',
+      ),
+    ).toBeTruthy();
 
     const alert = document.querySelector('#alert-list-errors');
     const alerts = alert?.querySelectorAll('#alert-list-errors li');
@@ -129,20 +128,12 @@ describe('ListPolicies', () => {
 
     expect(await screen.findByText('Policies')).toBeTruthy();
 
-    const btns = document.querySelectorAll<HTMLElement>(
-      '#policy-list table thead tr th button',
-    );
-     // Click on Severity button  
-     btns.forEach(ele => {
-      if (ele.textContent === 'Age') {
-        ele.click()
-      }
-     })
-    
+    sortTableByColumn('policy-list', 'Age');
+
     const text = document.querySelector(
       '#policy-list table tbody tr td',
     )?.textContent;
-    expect(text).toMatch('Containers Running With Privilege Escalation');
+    expect(text).toMatch('dev-team allowed clusters');
   });
   it('sort policies by severity', async () => {
     api.ListPoliciesReturns = {
@@ -177,16 +168,8 @@ describe('ListPolicies', () => {
 
     expect(await screen.findByText('Policies')).toBeTruthy();
 
-    const btns = document.querySelectorAll<HTMLElement>(
-      '#policy-list table thead tr th button',
-    );
-   // Click on Severity button  
-    btns.forEach(ele => {
-      if (ele.textContent === 'Severity') {
-        ele.click()
-      }
-    })
-    
+    sortTableByColumn('policy-list', 'Severity');
+
     const text = document.querySelector(
       '#policy-list table tbody tr td',
     )?.textContent;

@@ -135,7 +135,7 @@ const AppFields: FC<{
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
       <>
-        {url}@<strong>${branch}</strong>
+        {url}@<strong>{branch}</strong>
       </>
     ) : (
       url
@@ -235,7 +235,7 @@ const AppFields: FC<{
           </Select>
         </>
       )}
-      {formData.source_type === 'KindGitRepository' ? (
+      {formData.source_type === 'KindGitRepository' || !clusters ? (
         <>
           <Input
             className="form-section"

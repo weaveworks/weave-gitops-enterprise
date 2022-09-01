@@ -20,7 +20,13 @@ import {
   KubeStatusIndicator,
 } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
-import { Box, Button, Typography } from '@material-ui/core';
+import {
+  Box,
+  Button,
+  makeStyles,
+  Typography,
+  createStyles,
+} from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
 import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
@@ -35,9 +41,17 @@ type Props = {
 const ClusterDashbordWrapper = styled.div`
   .kubeconfig-download {
     padding: 0;
+    font-weight: bold;
+    color: ${theme.colors.primary};
   }
 `;
-
+const useStyles = makeStyles(() =>
+  createStyles({
+    clusterApplicationBtn: {
+      marginBottom: theme.spacing.medium,
+    },
+  }),
+);
 
 const ClusterDashboard = ({ clusterName }: Props) => {
   const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
@@ -51,25 +65,40 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     currentCluster as GitopsClusterEnriched,
   );
   const history = useHistory();
+  const [disabled, setDisabled] = useState<boolean>(false);
+  const classes = useStyles();
 
-  const handleClick = () =>
+  const handleClick = () => {
+    setDisabled(true);
     getKubeconfig(
       clusterName,
       currentCluster?.namespace || '',
       `${clusterName}.kubeconfig`,
-    );
+    ).finally(() => {
+      setDisabled(false);
+    });
+  };
 
   const info = [
     [
       'kubeconfig',
-      <Button className="kubeconfig-download" onClick={handleClick}>
-        Download the kubeconfig here
+      <Button
+        className="kubeconfig-download"
+        onClick={handleClick}
+        disabled={disabled}
+      >
+        Kubeconfig
       </Button>,
     ],
     ['Namespace', currentCluster?.namespace],
   ];
 
-  const infrastructureRefInfo: InfoField[] = infrastructureRef ? [['Kind', infrastructureRef.kind],['APIVersion', infrastructureRef.apiVersion]] :[];
+  const infrastructureRefInfo: InfoField[] = infrastructureRef
+    ? [
+        ['Kind', infrastructureRef.kind],
+        ['APIVersion', infrastructureRef.apiVersion],
+      ]
+    : [];
 
   useEffect(
     () => setCurrentCluster(getCluster(clusterName)),
@@ -87,6 +116,19 @@ const ClusterDashboard = ({ clusterName }: Props) => {
           ]}
         />
         <ContentWrapper>
+          <WeaveButton
+            id="cluster-application"
+            className={classes.clusterApplicationBtn}
+            startIcon={<Icon type={IconType.FilterIcon} size="base" />}
+            onClick={() => {
+              const filtersValues = encodeURIComponent(
+                `clusterName:${currentCluster?.namespace}/${currentCluster?.name}`,
+              );
+              history.push(`/applications?filters=${filtersValues}`);
+            }}
+          >
+            GO TO APPLICATIONS
+          </WeaveButton>
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
               <ClusterDashbordWrapper>
@@ -99,18 +141,6 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                   </div>
                 ) : null}
 
-                <WeaveButton
-                  id="create-cluster"
-                  startIcon={<Icon type={IconType.ExternalTab} size="base" />}
-                  onClick={() => {
-                    const filtersValues = encodeURIComponent(
-                      `clusterName:${currentCluster?.namespace}/${currentCluster?.name}`,
-                    );
-                    history.push(`/applications?filters=${filtersValues}`);
-                  }}
-                >
-                  GO TO APPLICATIONS
-                </WeaveButton>
                 <Box margin={2}>
                   <InfoList items={info as [string, any][]} />
                 </Box>
@@ -153,7 +183,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                 </Box>
                 {infrastructureRef ? (
                   <>
-                  <Divider variant="middle" />
+                    <Divider variant="middle" />
                     <Box margin={2}>
                       <Typography variant="h6" gutterBottom component="div">
                         Infrastructure

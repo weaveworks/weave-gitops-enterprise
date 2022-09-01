@@ -12,12 +12,14 @@ import {
   applicationsClient,
   theme,
 } from '@weaveworks/weave-gitops';
-import Background from './assets/img/background.svg';
+import bg from './assets/img/bg.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
+import { PipelinesProvider } from './contexts/Pipelines';
+import { Pipelines } from './api/pipelines/pipelines.pb';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -47,7 +49,9 @@ const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    background: url(${Background}) right bottom / 100% no-repeat fixed;
+    background: right bottom no-repeat fixed; 
+    background-image: url(${bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);
+    background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
     font-size: ${theme.fontSizes.medium};
@@ -55,7 +59,6 @@ const GlobalStyle = createGlobalStyle`
     display: flex;
     flex-direction: column;
     margin: 0;
-    
   }
 
   a {
@@ -100,9 +103,11 @@ const App: FC = () => {
             <BrowserRouter basename={process.env.PUBLIC_URL}>
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
-                <AppContextProvider applicationsClient={applicationsClient}>
-                  <ResponsiveDrawer />
-                </AppContextProvider>
+                <PipelinesProvider api={Pipelines}>
+                  <AppContextProvider applicationsClient={applicationsClient}>
+                    <ResponsiveDrawer />
+                  </AppContextProvider>
+                </PipelinesProvider>
               </ProgressiveDeliveryProvider>
             </BrowserRouter>
           </QueryClientProvider>
