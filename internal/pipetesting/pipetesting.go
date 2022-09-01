@@ -43,11 +43,6 @@ func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersm
 }
 
 func MakeClientsFactory(k8s client.Client) *clustersmngrfakes.FakeClientsFactory {
-	// scheme := runtime.NewScheme()
-	// utilruntime.Must(v1.AddToScheme(scheme))
-	// utilruntime.Must(ctrl.AddToScheme(scheme))
-	// utilruntime.Must(helm.AddToScheme(scheme))
-
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 
 	clientsPool.ClientsReturns(map[string]client.Client{"Default": k8s})
