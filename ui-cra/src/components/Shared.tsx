@@ -46,6 +46,7 @@ export const ColumnHeaderTooltip: FC<TooltipProps> = ({
 
 export const TableWrapper = styled.div`
   margin-top: ${({ theme }) => theme.spacing.medium};
+  max-width: calc(100vw - 300px);
   div[class*='FilterDialog__SlideContainer'],
   div[class*='SearchField'] {
     overflow: hidden;
@@ -55,5 +56,8 @@ export const TableWrapper = styled.div`
       color: ${({ theme }) => theme.colors.primary};
     }
   }
-  max-width: calc(100vw - 300px);
+
+  table > thead > tr > th  h2 {
+    padding:0px;
+  }
 `;

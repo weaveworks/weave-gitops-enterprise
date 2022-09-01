@@ -1,14 +1,14 @@
-import React, { FC } from 'react';
-import styled from 'styled-components';
-import { theme, V2Routes } from '@weaveworks/weave-gitops';
+import Box from '@material-ui/core/Box';
+import { makeStyles } from '@material-ui/core/styles';
+import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
 import { NavLink } from 'react-router-dom';
-import WeaveGitOps from '../assets/img/weave-logo.svg';
-import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
+import styled from 'styled-components';
 import { ReactComponent as Applications } from '../assets/img/applications.svg';
+import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
-import { makeStyles } from '@material-ui/core/styles';
-import Box from '@material-ui/core/Box';
+import WeaveGitOps from '../assets/img/weave-logo.svg';
 
 interface SubNavItem {
   name: string;
@@ -57,6 +57,7 @@ const NavWrapper = styled.div`
     font-weight: 600;
   }
 `;
+
 export const NavItem = styled(NavLink).attrs({
   activeClassName: 'nav-link-active',
 })`
@@ -124,6 +125,7 @@ const NavItems = (navItems: Array<NavigationItem>) => {
 };
 
 export const Navigation: FC = () => {
+  const { data: flagsRes } = useFeatureFlags();
   const classes = useStyles();
   const navItems: Array<NavigationItem> = [
     {
@@ -152,6 +154,11 @@ export const Navigation: FC = () => {
           name: 'Sources',
           link: V2Routes.Sources,
           isVisible: true,
+        },
+        {
+          name: 'Pipelines',
+          link: '/applications/pipelines',
+          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'Delivery',

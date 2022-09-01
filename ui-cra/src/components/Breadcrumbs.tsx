@@ -73,6 +73,7 @@ const useStyles = makeStyles(() =>
     labelLink: {
       color: weaveTheme.colors.black,
       fontWeight: 700,
+      marginRight: weaveTheme.spacing.xs,
     },
   }),
 );
