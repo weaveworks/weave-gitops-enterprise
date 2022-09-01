@@ -93,11 +93,11 @@ func TestPipelinesServer(t *testing.T) {
 
 	port := "8002"
 
-	ff := featureflags.Get("PIPELINES")
+	ff := featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES")
 	t.Cleanup(func() {
-		featureflags.Set("PIPELINES", ff)
+		featureflags.Set("WEAVE_GITOPS_FEATURE_PIPELINES", ff)
 	})
-	featureflags.Set("PIPELINES", "true")
+	featureflags.Set("WEAVE_GITOPS_FEATURE_PIPELINES", "true")
 
 	client := runServer(t, ctx, c, runtimeNamespace, "0.0.0.0:"+port)
 

@@ -523,7 +523,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
-	if featureflags.Get("PIPELINES") != "" {
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
 			ClientsFactory: args.ClientsFactory,
 		}); err != nil {

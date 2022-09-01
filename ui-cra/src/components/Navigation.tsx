@@ -1,6 +1,6 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
-import { theme, V2Routes } from '@weaveworks/weave-gitops';
+import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
@@ -125,7 +125,7 @@ const NavItems = (navItems: Array<NavigationItem>) => {
 };
 
 export const Navigation: FC = () => {
-  // const { data: flagsRes } = useFeatureFlags();
+  const { data: flagsRes } = useFeatureFlags();
   const classes = useStyles();
   const navItems: Array<NavigationItem> = [
     {
@@ -158,7 +158,7 @@ export const Navigation: FC = () => {
         {
           name: 'Pipelines',
           link: '/applications/pipelines',
-          isVisible: true,//!!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
+          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'Delivery',
