@@ -14,18 +14,18 @@ import (
 
 func installPolicyAgent(clusterName string) {
 	By(fmt.Sprintf("And install cert-manager to %s cluster", clusterName), func() {
-		stdOut, stdErr := runCommandAndReturnStringOutput("helm search repo charts-profile")
+		stdOut, stdErr := runCommandAndReturnStringOutput("helm search repo profiles-catalog")
 		if stdErr == "" && stdOut == "No results found" {
-			err := runCommandPassThrough("helm", "repo", "add", "charts-profile", "https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-profile/")
+			err := runCommandPassThrough("helm", "repo", "add", "profiles-catalog", "https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages")
 			Expect(err).ShouldNot(HaveOccurred(), "Failed to add profiles repositoy")
 		}
 
-		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "charts-profile/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "0.0.7", "--set", "installCRDs=true")
+		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "profiles-catalog/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "0.0.7", "--set", "installCRDs=true")
 		Expect(err).ShouldNot(HaveOccurred(), "Failed to install cer-manager to leaf cluster: "+clusterName)
 	})
 
 	By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {
-		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "charts-profile/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.3.x", "--set", "accountId=weaveworks", "--set", "clusterId="+clusterName)
+		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "profiles-catalog/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.4.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
 		Expect(err).ShouldNot(HaveOccurred(), "Failed to install policy agent to leaf cluster: "+clusterName)
 	})
 }
@@ -244,6 +244,15 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					Eventually(func(g Gomega) int {
 						return policiesPage.CountPolicies()
 					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+
+					// Wait for policy page to completely render policy information. Sometimes error appears momentarily due to RBAC reconciliation
+					Eventually(func(g Gomega) bool {
+						if !pages.ElementExist(policiesPage.AlertError) {
+							return true
+						}
+						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+						return false
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue(), "Policy page failed to render policies with complete policies information")
 				})
 
 				By(fmt.Sprintf("And filter leaf cluster '%s' policies", leafClusterName), func() {
