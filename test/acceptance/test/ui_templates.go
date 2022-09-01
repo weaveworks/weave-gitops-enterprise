@@ -1012,7 +1012,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				policyAgent := Profile{
 					Name:      "weave-policy-agent",
 					Namespace: "policy-system",
-					Version:   "0.3.0",
+					Version:   "0.5.0",
 					Values:    fmt.Sprintf(`accountId: "weaveworks",clusterId: "%s"`, clusterName),
 					Layer:     "layer-1",
 				}
