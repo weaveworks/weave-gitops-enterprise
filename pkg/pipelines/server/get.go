@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	helm "github.com/fluxcd/helm-controller/api/v2beta1"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
@@ -11,7 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -33,21 +34,58 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 		return nil, fmt.Errorf("")
 	}
 
-	appGvk := schema.GroupVersionKind{
-		Kind: p.Spec.AppRef.Kind,
+	pipelineResp := convert.PipelineToProto(*p)
+	pipelineResp.Status = &pb.PipelineStatus{
+		Environments: map[string]*pb.PipelineTargetStatus{},
 	}
+
 	for _, e := range p.Spec.Environments {
 		for _, t := range e.Targets {
-			app := unstructured.Unstructured{}
+			app := &unstructured.Unstructured{}
+			app.SetAPIVersion(p.Spec.AppRef.APIVersion)
+			app.SetKind(p.Spec.AppRef.Kind)
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(p.Namespace)
-			app.SetGroupVersionKind(appGvk)
 
-			c.Get(ctx, t.ClusterRef.Name)
+			if err := c.Get(ctx, t.ClusterRef.Name, client.ObjectKeyFromObject(app), app); err != nil {
+				return nil, fmt.Errorf("failed getting app=%s on cluster=%s: %w", app.GetName(), t.ClusterRef.Name, err)
+			}
+
+			ws, err := getWorloadStatus(app)
+			if err != nil {
+				return nil, err
+			}
+			pipelineResp.Status.Environments[e.Name] = &pb.PipelineTargetStatus{
+				ClusterRef: &pb.ClusterRef{
+					Kind: t.ClusterRef.Kind,
+					Name: t.ClusterRef.Name,
+				},
+				Namespace: p.Namespace,
+				Workloads: []*pb.WorkloadStatus{ws},
+			}
+
 		}
 	}
 
 	return &pb.GetPipelineResponse{
-		Pipeline: convert.PipelineToProto(*p),
+		Pipeline: pipelineResp,
 	}, nil
+}
+
+func getWorloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, error) {
+	ws := &pb.WorkloadStatus{}
+
+	switch obj.GetKind() {
+	case "HelmRelease":
+		hr := helm.HelmRelease{}
+
+		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, &hr); err != nil {
+			return nil, fmt.Errorf("failed converting unstructured.Unstructured to HelmRelease: %w", err)
+		}
+		ws.Kind = hr.Kind
+		ws.Name = hr.Name
+		ws.Version = hr.Spec.Chart.Spec.Version
+	}
+
+	return ws, nil
 }

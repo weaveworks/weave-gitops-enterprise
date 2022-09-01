@@ -17,6 +17,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
+	helm "github.com/fluxcd/helm-controller/api/v2beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/rand"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -24,12 +25,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClientsFactory) {
+func buildScheme() *runtime.Scheme {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(v1.AddToScheme(scheme))
 	utilruntime.Must(ctrl.AddToScheme(scheme))
+	utilruntime.Must(helm.AddToScheme(scheme))
 
-	k8s := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
+	return scheme
+}
+
+func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClientsFactory) {
+	k8s := fake.NewClientBuilder().WithScheme(buildScheme()).WithObjects(objects...).Build()
 
 	factory := MakeClientsFactory(k8s)
 
@@ -37,9 +43,10 @@ func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersm
 }
 
 func MakeClientsFactory(k8s client.Client) *clustersmngrfakes.FakeClientsFactory {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(v1.AddToScheme(scheme))
-	utilruntime.Must(ctrl.AddToScheme(scheme))
+	// scheme := runtime.NewScheme()
+	// utilruntime.Must(v1.AddToScheme(scheme))
+	// utilruntime.Must(ctrl.AddToScheme(scheme))
+	// utilruntime.Must(helm.AddToScheme(scheme))
 
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 
