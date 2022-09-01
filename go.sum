@@ -1279,8 +1279,8 @@ github.com/weaveworks/policy-agent/api v1.0.4 h1:dznn4I3+tfSniNbERFaAXOMpLsvwW+6
 github.com/weaveworks/policy-agent/api v1.0.4/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
 github.com/weaveworks/progressive-delivery v0.0.0-20220808183836-c7c637e887d0 h1:49pW4S2L2fqQYGqqr/5Grps55RopEbQcepTnQeNZ+sE=
 github.com/weaveworks/progressive-delivery v0.0.0-20220808183836-c7c637e887d0/go.mod h1:XRrKv9SdRa6r/CGlT78c50dyxz+r9DWOiy09npLS3L8=
-github.com/weaveworks/weave-gitops v0.9.4-0.20220830111801-9b3233b17f18 h1:D2ogP9QYHrqWNu0T2Cc8an5PYgo1GAcEso/BEkvyQ2M=
-github.com/weaveworks/weave-gitops v0.9.4-0.20220830111801-9b3233b17f18/go.mod h1:sMWzafQ2wnXhNoL+aEbFPOrRPIz8DcqAzOAEn7kM0Zc=
+github.com/weaveworks/weave-gitops v0.9.4-rc.0.0.20220831164407-f78a29cde956 h1:uziMU3fb93RyboDARmoMnbIJ2p0zUkXL1eIgQ9PvRMY=
+github.com/weaveworks/weave-gitops v0.9.4-rc.0.0.20220831164407-f78a29cde956/go.mod h1:bDpadeR7k0E7elFigQZlbubbGIn2947ietMlqGEqSTg=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.69.0 h1:sPci9xHzlX+lcJvPqNu3y3BQpePuR2R694Bal4AeyB8=

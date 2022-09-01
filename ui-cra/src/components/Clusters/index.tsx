@@ -17,7 +17,7 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  FilterableTable,
+  DataTable,
   filterByStatusCallback,
   filterConfig,
   LoadingPage,
@@ -407,7 +407,7 @@ const MCCP: FC = () => {
             </div>
             {!isLoading ? (
               <ClustersTableWrapper id="clusters-list">
-                <FilterableTable
+                <DataTable
                   key={clusters.length}
                   filters={initialFilterState}
                   rows={clusters}

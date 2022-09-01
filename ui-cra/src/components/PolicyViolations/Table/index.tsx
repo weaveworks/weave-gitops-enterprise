@@ -4,7 +4,7 @@ import {
   PolicyValidation,
 } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
-import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';
@@ -115,11 +115,11 @@ export const PolicyViolationsTable: FC<Props> = ({
       : initialApplicationFilter;
   return (
     <TableWrapper id="violations-list">
-      <FilterableTable
+      <DataTable
         filters={initialFilterState}
         rows={violations}
         fields={fields}
-      ></FilterableTable>
+      ></DataTable>
     </TableWrapper>
   );
 };
