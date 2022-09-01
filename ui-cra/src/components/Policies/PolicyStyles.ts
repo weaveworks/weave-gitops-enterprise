@@ -1,6 +1,8 @@
 import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 const { xxs, xs, small, medium, base, none } = theme.spacing;
 const { neutral10, neutral20, neutral30, black, primary } = theme.colors;
 
@@ -154,3 +156,8 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
   }),
 );
+
+export const LinkWrapper = styled(Link)`
+  color: ${primary};
+  fontweight: 600;
+`;
