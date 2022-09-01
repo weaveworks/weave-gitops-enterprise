@@ -124,8 +124,6 @@ const AddCluster: FC = () => {
 
   const clusterName = clusterData?.parameter_values.CLUSTER_NAME;
 
-  console.log(clusterName);
-
   let initialFormData = {
     url: '',
     provider: '',
@@ -143,8 +141,6 @@ const AddCluster: FC = () => {
       : 'This PR creates a new cluster',
     clusterAutomations: [] as ClusterAutomation[],
   };
-
-  // console.log(initialFormData);
 
   let initialProfiles = [] as UpdatedProfile[];
 
@@ -211,19 +207,12 @@ const AddCluster: FC = () => {
         }
       }
     }
-
     initialProfiles = [...initialProfiles, ...selectedProfiles];
   }
-
-  console.log(initialFormData);
 
   const [formData, setFormData] = useState<any>(initialFormData);
   const [selectedProfiles, setSelectedProfiles] =
     useState<UpdatedProfile[]>(initialProfiles);
-
-  // console.log(initialProfiles);
-  // console.log(selectedProfiles);
-
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
