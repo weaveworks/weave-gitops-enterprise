@@ -265,6 +265,7 @@ const AppFields: FC<{
           {!clusters && (
             <Input
               className="form-section"
+              title="Only the bootstrap GitRepository can be referenced by kustomizations when creating a new cluster"
               type="text"
               disabled={true}
               value="flux-system"
