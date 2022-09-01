@@ -35,6 +35,12 @@ var (
 	roleTypeMeta           = typeMeta("Role", "rbac.authorization.k8s.io/v1")
 )
 
+// ServiceAccountOptions is additional configuration for generating
+// ServiceAccounts.
+type ServiceAccountOptions struct {
+	Name string `yaml:"name"`
+}
+
 // AllowedRepository defines the allowed urls for each source type
 type AllowedRepository struct {
 	URL  string `yaml:"url"`
@@ -50,6 +56,12 @@ type AllowedCluster struct {
 type TenantTeamRBAC struct {
 	GroupName string              `yaml:"groupName"`
 	Rules     []rbacv1.PolicyRule `yaml:"rules"`
+}
+
+// Config represents the structure of the Tenancy file.
+type Config struct {
+	ServiceAccount *ServiceAccountOptions `yaml:"serviceAccount,optional"`
+	Tenants        []Tenant               `yaml:"tenants"`
 }
 
 // Tenant represents a tenant that we generate resources for in the tenancy
@@ -92,8 +104,8 @@ func (t Tenant) Validate() error {
 }
 
 // CreateTenants creates resources for tenants given a file for definition.
-func CreateTenants(ctx context.Context, tenants []Tenant, c client.Client, out io.Writer) error {
-	resources, err := GenerateTenantResources(tenants...)
+func CreateTenants(ctx context.Context, config *Config, c client.Client, out io.Writer) error {
+	resources, err := GenerateTenantResources(config)
 	if err != nil {
 		return fmt.Errorf("failed to generate tenant output: %w", err)
 	}
@@ -192,13 +204,9 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 	return nil
 }
 
-func runtimeObjectFromObject(o client.Object) client.Object {
-	return reflect.New(reflect.TypeOf(o).Elem()).Interface().(client.Object)
-}
-
 // ExportTenants exports all the tenants to a file.
-func ExportTenants(tenants []Tenant, out io.Writer) error {
-	resources, err := GenerateTenantResources(tenants...)
+func ExportTenants(config *Config, out io.Writer) error {
+	resources, err := GenerateTenantResources(config)
 	if err != nil {
 		return fmt.Errorf("failed to generate tenant output: %w", err)
 	}
@@ -235,10 +243,10 @@ func outputResources(out io.Writer, resources []client.Object) error {
 }
 
 // GenerateTenantResources creates all the resources for tenants.
-func GenerateTenantResources(tenants ...Tenant) ([]client.Object, error) {
+func GenerateTenantResources(config *Config) ([]client.Object, error) {
 	generated := []client.Object{}
 
-	for _, tenant := range tenants {
+	for _, tenant := range config.Tenants {
 		if err := tenant.Validate(); err != nil {
 			return nil, err
 		}
@@ -249,11 +257,15 @@ func GenerateTenantResources(tenants ...Tenant) ([]client.Object, error) {
 		}
 
 		tenantLabels[tenantLabel] = tenant.Name
+		serviceAccountName := tenant.Name
+		if config.ServiceAccount != nil {
+			serviceAccountName = config.ServiceAccount.Name
+		}
 
 		for _, namespace := range tenant.Namespaces {
 			generated = append(generated, newNamespace(namespace, tenantLabels))
-			generated = append(generated, newServiceAccount(tenant.Name, namespace, tenantLabels))
-			generated = append(generated, newRoleBinding(tenant.Name, namespace, tenant.ClusterRole, tenantLabels))
+			generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
+			generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
 			if tenant.TeamRBAC != nil {
 				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, tenant.TeamRBAC.Rules))
 				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupName, tenant.Labels))
@@ -300,7 +312,7 @@ func newServiceAccount(name, namespace string, labels map[string]string) *corev1
 	}
 }
 
-func newRoleBinding(name, namespace, clusterRole string, labels map[string]string) *rbacv1.RoleBinding {
+func newRoleBinding(name, namespace, serviceAccountName, clusterRole string, labels map[string]string) *rbacv1.RoleBinding {
 	if clusterRole == "" {
 		clusterRole = "cluster-admin"
 	}
@@ -325,7 +337,7 @@ func newRoleBinding(name, namespace, clusterRole string, labels map[string]strin
 			},
 			{
 				Kind:      "ServiceAccount",
-				Name:      name,
+				Name:      serviceAccountName,
 				Namespace: namespace,
 			},
 		},
@@ -466,14 +478,15 @@ func typeMeta(kind, apiVersion string) metav1.TypeMeta {
 
 // Parse a raw tenant declaration, and parses it from the YAML and returns the
 // extracted Tenants.
-func Parse(filename string) ([]Tenant, error) {
+func Parse(filename string) (*Config, error) {
 	tenantsYAML, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read tenants file for export: %w", err)
 	}
 
 	var tenancy struct {
-		Tenants []Tenant `yaml:"tenants"`
+		ServiceAccount *ServiceAccountOptions `yaml:"serviceAccount,optional"`
+		Tenants        []Tenant               `yaml:"tenants"`
 	}
 
 	err = yaml.Unmarshal(tenantsYAML, &tenancy)
@@ -481,5 +494,9 @@ func Parse(filename string) ([]Tenant, error) {
 		return nil, err
 	}
 
-	return tenancy.Tenants, nil
+	return &Config{Tenants: tenancy.Tenants, ServiceAccount: tenancy.ServiceAccount}, nil
+}
+
+func runtimeObjectFromObject(o client.Object) client.Object {
+	return reflect.New(reflect.TypeOf(o).Elem()).Interface().(client.Object)
 }
