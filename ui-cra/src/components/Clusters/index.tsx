@@ -38,7 +38,7 @@ import { DashboardsList } from './DashboardsList';
 import { useListConfig } from '../../hooks/versions';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import { EKSDefault, Kubernetes, GKEDefault, Kind } from '../../utils/icons';
+import { EKSDefault, Kubernetes, GKEDefault, Kind, Vsphere } from '../../utils/icons';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 
 interface Size {
@@ -101,7 +101,7 @@ const useStyles = makeStyles(() =>
 export const ClusterIcon: FC<Props> = ({ cluster }) => {
   const classes = useStyles();
   const clusterKind =
-    cluster.annotations?.['weave.works/cluster-kind'] ||
+    cluster.labels?.['weave.works/cluster-kind'] ||
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
@@ -163,7 +163,19 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     return Kubernetes;
   } else if (clusterType === 'GCPCluster') {
     return GKEDefault;
-  }
+  } else if (clusterType === 'Tanzu') {
+    return Vsphere
+  } 
+  // TODO add icons for the following
+  // else if (clusterType === 'MicrovmCluster') {
+  //   return LiquidMetal;
+  // } else if (clusterType === 'Rancher') {
+  //   return Rancher;
+  // } else if (clusterType === 'Openshift') {
+  //   return Openshift;
+  // } else if (clusterType === 'OtherOnprem') {
+  //   return OtherOnprem;
+  // }
   return Kubernetes;
 };
 
