@@ -10,6 +10,7 @@ type PoliciesPage struct {
 	PolicyHeader *agouti.Selection
 	PolicyCount  *agouti.Selection
 	PoliciesList *agouti.Selection
+	AlertError   *agouti.Selection
 }
 
 type PolicyInformation struct {
@@ -72,6 +73,7 @@ func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 		PolicyHeader: webDriver.Find(`div[role="heading"] a[href="/policies"]`),
 		PolicyCount:  webDriver.Find(`.section-header-count`),
 		PoliciesList: webDriver.First(`table tbody`),
+		AlertError:   webDriver.Find(`#alert-list-errors`),
 	}
 	return &policyPage
 }
