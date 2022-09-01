@@ -262,6 +262,16 @@ const AppFields: FC<{
             onChange={event => handleFormData(event, 'path')}
             description="Path within the git repository to read yaml files"
           />
+          {!clusters && (
+            <Input
+              className="form-section"
+              type="text"
+              disabled={true}
+              value="flux-system"
+              description="The bootstrap GitRepository object"
+              label="SELECT SOURCE"
+            />
+          )}
         </>
       ) : null}
     </FormWrapper>
