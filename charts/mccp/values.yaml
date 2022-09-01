@@ -130,8 +130,6 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "true"
-  - name: WEAVE_GITOPS_FEATURE_PIPELINES
-    value: "true"
 
 networkPolicy:
   enabled: true
