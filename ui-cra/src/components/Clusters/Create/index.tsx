@@ -198,8 +198,11 @@ const AddCluster: FC = () => {
           if (clusterDataProfile.name === profile.name) {
             for (let value of profile.values) {
               if (value.version === clusterDataProfile.version) {
-                console.log(clusterDataProfile.values);
-                value.yaml = atob(clusterDataProfile.values);
+                const base64regex =
+                  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+                if (base64regex.test(clusterDataProfile.values)) {
+                  value.yaml = atob(clusterDataProfile.values);
+                }
                 value.selected = true;
                 selectedProfiles.push(profile);
               }
