@@ -164,6 +164,14 @@ const AddCluster: FC = () => {
   }
 
   if (clusterData) {
+    initialFormData = {
+      ...clusterData.parameter_values,
+      branchName: initialFormData.branchName,
+      pullRequestTitle: initialFormData.pullRequestTitle,
+      commitMessage: initialFormData.commitMessage,
+      pullRequestDescription: initialFormData.pullRequestDescription,
+    };
+
     let clusterAutomations = [] as ClusterAutomation[];
 
     clusterData.kustomizations &&
@@ -176,14 +184,6 @@ const AddCluster: FC = () => {
       );
 
     initialFormData.clusterAutomations = clusterAutomations;
-
-    initialFormData = {
-      ...clusterData.parameter_values,
-      branchName: initialFormData.branchName,
-      pullRequestTitle: initialFormData.pullRequestTitle,
-      commitMessage: initialFormData.commitMessage,
-      pullRequestDescription: initialFormData.pullRequestDescription,
-    };
 
     initialInfraCredential = {
       ...initialInfraCredential,
@@ -198,6 +198,7 @@ const AddCluster: FC = () => {
           if (clusterDataProfile.name === profile.name) {
             for (let value of profile.values) {
               if (value.version === clusterDataProfile.version) {
+                console.log(clusterDataProfile.values);
                 value.yaml = atob(clusterDataProfile.values);
                 value.selected = true;
                 selectedProfiles.push(profile);
