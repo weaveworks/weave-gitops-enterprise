@@ -59,7 +59,7 @@ require (
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gotest.tools/v3 v3.1.0
-	helm.sh/helm/v3 v3.9.1
+	helm.sh/helm/v3 v3.9.4
 	k8s.io/apiextensions-apiserver v0.25.0
 	k8s.io/helm v2.17.0+incompatible
 	sigs.k8s.io/cluster-api v1.1.3
@@ -191,7 +191,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/helm/helm v2.17.0+incompatible
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect

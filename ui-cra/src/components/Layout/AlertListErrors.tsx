@@ -25,6 +25,7 @@ const useStyles = makeStyles(() =>
   }),
 );
 
+
 function errorInfo(item: ListError): string {
   const msg = `Cluster: ${item.clusterName}`;
   if (!item.namespace) {

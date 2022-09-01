@@ -60,13 +60,9 @@ const HelpLinkWrapper = styled.div`
 const useStyles = makeStyles(() =>
   createStyles({
     alertWrapper: {
-      marginTop: medium,
-      marginRight: small,
-      marginBottom: 0,
-      marginLeft: small,
-      paddingRight: medium,
-      paddingLeft: medium,
-      borderRadius: xs,
+      padding: base,
+      margin: `0 ${base} ${base} ${base}`,
+      borderRadius: '10px',
     },
     warning: {
       backgroundColor: feedbackLight,
@@ -116,7 +112,13 @@ export const ContentWrapper: FC<Props> = ({
       </Box>
     );
   }
-
+  if (errorMessage) {
+    return (
+      <Alert severity="error" className={classes.alertWrapper}>
+        {errorMessage}
+      </Alert>
+    );
+  }
   return (
     <div
       style={{
@@ -137,7 +139,6 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
-      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
