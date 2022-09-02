@@ -36,7 +36,7 @@ type ViolationDetailPage struct {
 }
 
 func (v ViolationsPage) FindViolationInList(violationMsg string) *ViolationInformation {
-	violation := v.ViolationList.FirstByXPath(fmt.Sprintf(`//tr[.//a[contains(text(), "%s")]]`, violationMsg))
+	violation := v.ViolationList.FirstByXPath(fmt.Sprintf(`//tr[.//a[contains(@data-violation-message, "%s")]]`, violationMsg))
 	return &ViolationInformation{
 		Message:         violation.FindByXPath(`td[1]//a`),
 		Cluster:         violation.FindByXPath(`td[2]`),
