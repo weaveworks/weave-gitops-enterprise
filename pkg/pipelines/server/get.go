@@ -45,13 +45,13 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetAPIVersion(p.Spec.AppRef.APIVersion)
 			app.SetKind(p.Spec.AppRef.Kind)
 			app.SetName(p.Spec.AppRef.Name)
-			app.SetNamespace(p.Namespace)
+			app.SetNamespace(t.Namespace)
 
 			if err := c.Get(ctx, t.ClusterRef.Name, client.ObjectKeyFromObject(app), app); err != nil {
 				return nil, fmt.Errorf("failed getting app=%s on cluster=%s: %w", app.GetName(), t.ClusterRef.Name, err)
 			}
 
-			ws, err := getWorloadStatus(app)
+			ws, err := getWorkloadStatus(app)
 			if err != nil {
 				return nil, err
 			}
@@ -72,7 +72,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	}, nil
 }
 
-func getWorkloadStatus(obj *unstructured.Unstructured) (pb.WorkloadStatus, error) {
+func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, error) {
 	ws := &pb.WorkloadStatus{}
 
 	switch obj.GetKind() {

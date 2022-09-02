@@ -42,6 +42,7 @@ func TestGetPipeline(t *testing.T) {
 					Name: envName,
 					Targets: []ctrl.Target{
 						{
+							Namespace: ns.Name,
 							ClusterRef: ctrl.CrossNamespaceClusterReference{
 								APIVersion: ctrl.GroupVersion.String(),
 								Kind:       "GitopsCluster",
