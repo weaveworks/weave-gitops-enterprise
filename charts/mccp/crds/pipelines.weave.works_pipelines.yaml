@@ -59,13 +59,12 @@ spec:
                     type: string
                   kind:
                     description: Kind of the referent.
-                    enum:
-                    - HelmRelease
                     type: string
                   name:
                     description: Name of the referent.
                     type: string
                 required:
+                - apiVersion
                 - kind
                 - name
                 type: object
