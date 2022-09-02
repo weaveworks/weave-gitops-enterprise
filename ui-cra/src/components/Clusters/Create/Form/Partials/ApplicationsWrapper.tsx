@@ -1,7 +1,10 @@
 import { Grid, makeStyles, createStyles } from '@material-ui/core';
 import { Button, Icon, IconType, theme } from '@weaveworks/weave-gitops';
-import React, { Dispatch, FC } from 'react';
+import React, { Dispatch, FC, useCallback, useState } from 'react';
 import AppFields from '../../../../Applications/Add/form/Partials/AppFields';
+import useTemplates from '../../../../../contexts/Templates';
+import useNotifications from '../../../../../contexts/Notifications';
+import Preview from './Preview';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -25,7 +28,38 @@ export const ApplicationsWrapper: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ formData, setFormData }) => {
+  const {
+    renderTemplate,
+  } = useTemplates();
+  const [openPreview, setOpenPreview] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const { setNotifications } = useNotifications();
   const classes = useStyles();
+
+  const handlePRPreview = useCallback(() => {
+    const { ...templateFields } = formData;
+    setPreviewLoading(true);
+    return renderTemplate({
+      values: templateFields,
+    })
+      .then(data => {
+        setOpenPreview(true);
+        setPRPreview(data.renderedTemplate);
+      })
+      .catch(err =>
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
+      )
+      .finally(() => setPreviewLoading(false));
+  }, [
+    formData,
+    setOpenPreview,
+    renderTemplate,
+    setNotifications,
+  ]);
+
 
   const handleAddApplication = () => {
     let newAutomations = [...formData.clusterAutomations];
@@ -48,11 +82,20 @@ export const ApplicationsWrapper: FC<{
             <Grid container className="">
               <Grid item xs={12} sm={8} md={8} lg={8}>
                 <AppFields
+                  index={index}
                   formData={formData}
                   setFormData={setFormData}
-                  index={index}
+                  onPRPreview={handlePRPreview}
+                  previewLoading={previewLoading}
                 />
               </Grid>
+              {openPreview && PRPreview ? (
+                <Preview
+                  openPreview={openPreview}
+                  setOpenPreview={setOpenPreview}
+                  PRPreview={PRPreview}
+                />
+              ) : null}
               <Grid
                 item
                 xs={12}

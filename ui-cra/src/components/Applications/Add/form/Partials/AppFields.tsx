@@ -2,10 +2,15 @@ import React, { FC, Dispatch } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
-import { Input, Select } from '../../../../../utils/form';
+import { Input, Select, validateFormData } from '../../../../../utils/form';
 import { ListSubheader, MenuItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../../../../types/custom';
-import { useListSources, theme } from '@weaveworks/weave-gitops';
+import {
+  useListSources,
+  theme,
+  Button,
+  LoadingPage,
+} from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
@@ -32,7 +37,16 @@ const AppFields: FC<{
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
   clusters?: GitopsClusterEnriched[];
-}> = ({ formData, setFormData, index = 0, clusters = undefined }) => {
+  onPRPreview: () => void;
+  previewLoading: boolean;
+}> = ({
+  formData,
+  setFormData,
+  index = 0,
+  clusters = undefined,
+  onPRPreview,
+  previewLoading,
+}) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
@@ -264,6 +278,15 @@ const AppFields: FC<{
           />
         </>
       ) : null}
+      {previewLoading ? (
+        <LoadingPage className="preview-loading" />
+      ) : (
+        <div className="preview-cta">
+          <Button onClick={event => validateFormData(event, onPRPreview)}>
+            PREVIEW PR
+          </Button>
+        </div>
+      )}
     </FormWrapper>
   );
 };
