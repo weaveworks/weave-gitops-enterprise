@@ -1,9 +1,9 @@
 import React, { FC, useCallback, Dispatch, ChangeEvent, useMemo } from 'react';
-import { Credential } from '../../../../../types/custom';
+import { Credential } from '../../../../types/custom';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import { useListCredentials } from '../../../../../hooks/credentials';
+import { useListCredentials } from '../../../../hooks/credentials';
 
 const Credentials: FC<{
   infraCredential: Credential | null;

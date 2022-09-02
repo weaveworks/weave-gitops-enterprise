@@ -27,10 +27,6 @@ interface ClustersContext {
     [key: string]: string;
   };
   getCluster: (clusterName: string) => GitopsClusterEnriched | null;
-  activeCluster: GitopsClusterEnriched | null;
-  setActiveCluster: Dispatch<
-    React.SetStateAction<GitopsClusterEnriched | null>
-  >;
 }
 
 export const Clusters = createContext<ClustersContext | null>(null);

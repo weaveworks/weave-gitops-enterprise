@@ -1,7 +1,7 @@
 import { Grid, makeStyles, createStyles } from '@material-ui/core';
 import { Button, Icon, IconType, theme } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
-import AppFields from '../../../../Applications/Add/form/Partials/AppFields';
+import AppFields from '../../../Applications/Add/form/Partials/AppFields';
 
 const useStyles = makeStyles(() =>
   createStyles({
