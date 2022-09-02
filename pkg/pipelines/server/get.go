@@ -23,18 +23,18 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 		return nil, fmt.Errorf("getting impersonated client: %w", err)
 	}
 
-	p := &ctrl.Pipeline{
+	p := ctrl.Pipeline{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      msg.Name,
 			Namespace: msg.Namespace,
 		},
 	}
 
-	if err := c.Get(ctx, fetcher.ManagementClusterName, client.ObjectKeyFromObject(p), p); err != nil {
+	if err := c.Get(ctx, fetcher.ManagementClusterName, client.ObjectKeyFromObject(&p), &p); err != nil {
 		return nil, fmt.Errorf("")
 	}
 
-	pipelineResp := convert.PipelineToProto(*p)
+	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
 		Environments: map[string]*pb.PipelineTargetStatus{},
 	}
@@ -72,7 +72,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	}, nil
 }
 
-func getWorloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, error) {
+func getWorkloadStatus(obj *unstructured.Unstructured) (pb.WorkloadStatus, error) {
 	ws := &pb.WorkloadStatus{}
 
 	switch obj.GetKind() {
