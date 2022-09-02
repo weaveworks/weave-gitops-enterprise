@@ -1,4 +1,5 @@
 import React, { Dispatch, FC, useEffect, useState } from 'react';
+import _ from 'lodash';
 import { UpdatedProfile } from '../../../../../types/custom';
 import useProfiles from '../../../../../contexts/Profiles';
 import styled from 'styled-components';
@@ -7,7 +8,7 @@ import { DataTable } from '@weaveworks/weave-gitops';
 import { Checkbox } from '@material-ui/core';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import ProfilesListItem from './ProfileListItem';
-import _ from 'lodash';
+import useClusters from '../../../../../contexts/Clusters';
 
 const ProfilesWrapper = styled.div`
   width: 85%;
@@ -45,6 +46,7 @@ const Profiles: FC<{
   selectedProfiles: UpdatedProfile[];
   setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
 }> = ({ context, selectedProfiles, setSelectedProfiles }) => {
+  const { activeCluster } = useClusters();
   const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
     profiles.map(p => p.name);
   const { profiles, isLoading } = useProfiles();
@@ -90,7 +92,10 @@ const Profiles: FC<{
       setSelected(getNamesFromProfiles(requiredProfiles));
       setSelectedProfiles(requiredProfiles);
     }
-  }, [profiles, setSelectedProfiles, selectedProfiles.length]);
+    if (activeCluster) {
+      setSelected(getNamesFromProfiles(selectedProfiles));
+    }
+  }, [profiles, setSelectedProfiles, selectedProfiles, activeCluster]);
 
   return (
     <ProfilesWrapper>
@@ -100,6 +105,7 @@ const Profiles: FC<{
         <>
           <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
           <DataTable
+            key={selectedProfiles.length}
             className="profiles-table"
             rows={_.orderBy(
               [
@@ -122,20 +128,22 @@ const Profiles: FC<{
                     }}
                   />
                 ),
-                value: (profile: UpdatedProfile) => (
-                  <Checkbox
-                    onChange={event =>
-                      handleIndividualClick(event, profile.name)
-                    }
-                    checked={selected.indexOf(profile.name) > -1}
-                    disabled={profile.required}
-                    style={{
-                      color: profile.required
-                        ? undefined
-                        : weaveTheme.colors.primary,
-                    }}
-                  />
-                ),
+                value: (profile: UpdatedProfile) => {
+                  return (
+                    <Checkbox
+                      onChange={event =>
+                        handleIndividualClick(event, profile.name)
+                      }
+                      checked={selected.indexOf(profile.name) > -1}
+                      disabled={profile.required}
+                      style={{
+                        color: profile.required
+                          ? undefined
+                          : weaveTheme.colors.primary,
+                      }}
+                    />
+                  );
+                },
                 maxWidth: 25,
               },
               {

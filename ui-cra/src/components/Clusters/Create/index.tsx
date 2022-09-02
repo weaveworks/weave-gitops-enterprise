@@ -116,29 +116,39 @@ const AddCluster: FC = () => {
   const { profiles } = useProfiles();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
-  const clusterData =
-    activeCluster?.annotations &&
-    JSON.parse(
-      activeCluster?.annotations['templates.weave.works/create-request'],
-    );
+  // const clusterData =
+  //   activeCluster?.annotations &&
+  //   JSON.parse(
+  //     activeCluster?.annotations['templates.weave.works/create-request'],
+  //   );
 
-  const clusterName = clusterData?.parameter_values.CLUSTER_NAME;
+  // const clusterName = clusterData?.parameter_values.CLUSTER_NAME;
+
+  // let initialFormData = {
+  //   url: '',
+  //   provider: '',
+  //   branchName: clusterData
+  //     ? `edit-cluster-${clusterName}-branch-${random}`
+  //     : `create-clusters-branch-${random}`,
+  //   pullRequestTitle: clusterData
+  //     ? `Edits cluster ${clusterName}`
+  //     : 'Creates cluster',
+  //   commitMessage: clusterData
+  //     ? `Edits capi cluster ${clusterName}`
+  //     : 'Creates capi cluster',
+  //   pullRequestDescription: clusterData
+  //     ? 'This PR edits the cluster'
+  //     : 'This PR creates a new cluster',
+  //   clusterAutomations: [] as ClusterAutomation[],
+  // };
 
   let initialFormData = {
     url: '',
     provider: '',
-    branchName: clusterData
-      ? `edit-cluster-${clusterName}-branch-${random}`
-      : `create-clusters-branch-${random}`,
-    pullRequestTitle: clusterData
-      ? `Edits cluster ${clusterName}`
-      : 'Creates cluster',
-    commitMessage: clusterData
-      ? `Edits capi cluster ${clusterName}`
-      : 'Creates capi cluster',
-    pullRequestDescription: clusterData
-      ? 'This PR edits the cluster'
-      : 'This PR creates a new cluster',
+    branchName: `create-clusters-branch-${random}`,
+    pullRequestTitle: 'Creates cluster',
+    commitMessage: 'Creates capi cluster',
+    pullRequestDescription: 'This PR creates a new cluster',
     clusterAutomations: [] as ClusterAutomation[],
   };
 
@@ -163,60 +173,38 @@ const AddCluster: FC = () => {
     };
   }
 
-  if (clusterData) {
-    initialFormData = {
-      ...clusterData.parameter_values,
-      branchName: initialFormData.branchName,
-      pullRequestTitle: initialFormData.pullRequestTitle,
-      commitMessage: initialFormData.commitMessage,
-      pullRequestDescription: initialFormData.pullRequestDescription,
-    };
+  // if (clusterData) {
+  //   initialFormData = {
+  //     ...clusterData.parameter_values,
+  //     branchName: initialFormData.branchName,
+  //     pullRequestTitle: initialFormData.pullRequestTitle,
+  //     commitMessage: initialFormData.commitMessage,
+  //     pullRequestDescription: initialFormData.pullRequestDescription,
+  //   };
 
-    let clusterAutomations = [] as ClusterAutomation[];
+  //   let clusterAutomations = [] as ClusterAutomation[];
 
-    clusterData.kustomizations &&
-      clusterData.kustomizations.forEach((k: Kustomization) =>
-        clusterAutomations.push({
-          name: k.metadata?.name,
-          namespace: k.metadata?.namespace,
-          path: k.spec?.path,
-        }),
-      );
+  //   clusterData.kustomizations &&
+  //     clusterData.kustomizations.forEach((k: Kustomization) =>
+  //       clusterAutomations.push({
+  //         name: k.metadata?.name,
+  //         namespace: k.metadata?.namespace,
+  //         path: k.spec?.path,
+  //       }),
+  //     );
 
-    initialFormData.clusterAutomations = clusterAutomations;
+  //   initialFormData.clusterAutomations = clusterAutomations;
 
-    initialInfraCredential = {
-      ...initialInfraCredential,
-      ...clusterData.credentials,
-    };
-
-    let selectedProfiles = [] as UpdatedProfile[];
-
-    if (clusterData.values) {
-      for (let clusterDataProfile of clusterData.values) {
-        for (let profile of profiles) {
-          if (clusterDataProfile.name === profile.name) {
-            for (let value of profile.values) {
-              if (value.version === clusterDataProfile.version) {
-                const base64regex =
-                  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
-                if (base64regex.test(clusterDataProfile.values)) {
-                  value.yaml = atob(clusterDataProfile.values);
-                }
-                value.selected = true;
-                selectedProfiles.push(profile);
-              }
-            }
-          }
-        }
-      }
-    }
-    initialProfiles = [...initialProfiles, ...selectedProfiles];
-  }
+  //   initialInfraCredential = {
+  //     ...initialInfraCredential,
+  //     ...clusterData.credentials,
+  //   };
+  // }
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const [selectedProfiles, setSelectedProfiles] =
-    useState<UpdatedProfile[]>(initialProfiles);
+  const [selectedProfiles, setSelectedProfiles] = useState<UpdatedProfile[]>(
+    callbackState ? initialProfiles : [],
+  );
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredential,
   );
@@ -401,16 +389,45 @@ const AddCluster: FC = () => {
         url: repositoryURL,
       }));
     }
-  }, [callbackState, infraCredential, repositoryURL, profiles]);
+
+    const clusterData =
+      activeCluster?.annotations &&
+      JSON.parse(
+        activeCluster?.annotations['templates.weave.works/create-request'],
+      );
+
+    if (clusterData?.values) {
+      let clusterDataProfiles = [] as UpdatedProfile[];
+
+      for (let clusterDataProfile of clusterData.values) {
+        for (let profile of profiles) {
+          if (clusterDataProfile.name === profile.name) {
+            for (let value of profile.values) {
+              if (value.version === clusterDataProfile.version) {
+                const base64regex =
+                  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+                if (base64regex.test(clusterDataProfile.values)) {
+                  value.yaml = atob(clusterDataProfile.values);
+                }
+                value.selected = true;
+                clusterDataProfiles.push(profile);
+              }
+            }
+          }
+        }
+      }
+      setSelectedProfiles(clusterDataProfiles);
+    }
+  }, [callbackState, repositoryURL, profiles, activeCluster]);
 
   useEffect(() => {
-    if (!clusterData) {
+    if (!activeCluster) {
       setFormData((prevState: any) => ({
         ...prevState,
         pullRequestTitle: `Creates cluster ${formData.CLUSTER_NAME || ''}`,
       }));
     }
-  }, [formData.CLUSTER_NAME, setFormData, clusterData]);
+  }, [formData.CLUSTER_NAME, setFormData, activeCluster]);
 
   return useMemo(() => {
     return (
