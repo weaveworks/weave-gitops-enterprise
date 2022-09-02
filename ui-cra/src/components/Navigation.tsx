@@ -158,7 +158,7 @@ export const Navigation: FC = () => {
         {
           name: 'Pipelines',
           link: '/applications/pipelines',
-          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
+          isVisible:true,// !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'Delivery',

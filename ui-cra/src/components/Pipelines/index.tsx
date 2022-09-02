@@ -7,7 +7,7 @@ import { useApplicationsCount } from '../Applications/utils';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { LinkWrapper } from '../Policies/PolicyStyles';
+import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
 const Pipelines = () => {
@@ -57,13 +57,19 @@ const Pipelines = () => {
                     textSearchable: true,
                   },
                   {
-                    label: 'Application Name',
-                    value: ({ appRef }: Pipeline) => <>{appRef?.name}</>,
+                    label: 'Kind',
+                    value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
                     sortValue: ({ appRef }: Pipeline) => appRef?.name,
                   },
                   {
-                    label: 'Application Kind',
-                    value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
+                    label: 'Environments',
+                    value: ({ environments }: Pipeline) => (
+                      <>
+                        {environments?.map(env => (
+                          <ChipWrapper key={env.name}>{env.name}</ChipWrapper>
+                        ))}
+                      </>
+                    ),
                     sortValue: ({ appRef }: Pipeline) => appRef?.name,
                   },
                 ]}
