@@ -148,7 +148,7 @@ cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.
 update-weave-gitops-main:
 	go get -d github.com/weaveworks/weave-gitops@main
 	go mod tidy
-	$(eval NPM_VERSION := $(shell yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | to_entries | sort_by(.value)[-1].key'))
+	$(eval NPM_VERSION := $(shell cd ui-cra && yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | to_entries | sort_by(.value)[-1].key'))
 	cd ui-cra && yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$(NPM_VERSION)	
 
 # We select which directory we want to descend into to not execute integration
