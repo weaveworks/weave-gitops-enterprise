@@ -37,8 +37,8 @@ export type WorkloadStatus = {
 }
 
 export type PipelineTargetStatus = {
-  kind?: string
-  name?: string
+  clusterRef?: ClusterRef
+  namespace?: string
   workloads?: WorkloadStatus[]
 }
 

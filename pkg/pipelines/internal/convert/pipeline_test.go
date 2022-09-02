@@ -58,7 +58,7 @@ func TestPipelineToProto(t *testing.T) {
 		}},
 	}
 
-	converted := PipelineToProto(list)[0]
+	converted := PipelineToProto(list[0])
 
 	assert.Equal(t, expected.Name, converted.Name)
 	assert.Equal(t, expected.Namespace, converted.Namespace)
