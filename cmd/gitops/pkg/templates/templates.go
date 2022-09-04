@@ -106,9 +106,10 @@ type Credentials struct {
 }
 
 type ProfileValues struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Values  string `json:"values"`
+	Name      string `json:"name"`
+	Version   string `json:"version"`
+	Values    string `json:"values"`
+	Namespace string `json:"namespace"`
 }
 
 type Profile struct {

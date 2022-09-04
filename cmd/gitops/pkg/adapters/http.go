@@ -405,7 +405,7 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 		ParameterValues   map[string]string         `json:"parameter_values"`
 		CommitMessage     string                    `json:"commitMessage"`
 		Credentials       templates.Credentials     `json:"credentials"`
-		ProfileValues     []templates.ProfileValues `json:"profile_values"`
+		ProfileValues     []templates.ProfileValues `json:"values"`
 	}
 
 	// POST response payload

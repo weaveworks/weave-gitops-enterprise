@@ -47,9 +47,9 @@ gitops add cluster --from-template <template-name> --set key=val
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
 
-# Add a new cluster supplied with profiles versions and values files
+# Add a new cluster supplied with profiles versions, namespaces and values files
 gitops add cluster --from-template <template-name> \
---profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml
+--profile 'name=foo-profile,version=0.0.1,namespace=foo-system' --profile 'name=bar-profile,values=bar-values.yaml
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -60,7 +60,7 @@ gitops add cluster --from-template <template-name> \
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")
 	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
-	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml')")
+	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1,namespace=foo-system' --profile 'name=bar-profile,namespace=bar-system,values=bar-values.yaml')")
 	internal.AddTemplateFlags(cmd, &flags.Template, &flags.TemplateNamespace, &flags.ParameterValues)
 	internal.AddPRFlags(cmd, &flags.HeadBranch, &flags.BaseBranch, &flags.Description, &flags.CommitMessage, &flags.Title)
 
@@ -147,8 +147,8 @@ func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*
 func parseProfileFlags(profiles []string) ([]templates.ProfileValues, error) {
 	var profilesValues []templates.ProfileValues
 
-	// Validate values include alphanumeric or - or .
-	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
+	// Validate values include alphanumeric or -, / or .
+	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9/.-]*[A-Za-z0-9])?$`)
 
 	for _, p := range flags.Profiles {
 		valuesPairs := strings.Split(p, ",")
@@ -158,12 +158,18 @@ func parseProfileFlags(profiles []string) ([]templates.ProfileValues, error) {
 			fmt.Println(pair)
 			kv := strings.Split(pair, "=")
 
-			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" {
+			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" && kv[0] != "namespace" {
 				return nil, fmt.Errorf("invalid key: %s", kv[0])
 			} else if !r.MatchString(kv[1]) {
 				return nil, fmt.Errorf("invalid value for %s: %s", kv[0], kv[1])
 			} else {
 				profileMap[kv[0]] = kv[1]
+			}
+			if kv[0] == "values" {
+				file, err := os.ReadFile(kv[1])
+				if err == nil {
+					profileMap[kv[0]] = string(file)
+				}
 			}
 		}
 
