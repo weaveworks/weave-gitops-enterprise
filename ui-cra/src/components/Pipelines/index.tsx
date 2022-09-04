@@ -66,7 +66,9 @@ const Pipelines = () => {
                     value: ({ environments }: Pipeline) => (
                       <>
                         {environments?.map(env => (
-                          <ChipWrapper key={env.name}>{env.name}</ChipWrapper>
+                          <ChipWrapper key={env.name}>
+                            {env.name}
+                          </ChipWrapper>
                         ))}
                       </>
                     ),

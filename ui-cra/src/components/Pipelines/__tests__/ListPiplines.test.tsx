@@ -84,6 +84,10 @@ const pipelines = {
     },
   ],
 };
+
+
+
+// WIP - Make a sharable class to test all Filterable table functionality
 export function searchTableByValue(tableId: string, searchVal: string) {
   const searchBtn = document.querySelector<HTMLElement>(
     "div[class*='SearchField'] > button",
@@ -100,6 +104,20 @@ export function searchTableByValue(tableId: string, searchVal: string) {
   ) as Element;
 
   fireEvent.submit(searchForm);
+  return getTableInfo(tableId);
+}
+
+//FilterDialog
+export function filterTableByValue(tableId: string) {
+  const filterBtn = document.querySelector<HTMLElement>(
+    "button[class*='FilterableTable']",
+  );
+  filterBtn?.click();
+  
+  const filters = document.querySelectorAll("form > ul > li")
+
+  
+  
   return getTableInfo(tableId);
 }
 
@@ -125,8 +143,8 @@ describe('ListPipelines', () => {
     expect(headers).toHaveLength(4);
     expect(headers![0].textContent).toEqual('Name');
     expect(headers![1].textContent).toEqual('Namespace');
-    expect(headers![2].textContent).toEqual('Application Name');
-    expect(headers![3].textContent).toEqual('Application Kind');
+    expect(headers![2].textContent).toEqual('Kind');
+    expect(headers![3].textContent).toEqual('Environments');
 
     expect(rows).toHaveLength(2);
   });
@@ -141,7 +159,12 @@ describe('ListPipelines', () => {
 
     const { rows } = searchTableByValue('pipelines-list', 'podinfo');
     expect(rows).toHaveLength(1);
+    const tds = rows![0].querySelectorAll('td');
+
+    expect(tds![0].textContent).toEqual('podinfo');
+    expect(tds![1].textContent).toEqual('default');
+    expect(tds![2].textContent).toEqual('HelmRelease');
+    expect(tds![3].textContent).toContain('dev');
+    expect(tds![3].textContent).toContain('prod');
   });
 });
-
-

@@ -65,7 +65,9 @@ const PipelineDetails = ({
             <>
               {generateRowHeaders(defaultHeaders)}
 
-              <h2>Environements</h2>
+              <h2 style={{
+                margin:'24px 0'
+              }}>Environments</h2>
               <Grid container spacing={3}>
                 {Object.entries(data.pipeline.status?.environments || {}).map(
                   ([key, value], index) => (

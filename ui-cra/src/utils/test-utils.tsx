@@ -234,6 +234,10 @@ export function getTableInfo(id: string) {
 
   return { rows, headers };
 }
+export function getRowInfoByIndex(tableId: string, rowIndex: number) {
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  return rows[rowIndex].querySelectorAll('td');
+}
 
 export function sortTableByColumn(tableId: string, column: string) {
   const btns = document.querySelectorAll<HTMLElement>(
@@ -265,4 +269,31 @@ function findColByHeading(
   });
 
   return idx;
+}
+
+export class TestFilterableTable {
+  constructor(_tableId: string) {
+    this.tableId = _tableId;
+  }
+  tableId: string = '';
+  sortTableByColumn(columnName: string) {
+    const btns = document.querySelectorAll<HTMLElement>(
+      `#${this.tableId} table thead tr th button`,
+    );
+    btns.forEach(ele => {
+      if (ele.textContent === columnName) {
+        ele.click();
+      }
+    });
+  }
+  getTableInfo() {
+    const tbl = document.querySelector(`#${this.tableId} table`);
+    const rows = tbl?.querySelectorAll('tbody tr');
+    const headers = tbl?.querySelectorAll('thead tr th');
+    return { rows, headers };
+  }
+  getRowInfoByIndex(rowIndex: number) {
+    const rows = document.querySelectorAll(`#${this.tableId} tbody tr`);
+    return rows[rowIndex].querySelectorAll('td');
+  }
 }

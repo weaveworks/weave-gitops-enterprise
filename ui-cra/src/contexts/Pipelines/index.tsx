@@ -61,6 +61,30 @@ const pList = new Promise<ListPipelinesResponse>((resolve, reject) => {
         ],
         targets: [],
       },
+      {
+        name: 'test pipline 2',
+        namespace: 'flux-system',
+        appRef: {
+          apiVersion: '',
+          kind: 'HelmRelease',
+          name: 'podinfo 2',
+        },
+        environments: [
+          {
+            name: 'dev',
+            targets: [
+              {
+                namespace: 'podinfo',
+                clusterRef: {
+                  kind: 'GitopsCluster',
+                  name: 'dev',
+                },
+              },
+            ],
+          },
+        ],
+        targets: [],
+      },
     ],
   });
 });
