@@ -39,8 +39,8 @@ message WorkloadStatus {
 }
 
 message PipelineTargetStatus {
-    string   kind                     = 1;
-    string   name                     = 2;
+    ClusterRef clusterRef = 2;
+    string     namespace  = 1;
     repeated WorkloadStatus workloads = 3;
 }
 
