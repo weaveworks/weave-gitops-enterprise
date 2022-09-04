@@ -56,8 +56,4 @@ export const TableWrapper = styled.div`
       color: ${({ theme }) => theme.colors.primary};
     }
   }
-
-  table > thead > tr > th  h2 {
-    padding:0px;
-  }
 `;

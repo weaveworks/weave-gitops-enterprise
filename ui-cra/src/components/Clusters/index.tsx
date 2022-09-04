@@ -62,6 +62,7 @@ const ClustersTableWrapper = styled(TableWrapper)`
   td:first-of-type {
     text-overflow: clip;
     width: 25px;
+    padding-left: ${({ theme }) => theme.spacing.base};
   }
   td:nth-child(7) {
     white-space: pre-wrap;
