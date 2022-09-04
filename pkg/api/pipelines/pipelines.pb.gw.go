@@ -149,13 +149,12 @@ func RegisterPipelinesHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPipelines", runtime.WithHTTPPathPattern("/v1/pipelines"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPipelines", runtime.WithHTTPPathPattern("/v1/pipelines"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Pipelines_ListPipelines_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Pipelines_ListPipelines_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -173,13 +172,12 @@ func RegisterPipelinesHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pipelines.v1.Pipelines/GetPipeline", runtime.WithHTTPPathPattern("/v1/pipelines/{name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/pipelines.v1.Pipelines/GetPipeline", runtime.WithHTTPPathPattern("/v1/pipelines/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Pipelines_GetPipeline_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Pipelines_GetPipeline_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -236,13 +234,12 @@ func RegisterPipelinesHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPipelines", runtime.WithHTTPPathPattern("/v1/pipelines"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPipelines", runtime.WithHTTPPathPattern("/v1/pipelines"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Pipelines_ListPipelines_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Pipelines_ListPipelines_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -257,13 +254,12 @@ func RegisterPipelinesHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/pipelines.v1.Pipelines/GetPipeline", runtime.WithHTTPPathPattern("/v1/pipelines/{name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/pipelines.v1.Pipelines/GetPipeline", runtime.WithHTTPPathPattern("/v1/pipelines/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Pipelines_GetPipeline_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Pipelines_GetPipeline_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)

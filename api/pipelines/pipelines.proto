@@ -29,7 +29,7 @@ service Pipelines {
     rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse) {
         option (google.api.http) = {
             get : "/v1/pipelines/{name}"
-        }; 
+        };
     }
 
 }
@@ -46,6 +46,7 @@ message GetPipelineRequest {
     string name = 1;
     string namespace = 2;
 }
+
 
 message GetPipelineResponse {
     Pipeline pipeline = 1;
