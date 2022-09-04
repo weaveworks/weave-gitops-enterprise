@@ -5,7 +5,7 @@ import {
   PipelinesClientMock,
   withContext,
   defaultContexts,
-  getTableInfo,
+  TestFilterableTable,
 } from '../../../utils/test-utils';
 
 const pipelines = {
@@ -85,41 +85,7 @@ const pipelines = {
   ],
 };
 
-
-
-// WIP - Make a sharable class to test all Filterable table functionality
-export function searchTableByValue(tableId: string, searchVal: string) {
-  const searchBtn = document.querySelector<HTMLElement>(
-    "div[class*='SearchField'] > button",
-  );
-  searchBtn?.click();
-  const searchInput = document.getElementById(
-    'table-search',
-  ) as HTMLInputElement;
-
-  fireEvent.change(searchInput, { target: { value: searchVal } });
-
-  const searchForm = document.querySelector(
-    "div[class*='SearchField'] > form",
-  ) as Element;
-
-  fireEvent.submit(searchForm);
-  return getTableInfo(tableId);
-}
-
-//FilterDialog
-export function filterTableByValue(tableId: string) {
-  const filterBtn = document.querySelector<HTMLElement>(
-    "button[class*='FilterableTable']",
-  );
-  filterBtn?.click();
-  
-  const filters = document.querySelectorAll("form > ul > li")
-
-  
-  
-  return getTableInfo(tableId);
-}
+const fitlerTabale = new TestFilterableTable('pipelines-list', fireEvent);
 
 describe('ListPipelines', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -138,7 +104,7 @@ describe('ListPipelines', () => {
 
     expect(await screen.findByText('Pipelines')).toBeTruthy();
 
-    const { rows, headers } = getTableInfo('pipelines-list');
+    const { rows, headers } = fitlerTabale.getTableInfo();
 
     expect(headers).toHaveLength(4);
     expect(headers![0].textContent).toEqual('Name');
@@ -149,7 +115,7 @@ describe('ListPipelines', () => {
     expect(rows).toHaveLength(2);
   });
 
-  it('search table by pipeline name', async () => {
+  it('search table by pipeline name podinfo', async () => {
     api.ListPipelinesReturns = pipelines;
 
     await act(async () => {
@@ -157,7 +123,7 @@ describe('ListPipelines', () => {
       render(c);
     });
 
-    const { rows } = searchTableByValue('pipelines-list', 'podinfo');
+    const { rows } = fitlerTabale.searchTableByValue('podinfo');
     expect(rows).toHaveLength(1);
     const tds = rows![0].querySelectorAll('td');
 
@@ -166,5 +132,27 @@ describe('ListPipelines', () => {
     expect(tds![2].textContent).toEqual('HelmRelease');
     expect(tds![3].textContent).toContain('dev');
     expect(tds![3].textContent).toContain('prod');
+  });
+
+  it('filter table by flux-system namespace', async () => {
+    api.ListPipelinesReturns = pipelines;
+
+    await act(async () => {
+      const c = wrap(<Pipelines />);
+      render(c);
+    });
+
+    const { rows } = fitlerTabale.applyFilterByValue(
+      0,
+      'namespace:flux-system',
+    );
+
+    expect(rows).toHaveLength(1);
+    const tds = rows![0].querySelectorAll('td');
+
+    expect(tds![0].textContent).toEqual('test pipline 2');
+    expect(tds![1].textContent).toEqual('flux-system');
+    expect(tds![2].textContent).toEqual('HelmRelease');
+    expect(tds![3].textContent).toEqual('dev');
   });
 });
