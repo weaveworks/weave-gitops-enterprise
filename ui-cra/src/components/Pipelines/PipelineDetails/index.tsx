@@ -6,7 +6,7 @@ import { useApplicationsCount } from '../../Applications/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { ChipWrapper, SpaceBetween } from '../../Policies/PolicyStyles';
+import { ChipWrapper } from '../../Policies/PolicyStyles';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 
 const PipelineDetails = ({
@@ -22,6 +22,10 @@ const PipelineDetails = ({
 
   const defaultHeaders: Array<SectionRowHeader> = [
     {
+      rowkey: 'Name',
+      value: name,
+    },
+    {
       rowkey: 'Namespace',
       value: namespace,
     },
@@ -32,10 +36,6 @@ const PipelineDetails = ({
     {
       rowkey: 'Kind',
       value: data?.pipeline?.appRef?.kind,
-    },
-    {
-      rowkey: 'API Version',
-      value: data?.pipeline?.appRef?.apiVersion,
     },
   ];
 
@@ -64,91 +64,124 @@ const PipelineDetails = ({
           {data?.pipeline && (
             <>
               {generateRowHeaders(defaultHeaders)}
-
-              <h2 style={{
-                margin:'24px 0'
-              }}>Environments</h2>
-              <Grid container spacing={3}>
-                {Object.entries(data.pipeline.status?.environments || {}).map(
-                  ([key, value], index) => (
-                    <Grid
-                      item
-                      xs
-                      key={index}
-                      style={{
-                        boxShadow:'0px 1px 2px rgba(26, 26, 26, 0.24)',
-                        margin: '8px',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      <div
+              <div
+                style={{
+                  margin: 'calc(24px*2) 0',
+                }}
+              >
+                {/* <h2
+                  style={{
+                    fontSize: '20px',
+                    fontWeight: '700',
+                  }}
+                >
+                  Environments
+                </h2> */}
+                <Grid container spacing={3}>
+                  {Object.entries(data.pipeline.status?.environments || {}).map(
+                    ([key, value], index) => (
+                      <Grid
+                        item
+                        xs
+                        key={index}
                         style={{
-                          fontSize: '20px',
-                          fontWeight: '600',
-                          borderBottom: '1px solid',
-                        }}
-                      >
-                        {key}
-                      </div>
-                      <div
-                        className="card-container"
-                        style={{
-                          paddingTop: '12px',
+                          boxShadow: '0px 1px 2px rgba(26, 26, 26, 0.24)',
+                          margin: '8px',
+                          borderRadius: '10px',
                         }}
                       >
                         <div
                           style={{
+                            fontSize: '20px',
                             fontWeight: '600',
+                            borderBottom: '1px solid #f5f5f5',
                           }}
                         >
-                          Cluster
+                          {key}
                         </div>
                         <div
+                          className="card-container"
                           style={{
-                            padding: '0 8px',
+                            paddingTop: '12px',
                           }}
                         >
-                          <SpaceBetween>
-                            <span>{value.clusterRef?.name}</span>
-                            <ChipWrapper>{value.clusterRef?.kind}</ChipWrapper>
-                          </SpaceBetween>
+                          <div
+                            style={{
+                              fontWeight: '600',
+                              fontSize: '12px',
+                              color: '#737373',
+                            }}
+                          >
+                            Target
+                          </div>
+                          <div
+                            style={{
+                              marginLeft: '8px',
+                            }}
+                          >
+                            <span>
+                              {value.clusterRef?.name}/{value.namespace}
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div
-                        className="card-container"
-                        style={{
-                          paddingTop: '12px',
-                        }}
-                      >
                         <div
+                          className="card-container"
                           style={{
-                            fontWeight: '600',
+                            paddingTop: '12px',
                           }}
                         >
-                          Workloads
+                          <div
+                            style={{
+                              fontWeight: '600',
+                              fontSize: '12px',
+                              color: '#737373',
+                            }}
+                          >
+                            Name
+                          </div>
+                          <div
+                            style={{
+                              marginLeft: '8px',
+                            }}
+                          >
+                            <span>{value.workloads![0].name}</span>
+                          </div>
                         </div>
                         <div
+                          className="card-container"
                           style={{
-                            padding: '0 8px',
+                            paddingTop: '12px',
                           }}
                         >
-                          {value.workloads?.map((wrk, indx) => (
-                            <div key={indx} style={{ marginBottom: '8px' }}>
-                              <SpaceBetween>
-                                <span>
-                                  {wrk.name}@{wrk.version}
-                                </span>
-                                <ChipWrapper>{wrk.kind}</ChipWrapper>
-                              </SpaceBetween>
-                            </div>
-                          ))}
+                          <div
+                            style={{
+                              fontWeight: '600',
+                              fontSize: '12px',
+                              color: '#737373',
+                            }}
+                          >
+                            Version
+                          </div>
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              marginTop: '4px',
+                              marginLeft: '8px',
+                            }}
+                          >
+                            {value.workloads?.map((wrk, indx) => (
+                              <div key={indx} style={{ marginBottom: '8px' }}>
+                                <ChipWrapper>{wrk.version}</ChipWrapper>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    </Grid>
-                  ),
-                )}
-              </Grid>
+                      </Grid>
+                    ),
+                  )}
+                </Grid>
+              </div>
             </>
           )}
         </ContentWrapper>

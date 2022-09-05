@@ -143,7 +143,7 @@ const getPipeline = new Promise<GetPipelineResponse>((resolve, reject) => {
               {
                 kind: 'HelmRelease',
                 name: 'podinfo',
-                version: '6.1.6',
+                version: '6.1.7',
               },
             ],
           },
@@ -157,7 +157,7 @@ const getPipeline = new Promise<GetPipelineResponse>((resolve, reject) => {
               {
                 kind: 'HelmRelease',
                 name: 'podinfo',
-                version: '6.1.6',
+                version: '6.1.5',
               },
             ],
           },
