@@ -19,8 +19,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
-import { createTheme } from '@material-ui/core/styles';
-import { muiTheme } from '../../muiTheme';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
