@@ -10,7 +10,7 @@ import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
 import { ReactComponent as ListView } from '../../assets/img/list-view.svg';
 import {
-  FilterableTable,
+  DataTable,
   filterConfig,
   IconType,
   theme,
@@ -160,7 +160,7 @@ const TemplatesDashboard: FC = () => {
             )}
             {view === 'table' && (
               <TableWrapper id="templates-list">
-                <FilterableTable
+                <DataTable
                   key={templates?.length}
                   filters={initialFilterState}
                   rows={templates || []}

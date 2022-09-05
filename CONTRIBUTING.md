@@ -533,17 +533,10 @@ cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 This will update WGE to use the latest `main` of `weave-gitops`
 
 ```bash
-# 1.update the backend golang code
-go get -d github.com/weaveworks/weave-gitops@main
-go mod tidy
-
-# 2. Update the frontend typescript/javascript code
-cd ui-cra
-yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main
+make update-weave-gitops-main
 ```
 
 You can commit and push this to GitHub and CI will be able to build and test. It is fine to merge this to main too, just be careful before a release. We always want to release WGE with a released version of WG under the hood.
-
 
 ## How to update the version of `cluster-controller`
 

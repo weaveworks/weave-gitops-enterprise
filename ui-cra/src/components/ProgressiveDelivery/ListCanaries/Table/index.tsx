@@ -4,7 +4,7 @@ import {
   CanaryStatus as Status,
   CanaryTargetDeployment,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig, theme } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
@@ -107,7 +107,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
 
   return (
     <TableWrapper id="canaries-list">
-      <FilterableTable
+      <DataTable
         filters={initialFilterState}
         rows={canaries}
         fields={[
