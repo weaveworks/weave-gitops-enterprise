@@ -89,30 +89,31 @@ const AppFields: FC<{
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
-    const source = JSON.parse(value);
+    const { obj } = JSON.parse(value);
+    console.log(obj);
 
     let currentAutomation = [...formData.clusterAutomations];
 
     currentAutomation[index] = {
       ...automation,
-      source_name: source?.obj?.metadata.name,
-      source_namespace: source?.obj?.metadata?.namespace,
+      source_name: obj?.metadata.name,
+      source_namespace: obj?.metadata?.namespace,
       source: value,
     };
 
     setFormData({
       ...formData,
-      source_name: source?.obj?.metadata?.name,
-      source_namespace: source?.obj?.metadata?.namespace,
-      source_type: source?.obj?.kind,
+      source_name: obj?.metadata?.name,
+      source_namespace: obj?.metadata?.namespace,
+      source_type: obj?.kind,
       source: value,
       clusterAutomations: currentAutomation,
     });
 
     if (JSON.parse(value).kind === 'HelmRepository') {
       setHelmRepo({
-        name: source?.obj?.metadata?.name,
-        namespace: source?.obj?.metadata?.namespace,
+        name: obj?.metadata?.name,
+        namespace: obj?.metadata?.namespace,
       });
     }
   };
