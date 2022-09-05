@@ -274,7 +274,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/subosito/gotenv v1.3.0 // indirect
-	github.com/tomwright/dasel v1.22.1 // indirect
+	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
