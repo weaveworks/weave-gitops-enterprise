@@ -70,16 +70,16 @@ type ApplicationGraph struct {
 func (a ApplicationsPage) FindApplicationInList(applicationName string) *ApplicationInformation {
 	application := a.ApplicationsList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, applicationName))
 	return &ApplicationInformation{
-		Name:        application.FindByXPath(`td[1]//a`),
-		Type:        application.FindByXPath(`td[2]`),
-		Namespace:   application.FindByXPath(`td[3]`),
-		Tenant:      application.FindByXPath(`td[4]`),
-		Cluster:     application.FindByXPath(`td[5]`),
-		Source:      application.FindByXPath(`td[6]`),
-		Status:      application.FindByXPath(`td[7]`),
-		Message:     application.FindByXPath(`td[8]`),
-		Revision:    application.FindByXPath(`td[9]`),
-		LastUpdated: application.FindByXPath(`td[10]`),
+		Name:        application.FindByXPath(`td[2]//a`),
+		Type:        application.FindByXPath(`td[3]`),
+		Namespace:   application.FindByXPath(`td[4]`),
+		Tenant:      application.FindByXPath(`td[5]`),
+		Cluster:     application.FindByXPath(`td[6]`),
+		Source:      application.FindByXPath(`td[7]`),
+		Status:      application.FindByXPath(`td[8]`),
+		Message:     application.FindByXPath(`td[9]`),
+		Revision:    application.FindByXPath(`td[10]`),
+		LastUpdated: application.FindByXPath(`td[11]`),
 	}
 }
 
