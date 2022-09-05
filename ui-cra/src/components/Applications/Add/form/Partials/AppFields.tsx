@@ -89,29 +89,31 @@ const AppFields: FC<{
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
+    const { obj } = JSON.parse(value);
+    console.log(obj);
 
     let currentAutomation = [...formData.clusterAutomations];
 
     currentAutomation[index] = {
       ...automation,
-      source_name: JSON.parse(value).name,
-      source_namespace: JSON.parse(value).namespace,
+      source_name: obj?.metadata.name,
+      source_namespace: obj?.metadata?.namespace,
       source: value,
     };
 
     setFormData({
       ...formData,
-      source_name: JSON.parse(value).name,
-      source_namespace: JSON.parse(value).namespace,
-      source_type: JSON.parse(value).kind,
+      source_name: obj?.metadata?.name,
+      source_namespace: obj?.metadata?.namespace,
+      source_type: obj?.kind,
       source: value,
       clusterAutomations: currentAutomation,
     });
 
-    if (JSON.parse(value).kind === 'KindHelmRepository') {
+    if (JSON.parse(value).kind === 'HelmRepository') {
       setHelmRepo({
-        name: JSON.parse(value).name,
-        namespace: JSON.parse(value).namespace,
+        name: obj?.metadata?.name,
+        namespace: obj?.metadata?.namespace,
       });
     }
   };
@@ -239,7 +241,7 @@ const AppFields: FC<{
           </Select>
         </>
       )}
-      {formData.source_type === 'KindGitRepository' || !clusters ? (
+      {formData.source_type === 'GitRepository' || !clusters ? (
         <>
           <Input
             className="form-section"
