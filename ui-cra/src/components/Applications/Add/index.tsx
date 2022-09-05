@@ -259,7 +259,7 @@ const AddApplication = () => {
                   {isLoading && <Loader></Loader>}
                 </Grid>
                 {profiles.length > 0 &&
-                formData.source_type === 'KindHelmRepository' ? (
+                formData.source_type === 'HelmRepository' ? (
                   <Profiles
                     // Temp fix to hide layers when using profiles in Add App until we update the BE
                     context="app"

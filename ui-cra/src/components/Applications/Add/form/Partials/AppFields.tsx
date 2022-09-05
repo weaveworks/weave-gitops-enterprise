@@ -94,24 +94,24 @@ const AppFields: FC<{
 
     currentAutomation[index] = {
       ...automation,
-      source_name: JSON.parse(value).name,
-      source_namespace: JSON.parse(value).namespace,
+      source_name: JSON.parse(value)['obj']['metadata'].name,
+      source_namespace: JSON.parse(value)['obj']['metadata'].namespace,
       source: value,
     };
 
     setFormData({
       ...formData,
-      source_name: JSON.parse(value).name,
-      source_namespace: JSON.parse(value).namespace,
-      source_type: JSON.parse(value).kind,
+      source_name: JSON.parse(value)['obj']['metadata'].name,
+      source_namespace: JSON.parse(value)['obj']['metadata'].namespace,
+      source_type: JSON.parse(value)['obj'].kind,
       source: value,
       clusterAutomations: currentAutomation,
     });
 
-    if (JSON.parse(value).kind === 'KindHelmRepository') {
+    if (JSON.parse(value).kind === 'HelmRepository') {
       setHelmRepo({
-        name: JSON.parse(value).name,
-        namespace: JSON.parse(value).namespace,
+        name: JSON.parse(value)['obj']['metadata'].name,
+        namespace: JSON.parse(value)['obj']['metadata'].namespace,
       });
     }
   };
@@ -239,7 +239,7 @@ const AppFields: FC<{
           </Select>
         </>
       )}
-      {formData.source_type === 'KindGitRepository' || !clusters ? (
+      {formData.source_type === 'GitRepository' || !clusters ? (
         <>
           <Input
             className="form-section"
