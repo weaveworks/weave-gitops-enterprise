@@ -24,15 +24,28 @@ C4Component
     Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
     Rel(weaveGitopsEnterpriseUi, Policy, "uses policy api")
     Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {
-      Container(Policy, "Policy", "golang", "provides policy capabilities")
+      Container(Policy, "Policy", "golang", "policy entity business logic provided via api")
       Rel(Policy, KubernetesApi, "read policy resourcess")
+      Container(Violation, "Violation", "golang", "violation entity business logic provided via api")
+      Rel(Violation, KubernetesApi, "read kube events")
     }
     Container_Boundary(KubernetesCluster, "KubernetesCluster") {
       Component(KubernetesApi, "Kubernetes Api")
       Component(PolicyAgent, "Policy Agent")
       Rel(PolicyAgent, KubernetesApi, "enforce policies from")
+      Rel(PolicyAgent,ElasticSearch, "send validations")
     }
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")          
+    Container_Boundary(PolicyProfile, "Policy Profile Helm Chart") {
+        Component(PolicySet, "PolicySet","", "set of polices to provide customer baseline")
+        Component(PolicyCRD, "Policy CRD","", "policy crd api")
+        Component(PolicyAgentManifest, "Policy Agent Manifeset","", "installs policy agent")
+    }
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1") 
+   Boundary(elk, "ELK") {
+      System_Ext(Kibana, "Kibana", "visualices validations events") 
+      System_Ext(ElasticSearch, "ElasticSearch", "stores for validation events") 
+      Rel(Kibana,ElasticSearch, "read validation events")
+   }         
 ```
 - Policy: ability to define policies to enforce at runtime for any workload running in kubernetes. 
 
