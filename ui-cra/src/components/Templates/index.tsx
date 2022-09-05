@@ -53,22 +53,6 @@ const Error = styled.span`
   color: ${theme.colors.alert};
 `;
 
-const localMuiTheme = createTheme({
-  ...muiTheme,
-  overrides: {
-    ...muiTheme.overrides,
-    MuiInputBase: {
-      ...muiTheme.overrides?.MuiInputBase,
-      input: {
-        ...muiTheme.overrides?.MuiInputBase?.input,
-        border: 'none',
-        position: 'static',
-        backgroundColor: 'transparent',
-      },
-    },
-  },
-});
-
 const TemplatesDashboard: FC = () => {
   const { templates, isLoading } = useTemplates();
   const providers = [
