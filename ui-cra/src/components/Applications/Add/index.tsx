@@ -107,7 +107,7 @@ const AddApplication = () => {
 
   const handleAddApplication = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
-    if (formData.source_type === 'KindHelmRepository') {
+    if (formData.source_type === 'HelmRepository') {
       for (let kustomization of formData.clusterAutomations) {
         for (let profile of selectedProfiles) {
           let values: string = '';

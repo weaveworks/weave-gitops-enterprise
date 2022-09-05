@@ -89,29 +89,30 @@ const AppFields: FC<{
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
+    const source = JSON.parse(value);
 
     let currentAutomation = [...formData.clusterAutomations];
 
     currentAutomation[index] = {
       ...automation,
-      source_name: JSON.parse(value)['obj']['metadata'].name,
-      source_namespace: JSON.parse(value)['obj']['metadata'].namespace,
+      source_name: source?.obj?.metadata.name,
+      source_namespace: source?.obj?.metadata?.namespace,
       source: value,
     };
 
     setFormData({
       ...formData,
-      source_name: JSON.parse(value)['obj']['metadata'].name,
-      source_namespace: JSON.parse(value)['obj']['metadata'].namespace,
-      source_type: JSON.parse(value)['obj'].kind,
+      source_name: source?.obj?.metadata?.name,
+      source_namespace: source?.obj?.metadata?.namespace,
+      source_type: source?.obj?.kind,
       source: value,
       clusterAutomations: currentAutomation,
     });
 
     if (JSON.parse(value).kind === 'HelmRepository') {
       setHelmRepo({
-        name: JSON.parse(value)['obj']['metadata'].name,
-        namespace: JSON.parse(value)['obj']['metadata'].namespace,
+        name: source?.obj?.metadata?.name,
+        namespace: source?.obj?.metadata?.namespace,
       });
     }
   };
