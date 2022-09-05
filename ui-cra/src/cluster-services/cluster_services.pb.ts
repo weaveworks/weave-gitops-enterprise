@@ -63,10 +63,19 @@ export type RenderTemplateRequest = {
   credentials?: Credential
   templateKind?: string
   clusterNamespace?: string
+  profiles?: ProfileValues[]
+  kustomizations?: Kustomization[]
+}
+
+export type CommitFile = {
+  path?: string
+  content?: string
 }
 
 export type RenderTemplateResponse = {
   renderedTemplate?: string
+  profileFiles?: CommitFile[]
+  kustomizationFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {

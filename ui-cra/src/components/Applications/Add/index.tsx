@@ -16,6 +16,8 @@ import {
 import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
+import useClusters from '../../../contexts/Clusters';
+import useTemplates from '../../../contexts/Templates';
 import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
@@ -26,8 +28,8 @@ import Profiles from '../../Clusters/Create/Form/Partials/Profiles';
 import { UpdatedProfile } from '../../../types/custom';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
-import useClusters from '../../../contexts/Clusters';
 import { Loader } from '../../Loader';
+import Preview from '../../Clusters/Create/Form/Partials/Preview';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -84,6 +86,28 @@ const AddApplication = () => {
   const [formData, setFormData] = useState<any>(initialFormData);
   const [selectedProfiles, setSelectedProfiles] =
     useState<UpdatedProfile[]>(initialProfiles);
+  const { renderTemplate } = useTemplates();
+  const [openPreview, setOpenPreview] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [PRPreview, setPRPreview] = useState<string | null>(null);
+
+  const handlePRPreview = useCallback(() => {
+    const { ...templateFields } = formData;
+    setPreviewLoading(true);
+    return renderTemplate({
+      values: templateFields,
+    })
+      .then(data => {
+        setOpenPreview(true);
+        setPRPreview(data.renderedTemplate);
+      })
+      .catch(err =>
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
+      )
+      .finally(() => setPreviewLoading(false));
+  }, [formData, setOpenPreview, renderTemplate, setNotifications]);
 
   useEffect(() => {
     if (repositoryURL != null) {
@@ -105,7 +129,7 @@ const AddApplication = () => {
     }));
   }, [formData.clusterAutomations]);
 
-  const handleAddApplication = useCallback(() => {
+  const getDataForAppFiles = () => {
     let clusterAutomations: ClusterAutomation[] = [];
     if (formData.source_type === 'KindHelmRepository') {
       for (let kustomization of formData.clusterAutomations) {
@@ -171,13 +195,17 @@ const AddApplication = () => {
           };
         },
       );
+      return clusterAutomations;
     }
+  };
+
+  const handleAddApplication = useCallback(() => {
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
-      clusterAutomations,
+      clusterAutomations: getDataForAppFiles(),
     };
     setLoading(true);
     return AddApplicationRequest(
@@ -252,11 +280,20 @@ const AddApplication = () => {
                             formData={formData}
                             setFormData={setFormData}
                             clusters={clusters}
+                            onPRPreview={handlePRPreview}
+                            previewLoading={previewLoading}
                           />
                         );
                       },
                     )}
-                  {isLoading && <Loader></Loader>}
+                  {isLoading && <Loader />}
+                  {openPreview && PRPreview ? (
+                    <Preview
+                      openPreview={openPreview}
+                      setOpenPreview={setOpenPreview}
+                      PRPreview={PRPreview}
+                    />
+                  ) : null}
                 </Grid>
                 {profiles.length > 0 &&
                 formData.source_type === 'KindHelmRepository' ? (
@@ -294,6 +331,10 @@ const AddApplication = () => {
     showAuthDialog,
     clusters,
     isLoading,
+    PRPreview,
+    handlePRPreview,
+    openPreview,
+    previewLoading,
   ]);
 };
 

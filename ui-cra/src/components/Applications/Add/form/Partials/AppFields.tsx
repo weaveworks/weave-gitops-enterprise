@@ -37,8 +37,8 @@ const AppFields: FC<{
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
   clusters?: GitopsClusterEnriched[];
-  onPRPreview: () => void;
-  previewLoading: boolean;
+  onPRPreview?: () => void;
+  previewLoading?: boolean;
 }> = ({
   formData,
   setFormData,
@@ -278,9 +278,10 @@ const AppFields: FC<{
           />
         </>
       ) : null}
-      {previewLoading ? (
+      {onPRPreview && previewLoading && (
         <LoadingPage className="preview-loading" />
-      ) : (
+      )}
+      {onPRPreview && !previewLoading && (
         <div className="preview-cta">
           <Button onClick={event => validateFormData(event, onPRPreview)}>
             PREVIEW PR

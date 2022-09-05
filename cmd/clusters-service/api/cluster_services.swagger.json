@@ -654,6 +654,18 @@
                 },
                 "clusterNamespace": {
                   "type": "string"
+                },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ProfileValues"
+                  }
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
                 }
               }
             }
@@ -870,6 +882,17 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CommitFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "content": {
           "type": "string"
         }
       }
@@ -1755,6 +1778,18 @@
       "properties": {
         "renderedTemplate": {
           "type": "string"
+        },
+        "profileFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },

@@ -159,12 +159,37 @@ const AddCluster: FC = () => {
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const getKustomizations = () => {
+    const { clusterAutomations, ...rest } = formData;
+    // filter out empty kustomization
+    const filteredKustomizations = clusterAutomations.filter(
+      (kustomization: any) =>
+        Object.values(kustomization).join('').trim() !== '',
+    );
+    return filteredKustomizations.map((kustomization: any): Kustomization => {
+      return {
+        metadata: {
+          name: kustomization.name,
+          namespace: kustomization.namespace,
+        },
+        spec: {
+          path: kustomization.path,
+          sourceRef: {
+            name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+            namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+          },
+        },
+      };
+    });
+  };
+
   const handlePRPreview = useCallback(() => {
     const { url, provider, clusterAutomations, ...templateFields } = formData;
     setPreviewLoading(true);
     return renderTemplate({
       values: templateFields,
       credentials: infraCredential,
+      kustomizations: getKustomizations(),
     })
       .then(data => {
         setOpenPreview(true);
