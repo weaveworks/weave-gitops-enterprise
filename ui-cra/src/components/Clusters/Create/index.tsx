@@ -1,5 +1,4 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { ThemeProvider } from '@material-ui/core/styles';
 import useTemplates from '../../../contexts/Templates';
 import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
@@ -32,7 +31,6 @@ import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import Profiles from './Form/Partials/Profiles';
-import { localEEMuiTheme } from '../../../muiTheme';
 import { useListConfig } from '../../../hooks/versions';
 import { ApplicationsWrapper } from './Form/Partials/ApplicationsWrapper';
 import { Kustomization } from '../../../cluster-services/cluster_services.pb';
@@ -445,11 +443,9 @@ const AddCluster: FC = () => {
 };
 
 const AddClusterWithCredentials = () => (
-  <ThemeProvider theme={localEEMuiTheme}>
-    <ProfilesProvider>
-      <AddCluster />
-    </ProfilesProvider>
-  </ThemeProvider>
+  <ProfilesProvider>
+    <AddCluster />
+  </ProfilesProvider>
 );
 
 export default AddClusterWithCredentials;
