@@ -10,6 +10,7 @@ import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/confi
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
+import { Tooltip } from '../../../../Shared';
 
 interface SourceEnriched extends Source {
   url?: string;
@@ -23,6 +24,9 @@ const FormWrapper = styled.form`
     width: 50%;
   }
   .loader {
+    padding-bottom: ${({ theme }) => theme.spacing.medium};
+  }
+  .input-wrapper {
     padding-bottom: ${({ theme }) => theme.spacing.medium};
   }
 `;
@@ -262,6 +266,23 @@ const AppFields: FC<{
             onChange={event => handleFormData(event, 'path')}
             description="Path within the git repository to read yaml files"
           />
+          {!clusters && (
+            <Tooltip
+              title="Only the bootstrap GitRepository can be referenced by kustomizations when creating a new cluster"
+              placement="bottom-start"
+            >
+              <span className="input-wrapper">
+                <Input
+                  className="form-section"
+                  type="text"
+                  disabled={true}
+                  value="flux-system"
+                  description="The bootstrap GitRepository object"
+                  label="SELECT SOURCE"
+                />
+              </span>
+            </Tooltip>
+          )}
         </>
       ) : null}
     </FormWrapper>
