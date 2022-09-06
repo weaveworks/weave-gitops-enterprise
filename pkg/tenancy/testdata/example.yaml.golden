@@ -96,6 +96,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
   name: bar-tenant-team-rolebinding
   namespace: bar-ns
 roleRef:
@@ -169,6 +171,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
   name: bar-tenant-team-rolebinding
   namespace: foobar-ns
 roleRef:
