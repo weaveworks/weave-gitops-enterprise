@@ -86,6 +86,15 @@ const pipelines = {
 };
 
 const fitlerTabale = new TestFilterableTable('pipelines-list', fireEvent);
+const testRowValues = (
+  rowValue: NodeListOf<Element>,
+  matches: Array<string>,
+) => {
+  for (let index = 0; index < rowValue.length; index++) {
+    const element = rowValue[index];
+    expect(element.textContent).toEqual(matches[index]);
+  }
+};
 
 describe('ListPipelines', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -107,12 +116,14 @@ describe('ListPipelines', () => {
     const { rows, headers } = fitlerTabale.getTableInfo();
 
     expect(headers).toHaveLength(4);
-    expect(headers![0].textContent).toEqual('Pipeline Name');
-    expect(headers![1].textContent).toEqual('Pipeline Namespace');
-    expect(headers![2].textContent).toEqual('Type');
-    expect(headers![3].textContent).toEqual('Environments');
-
     expect(rows).toHaveLength(2);
+
+    testRowValues(headers!, [
+      'Pipeline Name',
+      'Pipeline Namespace',
+      'Type',
+      'Environments',
+    ]);
   });
 
   it('search table by pipeline name podinfo', async () => {
@@ -126,12 +137,12 @@ describe('ListPipelines', () => {
     const { rows } = fitlerTabale.searchTableByValue('podinfo');
     expect(rows).toHaveLength(1);
     const tds = rows![0].querySelectorAll('td');
-
-    expect(tds![0].textContent).toEqual('podinfo');
-    expect(tds![1].textContent).toEqual('default');
-    expect(tds![2].textContent).toEqual('HelmRelease');
-    expect(tds![3].textContent).toContain('dev');
-    expect(tds![3].textContent).toContain('prod');
+    testRowValues(tds, [
+      'test pipline 2',
+      'flux-system',
+      'HelmRelease',
+      'devprod',
+    ]);
   });
 
   it('filter table by flux-system namespace', async () => {
@@ -150,9 +161,6 @@ describe('ListPipelines', () => {
     expect(rows).toHaveLength(1);
     const tds = rows![0].querySelectorAll('td');
 
-    expect(tds![0].textContent).toEqual('test pipline 2');
-    expect(tds![1].textContent).toEqual('flux-system');
-    expect(tds![2].textContent).toEqual('HelmRelease');
-    expect(tds![3].textContent).toEqual('dev');
+    testRowValues(tds, ['test pipline 2', 'flux-system', 'HelmRelease', 'dev']);
   });
 });
