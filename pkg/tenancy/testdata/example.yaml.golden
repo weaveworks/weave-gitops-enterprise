@@ -107,6 +107,9 @@ roleRef:
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
+  name: foo-group
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
   name: bar-group
 ---
 apiVersion: v1
@@ -177,6 +180,9 @@ roleRef:
   kind: Role
   name: bar-tenant-team-role
 subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: foo-group
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
   name: bar-group
