@@ -17,7 +17,7 @@ import {
   getCallbackState,
   Icon,
   IconType,
-  FilterableTable,
+  DataTable,
   filterByStatusCallback,
   filterConfig,
   LoadingPage,
@@ -62,6 +62,7 @@ const ClustersTableWrapper = styled(TableWrapper)`
   td:first-of-type {
     text-overflow: clip;
     width: 25px;
+    padding-left: ${({ theme }) => theme.spacing.base};
   }
   td:nth-child(7) {
     white-space: pre-wrap;
@@ -407,7 +408,7 @@ const MCCP: FC = () => {
             </div>
             {!isLoading ? (
               <ClustersTableWrapper id="clusters-list">
-                <FilterableTable
+                <DataTable
                   key={clusters.length}
                   filters={initialFilterState}
                   rows={clusters}

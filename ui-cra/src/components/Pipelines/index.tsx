@@ -1,5 +1,5 @@
 import { ThemeProvider } from '@material-ui/core/styles';
-import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
 import { localEEMuiTheme } from '../../muiTheme';
@@ -35,7 +35,7 @@ const Pipelines = () => {
         <ContentWrapper loading={isLoading} errorMessage={error?.message}>
           {data?.pipelines && (
             <TableWrapper id="pipelines-list">
-              <FilterableTable
+              <DataTable
                 filters={initialFilterState}
                 rows={data?.pipelines}
                 fields={[

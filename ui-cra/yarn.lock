@@ -2335,10 +2335,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main":
-  version "0.9.3-patch.1-26-g9b3233b1"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.9.3-patch.1-26-g9b3233b1/f934cbae126e007dbf4d0a53253180c59527297f#f934cbae126e007dbf4d0a53253180c59527297f"
-  integrity sha512-kUZuyJ4XAk23T4K5ROz0y9zoyXkqFvNfTH/xmzwLteRHAKROm9WJWaUstfZ/0zlqcFEPOFI1LDaWLjVXsX1Uwg==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.9.4-2-g34d779b3":
+  version "0.9.4-2-g34d779b3"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.9.4-2-g34d779b3/2b4fab3b48e06da503580d8cd61babcdc86c225d#2b4fab3b48e06da503580d8cd61babcdc86c225d"
+  integrity sha512-5gxr/vsqwwIOF9pJH55qZfl23d7/NDeQwpPG1oQUpTSW9HxPH6K+ucZQC+kGdYkQpzWY7MUwLDwIONyWkd4yfw==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2347,6 +2347,7 @@
     history "^5.0.0"
     http-proxy-middleware "^2.0.3"
     jest-canvas-mock "^2.4.0"
+    jest-fail-on-console "^3.0.1"
     jest-worker "^27.5.1"
     lodash "^4.17.21"
     luxon "^1.27.0"
@@ -6186,6 +6187,13 @@ jest-environment-node@^27.5.1:
     "@types/node" "*"
     jest-mock "^27.5.1"
     jest-util "^27.5.1"
+
+jest-fail-on-console@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/jest-fail-on-console/-/jest-fail-on-console-3.0.1.tgz#7fe21bd97007fc13be5198761dc0e26c6e3fa08c"
+  integrity sha512-1811WQIY9lZN9wGkp7S6y69vw9+u6I21dmnRwXo6jSuF6Xv5OlN4msNCeKEVlc/C2H5N8dqLKuQlTAzQZ0mJlw==
+  dependencies:
+    chalk "^4.1.0"
 
 jest-get-type@^27.5.1:
   version "27.5.1"

@@ -569,9 +569,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					},
 				}
 
-				// Delete authenticating once the form reset issue is fixed
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-
 				setParameterValues(createPage, parameters)
 
 				//Pull request values

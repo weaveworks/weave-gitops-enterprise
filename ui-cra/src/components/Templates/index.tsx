@@ -10,7 +10,7 @@ import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
 import { ReactComponent as ListView } from '../../assets/img/list-view.svg';
 import {
-  FilterableTable,
+  DataTable,
   filterConfig,
   IconType,
   theme,
@@ -121,7 +121,7 @@ const TemplatesDashboard: FC = () => {
         />
         <ContentWrapper loading={isLoading}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <ActionsWrapper id='display-action'>
+            <ActionsWrapper id="display-action">
               <GridView
                 className={view === 'grid' ? 'active' : 'inactive'}
                 onClick={() => setView('grid')}
@@ -160,7 +160,7 @@ const TemplatesDashboard: FC = () => {
             )}
             {view === 'table' && (
               <TableWrapper id="templates-list">
-                <FilterableTable
+                <DataTable
                   key={templates?.length}
                   filters={initialFilterState}
                   rows={templates || []}

@@ -243,6 +243,7 @@ func Test_ExportTenants(t *testing.T) {
 	}{
 		{"testdata/example.yaml"},
 		{"testdata/with_service_account.yaml"},
+		{"testdata/with_custom_labels.yaml"},
 	}
 
 	for _, tt := range testFiles {
@@ -471,6 +472,32 @@ func TestGenerateTenantResources_WithErrors(t *testing.T) {
 			},
 			errorMessages: []string{"invalid tenant name", "must provide at least one namespace"},
 		},
+		{
+			name: "tenant with empty teamRBAC rules list",
+			tenant: makeTestTenant(t, func(tenant *Tenant) {
+				tenant.TeamRBAC = &TenantTeamRBAC{
+					GroupNames: []string{"foo-group"},
+					Rules:      []rbacv1.PolicyRule{},
+				}
+			}),
+			errorMessages: []string{"must provide group names and team rules in team RBAC"},
+		},
+		{
+			name: "tenant with empty teamRBAC groupNames list",
+			tenant: makeTestTenant(t, func(tenant *Tenant) {
+				tenant.TeamRBAC = &TenantTeamRBAC{
+					GroupNames: []string{},
+					Rules: []rbacv1.PolicyRule{
+						{
+							Verbs:     []string{"get"},
+							APIGroups: []string{""},
+							Resources: []string{"pods"},
+						},
+					},
+				}
+			}),
+			errorMessages: []string{"must provide group names and team rules in team RBAC"},
+		},
 	}
 
 	for _, tt := range generationTests {
@@ -557,17 +584,17 @@ func Test_newTeamRoleBinding(t *testing.T) {
 	labels := map[string]string{
 		"toolkit.fluxcd.io/tenant": "test-tenant",
 	}
-	groupName := "test-group"
+	groupNames := []string{"test-group"}
 
 	subjects := []rbacv1.Subject{
 		{
 			APIGroup: "rbac.authorization.k8s.io",
 			Kind:     "Group",
-			Name:     groupName,
+			Name:     groupNames[0],
 		},
 	}
 
-	rb := newTeamRoleBinding("test-tenant", "test-namespace", groupName, labels)
+	rb := newTeamRoleBinding("test-tenant", "test-namespace", groupNames, labels)
 	assert.Equal(t, rb.Name, "test-tenant-team-rolebinding")
 	assert.Equal(t, rb.Namespace, "test-namespace")
 	assert.Equal(t, rb.RoleRef.Name, "test-tenant-team-role")
@@ -800,6 +827,21 @@ func verifyPolicies(expected ...*pacv2beta1.Policy) func(t *testing.T, cl client
 }
 
 type verifyFunc func(t *testing.T, cl client.Client)
+
+func makeTestTenant(t *testing.T, options ...func(*Tenant)) Tenant {
+	tenant := &Tenant{
+		Name: "foo",
+		Namespaces: []string{
+			"foo-ns",
+		},
+	}
+
+	for _, o := range options {
+		o(tenant)
+	}
+
+	return *tenant
+}
 
 func testNewAllowedReposPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta1.Policy {
 	t.Helper()
