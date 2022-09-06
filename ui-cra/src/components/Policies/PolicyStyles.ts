@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 const { xxs, xs, small, medium, base, none } = theme.spacing;
 const { neutral10, neutral20, neutral30, black, primary } = theme.colors;
-console.log(neutral10);
 
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({

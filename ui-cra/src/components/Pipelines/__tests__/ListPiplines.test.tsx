@@ -107,9 +107,9 @@ describe('ListPipelines', () => {
     const { rows, headers } = fitlerTabale.getTableInfo();
 
     expect(headers).toHaveLength(4);
-    expect(headers![0].textContent).toEqual('Name');
-    expect(headers![1].textContent).toEqual('Namespace');
-    expect(headers![2].textContent).toEqual('Kind');
+    expect(headers![0].textContent).toEqual('Pipeline Name');
+    expect(headers![1].textContent).toEqual('Pipeline Namespace');
+    expect(headers![2].textContent).toEqual('Type');
     expect(headers![3].textContent).toEqual('Environments');
 
     expect(rows).toHaveLength(2);
