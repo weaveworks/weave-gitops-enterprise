@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { Policy } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../PolicyStyles';
 import {
-  FilterableTable,
+  DataTable,
   filterConfig,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
@@ -34,7 +34,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
 
   return (
     <TableWrapper id="policy-list">
-      <FilterableTable
+      <DataTable
         key={policies?.length}
         filters={initialFilterState}
         rows={policies}

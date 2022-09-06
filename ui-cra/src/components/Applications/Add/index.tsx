@@ -131,7 +131,7 @@ const AddApplication = () => {
 
   const getDataForAppFiles = () => {
     let clusterAutomations: ClusterAutomation[] = [];
-    if (formData.source_type === 'KindHelmRepository') {
+    if (formData.source_type === 'HelmRepository') {
       for (let kustomization of formData.clusterAutomations) {
         for (let profile of selectedProfiles) {
           let values: string = '';
@@ -296,7 +296,7 @@ const AddApplication = () => {
                   ) : null}
                 </Grid>
                 {profiles.length > 0 &&
-                formData.source_type === 'KindHelmRepository' ? (
+                formData.source_type === 'HelmRepository' ? (
                   <Profiles
                     // Temp fix to hide layers when using profiles in Add App until we update the BE
                     context="app"

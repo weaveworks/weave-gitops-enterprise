@@ -213,10 +213,10 @@
     "v1PipelineTargetStatus": {
       "type": "object",
       "properties": {
-        "kind": {
-          "type": "string"
+        "clusterRef": {
+          "$ref": "#/definitions/v1ClusterRef"
         },
-        "name": {
+        "namespace": {
           "type": "string"
         },
         "workloads": {
