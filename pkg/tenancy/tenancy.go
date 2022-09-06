@@ -54,8 +54,8 @@ type AllowedCluster struct {
 
 // TenanTeamRBAC defines the permissions of a tenant
 type TenantTeamRBAC struct {
-	GroupName string              `yaml:"groupName"`
-	Rules     []rbacv1.PolicyRule `yaml:"rules"`
+	GroupNames []string            `yaml:"groupNames"`
+	Rules      []rbacv1.PolicyRule `yaml:"rules"`
 }
 
 // Config represents the structure of the Tenancy file.
@@ -95,8 +95,8 @@ func (t Tenant) Validate() error {
 	}
 
 	if t.TeamRBAC != nil {
-		if t.TeamRBAC.GroupName == "" || len(t.TeamRBAC.Rules) == 0 {
-			result = multierror.Append(result, errors.New("must provide group name and team rules in team RBAC"))
+		if len(t.TeamRBAC.GroupNames) == 0 || len(t.TeamRBAC.Rules) == 0 {
+			result = multierror.Append(result, errors.New("must provide group names and team rules in team RBAC"))
 		}
 	}
 
@@ -268,7 +268,7 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
 			if tenant.TeamRBAC != nil {
 				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, tenant.TeamRBAC.Rules))
-				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupName, tenantLabels))
+				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupNames, tenantLabels))
 			}
 		}
 		if len(tenant.AllowedRepositories) != 0 {
@@ -344,7 +344,16 @@ func newRoleBinding(name, namespace, serviceAccountName, clusterRole string, lab
 	}
 }
 
-func newTeamRoleBinding(name, namespace, groupName string, labels map[string]string) *rbacv1.RoleBinding {
+func newTeamRoleBinding(name, namespace string, groupNames []string, labels map[string]string) *rbacv1.RoleBinding {
+	subjects := []rbacv1.Subject{}
+	for _, groupName := range groupNames {
+		subjects = append(subjects, rbacv1.Subject{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Group",
+			Name:     groupName,
+		})
+	}
+
 	return &rbacv1.RoleBinding{
 		TypeMeta: roleBindingTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
@@ -357,13 +366,7 @@ func newTeamRoleBinding(name, namespace, groupName string, labels map[string]str
 			Kind:     "Role",
 			Name:     fmt.Sprintf("%s-team-role", name),
 		},
-		Subjects: []rbacv1.Subject{
-			{
-				APIGroup: "rbac.authorization.k8s.io",
-				Kind:     "Group",
-				Name:     groupName,
-			},
-		},
+		Subjects: subjects,
 	}
 }
 
