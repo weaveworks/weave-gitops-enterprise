@@ -26,10 +26,47 @@ func TestGetPipeline(t *testing.T) {
 
 	envName := "env-1"
 
-	p := &ctrl.Pipeline{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      "pipe-1",
+	t.Run("cluster ref is not set", func(t *testing.T) {
+		p := newPipeline("pipe-1", ns.Name, envName, hr)
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
 			Namespace: ns.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, p.Name, res.Pipeline.Name)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+	})
+
+	t.Run("cluster ref is set", func(t *testing.T) {
+		p := newPipeline("pipe-2", ns.Name, envName, hr)
+		p.Spec.Environments[0].Targets[0].ClusterRef = ctrl.CrossNamespaceClusterReference{
+			APIVersion: ctrl.GroupVersion.String(),
+			Kind:       "GitopsCluster",
+			Name:       "cluster-1",
+			Namespace:  ns.Name,
+		}
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
+			Namespace: ns.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, p.Name, res.Pipeline.Name)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+	})
+
+}
+
+func newPipeline(name string, namespace string, envName string, hr *helm.HelmRelease) *ctrl.Pipeline {
+	return &ctrl.Pipeline{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
 		},
 		Spec: ctrl.PipelineSpec{
 			AppRef: ctrl.LocalAppReference{
@@ -42,29 +79,13 @@ func TestGetPipeline(t *testing.T) {
 					Name: envName,
 					Targets: []ctrl.Target{
 						{
-							Namespace: ns.Name,
-							ClusterRef: ctrl.CrossNamespaceClusterReference{
-								APIVersion: ctrl.GroupVersion.String(),
-								Kind:       "GitopsCluster",
-								Name:       "cluster-1",
-								Namespace:  ns.Name,
-							},
+							Namespace: namespace,
 						},
 					},
 				},
 			},
 		},
 	}
-	require.NoError(t, kclient.Create(ctx, p))
-
-	res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
-		Name:      p.Name,
-		Namespace: ns.Name,
-	})
-	require.NoError(t, err)
-
-	assert.Equal(t, p.Name, res.Pipeline.Name)
-	assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
 }
 
 func createHelmRelease(ctx context.Context, t *testing.T, k client.Client, name string, ns string) *helm.HelmRelease {

@@ -46,7 +46,14 @@ func MakeClientsFactory(k8s client.Client) *clustersmngrfakes.FakeClientsFactory
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 
 	clientsPool.ClientsReturns(map[string]client.Client{"Default": k8s})
-	clientsPool.ClientReturns(k8s, nil)
+	clientsPool.ClientStub = func(s string) (client.Client, error) {
+		if s == "" {
+			return nil, clustersmngr.ClusterNotFoundError{Cluster: ""}
+		}
+
+		return k8s, nil
+	}
+
 	nsMap := map[string][]v1.Namespace{"Default": {}}
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 

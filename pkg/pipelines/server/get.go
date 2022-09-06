@@ -47,8 +47,13 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(t.Namespace)
 
-			if err := c.Get(ctx, t.ClusterRef.Name, client.ObjectKeyFromObject(app), app); err != nil {
-				return nil, fmt.Errorf("failed getting app=%s on cluster=%s: %w", app.GetName(), t.ClusterRef.Name, err)
+			clusterName := fetcher.ManagementClusterName
+			if t.ClusterRef.Name != "" {
+				clusterName = t.ClusterRef.Name
+			}
+
+			if err := c.Get(ctx, clusterName, client.ObjectKeyFromObject(app), app); err != nil {
+				return nil, fmt.Errorf("failed getting app=%s on cluster=%s: %w", app.GetName(), clusterName, err)
 			}
 
 			ws, err := getWorkloadStatus(app)
