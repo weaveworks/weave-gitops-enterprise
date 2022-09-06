@@ -268,7 +268,7 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
 			if tenant.TeamRBAC != nil {
 				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, tenant.TeamRBAC.Rules))
-				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupName, tenant.Labels))
+				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupName, tenantLabels))
 			}
 		}
 		if len(tenant.AllowedRepositories) != 0 {
