@@ -250,7 +250,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     const { url, provider, clusterAutomations, ...templateFields } = formData;
     setPreviewLoading(true);
     return renderTemplate(template.name, {
-      values: templateFields,
+      values: templateFields.parameterValues,
       credentials: infraCredential,
     })
       .then(data => {
