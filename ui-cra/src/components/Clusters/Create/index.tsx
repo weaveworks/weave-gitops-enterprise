@@ -159,7 +159,7 @@ const AddCluster: FC = () => {
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const getKustomizations = () => {
+  const getKustomizations = useCallback(() => {
     const { clusterAutomations, ...rest } = formData;
     // filter out empty kustomization
     const filteredKustomizations = clusterAutomations.filter(
@@ -181,7 +181,7 @@ const AddCluster: FC = () => {
         },
       };
     });
-  };
+  }, [formData]);
 
   const handlePRPreview = useCallback(() => {
     const { url, provider, clusterAutomations, ...templateFields } = formData;
@@ -207,6 +207,7 @@ const AddCluster: FC = () => {
     renderTemplate,
     infraCredential,
     setNotifications,
+    getKustomizations,
   ]);
 
   const encodedProfiles = useCallback(

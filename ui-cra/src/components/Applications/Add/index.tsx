@@ -129,7 +129,7 @@ const AddApplication = () => {
     }));
   }, [formData.clusterAutomations]);
 
-  const getDataForAppFiles = () => {
+  const getDataForAppFiles = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
     if (formData.source_type === 'HelmRepository') {
       for (let kustomization of formData.clusterAutomations) {
@@ -197,7 +197,13 @@ const AddApplication = () => {
       );
       return clusterAutomations;
     }
-  };
+  }, [
+    formData.clusterAutomations,
+    formData.source_name,
+    formData.source_namespace,
+    formData.source_type,
+    selectedProfiles,
+  ]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -241,7 +247,7 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, setNotifications, selectedProfiles]);
+  }, [formData, history, setNotifications, getDataForAppFiles]);
 
   return useMemo(() => {
     return (
