@@ -89,7 +89,7 @@ const AddApplication = () => {
   const { renderTemplate } = useTemplates();
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const [PRPreview, setPRPreview] = useState<any | null>(null);
 
   const handlePRPreview = useCallback(() => {
     const { ...templateFields } = formData;
@@ -99,7 +99,7 @@ const AddApplication = () => {
     })
       .then(data => {
         setOpenPreview(true);
-        setPRPreview(data.renderedTemplate);
+        setPRPreview(data);
       })
       .catch(err =>
         setNotifications([

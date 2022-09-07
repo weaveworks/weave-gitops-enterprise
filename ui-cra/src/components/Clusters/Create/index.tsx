@@ -156,7 +156,7 @@ const AddCluster: FC = () => {
   const { setNotifications } = useNotifications();
   const authRedirectPage = `/clusters/templates/${activeTemplate?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const [PRPreview, setPRPreview] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const getKustomizations = useCallback(() => {
@@ -193,7 +193,7 @@ const AddCluster: FC = () => {
     })
       .then(data => {
         setOpenPreview(true);
-        setPRPreview(data.renderedTemplate);
+        setPRPreview(data);
       })
       .catch(err =>
         setNotifications([
@@ -421,12 +421,10 @@ const AddCluster: FC = () => {
                 />
               )}
               <Grid item xs={12} sm={10} md={10} lg={8}>
-                {
-                  <ApplicationsWrapper
-                    formData={formData}
-                    setFormData={setFormData}
-                  ></ApplicationsWrapper>
-                }
+                <ApplicationsWrapper
+                  formData={formData}
+                  setFormData={setFormData}
+                />
               </Grid>
               {openPreview && PRPreview ? (
                 <Preview
