@@ -45,7 +45,7 @@ var CreateCommand = &cobra.Command{
 	  # Export tenant resources to stdout
 	  gitops create tenants --from-file tenants.yaml --export
 	`,
-	RunE: createTenantsCmdRunE(),
+	RunE: applyTenantsCmdRunE(),
 }
 
 func init() {
@@ -59,7 +59,7 @@ func init() {
 	cobra.CheckErr(CreateCommand.MarkFlagRequired("from-file"))
 }
 
-func createTenantsCmdRunE() func(*cobra.Command, []string) error {
+func applyTenantsCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var tenancyConfig *tenancy.Config
 
@@ -106,7 +106,7 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 			}
 		}
 
-		err = tenancy.CreateTenants(ctx, tenancyConfig, kubeClient, flags.Prune, os.Stdout)
+		err = tenancy.ApplyTenants(ctx, tenancyConfig, kubeClient, flags.Prune, os.Stdout)
 		if err != nil {
 			return err
 		}

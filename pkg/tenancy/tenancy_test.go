@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func Test_CreateTenants(t *testing.T) {
+func Test_ApplyTenants(t *testing.T) {
 	testCases := []struct {
 		name              string
 		clusterState      []runtime.Object
@@ -250,7 +250,7 @@ func Test_CreateTenants(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = CreateTenants(context.TODO(), &Config{Tenants: tenants.Tenants}, fc, tt.prune, os.Stdout)
+			err = ApplyTenants(context.TODO(), &Config{Tenants: tenants.Tenants}, fc, tt.prune, os.Stdout)
 			assert.NoError(t, err)
 
 			for _, f := range tt.verifications {

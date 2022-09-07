@@ -18,7 +18,6 @@ import (
 	errs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8sLabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -102,26 +101,24 @@ func (t Tenant) Validate() error {
 	return result
 }
 
-// CreateTenants creates resources for tenants given a file for definition.
-func CreateTenants(ctx context.Context, config *Config, c client.Client, prune bool, out io.Writer) error {
-	for _, tenant := range config.Tenants {
-		newResources, err := generateTenantResource(tenant, config.ServiceAccount)
+// ApplyTenants applies resources for state defined in each tenant given a file for definition.
+func ApplyTenants(ctx context.Context, config *Config, c client.Client, prune bool, out io.Writer) error {
+	newResources, err := GenerateTenantResources(config)
+	if err != nil {
+		return fmt.Errorf("failed to generate tenant output: %w", err)
+	}
+	existingResources, err := getCurrentResources(ctx, c)
+	if err != nil {
+		return fmt.Errorf("failed to check current tenant resources: %w", err)
+	}
+	err = cleanResources(ctx, c, newResources, existingResources, prune, out)
+	if err != nil {
+		return fmt.Errorf("failed to clean up policies resources: %w", err)
+	}
+	for _, resource := range newResources {
+		err := upsert(ctx, c, resource, out)
 		if err != nil {
-			return fmt.Errorf("failed to generate tenant output: %w", err)
-		}
-		existingResources, err := getCurrentResources(ctx, tenant.Name, c)
-		if err != nil {
-			return fmt.Errorf("failed to check current tenant resources: %w", err)
-		}
-		err = cleanResources(ctx, tenant, c, newResources, existingResources, prune, out)
-		if err != nil {
-			return fmt.Errorf("failed to clean up policies resources: %w", err)
-		}
-		for _, resource := range newResources {
-			err := upsert(ctx, c, resource, out)
-			if err != nil {
-				return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
-			}
+			return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
 		}
 	}
 
@@ -129,7 +126,7 @@ func CreateTenants(ctx context.Context, config *Config, c client.Client, prune b
 }
 
 // getCurrentResources checks current tenant resources that exists on a cluster
-func getCurrentResources(ctx context.Context, tenantName string, kubeClient client.Client) ([]client.Object, error) {
+func getCurrentResources(ctx context.Context, kubeClient client.Client) ([]client.Object, error) {
 	var resources []client.Object
 	existingTypeMetas := []metav1.TypeMeta{
 		namespaceTypeMeta,
@@ -139,24 +136,15 @@ func getCurrentResources(ctx context.Context, tenantName string, kubeClient clie
 		policyTypeMeta,
 	}
 
-	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
-		tenantLabel: tenantName,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("error building selector for tenant %s resources query: %v", tenantName, err)
-	}
-	opts := []client.ListOption{}
-	opts = append(opts, &client.ListOptions{
-		LabelSelector: selector,
-	})
+	opts := []client.ListOption{client.HasLabels{tenantLabel}}
 
 	for _, existingTypeMeta := range existingTypeMetas {
 		existing := unstructured.UnstructuredList{}
 		existing.SetGroupVersionKind(existingTypeMeta.GroupVersionKind())
 
-		err = kubeClient.List(ctx, &existing, opts...)
+		err := kubeClient.List(ctx, &existing, opts...)
 		if err != nil {
-			return nil, fmt.Errorf("failed to list tenant %s resources: %w", tenantName, err)
+			return nil, fmt.Errorf("failed to list tenant resources: %w", err)
 		}
 		for i := range existing.Items {
 			resources = append(resources, &existing.Items[i])
@@ -167,25 +155,19 @@ func getCurrentResources(ctx context.Context, tenantName string, kubeClient clie
 }
 
 // cleanResources cleanup resources that should be pruned when certain configuration is removed
-func cleanResources(ctx context.Context, tenant Tenant, kubeClient client.Client, newResources, existingResources []client.Object, prune bool, out io.Writer) error {
-	newResourcesMap := make(map[string]client.Object)
-	for i := range newResources {
-		newResourcesMap[getObjectID(newResources[i])] = newResources[i]
-	}
-
-	for i := range existingResources {
-		existingResource := existingResources[i]
-		existingResourceID := getObjectID(existingResource)
-		if _, ok := newResourcesMap[existingResourceID]; !ok {
-			if prune {
-				err := kubeClient.Delete(ctx, existingResource)
-				if err != nil {
-					return fmt.Errorf("failed to clean up tenant %s resources: %w", tenant.Name, err)
-				}
-				fmt.Fprintf(out, "%s deleted\n", existingResourceID)
-			} else {
-				fmt.Fprintf(out, "%s no longer defined as part of tenant %s use --prune to remove\n", existingResourceID, tenant.Name)
+func cleanResources(ctx context.Context, kubeClient client.Client, newResources, existingResources []client.Object, prune bool, out io.Writer) error {
+	resourcesToDelete := getResourcesToDelete(newResources, existingResources)
+	for i := range resourcesToDelete {
+		resourceToDeleteID := getObjectID(resourcesToDelete[i])
+		if prune {
+			err := kubeClient.Delete(ctx, resourcesToDelete[i])
+			if err != nil {
+				fmt.Fprintf(out, "failed to clean up tenant resource %s: %s", resourceToDeleteID, err)
+				continue
 			}
+			fmt.Fprintf(out, "%s deleted\n", resourceToDeleteID)
+		} else {
+			fmt.Fprintf(out, "%s no longer defined as part of a tenant use --prune to remove\n", resourceToDeleteID)
 		}
 	}
 	return nil

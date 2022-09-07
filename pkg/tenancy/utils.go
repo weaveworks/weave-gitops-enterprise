@@ -20,6 +20,24 @@ func getObjectID(obj client.Object) string {
 	return objectID
 }
 
+// getResourcesToDelete returns list of resources to be deleted from resources to be generated and existing resources
+func getResourcesToDelete(newResources, existingResources []client.Object) []client.Object {
+	var resourcesToDelete []client.Object
+	newResourcesMap := make(map[string]struct{})
+	for i := range newResources {
+		newResourcesMap[getObjectID(newResources[i])] = struct{}{}
+	}
+
+	for i := range existingResources {
+		existingResource := existingResources[i]
+		existingResourceID := getObjectID(existingResource)
+		if _, ok := newResourcesMap[existingResourceID]; !ok {
+			resourcesToDelete = append(resourcesToDelete, existingResource)
+		}
+	}
+	return resourcesToDelete
+}
+
 func marshalOutput(out io.Writer, output runtime.Object) error {
 	data, err := yaml.Marshal(output)
 	if err != nil {
