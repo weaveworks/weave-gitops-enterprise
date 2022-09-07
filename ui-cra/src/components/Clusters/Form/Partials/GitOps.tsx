@@ -2,7 +2,7 @@ import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
-import { Input, validateFormData } from '../../../../../utils/form';
+import { Input, validateFormData } from '../../../../utils/form';
 
 const GitOpsWrapper = styled.form`
   padding-bottom: ${({ theme }) => theme.spacing.xl};

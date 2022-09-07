@@ -35,6 +35,7 @@ import { ContentWrapper } from './Layout/ContentWrapper';
 import Lottie from 'react-lottie-player';
 import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
+import EditCluster from './Clusters/Edit';
 import WGApplicationsDashboard from './Applications';
 import WGApplicationsSources from './Applications/Sources';
 import WGApplicationsKustomization from './Applications/Kustomization';
@@ -249,6 +250,11 @@ const App = () => {
                   <ClusterDashboard {...props} />
                 ))}
                 path="/cluster"
+              />
+              <Route
+                component={EditCluster}
+                exact
+                path="/clusters/:clusterName/edit"
               />
               <Route
                 component={AddClusterWithCredentials}

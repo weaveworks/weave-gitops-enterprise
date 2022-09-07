@@ -3,6 +3,7 @@ import { UpdatedProfile } from '../../types/custom';
 
 interface ProfilesContext {
   loading: boolean;
+  helmRepo: { name: string; namespace: string };
   setHelmRepo: Dispatch<
     React.SetStateAction<{ name: string; namespace: string }>
   >;

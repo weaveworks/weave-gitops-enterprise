@@ -1,8 +1,7 @@
-import React, { Dispatch, FC, useEffect, useState } from 'react';
-import { UpdatedProfile } from '../../../../../types/custom';
-import useProfiles from '../../../../../contexts/Profiles';
+import React, { Dispatch, FC } from 'react';
+import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import styled from 'styled-components';
-import { Loader } from '../../../../Loader';
+import { Loader } from '../../../Loader';
 import { DataTable } from '@weaveworks/weave-gitops';
 import { Checkbox } from '@material-ui/core';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
@@ -12,6 +11,9 @@ import _ from 'lodash';
 const ProfilesWrapper = styled.div`
   width: 85%;
   padding-bottom: ${({ theme }) => theme.spacing.xl};
+  div[class*='DataTable__IconFlex'] {
+    visibility: hidden;
+  }
   table {
     thead {
       th:first-of-type {
@@ -42,74 +44,48 @@ const ProfileDetailsLabelRenderer = () => (
 
 const Profiles: FC<{
   context?: string;
-  selectedProfiles: UpdatedProfile[];
-  setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
+  updatedProfiles: ProfilesIndex;
+  setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
+  isLoading: boolean;
   templateAnnotations?:{ [key: string]: string };
-}> = ({ context, selectedProfiles, setSelectedProfiles,templateAnnotations }) => {
-  const getNamesFromProfiles = (profiles: UpdatedProfile[]) =>
-    profiles.map(p => p.name);
-  const { profiles, isLoading } = useProfiles();
-  const [selected, setSelected] = useState<UpdatedProfile['name'][]>(
-    getNamesFromProfiles(selectedProfiles),
-  );
-
-  const getProfilesFromNames = (names: string[]) =>
-    profiles.filter(profile => names.find(name => profile.name === name));
-
+}> = ({ context, updatedProfiles, setUpdatedProfiles, isLoading, templateAnnotations }) => {
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
   ) => {
-    if (event.target.checked === true) {
-      const newProfilesNames = [...selected, name];
-      setSelected(newProfilesNames);
-      setSelectedProfiles(getProfilesFromNames(newProfilesNames));
-    } else {
-      const newProfilesNames = selected.filter(p => p !== name);
-      setSelected(newProfilesNames);
-      setSelectedProfiles(getProfilesFromNames(newProfilesNames));
-    }
+    setUpdatedProfiles(sp => ({
+      ...sp,
+      [name]: {
+        ...sp[name],
+        selected: event.target.checked,
+      },
+    }));
   };
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setSelected(getNamesFromProfiles(profiles));
-      setSelectedProfiles(profiles);
-      return;
-    }
-    setSelected([]);
-    setSelectedProfiles([]);
+    setUpdatedProfiles(sp =>
+      _.mapValues(sp, p => ({
+        ...p,
+        selected: event.target.checked || p.required,
+      })),
+    );
   };
 
-  const numSelected = selectedProfiles.length;
-  const rowCount = profiles.length || 0;
-
-  useEffect(() => {
-    let requiredProfiles: UpdatedProfile[] = [];
-    if (selectedProfiles.length === 0) {
-      requiredProfiles = profiles.filter(profile => profile.required);
-      setSelected(getNamesFromProfiles(requiredProfiles));
-      setSelectedProfiles(requiredProfiles);
-    }
-  }, [profiles, setSelectedProfiles, selectedProfiles.length]);
+  const updatedProfilesList = _.sortBy(Object.values(updatedProfiles), [
+    'name',
+  ]);
+  const numSelected = updatedProfilesList.filter(up => up.selected).length;
+  const rowCount = updatedProfilesList.length || 0;
 
   return (
     <ProfilesWrapper>
-      {isLoading ? (
-        <Loader />
-      ) : (
-        <>
-          <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
+      <>
+        <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
+        {isLoading && <Loader />}
+        {!isLoading && (
           <DataTable
             className="profiles-table"
-            rows={_.orderBy(
-              [
-                ..._.differenceBy(profiles, selectedProfiles, 'name'),
-                ...selectedProfiles,
-              ],
-              ['name'],
-              ['asc'],
-            )}
+            rows={updatedProfilesList}
             fields={[
               {
                 label: 'checkbox',
@@ -128,7 +104,7 @@ const Profiles: FC<{
                     onChange={event =>
                       handleIndividualClick(event, profile.name)
                     }
-                    checked={selected.indexOf(profile.name) > -1}
+                    checked={Boolean(updatedProfiles[profile.name]?.selected)}
                     disabled={profile.required}
                     style={{
                       color: profile.required
@@ -139,6 +115,7 @@ const Profiles: FC<{
                 ),
                 maxWidth: 25,
               },
+
               {
                 label: 'Name',
                 value: (p: UpdatedProfile) => (
@@ -167,16 +144,15 @@ const Profiles: FC<{
                   <ProfilesListItem
                     context={context}
                     profile={p}
-                    templateAnnotations={templateAnnotations}
-                    selectedProfiles={selectedProfiles}
-                    setSelectedProfiles={setSelectedProfiles}
+                    setUpdatedProfiles={setUpdatedProfiles}
+                    // templateAnnotations={templateAnnotations}
                   />
                 ),
               },
             ]}
           />
-        </>
-      )}
+        )}
+      </>
     </ProfilesWrapper>
   );
 };

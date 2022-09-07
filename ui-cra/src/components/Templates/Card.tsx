@@ -5,7 +5,6 @@ import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
 import { useHistory } from 'react-router-dom';
-import useTemplates from '../../contexts/Templates';
 import { createStyles, makeStyles } from '@material-ui/core';
 import { ReactComponent as EKS } from '../../assets/img/templates/eks.svg';
 import { ReactComponent as GKE } from '../../assets/img/templates/gke.svg';
@@ -34,9 +33,7 @@ const useStyles = makeStyles(() =>
 const TemplateCard: FC<{ template: Template }> = ({ template }) => {
   const classes = useStyles();
   const history = useHistory();
-  const { setActiveTemplate } = useTemplates();
   const handleCreateClick = () => {
-    setActiveTemplate(template);
     history.push(`/clusters/templates/${template.name}/create`);
   };
   const getTile = () => {
