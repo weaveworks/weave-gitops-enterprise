@@ -38,8 +38,8 @@ const Preview: FC<{
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
   PRPreview: {
     renderedTemplate: string;
-    kustomization_files: string;
-    profile_files: string;
+    kustomizationFiles: { path: string; content: string }[];
+    profileFiles: { path: string; content: string }[];
   };
 }> = ({ PRPreview, openPreview, setOpenPreview }) => {
   const classes = useStyles();
@@ -94,9 +94,11 @@ const Preview: FC<{
         onChange={handleChange}
         aria-label="pr-preview-sections"
       >
-        {['Cluster Definition', 'Profiles', 'Kustomizations'].map(tabName => (
-          <Tab className={classes.tabLabel} label={tabName} />
-        ))}
+        {['Cluster Definition', 'Profiles', 'Kustomizations'].map(
+          (tabName, index) => (
+            <Tab key={index} className={classes.tabLabel} label={tabName} />
+          ),
+        )}
       </Tabs>
       <DialogContent>
         <TabPanel value={value} index={0}>
@@ -109,14 +111,18 @@ const Preview: FC<{
         <TabPanel value={value} index={1}>
           <TextareaAutosize
             className={classes.textarea}
-            value={PRPreview.profile_files}
+            value={PRPreview.profileFiles.map(
+              profileFile => profileFile.content + '---',
+            )}
             readOnly
           />
         </TabPanel>
         <TabPanel value={value} index={2}>
           <TextareaAutosize
             className={classes.textarea}
-            value={PRPreview.kustomization_files}
+            value={PRPreview.kustomizationFiles.map(
+              kustomizationFile => kustomizationFile.content + '---',
+            )}
             readOnly
           />
         </TabPanel>
