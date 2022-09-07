@@ -1,4 +1,4 @@
-Octiconimport {
+import {
   Checkbox,
   createStyles,
   makeStyles,
@@ -32,7 +32,7 @@ import { useListConfig } from '../../hooks/versions';
 import { localEEMuiTheme } from '../../muiTheme';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
-import { EKSDefault, GKEDefault, Kind, Kubernetes, Vsphere } from '../../utils/icons';
+import { EKSDefault, GKEDefault, Kind, Kubernetes, Vsphere, LiquidMetal } from '../../utils/icons';
 import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -166,12 +166,12 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
   } else if (clusterType === 'GCPCluster') {
     return GKEDefault;
   } else if (clusterType === 'Tanzu') {
-    return Vsphere
+    return Vsphere;
+  } else if (clusterType === 'MicrovmCluster') {
+    return LiquidMetal;
   } 
   // TODO add icons for the following
-  // else if (clusterType === 'MicrovmCluster') {
-  //   return LiquidMetal;
-  // } else if (clusterType === 'Rancher') {
+  // else if (clusterType === 'Rancher') {
   //   return Rancher;
   // } else if (clusterType === 'Openshift') {
   //   return Openshift;
