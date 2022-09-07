@@ -40,34 +40,6 @@ C4Context
       Person(platformOperator, "Platform Operator")
       Person(applicationDeveloper, "Application Developer")      
       System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
-      System(ignore, "ignore")
-
-      Rel(platformOperator, weaveGitopsEnterprise, "Manages Platform")
-      Rel(applicationDeveloper, weaveGitopsEnterprise, "Delivers Application")
-      Rel(weaveGitopsEnterprise, Github, "gitops flows")
-      Rel(weaveGitopsEnterprise, KubernetesCluster, "read resources via api")
-
-      System_Ext(KubernetesCluster, "Kubernetes Cluster")
-      System_Ext(Github, "GitHub", "Source storage in Git")      
-
-      Rel(platformOperator, Github, "GitHub Flow for changes")
-      Rel(applicationDeveloper, Github, "GitHub Flow for changes")
-
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
-```
-
-## Weave Gitops Enterprise as Application Tiers
-
-Weave Gitops Enterprise as tiered application that could be seen in the following diagram
-
-![Container Diagram Capabilities](imgs/tiers.svg)
-
-```mermaid-source
-C4Context
-      title Weave Gitops Enterprise - System Context Diagram
-      Person(platformOperator, "Platform Operator")
-      Person(applicationDeveloper, "Application Developer")      
-      System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
 
       Rel(platformOperator, weaveGitopsEnterprise, "Manages Platform")
       Rel(applicationDeveloper, weaveGitopsEnterprise, "Delivers Application")
@@ -95,7 +67,52 @@ C4Context
       }
 
 
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")               
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")    
+```
+
+## Weave Gitops Enterprise as Application Tiers
+
+Weave Gitops Enterprise as tiered application that could be seen in the following diagram
+
+![Container Diagram Capabilities](imgs/tiers.svg)
+
+```mermaid-source
+C4Container
+  title Weave Gitops Enterprise - Tiers
+  Person(platformOperator, "Platform Operator")
+  Person(developer, "Application Developer")      
+  Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
+      Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
+      Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend","golang","backend application with grpc api")
+      Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes via grpc")
+      Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
+  }
+  Rel(platformOperator, weaveGitopsEnterpriseUi, "Manages Platform")
+  Rel(developer, weaveGitopsEnterpriseUi, "Delivers Application")
+
+  Rel(weaveGitopsEnterpriseBackend, Github, "gitops flows")
+  Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes resources from")  
+
+  Container_Boundary(runtime, "runtime") {
+         System_Ext(KubernetesCluster, "Kubernetes Cluster", "run customer applications")
+
+         System_Ext(Flagger, "Flagger", "controller for progressive delivery capabilities")
+         Rel(Flagger, KubernetesCluster, "manage canary resources from")
+
+         System_Ext(Flux, "Flux", "deploy customer applications")
+         Rel(Flux, KubernetesCluster, "deploy apps to")
+         Rel(Flux, Github, "read apps from")        
+      }
+
+      Container_Boundary(git, "git") {
+          System_Ext(Github, "GitHub", "Source storage in Git")      
+      }
+
+      Container_Boundary(auth, "auth") {
+        System_Ext(idp, "Identity Provider", "provides authn services for customer users")      
+      }
+
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")               
 ```
 
 ## Weave Gitops Enterprise as Business Domains
