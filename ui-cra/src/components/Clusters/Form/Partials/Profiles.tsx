@@ -47,8 +47,7 @@ const Profiles: FC<{
   updatedProfiles: ProfilesIndex;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   isLoading: boolean;
-  templateAnnotations?:{ [key: string]: string };
-}> = ({ context, updatedProfiles, setUpdatedProfiles, isLoading, templateAnnotations }) => {
+}> = ({ context, updatedProfiles, setUpdatedProfiles, isLoading }) => {
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
@@ -145,7 +144,6 @@ const Profiles: FC<{
                     context={context}
                     profile={p}
                     setUpdatedProfiles={setUpdatedProfiles}
-                    // templateAnnotations={templateAnnotations}
                   />
                 ),
               },

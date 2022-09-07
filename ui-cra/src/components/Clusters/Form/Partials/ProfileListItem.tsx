@@ -55,7 +55,6 @@ const ProfilesListItem: FC<{
   profile: UpdatedProfile;
   context?: string;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
-  // templateAnnotations?: { [key: string]: string };
 }> = ({ profile, setUpdatedProfiles }) => {
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');
@@ -76,20 +75,6 @@ const ProfilesListItem: FC<{
       );
     }),
   ];
-
-  // const defaultAnnotation = ()=> {
-  //   var ns = DEFAULT_PROFILE_NAMESPACE;
-  //   var keys = Object.keys(templateAnnotations || {});
-  //   keys.forEach(function(key:string) {
-  //       if (key.startsWith("capi.weave.works/profile-") && templateAnnotations) {
-  //         let jsonAnnotations = JSON.parse(templateAnnotations[key]);
-  //         if(jsonAnnotations.name === profile.name && jsonAnnotations.namespace){
-  //           ns = jsonAnnotations.namespace;
-  //         }
-  //       }
-  //   })
-  //   return ns;
-  // };
 
   const handleUpdateProfile = useCallback(
     profile => {
@@ -196,8 +181,7 @@ const ProfilesListItem: FC<{
             <Input
               id="profile-namespace"
               value={namespace}
-              // placeholder={defaultAnnotation()}
-              placeholder={namespace} //TODO
+              placeholder={DEFAULT_PROFILE_NAMESPACE}
               onChange={handleChangeNamespace}
               error={!isNamespaceValid}
             />

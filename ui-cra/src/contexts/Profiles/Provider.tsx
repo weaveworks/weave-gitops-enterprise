@@ -32,7 +32,7 @@ const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
     if (key.includes('capi.weave.works/profile')) {
       const data = maybeParseJSON(value);
       if (data) {
-        const { name, version, values, editable } = data;
+        const { name, version, values, editable, namespace } = data;
         defaultProfiles.push({
           name,
           editable,
@@ -40,6 +40,7 @@ const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
           required: true,
           selected: true,
           layer: getProfileLayer(profiles, name),
+          namespace: namespace,
         });
       }
     }
