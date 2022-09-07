@@ -17,7 +17,7 @@ if not os.getenv('GITHUB_TOKEN'):
    fail("You need to set GITHUB_TOKEN in your terminal before running this")
 
 # Install resources I couldn't find elsewhere
-k8s_yaml('tools/dev-resources.yaml')
+k8s_yaml(listdir('tools/dev-resources/'))
 
 k8s_yaml('test/utils/scripts/entitlement-secret.yaml')
 
