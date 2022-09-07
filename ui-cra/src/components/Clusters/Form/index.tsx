@@ -338,7 +338,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     if (!cluster) {
       setFormData((prevState: any) => ({
         ...prevState,
-        pullRequestTitle: `Creates cluster ${formData.parameterValues.CLUSTER_NAME || ''}`,
+        pullRequestTitle: `Creates cluster ${
+          formData.parameterValues.CLUSTER_NAME || ''
+        }`,
       }));
     }
   }, [cluster, formData.parameterValues, setFormData]);
