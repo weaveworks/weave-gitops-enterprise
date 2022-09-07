@@ -1,45 +1,46 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+Octiconimport {
+  Checkbox,
+  createStyles,
+  makeStyles,
+  withStyles,
+} from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
+import EditIcon from '@material-ui/icons/Edit';
+import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
+import {
+  Button,
+  CallbackStateContextProvider,
+  filterByStatusCallback,
+  filterConfig,
+  Icon,
+  IconType,
+  DataTable,
+  KubeStatusIndicator,
+  LoadingPage,
+  statusSortHelper,
+  theme,
+} from '@weaveworks/weave-gitops';
+import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
+import { useListConfig } from '../../hooks/versions';
+import { localEEMuiTheme } from '../../muiTheme';
+import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
+import { useCallbackState } from '../../utils/callback-state';
+import { EKSDefault, GKEDefault, Kind, Kubernetes, Vsphere } from '../../utils/icons';
+import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
-import { Link, useHistory } from 'react-router-dom';
-import useTemplates from '../../contexts/Templates';
-import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
-import styled from 'styled-components';
-import {
-  Button,
-  theme,
-  CallbackStateContextProvider,
-  getCallbackState,
-  Icon,
-  IconType,
-  FilterableTable,
-  filterByStatusCallback,
-  filterConfig,
-  LoadingPage,
-  KubeStatusIndicator,
-  statusSortHelper,
-} from '@weaveworks/weave-gitops';
-import { DeleteClusterDialog } from './Delete';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { localEEMuiTheme } from '../../muiTheme';
-import {
-  Checkbox,
-  withStyles,
-  createStyles,
-  makeStyles,
-} from '@material-ui/core';
-import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
-import { useListConfig } from '../../hooks/versions';
-import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
-import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import { EKSDefault, Kubernetes, GKEDefault, Kind, Vsphere } from '../../utils/icons';
-import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
+import { DeleteClusterDialog } from './Delete';
+import { getCreateRequestAnnotation } from './Form/utils';
 
 interface Size {
   size?: 'small';
@@ -62,6 +63,7 @@ const ClustersTableWrapper = styled(TableWrapper)`
   td:first-of-type {
     text-overflow: clip;
     width: 25px;
+    padding-left: ${({ theme }) => theme.spacing.base};
   }
   td:nth-child(7) {
     white-space: pre-wrap;
@@ -231,7 +233,7 @@ const MCCP: FC = () => {
     pullRequestDescription: '',
   };
 
-  const callbackState = getCallbackState();
+  const callbackState = useCallbackState();
 
   if (callbackState) {
     initialFormData = {
@@ -246,21 +248,23 @@ const MCCP: FC = () => {
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const history = useHistory();
-  const { activeTemplate } = useTemplates();
 
   const handleAddCluster = useCallback(() => {
-    if (activeTemplate === null) {
-      history.push('/clusters/templates');
-      return null;
-    }
-    history.push(`/clusters/templates/${activeTemplate.name}/create`);
-  }, [activeTemplate, history]);
+    history.push('/clusters/templates');
+  }, [history]);
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
     ...filterConfig(clusters, 'name'),
   };
+
+  const handleEditCluster = useCallback(
+    (event, c) => {
+      history.push(`/clusters/${c.name}/edit`);
+    },
+    [history],
+  );
 
   useEffect(() => {
     if (!callbackState) {
@@ -419,7 +423,7 @@ const MCCP: FC = () => {
             </div>
             {!isLoading ? (
               <ClustersTableWrapper id="clusters-list">
-                <FilterableTable
+                <DataTable
                   key={clusters.length}
                   filters={initialFilterState}
                   rows={clusters}
@@ -506,6 +510,19 @@ const MCCP: FC = () => {
                         (c.conditions && c.conditions[0]?.message) || null,
                       sortValue: ({ conditions }) => computeMessage(conditions),
                       maxWidth: 600,
+                    },
+                    {
+                      label: '',
+                      value: (c: GitopsClusterEnriched) => (
+                        <Button
+                          id="edit-cluster"
+                          startIcon={<EditIcon fontSize="small" />}
+                          onClick={event => handleEditCluster(event, c)}
+                          disabled={!Boolean(getCreateRequestAnnotation(c))}
+                        >
+                          EDIT CLUSTER
+                        </Button>
+                      ),
                     },
                   ]}
                 />

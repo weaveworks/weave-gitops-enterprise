@@ -52,6 +52,9 @@ tf.json
 # ignore sub-charts pulled in during dev
 charts/mccp/charts
 
+# artifacts
+cmd/gitops/gitops
+
 tilt_modules
 
 # .vscode

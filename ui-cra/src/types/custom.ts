@@ -1,6 +1,7 @@
 import {
   DeleteClustersPullRequestRequest,
   GitopsCluster,
+  Template,
 } from '../cluster-services/cluster_services.pb';
 
 //
@@ -96,6 +97,7 @@ export type UpdatedProfile = {
   required: boolean;
   layer?: string;
   namespace?: string;
+  selected?: boolean;
 };
 
 export type ListProfileValuesResponse = {
@@ -120,6 +122,8 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   updatedAt: string;
 }
 
+export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'>;
+
 export type DeleteClustersPRRequestEnriched = WithRequired<
   DeleteClustersPullRequestRequest,
   'headBranch' | 'title' | 'commitMessage' | 'description'
@@ -135,3 +139,11 @@ export type PRDefaults = {
   pullRequestTitle: string;
   commitMessage: string;
 };
+
+export type ClusterAutomation = {
+  name?: string;
+  namespace?: string;
+  path?: string;
+};
+
+export type ProfilesIndex = { [name: string]: UpdatedProfile };

@@ -387,6 +387,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		log,
 		clientsFactoryScheme,
 		clustersmngr.NewClustersClientsPool,
+		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clusterClientsFactory.Start(ctx)
 

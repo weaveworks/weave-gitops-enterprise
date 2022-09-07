@@ -368,6 +368,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					checkEntitlement("invalid", false)
 				})
 
+				gitopsTestRunner.DeleteIPCredentials("AWS")
 				// Login to the dashbord because the logout automatically when the cluster service restarts for entitlement checking
 				loginUser()
 			})
