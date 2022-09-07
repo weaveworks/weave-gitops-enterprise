@@ -13,6 +13,17 @@ export DELETE_GITOPS_DEV_REPO="${DELETE_GITOPS_DEV_REPO:-0}"
 
 TOOLS="$(pwd)/tools/bin"
 
+github_env_check() {
+  if [[ -z "$GITHUB_TOKEN" ]]; then
+    echo '!!! Missing GITHUB_TOKEN env var'
+    exit 1
+  fi
+  if [[ -z "$GITHUB_USER" ]]; then
+    echo '!!! Missing GITHUB_USER env var'
+    exit 1
+  fi
+}
+
 tool_check() {
   if [[ -f "${TOOLS}/${1}" ]]; then
     return
@@ -63,6 +74,7 @@ create_local_values_file(){
 }
 
 main() {
+  github_env_check
   do_kind
   do_capi
   do_flux

@@ -1,6 +1,14 @@
 ---
 images:
   clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.1.1
+policy-agent:
+  enabled: true
+  accountId: "weaveworks"
+  clusterId: "tilt-cluster"
 
 # Turns on pipelines features when using Tilt.
 enablePipelines: true
+
+# Re-clarify capiEnabled
+global:
+  capiEnabled: true
