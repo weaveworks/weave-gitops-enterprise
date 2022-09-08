@@ -31,7 +31,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	}
 
 	if err := c.Get(ctx, fetcher.ManagementClusterName, client.ObjectKeyFromObject(&p), &p); err != nil {
-		return nil, fmt.Errorf("")
+		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, fetcher.ManagementClusterName, err)
 	}
 
 	pipelineResp := convert.PipelineToProto(p)
