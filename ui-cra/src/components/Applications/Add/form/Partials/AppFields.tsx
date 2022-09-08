@@ -1,23 +1,67 @@
-import React, { FC, Dispatch } from 'react';
+import React, { FC, Dispatch, useState } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
-import { ListSubheader, MenuItem } from '@material-ui/core';
-import { GitopsClusterEnriched } from '../../../../../types/custom';
-import { useListSources, theme } from '@weaveworks/weave-gitops';
+import {
+  createStyles,
+  IconButton,
+  ListSubheader,
+  MenuItem,
+  TextField,
+} from '@material-ui/core';
+import {
+  useListSources,
+  theme,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
-import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
+import { Autocomplete } from '@material-ui/lab';
+import { AddAppFormData } from '../..';
+import {
+  Source,
+  GitRepository,
+  HelmRepository,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
+import { makeStyles } from '@material-ui/styles';
 
-interface SourceEnriched extends Source {
-  url?: string;
-  reference?: {
-    branch?: string;
-  };
+function isGitRepository(source: Source): source is GitRepository {
+  return source.kind === 'KindGitRepository';
 }
+
+function isHelmRepositry(source: Source): source is HelmRepository {
+  return source.kind === 'KindHelmRepository';
+}
+
+const SourceOption = styled.div`
+  display: flex;
+  width: 100%;
+  white-space: nowrap;
+  align-items: center;
+  span {
+    margin-right: 16px;
+  }
+  a {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    paper: {
+      width: 700,
+    },
+  }),
+);
 
 const FormWrapper = styled.form`
   .form-section {
@@ -32,24 +76,26 @@ const FormWrapper = styled.form`
 `;
 
 const AppFields: FC<{
-  formData: any;
-  setFormData: Dispatch<React.SetStateAction<any>> | any;
+  formData: AddAppFormData;
+  setFormData: Dispatch<React.SetStateAction<AddAppFormData>>;
   index?: number;
-  clusters?: GitopsClusterEnriched[];
-}> = ({ formData, setFormData, index = 0, clusters = undefined }) => {
+}> = ({ formData, setFormData, index = 0 }) => {
   const { setHelmRepo } = useProfiles();
-  const { data } = useListSources();
+  const { data, isLoading } = useListSources();
   const automation = formData.clusterAutomations[index];
 
-  const handleSelectCluster = (event: React.ChangeEvent<any>) => {
-    const value = event.target.value;
+  const handleSelectCluster = (
+    event: React.ChangeEvent<any>,
+    clusterName: string | null,
+  ) => {
+    console.log({ clusterName });
+    if (!clusterName) {
+      return;
+    }
     let currentAutomation = [...formData.clusterAutomations];
     currentAutomation[index] = {
       ...automation,
-      cluster_name: JSON.parse(value).name,
-      cluster_namespace: JSON.parse(value).namespace,
-      cluster_isControlPlane: JSON.parse(value).controlPlane,
-      cluster: value,
+      clusterName,
     };
     setFormData({
       ...formData,
@@ -57,62 +103,53 @@ const AppFields: FC<{
     });
   };
 
-  let gitRepos = [] as Source[];
-  let helmRepos = [] as Source[];
+  const clusters = _.uniq(data?.result?.map(s => s.clusterName));
 
-  if (clusters) {
-    const clusterName = automation.cluster_namespace
-      ? `${automation.cluster_namespace}/${automation.cluster_name}`
-      : `${automation.cluster_name}`;
+  const clusterSources = _.sortBy(
+    data?.result
+      .filter(s => s.clusterName === automation.clusterName)
+      .filter(s => isGitRepository(s) || isHelmRepositry(s)) || [],
+    'name',
+    // Still need this even with the type guarded fns?
+  ) as (GitRepository | HelmRepository)[];
 
-    gitRepos = _.orderBy(
-      _.filter(
-        data?.result,
-        item =>
-          item.kind === 'KindGitRepository' && item.clusterName === clusterName,
-      ),
-      ['name'],
-      ['asc'],
-    );
+  const handleSelectSource = (
+    event: React.ChangeEvent<any>,
+    source: GitRepository | HelmRepository | null,
+    reason: string,
+  ) => {
+    if (!source) {
+      return;
+    }
 
-    helmRepos = _.orderBy(
-      _.filter(
-        data?.result,
-        item =>
-          item.kind === 'KindHelmRepository' &&
-          item.clusterName === clusterName,
-      ),
-      ['name'],
-      ['asc'],
-    );
-  }
+    if (event.type == 'blur' && event.target === document.activeElement) {
+      return;
+    }
 
-  const handleSelectSource = (event: React.ChangeEvent<any>) => {
-    const { value } = event.target;
-    const { obj } = JSON.parse(value);
+    const tagName = (event.target as HTMLElement)?.tagName;
+    const clickedLink = tagName === 'A';
+    console.log({ tagName, clickedLink, event });
 
-    let currentAutomation = [...formData.clusterAutomations];
+    if (clickedLink) {
+      event.stopPropagation();
+      return;
+    }
 
-    currentAutomation[index] = {
+    const clusterAutomations = [...formData.clusterAutomations];
+    clusterAutomations[index] = {
       ...automation,
-      source_name: obj?.metadata.name,
-      source_namespace: obj?.metadata?.namespace,
-      source: value,
+      source,
     };
 
     setFormData({
       ...formData,
-      source_name: obj?.metadata?.name,
-      source_namespace: obj?.metadata?.namespace,
-      source_type: obj?.kind,
-      source: value,
-      clusterAutomations: currentAutomation,
+      clusterAutomations,
     });
 
-    if (obj?.kind === 'HelmRepository') {
+    if (source.kind === 'KindHelmRepository') {
       setHelmRepo({
-        name: obj?.metadata?.name,
-        namespace: obj?.metadata?.namespace,
+        name: source.name,
+        namespace: source.namespace,
       });
     }
   };
@@ -145,76 +182,115 @@ const AppFields: FC<{
     ) : (
       url
     );
-    if (branch) {
-      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: theme.colors.primary,
-            fontSize: theme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url, branch)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {linkText}
-        </a>
-      ) : (
-        <span>{linkText}</span>
-      );
-    } else {
-      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: theme.colors.primary,
-            fontSize: theme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {linkText}
-        </a>
-      ) : (
-        <span>{linkText}</span>
-      );
-    }
+    return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
+      <a
+        title="Visit repository"
+        style={{
+          color: theme.colors.primary,
+          fontSize: theme.fontSizes.medium,
+        }}
+        href={getGitRepoHTTPSURL(url, branch)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {linkText}
+      </a>
+    ) : (
+      <span>{linkText}</span>
+    );
   };
 
+  const classes = useStyles();
+  const [open, setOpen] = useState(false);
+  const handleOpen = (...args: any) => {
+    console.log('open', args);
+    setOpen(true);
+  };
+  const handleClose = (event: React.ChangeEvent<{}>) => {
+    // Don't close if we've opened a new window
+    // https://stackoverflow.com/a/61758013
+
+    if (event.type == 'blur' && event.target === document.activeElement) {
+      return;
+    }
+    const tagName = (event.target as HTMLElement)?.tagName;
+    const clickedLink = tagName === 'A';
+    if (clickedLink) {
+      return;
+    }
+    setOpen(false);
+  };
+  console.log(automation.source);
   return (
     <FormWrapper>
-      {!!clusters && (
+      {clusters && (
         <>
-          <Select
+          <Autocomplete<string>
             className="form-section"
-            name="cluster_name"
-            required={true}
-            label="SELECT CLUSTER"
-            value={formData.clusterAutomations[index].cluster || ''}
+            loading={isLoading}
+            value={automation.clusterName}
+            renderInput={params => (
+              <Input
+                {...params}
+                name="cluster_name"
+                required={true}
+                label="SELECT CLUSTER"
+                description="select target cluster"
+              />
+            )}
+            options={clusters}
             onChange={handleSelectCluster}
-            defaultValue={''}
-            description="select target cluster"
-          >
-            {clusters?.map((option: GitopsClusterEnriched, index: number) => {
-              return (
-                <MenuItem key={index} value={JSON.stringify(option)}>
-                  {option.name}
-                </MenuItem>
-              );
-            })}
-          </Select>
-          <Select
+          />
+          <Autocomplete<GitRepository | HelmRepository>
+            classes={classes}
             className="form-section"
-            name="source"
-            required={true}
-            label="SELECT SOURCE"
-            value={formData.clusterAutomations[index].source || ''}
+            autoHighlight
+            fullWidth
+            loading={isLoading}
+            open={open}
+            value={automation.source}
+            groupBy={option => option?.type || 'No kind'}
+            getOptionSelected={(option, value) =>
+              option?.kind === value?.kind &&
+              option?.name === value?.name &&
+              option?.namespace === value?.namespace
+            }
             onChange={handleSelectSource}
-            defaultValue={''}
-            description="The name and type of source"
-          >
-            {[...gitRepos, ...helmRepos].length === 0 && (
+            onOpen={handleOpen}
+            onClose={handleClose}
+            getOptionLabel={option => option?.name || 'hmm'}
+            renderOption={option => (
+              <SourceOption>
+                <span>{option?.name}</span>
+                {optionUrl(
+                  option?.url,
+                  (isGitRepository(option) && option?.reference?.branch) || '',
+                )}
+                {/* <IconButton
+                  onClick={(ev: React.MouseEvent) => {
+                    ev.stopPropagation();
+                    window.open('http://github.com/foot');
+                  }}
+                >
+                  <Icon type={IconType.ExternalTab} size="base" />
+                </IconButton> */}
+              </SourceOption>
+            )}
+            options={clusterSources}
+            renderInput={params => {
+              console.log({ params });
+              return (
+                <Input
+                  {...params}
+                  name="source"
+                  required={true}
+                  label="SELECT SOURCE"
+                  description="The name and type of source"
+                />
+              );
+            }}
+          />
+          {/* {[...gitRepos, ...helmRepos].length === 0 && (
               <MenuItem disabled={true}>
                 No repository available, please select another cluster.
               </MenuItem>
@@ -222,7 +298,7 @@ const AppFields: FC<{
             {gitRepos.length !== 0 && (
               <ListSubheader>GitRepository</ListSubheader>
             )}
-            {gitRepos?.map((option: SourceEnriched, index: number) => (
+            {gitRepos?.map((option: GitRepository, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}&nbsp;&nbsp;
                 {optionUrl(option?.url, option?.reference?.branch)}
@@ -231,16 +307,15 @@ const AppFields: FC<{
             {helmRepos.length !== 0 && (
               <ListSubheader>HelmRepository</ListSubheader>
             )}
-            {helmRepos?.map((option: SourceEnriched, index: number) => (
+            {helmRepos?.map((option: HelmRepository, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}&nbsp;&nbsp;
                 {optionUrl(option?.url)}
               </MenuItem>
-            ))}
-          </Select>
+            ))} */}
         </>
       )}
-      {formData.source_type === 'GitRepository' || !clusters ? (
+      {automation.source?.kind === 'KindGitRepository' || !clusters ? (
         <>
           <Input
             className="form-section"

@@ -10,6 +10,8 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   CallbackStateContextProvider,
   getProviderToken,
+  GitRepository,
+  HelmRepository,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
@@ -21,13 +23,139 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
 import Profiles from '../../Clusters/Form/Partials/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
-import useClusters from '../../../contexts/Clusters';
-import { Loader } from '../../Loader';
+import {
+  ClusterAutomation,
+  CreateAutomationsPullRequestRequest,
+  GitopsCluster,
+} from '../../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
 import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import { ProfilesIndex } from '../../../types/custom';
+import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+
+export interface ClusterAutomationFormData {
+  name: string;
+  namespace: string;
+  clusterName: string | null;
+  path: string;
+  source: HelmRepository | GitRepository | null;
+  // sourceName: string;
+  // sourceNamespace: string;
+  // sourceType: string;
+}
+
+export interface AddAppFormData {
+  url: string;
+  provider: string;
+  branchName: string;
+  title: string;
+  commitMessage: string;
+  pullRequestTitle: string;
+  pullRequestDescription: string;
+  clusterAutomations: ClusterAutomationFormData[];
+}
+
+const toCluster = (clusterName: string): GitopsCluster => {
+  const [firstBit, secondBit] = clusterName.split('/');
+  const [namespace, name, controlPlane] = secondBit
+    ? [firstBit, secondBit, false]
+    : ['', firstBit, true];
+  return {
+    name,
+    namespace,
+    controlPlane,
+  };
+};
+
+const toClusterName = (cluster: GitopsCluster): string => {
+  return cluster.namespace
+    ? `${cluster.namespace}/${cluster.name}`
+    : `${cluster.name}`;
+};
+
+const toPayload = (
+  formData: AddAppFormData,
+  updatedProfiles: ProfilesIndex,
+): CreateAutomationsPullRequestRequest => {
+  const automation = formData.clusterAutomations?.[0];
+  const cluster = toCluster(automation.clusterName!);
+
+  let clusterAutomations: ClusterAutomation[] = [];
+  if (automation?.source?.kind === 'KindHelmRepository') {
+    const selectedProfilesList = _.sortBy(
+      Object.values(updatedProfiles),
+      'name',
+    ).filter(p => p.selected);
+
+    for (let profile of selectedProfilesList) {
+      for (let value of profile.values) {
+        if (value.selected === true) {
+          const version = value.version;
+          const values = value.yaml;
+          clusterAutomations.push({
+            cluster: {
+              name: cluster.name,
+              namespace: cluster.namespace,
+            },
+            isControlPlane: cluster.controlPlane,
+            helmRelease: {
+              metadata: {
+                name: profile.name,
+                namespace: profile.namespace,
+              },
+              spec: {
+                chart: {
+                  spec: {
+                    chart: profile.name,
+                    sourceRef: {
+                      name: automation.source.name,
+                      namespace: automation.source.namespace,
+                    },
+                    version,
+                  },
+                },
+                values,
+              },
+            },
+          });
+        }
+      }
+    }
+  } else {
+    clusterAutomations = formData.clusterAutomations.map(
+      (kustomization: any) => {
+        return {
+          cluster: {
+            name: kustomization.cluster_name,
+            namespace: kustomization.cluster_namespace,
+          },
+          isControlPlane: kustomization.cluster_isControlPlane,
+          kustomization: {
+            metadata: {
+              name: kustomization.name,
+              namespace: kustomization.namespace,
+            },
+            spec: {
+              path: kustomization.path,
+              sourceRef: {
+                name: kustomization.source_name,
+                namespace: kustomization.source_namespace,
+              },
+            },
+          },
+        };
+      },
+    );
+  }
+  return {
+    headBranch: formData.branchName,
+    title: formData.pullRequestTitle,
+    description: formData.pullRequestDescription,
+    commitMessage: formData.commitMessage,
+    clusterAutomations,
+  };
+};
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -38,13 +166,12 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
-  const { clusters, isLoading } = useClusters();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
   const callbackState = useCallbackState();
 
-  let initialFormData = {
+  const initialFormData: AddAppFormData = {
     url: '',
     provider: '',
     branchName: `add-application-branch-${random}`,
@@ -55,24 +182,25 @@ const AddApplication = () => {
       {
         name: '',
         namespace: '',
-        cluster_name: '',
-        cluster_namespace: '',
-        cluster: '',
-        cluster_isControlPlane: false,
         path: '',
-        source_name: '',
-        source_namespace: '',
-        source: '',
-        source_type: '',
+        clusterName: null,
+        source: null,
       },
     ],
     ...callbackState?.state?.formData,
   };
 
-  const [formData, setFormData] = useState<any>(initialFormData);
+  const [formData, setFormData] = useState<AddAppFormData>(initialFormData);
+  const automation = formData.clusterAutomations?.[0];
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('clusterName', automation?.clusterName!);
+    history.push({ search: params.toString() });
+  }, [automation?.clusterName, history]);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -98,83 +226,7 @@ const AddApplication = () => {
   }, [formData.clusterAutomations]);
 
   const handleAddApplication = useCallback(() => {
-    let clusterAutomations: ClusterAutomation[] = [];
-    const selectedProfilesList = _.sortBy(
-      Object.values(updatedProfiles),
-      'name',
-    ).filter(p => p.selected);
-    if (formData.source_type === 'HelmRepository') {
-      for (let kustomization of formData.clusterAutomations) {
-        for (let profile of selectedProfilesList) {
-          let values: string = '';
-          let version: string = '';
-          for (let value of profile.values) {
-            if (value.selected === true) {
-              version = value.version;
-              values = value.yaml;
-              clusterAutomations.push({
-                cluster: {
-                  name: kustomization.cluster_name,
-                  namespace: kustomization.cluster_namespace,
-                },
-                isControlPlane: kustomization.cluster_isControlPlane,
-                helmRelease: {
-                  metadata: {
-                    name: profile.name,
-                    namespace: profile.namespace,
-                  },
-                  spec: {
-                    chart: {
-                      spec: {
-                        chart: profile.name,
-                        sourceRef: {
-                          name: formData.source_name,
-                          namespace: formData.source_namespace,
-                        },
-                        version,
-                      },
-                    },
-                    values,
-                  },
-                },
-              });
-            }
-          }
-        }
-      }
-    } else {
-      clusterAutomations = formData.clusterAutomations.map(
-        (kustomization: any) => {
-          return {
-            cluster: {
-              name: kustomization.cluster_name,
-              namespace: kustomization.cluster_namespace,
-            },
-            isControlPlane: kustomization.cluster_isControlPlane,
-            kustomization: {
-              metadata: {
-                name: kustomization.name,
-                namespace: kustomization.namespace,
-              },
-              spec: {
-                path: kustomization.path,
-                sourceRef: {
-                  name: kustomization.source_name,
-                  namespace: kustomization.source_namespace,
-                },
-              },
-            },
-          };
-        },
-      );
-    }
-    const payload = {
-      head_branch: formData.branchName,
-      title: formData.pullRequestTitle,
-      description: formData.pullRequestDescription,
-      commit_message: formData.commitMessage,
-      clusterAutomations,
-    };
+    const payload = toPayload(formData, updatedProfiles);
     setLoading(true);
     return AddApplicationRequest(
       payload,
@@ -238,23 +290,20 @@ const AddApplication = () => {
             <ContentWrapper>
               <Grid container>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
-                  {!isLoading &&
-                    formData.clusterAutomations.map(
-                      (automation: ClusterAutomation, index: number) => {
-                        return (
-                          <AppFields
-                            key={index}
-                            index={index}
-                            formData={formData}
-                            setFormData={setFormData}
-                            clusters={clusters}
-                          />
-                        );
-                      },
-                    )}
-                  {isLoading && <Loader></Loader>}
+                  {formData.clusterAutomations.map(
+                    (automation: ClusterAutomationFormData, index: number) => {
+                      return (
+                        <AppFields
+                          key={index}
+                          index={index}
+                          formData={formData}
+                          setFormData={setFormData}
+                        />
+                      );
+                    },
+                  )}
                 </Grid>
-                {formData.source_type === 'HelmRepository' ? (
+                {automation.source?.kind === 'KindHelmRepository' ? (
                   <Profiles
                     // Temp fix to hide layers when using profiles in Add App until we update the BE
                     context="app"
@@ -289,8 +338,6 @@ const AddApplication = () => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
-    clusters,
-    isLoading,
   ]);
 };
 

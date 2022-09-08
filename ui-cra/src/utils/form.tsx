@@ -8,6 +8,7 @@ import {
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
   InputBase as MuiInputBase,
+  Input as MuiInput,
   FormHelperText,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
@@ -65,13 +66,17 @@ type PickedInputProps = Pick<
   | 'autoFocus'
   | 'onChange'
   | 'value'
+  | 'disabled'
   | 'defaultValue'
   | 'type'
   | 'disabled'
+  | 'fullWidth'
   | 'placeholder'
+  | 'inputProps'
 >;
 
 interface InputProps extends PickedInputProps {
+  disabled?: boolean;
   label?: string;
   className?: string;
   multiline?: boolean;
@@ -79,44 +84,38 @@ interface InputProps extends PickedInputProps {
   description?: string;
   required?: boolean;
   name?: string;
+  InputLabelProps?: any;
+  InputProps?: any;
 }
 
 export const Input: FC<InputProps> = ({
-  autoFocus,
-  defaultValue,
-  disabled,
-  value,
-  onChange,
   label,
-  type,
-  placeholder,
   className,
-  multiline,
-  rows,
   description,
-  required,
+  disabled,
+  fullWidth,
   name,
+  inputProps,
+  InputProps,
+  InputLabelProps,
+  ...rest
 }) => (
-  <FormControl id={`${label}-group`} className={className}>
+  <FormControl
+    id={`${label}-group`}
+    fullWidth={fullWidth}
+    disabled={disabled}
+    className={className}
+  >
     {label && (
-      <InputLabel htmlFor={`${label}-input`} shrink>
+      <InputLabel htmlFor={`${label}-input`} shrink {...InputLabelProps}>
         {label}
       </InputLabel>
     )}
     <InputBase
       name={name}
-      autoFocus={autoFocus}
-      defaultValue={defaultValue}
-      disabled={disabled}
-      id={`${label}-input`}
-      onChange={onChange}
-      placeholder={placeholder}
-      type={type}
-      value={value}
-      multiline={multiline}
-      rows={rows}
-      inputProps={{ maxLength: 256 }}
-      required={required}
+      inputProps={{ ...inputProps, maxLength: 256 }}
+      {...InputProps}
+      {...rest}
     />
     <FormHelperText>{description}</FormHelperText>
   </FormControl>
