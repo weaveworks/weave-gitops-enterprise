@@ -104,7 +104,6 @@ const AppFields: FC<{
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
     const { obj } = JSON.parse(value);
-    console.log(obj);
 
     let currentAutomation = [...formData.clusterAutomations];
 
@@ -124,7 +123,7 @@ const AppFields: FC<{
       clusterAutomations: currentAutomation,
     });
 
-    if (JSON.parse(value).kind === 'HelmRepository') {
+    if (obj?.kind === 'HelmRepository') {
       setHelmRepo({
         name: obj?.metadata?.name,
         namespace: obj?.metadata?.namespace,

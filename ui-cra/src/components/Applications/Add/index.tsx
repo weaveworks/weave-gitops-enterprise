@@ -4,13 +4,11 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { AddApplicationRequest, useApplicationsCount } from '../utils';
-import GitOps from '../../Clusters/Create/Form/Partials/GitOps';
+import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   CallbackStateContextProvider,
-  clearCallbackState,
-  getCallbackState,
   getProviderToken,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
@@ -19,17 +17,19 @@ import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useClusters from '../../../contexts/Clusters';
 import useTemplates from '../../../contexts/Templates';
 import useNotifications from '../../../contexts/Notifications';
-import useProfiles from '../../../contexts/Profiles';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
-import Profiles from '../../Clusters/Create/Form/Partials/Profiles';
-import { UpdatedProfile } from '../../../types/custom';
+import Profiles from '../../Clusters/Form/Partials/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
 import { Loader } from '../../Loader';
-import Preview from '../../Clusters/Create/Form/Partials/Preview';
+import Preview from '../../Clusters/Form/Partials/Preview';
+import _ from 'lodash';
+import useProfiles from '../../../contexts/Profiles';
+import { useCallbackState } from '../../../utils/callback-state';
+import { ProfilesIndex } from '../../../types/custom';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -37,7 +37,6 @@ const AddApplication = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const { setNotifications } = useNotifications();
-  const { profiles } = useProfiles();
   const { renderKustomization } = useTemplates();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
@@ -45,6 +44,8 @@ const AddApplication = () => {
   const { clusters, isLoading } = useClusters();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
+
+  const callbackState = useCallbackState();
 
   let initialFormData = {
     url: '',
@@ -68,40 +69,27 @@ const AddApplication = () => {
         source_type: '',
       },
     ],
+    ...callbackState?.state?.formData,
   };
 
-  let initialProfiles = [] as UpdatedProfile[];
-
-  const callbackState = getCallbackState();
-
-  if (callbackState) {
-    initialFormData = {
-      ...initialFormData,
-      ...callbackState.state.formData,
-    };
-    initialProfiles = [
-      ...initialProfiles,
-      ...callbackState.state.selectedProfiles,
-    ];
-  }
   const [formData, setFormData] = useState<any>(initialFormData);
-  const [selectedProfiles, setSelectedProfiles] =
-    useState<UpdatedProfile[]>(initialProfiles);
-  const { renderTemplate } = useTemplates();
-  const [openPreview, setOpenPreview] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<any | null>(null);
+
+  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+  const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
-    if (repositoryURL != null) {
-      setFormData((prevState: any) => ({
-        ...prevState,
-        url: repositoryURL,
-      }));
-    }
-  }, [repositoryURL]);
+    setUpdatedProfiles({
+      ..._.keyBy(profiles, 'name'),
+      ...callbackState?.state?.updatedProfiles,
+    });
+  }, [callbackState?.state?.updatedProfiles, profiles]);
 
-  useEffect(() => clearCallbackState(), []);
+  useEffect(() => {
+    setFormData((prevState: any) => ({
+      ...prevState,
+      url: repositoryURL,
+    }));
+  }, [repositoryURL]);
 
   useEffect(() => {
     setFormData((prevState: any) => ({
@@ -114,9 +102,13 @@ const AddApplication = () => {
 
   const getKustomizations = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
+    const selectedProfilesList = _.sortBy(
+      Object.values(updatedProfiles),
+      'name',
+    ).filter(p => p.selected);
     if (formData.source_type === 'HelmRepository') {
       for (let kustomization of formData.clusterAutomations) {
-        for (let profile of selectedProfiles) {
+        for (let profile of selectedProfilesList) {
           let values: string = '';
           let version: string = '';
           for (let value of profile.values) {
@@ -247,7 +239,11 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
+<<<<<<< HEAD
   }, [formData, history, setNotifications, getKustomizations]);
+=======
+  }, [formData, history, setNotifications, updatedProfiles]);
+>>>>>>> d2d8041a835a59ab5eb9d7ee7b6fd7df58f81819
 
   return useMemo(() => {
     return (
@@ -258,7 +254,7 @@ const AddApplication = () => {
               page: authRedirectPage as PageRoute,
               state: {
                 formData,
-                selectedProfiles,
+                updatedProfiles,
               },
             }}
           >
@@ -301,13 +297,13 @@ const AddApplication = () => {
                     />
                   ) : null}
                 </Grid>
-                {profiles.length > 0 &&
-                formData.source_type === 'HelmRepository' ? (
+                {formData.source_type === 'HelmRepository' ? (
                   <Profiles
                     // Temp fix to hide layers when using profiles in Add App until we update the BE
                     context="app"
-                    selectedProfiles={selectedProfiles}
-                    setSelectedProfiles={setSelectedProfiles}
+                    isLoading={profilesIsLoading}
+                    updatedProfiles={updatedProfiles}
+                    setUpdatedProfiles={setUpdatedProfiles}
                   />
                 ) : null}
                 <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -332,8 +328,9 @@ const AddApplication = () => {
     formData,
     handleAddApplication,
     loading,
-    profiles.length,
-    selectedProfiles,
+    profilesIsLoading,
+    updatedProfiles,
+    setUpdatedProfiles,
     showAuthDialog,
     clusters,
     isLoading,

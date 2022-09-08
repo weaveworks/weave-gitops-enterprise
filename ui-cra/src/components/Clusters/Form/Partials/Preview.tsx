@@ -1,7 +1,7 @@
 import React, { FC, Dispatch } from 'react';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
+import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
   Tab,
   Tabs,

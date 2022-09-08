@@ -10,8 +10,9 @@ import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   ListProfileValuesResponse,
+  ProfilesIndex,
   UpdatedProfile,
-} from '../../../../../types/custom';
+} from '../../../../types/custom';
 import {
   Dialog,
   DialogContent,
@@ -24,16 +25,16 @@ import {
   Input,
 } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
-import { CloseIconButton } from '../../../../../assets/img/close-icon-button';
+import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
   theme as weaveTheme,
   Button,
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-import useProfiles from './../../../../../contexts/Profiles';
-import { Loader } from '../../../../Loader';
-import { DEFAULT_PROFILE_NAMESPACE } from '../../../../../utils/config';
+import useProfiles from '../../../../contexts/Profiles';
+import { Loader } from '../../../Loader';
+import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 
 const xs = weaveTheme.spacing.xs;
 
@@ -53,9 +54,8 @@ const ProfileWrapper = styled.div`
 const ProfilesListItem: FC<{
   profile: UpdatedProfile;
   context?: string;
-  selectedProfiles: UpdatedProfile[];
-  setSelectedProfiles: Dispatch<React.SetStateAction<UpdatedProfile[]>>;
-}> = ({ profile, context, selectedProfiles, setSelectedProfiles }) => {
+  setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
+}> = ({ profile, setUpdatedProfiles }) => {
   const classes = useStyles();
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
@@ -78,13 +78,12 @@ const ProfilesListItem: FC<{
 
   const handleUpdateProfile = useCallback(
     profile => {
-      const currentProfileIndex = selectedProfiles.findIndex(
-        p => p.name === profile.name,
-      );
-      selectedProfiles[currentProfileIndex] = profile;
-      setSelectedProfiles(selectedProfiles);
+      setUpdatedProfiles(sp => ({
+        ...sp,
+        [profile.name]: profile,
+      }));
     },
-    [setSelectedProfiles, selectedProfiles],
+    [setUpdatedProfiles],
   );
 
   const handleSelectVersion = useCallback(

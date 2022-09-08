@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
@@ -51,42 +51,42 @@ func LoginUserFlow(uc UserCredentials) {
 	loginPage := pages.GetLoginPage(webDriver)
 
 	if pages.ElementExist(loginPage.LoginOIDC, 10) {
-		Eventually(loginPage.LoginOIDC).Should(BeVisible())
+		gomega.Eventually(loginPage.LoginOIDC).Should(matchers.BeVisible())
 
 		switch uc.UserType {
 		case ClusterUserLogin:
 			// Login via cluster user account
-			Expect(loginPage.Username.SendKeys(uc.UserName)).To(Succeed())
-			Expect(loginPage.Password.SendKeys(uc.UserPassword)).To(Succeed())
-			Expect(loginPage.Continue.Click()).To(Succeed())
+			gomega.Expect(loginPage.Username.SendKeys(uc.UserName)).To(gomega.Succeed())
+			gomega.Expect(loginPage.Password.SendKeys(uc.UserPassword)).To(gomega.Succeed())
+			gomega.Expect(loginPage.Continue.Click()).To(gomega.Succeed())
 		case OidcUserLogin:
 			// Login via OIDC provider
-			Eventually(loginPage.LoginOIDC.Click).Should(Succeed())
+			gomega.Eventually(loginPage.LoginOIDC.Click).Should(gomega.Succeed())
 
 			dexLogin := pages.GetDexLoginPage(webDriver)
 			switch gitProviderEnv.Type {
 			case GitProviderGitHub:
-				Eventually(dexLogin.Github.Click).Should(Succeed())
+				gomega.Eventually(dexLogin.Github.Click).Should(gomega.Succeed())
 
 				authenticate := pages.ActivateDeviceGithub(webDriver)
 
 				if pages.ElementExist(authenticate.Username) {
-					Eventually(authenticate.Username).Should(BeVisible())
-					Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
-					Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
-					Expect(authenticate.Signin.Click()).To(Succeed())
+					gomega.Eventually(authenticate.Username).Should(matchers.BeVisible())
+					gomega.Expect(authenticate.Username.SendKeys(uc.UserName)).To(gomega.Succeed())
+					gomega.Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(gomega.Succeed())
+					gomega.Expect(authenticate.Signin.Click()).To(gomega.Succeed())
 				}
 
 				if pages.ElementExist(authenticate.AuthCode) {
-					Eventually(authenticate.AuthCode).Should(BeVisible())
+					gomega.Eventually(authenticate.AuthCode).Should(matchers.BeVisible())
 					// Generate 6 digit authentication OTP for MFA
 					authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
-					Expect(authenticate.AuthCode.SendKeys(authCode)).To(Succeed())
+					gomega.Expect(authenticate.AuthCode.SendKeys(authCode)).To(gomega.Succeed())
 				}
-				Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
+				gomega.Eventually(dexLogin.GrantAccess.Click).Should(gomega.Succeed())
 
 			case GitProviderGitLab:
-				Eventually(dexLogin.GitlabOnPrem.Click).Should(Succeed())
+				gomega.Eventually(dexLogin.GitlabOnPrem.Click).Should(gomega.Succeed())
 
 				var authenticate *pages.AuthenticateGitlab
 				if gitProviderEnv.Hostname == gitlab.DefaultDomain {
@@ -95,22 +95,22 @@ func LoginUserFlow(uc UserCredentials) {
 					authenticate = pages.AuthenticateWithOnPremGitlab(webDriver)
 				}
 				if pages.ElementExist(authenticate.Username) {
-					Eventually(authenticate.Username).Should(BeVisible())
-					Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
-					Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
-					Expect(authenticate.Signin.Click()).To(Succeed())
+					gomega.Eventually(authenticate.Username).Should(matchers.BeVisible())
+					gomega.Expect(authenticate.Username.SendKeys(uc.UserName)).To(gomega.Succeed())
+					gomega.Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(gomega.Succeed())
+					gomega.Expect(authenticate.Signin.Click()).To(gomega.Succeed())
 				}
-				Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
+				gomega.Eventually(dexLogin.GrantAccess.Click).Should(gomega.Succeed())
 			default:
-				Expect(fmt.Errorf("error: Provided oidc issuer '%s' is not supported", gitProviderEnv.Type))
+				gomega.Expect(fmt.Errorf("error: Provided oidc issuer '%s' is not supported", gitProviderEnv.Type))
 			}
 		default:
-			Expect(fmt.Errorf("error: Provided login type '%s' is not supported", uc.UserType))
+			gomega.Expect(fmt.Errorf("error: Provided login type '%s' is not supported", uc.UserType))
 		}
 
-		Eventually(loginPage.AccountSettings.Click).Should(Succeed())
+		gomega.Eventually(loginPage.AccountSettings.Click).Should(gomega.Succeed())
 		account := pages.GetAccount(webDriver)
-		Eventually(account.User.Click).Should(Succeed())
+		gomega.Eventually(account.User.Click).Should(gomega.Succeed())
 	} else {
 		logger.Infof("%s user already logged in", uc.UserType)
 	}
@@ -120,10 +120,10 @@ func logoutUser() {
 	loginPage := pages.GetLoginPage(webDriver)
 
 	if pages.ElementExist(loginPage.AccountSettings, 5) {
-		Eventually(loginPage.AccountSettings.Click).Should(Succeed())
+		gomega.Eventually(loginPage.AccountSettings.Click).Should(gomega.Succeed())
 		account := pages.GetAccount(webDriver)
-		Eventually(account.Logout.Click).Should(Succeed())
-		Eventually(loginPage.LoginOIDC).Should(BeVisible(), "Failed to logout")
+		gomega.Eventually(account.Logout.Click).Should(gomega.Succeed())
+		gomega.Eventually(loginPage.LoginOIDC).Should(matchers.BeVisible(), "Failed to logout")
 	}
 }
 
@@ -132,15 +132,15 @@ func cliOidcLogin() {
 	case EKSMgmtCluster:
 		go func() {
 			err := runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get pods --kubeconfig=%s", userCredentials.UserKubeconfig))
-			Expect(err).ShouldNot(HaveOccurred())
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 		}()
 
 		redirectUrl := "http://localhost:8000"
 		pages.OpenWindowInBg(webDriver, redirectUrl, "cli-oidc-auth")
-		Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to 'cli-oidc-auth' window")
+		gomega.Expect(webDriver.NextWindow()).ShouldNot(gomega.HaveOccurred(), "Failed to switch to 'cli-oidc-auth' window")
 		cliOidcAuthFlow(userCredentials)
-		Eventually(webDriver.CloseWindow).Should(Succeed(), "Failed to close 'cli-oidc-auth' dashboard window")
-		Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
+		gomega.Eventually(webDriver.CloseWindow).Should(gomega.Succeed(), "Failed to close 'cli-oidc-auth' dashboard window")
+		gomega.Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
 
 	case GKEMgmtCluster:
 		logger.Info("GKE cli oidc auth is not implemented yet")
@@ -152,31 +152,31 @@ func cliOidcAuthFlow(uc UserCredentials) {
 	dexLogin := pages.GetDexLoginPage(webDriver)
 
 	if pages.ElementExist(dexLogin.Title, 5) {
-		Eventually(dexLogin.Title).Should(BeVisible())
+		gomega.Eventually(dexLogin.Title).Should(matchers.BeVisible())
 
 		switch gitProviderEnv.Type {
 		case GitProviderGitHub:
-			Eventually(dexLogin.Github.Click).Should(Succeed())
+			gomega.Eventually(dexLogin.Github.Click).Should(gomega.Succeed())
 
 			authenticate := pages.ActivateDeviceGithub(webDriver)
 
 			if pages.ElementExist(authenticate.Username) {
-				Eventually(authenticate.Username).Should(BeVisible())
-				Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
-				Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
-				Expect(authenticate.Signin.Click()).To(Succeed())
+				gomega.Eventually(authenticate.Username).Should(matchers.BeVisible())
+				gomega.Expect(authenticate.Username.SendKeys(uc.UserName)).To(gomega.Succeed())
+				gomega.Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(gomega.Succeed())
+				gomega.Expect(authenticate.Signin.Click()).To(gomega.Succeed())
 			}
 
 			if pages.ElementExist(authenticate.AuthCode) {
-				Eventually(authenticate.AuthCode).Should(BeVisible())
+				gomega.Eventually(authenticate.AuthCode).Should(matchers.BeVisible())
 				// Generate 6 digit authentication OTP for MFA
 				authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
-				Expect(authenticate.AuthCode.SendKeys(authCode)).To(Succeed())
+				gomega.Expect(authenticate.AuthCode.SendKeys(authCode)).To(gomega.Succeed())
 			}
-			Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
+			gomega.Eventually(dexLogin.GrantAccess.Click).Should(gomega.Succeed())
 
 		case GitProviderGitLab:
-			Eventually(dexLogin.GitlabOnPrem.Click).Should(Succeed())
+			gomega.Eventually(dexLogin.GitlabOnPrem.Click).Should(gomega.Succeed())
 
 			var authenticate *pages.AuthenticateGitlab
 			if gitProviderEnv.Hostname == gitlab.DefaultDomain {
@@ -185,14 +185,14 @@ func cliOidcAuthFlow(uc UserCredentials) {
 				authenticate = pages.AuthenticateWithOnPremGitlab(webDriver)
 			}
 			if pages.ElementExist(authenticate.Username) {
-				Eventually(authenticate.Username).Should(BeVisible())
-				Expect(authenticate.Username.SendKeys(uc.UserName)).To(Succeed())
-				Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(Succeed())
-				Expect(authenticate.Signin.Click()).To(Succeed())
+				gomega.Eventually(authenticate.Username).Should(matchers.BeVisible())
+				gomega.Expect(authenticate.Username.SendKeys(uc.UserName)).To(gomega.Succeed())
+				gomega.Expect(authenticate.Password.SendKeys(uc.UserPassword)).To(gomega.Succeed())
+				gomega.Expect(authenticate.Signin.Click()).To(gomega.Succeed())
 			}
-			Eventually(dexLogin.GrantAccess.Click).Should(Succeed())
+			gomega.Eventually(dexLogin.GrantAccess.Click).Should(gomega.Succeed())
 		default:
-			Expect(fmt.Errorf("error: Provided oidc issuer '%s' is not supported", gitProviderEnv.Type))
+			gomega.Expect(fmt.Errorf("error: Provided oidc issuer '%s' is not supported", gitProviderEnv.Type))
 		}
 	} else {
 		logger.Infof("%s user already logged in", uc.UserType)
@@ -204,18 +204,18 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
 		if pages.ElementExist(authenticate.AuthenticateGithub) {
-			Expect(authenticate.AuthenticateGithub.Click()).To(Succeed())
+			gomega.Expect(authenticate.AuthenticateGithub.Click()).To(gomega.Succeed())
 			AuthenticateWithGitHub(webDriver)
 
 			// Sometimes authentication failed to get the github device code, it may require revalidation with new access code
 			if pages.ElementExist(authenticate.AuthorizationError) {
 				logger.Info("Error getting github device code, requires revalidating...")
-				Expect(authenticate.Close.Click()).To(Succeed())
-				Eventually(authenticate.AuthenticateGithub.Click).Should(Succeed())
+				gomega.Expect(authenticate.Close.Click()).To(gomega.Succeed())
+				gomega.Eventually(authenticate.AuthenticateGithub.Click).Should(gomega.Succeed())
 				AuthenticateWithGitHub(webDriver)
 			}
 
-			Eventually(authenticate.AuthroizeButton).ShouldNot(BeFound())
+			gomega.Eventually(authenticate.AuthroizeButton).ShouldNot(matchers.BeFound())
 		}
 	} else if gitProvider == GitProviderGitLab {
 		var authenticate *pages.AuthenticateGitlab
@@ -226,36 +226,36 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 		}
 
 		if pages.ElementExist(authenticate.AuthenticateGitlab) {
-			Expect(authenticate.AuthenticateGitlab.Click()).To(Succeed())
+			gomega.Expect(authenticate.AuthenticateGitlab.Click()).To(gomega.Succeed())
 
 			browserCompatibility := false
 			if !pages.ElementExist(authenticate.Username) {
 				if pages.ElementExist(authenticate.CheckBrowser) {
 					// opening the gitlab in a separate window not controlled by webdriver does not redirect gitlab to login
 					pages.OpenWindowInBg(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
-					Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(BeFound())
+					gomega.Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(matchers.BeFound())
 					browserCompatibility = true
 					TakeScreenShot("gitlab_browser_compatibility")
 				}
 
 				if pages.ElementExist(authenticate.AcceptCookies, 10) {
-					Eventually(authenticate.AcceptCookies.Click).Should(Succeed())
+					gomega.Eventually(authenticate.AcceptCookies.Click).Should(gomega.Succeed())
 				}
 			}
 
 			TakeScreenShot("gitlab_cookies_accepted")
 			if pages.ElementExist(authenticate.Username) {
-				Eventually(authenticate.Username).Should(BeVisible())
-				Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
-				Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
-				Expect(authenticate.Signin.Submit()).To(Succeed())
+				gomega.Eventually(authenticate.Username).Should(matchers.BeVisible())
+				gomega.Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(gomega.Succeed())
+				gomega.Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(gomega.Succeed())
+				gomega.Expect(authenticate.Signin.Submit()).To(gomega.Succeed())
 
 			} else {
 				logger.Info("Login not found, assuming already logged in")
 			}
 
 			if pages.ElementExist(authenticate.Authorize) {
-				Expect(authenticate.Authorize.Click()).To(Succeed())
+				gomega.Expect(authenticate.Authorize.Click()).To(gomega.Succeed())
 			}
 
 			if browserCompatibility {
@@ -269,49 +269,49 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 
 	authenticate := pages.AuthenticateWithGithub(webDriver)
 
-	Eventually(authenticate.AccessCode).Should(BeVisible())
+	gomega.Eventually(authenticate.AccessCode).Should(matchers.BeVisible())
 	accessCode, _ := authenticate.AccessCode.Text()
-	Expect(authenticate.AuthroizeButton.Click()).To(Succeed())
+	gomega.Expect(authenticate.AuthroizeButton.Click()).To(gomega.Succeed())
 	accessCode = strings.Replace(accessCode, "-", "", 1)
 	logger.Info(accessCode)
 
 	// Move to device activation window
 	TakeScreenShot("application_authentication")
-	Expect(webDriver.NextWindow()).ShouldNot(HaveOccurred(), "Failed to switch to github authentication window")
+	gomega.Expect(webDriver.NextWindow()).ShouldNot(gomega.HaveOccurred(), "Failed to switch to github authentication window")
 	TakeScreenShot("github_authentication")
 
 	activate := pages.ActivateDeviceGithub(webDriver)
 
 	if pages.ElementExist(activate.Username) {
-		Eventually(activate.Username).Should(BeVisible())
-		Expect(activate.Username.SendKeys(gitProviderEnv.Username)).To(Succeed())
-		Expect(activate.Password.SendKeys(gitProviderEnv.Password)).To(Succeed())
-		Expect(activate.Signin.Click()).To(Succeed())
+		gomega.Eventually(activate.Username).Should(matchers.BeVisible())
+		gomega.Expect(activate.Username.SendKeys(gitProviderEnv.Username)).To(gomega.Succeed())
+		gomega.Expect(activate.Password.SendKeys(gitProviderEnv.Password)).To(gomega.Succeed())
+		gomega.Expect(activate.Signin.Click()).To(gomega.Succeed())
 	} else {
 		logger.Info("Login not found, assuming already logged in")
 		TakeScreenShot("login_skipped")
 	}
 
 	if pages.ElementExist(activate.AuthCode) {
-		Eventually(activate.AuthCode).Should(BeVisible())
+		gomega.Eventually(activate.AuthCode).Should(matchers.BeVisible())
 		// Generate 6 digit authentication OTP for MFA
 		authCode, _ := runCommandAndReturnStringOutput("totp-cli instant")
-		Expect(activate.AuthCode.SendKeys(authCode)).To(Succeed())
+		gomega.Expect(activate.AuthCode.SendKeys(authCode)).To(gomega.Succeed())
 	} else {
 		logger.Info("OTP not found, assuming already logged in")
 		TakeScreenShot("otp_skipped")
 	}
 
-	Eventually(activate.Continue).Should(BeVisible())
-	Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(Succeed())
-	Expect(activate.Continue.Click()).To(Succeed())
+	gomega.Eventually(activate.Continue).Should(matchers.BeVisible())
+	gomega.Expect(activate.UserCode.At(0).SendKeys(accessCode)).To(gomega.Succeed())
+	gomega.Expect(activate.Continue.Click()).To(gomega.Succeed())
 
-	Eventually(activate.AuthroizeWeaveworks).Should(BeEnabled())
-	Expect(activate.AuthroizeWeaveworks.Click()).To(Succeed())
+	gomega.Eventually(activate.AuthroizeWeaveworks).Should(matchers.BeEnabled())
+	gomega.Expect(activate.AuthroizeWeaveworks.Click()).To(gomega.Succeed())
 
-	Eventually(activate.ConnectedMessage).Should(BeVisible())
-	Expect(webDriver.CloseWindow()).ShouldNot(HaveOccurred())
+	gomega.Eventually(activate.ConnectedMessage).Should(matchers.BeVisible())
+	gomega.Expect(webDriver.CloseWindow()).ShouldNot(gomega.HaveOccurred())
 
 	// Device is connected, now move back to application window
-	Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(HaveOccurred(), "Failed to switch to wego application window")
+	gomega.Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to wego application window")
 }

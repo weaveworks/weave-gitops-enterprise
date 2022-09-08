@@ -1,7 +1,8 @@
-import React, { FC, Dispatch } from 'react';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
+import React, { Dispatch, FC } from 'react';
 import styled from 'styled-components';
-import { Template } from '../../../../../cluster-services/cluster_services.pb';
-import { Input, Select } from '../../../../../utils/form';
+import { TemplateEnriched } from '../../../../types/custom';
+import { Input, Select, validateFormData } from '../../../../utils/form';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -22,11 +23,13 @@ const FormWrapper = styled.form`
 `;
 
 const TemplateFields: FC<{
-  activeTemplate: Template | null;
-  onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
+  template: TemplateEnriched;
+  onPRPreview: () => void;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-}> = ({ activeTemplate, formData, setFormData }) => {
+  previewLoading: boolean;
+}> = ({ template, onPRPreview, formData, setFormData, previewLoading }) => {
+  const parameterValues = formData.parameterValues || {};
   const handleFormData = (
     event:
       | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
@@ -34,12 +37,18 @@ const TemplateFields: FC<{
     fieldName?: string,
   ) => {
     const { name, value } = event?.target;
-    setFormData({ ...formData, [(name || fieldName) as string]: value });
+    setFormData({
+      ...formData,
+      parameterValues: {
+        ...formData.parameterValues,
+        [(name || fieldName) as string]: value,
+      },
+    });
   };
 
   return (
     <FormWrapper>
-      {activeTemplate?.parameters?.map((param, index) => {
+      {template.parameters?.map((param, index) => {
         const name = param.name || '';
         const options = param?.options || [];
         const required = Boolean(!param.default && param.required);
@@ -51,7 +60,7 @@ const TemplateFields: FC<{
               name={name}
               required={required}
               label={name}
-              value={formData[name] || param.default}
+              value={parameterValues[name] || param.default}
               onChange={event => handleFormData(event, name)}
               items={options}
               description={param.description}
@@ -65,7 +74,7 @@ const TemplateFields: FC<{
               required={required}
               name={name}
               label={name}
-              value={formData[name]}
+              value={parameterValues[name]}
               placeholder={param.default}
               onChange={handleFormData}
               description={param.description}
