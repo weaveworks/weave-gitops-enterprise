@@ -91,24 +91,6 @@ const AddApplication = () => {
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<any | null>(null);
 
-  const handlePRPreview = useCallback(() => {
-    const { ...templateFields } = formData;
-    setPreviewLoading(true);
-    return renderTemplate({
-      values: templateFields,
-    })
-      .then(data => {
-        setOpenPreview(true);
-        setPRPreview(data);
-      })
-      .catch(err =>
-        setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
-        ]),
-      )
-      .finally(() => setPreviewLoading(false));
-  }, [formData, setOpenPreview, renderTemplate, setNotifications]);
-
   useEffect(() => {
     if (repositoryURL != null) {
       setFormData((prevState: any) => ({
@@ -129,7 +111,7 @@ const AddApplication = () => {
     }));
   }, [formData.clusterAutomations]);
 
-  const getDataForAppFiles = useCallback(() => {
+  const getKustomizations = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
     if (formData.source_type === 'HelmRepository') {
       for (let kustomization of formData.clusterAutomations) {
@@ -205,13 +187,31 @@ const AddApplication = () => {
     selectedProfiles,
   ]);
 
+  const handlePRPreview = useCallback(() => {
+    // const { ...templateFields } = formData;
+    setPreviewLoading(true);
+    return renderTemplate({
+      kustomizations: getKustomizations(),
+    })
+      .then(data => {
+        setOpenPreview(true);
+        setPRPreview(data);
+      })
+      .catch(err =>
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
+      )
+      .finally(() => setPreviewLoading(false));
+  }, [formData, setOpenPreview, renderTemplate, setNotifications]);
+
   const handleAddApplication = useCallback(() => {
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
-      clusterAutomations: getDataForAppFiles(),
+      clusterAutomations: getKustomizations(),
     };
     setLoading(true);
     return AddApplicationRequest(
@@ -247,7 +247,7 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, setNotifications, getDataForAppFiles]);
+  }, [formData, history, setNotifications, getKustomizations]);
 
   return useMemo(() => {
     return (

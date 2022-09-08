@@ -41,6 +41,12 @@ service ClustersService {
       body : "*"
     };
   }
+  rpc RenderKustomization(RenderKustomizationRequest) returns (RenderKustomizationResponse) {
+    option (google.api.http) = {
+      post : "/v1/kustomization/render"
+      body : "*"
+    };
+  }
   rpc ListGitopsClusters(ListGitopsClustersRequest)
       returns (ListGitopsClustersResponse) {
     option (google.api.http) = {
@@ -215,6 +221,14 @@ message RenderTemplateResponse {
   string rendered_template = 1; 
   repeated CommitFile profile_files = 2; 
   repeated CommitFile kustomization_files = 3;
+}
+
+message RenderKustomizationRequest {
+  repeated Kustomization kustomizations = 1;
+}
+
+message RenderKustomizationResponse { 
+  repeated CommitFile kustomization_files = 1;
 }
 
 message ListGitopsClustersRequest {

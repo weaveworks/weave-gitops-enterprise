@@ -313,6 +313,38 @@
         ]
       }
     },
+    "/v1/kustomization/render": {
+      "post": {
+        "operationId": "ClustersService_RenderKustomization",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderKustomizationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RenderKustomizationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policies": {
       "get": {
         "summary": "ListPolicies list policies available on the management cluster",
@@ -1770,6 +1802,28 @@
         },
         "namespace": {
           "type": "string"
+        }
+      }
+    },
+    "v1RenderKustomizationRequest": {
+      "type": "object",
+      "properties": {
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Kustomization"
+          }
+        }
+      }
+    },
+    "v1RenderKustomizationResponse": {
+      "type": "object",
+      "properties": {
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },

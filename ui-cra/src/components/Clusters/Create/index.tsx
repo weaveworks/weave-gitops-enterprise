@@ -22,6 +22,8 @@ import {
   clearCallbackState,
   getCallbackState,
   getProviderToken,
+  Button,
+  LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import TemplateFields from './Form/Partials/TemplateFields';
@@ -40,11 +42,13 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
+import { validateFormData } from '../../../utils/form';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
+const small = weaveTheme.spacing.small;
 
 const CredentialsWrapper = styled.div`
   display: flex;
@@ -92,6 +96,17 @@ const useStyles = makeStyles(theme =>
         height: 0,
       },
       paddingRight: xxs,
+    },
+    previewCta: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      padding: small,
+      button: {
+        width: '200px',
+      },
+    },
+    previewLoading: {
+      padding: base,
     },
   }),
 );
@@ -407,8 +422,6 @@ const AddCluster: FC = () => {
                     formData={formData}
                     setFormData={setFormData}
                     onFormDataUpdate={setFormData}
-                    onPRPreview={handlePRPreview}
-                    previewLoading={previewLoading}
                   />
                 ) : (
                   <Loader />
@@ -425,6 +438,20 @@ const AddCluster: FC = () => {
                   formData={formData}
                   setFormData={setFormData}
                 />
+                {previewLoading ? (
+                  <LoadingPage className={classes.previewLoading} />
+                ) : (
+                  <div className={classes.previewCta}>
+                    <Button
+                      // onClick={event =>
+                      //   validateFormData(event, handlePRPreview)
+                      // }
+                      onClick={handlePRPreview}
+                    >
+                      PREVIEW PR
+                    </Button>
+                  </div>
+                )}
               </Grid>
               {openPreview && PRPreview ? (
                 <Preview

@@ -23,12 +23,27 @@ const TemplatesProvider: FC = ({ children }) => {
 
   const renderTemplate = useCallback(
     data => {
-      return request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
-        body: JSON.stringify(data),
-      });
+      return request(
+        'POST',`${templatesUrl}/${activeTemplate?.name}/render`,
+        {
+          body: JSON.stringify(data),
+        },
+      );
     },
     [activeTemplate],
   );
+
+  const renderKustomization =  
+    (data: any) => {
+      return request(
+        'POST',
+        `kustomization/render`,
+        {
+          body: JSON.stringify(data),
+        },
+      );
+    }
+
 
   const addCluster = useCallback(
     ({ ...data }, token: string, templateKind: string) => {
@@ -74,8 +89,7 @@ const TemplatesProvider: FC = ({ children }) => {
         getTemplate,
         addCluster,
         renderTemplate,
-        // PRPreview,
-        // setPRPreview,
+        renderKustomization,
       }}
     >
       {children}

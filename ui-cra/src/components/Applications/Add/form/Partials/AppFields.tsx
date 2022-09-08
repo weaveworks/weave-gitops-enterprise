@@ -306,9 +306,8 @@ const AppFields: FC<{
       )}
       {onPRPreview && !previewLoading && (
         <div className="preview-cta">
-          <Button onClick={event => validateFormData(event, onPRPreview)}>
-            PREVIEW PR
-          </Button>
+          {/* <Button onClick={event => validateFormData(event, onPRPreview)}> */}
+          <Button onClick={onPRPreview}>PREVIEW PR</Button>
         </div>
       )}
     </FormWrapper>

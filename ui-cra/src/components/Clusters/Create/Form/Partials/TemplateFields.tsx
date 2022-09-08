@@ -1,41 +1,32 @@
 import React, { FC, Dispatch } from 'react';
-import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Template } from '../../../../../cluster-services/cluster_services.pb';
-import { Input, Select, validateFormData } from '../../../../../utils/form';
+import { Input, Select } from '../../../../../utils/form';
 
 const FormWrapper = styled.form`
   .form-section {
     width: 50%;
   }
-  .preview-cta {
-    display: flex;
-    justify-content: flex-end;
-    padding: ${({ theme }) => theme.spacing.small}
-      ${({ theme }) => theme.spacing.base};
-    button {
-      width: 200px;
-    }
-  }
-  .preview-loading {
-    padding: ${({ theme }) => theme.spacing.base};
-  }
+  // .preview-cta {
+  //   display: flex;
+  //   justify-content: flex-end;
+  //   padding: ${({ theme }) => theme.spacing.small}
+  //     ${({ theme }) => theme.spacing.base};
+  //   button {
+  //     width: 200px;
+  //   }
+  // }
+  // .preview-loading {
+  //   padding: ${({ theme }) => theme.spacing.base};
+  // }
 `;
 
 const TemplateFields: FC<{
   activeTemplate: Template | null;
-  onPRPreview: () => void;
   onFormDataUpdate: Dispatch<React.SetStateAction<any>>;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  previewLoading: boolean;
-}> = ({
-  activeTemplate,
-  onPRPreview,
-  formData,
-  setFormData,
-  previewLoading,
-}) => {
+}> = ({ activeTemplate, formData, setFormData }) => {
   const handleFormData = (
     event:
       | React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
@@ -81,15 +72,6 @@ const TemplateFields: FC<{
             />
           );
       })}
-      {previewLoading ? (
-        <LoadingPage className="preview-loading" />
-      ) : (
-        <div className="preview-cta">
-          <Button onClick={event => validateFormData(event, onPRPreview)}>
-            PREVIEW PR
-          </Button>
-        </div>
-      )}
     </FormWrapper>
   );
 };

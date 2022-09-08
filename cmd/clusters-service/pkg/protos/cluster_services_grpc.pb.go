@@ -28,6 +28,7 @@ type ClustersServiceClient interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
+	RenderKustomization(ctx context.Context, in *RenderKustomizationRequest, opts ...grpc.CallOption) (*RenderKustomizationResponse, error)
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -108,6 +109,15 @@ func (c *clustersServiceClient) ListTemplateProfiles(ctx context.Context, in *Li
 func (c *clustersServiceClient) RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error) {
 	out := new(RenderTemplateResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/RenderTemplate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) RenderKustomization(ctx context.Context, in *RenderKustomizationRequest, opts ...grpc.CallOption) (*RenderKustomizationResponse, error) {
+	out := new(RenderKustomizationResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/RenderKustomization", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -253,6 +263,7 @@ type ClustersServiceServer interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
+	RenderKustomization(context.Context, *RenderKustomizationRequest) (*RenderKustomizationResponse, error)
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -305,6 +316,9 @@ func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, 
 }
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
+}
+func (UnimplementedClustersServiceServer) RenderKustomization(context.Context, *RenderKustomizationRequest) (*RenderKustomizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenderKustomization not implemented")
 }
 func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
@@ -447,6 +461,24 @@ func _ClustersService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).RenderTemplate(ctx, req.(*RenderTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_RenderKustomization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenderKustomizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).RenderKustomization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/RenderKustomization",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).RenderKustomization(ctx, req.(*RenderKustomizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -729,6 +761,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenderTemplate",
 			Handler:    _ClustersService_RenderTemplate_Handler,
+		},
+		{
+			MethodName: "RenderKustomization",
+			Handler:    _ClustersService_RenderKustomization_Handler,
 		},
 		{
 			MethodName: "ListGitopsClusters",
