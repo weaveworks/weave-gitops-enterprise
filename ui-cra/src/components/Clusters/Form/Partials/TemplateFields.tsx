@@ -31,7 +31,8 @@ const TemplateFields: FC<{
   previewLoading: boolean;
 }> = ({ template, onPRPreview, formData, setFormData, previewLoading }) => {
   const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
-  const location = useLocation();
+  const { isExact: isEditing } =
+    useRouteMatch(EDIT_CLUSTER_ROUTE) || {};
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
     event:
