@@ -3,7 +3,6 @@ import React, { Dispatch, FC } from 'react';
 import styled from 'styled-components';
 import { TemplateEnriched } from '../../../../types/custom';
 import { Input, Select, validateFormData } from '../../../../utils/form';
-import { useLocation } from 'react-router-dom';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -31,7 +30,6 @@ const TemplateFields: FC<{
   previewLoading: boolean;
 }> = ({ template, onPRPreview, formData, setFormData, previewLoading }) => {
   const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
-  const location = useLocation();
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
     event:
@@ -55,7 +53,7 @@ const TemplateFields: FC<{
         const name = param.name || '';
         const options = param?.options || [];
         const required = Boolean(!param.default && param.required);
-        const isEditing = location.pathname.includes('edit');
+        const isEditing = window.location.pathname.includes('edit');
         if (options.length > 0) {
           return (
             <Select
