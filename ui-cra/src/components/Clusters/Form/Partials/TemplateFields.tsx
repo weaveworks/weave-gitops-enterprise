@@ -1,4 +1,3 @@
-import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
 import styled from 'styled-components';
 import { TemplateEnriched } from '../../../../types/custom';

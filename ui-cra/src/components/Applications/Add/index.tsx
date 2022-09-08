@@ -73,9 +73,11 @@ const AddApplication = () => {
   };
 
   const [formData, setFormData] = useState<any>(initialFormData);
-
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
+  const [openPreview, setOpenPreview] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [PRPreview, setPRPreview] = useState<any | null>(null);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -177,7 +179,7 @@ const AddApplication = () => {
     formData.source_name,
     formData.source_namespace,
     formData.source_type,
-    selectedProfiles,
+    updatedProfiles,
   ]);
 
   const handlePRPreview = useCallback(() => {
@@ -195,7 +197,12 @@ const AddApplication = () => {
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [formData, setOpenPreview, renderTemplate, setNotifications, getKustomizations);
+  }, [
+    setOpenPreview,
+    renderKustomization,
+    setNotifications,
+    getKustomizations,
+  ]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -239,11 +246,7 @@ const AddApplication = () => {
         }
       })
       .finally(() => setLoading(false));
-<<<<<<< HEAD
   }, [formData, history, setNotifications, getKustomizations]);
-=======
-  }, [formData, history, setNotifications, updatedProfiles]);
->>>>>>> d2d8041a835a59ab5eb9d7ee7b6fd7df58f81819
 
   return useMemo(() => {
     return (
