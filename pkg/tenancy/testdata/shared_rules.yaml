@@ -1,0 +1,29 @@
+rbacRules:
+  - name: standard-rules
+    rules:
+    - apiGroups:
+        - ''
+      resources:
+        - 'namespaces'
+        - 'pods'
+      verbs:
+        - 'list'
+        - 'get'
+tenants:
+  - name: foo-tenant
+    namespaces:
+    - foo-ns
+    teamRBAC:
+      applyRules: standard-rules
+      groupNames:
+        - test-group
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'create'
+            - 'update'
+            - 'delete'

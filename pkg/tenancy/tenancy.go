@@ -55,13 +55,21 @@ type AllowedCluster struct {
 // TenanTeamRBAC defines the permissions of a tenant
 type TenantTeamRBAC struct {
 	GroupNames []string            `yaml:"groupNames"`
+	ApplyRules string              `yaml:"applyRules"`
 	Rules      []rbacv1.PolicyRule `yaml:"rules"`
+}
+
+// SharedRBACRule is a set of rules that can be reused in multiple tenants.
+type SharedRBACRule struct {
+	Name  string              `yaml:"name"`
+	Rules []rbacv1.PolicyRule `yaml:"rules"`
 }
 
 // Config represents the structure of the Tenancy file.
 type Config struct {
 	ServiceAccount *ServiceAccountOptions `yaml:"serviceAccount,optional"`
 	Tenants        []Tenant               `yaml:"tenants"`
+	RBACRules      []SharedRBACRule       `yaml:"rbacRules"`
 }
 
 // Tenant represents a tenant that we generate resources for in the tenancy
@@ -95,7 +103,7 @@ func (t Tenant) Validate() error {
 	}
 
 	if t.TeamRBAC != nil {
-		if len(t.TeamRBAC.GroupNames) == 0 || len(t.TeamRBAC.Rules) == 0 {
+		if len(t.TeamRBAC.GroupNames) == 0 || (len(t.TeamRBAC.Rules) == 0 && t.TeamRBAC.ApplyRules == "") {
 			result = multierror.Append(result, errors.New("must provide group names and team rules in team RBAC"))
 		}
 	}
@@ -267,7 +275,15 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 			generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
 			if tenant.TeamRBAC != nil {
-				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, tenant.TeamRBAC.Rules))
+				rules := tenant.TeamRBAC.Rules[:]
+				if tenant.TeamRBAC.ApplyRules != "" {
+					for _, v := range config.RBACRules {
+						if v.Name == tenant.TeamRBAC.ApplyRules {
+							rules = append(rules, v.Rules...)
+						}
+					}
+				}
+				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, rules))
 				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupNames, tenantLabels))
 			}
 		}
@@ -487,17 +503,13 @@ func Parse(filename string) (*Config, error) {
 		return nil, fmt.Errorf("failed to read tenants file for export: %w", err)
 	}
 
-	var tenancy struct {
-		ServiceAccount *ServiceAccountOptions `yaml:"serviceAccount,optional"`
-		Tenants        []Tenant               `yaml:"tenants"`
-	}
-
-	err = yaml.Unmarshal(tenantsYAML, &tenancy)
+	config := &Config{}
+	err = yaml.Unmarshal(tenantsYAML, config)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Config{Tenants: tenancy.Tenants, ServiceAccount: tenancy.ServiceAccount}, nil
+	return config, nil
 }
 
 func runtimeObjectFromObject(o client.Object) client.Object {

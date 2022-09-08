@@ -244,6 +244,7 @@ func Test_ExportTenants(t *testing.T) {
 		{"testdata/example.yaml"},
 		{"testdata/with_service_account.yaml"},
 		{"testdata/with_custom_labels.yaml"},
+		{"testdata/shared_rules.yaml"},
 	}
 
 	for _, tt := range testFiles {
