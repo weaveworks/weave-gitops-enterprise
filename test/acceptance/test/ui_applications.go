@@ -193,9 +193,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(appDetailPage.Events.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Events tab button", appName))
 					pages.WaitForPageToLoad(webDriver)
 
-					event := pages.GetApplicationEvent(webDriver, "Reconciliationgomega.Succeeded")
+					event := pages.GetApplicationEvent(webDriver, "ReconciliationSucceeded")
 
-					gomega.Eventually(event.Reason.Text).Should(gomega.MatchRegexp("Reconciliationgomega.Succeeded"), fmt.Sprintf("Failed to verify %s Event/Reason", appName))
+					gomega.Eventually(event.Reason.Text).Should(gomega.MatchRegexp("ReconciliationSucceeded"), fmt.Sprintf("Failed to verify %s Event/Reason", appName))
 					gomega.Eventually(event.Message.Text).Should(gomega.MatchRegexp("next run in "+appSyncInterval), fmt.Sprintf("Failed to verify %s Event/Message", appName))
 					gomega.Eventually(event.Component.Text).Should(gomega.MatchRegexp("kustomize-controller"), fmt.Sprintf("Failed to verify %s Event/Component", appName))
 					gomega.Eventually(event.TimeStamp.Text).Should(gomega.MatchRegexp("seconds|minutes|minute ago"), fmt.Sprintf("Failed to verify %s Event/Timestamp", appName))
@@ -399,9 +399,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(appDetailPage.Events.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Events tab button", appName))
 					pages.WaitForPageToLoad(webDriver)
 
-					event := pages.GetApplicationEvent(webDriver, "Reconciliationgomega.Succeeded")
+					event := pages.GetApplicationEvent(webDriver, "ReconciliationSucceeded")
 
-					gomega.Eventually(event.Reason.Text).Should(gomega.MatchRegexp("Reconciliationgomega.Succeeded"), fmt.Sprintf("Failed to verify %s Event/Reason", appName))
+					gomega.Eventually(event.Reason.Text).Should(gomega.MatchRegexp("ReconciliationSucceeded"), fmt.Sprintf("Failed to verify %s Event/Reason", appName))
 					gomega.Eventually(event.Message.Text).Should(gomega.MatchRegexp("next run in "+appSyncInterval), fmt.Sprintf("Failed to verify %s Event/Message", appName))
 					gomega.Eventually(event.Component.Text).Should(gomega.MatchRegexp("kustomize-controller"), fmt.Sprintf("Failed to verify %s Event/Component", appName))
 					gomega.Eventually(event.TimeStamp.Text).Should(gomega.MatchRegexp("seconds|minutes|minute ago"), fmt.Sprintf("Failed to verify %s Event/Timestamp", appName))
