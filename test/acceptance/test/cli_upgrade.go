@@ -9,15 +9,15 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitlab"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
 func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
-	var _ = Describe("Gitops upgrade Tests", func() {
+	var _ = ginkgo.Describe("Gitops upgrade Tests", func() {
 
 		UI_NODEPORT := "30081"
 		var upgrade_capi_endpoint_url string
@@ -25,48 +25,48 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 		var stdOut string
 		var stdErr string
 
-		BeforeEach(func() {
+		ginkgo.BeforeEach(func() {
 
 		})
 
-		Context("[CLI] When gitops upgrade command is available", func() {
-			It("Verify gitops upgrade command in --dry-run mode", func() {
+		ginkgo.Context("[CLI] When gitops upgrade command is available", func() {
+			ginkgo.It("Verify gitops upgrade command in --dry-run mode", func() {
 				repositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 				prBranch := "wego-enterprise-dry-run"
 				version := "1.4.20"
 
-				By("And I run gitops upgrade command", func() {
+				ginkgo.By("And I run gitops upgrade command", func() {
 					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/my-cluster/clusters --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --dry-run", gitops_bin_path, version, prBranch, repositoryURL, UI_NODEPORT)
 					logger.Infof("Upgrade command: '%s'", upgradeCommand)
 					stdOut, stdErr = runCommandAndReturnStringOutput(upgradeCommand)
-					Expect(stdErr).Should(BeEmpty())
+					gomega.Expect(stdErr).Should(gomega.BeEmpty())
 				})
 
-				By("And verify kind 'HelmRepository' in upgrade manifest", func() {
-					Expect(stdOut).Should(MatchRegexp(`kind: HelmRepository[\s\w\d./:-]*name: weave-gitops-enterprise-charts[\s\w\d./:-]*secretRef:[\s]*name: weave-gitops-enterprise-credentials[\s]*url: https://charts.dev.wkp.weave.works/releases/charts-v3`))
+				ginkgo.By("And verify kind 'HelmRepository' in upgrade manifest", func() {
+					gomega.Expect(stdOut).Should(gomega.MatchRegexp(`kind: HelmRepository[\s\w\d./:-]*name: weave-gitops-enterprise-charts[\s\w\d./:-]*secretRef:[\s]*name: weave-gitops-enterprise-credentials[\s]*url: https://charts.dev.wkp.weave.works/releases/charts-v3`))
 				})
 
-				By("And verify kind 'HelmRelease' in upgrade manifest", func() {
-					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*sourceRef:[\s]*kind: HelmRepository[\s]*name: weave-gitops-enterprise-charts[\s\w\d./:-]*version: %s`, version)))
-					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d.@/:-]*service[\s\w\d.@/:-]*nodePorts:[\s]*https: %s`, UI_NODEPORT)))
-					Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*repositoryURL: %s`, repositoryURL)))
+				ginkgo.By("And verify kind 'HelmRelease' in upgrade manifest", func() {
+					gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*sourceRef:[\s]*kind: HelmRepository[\s]*name: weave-gitops-enterprise-charts[\s\w\d./:-]*version: %s`, version)))
+					gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d.@/:-]*service[\s\w\d.@/:-]*nodePorts:[\s]*https: %s`, UI_NODEPORT)))
+					gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*repositoryURL: %s`, repositoryURL)))
 				})
 
-				By("And verify kind 'Kustomization' in upgrade manifest", func() {
-					Expect(stdOut).Should(MatchRegexp(`kind: Kustomization[\s\w\d./:-]*sourceRef:[\s]*kind: GitRepository[\s]*name: wego-`))
+				ginkgo.By("And verify kind 'Kustomization' in upgrade manifest", func() {
+					gomega.Expect(stdOut).Should(gomega.MatchRegexp(`kind: Kustomization[\s\w\d./:-]*sourceRef:[\s]*kind: GitRepository[\s]*name: wego-`))
 				})
 
 			})
 		})
 
-		Context("[CLI] When Wego core is installed in the cluster", func() {
+		ginkgo.Context("[CLI] When Wego core is installed in the cluster", func() {
 			var currentConfigRepo string
 			var currentContext string
 			kind_upgrade_cluster_name := "test-upgrade"
 
 			templateFiles := []string{}
 
-			JustBeforeEach(func() {
+			ginkgo.JustBeforeEach(func() {
 				currentContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				currentConfigRepo = gitProviderEnv.Repo
 				gitProviderEnv.Repo = "upgrade-" + currentConfigRepo
@@ -76,7 +76,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 
 				gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 				templateFiles = []string{}
@@ -84,7 +84,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				deleteRepo(gitProviderEnv)              // Delete the upgrade config repository to keep the org clean
 				gitProviderEnv.Repo = currentConfigRepo // Revert to original config repository for subsequent tests
 				err := runCommandPassThrough("kubectl", "config", "use-context", currentContext)
-				Expect(err).ShouldNot(HaveOccurred())
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
 				deleteCluster("kind", kind_upgrade_cluster_name, "")
 
@@ -94,14 +94,14 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			It("Verify wego core can be upgraded to wego enterprise", Label("upgrade", "git"), func() {
+			ginkgo.It("Verify wego core can be upgraded to wego enterprise", ginkgo.Label("upgrade", "git"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				By("When I create a private repository for cluster configs", func() {
+				ginkgo.By("When I create a private repository for cluster configs", func() {
 					initAndCreateEmptyRepo(gitProviderEnv, true)
 				})
 
-				By("When I install gitops/wego to my active cluster", func() {
+				ginkgo.By("When I install gitops/wego to my active cluster", func() {
 					logger.Info("Bootstrapping the cluster to install flux")
 					bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 					logger.Info("Installing Weave gitops...")
@@ -113,20 +113,20 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					verifyCoreControllers(GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				By("And I install Profile (HelmRepository chart)", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "profile-repo.yaml")), "Failed to install profiles HelmRepository chart")
+				ginkgo.By("And I install Profile (HelmRepository chart)", func() {
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "profile-repo.yaml")), "Failed to install profiles HelmRepository chart")
 				})
 
-				By("And I install the entitlement for cluster upgrade", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
+				ginkgo.By("And I install the entitlement for cluster upgrade", func() {
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
-				By("And secure access to dashboard for dex users", func() {
+				ginkgo.By("And secure access to dashboard for dex users", func() {
 					logger.Info("Create client credential secret for OIDC (dex)")
 					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl create secret generic client-credentials --namespace %s --from-literal=clientID=%s --from-literal=clientSecret=%s", GITOPS_DEFAULT_NAMESPACE, GetEnv("DEX_CLIENT_ID", ""), GetEnv("DEX_CLIENT_SECRET", "")))
 				})
 
-				By("And I install the git repository secret for cluster service", func() {
+				ginkgo.By("And I install the git repository secret for cluster service", func() {
 					var cmd string
 					switch gitProviderEnv.Type {
 					case GitProviderGitHub:
@@ -137,19 +137,19 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 								GITOPS_DEFAULT_NAMESPACE, gitProviderEnv.Token, gitProviderEnv.ClientId, gitProviderEnv.ClientSecret)
 						} else {
 							stdOut, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`ssh-keyscan %s > known_hosts`, gitProviderEnv.Hostname) + " && " + fmt.Sprintf(`kubectl create configmap ssh-config --namespace %s --from-file=./known_hosts`, GITOPS_DEFAULT_NAMESPACE))
-							Expect(stdOut).Should(MatchRegexp(`configmap/ssh-config created`), "Failed to create on-prem known hosts 'ssh-config' configmap")
+							gomega.Expect(stdOut).Should(gomega.MatchRegexp(`configmap/ssh-config created`), "Failed to create on-prem known hosts 'ssh-config' configmap")
 
 							cmd = fmt.Sprintf(`kubectl create secret generic git-provider-credentials --namespace=%s --from-literal="GIT_PROVIDER_TOKEN=%s"  --from-literal="GITLAB_CLIENT_ID=%s" --from-literal="GITLAB_CLIENT_SECRET=%s"  --from-literal="GITLAB_HOSTNAME=%s" --from-literal="GIT_HOST_TYPES=%s"`,
 								GITOPS_DEFAULT_NAMESPACE, gitProviderEnv.Token, gitProviderEnv.ClientId, gitProviderEnv.ClientSecret, gitProviderEnv.GitlabHostname, gitProviderEnv.HostTypes)
 						}
 					}
 					stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-					Expect(stdErr).Should(BeEmpty(), "Failed to create git repository secret for cluster service")
+					gomega.Expect(stdErr).Should(gomega.BeEmpty(), "Failed to create git repository secret for cluster service")
 				})
 
 				prBranch := "wego-upgrade-enterprise"
 				version := "0.9.1"
-				By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
+				ginkgo.By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
 					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/my-cluster/clusters  --set 'config.capi.repositoryPath=./clusters/capi/clusters' --set 'config.capi.repositoryClustersPath=./clusters'  --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --set config.oidc.enabled=true --set config.oidc.clientCredentialsSecret=client-credentials --set config.oidc.issuerURL=https://dex-01.wge.dev.weave.works --set config.oidc.redirectURL=https://weave.gitops.upgrade.enterprise.com:%s/oauth2/callback ",
@@ -161,29 +161,29 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 					logger.Infof("Upgrade command: '%s'", upgradeCommand)
 					stdOut, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("cd %s && %s", repoAbsolutePath, upgradeCommand), ASSERTION_1MINUTE_TIME_OUT)
-					Expect(stdErr).Should(BeEmpty())
+					gomega.Expect(stdErr).Should(gomega.BeEmpty())
 				})
 
-				By("Then I should see pull request created to management cluster", func() {
+				ginkgo.By("Then I should see pull request created to management cluster", func() {
 					re := regexp.MustCompile(`Pull Request created.*:[\s\w\d]+(?P<URL>https.*\/\d+)`)
 					match := re.FindSubmatch([]byte(stdOut))
-					Eventually(match[1]).ShouldNot(BeNil(), "Failed to Create pull request")
+					gomega.Eventually(match[1]).ShouldNot(gomega.BeNil(), "Failed to Create pull request")
 				})
 
-				By("Then I should merge the pull request to start weave gitops enterprise upgrade", func() {
+				ginkgo.By("Then I should merge the pull request to start weave gitops enterprise upgrade", func() {
 					upgradePRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, upgradePRUrl)
 				})
 
-				By("And I should see cluster upgraded from 'wego core' to 'wego enterprise'", func() {
+				ginkgo.By("And I should see cluster upgraded from 'wego core' to 'wego enterprise'", func() {
 					verifyEnterpriseControllers("weave-gitops-enterprise", "mccp-", GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				By("And I should install rolebindings for default enterprise roles'", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
+				ginkgo.By("And I should install rolebindings for default enterprise roles'", func() {
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 				})
 
-				By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
+				ginkgo.By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
 					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if serviceType == "NodePort" {
 						upgrade_capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
@@ -192,7 +192,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s svc/clusters-service 8000:80", GITOPS_DEFAULT_NAMESPACE)
 
 						cmd := exec.Command("sh", "-c", commandToRun)
-						session, _ := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+						session, _ := gexec.Start(cmd, ginkgo.GinkgoWriter, ginkgo.GinkgoWriter)
 
 						go func() {
 							_ = session.Command.Wait()
@@ -203,24 +203,24 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					}
 					InitializeWebdriver(upgrade_test_ui_url)
 
-					By(fmt.Sprintf("Login as a %s user", userCredentials.UserType), func() {
+					ginkgo.By(fmt.Sprintf("Login as a %s user", userCredentials.UserType), func() {
 						loginUser() // Login to the weaveworks enterprise
 					})
 				})
 
-				By("And the Cluster service is healthy", func() {
+				ginkgo.By("And the Cluster service is healthy", func() {
 					CheckClusterService(upgrade_capi_endpoint_url)
 				})
 
 				// FIXME: CLI checks are disabled due to authentication not being supported
-				// By("Then I should run enterprise CLI commands", func() {
+				// ginkgo.By("Then I should run enterprise CLI commands", func() {
 				// 	testGetCommand := func(subCommand string) {
 				// 		logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, upgrade_capi_endpoint_url)
 
 				// 		cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, upgrade_capi_endpoint_url)
 				// 		stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
-				// 		Expect(stdErr).Should(BeEmpty(), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
-				// 		Expect(stdOut).Should(MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
+				// 		gomega.Expect(stdErr).Should(gomega.BeEmpty(), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
+				// 		gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
 				// 	}
 
 				// 	testGetCommand("templates")
@@ -228,22 +228,22 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// 	testGetCommand("clusters")
 				// })
 
-				By("Apply/Install CAPITemplate", func() {
+				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should choose a template", func() {
+				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
 				// Parameter values
@@ -284,41 +284,41 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				setParameterValues(createPage, parameters)
 
 				pages.ScrollWindow(webDriver, 0, 500)
-				By("And verify selected weave-policy-agent profile values.yaml", func() {
+				ginkgo.By("And verify selected weave-policy-agent profile values.yaml", func() {
 					profile := createPage.FindProfileInList("weave-policy-agent")
 
-					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, "0.3.1").Click).Should(Succeed(), "Failed to select weave-policy-agent version: 0.3.1")
+					gomega.Eventually(profile.Version.Click).Should(gomega.Succeed())
+					gomega.Eventually(pages.GetOption(webDriver, "0.3.1").Click).Should(gomega.Succeed(), "Failed to select weave-policy-agent version: 0.3.1")
 
-					Eventually(profile.Layer.Text).Should(MatchRegexp("layer-1"))
-					Expect(profile.Namespace.SendKeys("policy-system")).To(Succeed())
+					gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp("layer-1"))
+					gomega.Expect(profile.Namespace.SendKeys("policy-system")).To(gomega.Succeed())
 
-					Eventually(profile.Values.Click).Should(Succeed())
+					gomega.Eventually(profile.Values.Click).Should(gomega.Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp("weave-policy-agent"))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("namespace: policy-system"))
+					gomega.Eventually(valuesYaml.Title.Text).Should(gomega.MatchRegexp("weave-policy-agent"))
+					gomega.Eventually(valuesYaml.TextArea.Text).Should(gomega.MatchRegexp("namespace: policy-system"))
 
 					text, _ := valuesYaml.TextArea.Text()
 					text = strings.ReplaceAll(text, `accountId: ""`, `accountId: "weaveworks"`)
 					text = strings.ReplaceAll(text, `clusterId: ""`, fmt.Sprintf(`clusterId: "%s"`, clusterName))
-					Expect(valuesYaml.TextArea.Clear()).To(Succeed())
-					Expect(valuesYaml.TextArea.SendKeys(text)).To(Succeed(), "Failed to change values.yaml for weave-policy-agent profile")
+					gomega.Expect(valuesYaml.TextArea.Clear()).To(gomega.Succeed())
+					gomega.Expect(valuesYaml.TextArea.SendKeys(text)).To(gomega.Succeed(), "Failed to change values.yaml for weave-policy-agent profile")
 
-					Eventually(valuesYaml.Save.Click).Should(Succeed(), "Failed to save values.yaml for weave-policy-agent profile")
+					gomega.Eventually(valuesYaml.Save.Click).Should(gomega.Succeed(), "Failed to save values.yaml for weave-policy-agent profile")
 				})
 
-				By("Then I should preview the PR", func() {
+				ginkgo.By("Then I should preview the PR", func() {
 					preview := pages.GetPreview(webDriver)
-					Eventually(func(g Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
-						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+					gomega.Eventually(func(g gomega.Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
-					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
-					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-					Eventually(preview.Close.Click).Should(Succeed())
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
+					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
 				//Pull request values
@@ -326,40 +326,40 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				prTitle := "My first pull request"
 				prCommit := "First capd capi template"
 
-				By("And set GitOps values for pull request", func() {
+				ginkgo.By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					Eventually(gitops.GitOpsLabel).Should(BeFound())
+					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
-					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
-					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
-					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
-					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
-					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
-					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
+					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
+					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
+					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					Eventually(gitops.GitCredentials).Should(BeVisible())
+					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 					if pages.ElementExist(gitops.SuccessBar) {
-						Expect(gitops.SuccessBar.Click()).To(Succeed())
+						gomega.Expect(gitops.SuccessBar.Click()).To(gomega.Succeed())
 					}
-					Expect(gitops.CreatePR.Click()).To(Succeed())
+					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
 				})
 
-				By("Then I should see a toast with a link to the creation PR", func() {
+				ginkgo.By("Then I should see a toast with a link to the creation PR", func() {
 					gitops := pages.GetGitOps(webDriver)
-					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
 				})
 
 				var createPRUrl string
-				By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				By("And the manifests are present in the cluster config repository", func() {
+				ginkgo.By("And the manifests are present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(fmt.Sprintf("%s/clusters/capi/clusters/%s/%s.yaml", repoAbsolutePath, namespace, clusterName))
-					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
+					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
 		})

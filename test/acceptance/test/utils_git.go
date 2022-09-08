@@ -14,7 +14,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
@@ -116,7 +116,7 @@ func getWaitTimeFromErr(errOutput string) (time.Duration, error) {
 
 func extractOrgAndRepo(url string) (string, string) {
 	normalized, normErr := gitproviders.NewRepoURL(url)
-	Expect(normErr).ShouldNot(HaveOccurred())
+	gomega.Expect(normErr).ShouldNot(gomega.HaveOccurred())
 
 	re := regexp.MustCompile("^[^/]+//[^/]+/([^/]+)/([^/]+).*$")
 	matches := re.FindStringSubmatch(strings.TrimSuffix(normalized.String(), ".git"))
@@ -133,10 +133,10 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
 
 	deleteRepo(gp)
 	err := deleteDirectory([]string{repoAbsolutePath})
-	Expect(err).ShouldNot(HaveOccurred())
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
 	err = createGitRepository(gp, "main", isPrivateRepo)
-	Expect(err).ShouldNot(HaveOccurred())
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
 	err = waitUntil(POLL_INTERVAL_5SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gp.Hostname, gp.Org, gp.Repo, repoAbsolutePath))
@@ -146,7 +146,7 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
 		}
 		return nil
 	})
-	Expect(err).ShouldNot(HaveOccurred())
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 }
 
 func addSchemeToDomain(domain string) string {
@@ -262,7 +262,7 @@ func deleteRepo(gp GitProviderEnv) {
 	logger.Infof("Delete application repo: %s", path.Join(gp.Org, gp.Repo))
 
 	gitProvider, orgRef, providerErr := getGitProvider(gp.Type, gp.Org, gp.Repo, gp.Token, gp.TokenType, gp.Hostname)
-	Expect(providerErr).ShouldNot(HaveOccurred())
+	gomega.Expect(providerErr).ShouldNot(gomega.HaveOccurred())
 
 	ctx := context.Background()
 	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
@@ -270,38 +270,38 @@ func deleteRepo(gp GitProviderEnv) {
 	// allow repo to be absent (as tests assume this)
 	if repoErr == nil {
 		deleteErr := or.Delete(ctx)
-		Expect(deleteErr).ShouldNot(HaveOccurred())
+		gomega.Expect(deleteErr).ShouldNot(gomega.HaveOccurred())
 	}
 	repoErr = waitUntil(POLL_INTERVAL_1SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
 		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	}, true)
-	Expect(repoErr).ShouldNot(HaveOccurred(), fmt.Sprintf("repo %s is accessible through the api ...\n", gp.Repo))
+	gomega.Expect(repoErr).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("repo %s is accessible through the api ...\n", gp.Repo))
 }
 
 func verifyPRCreated(gp GitProviderEnv, repoAbsolutePath string) string {
 	ctx := context.Background()
 
 	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
-	Expect(repoUrlErr).ShouldNot(HaveOccurred())
+	gomega.Expect(repoUrlErr).ShouldNot(gomega.HaveOccurred())
 
 	org, _ := extractOrgAndRepo(repoUrlString)
 	gitProvider, orgRef, providerErr := getGitProvider(gp.Type, org, filepath.Base(repoAbsolutePath), gp.Token, gp.TokenType, gp.Hostname)
-	Expect(providerErr).ShouldNot(HaveOccurred())
+	gomega.Expect(providerErr).ShouldNot(gomega.HaveOccurred())
 
 	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
-	Expect(repoErr).ShouldNot(HaveOccurred())
+	gomega.Expect(repoErr).ShouldNot(gomega.HaveOccurred())
 
 	var prs []gitprovider.PullRequest
 
-	Eventually(func(g Gomega) {
+	gomega.Eventually(func(g gomega.Gomega) {
 		var err error
 		prs, err = or.PullRequests().List(ctx)
-		g.Expect(err).ShouldNot(HaveOccurred())
+		g.Expect(err).ShouldNot(gomega.HaveOccurred())
 
-		g.Expect(len(prs)).To(BeNumerically(">=", 1))
-		g.Expect(prs[0].Get().Merged).To(BeFalse())
-	}, ASSERTION_1MINUTE_TIME_OUT).Should(Succeed(), "Failed to verify created PR in the repository")
+		g.Expect(len(prs)).To(gomega.BeNumerically(">=", 1))
+		g.Expect(prs[0].Get().Merged).To(gomega.BeFalse())
+	}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), "Failed to verify created PR in the repository")
 
 	return prs[0].Get().WebURL
 }
@@ -310,23 +310,23 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 	ctx := context.Background()
 	prNumberStr := filepath.Base(prLink)
 	prNumber, numErr := strconv.Atoi(prNumberStr)
-	Expect(numErr).ShouldNot(HaveOccurred())
+	gomega.Expect(numErr).ShouldNot(gomega.HaveOccurred())
 
 	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
-	Expect(repoUrlErr).ShouldNot(HaveOccurred())
+	gomega.Expect(repoUrlErr).ShouldNot(gomega.HaveOccurred())
 
 	org, repo := extractOrgAndRepo(repoUrlString)
 	gitProvider, orgRef, providerErr := getGitProvider(gp.Type, org, repo, gp.Token, gp.TokenType, gp.Hostname)
-	Expect(providerErr).ShouldNot(HaveOccurred())
+	gomega.Expect(providerErr).ShouldNot(gomega.HaveOccurred())
 
 	or, repoErr := gitProvider.OrgRepositories().Get(ctx, orgRef)
-	Expect(repoErr).ShouldNot(HaveOccurred())
+	gomega.Expect(repoErr).ShouldNot(gomega.HaveOccurred())
 
-	Eventually(func(g Gomega) {
+	gomega.Eventually(func(g gomega.Gomega) {
 		err := or.PullRequests().Merge(ctx, prNumber, gitprovider.MergeMethodMerge, "merge for test")
-		g.Expect(err).ShouldNot(HaveOccurred())
+		g.Expect(err).ShouldNot(gomega.HaveOccurred())
 
-	}, ASSERTION_1MINUTE_TIME_OUT).Should(Succeed())
+	}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed())
 
 }
 
