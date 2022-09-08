@@ -8,6 +8,7 @@ import {
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
   CallbackStateContextProvider,
+  clearCallbackState,
   getProviderToken,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -228,6 +229,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   );
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
+
+  useEffect(() => {
+    clearCallbackState();
+  }, []);
 
   useEffect(() => {
     setUpdatedProfiles({
