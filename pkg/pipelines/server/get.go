@@ -36,7 +36,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
-		Environments: map[string]*pb.PipelineTargetStatus{},
+		Environments: map[string]*pb.PipelineStatus_TargetStatusList{},
 	}
 
 	for _, e := range p.Spec.Environments {
@@ -60,15 +60,22 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			if err != nil {
 				return nil, err
 			}
-			pipelineResp.Status.Environments[e.Name] = &pb.PipelineTargetStatus{
+
+			if _, ok := pipelineResp.Status.Environments[e.Name]; !ok {
+				pipelineResp.Status.Environments[e.Name] = &pb.PipelineStatus_TargetStatusList{
+					TargetsStatuses: []*pb.PipelineTargetStatus{},
+				}
+			}
+
+			targetsStatuses := pipelineResp.Status.Environments[e.Name].TargetsStatuses
+			pipelineResp.Status.Environments[e.Name].TargetsStatuses = append(targetsStatuses, &pb.PipelineTargetStatus{
 				ClusterRef: &pb.ClusterRef{
 					Kind: t.ClusterRef.Kind,
 					Name: t.ClusterRef.Name,
 				},
 				Namespace: p.Namespace,
 				Workloads: []*pb.WorkloadStatus{ws},
-			}
-
+			})
 		}
 	}
 
