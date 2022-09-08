@@ -1,8 +1,10 @@
 import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
+import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { TemplateEnriched } from '../../../../types/custom';
 import { Input, Select, validateFormData } from '../../../../utils/form';
+import { EDIT_CLUSTER } from '../../../ResponsiveDrawer';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -30,6 +32,7 @@ const TemplateFields: FC<{
   previewLoading: boolean;
 }> = ({ template, onPRPreview, formData, setFormData, previewLoading }) => {
   const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
+  const { isExact: isEditing } = useRouteMatch(EDIT_CLUSTER) || {};
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
     event:
@@ -53,7 +56,6 @@ const TemplateFields: FC<{
         const name = param.name || '';
         const options = param?.options || [];
         const required = Boolean(!param.default && param.required);
-        const isEditing = window.location.pathname.includes('edit');
         if (options.length > 0) {
           return (
             <Select

@@ -67,6 +67,7 @@ const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
 const PIPELINES = '/applications/pipelines';
+export const EDIT_CLUSTER = '/clusters/:clusterName/edit';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -251,11 +252,7 @@ const App = () => {
                 ))}
                 path="/cluster"
               />
-              <Route
-                component={EditCluster}
-                exact
-                path="/clusters/:clusterName/edit"
-              />
+              <Route component={EditCluster} exact path={EDIT_CLUSTER} />
               <Route
                 component={AddClusterWithCredentials}
                 exact
