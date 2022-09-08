@@ -128,39 +128,158 @@ const getPipeline = new Promise<GetPipelineResponse>((resolve, reject) => {
       targets: [],
       status: {
         environments: {
-          dev: {
-            clusterRef: {
-              kind: 'GitopsCluster',
-              name: 'management',
+          dev: [
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.6',
+                },
+              ],
             },
-            namespace: 'default',
-            workloads: [
-              {
-                kind: 'HelmRelease',
-                name: 'podinfo',
-                version: '6.1.6',
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'long-cluster-name-that break UI',
               },
-              {
-                kind: 'HelmRelease',
-                name: 'podinfo',
-                version: '6.1.7',
-              },
-            ],
-          },
-          prod: {
-            clusterRef: {
-              kind: 'GitopsCluster',
-              name: 'management',
+              namespace: 'flux-system',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.7',
+                },
+              ],
             },
-            namespace: 'default',
-            workloads: [
-              {
-                kind: 'HelmRelease',
-                name: 'podinfo',
-                version: '6.1.5',
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
               },
-            ],
-          },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.7',
+                },
+              ],
+            },
+          ],
+          prod: [
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.7',
+                },
+              ],
+            },
+          ],
+          dev2: [
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.6',
+                },
+              ],
+            },
+          ],
+          prod2: [
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.6',
+                },
+              ],
+            },
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.7',
+                },
+              ],
+            },
+          ],
+          dev3: [
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.6',
+                },
+              ],
+            },
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.7',
+                },
+              ],
+            },
+          ],
+          prod3: [
+            {
+              clusterRef: {
+                kind: 'GitopsCluster',
+                name: 'management',
+              },
+              namespace: 'default',
+              workloads: [
+                {
+                  kind: 'HelmRelease',
+                  name: 'podinfo',
+                  version: '6.1.6',
+                },
+              ],
+            },
+          ],
         },
       },
     },

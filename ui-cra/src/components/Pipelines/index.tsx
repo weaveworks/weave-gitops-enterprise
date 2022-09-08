@@ -38,9 +38,9 @@ const Pipelines = () => {
               fields={[
                 {
                   label: 'Pipeline Name',
-                  value: ({ name, namespace }: Pipeline) => (
+                  value: ({ appRef, name, namespace }: Pipeline) => (
                     <LinkWrapper
-                      to={`/applications/pipelines/details?namespace=${namespace}&name=${name}`}
+                      to={`/applications/pipelines/details?namespace=${namespace}&name=${appRef?.name}&pipelineName=${name}`}
                     >
                       {name}
                     </LinkWrapper>
