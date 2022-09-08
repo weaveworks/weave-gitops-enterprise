@@ -38,6 +38,7 @@ const AddApplication = () => {
   const history = useHistory();
   const { setNotifications } = useNotifications();
   const { profiles } = useProfiles();
+  const { renderKustomization } = useTemplates();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
@@ -188,9 +189,8 @@ const AddApplication = () => {
   ]);
 
   const handlePRPreview = useCallback(() => {
-    // const { ...templateFields } = formData;
     setPreviewLoading(true);
-    return renderTemplate({
+    return renderKustomization({
       kustomizations: getKustomizations(),
     })
       .then(data => {
@@ -203,7 +203,7 @@ const AddApplication = () => {
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [formData, setOpenPreview, renderTemplate, setNotifications]);
+  }, [formData, setOpenPreview, renderTemplate, setNotifications, getKustomizations);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
