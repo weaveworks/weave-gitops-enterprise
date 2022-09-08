@@ -279,7 +279,7 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 				if tenant.TeamRBAC.ApplyRules != "" {
 					for _, v := range config.RBACRules {
 						if v.Name == tenant.TeamRBAC.ApplyRules {
-							rules = append(rules, v.Rules...)
+							rules = mergePolicyRules(rules, v.Rules)
 						}
 					}
 				}
