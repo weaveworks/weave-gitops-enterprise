@@ -3,9 +3,9 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/sclevine/agouti/matchers"
 )
 
 // Header webDriver elements
@@ -77,7 +77,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 
 func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {
 	paramSection := fmt.Sprintf(`div[data-name="%s"]`, sectionName)
-	Eventually(webdriver.Find(paramSection)).Should(BeFound())
+	gomega.Eventually(webdriver.Find(paramSection)).Should(matchers.BeFound())
 	section := webdriver.Find(paramSection)
 	name := section.Find(".section-name")
 	fields := section.All(".step-child")
@@ -100,7 +100,7 @@ func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName st
 }
 
 func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
-	Eventually(webdriver.FindByID(fmt.Sprintf(`%s-group`, name))).Should(BeFound())
+	gomega.Eventually(webdriver.FindByID(fmt.Sprintf(`%s-group`, name))).Should(matchers.BeFound())
 	param := webdriver.FindByID(fmt.Sprintf(`%s-group`, name))
 
 	return FormField{
@@ -112,7 +112,7 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 }
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
-	Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(BeVisible())
+	gomega.Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(matchers.BeVisible())
 	return ValuesYaml{
 		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
 		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),
