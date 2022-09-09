@@ -13,7 +13,7 @@ import {
   GitRepository,
   HelmRepository,
 } from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
@@ -33,6 +33,7 @@ import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import { ProfilesIndex } from '../../../types/custom';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { useSearchParam } from 'react-use';
 
 export interface ClusterAutomationFormData {
   name: string;
@@ -40,9 +41,6 @@ export interface ClusterAutomationFormData {
   clusterName: string | null;
   path: string;
   source: HelmRepository | GitRepository | null;
-  // sourceName: string;
-  // sourceNamespace: string;
-  // sourceType: string;
 }
 
 export interface AddAppFormData {
@@ -183,7 +181,7 @@ const AddApplication = () => {
         name: '',
         namespace: '',
         path: '',
-        clusterName: null,
+        clusterName: useSearchParam('clusterName'),
         source: null,
       },
     ],
@@ -192,14 +190,17 @@ const AddApplication = () => {
 
   const [formData, setFormData] = useState<AddAppFormData>(initialFormData);
   const automation = formData.clusterAutomations?.[0];
+  console.log({ automation });
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.set('clusterName', automation?.clusterName!);
-    history.push({ search: params.toString() });
+    if (automation?.clusterName) {
+      const params = new URLSearchParams();
+      params.set('clusterName', automation?.clusterName!);
+      history.push({ search: params.toString() });
+    }
   }, [automation?.clusterName, history]);
 
   useEffect(() => {

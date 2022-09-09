@@ -28,6 +28,7 @@ import {
   HelmRepository,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { makeStyles } from '@material-ui/styles';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 function isGitRepository(source: Source): source is GitRepository {
   return source.kind === 'KindGitRepository';
@@ -57,6 +58,12 @@ const SourceOption = styled.div`
 
 const useStyles = makeStyles(() =>
   createStyles({
+    root: {
+      marginRight: `${weaveTheme.spacing.medium}`,
+    },
+    endAdornment: {
+      right: 9,
+    },
     paper: {
       width: 700,
     },
@@ -225,33 +232,41 @@ const AppFields: FC<{
     <FormWrapper>
       {clusters && (
         <>
-          <Autocomplete<string>
+          <Input
+            name="cluster_name"
             className="form-section"
-            loading={isLoading}
-            value={automation.clusterName}
-            renderInput={params => (
-              <Input
-                {...params}
-                name="cluster_name"
-                required={true}
-                label="SELECT CLUSTER"
-                description="select target cluster"
-              />
-            )}
-            options={clusters}
-            onChange={handleSelectCluster}
-          />
+            label="SELECT CLUSTER"
+            description="select target cluster"
+          >
+            <Autocomplete
+              classes={classes}
+              loading={isLoading}
+              disableClearable
+              openOnFocus
+              value={automation.clusterName || ''}
+              renderInput={({ InputProps, InputLabelProps, ...rest }) => {
+                return (
+                  <InputBase
+                    name="cluster_name"
+                    required={true}
+                    {...rest}
+                    {...InputProps}
+                  />
+                );
+              }}
+              options={clusters}
+              onChange={handleSelectCluster}
+            />
+          </Input>
           <Input
             name="source"
             className="form-section"
             label="SELECT SOURCE"
             description="The name and type of source"
-            fullWidth
           >
             <Autocomplete<GitRepository | HelmRepository>
               classes={classes}
               autoHighlight
-              fullWidth
               loading={isLoading}
               open={open}
               value={automation.source}
@@ -284,7 +299,7 @@ const AppFields: FC<{
                 </SourceOption>
               )}
               options={clusterSources}
-              renderInput={({ InputProps, ...rest }) => {
+              renderInput={({ InputProps, InputLabelProps, ...rest }) => {
                 return (
                   <InputBase
                     name="source"

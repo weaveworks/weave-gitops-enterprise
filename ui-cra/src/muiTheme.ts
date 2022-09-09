@@ -91,20 +91,26 @@ export const localEEMuiTheme = createTheme({
   ...muiTheme,
   overrides: {
     ...muiTheme.overrides,
+    // MuiFormControl: {
+    //   root: {
+    //     marginRight: `${weaveTheme.spacing.medium}`,
+    //   },
+    // },
     MuiInputBase: {
       ...muiTheme.overrides?.MuiInputBase,
       root: {
         ...muiTheme.overrides?.MuiInputBase?.root,
+        border: `1px solid ${weaveTheme.colors.neutral20}`,
+        padding: '8px 12px',
         marginRight: `${weaveTheme.spacing.medium}`,
       },
       input: {
         ...muiTheme.overrides?.MuiInputBase?.input,
         minWidth: '155px',
-        border: `1px solid ${weaveTheme.colors.neutral20}`,
         position: 'relative',
         fontSize: 16,
+        padding: 0,
         width: '100%',
-        padding: '8px 12px',
         '&:focus': {
           borderRadius: 2,
         },
