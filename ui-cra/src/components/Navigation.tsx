@@ -8,6 +8,7 @@ import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
+import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 
 interface SubNavItem {
@@ -170,6 +171,11 @@ export const Navigation: FC = () => {
       ],
     },
     {
+      name: 'Terraform',
+      link: '/terraform',
+      icon: <TerraformLogo />,
+    },
+    {
       name: 'Flux Runtime',
       link: V2Routes.FluxRuntime,
       icon: <FluxIcon />,
@@ -178,11 +184,6 @@ export const Navigation: FC = () => {
       name: 'Policies',
       link: '/policies',
       icon: <Policies />,
-    },
-    {
-      name: 'Terrform',
-      link: '/terraform',
-      icon: <Applications />,
     },
   ];
   return (

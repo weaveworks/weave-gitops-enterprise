@@ -25,11 +25,13 @@ import React from 'react';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
+import { Terraform } from '../api/terraform/terraform.pb';
 import error404 from '../assets/img/error404.json';
 import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
+import { TerraformProvider } from '../contexts/Terraform';
 import WGApplicationsDashboard from './Applications';
 import AddApplication from './Applications/Add';
 import WGApplicationsBucket from './Applications/Bucket';
@@ -406,23 +408,25 @@ const ResponsiveDrawer = () => {
     <AuthContextProvider>
       <EnterpriseClientProvider api={ClustersService}>
         <CoreClientContextProvider api={coreClient}>
-          <Switch>
-            <Route
-              component={() => (
-                <SignInWrapper>
-                  <SignIn />
-                </SignInWrapper>
-              )}
-              exact={true}
-              path="/sign_in"
-            />
-            <Route path="*">
-              {/* Check we've got a logged in user otherwise redirect back to signin */}
-              <AuthCheck>
-                <App />
-              </AuthCheck>
-            </Route>
-          </Switch>
+          <TerraformProvider api={Terraform}>
+            <Switch>
+              <Route
+                component={() => (
+                  <SignInWrapper>
+                    <SignIn />
+                  </SignInWrapper>
+                )}
+                exact={true}
+                path="/sign_in"
+              />
+              <Route path="*">
+                {/* Check we've got a logged in user otherwise redirect back to signin */}
+                <AuthCheck>
+                  <App />
+                </AuthCheck>
+              </Route>
+            </Switch>
+          </TerraformProvider>
         </CoreClientContextProvider>
       </EnterpriseClientProvider>
     </AuthContextProvider>

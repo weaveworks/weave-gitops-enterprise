@@ -4,6 +4,49 @@ package terraform.v1;
 
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/terraform/api";
 
+message SourceRef {
+    string apiVersion = 1;
+    string kind       = 2;
+    string name       = 3;
+    string namespace  = 4;
+}
+
+message Interval {
+    int64 hours = 1;
+    int64 minutes = 2;
+    int64 seconds = 3;
+}
+
+message ResourceRef {
+    string name       = 1;
+    string type       = 2;
+    string identifier = 3;
+}
+
 message TerraformObject {
-    
+    string name        = 1;
+    string namespace   = 2;
+    string clusterName = 3;
+
+    SourceRef sourceRef            = 4;
+    string    appliedRevision      = 5;
+    string    cluster              = 6;
+    string    path                 = 7;
+    Interval  interval             = 8;
+    string    lastUpdatedAt        = 9;
+    bool      driftDetectionResult = 10;
+
+    repeated ResourceRef inventory = 11;
+}
+
+message Pagination {
+    int32  pageSize  = 1;
+    string pageToken = 2;
+}
+
+
+message TerraformListError {
+    string clusterName = 1;
+    string namespace   = 2;
+    string message     = 3;
 }

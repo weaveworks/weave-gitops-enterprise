@@ -32,8 +32,12 @@ service Terraform {
 message ListTerraformObjectsRequest {
     string clusterName = 1;
     string namespace   = 2;
+
+    Pagination pagination = 3;
 }
 
 message ListTerraformObjectsResponse {
     repeated TerraformObject objects = 1;
+    repeated TerraformListError errors = 2;
+
 }

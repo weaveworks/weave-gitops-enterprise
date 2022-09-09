@@ -1,6 +1,7 @@
+import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import * as React from 'react';
 import { useQuery } from 'react-query';
-import { Terraform } from '../../api/terraform/terraform.pb';
+import { ListTerraformObjectsResponse, Terraform } from '../../api/terraform/terraform.pb';
 
 const TerraformContext = React.createContext<typeof Terraform>(
   {} as typeof Terraform,
@@ -28,7 +29,7 @@ const TERRAFORM_KEY = 'terraform';
 export function useListTerraformObjects() {
   const tf = useTerraform();
 
-  return useQuery([TERRAFORM_KEY], () => tf.ListTerraformObjects({}), {
+  return useQuery<ListTerraformObjectsResponse, ListError>([TERRAFORM_KEY], () => tf.ListTerraformObjects({}), {
     // fetch once only
     retry: false,
     cacheTime: Infinity,

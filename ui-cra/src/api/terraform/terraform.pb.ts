@@ -9,10 +9,12 @@ import * as TerraformV1Types from "./types.pb"
 export type ListTerraformObjectsRequest = {
   clusterName?: string
   namespace?: string
+  pagination?: TerraformV1Types.Pagination
 }
 
 export type ListTerraformObjectsResponse = {
   objects?: TerraformV1Types.TerraformObject[]
+  errors?: TerraformV1Types.TerraformListError[]
 }
 
 export class Terraform {
