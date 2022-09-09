@@ -243,6 +243,17 @@ func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestR
 	gomega.Expect(verifyGitRepositories).Should(gomega.BeTrue(), "GitRepositories resource has failed to become READY.")
 }
 
+func suspendReconciliation(sourceType string, sourceName string, namespace string) {
+	cmdSuspend := fmt.Sprintf("flux suspend source %s %s --namespace %s", sourceType, sourceName, namespace)
+	_, _ = runCommandAndReturnStringOutput(cmdSuspend, ASSERTION_30SECONDS_TIME_OUT)
+
+}
+
+func resumeReconciliation(sourceType string, sourceName string, namespace string) {
+	cmdSuspend := fmt.Sprintf("flux resume source %s %s --namespace %s", sourceType, sourceName, namespace)
+	_, _ = runCommandAndReturnStringOutput(cmdSuspend, ASSERTION_30SECONDS_TIME_OUT)
+}
+
 func removeGitopsCapiClusters(capiClusters []CapiClusterConfig) {
 	for _, cluster := range capiClusters {
 		deleteCluster(cluster.Type, cluster.Name, cluster.Namespace)
