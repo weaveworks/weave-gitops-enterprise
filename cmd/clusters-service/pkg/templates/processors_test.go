@@ -1,11 +1,11 @@
 package templates
 
 import (
-	"io/ioutil"
 	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
@@ -26,7 +26,7 @@ func TestNewProcessorForTemplate(t *testing.T) {
 
 	for _, tt := range processorTests {
 		t.Run("processor for "+tt.renderType, func(t *testing.T) {
-			v, err := NewProcessorForTemplate(templates.Template{Spec: templates.TemplateSpec{RenderType: tt.renderType}})
+			v, err := NewProcessorForTemplate(&gapiv1.GitOpsTemplate{Spec: templates.TemplateSpec{RenderType: tt.renderType}})
 
 			if err != nil {
 				if tt.wantErr == "" {
@@ -97,8 +97,8 @@ func TestProcessor_AllParamNames(t *testing.T) {
 
 	for _, tt := range paramTests {
 		t.Run(tt.filename, func(t *testing.T) {
-			c := mustParseFile(t, tt.filename)
-			proc, err := NewProcessorForTemplate(*c)
+			c := parseCAPITemplateFromFile(t, tt.filename)
+			proc, err := NewProcessorForTemplate(c)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -111,13 +111,4 @@ func TestProcessor_AllParamNames(t *testing.T) {
 			}
 		})
 	}
-}
-
-func readFixture(t *testing.T, fname string) []byte {
-	t.Helper()
-	b, err := ioutil.ReadFile(fname)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return b
 }

@@ -1,9 +1,14 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
-import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
+import { useApplicationsCount, useSourcesCount } from './utils';
+import {
+  GitRepositoryDetail,
+  Kind,
+  useGetObject,
+} from '@weaveworks/weave-gitops';
+import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -12,8 +17,19 @@ type Props = {
 };
 
 const WGApplicationsGitRepository: FC<Props> = props => {
+  const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const sourcesCount = useSourcesCount();
+  const {
+    data: gitRepository,
+    isLoading,
+    error,
+  } = useGetObject<GitRepository>(
+    name,
+    namespace,
+    Kind.GitRepository,
+    clusterName,
+  );
 
   return (
     <PageTemplate documentTitle="WeGO · Git Repository">
@@ -27,15 +43,20 @@ const WGApplicationsGitRepository: FC<Props> = props => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sourcesCount,
           },
           {
             label: `${props.name}`,
           },
         ]}
       />
-      <ContentWrapper>
-        <GitRepositoryDetail {...props} />
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <GitRepositoryDetail gitRepository={gitRepository} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

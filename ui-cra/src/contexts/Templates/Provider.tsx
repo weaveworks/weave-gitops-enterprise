@@ -1,19 +1,17 @@
-import React, { FC, useCallback, useContext, useState } from 'react';
+import { FC, useCallback, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
+import { ListTemplatesResponse } from '../../cluster-services/cluster_services.pb';
+import { TemplateEnriched } from '../../types/custom';
 import { request } from '../../utils/request';
-import { Templates } from './index';
-import useNotifications from './../Notifications';
 import { EnterpriseClientContext } from '../EnterpriseClient';
-import {
-  ListTemplatesResponse,
-  Template,
-} from '../../cluster-services/cluster_services.pb';
+import useNotifications from './../Notifications';
+import { Templates } from './index';
 
 const TemplatesProvider: FC = ({ children }) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [templates, setTemplates] = useState<Template[] | undefined>([]);
-  const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
-  const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [templates, setTemplates] = useState<TemplateEnriched[] | undefined>(
+    [],
+  );
   const { setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
@@ -22,22 +20,11 @@ const TemplatesProvider: FC = ({ children }) => {
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;
 
-  const renderTemplate = useCallback(
-    data => {
-      setLoading(true);
-      request('POST', `${templatesUrl}/${activeTemplate?.name}/render`, {
-        body: JSON.stringify(data),
-      })
-        .then(data => setPRPreview(data.renderedTemplate))
-        .catch(err =>
-          setNotifications([
-            { message: { text: err.message }, variant: 'danger' },
-          ]),
-        )
-        .finally(() => setLoading(false));
-    },
-    [activeTemplate, setNotifications],
-  );
+  const renderTemplate = useCallback((templateName, data) => {
+    return request('POST', `${templatesUrl}/${templateName}/render`, {
+      body: JSON.stringify(data),
+    });
+  }, []);
 
   const addCluster = useCallback(
     ({ ...data }, token: string, templateKind: string) => {
@@ -60,7 +47,7 @@ const TemplatesProvider: FC = ({ children }) => {
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
 
   const onSuccess = (data: ListTemplatesResponse) =>
-    setTemplates(data.templates);
+    setTemplates(data.templates as TemplateEnriched[]);
 
   const { isLoading } = useQuery<ListTemplatesResponse, Error>(
     'templates',
@@ -78,13 +65,9 @@ const TemplatesProvider: FC = ({ children }) => {
         isLoading,
         templates,
         loading,
-        activeTemplate,
-        setActiveTemplate,
         getTemplate,
         addCluster,
         renderTemplate,
-        PRPreview,
-        setPRPreview,
       }}
     >
       {children}

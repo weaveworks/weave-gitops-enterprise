@@ -1,0 +1,33 @@
+tenants:
+  - name: foo-tenant
+    namespaces:
+    - foo-ns
+  - name: bar-tenant
+    namespaces:
+    - bar-ns
+    - foobar-ns
+    allowedRepositories:
+    - kind: GitRepository
+      url: https://github.com/testorg/testrepo
+    - kind: GitRepository
+      url: https://github.com/testorg/testinfo
+    - kind: Bucket
+      url: minio.example.com
+    - kind: HelmRepository
+      url: https://testorg.github.io/testrepo
+    allowedClusters:
+    - kubeConfig: cluster-1-kubeconfig
+    - kubeConfig: cluster-2-kubeconfig
+    teamRBAC:
+      groupNames:
+      - foo-group
+      - bar-group
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'

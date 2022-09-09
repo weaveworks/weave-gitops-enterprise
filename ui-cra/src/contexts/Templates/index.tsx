@@ -1,16 +1,12 @@
-import { createContext, Dispatch, useContext } from 'react';
-import { Template } from '../../cluster-services/cluster_services.pb';
+import { createContext, useContext } from 'react';
+import { TemplateEnriched } from '../../types/custom';
 
 interface TemplatesContext {
-  templates: Template[] | undefined;
+  templates: TemplateEnriched[] | undefined;
   loading: boolean;
-  activeTemplate: Template | null;
-  setActiveTemplate: Dispatch<React.SetStateAction<Template | null>>;
   addCluster: (data: any, token: string, templateKind: string) => Promise<any>;
-  renderTemplate: (data: any) => void;
-  getTemplate: (templateName: string) => Template | null;
-  PRPreview: string | null;
-  setPRPreview: Dispatch<React.SetStateAction<string | null>>;
+  renderTemplate: (templateName: string, data: any) => Promise<any>;
+  getTemplate: (templateName: string) => TemplateEnriched | null;
   isLoading: boolean;
 }
 

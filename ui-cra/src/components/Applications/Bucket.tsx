@@ -1,9 +1,10 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
+import { BucketDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
-import { BucketDetail, useListSources } from '@weaveworks/weave-gitops';
+import { useApplicationsCount, useSourcesCount } from './utils';
+import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -12,8 +13,14 @@ type Props = {
 };
 
 const WGApplicationsBucket: FC<Props> = props => {
+  const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const sourcesCount = useSourcesCount();
+  const {
+    data: bucket,
+    isLoading,
+    error,
+  } = useGetObject<Bucket>(name, namespace, Kind.Bucket, clusterName);
 
   return (
     <PageTemplate documentTitle="WeGO · Bucket">
@@ -27,15 +34,20 @@ const WGApplicationsBucket: FC<Props> = props => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sourcesCount,
           },
           {
             label: `${props.name}`,
           },
         ]}
       />
-      <ContentWrapper>
-        <BucketDetail {...props} />
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <BucketDetail bucket={bucket} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

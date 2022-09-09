@@ -1,9 +1,14 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
-import { HelmRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
+import { useApplicationsCount, useSourcesCount } from './utils';
+import {
+  HelmRepositoryDetail,
+  Kind,
+  useGetObject,
+} from '@weaveworks/weave-gitops';
+import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -12,8 +17,20 @@ type Props = {
 };
 
 const WGApplicationsHelmRepository: FC<Props> = props => {
+  const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const sourcesCount = useSourcesCount();
+
+  const {
+    data: helmRepository,
+    isLoading,
+    error,
+  } = useGetObject<HelmRepository>(
+    name,
+    namespace,
+    Kind.HelmRepository,
+    clusterName,
+  );
 
   return (
     <PageTemplate documentTitle="WeGO · Helm Repository">
@@ -27,15 +44,20 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sourcesCount,
           },
           {
             label: `${props.name}`,
           },
         ]}
       />
-      <ContentWrapper>
-        <HelmRepositoryDetail {...props} />
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <HelmRepositoryDetail helmRepository={helmRepository} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

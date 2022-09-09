@@ -33,14 +33,14 @@ type RenderOptFunc func(uns *unstructured.Unstructured) error
 // NewProcessorForTemplate creates and returns an appropriate processor for a
 // template based on its declared type.
 func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
-	switch t.Spec.RenderType {
+	switch t.GetSpec().RenderType {
 	case "", templates.RenderTypeEnvsubst:
 		return &TemplateProcessor{Processor: NewEnvsubstTemplateProcessor(), Template: t}, nil
 	case templates.RenderTypeTemplating:
 		return &TemplateProcessor{Processor: NewTextTemplateProcessor(), Template: t}, nil
 
 	}
-	return nil, fmt.Errorf("unknown template renderType: %s", t.Spec.RenderType)
+	return nil, fmt.Errorf("unknown template renderType: %s", t.GetSpec().RenderType)
 }
 
 // TemplateProcessor does the work of rendering a template.
@@ -49,9 +49,15 @@ type TemplateProcessor struct {
 	Processor
 }
 
+// Params returns the set of parameters discovered in the resource templates.
+//
+// These are discovered in the templates, and enriched from the parameters
+// declared on the template.
+//
+// The returned slice is sorted by Name.
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
-	for _, v := range p.Template.Spec.ResourceTemplates {
+	for _, v := range p.GetSpec().ResourceTemplates {
 		names, err := p.Processor.ParamNames(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get params from template: %w", err)
@@ -64,11 +70,12 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		paramsMeta[v] = Param{Name: v}
 	}
 
-	for _, v := range p.Template.Spec.Params {
+	for _, v := range p.GetSpec().Params {
 		if m, ok := paramsMeta[v.Name]; ok {
 			m.Description = v.Description
 			m.Options = v.Options
 			m.Required = v.Required
+			m.Default = v.Default
 			paramsMeta[v.Name] = m
 		}
 	}
@@ -84,8 +91,32 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 
 // RenderTemplates renders all the resourceTemplates in the template.
 func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
+	params, err := p.Params()
+	if err != nil {
+		return nil, err
+	}
+
+	if vars == nil {
+		vars = map[string]string{}
+	}
+
+	for _, param := range params {
+		val, ok := vars[param.Name]
+		if !ok || val == "" {
+			if param.Default != "" {
+				vars[param.Name] = param.Default
+			} else {
+				if param.Required {
+					return nil, fmt.Errorf("missing required parameter: %s", param.Name)
+				}
+				vars[param.Name] = ""
+			}
+
+		}
+	}
+
 	var processed [][]byte
-	for _, v := range p.Template.Spec.ResourceTemplates {
+	for _, v := range p.GetSpec().ResourceTemplates {
 		b, err := yaml.JSONToYAML(v.RawExtension.Raw)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
@@ -148,7 +179,7 @@ func (p *TextTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]str
 
 func (p TemplateProcessor) AllParamNames() ([]string, error) {
 	paramNames := sets.NewString()
-	for _, v := range p.Template.Spec.ResourceTemplates {
+	for _, v := range p.GetSpec().ResourceTemplates {
 		names, err := p.Processor.ParamNames(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get params from template: %w", err)

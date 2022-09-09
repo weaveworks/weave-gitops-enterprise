@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
 	"github.com/sirupsen/logrus"
@@ -32,6 +32,7 @@ var (
 	logFile              *os.File
 	gitProviderEnv       GitProviderEnv
 	userCredentials      UserCredentials
+	mgmtClusterKind      string
 	git_repository_url   string
 	selenium_service_url string
 	gitops_bin_path      string
@@ -41,6 +42,12 @@ var (
 	artifacts_base_dir   string
 
 	webDriver *agouti.Page
+)
+
+const (
+	KindMgmtCluster = "kind"
+	EKSMgmtCluster  = "eks"
+	GKEMgmtCluster  = "gke"
 )
 
 const (
@@ -83,10 +90,9 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 
 // Describes all the CLI acceptance tests
 func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
-	// FIXME: CLI acceptances are disabled due to authentication not being supported
-	// DescribeCliHelp()
-	// DescribeCliGet(gitopsTestRunner)
-	// DescribeCliAddDelete(gitopsTestRunner)
+	DescribeCliHelp()
+	DescribeCliGet(gitopsTestRunner)
+	DescribeCliAddDelete(gitopsTestRunner)
 	DescribeCliUpgrade(gitopsTestRunner)
 }
 
@@ -117,16 +123,17 @@ func RandString(length int) string {
 
 func getCheckoutRepoPath() string {
 	currDir, err := os.Getwd()
-	Expect(err).ShouldNot(HaveOccurred())
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
 	re := regexp.MustCompile(`^(.*/weave-gitops-enterprise)`)
 	repoDir := re.FindStringSubmatch(currDir)
-	Expect(len(repoDir)).Should(Equal(2))
+	gomega.Expect(len(repoDir)).Should(gomega.Equal(2))
 
 	return repoDir[1]
 }
 
 func SetupTestEnvironment() {
+	mgmtClusterKind = GetEnv("MANAGEMENT_CLUSTER_KIND", "kind")
 	selenium_service_url = "http://localhost:4444/wd/hub"
 	test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
@@ -141,14 +148,14 @@ func SetupTestEnvironment() {
 
 	//Cleanup the workspace dir, it helps when running locally
 	err := os.RemoveAll(artifacts_base_dir)
-	Expect(err).ShouldNot(HaveOccurred())
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	err = os.MkdirAll(path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME), 0700)
-	Expect(err).ShouldNot(HaveOccurred())
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 }
 
 func InstallWeaveGitopsControllers() {
 	// gitops binary must exists, it is required to install weave gitops controllers
-	Expect(fileExists(gitops_bin_path)).To(BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
+	gomega.Expect(fileExists(gitops_bin_path)).To(gomega.BeTrue(), fmt.Sprintf("%s can not be found.", gitops_bin_path))
 	// TODO: check flux bin is available too.
 
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
@@ -199,9 +206,9 @@ func InitializeWebdriver(wgeURL string) {
 				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
 				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
 			err = chromeDriver.Start()
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			webDriver, err = chromeDriver.NewPage()
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 
 		case "linux":
 			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
@@ -211,26 +218,26 @@ func InitializeWebdriver(wgeURL string) {
 					"w3c":             false,
 					"excludeSwitches": []string{"enable-automation"},
 				}}))
-			Expect(err).NotTo(HaveOccurred())
+			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		}
 
 		err = webDriver.Size(1800, 2500)
-		Expect(err).NotTo(HaveOccurred(), "Failed to resize browser window")
+		gomega.Expect(err).NotTo(gomega.HaveOccurred(), "Failed to resize browser window")
 
 	} else {
 		logger.Info("Clearing cookies")
 		// Clear localstorage, cookie etc
-		Expect(webDriver.Reset()).To(Succeed())
+		gomega.Expect(webDriver.Reset()).To(gomega.Succeed())
 	}
 
-	By("When I navigate to WGE UI Page", func() {
-		Expect(webDriver.Navigate(wgeURL)).To(Succeed())
+	ginkgo.By("When I navigate to WGE UI Page", func() {
+		gomega.Expect(webDriver.Navigate(wgeURL)).To(gomega.Succeed())
 	})
 
-	By(fmt.Sprintf("And I set the default WGE window name to: %s", WGE_WINDOW_NAME), func() {
+	ginkgo.By(fmt.Sprintf("And I set the default WGE window name to: %s", WGE_WINDOW_NAME), func() {
 		pages.SetWindowName(webDriver, WGE_WINDOW_NAME)
 		weaveGitopsWindowName := pages.GetWindowName(webDriver)
-		Expect(weaveGitopsWindowName).To(Equal(WGE_WINDOW_NAME))
+		gomega.Expect(weaveGitopsWindowName).To(gomega.Equal(WGE_WINDOW_NAME))
 
 	})
 }
@@ -269,7 +276,7 @@ func InitializeLogger(logFileName string) {
 	file_name := path.Join(artifacts_base_dir, logFileName)
 	logFile, err := os.OpenFile(file_name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err == nil {
-		GinkgoWriter.TeeTo(logFile)
+		ginkgo.GinkgoWriter.TeeTo(logFile)
 		logger.SetOutput(io.MultiWriter(logFile, os.Stdout))
 	} else {
 		logger.Warnf("Failed to create log file: '%s', Error: %d", file_name, err)
@@ -311,8 +318,8 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 
 	command := exec.Command("sh", "-c", commandToRun)
 	session, err := gexec.Start(command, logger.WriterLevel(logrus.TraceLevel), logger.WriterLevel(logrus.TraceLevel))
-	Expect(err).ShouldNot(HaveOccurred())
-	Eventually(session, assert_timeout).Should(gexec.Exit())
+	gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Error starting Cmd: "+commandToRun)
+	gomega.Eventually(session, assert_timeout).Should(gexec.Exit())
 
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
@@ -355,7 +362,7 @@ func DumpConfigRepo(testName string) {
 
 func DumpBrowserLogs(console bool, network bool) {
 	fetchLogs := false
-	for _, label := range CurrentSpecReport().LeafNodeLabels {
+	for _, label := range ginkgo.CurrentSpecReport().LeafNodeLabels {
 		if label == "browser-logs" {
 			fetchLogs = true
 		}
@@ -376,7 +383,7 @@ func DumpBrowserLogs(console bool, network bool) {
 	if network {
 		logger.Info("Dumping network logs...")
 		var networkLog interface{}
-		Expect(webDriver.RunScript(`return window.performance.getEntries();`, map[string]interface{}{}, &networkLog)).ShouldNot(HaveOccurred())
+		gomega.Expect(webDriver.RunScript(`return window.performance.getEntries();`, map[string]interface{}{}, &networkLog)).ShouldNot(gomega.HaveOccurred())
 
 		switch reflect.TypeOf(networkLog).Kind() {
 		case reflect.Slice:

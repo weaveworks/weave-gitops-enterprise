@@ -1,72 +1,39 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../muiTheme';
-import useClusters from './../../contexts/Clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PolicyViolationsTable } from './Table';
-import { useCallback, useContext, useState } from 'react';
-import LoadingError from '../LoadingError';
-import { EnterpriseClientContext } from '../../contexts/EnterpriseClient';
-import {
-  ListError,
-  ListPolicyValidationsResponse,
-  PolicyValidation,
-} from '../../cluster-services/cluster_services.pb';
+import { FieldsType, PolicyViolationsTable } from './Table';
+import useClusters from './../../contexts/Clusters';
+import { useListPolicyValidations } from '../../contexts/PolicyViolations';
+import { Alert } from '@material-ui/lab';
+import { LoadingPage } from '@weaveworks/weave-gitops';
 
 const PoliciesViolations = () => {
-  const [count, setCount] = useState<number | undefined>(0);
-  const { api } = useContext(EnterpriseClientContext);
-  const [errors, setErrors] = useState<ListError[] | undefined>();
   const clustersCount = useClusters().count;
-
-  // const [payload, setPayload] = useState<any>({ page: 1, limit: 20, clusterId:'' });
-
-  // Update payload on page change for next page request to work properly with pagination component in PolicyViolationTable component below
-  // const updatePayload = (payload: any) => {
-  //   setPayload(payload);
-  // };
-  const fetchPolicyViolationsAPI = useCallback(() => {
-    return api.ListPolicyValidations({}).then(res => {
-      !!res && setCount(res.total);
-      !!res && setErrors(res.errors);
-      return res;
-    });
-    // TODO : Add pagination support for policy violations list API
-    // Debendency: payload
-  }, [api]);
+  const { data, isLoading, error } = useListPolicyValidations({});
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Violation Log">
-        <SectionHeader
-          className="count-header"
-          path={[
-            { label: 'Clusters', url: '/clusters', count: clustersCount },
-            {
-              label: 'Violation Log',
-              url: 'violations',
-              count,
-            },
-          ]}
-        />
-        <ContentWrapper errors={errors}>
-          <LoadingError fetchFn={fetchPolicyViolationsAPI}>
-            {({ value }: { value: ListPolicyValidationsResponse }) => (
-              <>
-                {value.total && value.total > 0 ? (
-                  <PolicyViolationsTable
-                    violations={value.violations as PolicyValidation[]}
-                  />
-                ) : (
-                  <div>No data to display</div>
-                )}
-              </>
-            )}
-          </LoadingError>
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate documentTitle="WeGo · Violation Log">
+      <SectionHeader
+        className="count-header"
+        path={[
+          { label: 'Clusters', url: '/clusters', count: clustersCount },
+          {
+            label: 'Violation Log',
+            count: data?.total,
+          },
+        ]}
+      />
+      <ContentWrapper errors={data?.errors}>
+        {isLoading && <LoadingPage />}
+        {error && <Alert severity="error">{error.message}</Alert>}
+        {data?.violations && (
+          <PolicyViolationsTable
+            violations={data?.violations || []}
+            tableType={FieldsType.policy}
+          />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 

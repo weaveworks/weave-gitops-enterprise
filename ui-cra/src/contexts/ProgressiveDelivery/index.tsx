@@ -1,6 +1,7 @@
 import {
   GetCanaryResponse,
   ListCanariesResponse,
+  ListCanaryObjectsResponse,
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
@@ -54,32 +55,52 @@ export const useListCanaries = () => {
   return useQuery<ListCanariesResponse, Error>(
     [PD_QUERY_KEY, CANARIES_KEY],
     () => pd.ListCanaries({}),
+    { refetchInterval: 10000 },
   );
 };
 
-type CanaryParams = {
+export type CanaryParams = {
   name: string;
   namespace: string;
   clusterName: string;
 };
 
+const GET_CANARY_KEY = 'get_canary_details';
 export const useGetCanaryDetails = (params: CanaryParams) => {
   const pd = useProgressiveDelivery();
 
   return useQuery<GetCanaryResponse, Error>(
-    [PD_QUERY_KEY, CANARIES_KEY, params],
+    [PD_QUERY_KEY, GET_CANARY_KEY, params],
     () => pd.GetCanary(params),
+    {
+      refetchInterval: 10000,
+      retry: false,
+    },
   );
 };
 
+const GET_CANARIES_COUNT_KEY = 'get_canaries_count';
+
 export const useCanariesCount = () => {
-  const { data } = useListCanaries();
+  const pd = useProgressiveDelivery();
 
-  if (!data) {
-    return 0;
-  }
-
+  const { data } = useQuery<ListCanariesResponse, Error>(
+    [PD_QUERY_KEY, GET_CANARIES_COUNT_KEY],
+    () => pd.ListCanaries({}),
+  );
   return data?.canaries?.length;
+};
+
+const CANARY_OBJS_KEY = 'canary_objects';
+export const useListFlaggerObjects = (params: CanaryParams) => {
+  const pd = useProgressiveDelivery();
+
+  return useQuery<ListCanaryObjectsResponse, Error>(
+    [PD_QUERY_KEY, CANARY_OBJS_KEY, params],
+    () => {
+      return pd.ListCanaryObjects(params);
+    },
+  );
 };
 
 const EVENTS_QUERY_KEY = 'events';

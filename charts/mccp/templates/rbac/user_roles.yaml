@@ -25,7 +25,7 @@ metadata:
     {{- end }}
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods"]
+    resources: ["secrets", "pods", "services"]
     verbs: ["get", "list"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
@@ -37,10 +37,13 @@ rules:
     resources: ["helmreleases"]
     verbs: ["get", "list", "patch"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories"]
-    verbs: ["get", "list", "patch"]
+    resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories"]
+    verbs: [ "get", "list", "patch" ]
   - apiGroups: [""]
     resources: ["events"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
     verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -136,7 +139,7 @@ metadata:
     {{- end }}
 rules:
   - apiGroups: ["flagger.app"]
-    resources: ["canaries"]
+    resources: ["canaries","metrictemplates"]
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["events"]
@@ -168,5 +171,19 @@ metadata:
 rules:
 - apiGroups: ["cluster.x-k8s.io"]
   resources: ["clusters"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-pipelines-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
+rules:
+- apiGroups: ["pipelines.weave.works"]
+  resources: ["pipelines"]
   verbs: ["get", "list", "watch"]
 {{- end }}

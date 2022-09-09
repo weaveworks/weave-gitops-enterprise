@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Applications index test snapshots loading 1`] = `
-.c6 {
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -15,7 +15,7 @@ exports[`Applications index test snapshots loading 1`] = `
   align-items: center;
 }
 
-.c9 {
+.c14 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -34,22 +34,71 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: center;
 }
 
-.c7 svg {
-  fill: #fff !important;
-  height: 32px;
-  width: 32px;
+.c9 svg {
+  fill: !important;
+  height: 24px;
+  width: 24px;
 }
 
-.c7.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c7.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
+}
+
+.c13 svg {
+  fill: !important;
+  height: 16px;
+  width: 16px;
+}
+
+.c13.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c13.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c12.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c12.MuiButton-outlined {
+  padding: 8px 12px;
+  border-color: #d8d8d8;
+}
+
+.c7 {
+  height: 40px;
+  width: 40px;
+}
+
+.c7.MuiIconButton-root {
+  background-color: #fff;
+}
+
+.c7.MuiIconButton-root:hover {
+  background-color: #fff;
+  color: #009CCC;
 }
 
 .c5 {
@@ -61,19 +110,19 @@ exports[`Applications index test snapshots loading 1`] = `
   margin: 0 auto;
 }
 
-.c8 {
-  margin: 24px 12px 0 12px;
-  padding: 32px 24px 24px 32px;
+.c10 {
+  margin: 0 16px;
+  padding: 24px;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
 }
 
-.c10 {
-  padding: 12px 24px;
-  margin: 12px;
-  background-color: #fff;
-  color: #1a1a1a;
-  border-radius: 8px;
+.c15 {
+  padding: calc(24px - 4px) 24px;
+  margin: 0 16px;
+  background-color: rgba(255,255,255,0.7);
+  color: #737373;
+  border-radius: 0 0 8px 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -84,7 +133,7 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: space-between;
 }
 
-.c10 a {
+.c15 a {
   color: #00b3ec;
 }
 
@@ -111,12 +160,13 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c4 {
-  background: #fff;
+  background: #98E0F7;
   padding: 0 4px;
   -webkit-align-self: center;
   -ms-flex-item-align: center;
   align-self: center;
-  color: #00b3ec;
+  font-size: 14px;
+  color: #1a1a1a;
   margin-left: 4px;
   border-radius: 2px;
 }
@@ -136,21 +186,40 @@ exports[`Applications index test snapshots loading 1`] = `
   display: flex;
   color: inherit;
   font-size: 20px;
-  background: #00b3ec;
   height: 80px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
-  padding-left: 32px;
+  padding: 0 12px 0 24px;
   position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 2;
+  background: inherit;
 }
 
 .c1 .MuiListItemIcon-root {
   min-width: 30px;
+}
+
+.c6 svg {
+  fill: #00b3ec;
+}
+
+.c6 button {
+  background-color: #f5f5f5;
+}
+
+.c11 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.c11 > .actionButton.btn {
+  margin-right: 12px;
 }
 
 <div>
@@ -164,7 +233,7 @@ exports[`Applications index test snapshots loading 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-10"
+          class="makeStyles-path-17"
           style="align-items: center;"
         >
           <div
@@ -172,7 +241,7 @@ exports[`Applications index test snapshots loading 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-12"
+              class="makeStyles-link-20"
               href="/applications"
             >
               Applications
@@ -186,11 +255,11 @@ exports[`Applications index test snapshots loading 1`] = `
         </div>
       </div>
       <div
-        class="c5"
+        class="c5 c6"
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root"
+          class="MuiButtonBase-root MuiIconButton-root c7"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -199,7 +268,7 @@ exports[`Applications index test snapshots loading 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c6 c7"
+              class="c8 c9"
             >
               <svg
                 aria-hidden="true"
@@ -208,7 +277,7 @@ exports[`Applications index test snapshots loading 1`] = `
                 viewBox="0 0 24 24"
               >
                 <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
                 />
               </svg>
             </div>
@@ -217,13 +286,79 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
-        class="c8"
+        class="c10"
       >
         <div
-          class="c9 "
+          style="display: flex; align-items: center; justify-content: space-between;"
+        >
+          <div
+            class="c11"
+          >
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
+              id="add-application"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <span
+                  class="MuiButton-startIcon MuiButton-iconSizeMedium"
+                >
+                  <div
+                    class="c8 c13"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      />
+                    </svg>
+                  </div>
+                </span>
+                ADD AN APPLICATION
+              </span>
+            </button>
+            <a
+              aria-disabled="false"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
+              href="/"
+              rel="noopener noreferrer"
+              tabindex="0"
+              target="_blank"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <div
+                  class="c8 c13 makeStyles-externalIcon-16"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
+                    />
+                  </svg>
+                </div>
+                GO TO OPEN PULL REQUESTS
+              </span>
+            </a>
+          </div>
+        </div>
+        <div
+          class="c14 "
         >
           <div
             class="MuiCircularProgress-root MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
@@ -247,14 +382,14 @@ exports[`Applications index test snapshots loading 1`] = `
         </div>
       </div>
       <div
-        class="c10"
+        class="c15"
       >
         <div>
-          Need help? Contact us at 
+          Need help? Raise a 
           <a
-            href="mailto:support@weave.works"
+            href="https://weavesupport.zendesk.com/"
           >
-            support@weave.works
+            support ticket
           </a>
         </div>
         <div
@@ -269,7 +404,7 @@ exports[`Applications index test snapshots loading 1`] = `
 `;
 
 exports[`Applications index test snapshots success 1`] = `
-.c6 {
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -283,7 +418,7 @@ exports[`Applications index test snapshots success 1`] = `
   align-items: center;
 }
 
-.c9 {
+.c14 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -299,7 +434,7 @@ exports[`Applications index test snapshots success 1`] = `
   width: 100%;
 }
 
-.c11 {
+.c17 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -312,9 +447,13 @@ exports[`Applications index test snapshots success 1`] = `
   -ms-flex-align: center;
   align-items: center;
   width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
 }
 
-.c12 {
+.c18 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -332,7 +471,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: flex-start;
 }
 
-.c14 {
+.c20 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -351,7 +490,26 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: flex-end;
 }
 
-.c18 {
+.c21 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c27 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -367,7 +525,7 @@ exports[`Applications index test snapshots success 1`] = `
   width: 100%;
 }
 
-.c25 {
+.c30 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -385,7 +543,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: center;
 }
 
-.c32 {
+.c36 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -403,26 +561,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: flex-start;
 }
 
-.c34 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.c28 {
+.c33 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -431,7 +570,7 @@ exports[`Applications index test snapshots success 1`] = `
   color: #737373;
 }
 
-.c35 {
+.c38 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 20px;
   font-weight: 400;
@@ -440,7 +579,7 @@ exports[`Applications index test snapshots success 1`] = `
   color: #737373;
 }
 
-.c36 {
+.c39 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 12px;
   font-weight: 600;
@@ -449,98 +588,97 @@ exports[`Applications index test snapshots success 1`] = `
   color: #737373;
 }
 
-.c7 svg {
-  fill: #fff !important;
-  height: 32px;
-  width: 32px;
-}
-
-.c7.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
-  transform: rotate(180deg);
-}
-
-.c7.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
-  transform: initial;
-}
-
-.c7 .c27 {
-  margin-left: 4px;
-  color: #fff;
-}
-
-.c16 svg {
-  fill: #737373 !important;
+.c9 svg {
+  fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c16.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c16.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c16 .c27 {
+.c9 .c32 {
   margin-left: 4px;
-  color: #737373;
 }
 
-.c23 svg {
+.c13 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c23.downward {
+.c13.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c23.upward {
+.c13.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c23 .c27 {
+.c13 .c32 {
   margin-left: 4px;
 }
 
-.c26 svg {
+.c25 svg {
+  fill: #737373 !important;
+  height: 24px;
+  width: 24px;
+}
+
+.c25.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c25.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c25 .c32 {
+  margin-left: 4px;
+  color: #737373;
+}
+
+.c31 svg {
   fill: #d8d8d8 !important;
   height: 16px;
   width: 16px;
 }
 
-.c26.downward {
+.c31.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c26.upward {
+.c31.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c26 .c27 {
+.c31 .c32 {
   margin-left: 4px;
   color: #d8d8d8;
 }
 
-.c20.MuiButton-root {
+.c12.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -552,99 +690,39 @@ exports[`Applications index test snapshots success 1`] = `
   font-weight: 600;
 }
 
-.c20.MuiButton-outlined {
+.c12.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
 }
 
-.c15.MuiButton-root {
+.c24.MuiButton-root {
   border-radius: 50%;
-  min-width: 48px;
-  height: 48px;
+  min-width: 38px;
+  height: 38px;
   padding: 0;
 }
 
-.c15.MuiButton-text {
+.c24.MuiButton-text {
   padding: 0;
-}
-
-.c22 {
-  padding: 4px;
-}
-
-.c29 {
-  padding: 8px;
-}
-
-.c24 td {
-  text-align: center;
-}
-
-.c21.MuiButton-root {
-  margin: 0;
-  text-transform: none;
-  -webkit-letter-spacing: 0;
-  -moz-letter-spacing: 0;
-  -ms-letter-spacing: 0;
-  letter-spacing: 0;
-}
-
-.c21.MuiButton-text {
-  min-width: 0px;
-}
-
-.c21.MuiButton-text .selected {
-  color: #1a1a1a;
-}
-
-.c21.arrow {
-  min-width: 0px;
 }
 
 .c19 {
-  width: 100%;
+  padding: 4px;
+}
+
+.c22 {
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
   overflow-x: auto;
 }
 
-.c19 h2 {
-  padding: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #737373;
-  margin: 0px;
-  white-space: nowrap;
-}
-
-.c19 .MuiTableRow-root {
-  -webkit-transition: background 0.5s ease-in-out;
-  transition: background 0.5s ease-in-out;
-}
-
-.c19 .MuiTableRow-root:not(.MuiTableRow-head):hover {
-  background: #f5f5f5;
-  -webkit-transition: background 0.5s ease-in-out;
-  transition: background 0.5s ease-in-out;
-}
-
-.c19 th {
-  padding: 0;
-}
-
-.c19 td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.c13 {
-  margin: 4px 0px;
-}
-
-.c13 .MuiChip-root {
+.c22 .MuiChip-root {
   margin-right: 4px;
 }
 
-.c30 {
+.c34 {
   position: relative;
   height: 100%;
   width: 0px;
@@ -657,13 +735,13 @@ exports[`Applications index test snapshots success 1`] = `
   transition-timing-function: ease-in-out;
 }
 
-.c30.open {
+.c34.open {
   left: 0px;
   width: 350px;
 }
 
-.c31 {
-  background: rgb(250,250,250);
+.c35 {
+  background: rbga(255,255,255,0.75);
   height: 100%;
   width: 100%;
   border-left: 2px solid #d8d8d8;
@@ -671,33 +749,121 @@ exports[`Applications index test snapshots success 1`] = `
   padding-left: 32px;
 }
 
-.c33 .MuiListItem-gutters {
+.c37 .MuiListItem-gutters {
   padding-left: 0px;
 }
 
-.c33 .MuiCheckbox-root {
+.c37 .MuiCheckbox-root {
   padding: 0px;
 }
 
-.c33 .MuiCheckbox-colorSecondary.Mui-checked {
+.c37 .MuiCheckbox-colorSecondary.Mui-checked {
   color: #00b3ec;
 }
 
-.c17 {
+.c26 {
   width: 0px;
   -webkit-transition: width 0.3s ease-in-out;
   transition: width 0.3s ease-in-out;
   margin-left: 4px;
 }
 
-.c17.expanded {
+.c26.expanded {
   width: 200px;
 }
 
-.c10 td:nth-child(7) {
+.c29 td {
+  text-align: center;
+}
+
+.c28.MuiButton-root {
+  margin: 0;
+  text-transform: none;
+  -webkit-letter-spacing: 0;
+  -moz-letter-spacing: 0;
+  -ms-letter-spacing: 0;
+  letter-spacing: 0;
+}
+
+.c28.MuiButton-text {
+  min-width: 0px;
+}
+
+.c28.MuiButton-text .selected {
+  color: #1a1a1a;
+}
+
+.c28.arrow {
+  min-width: 0px;
+}
+
+.c23 {
+  position: relative;
+  padding: 0 12px;
+}
+
+.c15 {
+  width: 100%;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: hidden;
+}
+
+.c15 h2 {
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #737373;
+  margin: 0px;
+  white-space: nowrap;
+}
+
+.c15 .MuiTableRow-root {
+  -webkit-transition: background 0.5s ease-in-out;
+  transition: background 0.5s ease-in-out;
+}
+
+.c15 .MuiTableRow-root:not(.MuiTableRow-head):hover {
+  background: #f5f5f5;
+  -webkit-transition: background 0.5s ease-in-out;
+  transition: background 0.5s ease-in-out;
+}
+
+.c15 table {
+  margin-top: 12px;
+}
+
+.c15 th {
+  padding: 8px;
+  background: #F6F7F9;
+}
+
+.c15 td {
+  padding-left: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.c16 td:nth-child(7) {
   white-space: pre-wrap;
   overflow-wrap: break-word;
   word-wrap: break-word;
+}
+
+.c7 {
+  height: 40px;
+  width: 40px;
+}
+
+.c7.MuiIconButton-root {
+  background-color: #fff;
+}
+
+.c7.MuiIconButton-root:hover {
+  background-color: #fff;
+  color: #009CCC;
 }
 
 .c5 {
@@ -709,19 +875,19 @@ exports[`Applications index test snapshots success 1`] = `
   margin: 0 auto;
 }
 
-.c8 {
-  margin: 24px 12px 0 12px;
-  padding: 32px 24px 24px 32px;
+.c10 {
+  margin: 0 16px;
+  padding: 24px;
   background-color: #fff;
-  border-radius: 8px;
+  border-radius: 8px 8px 0 0;
 }
 
-.c37 {
-  padding: 12px 24px;
-  margin: 12px;
-  background-color: #fff;
-  color: #1a1a1a;
-  border-radius: 8px;
+.c40 {
+  padding: calc(24px - 4px) 24px;
+  margin: 0 16px;
+  background-color: rgba(255,255,255,0.7);
+  color: #737373;
+  border-radius: 0 0 8px 8px;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -732,7 +898,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: space-between;
 }
 
-.c37 a {
+.c40 a {
   color: #00b3ec;
 }
 
@@ -759,12 +925,13 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c4 {
-  background: #fff;
+  background: #98E0F7;
   padding: 0 4px;
   -webkit-align-self: center;
   -ms-flex-item-align: center;
   align-self: center;
-  color: #00b3ec;
+  font-size: 14px;
+  color: #1a1a1a;
   margin-left: 4px;
   border-radius: 2px;
 }
@@ -784,21 +951,40 @@ exports[`Applications index test snapshots success 1`] = `
   display: flex;
   color: inherit;
   font-size: 20px;
-  background: #00b3ec;
   height: 80px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
-  padding-left: 32px;
+  padding: 0 12px 0 24px;
   position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 2;
+  background: inherit;
 }
 
 .c1 .MuiListItemIcon-root {
   min-width: 30px;
+}
+
+.c6 svg {
+  fill: #00b3ec;
+}
+
+.c6 button {
+  background-color: #f5f5f5;
+}
+
+.c11 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.c11 > .actionButton.btn {
+  margin-right: 12px;
 }
 
 <div>
@@ -812,7 +998,7 @@ exports[`Applications index test snapshots success 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-19"
+          class="makeStyles-path-32"
           style="align-items: center;"
         >
           <div
@@ -820,7 +1006,7 @@ exports[`Applications index test snapshots success 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-21"
+              class="makeStyles-link-35"
               href="/applications"
             >
               Applications
@@ -834,11 +1020,11 @@ exports[`Applications index test snapshots success 1`] = `
         </div>
       </div>
       <div
-        class="c5"
+        class="c5 c6"
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root"
+          class="MuiButtonBase-root MuiIconButton-root c7"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -847,7 +1033,7 @@ exports[`Applications index test snapshots success 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c6 c7"
+              class="c8 c9"
             >
               <svg
                 aria-hidden="true"
@@ -856,7 +1042,7 @@ exports[`Applications index test snapshots success 1`] = `
                 viewBox="0 0 24 24"
               >
                 <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
                 />
               </svg>
             </div>
@@ -868,86 +1054,31 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%;"
+      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
-        class="c8"
+        class="c10"
       >
         <div
-          class="c9 c10 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
+          style="display: flex; align-items: center; justify-content: space-between;"
         >
           <div
             class="c11"
           >
-            <div
-              class="c12 c13 $9121bed0097d59fd$var$ChipGroup"
-            />
-            <div
-              class="c14"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
+              id="add-application"
+              tabindex="0"
+              type="button"
             >
-              <div
-                class="c6 $621c541edae1f860$var$SearchField"
-              >
-                <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text c15 $621c541edae1f860$var$SearchField MuiButton-colorInherit MuiButton-disableElevation"
-                  tabindex="0"
-                  type="button"
-                >
-                  <span
-                    class="MuiButton-label"
-                  >
-                    <div
-                      class="c6 c16"
-                    >
-                      <svg
-                        aria-hidden="true"
-                        class="MuiSvgIcon-root"
-                        focusable="false"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-                        />
-                      </svg>
-                    </div>
-                  </span>
-                  <span
-                    class="MuiTouchRipple-root"
-                  />
-                </button>
-                <div
-                  class="c17 "
-                >
-                  <form>
-                    <div
-                      class="MuiFormControl-root MuiTextField-root $66a683f19021b9f2$var$Input"
-                    >
-                      <div
-                        class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
-                      >
-                        <input
-                          aria-invalid="false"
-                          class="MuiInputBase-input MuiInput-input"
-                          id="table-search"
-                          placeholder="Search"
-                          type="text"
-                          value=""
-                        />
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              </div>
-              <button
-                class="MuiButtonBase-root MuiButton-root MuiButton-text c15 c10 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable MuiButton-colorInherit MuiButton-disableElevation"
-                tabindex="0"
-                type="button"
+              <span
+                class="MuiButton-label"
               >
                 <span
-                  class="MuiButton-label"
+                  class="MuiButton-startIcon MuiButton-iconSizeMedium"
                 >
                   <div
-                    class="c6 c16"
+                    class="c8 c13"
                   >
                     <svg
                       aria-hidden="true"
@@ -956,408 +1087,600 @@ exports[`Applications index test snapshots success 1`] = `
                       viewBox="0 0 24 24"
                     >
                       <path
-                        d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
                       />
                     </svg>
                   </div>
                 </span>
-                <span
-                  class="MuiTouchRipple-root"
-                />
-              </button>
+                ADD AN APPLICATION
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </button>
+            <a
+              aria-disabled="false"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
+              href="/"
+              rel="noopener noreferrer"
+              tabindex="0"
+              target="_blank"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <div
+                  class="c8 c13 makeStyles-externalIcon-31"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
+                    />
+                  </svg>
+                </div>
+                GO TO OPEN PULL REQUESTS
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </a>
+          </div>
+        </div>
+        <div
+          class="c14 c15 c16 $de7736a788c0c71d$var$AutomationsTable"
+        >
+          <div
+            class="c17"
+          >
+            <div
+              class="c18 $52441885c75ba9c5$var$CheckboxActions"
+            >
+              <div
+                class=""
+                title="Suspend Selected"
+              >
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    <div
+                      class="c8 c9"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"
+                        />
+                      </svg>
+                    </div>
+                  </span>
+                </button>
+              </div>
+              <div
+                class="c19"
+              />
+              <div
+                class=""
+                title="Resume Selected"
+              >
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+                  disabled=""
+                  tabindex="-1"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    <div
+                      class="c8 c9"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M8 5v14l11-7z"
+                        />
+                      </svg>
+                    </div>
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="c20"
+            >
+              <div
+                class="c21 c22 $9121bed0097d59fd$var$ChipGroup"
+              />
+              <div
+                class="c8 c23"
+              >
+                <div
+                  class="c8 $621c541edae1f860$var$SearchField"
+                >
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-text c24 $621c541edae1f860$var$SearchField MuiButton-colorInherit MuiButton-disableElevation"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <span
+                      class="MuiButton-label"
+                    >
+                      <div
+                        class="c8 c25"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                          />
+                        </svg>
+                      </div>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
+                  </button>
+                  <div
+                    class="c26 "
+                  >
+                    <form>
+                      <div
+                        class="MuiFormControl-root MuiTextField-root $66a683f19021b9f2$var$Input"
+                      >
+                        <div
+                          class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                        >
+                          <input
+                            aria-invalid="false"
+                            class="MuiInputBase-input MuiInput-input"
+                            id="table-search"
+                            placeholder="Search"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+                <button
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text c24 c15 c16 $de7736a788c0c71d$var$AutomationsTable MuiButton-colorInherit MuiButton-disableElevation"
+                  tabindex="0"
+                  type="button"
+                >
+                  <span
+                    class="MuiButton-label"
+                  >
+                    <div
+                      class="c8 c25"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"
+                        />
+                      </svg>
+                    </div>
+                  </span>
+                  <span
+                    class="MuiTouchRipple-root"
+                  />
+                </button>
+              </div>
             </div>
           </div>
           <div
-            class="c18"
+            class="c27"
           >
             <div
-              class="c19 c10 $de7736a788c0c71d$var$AutomationsTable $7b611b2a53960955$var$URLAddressableTable $eabf06b5ec8ea276$var$FilterableTable"
+              class="MuiTableContainer-root"
             >
-              <div
-                class="MuiTableContainer-root"
+              <table
+                aria-label="simple table"
+                class="MuiTable-root"
               >
-                <table
-                  aria-label="simple table"
-                  class="MuiTable-root"
+                <thead
+                  class="MuiTableHead-root"
                 >
-                  <thead
-                    class="MuiTableHead-root"
+                  <tr
+                    class="MuiTableRow-root MuiTableRow-head"
                   >
-                    <tr
-                      class="MuiTableRow-root MuiTableRow-head"
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
                     >
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
+                      <span
+                        aria-disabled="false"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-43 Mui-checked MuiIconButton-colorPrimary"
                       >
-                        <div
-                          class="c12"
+                        <span
+                          class="MuiIconButton-label"
                         >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
+                          <input
+                            checked=""
+                            class="PrivateSwitchBase-input-45"
+                            data-indeterminate="false"
+                            type="checkbox"
+                            value=""
+                          />
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root"
+                            focusable="false"
+                            viewBox="0 0 24 24"
                           >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class="selected"
-                              >
-                                Name
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
+                            <path
+                              d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                             />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            class="c6 c23 downward"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Type
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Namespace
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Cluster
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Source
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Status
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Message
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Revision
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                      <th
-                        class="MuiTableCell-root MuiTableCell-head"
-                        scope="col"
-                      >
-                        <div
-                          class="c12"
-                        >
-                          <button
-                            class="MuiButtonBase-root MuiButton-root MuiButton-text c20 c21 MuiButton-colorInherit MuiButton-disableElevation"
-                            tabindex="0"
-                            type="button"
-                          >
-                            <span
-                              class="MuiButton-label"
-                            >
-                              <h2
-                                class=""
-                              >
-                                Last Updated
-                              </h2>
-                            </span>
-                            <span
-                              class="MuiTouchRipple-root"
-                            />
-                          </button>
-                          <div
-                            class="c22"
-                          />
-                          <div
-                            style="width: 16px;"
-                          />
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody
-                    class="MuiTableBody-root"
-                  >
-                    <tr
-                      class="MuiTableRow-root c24"
-                      colspan="9"
+                          </svg>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </span>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
                     >
-                      <td
-                        class="MuiTableCell-root MuiTableCell-body"
-                        colspan="9"
+                      <div
+                        class="c18"
                       >
-                        <div
-                          class="c25"
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
                         >
-                          <div
-                            class="c6 c26"
-                          >
-                            <svg
-                              aria-hidden="true"
-                              class="MuiSvgIcon-root"
-                              focusable="false"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"
-                              />
-                            </svg>
-                          </div>
-                          <div
-                            class="c22"
-                          />
                           <span
-                            class="c27 c28"
-                            color="neutral30"
+                            class="MuiButton-label"
                           >
-                            No data
+                            <h2
+                              class=""
+                            >
+                              Name
+                            </h2>
                           </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class=""
+                            >
+                              Type
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class=""
+                            >
+                              Namespace
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class=""
+                            >
+                              Source
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class="selected"
+                            >
+                              Status
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          class="c8 c13 downward"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root"
+                            focusable="false"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
+                            />
+                          </svg>
                         </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div
-                class="c29"
-              />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class=""
+                            >
+                              Message
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class=""
+                            >
+                              Revision
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c28 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class=""
+                            >
+                              Last Updated
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c19"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  class="MuiTableBody-root"
+                >
+                  <tr
+                    class="MuiTableRow-root c29"
+                    colspan="8"
+                  >
+                    <td
+                      class="MuiTableCell-root MuiTableCell-body"
+                      colspan="8"
+                    >
+                      <div
+                        class="c30"
+                      >
+                        <div
+                          class="c8 c31"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            class="MuiSvgIcon-root"
+                            focusable="false"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"
+                            />
+                          </svg>
+                        </div>
+                        <div
+                          class="c19"
+                        />
+                        <span
+                          class="c32 c33"
+                          color="neutral30"
+                        >
+                          No data
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             <div
-              class="c30"
+              class="c34"
               data-testid="container"
             >
               <div
-                class="c31"
+                class="c35"
               >
                 <div
-                  class="c32 c33"
+                  class="c36 c37"
                 >
                   <div
-                    class="c34"
+                    class="c21"
                   >
                     <span
-                      class="c27 c35"
+                      class="c32 c38"
                       color="neutral30"
                     >
                       Filters
@@ -1383,64 +1706,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-24 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-26 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-44 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-27"
-                                    data-indeterminate="false"
-                                    disabled=""
-                                    id="clusterName"
-                                    type="checkbox"
-                                    value=""
-                                  />
-                                  <svg
-                                    aria-hidden="true"
-                                    class="MuiSvgIcon-root"
-                                    focusable="false"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                                    />
-                                  </svg>
-                                </span>
-                              </span>
-                            </div>
-                            <span
-                              class="c27 c36"
-                              color="neutral30"
-                            >
-                              cluster
-                            </span>
-                          </li>
-                        </ul>
-                      </li>
-                      <li
-                        class="MuiListItem-root MuiListItem-gutters"
-                      >
-                        <ul
-                          class="MuiList-root MuiList-padding"
-                        >
-                          <li
-                            class="MuiListItem-root MuiListItem-gutters"
-                          >
-                            <div
-                              class="MuiListItemIcon-root"
-                            >
-                              <span
-                                aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-24 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-26 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
-                                tabindex="-1"
-                              >
-                                <span
-                                  class="MuiIconButton-label"
-                                >
-                                  <input
-                                    class="PrivateSwitchBase-input-27"
+                                    class="PrivateSwitchBase-input-45"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="namespace"
@@ -1461,7 +1734,7 @@ exports[`Applications index test snapshots success 1`] = `
                               </span>
                             </div>
                             <span
-                              class="c27 c36"
+                              class="c32 c39"
                               color="neutral30"
                             >
                               namespace
@@ -1483,14 +1756,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-24 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-26 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-44 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-27"
+                                    class="PrivateSwitchBase-input-45"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="status"
@@ -1511,7 +1784,7 @@ exports[`Applications index test snapshots success 1`] = `
                               </span>
                             </div>
                             <span
-                              class="c27 c36"
+                              class="c32 c39"
                               color="neutral30"
                             >
                               status
@@ -1533,14 +1806,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-24 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-26 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-44 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-27"
+                                    class="PrivateSwitchBase-input-45"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="type"
@@ -1561,7 +1834,7 @@ exports[`Applications index test snapshots success 1`] = `
                               </span>
                             </div>
                             <span
-                              class="c27 c36"
+                              class="c32 c39"
                               color="neutral30"
                             >
                               type
@@ -1578,14 +1851,14 @@ exports[`Applications index test snapshots success 1`] = `
         </div>
       </div>
       <div
-        class="c37"
+        class="c40"
       >
         <div>
-          Need help? Contact us at 
+          Need help? Raise a 
           <a
-            href="mailto:support@weave.works"
+            href="https://weavesupport.zendesk.com/"
           >
-            support@weave.works
+            support ticket
           </a>
         </div>
         <div

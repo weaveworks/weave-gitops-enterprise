@@ -1,9 +1,10 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
-import { HelmChartDetail, useListSources } from '@weaveworks/weave-gitops';
+import { useApplicationsCount, useSourcesCount } from './utils';
+import { HelmChartDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
+import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
   name: string;
@@ -12,8 +13,14 @@ type Props = {
 };
 
 const WGApplicationsHelmChart: FC<Props> = props => {
+  const { name, namespace, clusterName } = props;
   const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const sourcesCount = useSourcesCount();
+  const {
+    data: helmChart,
+    isLoading,
+    error,
+  } = useGetObject<HelmChart>(name, namespace, Kind.HelmChart, clusterName);
 
   return (
     <PageTemplate documentTitle="WeGO · Helm Chart">
@@ -27,15 +34,20 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           {
             label: 'Sources',
             url: '/sources',
-            count: sources?.length,
+            count: sourcesCount,
           },
           {
             label: `${props.name}`,
           },
         ]}
       />
-      <ContentWrapper>
-        <HelmChartDetail {...props} />
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <HelmChartDetail helmChart={helmChart} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

@@ -40,6 +40,7 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 		log,
 		nil,
 		clustersmngr.NewClustersClientsPool,
+		clustersmngr.DefaultKubeConfigOptions,
 	)
 
 	opts := server.ServerOpts{
@@ -49,7 +50,7 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 
 	enServer := server.NewClusterServer(opts)
 	lis := bufconn.Listen(1024 * 1024)
-	principal := &auth.UserPrincipal{}
+	principal := auth.NewUserPrincipal(auth.Token("1234"))
 	s := grpc.NewServer(
 		withClientsPoolInterceptor(clientsFactory, cfg, principal),
 	)

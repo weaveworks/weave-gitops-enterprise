@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Route } from 'react-router-dom';
+import { Switch, Route, Redirect } from 'react-router-dom';
 import ClustersProvider from '../contexts/Clusters/Provider';
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
@@ -35,6 +35,7 @@ import { ContentWrapper } from './Layout/ContentWrapper';
 import Lottie from 'react-lottie-player';
 import error404 from '../assets/img/error404.json';
 import AddClusterWithCredentials from './Clusters/Create';
+import EditCluster from './Clusters/Edit';
 import WGApplicationsDashboard from './Applications';
 import WGApplicationsSources from './Applications/Sources';
 import WGApplicationsKustomization from './Applications/Kustomization';
@@ -57,10 +58,16 @@ import ProgressiveDelivery from './ProgressiveDelivery';
 import ClusterDashboard from './Clusters/ClusterDashboard';
 import ErrorBoundary from './ErrorBoundary';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
+import AddApplication from './Applications/Add';
+import Pipelines from './Pipelines';
+import WGApplicationsOCIRepository from './Applications/OCIRepository';
+import PipelineDetails from './Pipelines/PipelineDetails';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
+const PIPELINES = '/applications/pipelines';
+export const EDIT_CLUSTER = '/clusters/:clusterName/edit';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -111,7 +118,7 @@ const useStyles = makeStyles((theme: Theme) =>
       overflowY: 'hidden',
       width: drawerWidth,
       border: 'none',
-      background: weaveTheme.colors.neutral10,
+      background: 'none',
     },
     content: {
       flexGrow: 1,
@@ -120,7 +127,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 const SignInWrapper = styled.div`
-  height: 100vh;
+  height: calc(100vh - 90px);
   .MuiAlert-root {
     width: 470px;
   }
@@ -214,7 +221,7 @@ const App = () => {
                 keepMounted: true, // Better open performance on mobile.
               }}
             >
-              <div className={classes.toolbar}>
+              <div>
                 <Navigation />
               </div>
             </Drawer>
@@ -227,16 +234,17 @@ const App = () => {
               variant="permanent"
               open
             >
-              <div className={classes.toolbar}>
-                <Navigation />
-              </div>
+              <Navigation />
             </Drawer>
           </Hidden>
         </nav>
         <main className={classes.content}>
           <ErrorBoundary>
             <Switch>
-              <Route component={MCCP} exact path={['/', '/clusters']} />
+              <Route exact path="/">
+                <Redirect to="/clusters" />
+              </Route>
+              <Route component={MCCP} exact path={'/clusters'} />
               <Route component={MCCP} exact path="/clusters/delete" />
               <Route
                 component={withSearchParams((props: any) => (
@@ -244,6 +252,7 @@ const App = () => {
                 ))}
                 path="/cluster"
               />
+              <Route component={EditCluster} exact path={EDIT_CLUSTER} />
               <Route
                 component={AddClusterWithCredentials}
                 exact
@@ -272,6 +281,11 @@ const App = () => {
                 )}
                 exact
                 path={V2Routes.Automations}
+              />
+              <Route
+                component={AddApplication}
+                exact
+                path="/applications/create"
               />
               <Route
                 component={() => (
@@ -331,11 +345,28 @@ const App = () => {
                 path={V2Routes.HelmChart}
               />
               <Route
-                component={WGApplicationsFluxRuntime}
-                exact
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGApplicationsOCIRepository {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.OCIRepository}
+              />
+              <Route
+                component={() => (
+                  <CoreWrapper>
+                    <WGApplicationsFluxRuntime />
+                  </CoreWrapper>
+                )}
                 path={V2Routes.FluxRuntime}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
+              <Route exact path={PIPELINES} component={Pipelines} />
+              <Route
+                exact
+                path="/applications/pipelines/details"
+                component={withSearchParams(PipelineDetails)}
+              />
               <Route
                 path="/applications/delivery/:id"
                 component={withSearchParams(CanaryDetails)}
@@ -346,7 +377,6 @@ const App = () => {
                 path="/policies/details"
                 component={withSearchParams(PolicyDetails)}
               />
-
               <Route
                 exact
                 path={GITLAB_OAUTH_CALLBACK}

@@ -6,57 +6,77 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Link } from 'react-router-dom';
+import { generateRowHeaders } from '../../RowHeader';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
+  source?: string;
 }
 
-function ViolationDetails({ violation }: IViolationDetailsProps) {
+function ViolationDetails({ violation, source }: IViolationDetailsProps) {
   const classes = usePolicyStyle();
   const {
     severity,
     createdAt,
     category,
     howToSolve,
-    message,
     description,
     violatingEntity,
     entity,
     namespace,
     occurrences,
     clusterName,
+    name,
   } = violation || {};
+
+  const defaultHeaders = [
+    {
+      rowkey: 'Cluster Name',
+      value: clusterName,
+    },
+    {
+      rowkey: 'Violation Time',
+      value: moment(createdAt).fromNow(),
+    },
+    {
+      rowkey: 'Severity',
+      children: <Severity severity={severity || ''} />,
+    },
+    {
+      rowkey: 'Category',
+      value: category,
+    },
+  ];
+
+  const applicationHeaderDetails = [
+    {
+      rowkey: 'Policy Name',
+      children: (
+        <Link
+          to={`/policies/details?clusterName=${clusterName}&id=${violation?.policyId}`}
+          className={classes.link}
+          data-violation-message={name}
+        >
+          {name}
+        </Link>
+      ),
+    },
+    ...defaultHeaders,
+  ];
+  const headerDetails = [
+    ...defaultHeaders,
+    {
+      rowkey: 'Application',
+      value: `${namespace}/${entity}`,
+    },
+  ];
+  const displayedHeaders = !!source ? applicationHeaderDetails : headerDetails;
 
   return (
     <>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Message:</div>
-        <span className={classes.body1}>{message}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Cluster Name:</div>
-        <span className={classes.body1}>{clusterName}</span>
-      </div>
+      {generateRowHeaders(displayedHeaders)}
 
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Violation Time:</div>
-        <span className={classes.body1}>{moment(createdAt).fromNow()}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={`${classes.cardTitle} ${classes.marginrightSmall}`}>
-          Severity:
-        </div>
-        <Severity severity={severity || ''} />
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Category:</div>
-        <span className={classes.body1}>{category}</span>
-      </div>
-      <div className={`${classes.contentWrapper} ${classes.flexStart}`}>
-        <div className={classes.cardTitle}>Application:</div>
-        <span className={classes.body1}>{`${namespace}/${entity}`}</span>
-      </div>
-      <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>
           Occurences{' '}
@@ -64,7 +84,7 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
             ( {occurrences?.length} )
           </span>
         </div>
-        <ul className={classes.occurrencesList}>
+        <ul className={classes.occurrencesList} id="occurrences">
           {occurrences?.map(item => (
             <li key={item.message} className={classes.body1}>
               {item.message}
@@ -73,8 +93,7 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
         </ul>
       </div>
 
-      <hr />
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="description">
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
@@ -82,16 +101,16 @@ function ViolationDetails({ violation }: IViolationDetailsProps) {
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="howToSolve">
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
           className={classes.editor}
           remarkPlugins={[remarkGfm]}
-        />{' '}
+        />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="violatingEntity">
         <div className={classes.cardTitle}>Violating Entity:</div>
         <div>
           <SyntaxHighlighter

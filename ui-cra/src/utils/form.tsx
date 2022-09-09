@@ -181,9 +181,8 @@ export const Select: FC<SelectProps> = ({
 
 export const validateFormData = (event: any, onSubmit: any) => {
   const { form } = event.currentTarget;
-  const isValid = form?.checkValidity();
+  const isValid = form?.reportValidity();
   event.preventDefault();
-  event.stopPropagation();
   if (isValid) {
     onSubmit();
   } else {

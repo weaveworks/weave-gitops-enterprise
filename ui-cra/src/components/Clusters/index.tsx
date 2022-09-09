@@ -1,50 +1,57 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Checkbox,
+  createStyles,
+  makeStyles,
+  withStyles,
+} from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
+import EditIcon from '@material-ui/icons/Edit';
+import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
+import {
+  Button,
+  CallbackStateContextProvider,
+  filterByStatusCallback,
+  filterConfig,
+  Icon,
+  IconType,
+  DataTable,
+  KubeStatusIndicator,
+  LoadingPage,
+  statusSortHelper,
+  theme,
+} from '@weaveworks/weave-gitops';
+import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
+import { useListConfig } from '../../hooks/versions';
+import { localEEMuiTheme } from '../../muiTheme';
+import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
+import { useCallbackState } from '../../utils/callback-state';
+import { EKSDefault, GKEDefault, Kind, Kubernetes } from '../../utils/icons';
+import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
-import { Link, useHistory } from 'react-router-dom';
-import useTemplates from '../../contexts/Templates';
-import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
-import styled from 'styled-components';
-import {
-  Button,
-  theme,
-  CallbackStateContextProvider,
-  getCallbackState,
-  Icon,
-  IconType,
-  FilterableTable,
-  filterByStatusCallback,
-  filterConfig,
-  LoadingPage,
-  KubeStatusIndicator,
-  SortType,
-  statusSortHelper,
-  applicationsClient,
-} from '@weaveworks/weave-gitops';
-import { DeleteClusterDialog } from './Delete';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { localEEMuiTheme } from '../../muiTheme';
-import { Checkbox, withStyles } from '@material-ui/core';
-import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
-import { useListConfig } from '../../hooks/versions';
-import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
-import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import { DeleteClusterDialog } from './Delete';
+import { getCreateRequestAnnotation } from './Form/utils';
 
 interface Size {
   size?: 'small';
 }
 
+type Props = {
+  cluster: GitopsClusterEnriched;
+};
+
 const ActionsWrapper = styled.div<Size>`
   display: flex;
-  & > * {
-    margin-right: ${({ theme }) => theme.spacing.medium};
-  }
 `;
 
 const ClustersTableWrapper = styled(TableWrapper)`
@@ -56,6 +63,7 @@ const ClustersTableWrapper = styled(TableWrapper)`
   td:first-of-type {
     text-overflow: clip;
     width: 25px;
+    padding-left: ${({ theme }) => theme.spacing.base};
   }
   td:nth-child(7) {
     white-space: pre-wrap;
@@ -72,14 +80,6 @@ const LoadingWrapper = styled.div`
   ${contentCss};
 `;
 
-const random = Math.random().toString(36).substring(7);
-
-export const PRdefaults = {
-  branchName: `delete-clusters-branch-${random}`,
-  pullRequestTitle: 'Deletes capi cluster(s)',
-  commitMessage: 'Deletes capi cluster(s)',
-};
-
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
     c => c.type === 'Ready' || c.type === 'Available',
@@ -87,6 +87,38 @@ export function computeMessage(conditions: Condition[]) {
 
   return readyCondition ? readyCondition.message : 'unknown error';
 }
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    clusterIcon: {
+      marginRight: theme.spacing.small,
+      color: theme.colors.neutral30,
+    },
+    externalIcon: {
+      marginRight: theme.spacing.small,
+    },
+  }),
+);
+
+export const ClusterIcon: FC<Props> = ({ cluster }) => {
+  const classes = useStyles();
+  const clusterKind =
+    cluster.annotations?.['weave.works/cluster-kind'] ||
+    cluster.capiCluster?.infrastructureRef?.kind;
+
+  return (
+    <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
+      <span>
+        <Octicon
+          className={classes.clusterIcon}
+          icon={getClusterTypeIcon(clusterKind)}
+          size="medium"
+          verticalAlign="middle"
+        />
+      </span>
+    </Tooltip>
+  );
+};
 
 const IndividualCheckbox = withStyles({
   root: {
@@ -118,6 +150,25 @@ const ClusterRowCheckbox = ({
   />
 );
 
+const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
+  if (clusterType === 'DockerCluster') {
+    return Kind;
+  } else if (
+    clusterType === 'AWSCluster' ||
+    clusterType === 'AWSManagedCluster'
+  ) {
+    return EKSDefault;
+  } else if (
+    clusterType === 'AzureCluster' ||
+    clusterType === 'AzureManagedCluster'
+  ) {
+    return Kubernetes;
+  } else if (clusterType === 'GCPCluster') {
+    return GKEDefault;
+  }
+  return Kubernetes;
+};
+
 interface FormData {
   url: string | null;
   branchName: string;
@@ -132,9 +183,8 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const { data } = useListConfig();
+  const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
-  const [repoLink, setRepoLink] = useState<string>('');
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
@@ -146,6 +196,22 @@ const MCCP: FC = () => {
       ),
     [capiClusters, selectedClusters],
   );
+  const [random, setRandom] = useState<string>(
+    Math.random().toString(36).substring(7),
+  );
+  const classes = useStyles();
+
+  useEffect(() => {
+    if (openDeletePR === true) {
+      setRandom(Math.random().toString(36).substring(7));
+    }
+  }, [openDeletePR]);
+
+  const PRdefaults: PRDefaults = {
+    branchName: `delete-clusters-branch-${random}`,
+    pullRequestTitle: 'Deletes capi cluster(s)',
+    commitMessage: 'Deletes capi cluster(s)',
+  };
 
   const authRedirectPage = `/clusters`;
 
@@ -155,7 +221,7 @@ const MCCP: FC = () => {
     pullRequestDescription: '',
   };
 
-  const callbackState = getCallbackState();
+  const callbackState = useCallbackState();
 
   if (callbackState) {
     initialFormData = {
@@ -170,20 +236,23 @@ const MCCP: FC = () => {
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const history = useHistory();
-  const { activeTemplate } = useTemplates();
 
   const handleAddCluster = useCallback(() => {
-    if (activeTemplate === null) {
-      history.push('/clusters/templates');
-      return null;
-    }
-    history.push(`/clusters/templates/${activeTemplate.name}/create`);
-  }, [activeTemplate, history]);
+    history.push('/clusters/templates');
+  }, [history]);
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
+    ...filterConfig(clusters, 'name'),
   };
+
+  const handleEditCluster = useCallback(
+    (event, c) => {
+      history.push(`/clusters/${c.name}/edit`);
+    },
+    [history],
+  );
 
   useEffect(() => {
     if (!callbackState) {
@@ -251,17 +320,6 @@ const MCCP: FC = () => {
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
 
-  useEffect(() => {
-    repositoryURL &&
-      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
-        if (res.provider === 'GitHub') {
-          setRepoLink(repositoryURL + `/pulls`);
-        } else if (res.provider === 'GitLab') {
-          setRepoLink(repositoryURL + `/-/merge_requests`);
-        }
-      });
-  }, [repositoryURL]);
-
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Clusters">
@@ -328,6 +386,7 @@ const MCCP: FC = () => {
                     setFormData={setFormData}
                     selectedCapiClusters={selectedCapiClusters}
                     setOpenDeletePR={setOpenDeletePR}
+                    prDefaults={PRdefaults}
                   />
                 )}
                 {openConnectInfo && (
@@ -335,22 +394,24 @@ const MCCP: FC = () => {
                     onFinish={() => setOpenConnectInfo(false)}
                   />
                 )}
+                <Link
+                  target={'_blank'}
+                  rel="noopener noreferrer"
+                  component={Button}
+                  to={{ pathname: repoLink }}
+                >
+                  <Icon
+                    className={classes.externalIcon}
+                    type={IconType.ExternalTab}
+                    size="base"
+                  />
+                  GO TO OPEN PULL REQUESTS
+                </Link>
               </ActionsWrapper>
-              <a
-                style={{
-                  color: theme.colors.primary,
-                  padding: theme.spacing.small,
-                }}
-                href={repoLink}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View open Pull Requests
-              </a>
             </div>
             {!isLoading ? (
               <ClustersTableWrapper id="clusters-list">
-                <FilterableTable
+                <DataTable
                   key={clusters.length}
                   filters={initialFilterState}
                   rows={clusters}
@@ -412,8 +473,9 @@ const MCCP: FC = () => {
                     },
                     {
                       label: 'Type',
-                      value: (c: GitopsClusterEnriched) =>
-                        c.capiClusterRef ? 'capi' : 'other',
+                      value: (c: GitopsClusterEnriched) => (
+                        <ClusterIcon cluster={c}></ClusterIcon>
+                      ),
                     },
                     {
                       label: 'Namespace',
@@ -428,16 +490,27 @@ const MCCP: FC = () => {
                             conditions={c.conditions}
                           />
                         ) : null,
-                      sortType: SortType.number,
                       sortValue: statusSortHelper,
                     },
                     {
                       label: 'Message',
                       value: (c: GitopsClusterEnriched) =>
-                        (c.conditions && c.conditions[0].message) || null,
-                      sortType: SortType.string,
+                        (c.conditions && c.conditions[0]?.message) || null,
                       sortValue: ({ conditions }) => computeMessage(conditions),
                       maxWidth: 600,
+                    },
+                    {
+                      label: '',
+                      value: (c: GitopsClusterEnriched) => (
+                        <Button
+                          id="edit-cluster"
+                          startIcon={<EditIcon fontSize="small" />}
+                          onClick={event => handleEditCluster(event, c)}
+                          disabled={!Boolean(getCreateRequestAnnotation(c))}
+                        >
+                          EDIT CLUSTER
+                        </Button>
+                      ),
                     },
                   ]}
                 />

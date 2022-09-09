@@ -14,12 +14,11 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"sigs.k8s.io/yaml"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -39,8 +38,9 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1.AddToScheme,
-		pacv1.AddToScheme,
+		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
+		gapiv1.AddToScheme,
 		clusterv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
@@ -58,12 +58,12 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 
 type serverOptions struct {
 	clusterState   []runtime.Object
-	configMapName  string
 	namespace      string
 	provider       git.Provider
 	ns             string
 	hr             *sourcev1.HelmRepository
 	clientsFactory clustersmngr.ClientsFactory
+	capiEnabled    bool
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -73,10 +73,9 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 	return NewClusterServer(
 		ServerOpts{
 			Logger: logr.Discard(),
-			TemplatesLibrary: &templates.ConfigMapLibrary{
+			TemplatesLibrary: &templates.CRDLibrary{
 				Log:           logr.Discard(),
-				Client:        c,
-				ConfigMapName: o.configMapName,
+				ClientGetter:  kubefakes.NewFakeClientGetter(c),
 				CAPINamespace: o.namespace,
 			},
 			ClustersLibrary: &clusters.CRDLibrary{
@@ -91,6 +90,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ClustersNamespace:         o.ns,
 			ProfileHelmRepositoryName: "weaveworks-charts",
 			HelmRepositoryCacheDir:    t.TempDir(),
+			CAPIEnabled:               o.capiEnabled,
 		},
 	)
 }
@@ -119,21 +119,7 @@ func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository))
 	return hr
 }
 
-func makeTemplateConfigMap(name string, s ...string) *corev1.ConfigMap {
-	data := make(map[string]string)
-	for i := 0; i < len(s); i += 2 {
-		data[s[i]] = s[i+1]
-	}
-	return &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: "default",
-		},
-		Data: data,
-	}
-}
-
-func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
+func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.CAPITemplate {
 	t.Helper()
 	basicRaw := `
 	{
@@ -147,26 +133,25 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 		}
 	 }`
 	ct := &capiv1.CAPITemplate{
-		Template: apitemplates.Template{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       capiv1.Kind,
-				APIVersion: "capi.weave.works/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "cluster-template-1",
-			},
-			Spec: apitemplates.TemplateSpec{
-				Description: "this is test template 1",
-				Params: []apitemplates.TemplateParam{
-					{
-						Name:        "CLUSTER_NAME",
-						Description: "This is used for the cluster naming.",
-					},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       capiv1.Kind,
+			APIVersion: "capi.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-template-1",
+			Namespace: "default",
+		},
+		Spec: apitemplates.TemplateSpec{
+			Description: "this is test template 1",
+			Params: []apitemplates.TemplateParam{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
 				},
-				ResourceTemplates: []apitemplates.ResourceTemplate{
-					{
-						RawExtension: rawExtension(basicRaw),
-					},
+			},
+			ResourceTemplates: []apitemplates.ResourceTemplate{
+				{
+					RawExtension: rawExtension(basicRaw),
 				},
 			},
 		},
@@ -174,14 +159,10 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) string {
 	for _, o := range opts {
 		o(ct)
 	}
-	b, err := yaml.Marshal(ct)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return string(b)
+	return ct
 }
 
-func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemplate)) string {
+func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemplate)) *gapiv1.GitOpsTemplate {
 	t.Helper()
 	basicRaw := `
 	{
@@ -195,26 +176,25 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 		}
 	 }`
 	ct := &gapiv1.GitOpsTemplate{
-		Template: apitemplates.Template{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       gapiv1.Kind,
-				APIVersion: "clustertemplates.weave.works/v1alpha1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "cluster-template-1",
-			},
-			Spec: apitemplates.TemplateSpec{
-				Description: "this is test template 1",
-				Params: []apitemplates.TemplateParam{
-					{
-						Name:        "RESOURCE_NAME",
-						Description: "This is used for the resource naming.",
-					},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       gapiv1.Kind,
+			APIVersion: "clustertemplates.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cluster-template-1",
+			Namespace: "default",
+		},
+		Spec: apitemplates.TemplateSpec{
+			Description: "this is test template 1",
+			Params: []apitemplates.TemplateParam{
+				{
+					Name:        "RESOURCE_NAME",
+					Description: "This is used for the resource naming.",
 				},
-				ResourceTemplates: []apitemplates.ResourceTemplate{
-					{
-						RawExtension: rawExtension(basicRaw),
-					},
+			},
+			ResourceTemplates: []apitemplates.ResourceTemplate{
+				{
+					RawExtension: rawExtension(basicRaw),
 				},
 			},
 		},
@@ -222,11 +202,7 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 	for _, o := range opts {
 		o(ct)
 	}
-	b, err := yaml.Marshal(ct)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return string(b)
+	return ct
 }
 
 func rawExtension(s string) runtime.RawExtension {
@@ -235,9 +211,9 @@ func rawExtension(s string) runtime.RawExtension {
 	}
 }
 
-func makePolicy(t *testing.T, opts ...func(p *pacv1.Policy)) *pacv1.Policy {
+func makePolicy(t *testing.T, opts ...func(p *pacv2beta1.Policy)) *pacv2beta1.Policy {
 	t.Helper()
-	policy := &pacv1.Policy{
+	policy := &pacv2beta1.Policy{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Policy",
 			APIVersion: "v1",
@@ -245,16 +221,16 @@ func makePolicy(t *testing.T, opts ...func(p *pacv1.Policy)) *pacv1.Policy {
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "weave.policies.missing-owner-label",
 		},
-		Spec: pacv1.PolicySpec{
+		Spec: pacv2beta1.PolicySpec{
 			Name:     "Missing Owner Label",
 			Severity: "high",
 			Code:     "foo",
-			Targets: pacv1.PolicyTargets{
+			Targets: pacv2beta1.PolicyTargets{
 				Labels:     []map[string]string{{"my-label": "my-value"}},
 				Kinds:      []string{},
 				Namespaces: []string{},
 			},
-			Standards: []pacv1.PolicyStandard{},
+			Standards: []pacv2beta1.PolicyStandard{},
 		},
 	}
 	for _, o := range opts {
@@ -276,6 +252,7 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: map[string]string{
 				"policy_name":     "Missing app Label",
+				"policy_id":       "weave.policies.missing-app-label",
 				"cluster_id":      "cluster-1",
 				"category":        "Access Control",
 				"severity":        "high",

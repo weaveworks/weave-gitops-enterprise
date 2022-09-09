@@ -10,6 +10,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -29,16 +30,21 @@ type Options struct {
 	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
+	RuntimeNamespace             string
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
+	CAPIEnabled                  bool
 	EntitlementSecretKey         client.ObjectKey
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
+	AuthMethods                  map[auth.AuthMethod]bool
 	OIDC                         OIDCAuthenticationOptions
 	TLSCert                      string
 	TLSKey                       string
 	NoTLS                        bool
+	DevMode                      bool
+	ClientsFactory               clustersmngr.ClientsFactory
 }
 
 type Option func(*Options)
@@ -122,6 +128,14 @@ func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
 	}
 }
 
+// WithRuntimeNamespace set the namespace that holds any authentication
+// secrets (e.g. cluster-user-auth or oidc-auth).
+func WithRuntimeNamespace(RuntimeNamespace string) Option {
+	return func(o *Options) {
+		o.RuntimeNamespace = RuntimeNamespace
+	}
+}
+
 // WithProfileHelmRepository is used to set the name of the Flux
 // HelmRepository object that will be inspected for Helm charts
 // that include the profile annotation.
@@ -179,17 +193,42 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 	}
 }
 
-// WithOIDCConfig is used to set the OIDC configuration.
-func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
+// WithAuthConfig is used to set the auth configuration including OIDC
+func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions) Option {
 	return func(o *Options) {
+		o.AuthMethods = authMethods
 		o.OIDC = oidc
 	}
 }
 
+// WithTLSConfig is used to set the TLS configuration.
 func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 	return func(o *Options) {
 		o.TLSCert = tlsCert
 		o.TLSKey = tlsKey
 		o.NoTLS = noTLS
+	}
+}
+
+// WithCAPIEnabled is enabled/disable CAPI support
+// If the CAPI CRDS are not installed in the cluster and CAPI is
+// enabled, the system will error on certain routes
+func WithCAPIEnabled(capiEnabled bool) Option {
+	return func(o *Options) {
+		o.CAPIEnabled = capiEnabled
+	}
+}
+
+// WithDevMode starts the server in development mode
+func WithDevMode(devMode bool) Option {
+	return func(o *Options) {
+		o.DevMode = devMode
+	}
+}
+
+// WithClientsFactory defines the clients factory that will be use for cross-cluster queries.
+func WithClientsFactory(factory clustersmngr.ClientsFactory) Option {
+	return func(o *Options) {
+		o.ClientsFactory = factory
 	}
 }

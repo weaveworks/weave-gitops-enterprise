@@ -107,6 +107,8 @@ export type ListPoliciesResponse = {
 export type ListPolicyValidationsRequest = {
   clusterName?: string
   pagination?: Pagination
+  application?: string
+  namespace?: string
 }
 
 export type ListPolicyValidationsResponse = {
@@ -144,6 +146,7 @@ export type PolicyValidation = {
   name?: string
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
+  policyId?: string
 }
 
 export type CreatePullRequestRequest = {
@@ -159,6 +162,7 @@ export type CreatePullRequestRequest = {
   values?: ProfileValues[]
   repositoryApiUrl?: string
   clusterNamespace?: string
+  kustomizations?: Kustomization[]
 }
 
 export type CreatePullRequestResponse = {
@@ -246,6 +250,7 @@ export type CapiCluster = {
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
   status?: CapiClusterStatus
+  infrastructureRef?: CapiClusterInfrastructureRef
 }
 
 export type CapiClusterStatus = {
@@ -255,6 +260,12 @@ export type CapiClusterStatus = {
   controlPlaneReady?: boolean
   conditions?: Condition[]
   observedGeneration?: string
+}
+
+export type CapiClusterInfrastructureRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
 }
 
 export type GitopsClusterRef = {
@@ -285,11 +296,14 @@ export type Parameter = {
   description?: string
   required?: boolean
   options?: string[]
+  default?: string
 }
 
 export type TemplateProfile = {
   name?: string
   version?: string
+  editable?: boolean
+  values?: string
 }
 
 export type TemplateObject = {
@@ -305,6 +319,69 @@ export type GetEnterpriseVersionRequest = {
 
 export type GetEnterpriseVersionResponse = {
   version?: string
+}
+
+export type CreateAutomationsPullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  commitMessage?: string
+  repositoryApiUrl?: string
+  clusterAutomations?: ClusterAutomation[]
+}
+
+export type ClusterAutomation = {
+  cluster?: ClusterNamespacedName
+  isControlPlane?: boolean
+  kustomization?: Kustomization
+  helmRelease?: HelmRelease
+  filePath?: string
+}
+
+export type Kustomization = {
+  metadata?: Metadata
+  spec?: KustomizationSpec
+}
+
+export type KustomizationSpec = {
+  path?: string
+  sourceRef?: SourceRef
+}
+
+export type HelmRelease = {
+  metadata?: Metadata
+  spec?: HelmReleaseSpec
+}
+
+export type HelmReleaseSpec = {
+  chart?: Chart
+  values?: string
+}
+
+export type Chart = {
+  spec?: ChartSpec
+}
+
+export type ChartSpec = {
+  chart?: string
+  sourceRef?: SourceRef
+  version?: string
+}
+
+export type Metadata = {
+  name?: string
+  namespace?: string
+}
+
+export type SourceRef = {
+  name?: string
+  namespace?: string
+}
+
+export type CreateAutomationsPullRequestResponse = {
+  webUrl?: string
 }
 
 export type Maintainer = {
@@ -388,6 +465,7 @@ export type Policy = {
   targets?: PolicyTargets
   createdAt?: string
   clusterName?: string
+  tenant?: string
 }
 
 export type ObjectRef = {
@@ -451,6 +529,9 @@ export class ClustersService {
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static CreateAutomationsPullRequest(req: CreateAutomationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateAutomationsPullRequestResponse> {
+    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/enterprise/automations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

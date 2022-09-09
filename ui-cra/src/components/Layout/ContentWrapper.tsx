@@ -1,38 +1,32 @@
-import React, { FC } from 'react';
-import styled, { css } from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
-import { Tooltip } from '../Shared';
-import { ListError } from '../../cluster-services/cluster_services.pb';
+import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
-import AlertTitle from '@material-ui/lab/AlertTitle';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { ListItem } from '@material-ui/core';
+import { Flex, theme } from '@weaveworks/weave-gitops';
+import { FC, useEffect } from 'react';
+import styled, { css } from 'styled-components';
+import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
+import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
+import { AlertListErrors } from './AlertListErrors';
 
-const xs = theme.spacing.xs;
-const small = theme.spacing.small;
-const medium = theme.spacing.medium;
-const large = theme.spacing.large;
+const { xxs, xs, small, medium, base } = theme.spacing;
+const { feedbackLight, white } = theme.colors;
 
 export const Title = styled.h2`
   margin-top: 0px;
 `;
 
-export const pageDimensionsCss = css`
-  width: 100%;
-`;
-
 export const PageWrapper = styled.div`
-  ${pageDimensionsCss}
+  width: 100%;
   margin: 0 auto;
 `;
 
 export const contentCss = css`
-  margin: ${medium} ${small} 0 ${small};
-  padding: ${large} ${medium} ${medium} ${large};
-  background-color: ${theme.colors.white};
-  border-radius: ${xs};
+  margin: 0 ${base};
+  padding: ${medium};
+  background-color: ${white};
+  border-radius: ${xs} ${xs} 0 0;
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
@@ -42,8 +36,8 @@ export const Content = styled.div<{ backgroundColor?: string }>`
 
 export const WGContent = styled.div`
   margin: ${medium} ${small} 0 ${small};
-  background-color: ${theme.colors.white};
-  border-radius: ${xs};
+  background-color: ${white};
+  border-radius: ${xs} ${xs} 0 0;
   > div > div {
     border-radius: ${xs};
     max-width: none;
@@ -51,11 +45,11 @@ export const WGContent = styled.div`
 `;
 
 const HelpLinkWrapper = styled.div`
-  padding: ${small} ${medium};
-  margin: ${small};
-  background-color: ${theme.colors.white};
-  color: ${({ theme }) => theme.colors.neutral40};
-  border-radius: ${xs};
+  padding: calc(${medium} - ${xxs}) ${medium};
+  margin: 0 ${base};
+  background-color: rgba(255, 255, 255, 0.7);
+  color: ${({ theme }) => theme.colors.neutral30};
+  border-radius: 0 0 ${xs} ${xs};
   display: flex;
   justify-content: space-between;
   a {
@@ -66,25 +60,32 @@ const HelpLinkWrapper = styled.div`
 const useStyles = makeStyles(() =>
   createStyles({
     alertWrapper: {
-      marginTop: theme.spacing.medium,
-      marginRight: theme.spacing.small,
-      marginBottom: 0,
-      marginLeft: theme.spacing.small,
-      paddingRight: theme.spacing.medium,
-      paddingLeft: theme.spacing.medium,
-      borderRadius: theme.spacing.xs,
+      padding: base,
+      margin: `0 ${base} ${base} ${base}`,
+      borderRadius: '10px',
     },
     warning: {
-      backgroundColor: theme.colors.feedbackLight,
+      backgroundColor: feedbackLight,
     },
   }),
 );
 
-export const ContentWrapper: FC<{
+interface Props {
   type?: string;
   backgroundColor?: string;
   errors?: ListError[];
-}> = ({ children, type, backgroundColor, errors }) => {
+  loading?: boolean;
+  errorMessage?: string;
+}
+
+export const ContentWrapper: FC<Props> = ({
+  children,
+  type,
+  backgroundColor,
+  errors,
+  loading,
+  errorMessage,
+}) => {
   const classes = useStyles();
   const { setNotifications } = useNotifications();
   const { data, error } = useListVersion();
@@ -94,16 +95,39 @@ export const ContentWrapper: FC<{
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
 
-  if (error) {
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
-  }
+  useEffect(() => {
+    if (error) {
+      setNotifications([
+        { message: { text: error?.message }, variant: 'danger' },
+      ]);
+    }
+  }, [error, setNotifications]);
 
+  if (loading) {
+    return (
+      <Box marginTop={4}>
+        <Flex wide center>
+          <CircularProgress />
+        </Flex>
+      </Box>
+    );
+  }
+  if (errorMessage) {
+    return (
+      <Alert severity="error" className={classes.alertWrapper}>
+        {errorMessage}
+      </Alert>
+    );
+  }
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
+        height: 'calc(100vh - 80px)',
+        overflowWrap: 'normal',
+        overflowX: 'scroll',
       }}
     >
       {entitlement && (
@@ -114,18 +138,7 @@ export const ContentWrapper: FC<{
           {entitlement}
         </Alert>
       )}
-      {!!(errors && errors.length) && (
-        <Alert className={classes.alertWrapper} severity="error">
-          <AlertTitle>
-            There was a problem retrieving results from some clusters:
-          </AlertTitle>
-          {errors?.map((item: ListError) => (
-            <ListItem key={item.clusterName}>
-              - Cluster {item.clusterName} {item.message}
-            </ListItem>
-          ))}
-        </Alert>
-      )}
+      {errors && <AlertListErrors errors={errors} />}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
@@ -133,8 +146,8 @@ export const ContentWrapper: FC<{
       )}
       <HelpLinkWrapper>
         <div>
-          Need help? Contact us at&nbsp;
-          <a href="mailto:support@weave.works">support@weave.works</a>
+          Need help? Raise a&nbsp;
+          <a href="https://weavesupport.zendesk.com/">support ticket</a>
         </div>
         <Tooltip
           title={`Server Version ${versions?.capiServer}`}

@@ -206,10 +206,6 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 		layerNames = append(layerNames, k)
 	}
 
-	makeHelmReleaseName := func(clusterName, installName string) string {
-		return clusterName + "-" + installName
-	}
-
 	layerDependencies := pairLayers(layerNames)
 	var releases []*helmv2.HelmRelease
 	for _, layer := range layerDependencies {
@@ -220,7 +216,7 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 			}
 			hr := helmv2.HelmRelease{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      makeHelmReleaseName(clusterName, install.Ref.Chart),
+					Name:      install.Ref.Chart,
 					Namespace: namespace,
 				},
 				TypeMeta: metav1.TypeMeta{
@@ -258,7 +254,7 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 				for _, v := range layerInstalls[layer.dependsOn] {
 					hr.Spec.DependsOn = append(hr.Spec.DependsOn,
 						meta.NamespacedObjectReference{
-							Name: makeHelmReleaseName(clusterName, v.Ref.Chart),
+							Name: v.Ref.Chart,
 						})
 				}
 			}

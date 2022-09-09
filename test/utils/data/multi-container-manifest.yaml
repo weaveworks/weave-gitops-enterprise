@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-container
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: multi-container
+  template:
+    metadata:
+      labels:
+        app: multi-container
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        volumeMounts:
+        - name: storage
+          mountPath: /data/redis
+        securityContext:
+          allowPrivilegeEscalation: true
+
+      - name: debian
+        image: debian
+        volumeMounts:
+        - name: storage
+          mountPath: /pod-data
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do echo testing; sleep 30; done;" ]
+        securityContext:
+          allowPrivilegeEscalation: true
+      
+      volumes:
+      - name: storage
+        emptyDir: {}

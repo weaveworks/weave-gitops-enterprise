@@ -3,12 +3,12 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	ginkgo "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 )
 
-//NavbarwebDriver webDriver elements
+// NavbarwebDriver webDriver elements
 type NavbarwebDriver struct {
 	Title        *agouti.Selection
 	Clusters     *agouti.Selection
@@ -18,7 +18,7 @@ type NavbarwebDriver struct {
 	Violations   *agouti.Selection
 }
 
-//NavbarwebDriver initialises the webDriver object
+// NavbarwebDriver initialises the webDriver object
 func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 	navbar := NavbarwebDriver{
 		Title:        webDriver.Find(`nav a[title="Home"]`),
@@ -33,21 +33,21 @@ func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 }
 
 func NavigateToPage(webDriver *agouti.Page, page string) {
-	Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+	gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 	navbarPage := Navbar(webDriver)
 
-	By(fmt.Sprintf("When I click %s from Navbar", page), func() {
+	ginkgo.By(fmt.Sprintf("When I click %s from Navbar", page), func() {
 		switch page {
 		case "Clusters":
-			Eventually(navbarPage.Clusters.Click).Should(Succeed())
+			gomega.Eventually(navbarPage.Clusters.Click).Should(gomega.Succeed())
 		case "Templates":
-			Eventually(navbarPage.Templates.Click).Should(Succeed())
+			gomega.Eventually(navbarPage.Templates.Click).Should(gomega.Succeed())
 		case "Applications":
-			Eventually(navbarPage.Applications.Click).Should(Succeed())
+			gomega.Eventually(navbarPage.Applications.Click).Should(gomega.Succeed())
 		case "Policies":
-			Eventually(navbarPage.Policies.Click).Should(Succeed())
+			gomega.Eventually(navbarPage.Policies.Click).Should(gomega.Succeed())
 		case "Violations":
-			Eventually(navbarPage.Violations.Click).Should(Succeed())
+			gomega.Eventually(navbarPage.Violations.Click).Should(gomega.Succeed())
 		}
 	})
 }

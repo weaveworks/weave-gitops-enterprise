@@ -10,8 +10,8 @@ import (
 )
 
 func TestCAPIRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,8 +53,8 @@ spec:
 }
 
 func TestGitopsRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/cluster-template.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,8 +134,8 @@ metadata:
 }
 
 func TestRender_InjectPruneAnnotation(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -212,8 +212,8 @@ metadata:
 }
 
 func TestInNamespaceGitOps(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/cluster-template-2.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template-2.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -274,8 +274,8 @@ metadata:
 }
 
 func TestRender_in_namespace(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -322,8 +322,8 @@ spec:
 }
 
 func TestRender_with_options(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -378,8 +378,8 @@ spec:
 }
 
 func TestRenderWithCRD(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template0.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/template0.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -415,8 +415,8 @@ spec:
 }
 
 func TestTextTemplateRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/text-template.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/text-template.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -453,8 +453,8 @@ spec:
 }
 
 func TestTextTemplateRenderConditional(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/text-template2.yaml")
-	processor, err := NewProcessorForTemplate(*parsed)
+	parsed := parseCAPITemplateFromFile(t, "testdata/text-template2.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -495,15 +495,15 @@ spec:
 }
 
 func TestRender_unknown_parameter(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
 
-	processor, err := NewProcessorForTemplate(*parsed)
+	processor, err := NewProcessorForTemplate(parsed)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	_, err = processor.RenderTemplates(map[string]string{})
-	assert.ErrorContains(t, err, "value for variables [CLUSTER_NAME] is not set")
+	assert.ErrorContains(t, err, "missing required parameter: CLUSTER_NAME")
 }
 
 func writeMultiDoc(t *testing.T, objs [][]byte) string {

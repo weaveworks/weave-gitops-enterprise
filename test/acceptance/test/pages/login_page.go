@@ -3,9 +3,9 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/sclevine/agouti/matchers"
 )
 
 type AuthenticateGithub struct {
@@ -54,6 +54,7 @@ type Account struct {
 }
 
 type DexLoginPage struct {
+	Title        *agouti.Selection
 	Github       *agouti.Selection
 	GitlabOnPrem *agouti.Selection
 	GrantAccess  *agouti.Selection
@@ -61,7 +62,7 @@ type DexLoginPage struct {
 }
 
 func WaitForAuthenticationAlert(webDriver *agouti.Page, alert_success_msg string) {
-	Eventually(webDriver.FindByXPath(fmt.Sprintf(`//div[@class="MuiAlert-message"][.="%s"]`, alert_success_msg))).Should(BeVisible())
+	gomega.Eventually(webDriver.FindByXPath(fmt.Sprintf(`//div[@class="MuiAlert-message"][.="%s"]`, alert_success_msg))).Should(matchers.BeVisible())
 }
 
 func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
@@ -81,7 +82,7 @@ func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
 		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
 		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
-		AuthCode:            webDriver.Find(`input#otp`),
+		AuthCode:            webDriver.Find(`input#totp`),
 		Verify:              webDriver.FindByButton(`Verify`),
 		Continue:            webDriver.Find(`[type=submit][name=commit]`),
 		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`),
@@ -138,7 +139,7 @@ func GetAccount(webDriver *agouti.Page) *Account {
 
 func GetDexLoginPage(webDriver *agouti.Page) *DexLoginPage {
 	loginPage := DexLoginPage{
-
+		Title:        webDriver.FindByXPath(`//h2[contains(., "Log in to dex")]`),
 		Github:       webDriver.Find(`[class*=github] + .dex-btn-text`),
 		GitlabOnPrem: webDriver.Find(`[class*=gitlab] + .dex-btn-text`),
 		GrantAccess:  webDriver.FindByXPath(`//button[contains(., "Grant Access")]`),

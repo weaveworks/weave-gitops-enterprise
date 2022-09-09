@@ -24,7 +24,7 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 	}
 
 	var objects []Object
-	for _, v := range s.Spec.ResourceTemplates {
+	for _, v := range s.GetSpec().ResourceTemplates {
 		params, err := processor.ParamNames(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse params in template: %w", err)
@@ -47,8 +47,8 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 		return nil, fmt.Errorf("failed to parse parameters from the spec: %w", err)
 	}
 	return &TemplateMeta{
-		Description: s.Spec.Description,
-		Name:        s.ObjectMeta.Name,
+		Description: s.GetSpec().Description,
+		Name:        s.GetName(),
 		Objects:     objects,
 		Params:      enriched,
 	}, nil

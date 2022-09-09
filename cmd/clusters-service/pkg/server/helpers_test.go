@@ -17,15 +17,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "AWSCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "AWSCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -35,15 +33,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "AWSManagedCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "AWSManagedCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -53,15 +49,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "AWSManagedControlPlane",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "AWSManagedControlPlane"
 							}`),
-							},
 						},
 					},
 				},
@@ -71,16 +65,14 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "AzureCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
 
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "AzureCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -90,15 +82,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "AzureManagedCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "AzureManagedCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -108,15 +98,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "DOCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "DOCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -126,15 +114,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "GCPCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "GCPCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -144,15 +130,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "OpenStackCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "OpenStackCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -162,15 +146,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "PacketCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "PacketCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -180,15 +162,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "VSphereCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "VSphereCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -198,15 +178,13 @@ func TestGetProvider(t *testing.T) {
 		{
 			name: "FooCluster",
 			template: &capiv1.CAPITemplate{
-				Template: templates.Template{
-					Spec: templates.TemplateSpec{
-						ResourceTemplates: []templates.ResourceTemplate{
-							{
-								RawExtension: rawExtension(`{
+				Spec: templates.TemplateSpec{
+					ResourceTemplates: []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
 								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 								"kind": "FooCluster"
 							}`),
-							},
 						},
 					},
 				},
@@ -217,8 +195,8 @@ func TestGetProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.provider != getProvider(&tt.template.Template, apitemplate.CAPIDisplayNameAnnotation) {
-				t.Fatalf("expected %s but got %s", tt.provider, getProvider(&tt.template.Template, apitemplate.CAPIDisplayNameAnnotation))
+			if tt.provider != getProvider(tt.template, apitemplate.CAPIDisplayNameAnnotation) {
+				t.Fatalf("expected %s but got %s", tt.provider, getProvider(tt.template, apitemplate.CAPIDisplayNameAnnotation))
 			}
 		})
 	}

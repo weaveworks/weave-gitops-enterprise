@@ -6,12 +6,11 @@ import useClusters from '../../contexts/Clusters';
 import useTemplates from '../../contexts/Templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { Loader } from '../Loader';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
 import { ReactComponent as ListView } from '../../assets/img/list-view.svg';
 import {
-  FilterableTable,
+  DataTable,
   filterConfig,
   IconType,
   theme,
@@ -27,16 +26,19 @@ import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
 
 const ActionsWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.medium}
-    ${({ theme }) => theme.spacing.small} 0 0;
+  padding: ${({ theme }) => theme.spacing.small} 0
+    ${({ theme }) => theme.spacing.medium} 0;
   display: flex;
-
+  justify-content: end;
   svg {
     width: 32px;
+    cursor: pointer;
   }
-
+  svg.active {
+    fill: ${({ theme }) => theme.colors.primary};
+  }
   svg.inactive {
-    fill: ${({ theme }) => theme.colors.neutral20};
+    fill: ${({ theme }) => theme.colors.neutral30};
   }
 `;
 
@@ -117,10 +119,20 @@ const TemplatesDashboard: FC = () => {
             },
           ]}
         />
-        {!isLoading ? (
-          <div style={{ display: 'flex' }}>
+        <ContentWrapper loading={isLoading}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <ActionsWrapper id="display-action">
+              <GridView
+                className={view === 'grid' ? 'active' : 'inactive'}
+                onClick={() => setView('grid')}
+              />
+              <ListView
+                className={view === 'table' ? 'active' : 'inactive'}
+                onClick={() => setView('table')}
+              />
+            </ActionsWrapper>
             {view === 'grid' && (
-              <ContentWrapper backgroundColor="transparent">
+              <>
                 <FilteringSection>
                   <div style={{ width: '200px' }}>
                     <Autocomplete
@@ -144,80 +156,64 @@ const TemplatesDashboard: FC = () => {
                     </Grid>
                   ))}
                 </Grid>
-              </ContentWrapper>
+              </>
             )}
             {view === 'table' && (
-              <ContentWrapper>
-                <TableWrapper id="templates-list">
-                  <FilterableTable
-                    key={templates?.length}
-                    filters={initialFilterState}
-                    rows={templates || []}
-                    fields={[
-                      {
-                        label: 'Name',
-                        value: 'name',
-                        sortValue: ({ name }) => name,
-                        textSearchable: true,
-                      },
-                      {
-                        label: 'Kind',
-                        value: 'templateKind',
-                        sortValue: ({ name }) => name,
-                        textSearchable: true,
-                      },
-                      {
-                        label: 'Provider',
-                        value: 'provider',
-                        sortValue: ({ name }) => name,
-                        textSearchable: true,
-                      },
-                      {
-                        label: 'Description',
-                        value: (t: Template) => (
-                          <>
-                            {t.description}
-                            <Error>{t.error}</Error>
-                          </>
-                        ),
-                        maxWidth: 600,
-                      },
-                      {
-                        label: '',
-                        value: (t: Template) => (
-                          <Button
-                            id="create-cluster"
-                            startIcon={
-                              <Icon type={IconType.AddIcon} size="base" />
-                            }
-                            onClick={event => handleAddCluster(event, t)}
-                            disabled={Boolean(t.error)}
-                          >
-                            CREATE CLUSTER WITH THIS TEMPLATE
-                          </Button>
-                        ),
-                      },
-                    ]}
-                  />
-                </TableWrapper>
-              </ContentWrapper>
+              <TableWrapper id="templates-list">
+                <DataTable
+                  key={templates?.length}
+                  filters={initialFilterState}
+                  rows={templates || []}
+                  fields={[
+                    {
+                      label: 'Name',
+                      value: 'name',
+                      sortValue: ({ name }) => name,
+                      textSearchable: true,
+                    },
+                    {
+                      label: 'Kind',
+                      value: 'templateKind',
+                      sortValue: ({ name }) => name,
+                      textSearchable: true,
+                    },
+                    {
+                      label: 'Provider',
+                      value: 'provider',
+                      sortValue: ({ name }) => name,
+                      textSearchable: true,
+                    },
+                    {
+                      label: 'Description',
+                      value: (t: Template) => (
+                        <>
+                          {t.description}
+                          <Error>{t.error}</Error>
+                        </>
+                      ),
+                      maxWidth: 600,
+                    },
+                    {
+                      label: '',
+                      value: (t: Template) => (
+                        <Button
+                          id="create-cluster"
+                          startIcon={
+                            <Icon type={IconType.AddIcon} size="base" />
+                          }
+                          onClick={event => handleAddCluster(event, t)}
+                          disabled={Boolean(t.error)}
+                        >
+                          CREATE CLUSTER WITH THIS TEMPLATE
+                        </Button>
+                      ),
+                    },
+                  ]}
+                />
+              </TableWrapper>
             )}
-            <ActionsWrapper>
-              <GridView
-                className={view === 'grid' ? 'active' : 'inactive'}
-                onClick={() => setView('grid')}
-              />
-              <ListView
-                className={view === 'table' ? 'active' : 'inactive'}
-                onClick={() => setView('table')}
-              />
-            </ActionsWrapper>
           </div>
-        ) : (
-          <ContentWrapper>
-            <Loader />
-          </ContentWrapper>
-        )}
+        </ContentWrapper>
       </PageTemplate>
     </ThemeProvider>
   );

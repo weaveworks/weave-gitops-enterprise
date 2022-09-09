@@ -1,12 +1,11 @@
-import React, { FC } from 'react';
+import {
+  FluxRuntime,
+  useListFluxRuntimeObjects,
+} from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import {
-  LoadingPage,
-  useListFluxRuntimeObjects,
-  FluxRuntime,
-} from '@weaveworks/weave-gitops';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading } = useListFluxRuntimeObjects();
@@ -22,12 +21,8 @@ const WGApplicationsFluxRuntime: FC = () => {
           },
         ]}
       />
-      <ContentWrapper>
-        {isLoading ? (
-          <LoadingPage />
-        ) : (
-          <FluxRuntime deployments={data?.deployments} />
-        )}
+      <ContentWrapper errors={data?.errors} loading={isLoading}>
+        <FluxRuntime deployments={data?.deployments} />
       </ContentWrapper>
     </PageTemplate>
   );

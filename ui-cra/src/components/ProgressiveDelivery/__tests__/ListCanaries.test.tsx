@@ -5,6 +5,7 @@ import {
   defaultContexts,
   ProgressiveDeliveryMock,
   withContext,
+  findCellInCol,
 } from '../../../utils/test-utils';
 
 describe('ListCanaries', () => {
@@ -73,7 +74,7 @@ describe('ListCanaries', () => {
 
     expect(await screen.findByText('my-canary')).toBeTruthy();
 
-    const promotedCell = findCellInCol('Promoted');
+    const promotedCell = findCellInCol('Promoted', '#canaries-list table');
     const text = promotedCell?.textContent;
     expect(text).toContain('ghrc.io/myorg/nginx');
     expect(text).not.toContain('some-app');
@@ -106,7 +107,7 @@ describe('ListCanaries', () => {
 
     expect(await screen.findByText('my-canary')).toBeTruthy();
 
-    const promotedCell = findCellInCol('Promoted');
+    const promotedCell = findCellInCol('Promoted', '#canaries-list table');
     const text = promotedCell?.textContent;
     expect(text).toEqual(
       'some-app: ghrc.io/myorg/nginx other-app: ghrc.io/myorg/helloworld ',
@@ -130,7 +131,7 @@ describe('ListCanaries', () => {
             },
             analysis: {
               iterations: 10,
-            }
+            },
           },
         ],
       };
@@ -142,7 +143,7 @@ describe('ListCanaries', () => {
 
       expect(await screen.findByText('my-canary')).toBeTruthy();
 
-      const statusCell = findCellInCol('Status');
+      const statusCell = findCellInCol('Status', '#canaries-list table');
       const text = statusCell?.textContent;
       expect(text).toEqual('9 / 10');
     });
@@ -163,7 +164,7 @@ describe('ListCanaries', () => {
             },
             analysis: {
               iterations: 10,
-            }
+            },
           },
         ],
       };
@@ -175,7 +176,7 @@ describe('ListCanaries', () => {
 
       expect(await screen.findByText('my-canary')).toBeTruthy();
 
-      const statusCell = findCellInCol('Status');
+      const statusCell = findCellInCol('Status', '#canaries-list table');
       const text = statusCell?.textContent;
       expect(text).toEqual('10 / 10');
     });
@@ -196,7 +197,7 @@ describe('ListCanaries', () => {
             },
             analysis: {
               iterations: 10,
-            }
+            },
           },
         ],
       };
@@ -208,41 +209,9 @@ describe('ListCanaries', () => {
 
       expect(await screen.findByText('my-canary')).toBeTruthy();
 
-      const statusCell = findCellInCol('Status');
+      const statusCell = findCellInCol('Status', '#canaries-list table');
       const text = statusCell?.textContent;
       expect(text).toEqual('10 / 10');
     });
   });
 });
-
-function findCellInCol(cell: string) {
-  const tbl = document.querySelector('#canaries-list table');
-
-  const cols = tbl?.querySelectorAll('thead th');
-  const idx = findColByHeading(cols, cell) as number;
-
-  const rows = tbl?.querySelectorAll('tbody tr');
-
-  const promotedCell = rows?.item(0).childNodes.item(idx);
-
-  return promotedCell;
-}
-
-// Helper to ensure that tests still pass if columns get re-ordered
-function findColByHeading(
-  cols: NodeListOf<Element> | undefined,
-  heading: string,
-): null | number {
-  if (!cols) {
-    return null;
-  }
-
-  let idx = null;
-  cols?.forEach((e, i) => {
-    if (e.innerHTML.includes(heading)) {
-      idx = i;
-    }
-  });
-
-  return idx;
-}

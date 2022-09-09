@@ -29,6 +29,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -156,11 +157,11 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
 		app.WithCoreConfig(fakeCoreConfig),
-		app.WithOIDCConfig(
-			app.OIDCAuthenticationOptions{
-				TokenDuration: time.Hour,
-			},
+		app.WithAuthConfig(
+			map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
+			app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 		),
+		app.WithRuntimeNamespace("flux-system"),
 	)
 }
 
