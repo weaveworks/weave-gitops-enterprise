@@ -2,7 +2,7 @@ import React, { FC, Dispatch, useState } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
-import { Input, Select } from '../../../../../utils/form';
+import { Input, InputBase, Select } from '../../../../../utils/form';
 import {
   createStyles,
   IconButton,
@@ -241,32 +241,39 @@ const AppFields: FC<{
             options={clusters}
             onChange={handleSelectCluster}
           />
-          <Autocomplete<GitRepository | HelmRepository>
-            classes={classes}
+          <Input
+            name="source"
             className="form-section"
-            autoHighlight
+            label="SELECT SOURCE"
+            description="The name and type of source"
             fullWidth
-            loading={isLoading}
-            open={open}
-            value={automation.source}
-            groupBy={option => option?.type || 'No kind'}
-            getOptionSelected={(option, value) =>
-              option?.kind === value?.kind &&
-              option?.name === value?.name &&
-              option?.namespace === value?.namespace
-            }
-            onChange={handleSelectSource}
-            onOpen={handleOpen}
-            onClose={handleClose}
-            getOptionLabel={option => option?.name || 'hmm'}
-            renderOption={option => (
-              <SourceOption>
-                <span>{option?.name}</span>
-                {optionUrl(
-                  option?.url,
-                  (isGitRepository(option) && option?.reference?.branch) || '',
-                )}
-                {/* <IconButton
+          >
+            <Autocomplete<GitRepository | HelmRepository>
+              classes={classes}
+              autoHighlight
+              fullWidth
+              loading={isLoading}
+              open={open}
+              value={automation.source}
+              groupBy={option => option?.type || 'No kind'}
+              getOptionSelected={(option, value) =>
+                option?.kind === value?.kind &&
+                option?.name === value?.name &&
+                option?.namespace === value?.namespace
+              }
+              onChange={handleSelectSource}
+              onOpen={handleOpen}
+              onClose={handleClose}
+              getOptionLabel={option => option?.name || 'hmm'}
+              renderOption={option => (
+                <SourceOption>
+                  <span>{option?.name}</span>
+                  {optionUrl(
+                    option?.url,
+                    (isGitRepository(option) && option?.reference?.branch) ||
+                      '',
+                  )}
+                  {/* <IconButton
                   onClick={(ev: React.MouseEvent) => {
                     ev.stopPropagation();
                     window.open('http://github.com/foot');
@@ -274,22 +281,21 @@ const AppFields: FC<{
                 >
                   <Icon type={IconType.ExternalTab} size="base" />
                 </IconButton> */}
-              </SourceOption>
-            )}
-            options={clusterSources}
-            renderInput={params => {
-              console.log({ params });
-              return (
-                <Input
-                  {...params}
-                  name="source"
-                  required={true}
-                  label="SELECT SOURCE"
-                  description="The name and type of source"
-                />
-              );
-            }}
-          />
+                </SourceOption>
+              )}
+              options={clusterSources}
+              renderInput={({ InputProps, ...rest }) => {
+                return (
+                  <InputBase
+                    name="source"
+                    required={true}
+                    {...rest}
+                    {...InputProps}
+                  />
+                );
+              }}
+            />
+          </Input>
           {/* {[...gitRepos, ...helmRepos].length === 0 && (
               <MenuItem disabled={true}>
                 No repository available, please select another cluster.

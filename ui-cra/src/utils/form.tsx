@@ -55,7 +55,7 @@ const InputLabel = withStyles(() => ({
   },
 }))(MuiInputLabel);
 
-const InputBase = withStyles(() => ({
+export const InputBase = withStyles(() => ({
   inputMultiline: {
     padding: '10px',
   },
@@ -98,6 +98,7 @@ export const Input: FC<InputProps> = ({
   inputProps,
   InputProps,
   InputLabelProps,
+  children,
   ...rest
 }) => (
   <FormControl
@@ -111,12 +112,14 @@ export const Input: FC<InputProps> = ({
         {label}
       </InputLabel>
     )}
-    <InputBase
-      name={name}
-      inputProps={{ ...inputProps, maxLength: 256 }}
-      {...InputProps}
-      {...rest}
-    />
+    {children || (
+      <InputBase
+        name={name}
+        inputProps={{ ...inputProps, maxLength: 256 }}
+        {...InputProps}
+        {...rest}
+      />
+    )}
     <FormHelperText>{description}</FormHelperText>
   </FormControl>
 );
