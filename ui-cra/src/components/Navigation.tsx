@@ -34,9 +34,10 @@ const NavWrapper = styled.div`
     display: flex;
     align-items: center;
     justify-content: start;
-    padding: ${({ theme }) => theme.spacing.xs}
-      ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.xs}
-      ${({ theme }) => theme.spacing.medium};
+    padding-top: ${({ theme }) => theme.spacing.xs};
+    padding-bottom: ${({ theme }) => theme.spacing.xs};
+    padding-left: ${({ theme }) => theme.spacing.medium};
+    padding-right: ${({ theme }) => theme.spacing.medium};
   }
 
   span.parent-route {
