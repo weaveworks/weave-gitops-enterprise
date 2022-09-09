@@ -76,8 +76,9 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path:      "./apps/capi",
-								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+								Path:            "./apps/capi",
+								SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+								TargetNamespace: "foo-ns",
 							},
 						},
 					},
@@ -114,8 +115,9 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path:      "./apps/capi",
-								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+								Path:            "./apps/capi",
+								SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+								TargetNamespace: "foo-ns",
 							},
 						},
 					},
@@ -148,6 +150,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
+  targetNamespace: foo-ns
 status: {}
 `,
 				},
