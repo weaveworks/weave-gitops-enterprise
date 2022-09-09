@@ -14,6 +14,7 @@ import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import {
   Button,
+  clearCallbackState,
   getProviderToken,
   Icon,
   IconType,
@@ -137,6 +138,7 @@ export const DeleteClusterDialog: FC<Props> = ({
       });
 
   const cleanUp = useCallback(() => {
+    clearCallbackState();
     setShowAuthDialog(false);
     setSelectedClusters([]);
     setFormData(prDefaults);
