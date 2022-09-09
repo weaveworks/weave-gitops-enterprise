@@ -78,41 +78,50 @@ Weave Gitops Enterprise as tiered application that could be seen in the followin
 
 ```mermaid-source
 C4Container
-  title Weave Gitops Enterprise - Tiers
+  title Weave Gitops Enterprise
   Person(platformOperator, "Platform Operator")
   Person(developer, "Application Developer")      
+  Rel(platformOperator, weaveGitopsEnterpriseUi, "Manages Platform")
+  UpdateRelStyle(platformOperator, weaveGitopsEnterpriseUi, "", "", "-115", "-40")
+
+  Rel(developer, weaveGitopsEnterpriseUi, "Delivers Application")
+  UpdateRelStyle(developer, weaveGitopsEnterpriseUi, "", "", "50", "-40")
+
   Container_Boundary(weaveGitopsEnterprise, "Weave Gitops Enterprise") {
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")
       Container(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend","golang","backend application with grpc api")
-      Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consumes via grpc")
-      Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes delivery resources via kubernetes api")
+      Rel(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "consume api")
+      UpdateRelStyle(weaveGitopsEnterpriseUi, weaveGitopsEnterpriseBackend, "", "", "-35", "-15")
+      Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "get resources via api")
+      UpdateRelStyle(weaveGitopsEnterpriseBackend, KubernetesCluster, "", "", "-55", "-15")
   }
-  Rel(platformOperator, weaveGitopsEnterpriseUi, "Manages Platform")
-  Rel(developer, weaveGitopsEnterpriseUi, "Delivers Application")
-
-  Rel(weaveGitopsEnterpriseBackend, Github, "gitops flows")
-  Rel(weaveGitopsEnterpriseBackend, KubernetesCluster, "consumes resources from")  
+  Rel(weaveGitopsEnterpriseBackend, idp, "authenticate users via oidc")
+  UpdateRelStyle(weaveGitopsEnterpriseBackend, idp, "", "", "-105", "-15")
+  Rel(weaveGitopsEnterpriseBackend, Github, "interacts for gitops flows")
+  UpdateRelStyle(weaveGitopsEnterpriseBackend, Github, "", "", "5", "-15")
 
   Container_Boundary(runtime, "runtime") {
          System_Ext(KubernetesCluster, "Kubernetes Cluster", "run customer applications")
-
          System_Ext(Flagger, "Flagger", "controller for progressive delivery capabilities")
          Rel(Flagger, KubernetesCluster, "manage canary resources from")
+         UpdateRelStyle(Flagger, KubernetesCluster, "", "", "-35", "30")
 
          System_Ext(Flux, "Flux", "deploy customer applications")
          Rel(Flux, KubernetesCluster, "deploy apps to")
+         UpdateRelStyle(Flux, KubernetesCluster, "", "", "-85", "15")
          Rel(Flux, Github, "read apps from")        
-      }
+        UpdateRelStyle(Flux, Github, "", "", "25", "15")
+  }
 
-      Container_Boundary(git, "git") {
-          System_Ext(Github, "GitHub", "Source storage in Git")      
-      }
+  Container_Boundary(auth, "auth") {
+    System_Ext(idp, "Identity Provider", "provides authn services for customer users")      
+  }
 
-      Container_Boundary(auth, "auth") {
-        System_Ext(idp, "Identity Provider", "provides authn services for customer users")      
-      }
+  Container_Boundary(git, "git") {
+    System_Ext(Github, "GitHub", "Source storage in Git")      
+  }
 
-  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")               
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")   
 ```
 
 ## Weave Gitops Enterprise as Business Domains
