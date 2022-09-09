@@ -95,10 +95,6 @@ const AppFields: FC<{
     event: React.ChangeEvent<any>,
     clusterName: string | null,
   ) => {
-    console.log({ clusterName });
-    if (!clusterName) {
-      return;
-    }
     let currentAutomation = [...formData.clusterAutomations];
     currentAutomation[index] = {
       ...automation,
@@ -110,7 +106,7 @@ const AppFields: FC<{
     });
   };
 
-  const clusters = _.uniq(data?.result?.map(s => s.clusterName));
+  const clusters = _.uniq(data?.result?.map(s => s.clusterName)).sort();
 
   const clusterSources = _.sortBy(
     data?.result
@@ -238,12 +234,13 @@ const AppFields: FC<{
             label="SELECT CLUSTER"
             description="select target cluster"
           >
-            <Autocomplete
+            <Autocomplete<string>
               classes={classes}
               loading={isLoading}
-              disableClearable
+              autoSelect
+              autoHighlight
               openOnFocus
-              value={automation.clusterName || ''}
+              value={automation.clusterName}
               renderInput={({ InputProps, InputLabelProps, ...rest }) => {
                 return (
                   <InputBase
@@ -266,7 +263,9 @@ const AppFields: FC<{
           >
             <Autocomplete<GitRepository | HelmRepository>
               classes={classes}
+              autoSelect
               autoHighlight
+              openOnFocus
               loading={isLoading}
               open={open}
               value={automation.source}
@@ -343,6 +342,7 @@ const AppFields: FC<{
             required={true}
             name="name"
             label="KUSTOMIZATION NAME"
+            autoFocus
             value={formData.clusterAutomations[index].name}
             onChange={event => handleFormData(event, 'name')}
           />
