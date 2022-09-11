@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
+	"github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
@@ -31,68 +31,68 @@ func setParameterValues(createPage *pages.CreateCluster, parameters []TemplateFi
 				visible, _ := pages.GetOption(webDriver, parameters[i].Option).Visible()
 				return visible
 			}
-			Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(BeTrue(), fmt.Sprintf("Failed to select parameter option '%s'", parameters[i].Name))
-			Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(Succeed())
+			gomega.Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(gomega.BeTrue(), fmt.Sprintf("Failed to select parameter option '%s'", parameters[i].Name))
+			gomega.Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(gomega.Succeed())
 		} else {
-			Expect(createPage.GetTemplateParameter(webDriver, parameters[i].Name).Field.SendKeys(parameters[i].Value)).To(Succeed())
+			gomega.Expect(createPage.GetTemplateParameter(webDriver, parameters[i].Name).Field.SendKeys(parameters[i].Value)).To(gomega.Succeed())
 		}
 	}
 }
 
 func selectCredentials(createPage *pages.CreateCluster, credentialName string, credentialCount int) {
 	selectCredential := func() bool {
-		Eventually(createPage.Credentials.Click).Should(Succeed())
+		gomega.Eventually(createPage.Credentials.Click).Should(gomega.Succeed())
 		// Credentials are not filtered for selected template
 		if cnt, _ := pages.GetCredentials(webDriver).Count(); cnt > 0 {
-			Eventually(pages.GetCredentials(webDriver).Count).Should(Equal(credentialCount), fmt.Sprintf(`Credentials count in the cluster should be '%d' including 'None`, credentialCount))
-			Expect(pages.GetCredential(webDriver, credentialName).Click()).To(Succeed())
+			gomega.Eventually(pages.GetCredentials(webDriver).Count).Should(gomega.Equal(credentialCount), fmt.Sprintf(`Credentials count in the cluster should be '%d' including 'None`, credentialCount))
+			gomega.Expect(pages.GetCredential(webDriver, credentialName).Click()).To(gomega.Succeed())
 		}
 
 		credentialText, _ := createPage.Credentials.Text()
 		return strings.Contains(credentialText, credentialName)
 	}
-	Eventually(selectCredential, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeTrue())
+	gomega.Eventually(selectCredential, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue())
 }
 
 func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
-	var _ = Describe("Multi-Cluster Control Plane Templates", func() {
+	var _ = ginkgo.Describe("Multi-Cluster Control Plane Templates", func() {
 		templateFiles := []string{}
 		clusterPath := "./clusters/my-cluster/clusters"
 
-		BeforeEach(func() {
-			Expect(webDriver.Navigate(test_ui_url)).To(Succeed())
+		ginkgo.BeforeEach(func() {
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
 		})
 
-		AfterEach(func() {
+		ginkgo.AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 			// Reset/empty the templateFiles list
 			templateFiles = []string{}
 		})
 
-		Context("[UI] When no Capi Templates are available in the cluster", func() {
-			It("Verify template page renders no capiTemplate", Label("integration"), func() {
+		ginkgo.Context("[UI] When no Capi Templates are available in the cluster", func() {
+			ginkgo.It("Verify template page renders no capiTemplate", ginkgo.Label("integration"), func() {
 				pages.NavigateToPage(webDriver, "Templates")
 
-				By("And wait for  good looking response from /v1/templates", func() {
-					Expect(waitForGitopsResources(context.Background(), "templates", POLL_INTERVAL_15SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/templates")
+				ginkgo.By("And wait for  good looking response from /v1/templates", func() {
+					gomega.Expect(waitForGitopsResources(context.Background(), "templates", POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/templates")
 				})
 
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And wait for Templates page to be rendered", func() {
-					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
-					Eventually(templatesPage.TemplateCount).Should(MatchText(`0`))
+				ginkgo.By("And wait for Templates page to be rendered", func() {
+					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
+					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`0`))
 
 					tileCount, _ := templatesPage.TemplateTiles.Count()
-					Expect(tileCount).To(Equal(0), "There should not be any template tile rendered")
+					gomega.Expect(tileCount).To(gomega.Equal(0), "There should not be any template tile rendered")
 
 				})
 			})
 		})
 
-		Context("[UI] When Capi Templates are available in the cluster", func() {
-			It("Verify template(s) are rendered from the template library.", func() {
+		ginkgo.Context("[UI] When Capi Templates are available in the cluster", func() {
+			ginkgo.It("Verify template(s) are rendered from the template library.", func() {
 				awsTemplateCount := 2
 				eksFargateTemplateCount := 2
 				azureTemplateCount := 3
@@ -117,7 +117,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					return expected_list
 				}()
 
-				By("Apply/Install CAPITemplate", func() {
+				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "capi-template-capd.yaml")...)
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(3, "capi-server-v1-template-azure.yaml")...)
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
@@ -127,77 +127,77 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Templates")
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
-				By("And wait for Templates page to be fully rendered", func() {
+				ginkgo.By("And wait for Templates page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
-					Eventually(templatesPage.TemplateCount).Should(MatchText(`[0-9]+`))
+					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
+					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`[0-9]+`))
 
 					count, _ := templatesPage.TemplateCount.Text()
 					templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 
-					Eventually(templateCount).Should(Equal(totalTemplateCount), "The template header count should be equal to templates created")
-					Eventually(tileCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+					gomega.Eventually(templateCount).Should(gomega.Equal(totalTemplateCount), "The template header count should be equal to templates created")
+					gomega.Eventually(tileCount).Should(gomega.Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
-				By("And I should change the templates view to 'table'", func() {
-					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
-					Eventually(templatesPage.CountTemplateRows()).Should(Equal(totalTemplateCount), "The number of rows rendered should be equal to number of templates created")
+				ginkgo.By("And I should change the templates view to 'table'", func() {
+					gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
+					gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(totalTemplateCount), "The number of rows rendered should be equal to number of templates created")
 
 				})
 
-				By("And templates are ordered - table view", func() {
+				ginkgo.By("And templates are ordered - table view", func() {
 					actual_list := templatesPage.GetTemplateTableList()
 					for i := 0; i < totalTemplateCount; i++ {
-						Expect(actual_list[i]).Should(ContainSubstring(ordered_template_list[i]))
+						gomega.Expect(actual_list[i]).Should(gomega.ContainSubstring(ordered_template_list[i]))
 					}
 				})
 
-				By("And templates can be filtered by provider - table view", func() {
+				ginkgo.By("And templates can be filtered by provider - table view", func() {
 					filterID := "provider:aws"
 					searchPage := pages.GetSearchPage(webDriver)
-					Eventually(searchPage.FilterBtn.Click).Should(Succeed(), "Failed to click filter buttton")
+					gomega.Eventually(searchPage.FilterBtn.Click).Should(gomega.Succeed(), "Failed to click filter buttton")
 					searchPage.SelectFilter("provider", filterID)
 
-					Expect(searchPage.FilterBtn.Click()).Should(Succeed(), "Failed to click filter buttton")
-					Eventually(templatesPage.CountTemplateRows()).Should(Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
+					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
+					gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
 				})
 
-				By("And I should change the templates view to 'grid'", func() {
-					Expect(templatesPage.SelectView("grid").Click()).To(Succeed())
+				ginkgo.By("And I should change the templates view to 'grid'", func() {
+					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 					tileCount, _ := templatesPage.TemplateTiles.Count()
-					Eventually(tileCount).Should(Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
+					gomega.Eventually(tileCount).Should(gomega.Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
-				By("And templates are ordered - grid view", func() {
+				ginkgo.By("And templates are ordered - grid view", func() {
 					actual_list := templatesPage.GetTemplateTileList()
 					for i := 0; i < totalTemplateCount; i++ {
-						Expect(actual_list[i]).Should(ContainSubstring(ordered_template_list[i]))
+						gomega.Expect(actual_list[i]).Should(gomega.ContainSubstring(ordered_template_list[i]))
 					}
 				})
 
-				By("And templates can be filtered by provider - grid view", func() {
+				ginkgo.By("And templates can be filtered by provider - grid view", func() {
 					// Select cluster provider by selecting from the popup list
-					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.SelectProvider("aws").Click()).To(Succeed())
+					gomega.Expect(templatesPage.TemplateProvider.Click()).To(gomega.Succeed())
+					gomega.Expect(templatesPage.SelectProvider("aws").Click()).To(gomega.Succeed())
 
 					tileCount, _ := templatesPage.TemplateTiles.Count()
-					Eventually(tileCount).Should(Equal(awsTemplateCount+eksFargateTemplateCount), "The number of aws provider template tiles rendered should be equal to number of aws templates created")
+					gomega.Eventually(tileCount).Should(gomega.Equal(awsTemplateCount+eksFargateTemplateCount), "The number of aws provider template tiles rendered should be equal to number of aws templates created")
 
 					// Select cluster provider by typing the provider name
-					Expect(templatesPage.TemplateProvider.Click()).To(Succeed())
-					Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(Succeed()) // sending back space key
-					Expect(templatesPage.TemplateProvider.SendKeys("azure")).To(Succeed())
-					Expect(templatesPage.TemplateProviderPopup.At(0).Click()).To(Succeed())
+					gomega.Expect(templatesPage.TemplateProvider.Click()).To(gomega.Succeed())
+					gomega.Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(gomega.Succeed()) // sending back space key
+					gomega.Expect(templatesPage.TemplateProvider.SendKeys("azure")).To(gomega.Succeed())
+					gomega.Expect(templatesPage.TemplateProviderPopup.At(0).Click()).To(gomega.Succeed())
 
 					tileCount, _ = templatesPage.TemplateTiles.Count()
-					Eventually(tileCount).Should(Equal(azureTemplateCount), "The number of azure provider template tiles rendered should be equal to number of azure templates created")
+					gomega.Eventually(tileCount).Should(gomega.Equal(azureTemplateCount), "The number of azure provider template tiles rendered should be equal to number of azure templates created")
 				})
 			})
 		})
 
-		Context("[UI] When Capi Templates are available in the cluster", func() {
-			It("Verify I should be able to select a template of my choice", func() {
+		ginkgo.Context("[UI] When Capi Templates are available in the cluster", func() {
+			ginkgo.It("Verify I should be able to select a template of my choice", func() {
 
 				// test selection with 50 capiTemplates
 				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(50, "capi-server-v1-capitemplate.yaml")
@@ -205,46 +205,46 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And I should choose a template - grid view", func() {
+				ginkgo.By("And I should choose a template - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-9")
 
-					Eventually(templateTile.Description).Should(MatchText("This is test template 9"))
-					Expect(templateTile.CreateTemplate).Should(BeFound())
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Eventually(templateTile.Description).Should(matchers.MatchText("This is test template 9"))
+					gomega.Expect(templateTile.CreateTemplate).Should(matchers.BeFound())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
-				By("And wait for Create cluster page to be fully rendered - grid view", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered - grid view", func() {
 					createPage := pages.GetCreateClusterPage(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 				templatesPage := pages.GetTemplatesPage(webDriver)
-				By("And I should change the templates view to 'table'", func() {
+				ginkgo.By("And I should change the templates view to 'table'", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+					gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
 				})
 
-				By("And I should choose a template - table view", func() {
+				ginkgo.By("And I should choose a template - table view", func() {
 
 					templateRow := templatesPage.GetTemplateRow(webDriver, "cluster-template-10")
-					Eventually(templateRow.Provider).Should(MatchText(""))
-					Eventually(templateRow.Description).Should(MatchText("This is test template 10"))
-					Expect(templateRow.CreateTemplate).Should(BeFound())
-					Expect(templateRow.CreateTemplate.Click()).To(Succeed())
+					gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
+					gomega.Eventually(templateRow.Description).Should(matchers.MatchText("This is test template 10"))
+					gomega.Expect(templateRow.CreateTemplate).Should(matchers.BeFound())
+					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
-				By("And wait for Create cluster page to be fully rendered - table view", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered - table view", func() {
 					createPage := pages.GetCreateClusterPage(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 			})
 		})
 
-		Context("[UI] When only invalid Capi Template(s) are available in the cluster", func() {
-			It("Verify UI shows message related to an invalid template(s)", func() {
+		ginkgo.Context("[UI] When only invalid Capi Template(s) are available in the cluster", func() {
+			ginkgo.It("Verify UI shows message related to an invalid template(s)", func() {
 
-				By("Apply/Install invalid CAPITemplate", func() {
+				ginkgo.By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-invalid-capitemplate.yaml")
 				})
 
@@ -252,66 +252,66 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
+				ginkgo.By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
-					Eventually(templateTile.ErrorHeader).Should(BeFound())
-					Expect(templateTile.ErrorDescription).Should(BeFound())
-					Expect(templateTile.CreateTemplate).ShouldNot(BeEnabled())
+					gomega.Eventually(templateTile.ErrorHeader).Should(matchers.BeFound())
+					gomega.Expect(templateTile.ErrorDescription).Should(matchers.BeFound())
+					gomega.Expect(templateTile.CreateTemplate).ShouldNot(matchers.BeEnabled())
 				})
 
-				By("And I should change the templates view to 'table'", func() {
-					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+				ginkgo.By("And I should change the templates view to 'table'", func() {
+					gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
 				})
 
-				By("And User should see message informing user of the invalid template in the cluster - table view", func() {
+				ginkgo.By("And User should see message informing user of the invalid template in the cluster - table view", func() {
 					templateRow := templatesPage.GetTemplateRow(webDriver, "cluster-invalid-template-0")
-					Eventually(templateRow.Provider).Should(MatchText(""))
-					Eventually(templateRow.Description).Should(MatchText("Couldn't load template body"))
-					Expect(templateRow.CreateTemplate).ShouldNot(BeEnabled())
+					gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
+					gomega.Eventually(templateRow.Description).Should(matchers.MatchText("Couldn't load template body"))
+					gomega.Expect(templateRow.CreateTemplate).ShouldNot(matchers.BeEnabled())
 				})
 			})
 		})
 
-		Context("[UI] When both valid and invalid Capi Templates are available in the cluster", func() {
-			It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
+		ginkgo.Context("[UI] When both valid and invalid Capi Templates are available in the cluster", func() {
+			ginkgo.It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
 
 				noOfValidTemplates := 3
-				By("Apply/Install valid CAPITemplate", func() {
+				ginkgo.By("Apply/Install valid CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfValidTemplates, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
 				noOfInvalidTemplates := 1
-				By("Apply/Install invalid CAPITemplate", func() {
+				ginkgo.By("Apply/Install invalid CAPITemplate", func() {
 					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")...)
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				By("And wait for Templates page to be fully rendered", func() {
+				ginkgo.By("And wait for Templates page to be fully rendered", func() {
 					templatesPage := pages.GetTemplatesPage(webDriver)
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(templatesPage.TemplateHeader).Should(BeVisible())
+					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
 
 					count, _ := templatesPage.TemplateCount.Text()
 					templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 
-					Eventually(templateCount).Should(Equal(noOfValidTemplates+noOfInvalidTemplates), "The template header count should be equal to templates created")
-					Eventually(tileCount).Should(Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template tiles rendered should be equal to number of templates created")
+					gomega.Eventually(templateCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The template header count should be equal to templates created")
+					gomega.Eventually(tileCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
-				By("And User should see message informing user of the invalid template in the cluster", func() {
+				ginkgo.By("And User should see message informing user of the invalid template in the cluster", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
-					Eventually(templateTile.ErrorHeader).Should(BeFound())
-					Expect(templateTile.ErrorDescription).Should(BeFound())
-					Expect(templateTile.CreateTemplate).ShouldNot(BeEnabled())
+					gomega.Eventually(templateTile.ErrorHeader).Should(matchers.BeFound())
+					gomega.Expect(templateTile.ErrorDescription).Should(matchers.BeFound())
+					gomega.Expect(templateTile.CreateTemplate).ShouldNot(matchers.BeEnabled())
 				})
 			})
 		})
 
-		Context("[UI] When Capi Template is available in the cluster", func() {
-			It("Verify template parameters should be rendered dynamically and can be set for the selected template", Label("integration"), func() {
+		ginkgo.Context("[UI] When Capi Template is available in the cluster", func() {
+			ginkgo.It("Verify template parameters should be rendered dynamically and can be set for the selected template", ginkgo.Label("integration"), func() {
 
-				By("Apply/Install CAPITemplate", func() {
+				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
 				})
 
@@ -319,19 +319,19 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And I should change the templates view to 'table'", func() {
-					Expect(templatesPage.SelectView("table").Click()).To(Succeed())
+				ginkgo.By("And I should change the templates view to 'table'", func() {
+					gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
 				})
 
-				By("And I should choose a template - table view", func() {
+				ginkgo.By("And I should choose a template - table view", func() {
 					templateRow := templatesPage.GetTemplateRow(webDriver, "eks-fargate-template-0")
-					Expect(templateRow.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
 				clusterName := "my-eks-cluster"
@@ -347,9 +347,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				By("Then missing required parameters should get focus when previewing PR", func() {
-					Eventually(createPage.PreviewPR.Click).Should(Succeed())
-					Eventually(createPage.GetTemplateParameter(webDriver, "AWS_REGION").Focused).Should(BeFound(), "Missing required parameter 'AWS_REGION' failed to get focus")
+				ginkgo.By("Then missing required parameters should get focus when previewing PR", func() {
+					gomega.Eventually(createPage.PreviewPR.Click).Should(gomega.Succeed())
+					gomega.Eventually(createPage.GetTemplateParameter(webDriver, "AWS_REGION").Focused).Should(matchers.BeFound(), "Missing required parameter 'AWS_REGION' failed to get focus")
 				})
 
 				parameters = []TemplateField{
@@ -362,50 +362,50 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				By("Then I should preview the PR", func() {
+				ginkgo.By("Then I should preview the PR", func() {
 					preview := pages.GetPreview(webDriver)
-					Eventually(func(g Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
-						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+					gomega.Eventually(func(g gomega.Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
 
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
-					Eventually(preview.Text).Should(MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
-					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
-					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: null\s+version: null`, clusterName, region))))
-					Eventually(preview.Text).Should((MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
+					gomega.Eventually(preview.Text).Should((matchers.MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
+					gomega.Eventually(preview.Text).Should((matchers.MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: null\s+version: null`, clusterName, region))))
+					gomega.Eventually(preview.Text).Should((matchers.MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
 
-					Eventually(preview.Close.Click).Should(Succeed())
+					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 			})
 		})
 
-		Context("[UI] When Capi Template is available in the cluster", func() {
+		ginkgo.Context("[UI] When Capi Template is available in the cluster", func() {
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
 			})
 
-			It("Verify pull request can be created for capi template to the management cluster", Label("integration", "git", "browser-logs"), func() {
+			ginkgo.It("Verify pull request can be created for capi template to the management cluster", ginkgo.Label("integration", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				By("Apply/Install CAPITemplate", func() {
+				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should choose a template", func() {
+				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
 				// Parameter values
@@ -445,14 +445,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				By("Then I should preview the PR", func() {
+				ginkgo.By("Then I should preview the PR", func() {
 					preview := pages.GetPreview(webDriver)
-					Eventually(func(g Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
-						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+					gomega.Eventually(func(g gomega.Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
 
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
-					Eventually(preview.Close.Click).Should(Succeed())
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
+					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
 				//Pull request values
@@ -460,78 +460,78 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				prTitle := "My first pull request"
 				prCommit := "First capd capi template"
 
-				By("And set GitOps values for pull request", func() {
+				ginkgo.By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					Eventually(gitops.GitOpsLabel).Should(BeFound())
+					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
 
-					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
-					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
-					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
-					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
-					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
-					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					Eventually(gitops.GitCredentials).Should(BeVisible())
+					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 					if pages.ElementExist(gitops.ErrorBar) {
-						Expect(gitops.ErrorBar.Click()).To(Succeed())
+						gomega.Expect(gitops.ErrorBar.Click()).To(gomega.Succeed())
 					}
 
-					Eventually(gitops.CreatePR.Click).Should(Succeed())
+					gomega.Eventually(gitops.CreatePR.Click).Should(gomega.Succeed())
 				})
 
 				var prUrl string
 				gitops := pages.GetGitOps(webDriver)
-				By("Then I should see see a toast with a link to the creation PR", func() {
-					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
+					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
 					anchor := gitops.PRLinkBar.Find("a")
-					Eventually(anchor).Should(BeFound())
+					gomega.Eventually(anchor).Should(matchers.BeFound())
 					prUrl, _ = anchor.Attribute("href")
 				})
 
 				var createPRUrl string
-				By("And I should veriyfy the pull request in the cluster config repository", func() {
+				ginkgo.By("And I should veriyfy the pull request in the cluster config repository", func() {
 					createPRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					Expect(createPRUrl).Should(Equal(prUrl))
+					gomega.Expect(createPRUrl).Should(gomega.Equal(prUrl))
 				})
 
-				By("And the manifests are present in the cluster config repository", func() {
+				ginkgo.By("And the manifests are present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, namespace, clusterName+".yaml"))
-					Expect(err).ShouldNot(HaveOccurred(), "Cluster config can not be found.")
+					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Cluster config can not be found.")
 				})
 			})
 
-			It("Verify pull request can not be created by using exiting repository branch", Label("integration", "git", "browser-logs"), func() {
+			ginkgo.It("Verify pull request can not be created by using exiting repository branch", ginkgo.Label("integration", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 				branchName := "ui-test-branch"
-				By("And create new git repository branch", func() {
+				ginkgo.By("And create new git repository branch", func() {
 					_ = createGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
-				By("Apply/Install CAPITemplate", func() {
+				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should choose a template", func() {
+				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
 				// Parameter values
@@ -576,78 +576,78 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				prCommit := "First capd capi template"
 
 				gitops := pages.GetGitOps(webDriver)
-				By("And set GitOps values for pull request", func() {
-					Eventually(gitops.GitOpsLabel).Should(BeFound())
+				ginkgo.By("And set GitOps values for pull request", func() {
+					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
 					pages.ScrollWindow(webDriver, 0, 4000)
 
-					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
-					Expect(gitops.GitOpsFields[0].Field.SendKeys(branchName)).To(Succeed())
-					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(branchName)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
-					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
-					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
-					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					Eventually(gitops.GitCredentials).Should(BeVisible())
+					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 
 					if pages.ElementExist(gitops.ErrorBar) {
-						Expect(gitops.ErrorBar.Click()).To(Succeed())
+						gomega.Expect(gitops.ErrorBar.Click()).To(gomega.Succeed())
 					}
 
-					Expect(gitops.CreatePR.Click()).To(Succeed())
+					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
 				})
 
-				By("Then I should not see pull request to be created", func() {
-					Eventually(gitops.ErrorBar).Should(MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
+				ginkgo.By("Then I should not see pull request to be created", func() {
+					gomega.Eventually(gitops.ErrorBar).Should(matchers.MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
 				})
 			})
 		})
 
-		Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-			It("Verify no credentials exists in management cluster", Label("integration", "git"), func() {
-				By("Apply/Install CAPITemplate", func() {
+		ginkgo.Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
+			ginkgo.It("Verify no credentials exists in management cluster", ginkgo.Label("integration", "git"), func() {
+				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should choose a template", func() {
+				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
-				By("Then no infrastructure provider identity can be selected", func() {
+				ginkgo.By("Then no infrastructure provider identity can be selected", func() {
 					selectCredentials(createPage, "None", 1)
 				})
 			})
 		})
 
-		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
+		ginkgo.Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 				gitopsTestRunner.DeleteIPCredentials("AWS")
 				gitopsTestRunner.DeleteIPCredentials("AZURE")
 			})
 
-			It("Verify matching selected credential can be used for cluster creation", Label("integration", "git"), func() {
-				By("Apply/Install CAPITemplates", func() {
+			ginkgo.It("Verify matching selected credential can be used for cluster creation", ginkgo.Label("integration", "git"), func() {
+				ginkgo.By("Apply/Install CAPITemplates", func() {
 					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
 					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
 				})
 
-				By("And create infrastructure provider credentials)", func() {
+				ginkgo.By("And create infrastructure provider credentials)", func() {
 					gitopsTestRunner.CreateIPCredentials("AWS")
 					gitopsTestRunner.CreateIPCredentials("AZURE")
 				})
@@ -655,18 +655,18 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should choose a template", func() {
+				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "aws-cluster-template-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
-				By("Then AWS test-role-identity credential can be selected", func() {
+				ginkgo.By("Then AWS test-role-identity credential can be selected", func() {
 					selectCredentials(createPage, "test-role-identity", 4)
 				})
 
@@ -729,53 +729,53 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				By("Then I should see PR preview containing identity reference added in the template", func() {
+				ginkgo.By("Then I should see PR preview containing identity reference added in the template", func() {
 					preview := pages.GetPreview(webDriver)
-					Eventually(func(g Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
-						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+					gomega.Eventually(func(g gomega.Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+					gomega.Eventually(preview.Title).Should(matchers.MatchText("PR Preview"))
 
-					Eventually(preview.Text).Should(MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
-					Eventually(preview.Close.Click).Should(Succeed())
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
+					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
 			})
 		})
 
-		Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
+		ginkgo.Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 				gitopsTestRunner.DeleteIPCredentials("AWS")
 			})
 
-			It("Verify user can not use wrong credentials for infrastructure provider", Label("integration", "git"), func() {
-				By("Apply/Install CAPITemplates", func() {
+			ginkgo.It("Verify user can not use wrong credentials for infrastructure provider", ginkgo.Label("integration", "git"), func() {
+				ginkgo.By("Apply/Install CAPITemplates", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
 				})
 
-				By("And create infrastructure provider credentials)", func() {
+				ginkgo.By("And create infrastructure provider credentials)", func() {
 					gitopsTestRunner.CreateIPCredentials("AWS")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should choose a template", func() {
+				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "azure-capi-quickstart-template-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
-				By("Then AWS aws-test-identity credential can be selected", func() {
+				ginkgo.By("Then AWS aws-test-identity credential can be selected", func() {
 					selectCredentials(createPage, "aws-test-identity", 3)
 				})
 
@@ -826,24 +826,24 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				By("Then I should see PR preview without identity reference added to the template", func() {
+				ginkgo.By("Then I should see PR preview without identity reference added to the template", func() {
 					preview := pages.GetPreview(webDriver)
-					Eventually(func(g Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
-						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+					gomega.Eventually(func(g gomega.Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
-					Eventually(preview.Title).Should(MatchText("PR Preview"))
+					gomega.Eventually(preview.Title).Should(matchers.MatchText("PR Preview"))
 
-					Eventually(preview.Text).ShouldNot(MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
-					Eventually(preview.Close.Click).Should(Succeed())
+					gomega.Eventually(preview.Text).ShouldNot(matchers.MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
+					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
 			})
 		})
 
-		Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
+		ginkgo.Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
 			var clusterBootstrapCopnfig string
 			var clusterResourceSet string
 			var crsConfigmap string
@@ -858,7 +858,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			bootstrapLabel := "bootstrap"
 			patSecret := "capi-pat"
 
-			JustBeforeEach(func() {
+			ginkgo.JustBeforeEach(func() {
 				capdCluster = CapiClusterConfig{"capd", "ui-end-to-end-capd-cluster", clusterNamespace[gitProviderEnv.Type]}
 				downloadedKubeconfigPath = getDownloadedKubeconfigPath(capdCluster.Name)
 				_ = deleteFile([]string{downloadedKubeconfigPath})
@@ -870,7 +870,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				crsConfigmap = createCRSConfigmap(capdCluster.Name, capdCluster.Namespace)
 			})
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 				deleteSecret([]string{patSecret}, capdCluster.Namespace)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
@@ -883,30 +883,30 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				removeGitopsCapiClusters([]CapiClusterConfig{capdCluster})
 			})
 
-			It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
+			ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				By("Then I Apply/Install CAPITemplate", func() {
+				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
 
-				By("And wait for cluster-service to cache profiles", func() {
-					Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(Succeed(), "Failed to get a successful response from /v1/profiles ")
+				ginkgo.By("And wait for cluster-service to cache profiles", func() {
+					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
 				})
 
 				pages.WaitForPageToLoad(webDriver)
 
-				By("And User should choose a template", func() {
+				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
-					Expect(templateTile.CreateTemplate.Click()).To(Succeed())
+					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
 				createPage := pages.GetCreateClusterPage(webDriver)
-				By("And wait for Create cluster page to be fully rendered", func() {
+				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					Eventually(createPage.CreateHeader).Should(MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
 				})
 
 				// Parameter values
@@ -965,23 +965,23 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Layer:     "layer-0",
 				}
 
-				By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", certManager.Name), func() {
+				ginkgo.By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", certManager.Name), func() {
 					profile := createPage.FindProfileInList(certManager.Name)
-					Eventually(profile.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to find %s profile", certManager.Name))
-					Eventually(profile.Checkbox.Check).Should(Succeed(), fmt.Sprintf("Failed to select the %s profile", certManager.Name))
+					gomega.Eventually(profile.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", certManager.Name))
+					gomega.Eventually(profile.Checkbox.Check).Should(gomega.Succeed(), fmt.Sprintf("Failed to select the %s profile", certManager.Name))
 
-					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, certManager.Version).Click).Should(Succeed(), fmt.Sprintf("Failed to select %s version: %s", certManager.Name, certManager.Version))
+					gomega.Eventually(profile.Version.Click).Should(gomega.Succeed())
+					gomega.Eventually(pages.GetOption(webDriver, certManager.Version).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", certManager.Name, certManager.Version))
 
-					Eventually(profile.Layer.Text).Should(MatchRegexp(certManager.Layer))
-					Expect(profile.Namespace.SendKeys(certManager.Namespace)).To(Succeed())
+					gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(certManager.Layer))
+					gomega.Expect(profile.Namespace.SendKeys(certManager.Namespace)).To(gomega.Succeed())
 
-					Eventually(profile.Values.Click).Should(Succeed())
+					gomega.Eventually(profile.Values.Click).Should(gomega.Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp(certManager.Name))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp(certManager.Values))
-					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
+					gomega.Eventually(valuesYaml.Title.Text).Should(gomega.MatchRegexp(certManager.Name))
+					gomega.Eventually(valuesYaml.TextArea.Text).Should(gomega.MatchRegexp(certManager.Values))
+					gomega.Eventually(valuesYaml.Cancel.Click).Should(gomega.Succeed())
 				})
 
 				metallb := Profile{
@@ -992,17 +992,17 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Layer:     "layer-0",
 				}
 
-				By(fmt.Sprintf("And verify default %s profile values.yaml", metallb.Name), func() {
+				ginkgo.By(fmt.Sprintf("And verify default %s profile values.yaml", metallb.Name), func() {
 					profile := createPage.FindProfileInList(metallb.Name)
-					Eventually(profile.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to find %s profile", metallb.Name))
-					Eventually(profile.Layer.Text).Should(MatchRegexp(metallb.Layer))
+					gomega.Eventually(profile.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", metallb.Name))
+					gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(metallb.Layer))
 
-					Eventually(profile.Values.Click).Should(Succeed())
+					gomega.Eventually(profile.Values.Click).Should(gomega.Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp(metallb.Name))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp(metallb.Values))
-					Eventually(valuesYaml.Cancel.Click).Should(Succeed())
+					gomega.Eventually(valuesYaml.Title.Text).Should(gomega.MatchRegexp(metallb.Name))
+					gomega.Eventually(valuesYaml.TextArea.Text).Should(gomega.MatchRegexp(metallb.Values))
+					gomega.Eventually(valuesYaml.Cancel.Click).Should(gomega.Succeed())
 				})
 
 				pages.ScrollWindow(webDriver, 0, 1500)
@@ -1014,44 +1014,44 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Layer:     "layer-1",
 				}
 
-				By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", policyAgent.Name), func() {
+				ginkgo.By(fmt.Sprintf("And select the %s profile to install and verify values.yaml", policyAgent.Name), func() {
 					profile := createPage.FindProfileInList(policyAgent.Name)
-					Eventually(profile.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to find %s profile", policyAgent.Name))
-					Eventually(profile.Checkbox.Check).Should(Succeed(), fmt.Sprintf("Failed to select the %s profile", policyAgent.Name))
+					gomega.Eventually(profile.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", policyAgent.Name))
+					gomega.Eventually(profile.Checkbox.Check).Should(gomega.Succeed(), fmt.Sprintf("Failed to select the %s profile", policyAgent.Name))
 
-					Eventually(profile.Version.Click).Should(Succeed())
-					Eventually(pages.GetOption(webDriver, policyAgent.Version).Click).Should(Succeed(), fmt.Sprintf("Failed to select %s version: %s", policyAgent.Name, policyAgent.Version))
+					gomega.Eventually(profile.Version.Click).Should(gomega.Succeed())
+					gomega.Eventually(pages.GetOption(webDriver, policyAgent.Version).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", policyAgent.Name, policyAgent.Version))
 
-					Eventually(profile.Layer.Text).Should(MatchRegexp(policyAgent.Layer))
-					Expect(profile.Namespace.SendKeys(policyAgent.Namespace)).To(Succeed())
+					gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(policyAgent.Layer))
+					gomega.Expect(profile.Namespace.SendKeys(policyAgent.Namespace)).To(gomega.Succeed())
 
-					Eventually(profile.Values.Click).Should(Succeed())
+					gomega.Eventually(profile.Values.Click).Should(gomega.Succeed())
 					valuesYaml := pages.GetValuesYaml(webDriver)
 
-					Eventually(valuesYaml.Title.Text).Should(MatchRegexp(policyAgent.Name))
-					Eventually(valuesYaml.TextArea.Text).Should(MatchRegexp("image: magalixcorp/policy-agent"))
+					gomega.Eventually(valuesYaml.Title.Text).Should(gomega.MatchRegexp(policyAgent.Name))
+					gomega.Eventually(valuesYaml.TextArea.Text).Should(gomega.MatchRegexp("image: magalixcorp/policy-agent"))
 
 					text, _ := valuesYaml.TextArea.Text()
 					text = strings.ReplaceAll(text, `accountId: ""`, strings.Split(policyAgent.Values, ",")[0])
 					text = strings.ReplaceAll(text, `clusterId: ""`, strings.Split(policyAgent.Values, ",")[1])
-					Expect(valuesYaml.TextArea.Clear()).To(Succeed())
-					Expect(valuesYaml.TextArea.SendKeys(text)).To(Succeed(), fmt.Sprintf("Failed to change values.yaml for %s profile", policyAgent.Name))
+					gomega.Expect(valuesYaml.TextArea.Clear()).To(gomega.Succeed())
+					gomega.Expect(valuesYaml.TextArea.SendKeys(text)).To(gomega.Succeed(), fmt.Sprintf("Failed to change values.yaml for %s profile", policyAgent.Name))
 
-					Eventually(valuesYaml.Save.Click).Should(Succeed(), fmt.Sprintf("Failed to save values.yaml for %s profile", policyAgent.Name))
+					gomega.Eventually(valuesYaml.Save.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to save values.yaml for %s profile", policyAgent.Name))
 				})
 
 				pages.ScrollWindow(webDriver, 0, 500)
-				By("Then I should preview the PR", func() {
+				ginkgo.By("Then I should preview the PR", func() {
 					preview := pages.GetPreview(webDriver)
-					Eventually(func(g Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(Succeed())
-						g.Expect(preview.Title.Text()).Should(MatchRegexp("PR Preview"))
+					gomega.Eventually(func(g gomega.Gomega) {
+						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(Succeed(), "Failed to get PR preview")
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
-					Eventually(preview.Text).Should(MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
-					Eventually(preview.Text).Should(MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-					Eventually(preview.Close.Click).Should(Succeed())
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
+					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
 				// Pull request values
@@ -1059,84 +1059,84 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				prTitle := "CAPD pull request"
 				prCommit := "CAPD capi template"
 
-				By("And set GitOps values for pull request", func() {
+				ginkgo.By("And set GitOps values for pull request", func() {
 					gitops := pages.GetGitOps(webDriver)
-					Eventually(gitops.GitOpsLabel).Should(BeFound())
+					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
-					Expect(gitops.GitOpsFields[0].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[0].Field)
-					Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(Succeed())
-					Expect(gitops.GitOpsFields[1].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[1].Field)
-					Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(Succeed())
-					Expect(gitops.GitOpsFields[2].Label).Should(BeFound())
+					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
+					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
 					pages.ClearFieldValue(gitops.GitOpsFields[2].Field)
-					Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(Succeed())
+					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					Eventually(gitops.GitCredentials).Should(BeVisible())
+					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 
 					// Wait for template to be reloaded before submitting
-					Eventually(createPage.GetTemplateParameter(webDriver, parameters[0].Name).Label).Should(BeVisible(), "Create cluseter page failed to render after git provider authentication")
+					gomega.Eventually(createPage.GetTemplateParameter(webDriver, parameters[0].Name).Label).Should(matchers.BeVisible(), "Create cluseter page failed to render after git provider authentication")
 
-					Expect(gitops.CreatePR.Click()).To(Succeed())
+					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
 				})
 
 				clustersPage := pages.GetClustersPage(webDriver)
 
-				By("Then I should see see a toast with a link to the creation PR", func() {
+				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
 					gitops := pages.GetGitOps(webDriver)
-					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
 				})
 
-				By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				By("Then I should see cluster status changes to 'Ready'", func() {
+				ginkgo.By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
+					gomega.Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(matchers.MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
 					TakeScreenShot("capi-cluster-ready")
 				})
 
 				clusterInfo := pages.GetClustersPage(webDriver).FindClusterInList(clusterName)
 				verifyDashboard(clusterInfo.GetDashboard("prometheus"), clusterName, "Prometheus")
 
-				By("And I should download the kubeconfig for the CAPD capi cluster", func() {
+				ginkgo.By("And I should download the kubeconfig for the CAPD capi cluster", func() {
 					clusterInfo := clustersPage.FindClusterInList(clusterName)
-					Expect(clusterInfo.Name.Click()).To(Succeed())
+					gomega.Expect(clusterInfo.Name.Click()).To(gomega.Succeed())
 					clusterStatus := pages.GetClusterStatus(webDriver)
-					Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(HaveText(`"Provisioned"`))
+					gomega.Eventually(clusterStatus.Phase, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(matchers.HaveText(`"Provisioned"`))
 
 					i := 1
 					TakeScreenShot(fmt.Sprintf("poll-kubeconfig-%v", i))
 					fileErr := func() error {
 						i += 1
 						TakeScreenShot(fmt.Sprintf("poll-kubeconfig-%v", i))
-						Expect(clusterStatus.KubeConfigButton.Click()).To(Succeed())
+						gomega.Expect(clusterStatus.KubeConfigButton.Click()).To(gomega.Succeed())
 						_, err := os.Stat(downloadedKubeconfigPath)
 						return err
 
 					}
-					Eventually(fileErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).ShouldNot(HaveOccurred())
+					gomega.Eventually(fileErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).ShouldNot(gomega.HaveOccurred())
 				})
 
-				By("And I verify cluster infrastructure for the CAPD capi cluster", func() {
+				ginkgo.By("And I verify cluster infrastructure for the CAPD capi cluster", func() {
 					clusterInfra := pages.GertClusterInfrastructure(webDriver)
-					Expect(clusterInfra.Kind.Text()).To(MatchRegexp(`DockerCluster`), "Failed to verify CAPD infarstructure provider")
+					gomega.Expect(clusterInfra.Kind.Text()).To(gomega.MatchRegexp(`DockerCluster`), "Failed to verify CAPD infarstructure provider")
 				})
 
-				By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", clusterName), func() {
+				ginkgo.By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", clusterName), func() {
 					verifyCapiClusterKubeconfig(downloadedKubeconfigPath, clusterName)
 				})
 
-				By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
+				ginkgo.By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
 					verifyCapiClusterHealth(downloadedKubeconfigPath, []Profile{certManager, metallb, policyAgent})
 				})
 
 				existingAppCount := getApplicationCount()
-				By("And add kustomization bases for common resources for leaf cluster)", func() {
+				ginkgo.By("And add kustomization bases for common resources for leaf cluster)", func() {
 					addKustomizationBases("capi", clusterName, clusterNamespace)
 				})
 
@@ -1144,80 +1144,80 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
-				By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
+				ginkgo.By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
 					totalAppCount := existingAppCount + 6 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library
-					Eventually(func(g Gomega) int {
+					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 
 					filterID := "type:HelmRelease"
 					searchPage := pages.GetSearchPage(webDriver)
-					Eventually(searchPage.FilterBtn.Click).Should(Succeed(), "Failed to click filter buttton")
+					gomega.Eventually(searchPage.FilterBtn.Click).Should(gomega.Succeed(), "Failed to click filter buttton")
 					searchPage.SelectFilter("type", filterID)
 
-					Expect(searchPage.FilterBtn.Click()).Should(Succeed(), "Failed to click filter buttton")
+					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
 
-					Eventually(applicationsPage.CountApplications).Should(Equal(3), "There should be 3 application enteries in application table")
+					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(3), "There should be 3 application enteries in application table")
 				})
 
 				verifyAppInformation(applicationsPage, "metallb", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-metallb", "Ready")
 				verifyAppInformation(applicationsPage, "cert-manager", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-cert-manager", "Ready")
 				verifyAppInformation(applicationsPage, "weave-policy-agent", "HelmRelease", GITOPS_DEFAULT_NAMESPACE, clusterName, clusterNamespace, GITOPS_DEFAULT_NAMESPACE+"-weave-policy-agent", "Ready")
 
-				By("Then I should select the cluster to create the delete pull request", func() {
+				ginkgo.By("Then I should select the cluster to create the delete pull request", func() {
 					pages.NavigateToPage(webDriver, "Clusters")
-					Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(BeFound())
+					gomega.Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matchers.BeFound())
 					clusterInfo := clustersPage.FindClusterInList(clusterName)
-					Expect(clusterInfo.Checkbox.Click()).To(Succeed())
+					gomega.Expect(clusterInfo.Checkbox.Click()).To(gomega.Succeed())
 
-					Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(BeFound())
-					Expect(clustersPage.PRDeleteClusterButton.Click()).To(Succeed())
+					gomega.Eventually(webDriver.FindByXPath(`//button[@id="delete-cluster"][@disabled]`)).ShouldNot(matchers.BeFound())
+					gomega.Expect(clustersPage.PRDeleteClusterButton.Click()).To(gomega.Succeed())
 
 					deletePR := pages.GetDeletePRPopup(webDriver)
-					Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(Succeed())
+					gomega.Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					Eventually(deletePR.GitCredentials).Should(BeVisible())
+					gomega.Eventually(deletePR.GitCredentials).Should(matchers.BeVisible())
 
-					Expect(deletePR.DeleteClusterButton.Click()).To(Succeed())
+					gomega.Expect(deletePR.DeleteClusterButton.Click()).To(gomega.Succeed())
 				})
 
-				By("Then I should see a toast with a link to the deletion PR", func() {
+				ginkgo.By("Then I should see a toast with a link to the deletion PR", func() {
 					gitops := pages.GetGitOps(webDriver)
-					Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(BeFound())
+					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
 				})
 
 				var deletePRUrl string
-				By("And I should veriyfy the delete pull request in the cluster config repository", func() {
+				ginkgo.By("And I should veriyfy the delete pull request in the cluster config repository", func() {
 					deletePRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 				})
 
-				By("Then I should merge the delete pull request to delete cluster", func() {
+				ginkgo.By("Then I should merge the delete pull request to delete cluster", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, deletePRUrl)
 				})
 
-				By("And the delete pull request manifests are not present in the cluster config repository", func() {
+				ginkgo.By("And the delete pull request manifests are not present in the cluster config repository", func() {
 					pullGitRepo(repoAbsolutePath)
 					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, clusterNamespace, clusterName+".yaml"))
-					Expect(err).Should(MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
+					gomega.Expect(err).Should(gomega.MatchError(os.ErrNotExist), "Cluster config is found when expected to be deleted.")
 				})
 
-				By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
+				ginkgo.By(fmt.Sprintf("Then I should see the '%s' cluster deleted", clusterName), func() {
 					clusterFound := func() error {
 						return runCommandPassThrough("kubectl", "get", "cluster", clusterName, "-n", capdCluster.Namespace)
 					}
-					Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(HaveOccurred())
+					gomega.Eventually(clusterFound, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.HaveOccurred())
 				})
 			})
 		})
 
-		Context("[UI] When entitlement is available in the cluster", func() {
+		ginkgo.Context("[UI] When entitlement is available in the cluster", func() {
 			DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 			checkEntitlement := func(typeEntitelment string, beFound bool) {
 				checkOutput := func() bool {
 					if !pages.ElementExist(pages.GetClustersPage(webDriver).Version) {
-						Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					}
 					loginUser()
 					found, _ := pages.GetEntitelment(webDriver, typeEntitelment).Visible()
@@ -1225,71 +1225,71 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				}
 
-				Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+				gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 
 				if beFound {
-					Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(BeTrue())
+					gomega.Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.BeTrue())
 				} else {
-					Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(BeFalse())
+					gomega.Eventually(checkOutput, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.BeFalse())
 				}
 
 			}
 
-			JustAfterEach(func() {
-				By("When I apply the valid entitlement", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
+			ginkgo.JustAfterEach(func() {
+				ginkgo.By("When I apply the valid entitlement", func() {
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
-				By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				ginkgo.By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
+					gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
-				By("And the Cluster service is healthy", func() {
+				ginkgo.By("And the Cluster service is healthy", func() {
 					CheckClusterService(capi_endpoint_url)
 				})
 
-				By("And I should not see the error or warning message for valid entitlement", func() {
+				ginkgo.By("And I should not see the error or warning message for valid entitlement", func() {
 					checkEntitlement("expired", false)
 					checkEntitlement("missing", false)
 				})
 			})
 
-			It("Verify cluster service acknowledges the entitlement presences", Label("integration"), func() {
+			ginkgo.It("Verify cluster service acknowledges the entitlement presences", ginkgo.Label("integration"), func() {
 
-				By("When I delete the entitlement", func() {
-					Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to delete entitlement secret")
+				ginkgo.By("When I delete the entitlement", func() {
+					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to delete entitlement secret")
 				})
 
-				By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(HaveOccurred(), "Failed restart deployment successfully")
+				ginkgo.By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
+					gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
 				})
 
-				By("And I should see the error message for missing entitlement", func() {
+				ginkgo.By("And I should see the error message for missing entitlement", func() {
 					checkEntitlement("missing", true)
 
 				})
 
-				By("When I apply the expired entitlement", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
+				ginkgo.By("When I apply the expired entitlement", func() {
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
 				})
 
-				By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				ginkgo.By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
+					gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
-				By("And I should see the warning message for expired entitlement", func() {
+				ginkgo.By("And I should see the warning message for expired entitlement", func() {
 					checkEntitlement("expired", true)
 				})
 
-				By("When I apply the invalid entitlement", func() {
-					Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
+				ginkgo.By("When I apply the invalid entitlement", func() {
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
 				})
 
-				By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
-					Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				ginkgo.By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
+					gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 				})
 
-				By("And I should see the error message for invalid entitlement", func() {
+				ginkgo.By("And I should see the error message for invalid entitlement", func() {
 					checkEntitlement("invalid", true)
 				})
 			})

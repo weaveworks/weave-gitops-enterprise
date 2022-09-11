@@ -8,6 +8,7 @@ import {
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
   CallbackStateContextProvider,
+  clearCallbackState,
   getProviderToken,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -230,6 +231,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
+    clearCallbackState();
+  }, []);
+
+  useEffect(() => {
     setUpdatedProfiles({
       ..._.keyBy(profiles, 'name'),
       ...callbackState?.state?.updatedProfiles,
@@ -241,7 +246,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
-  const authRedirectPage = `/clusters/templates/${template?.name}/create`;
+  const authRedirectPage = cluster
+    ? `/clusters/${cluster?.name}/edit`
+    : `/clusters/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -338,7 +345,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     if (!cluster) {
       setFormData((prevState: any) => ({
         ...prevState,
-        pullRequestTitle: `Creates cluster ${formData.parameterValues.CLUSTER_NAME || ''}`,
+        pullRequestTitle: `Creates cluster ${
+          formData.parameterValues.CLUSTER_NAME || ''
+        }`,
       }));
     }
   }, [cluster, formData.parameterValues, setFormData]);
