@@ -32,7 +32,17 @@ import { useListConfig } from '../../hooks/versions';
 import { localEEMuiTheme } from '../../muiTheme';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
-import { EKSDefault, GKEDefault, Kind, Kubernetes, Vsphere, LiquidMetal } from '../../utils/icons';
+import {
+  EKSDefault,
+  GKEDefault,
+  Kind,
+  Kubernetes,
+  Vsphere,
+  LiquidMetal,
+  Rancher,
+  Openshift,
+  OtherOnprem,
+} from '../../utils/icons';
 import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -169,15 +179,13 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     return Vsphere;
   } else if (clusterType === 'MicrovmCluster') {
     return LiquidMetal;
-  } 
-  // TODO add icons for the following
-  // else if (clusterType === 'Rancher') {
-  //   return Rancher;
-  // } else if (clusterType === 'Openshift') {
-  //   return Openshift;
-  // } else if (clusterType === 'OtherOnprem') {
-  //   return OtherOnprem;
-  // }
+  } else if (clusterType === 'Rancher') {
+    return Rancher;
+  } else if (clusterType === 'Openshift') {
+    return Openshift;
+  } else if (clusterType === 'OtherOnprem') {
+    return OtherOnprem;
+  }
   return Kubernetes;
 };
 
