@@ -84,6 +84,26 @@ func Test_ApplyTenants(t *testing.T) {
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
 							},
 						), 1),
+					setResourceVersion(
+						testNewAllowedApplicationDeploy(
+							t,
+							"bar-tenant",
+							"bar-tenant",
+							[]string{"bar-ns", "foobar-ns"},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "bar-tenant",
+							},
+						), 1),
+					setResourceVersion(
+						testNewAllowedApplicationDeploy(
+							t,
+							"foo-tenant",
+							"foo-tenant",
+							[]string{"foo-ns"},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "foo-tenant",
+							},
+						), 1),
 				),
 			},
 		},
@@ -123,6 +143,26 @@ func Test_ApplyTenants(t *testing.T) {
 						},
 						map[string]string{
 							"toolkit.fluxcd.io/tenant": "bar-tenant",
+						},
+					), 1),
+				setResourceVersion(
+					testNewAllowedApplicationDeploy(
+						t,
+						"bar-tenant",
+						"bar-tenant",
+						[]string{"bar-ns"},
+						map[string]string{
+							"toolkit.fluxcd.io/tenant": "bar-tenant",
+						},
+					), 1),
+				setResourceVersion(
+					testNewAllowedApplicationDeploy(
+						t,
+						"foo-tenant",
+						"foo-tenant",
+						[]string{""},
+						map[string]string{
+							"toolkit.fluxcd.io/tenant": "foo-tenant",
 						},
 					), 1),
 			},
@@ -176,6 +216,26 @@ func Test_ApplyTenants(t *testing.T) {
 							},
 							map[string]string{
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
+							},
+						), 2),
+					setResourceVersion(
+						testNewAllowedApplicationDeploy(
+							t,
+							"bar-tenant",
+							"bar-tenant",
+							[]string{"bar-ns", "foobar-ns"},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "bar-tenant",
+							},
+						), 2),
+					setResourceVersion(
+						testNewAllowedApplicationDeploy(
+							t,
+							"foo-tenant",
+							"foo-tenant",
+							[]string{"foo-ns"},
+							map[string]string{
+								"toolkit.fluxcd.io/tenant": "foo-tenant",
 							},
 						), 2),
 				),
@@ -319,6 +379,9 @@ func TestGenerateTenantResources(t *testing.T) {
 				newRoleBinding("test-tenant", "foo-ns", "test-tenant", "", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
+				testNewAllowedApplicationDeploy(t, "test-tenant", "test-tenant", []string{"foo-ns"}, map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
 			},
 		},
 		{
@@ -353,6 +416,9 @@ func TestGenerateTenantResources(t *testing.T) {
 				newRoleBinding("test-tenant", "bar-ns", "test-tenant", "", map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
+				testNewAllowedApplicationDeploy(t, "test-tenant", "test-tenant", []string{"foo-ns", "bar-ns"}, map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
 			},
 		},
 		{
@@ -376,6 +442,9 @@ func TestGenerateTenantResources(t *testing.T) {
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
 				newRoleBinding("test-tenant", "foo-ns", "test-tenant", "demo-cluster-role", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				testNewAllowedApplicationDeploy(t, "test-tenant", "test-tenant", []string{"foo-ns"}, map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
 			},
@@ -408,6 +477,11 @@ func TestGenerateTenantResources(t *testing.T) {
 					"provisioner":              "gitops",
 				}),
 				newRoleBinding("test-tenant", "foo-ns", "test-tenant", "cluster-admin", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+					"environment":              "dev",
+					"provisioner":              "gitops",
+				}),
+				testNewAllowedApplicationDeploy(t, "test-tenant", "test-tenant", []string{"foo-ns"}, map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 					"environment":              "dev",
 					"provisioner":              "gitops",
@@ -447,6 +521,108 @@ func TestGenerateTenantResources(t *testing.T) {
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
 				newRoleBinding("test-tenant", "bar-ns", "default-sa", "", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				testNewAllowedApplicationDeploy(t, "test-tenant", "default-sa", []string{"foo-ns", "bar-ns"}, map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+			},
+		},
+		{
+			name: "tenant service account permissions",
+			config: &Config{
+				Tenants: []Tenant{
+					{
+						Name: "test-tenant",
+						Namespaces: []string{
+							"foo-ns",
+						},
+						DeploymentRBAC: &TenantDeploymentRBAC{
+							Rules: []rbacv1.PolicyRule{
+								{
+									Verbs:     []string{"list"},
+									APIGroups: []string{""},
+									Resources: []string{"pods"},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []client.Object{
+				newNamespace("foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				newServiceAccount("test-tenant", "foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				newRoleBinding("test-tenant", "foo-ns", "", "", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				newDeploymentRole("test-tenant", "foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}, []rbacv1.PolicyRule{
+					{
+						Verbs:     []string{"list"},
+						APIGroups: []string{""},
+						Resources: []string{"pods"},
+					},
+				}),
+				newDeploymentRoleBinding("test-tenant", "foo-ns", "test-tenant", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				testNewAllowedApplicationDeploy(t, "test-tenant", "test-tenant", []string{"foo-ns"}, map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+			},
+		},
+		{
+			name: "tenant default service account permissions",
+			config: &Config{
+				Tenants: []Tenant{
+					{
+						Name: "test-tenant",
+						Namespaces: []string{
+							"foo-ns",
+						},
+						DeploymentRBAC: &TenantDeploymentRBAC{
+							Rules: []rbacv1.PolicyRule{
+								{
+									Verbs:     []string{"list"},
+									APIGroups: []string{""},
+									Resources: []string{"pods"},
+								},
+							},
+						},
+					},
+				},
+				ServiceAccount: &ServiceAccountOptions{
+					Name: "test-sa",
+				},
+			},
+			want: []client.Object{
+				newNamespace("foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				newServiceAccount("test-sa", "foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				newRoleBinding("test-tenant", "foo-ns", "", "", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				newDeploymentRole("test-tenant", "foo-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}, []rbacv1.PolicyRule{
+					{
+						Verbs:     []string{"list"},
+						APIGroups: []string{""},
+						Resources: []string{"pods"},
+					},
+				}),
+				newDeploymentRoleBinding("test-tenant", "foo-ns", "test-sa", map[string]string{
+					"toolkit.fluxcd.io/tenant": "test-tenant",
+				}),
+				testNewAllowedApplicationDeploy(t, "test-tenant", "test-sa", []string{"foo-ns"}, map[string]string{
 					"toolkit.fluxcd.io/tenant": "test-tenant",
 				}),
 			},
@@ -627,6 +803,28 @@ func Test_newTeamRoleBinding(t *testing.T) {
 	assert.Equal(t, rb.Subjects, subjects)
 }
 
+func Test_newDeploymentRoleBinding(t *testing.T) {
+	labels := map[string]string{
+		"toolkit.fluxcd.io/tenant": "test-tenant",
+	}
+
+	subjects := []rbacv1.Subject{
+		{
+			Kind:      "ServiceAccount",
+			Name:      "test-tenant",
+			Namespace: "test-namespace",
+		},
+	}
+
+	rb := newDeploymentRoleBinding("test-tenant", "test-namespace", "test-tenant", labels)
+	assert.Equal(t, rb.Name, "test-tenant-deployment-rolebinding")
+	assert.Equal(t, rb.Namespace, "test-namespace")
+	assert.Equal(t, rb.RoleRef.Name, "test-tenant-deployment-role")
+	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
+	assert.Equal(t, rb.Subjects, subjects)
+
+}
+
 func Test_newTeamRole(t *testing.T) {
 	labels := map[string]string{
 		"toolkit.fluxcd.io/tenant": "test-tenant",
@@ -645,6 +843,27 @@ func Test_newTeamRole(t *testing.T) {
 	assert.Equal(t, rb.Namespace, "test-namespace")
 	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 	assert.Equal(t, rb.Rules, rules)
+}
+
+func Test_newDeploymentRole(t *testing.T) {
+	labels := map[string]string{
+		"toolkit.fluxcd.io/tenant": "test-tenant",
+	}
+
+	rules := []rbacv1.PolicyRule{
+		{
+			Verbs:     []string{"get"},
+			APIGroups: []string{""},
+			Resources: []string{"pods"},
+		},
+	}
+
+	rb := newDeploymentRole("test-tenant", "test-namespace", labels, rules)
+	assert.Equal(t, rb.Name, "test-tenant-deployment-role")
+	assert.Equal(t, rb.Namespace, "test-namespace")
+	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
+	assert.Equal(t, rb.Rules, rules)
+
 }
 
 func Test_newAllowedRepositoriesPolicy(t *testing.T) {
@@ -743,6 +962,54 @@ func Test_newAllowedClustersPolicy(t *testing.T) {
 	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
 	assert.Equal(t, pol.Spec.Parameters, expectedParams)
 	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
+}
+
+func Test_newAllowedApplicationDeployPolicy(t *testing.T) {
+	labels := map[string]string{
+		"toolkit.fluxcd.io/tenant": "test-tenant",
+	}
+
+	namespaces := []string{"test-namespace"}
+
+	pol, err := newAllowedApplicationDeployPolicy(
+		"test-tenant",
+		"test-tenant",
+		namespaces,
+		labels,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	valns, err := json.Marshal(namespaces)
+	if err != nil {
+		t.Fatal(err)
+	}
+	valsa, err := json.Marshal("test-tenant")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedParams := []pacv2beta1.PolicyParameters{
+		{
+			Name: "namespaces",
+			Value: &apiextensionsv1.JSON{
+				Raw: valns,
+			},
+			Type: "array",
+		},
+		{
+			Name: "service_account_name",
+			Value: &apiextensionsv1.JSON{
+				Raw: valsa,
+			},
+			Type: "string",
+		},
+	}
+	assert.Equal(t, pol.Name, "weave.policies.tenancy.test-tenant-allowed-application-deploy")
+	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
+	assert.Equal(t, pol.Spec.Parameters, expectedParams)
+	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
+
 }
 
 func readGoldenFile(t *testing.T, filename string) string {
@@ -913,6 +1180,16 @@ func testNewAllowedClustersPolicy(t *testing.T, tenantName string, namespaces []
 	t.Helper()
 
 	p, err := newAllowedClustersPolicy(tenantName, namespaces, allowedClusters, labels)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return p
+}
+
+func testNewAllowedApplicationDeploy(t *testing.T, tenantName, serviceAccountName string, namespaces []string, labels map[string]string) *pacv2beta1.Policy {
+	t.Helper()
+	p, err := newAllowedApplicationDeployPolicy(tenantName, serviceAccountName, namespaces, labels)
 	if err != nil {
 		t.Fatal(err)
 	}

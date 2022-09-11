@@ -116,19 +116,6 @@ func applyTenantsCmdRunE() func(*cobra.Command, []string) error {
 }
 
 func preFlightCheck(ctx context.Context, config *tenancy.Config, kubeClient *kube.KubeHTTP) error {
-	var hasPolicy bool
-
-	for _, tenant := range config.Tenants {
-		if len(tenant.AllowedRepositories) != 0 || len(tenant.AllowedClusters) != 0 {
-			hasPolicy = true
-			break
-		}
-	}
-
-	if !hasPolicy {
-		return nil
-	}
-
 	crd := &apiextentionsv1.CustomResourceDefinition{}
 	err := kubeClient.Get(ctx, client.ObjectKey{Name: policyCRDName}, crd)
 	if err != nil {

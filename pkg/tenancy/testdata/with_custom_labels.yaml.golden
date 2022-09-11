@@ -82,3 +82,65 @@ subjects:
   name: foo-tenant
   namespace: bar-ns
 ---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    example.com/test-label: testing
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: weave.policies.tenancy.foo-tenant-allowed-application-deploy
+spec:
+  category: weave.categories.tenancy
+  code: |
+    package weave.tenancy.allowed_application_deploy
+
+    controller_input := input.review.object
+    violation[result] {
+        namespaces := input.parameters.namespaces
+        targetNamespace := controller_input.spec.targetNamespace
+        not contains_array(targetNamespace, namespaces)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using target namespace %v is not allowed", [targetNamespace]),
+        }
+    }
+    violation[result] {
+        serviceAccountName := controller_input.spec.serviceAccountName
+        serviceAccountName != input.parameters.service_account_name
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using service account name %v is not allowed", [serviceAccountName]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
+  description: Determines which helm release and kustomization can be used in a tenant
+  how_to_solve: ""
+  id: weave.policies.tenancy.foo-tenant-allowed-application-deploy
+  name: foo-tenant allowed application deploy
+  parameters:
+  - name: namespaces
+    required: false
+    type: array
+    value:
+    - foo-ns
+    - bar-ns
+  - name: service_account_name
+    required: false
+    type: string
+    value: foo-tenant
+  severity: high
+  standards: []
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - HelmRelease
+    - Kustomization
+    labels: []
+    namespaces:
+    - foo-ns
+    - bar-ns
+---
