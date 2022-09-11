@@ -34,13 +34,13 @@ const EditClusterPage = () => {
         className="count-header"
         path={[
           { label: 'Clusters', url: '/', count: clustersCount },
-          { label: 'Edit cluster' },
+          { label: clusterName },
         ]}
       />
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>
           <Grid item xs={12} sm={10} md={10} lg={8}>
-            <Title>Create new cluster with template</Title>
+            <Title>Edit cluster</Title>
           </Grid>
           <EditCluster cluster={getCluster(clusterName)} />
         </Grid>

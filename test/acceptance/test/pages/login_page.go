@@ -3,9 +3,9 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/sclevine/agouti/matchers"
 )
 
 type AuthenticateGithub struct {
@@ -62,7 +62,7 @@ type DexLoginPage struct {
 }
 
 func WaitForAuthenticationAlert(webDriver *agouti.Page, alert_success_msg string) {
-	Eventually(webDriver.FindByXPath(fmt.Sprintf(`//div[@class="MuiAlert-message"][.="%s"]`, alert_success_msg))).Should(BeVisible())
+	gomega.Eventually(webDriver.FindByXPath(fmt.Sprintf(`//div[@class="MuiAlert-message"][.="%s"]`, alert_success_msg))).Should(matchers.BeVisible())
 }
 
 func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {

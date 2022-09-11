@@ -3,88 +3,88 @@ package acceptance
 import (
 	"fmt"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 )
 
 func verifyUsageText(output string) {
 
-	By("Then I should see help message printed for gitops", func() {
-		Eventually(output).Should(MatchRegexp("Command line utility for managing Kubernetes applications via GitOps"))
+	ginkgo.By("Then I should see help message printed for gitops", func() {
+		gomega.Eventually(output).Should(gomega.MatchRegexp("Command line utility for managing Kubernetes applications via GitOps"))
 	})
 
-	By("And Usage category", func() {
-		Eventually(output).Should(MatchRegexp("Usage:"))
-		Eventually(output).Should(MatchRegexp("gitops [command]"))
-		Eventually(output).Should(MatchRegexp("To learn more, you can find our documentation at"))
+	ginkgo.By("And Usage category", func() {
+		gomega.Eventually(output).Should(gomega.MatchRegexp("Usage:"))
+		gomega.Eventually(output).Should(gomega.MatchRegexp("gitops [command]"))
+		gomega.Eventually(output).Should(gomega.MatchRegexp("To learn more, you can find our documentation at"))
 	})
 
-	By("And Available-Commands category", func() {
-		Eventually(output).Should(MatchRegexp("Available Commands:"))
-		Eventually(output).Should(MatchRegexp(`get[\s]+Display one or many Weave GitOps resources`))
-		Eventually(output).Should(MatchRegexp(`upgrade[\s]+Upgrade to Weave GitOps Enterprise`))
+	ginkgo.By("And Available-Commands category", func() {
+		gomega.Eventually(output).Should(gomega.MatchRegexp("Available Commands:"))
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`get[\s]+Display one or many Weave GitOps resources`))
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`upgrade[\s]+Upgrade to Weave GitOps Enterprise`))
 	})
 
-	By("And Flags category", func() {
-		Eventually(output).Should(MatchRegexp("Flags:"))
-		Eventually(output).Should(MatchRegexp(`-e, --endpoint WEAVE_GITOPS_ENTERPRISE_API_URL[\s]+.+`))
-		Eventually(output).Should(MatchRegexp(`--insecure-skip-tls-verify [\s]+.+`))
-		Eventually(output).Should(MatchRegexp(`--namespace string[\s]+.+`))
-		Eventually(output).Should(MatchRegexp(`-p, --password WEAVE_GITOPS_PASSWORD[\s]+.+`))
-		Eventually(output).Should(MatchRegexp(`-u, --username WEAVE_GITOPS_USERNAME[\s]+.+`))
+	ginkgo.By("And Flags category", func() {
+		gomega.Eventually(output).Should(gomega.MatchRegexp("Flags:"))
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`-e, --endpoint WEAVE_GITOPS_ENTERPRISE_API_URL[\s]+.+`))
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`--insecure-skip-tls-verify [\s]+.+`))
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`--namespace string[\s]+.+`))
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`-p, --password WEAVE_GITOPS_PASSWORD[\s]+.+`))
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`-u, --username WEAVE_GITOPS_USERNAME[\s]+.+`))
 	})
 
-	By("And command help usage", func() {
-		Eventually(output).Should(MatchRegexp(`Use "gitops \[command\] --help".+`))
+	ginkgo.By("And command help usage", func() {
+		gomega.Eventually(output).Should(gomega.MatchRegexp(`Use "gitops \[command\] --help".+`))
 	})
 
 }
 
 func verifyGlobalFlags(stdOut string) {
-	By("And  Global Flags category", func() {
-		Eventually(stdOut).Should(MatchRegexp("Global Flags:"))
-		Eventually(stdOut).Should(MatchRegexp(`-e, --endpoint WEAVE_GITOPS_ENTERPRISE_API_URL[\s]+.+`))
-		Eventually(stdOut).Should(MatchRegexp(`--insecure-skip-tls-verify [\s]+.+`))
-		Eventually(stdOut).Should(MatchRegexp(`--namespace string[\s]+.+`))
-		Eventually(stdOut).Should(MatchRegexp(`-p, --password WEAVE_GITOPS_PASSWORD[\s]+.+`))
-		Eventually(stdOut).Should(MatchRegexp(`-u, --username WEAVE_GITOPS_USERNAME[\s]+.+`))
+	ginkgo.By("And  Global Flags category", func() {
+		gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Global Flags:"))
+		gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-e, --endpoint WEAVE_GITOPS_ENTERPRISE_API_URL[\s]+.+`))
+		gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`--insecure-skip-tls-verify [\s]+.+`))
+		gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`--namespace string[\s]+.+`))
+		gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-p, --password WEAVE_GITOPS_PASSWORD[\s]+.+`))
+		gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-u, --username WEAVE_GITOPS_USERNAME[\s]+.+`))
 	})
 }
 
 func DescribeCliHelp() {
-	var _ = Describe("Gitops Help Tests", func() {
+	var _ = ginkgo.Describe("Gitops Help Tests", func() {
 		var stdOut string
 		var stdErr string
 
-		BeforeEach(func() {
+		ginkgo.BeforeEach(func() {
 
 		})
 
-		Context("[CLI] When gitops binary is available", func() {
-			It("Verify that gitops displays help text when provided with the wrong flag", func() {
+		ginkgo.Context("[CLI] When gitops binary is available", func() {
+			ginkgo.It("Verify that gitops displays help text when provided with the wrong flag", func() {
 
-				By("When I run 'gitops foo'", func() {
+				ginkgo.By("When I run 'gitops foo'", func() {
 					stdOut, stdErr = runGitopsCommand("foo")
 				})
 
-				By("Then I should see gitops error message", func() {
-					Eventually(stdErr).Should(MatchRegexp("Error: unknown command \"foo\" for \"gitops\""))
-					// Eventually(stdErr).Should(MatchRegexp("Run 'gitops --help' for usage."))
+				ginkgo.By("Then I should see gitops error message", func() {
+					gomega.Eventually(stdErr).Should(gomega.MatchRegexp("Error: unknown command \"foo\" for \"gitops\""))
+					// gomega.Eventually(stdErr).Should(gomega.MatchRegexp("Run 'gitops --help' for usage."))
 				})
 			})
 
-			It("Verify that gitops help flag prints the help text", func() {
+			ginkgo.It("Verify that gitops help flag prints the help text", func() {
 
-				By("When I run the command 'gitops --help' ", func() {
+				ginkgo.By("When I run the command 'gitops --help' ", func() {
 					stdOut, stdErr = runGitopsCommand("--help")
 				})
 
 				verifyUsageText(stdOut)
 			})
 
-			It("Verify that gitops command prints the help text", func() {
+			ginkgo.It("Verify that gitops command prints the help text", func() {
 
-				By("When I run the command 'gitops'", func() {
+				ginkgo.By("When I run the command 'gitops'", func() {
 					stdOut, stdErr = runGitopsCommand("")
 				})
 
@@ -92,315 +92,315 @@ func DescribeCliHelp() {
 
 			})
 
-			It("Verify that gitops command prints the help text for get command", func() {
+			ginkgo.It("Verify that gitops command prints the help text for get command", func() {
 
-				By("When I run the command 'gitops get --help' ", func() {
+				ginkgo.By("When I run the command 'gitops get --help' ", func() {
 					stdOut, stdErr = runGitopsCommand("get --help")
 				})
 
-				By("Then I should see help message printed with the command discreption", func() {
-					Eventually(stdOut).Should(MatchRegexp("Display one or many Weave GitOps resources"))
+				ginkgo.By("Then I should see help message printed with the command discreption", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Display one or many Weave GitOps resources"))
 				})
 
-				By("And Usage category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Usage:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get.+"))
+				ginkgo.By("And Usage category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get.+"))
 				})
 
-				By("And Examples category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Examples:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get templates"))
+				ginkgo.By("And Examples category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get templates"))
 				})
 
-				By("And Available commands category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Available Commands:"))
-					Eventually(stdOut).Should(MatchRegexp(`bcrypt-hash[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`cluster[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`credential[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`profile[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`template[\s]+.+`))
+				ginkgo.By("And Available commands category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Available Commands:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`bcrypt-hash[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`cluster[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`credential[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`profile[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`template[\s]+.+`))
 				})
 
-				By("And Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for get`))
+				ginkgo.By("And Flags category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-h, --help[\s]+help for get`))
 				})
 
 				verifyGlobalFlags(stdOut)
 			})
 
-			It("Verify that gitops command prints the sub help text for the get templates command", func() {
+			ginkgo.It("Verify that gitops command prints the sub help text for the get templates command", func() {
 
-				By("When I run the command 'gitops get templates --help'", func() {
+				ginkgo.By("When I run the command 'gitops get templates --help'", func() {
 					stdOut, stdErr = runGitopsCommand("get templates --help")
 				})
 
-				By("Then I should see help message printed with the command discreption", func() {
-					Eventually(stdOut).Should(MatchRegexp("Display one or many CAPI templates"))
+				ginkgo.By("Then I should see help message printed with the command discreption", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Display one or many CAPI templates"))
 				})
 
-				By("And Usage category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Usage:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get template.+"))
+				ginkgo.By("And Usage category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get template.+"))
 				})
 
-				By("And Examples category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Examples:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get templates --provider.+"))
+				ginkgo.By("And Examples category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get templates --provider.+"))
 				})
 
-				By("And Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`--list-parameters[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`--list-profiles [\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`--provider string[\s]+.+`))
+				ginkgo.By("And Flags category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-h, --help[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`--list-parameters[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`--list-profiles [\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`--provider string[\s]+.+`))
 				})
 
 				verifyGlobalFlags(stdOut)
 
 			})
 
-			It("Verify that gitops command prints the sub help text for the get credentials command", func() {
+			ginkgo.It("Verify that gitops command prints the sub help text for the get credentials command", func() {
 
-				By("When I run the command 'gitops get credentials --help'", func() {
+				ginkgo.By("When I run the command 'gitops get credentials --help'", func() {
 					stdOut, stdErr = runGitopsCommand("get credentials --help")
 				})
 
-				By("Then I should see help message printed with the command discreption", func() {
-					Eventually(stdOut).Should(MatchRegexp("Get CAPI credentials"))
+				ginkgo.By("Then I should see help message printed with the command discreption", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Get CAPI credentials"))
 				})
 
-				By("And Usage category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Usage:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get credential.+"))
+				ginkgo.By("And Usage category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get credential.+"))
 				})
 
-				By("And Examples category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Examples:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get credentials"))
+				ginkgo.By("And Examples category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get credentials"))
 				})
 
-				By("And Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for credential`))
+				ginkgo.By("And Flags category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-h, --help[\s]+help for credential`))
 				})
 
 				verifyGlobalFlags(stdOut)
 
 			})
 
-			It("Verify that gitops command prints the sub help text for the get clusters command", func() {
+			ginkgo.It("Verify that gitops command prints the sub help text for the get clusters command", func() {
 
-				By("When I run the command 'gitops get clusters --help'", func() {
+				ginkgo.By("When I run the command 'gitops get clusters --help'", func() {
 					stdOut, stdErr = runGitopsCommand("get clusters --help")
 				})
 
-				By("Then I should see help message printed with the command discreption", func() {
-					Eventually(stdOut).Should(MatchRegexp("Display one or many CAPI clusters"))
+				ginkgo.By("Then I should see help message printed with the command discreption", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Display one or many CAPI clusters"))
 				})
 
-				By("And Usage category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Usage:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get cluster.+"))
+				ginkgo.By("And Usage category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get cluster.+"))
 				})
 
-				By("And Examples category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Examples:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get cluster <cluster-name>.+"))
+				ginkgo.By("And Examples category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get cluster <cluster-name>.+"))
 				})
 
-				By("And Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for cluster`))
-					Eventually(stdOut).Should(MatchRegexp(`--print-kubeconfig[\s]+.+`))
+				ginkgo.By("And Flags category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-h, --help[\s]+help for cluster`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`--print-kubeconfig[\s]+.+`))
 				})
 
 				verifyGlobalFlags(stdOut)
 			})
 
-			It("Verify that gitops command prints the sub help text for the get profile command", func() {
+			ginkgo.It("Verify that gitops command prints the sub help text for the get profile command", func() {
 
-				By("When I run the command 'gitops get profile --help'", func() {
+				ginkgo.By("When I run the command 'gitops get profile --help'", func() {
 					stdOut, stdErr = runGitopsCommand("get profiles --help")
 				})
 
-				By("Then I should see help message printed with the command discreption", func() {
-					Eventually(stdOut).Should(MatchRegexp("Show information about available profiles"))
+				ginkgo.By("Then I should see help message printed with the command discreption", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Show information about available profiles"))
 				})
 
-				By("And Usage category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Usage:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get profile.+"))
+				ginkgo.By("And Usage category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get profile.+"))
 				})
 
-				By("And Examples category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Examples:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops get profiles"))
+				ginkgo.By("And Examples category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops get profiles"))
 				})
 
-				By("And Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for profile`))
+				ginkgo.By("And Flags category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-h, --help[\s]+help for profile`))
 				})
 
 				verifyGlobalFlags(stdOut)
 			})
 
-			It("Verify that gitops command prints the help text for add command", func() {
+			ginkgo.It("Verify that gitops command prints the help text for add command", func() {
 
-				By("When I run the command 'gitops add --help' ", func() {
+				ginkgo.By("When I run the command 'gitops add --help' ", func() {
 					stdOut, stdErr = runGitopsCommand("add --help")
 				})
 
-				By("Then I should see help message printed with the command discreption", func() {
-					Eventually(stdOut).Should(MatchRegexp("Add a new Weave GitOps resource"))
+				ginkgo.By("Then I should see help message printed with the command discreption", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Add a new Weave GitOps resource"))
 				})
 
-				By("And Usage category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Usage:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops add.+"))
+				ginkgo.By("And Usage category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops add.+"))
 				})
 
-				By("And Examples category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Examples:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops add cluster"))
+				ginkgo.By("And Examples category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops add cluster"))
 				})
 
-				By("And Available commands category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Available Commands:"))
-					Eventually(stdOut).Should(MatchRegexp(`cluster[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`profile[\s]+.+`))
-					Eventually(stdOut).Should(MatchRegexp(`terraform[\s]+.+`))
+				ginkgo.By("And Available commands category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Available Commands:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`cluster[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`profile[\s]+.+`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`terraform[\s]+.+`))
 				})
 
-				By("And Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Flags:"))
-					Eventually(stdOut).Should(MatchRegexp(`-h, --help[\s]+help for add`))
+				ginkgo.By("And Flags category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`-h, --help[\s]+help for add`))
 				})
 
 				verifyGlobalFlags(stdOut)
 			})
 
-			It("Verify that gitops command prints the sub help text for the add cluster command", func() {
+			ginkgo.It("Verify that gitops command prints the sub help text for the add cluster command", func() {
 
-				By("When I run the command 'gitops add cluster --help'", func() {
+				ginkgo.By("When I run the command 'gitops add cluster --help'", func() {
 					stdOut, stdErr = runGitopsCommand("add cluster --help")
 				})
 
-				By("Then I should see help message printed with the command discreption", func() {
-					Eventually(stdOut).Should(MatchRegexp("Add a new cluster using a CAPI template"))
+				ginkgo.By("Then I should see help message printed with the command discreption", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Add a new cluster using a CAPI template"))
 				})
 
-				By("And Usage category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Usage:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops add cluster.+"))
+				ginkgo.By("And Usage category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops add cluster.+"))
 				})
 
-				By("And Examples category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Examples:"))
-					Eventually(stdOut).Should(MatchRegexp("gitops add cluster --from-template.+"))
+				ginkgo.By("And Examples category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops add cluster --from-template.+"))
 				})
 
-				By("And Flags category", func() {
-					Eventually(stdOut).Should(MatchRegexp("Flags:"))
+				ginkgo.By("And Flags category", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
 
 					output := stdOut
 
-					Eventually(output).Should(MatchRegexp(`--base string[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`--branch string[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`--commit-message string[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`--description string[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`--dry-run[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`--from-template string[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`-h, --help[\s]+help for cluster`))
-					Eventually(output).Should(MatchRegexp(`--set strings[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`--set-credentials string[\s].+`))
-					Eventually(output).Should(MatchRegexp(`--title string[\s]+.+`))
-					Eventually(output).Should(MatchRegexp(`--url string[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--base string[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--branch string[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--commit-message string[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--description string[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--dry-run[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--from-template string[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`-h, --help[\s]+help for cluster`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--set strings[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--set-credentials string[\s].+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--title string[\s]+.+`))
+					gomega.Eventually(output).Should(gomega.MatchRegexp(`--url string[\s]+.+`))
 				})
 
 				verifyGlobalFlags(stdOut)
 			})
 		})
 
-		It("Verify that gitops command prints the sub help text for the add profile command", func() {
+		ginkgo.It("Verify that gitops command prints the sub help text for the add profile command", func() {
 
-			By("When I run the command 'gitops add profile --help'", func() {
+			ginkgo.By("When I run the command 'gitops add profile --help'", func() {
 				stdOut, stdErr = runGitopsCommand("add profile --help")
 			})
 
-			By("Then I should see help message printed with the command discreption", func() {
-				Eventually(stdOut).Should(MatchRegexp("Add a profile to a cluster"))
+			ginkgo.By("Then I should see help message printed with the command discreption", func() {
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Add a profile to a cluster"))
 			})
 
-			By("And Usage category", func() {
-				Eventually(stdOut).Should(MatchRegexp("Usage:"))
-				Eventually(stdOut).Should(MatchRegexp("gitops add profile.+"))
+			ginkgo.By("And Usage category", func() {
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Usage:"))
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops add profile.+"))
 			})
 
-			By("And Examples category", func() {
-				Eventually(stdOut).Should(MatchRegexp("Examples:"))
-				Eventually(stdOut).Should(MatchRegexp("gitops add profile --name=.+"))
+			ginkgo.By("And Examples category", func() {
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Examples:"))
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp("gitops add profile --name=.+"))
 			})
 
-			By("And Flags category", func() {
-				Eventually(stdOut).Should(MatchRegexp("Flags:"))
+			ginkgo.By("And Flags category", func() {
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp("Flags:"))
 
 				output := stdOut
 
-				Eventually(output).Should(MatchRegexp(`--auto-merge[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`--base string[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`--branch string[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`--cluster string[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`--commit-message string[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`--config-repo string[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`--description string[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`-h, --help[\s]+help for profile`))
-				Eventually(output).Should(MatchRegexp(`--name string[\s]+.+`))
-				Eventually(output).Should(MatchRegexp(`--title string[\s].+`))
-				Eventually(output).Should(MatchRegexp(`--version string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--auto-merge[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--base string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--branch string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--cluster string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--commit-message string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--config-repo string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--description string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`-h, --help[\s]+help for profile`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--name string[\s]+.+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--title string[\s].+`))
+				gomega.Eventually(output).Should(gomega.MatchRegexp(`--version string[\s]+.+`))
 			})
 
 			verifyGlobalFlags(stdOut)
 		})
 
-		Context("[CLI] When gitops command required parameters are missing", func() {
-			It("Verify that gitops displays error text when listing parameters without specifying a template", func() {
+		ginkgo.Context("[CLI] When gitops command required parameters are missing", func() {
+			ginkgo.It("Verify that gitops displays error text when listing parameters without specifying a template", func() {
 				stdOut, stdErr = runGitopsCommand("get templates --list-parameters")
 
-				By("Then I should see gitops error message", func() {
-					Eventually(stdErr).Should(MatchRegexp("Error: template name is required"))
+				ginkgo.By("Then I should see gitops error message", func() {
+					gomega.Eventually(stdErr).Should(gomega.MatchRegexp("Error: template name is required"))
 				})
 			})
 
-			It("Verify that gitops displays error text when listing templates without specifying a provider name", func() {
+			ginkgo.It("Verify that gitops displays error text when listing templates without specifying a provider name", func() {
 
-				By(fmt.Sprintf("When I run 'gitops get templates --provider --endpoint %s'", capi_endpoint_url), func() {
+				ginkgo.By(fmt.Sprintf("When I run 'gitops get templates --provider --endpoint %s'", capi_endpoint_url), func() {
 					stdOut, stdErr = runGitopsCommand("get templates --provider")
 				})
 
-				By("Then I should see gitops error message", func() {
-					Eventually(stdErr).Should(MatchRegexp("Error"))
+				ginkgo.By("Then I should see gitops error message", func() {
+					gomega.Eventually(stdErr).Should(gomega.MatchRegexp("Error"))
 				})
 			})
 
-			It("Verify that gitops displays error text when performing actions on resources without specifying api endpoint", func() {
+			ginkgo.It("Verify that gitops displays error text when performing actions on resources without specifying api endpoint", func() {
 
-				By("When I run 'gitops get templates'", func() {
+				ginkgo.By("When I run 'gitops get templates'", func() {
 					stdOut, stdErr = runGitopsCommand("get templates --provider")
 				})
 
-				By("Then I should see gitops error message", func() {
-					Eventually(stdErr).Should(MatchRegexp(`Error.+needs an argument.+`))
+				ginkgo.By("Then I should see gitops error message", func() {
+					gomega.Eventually(stdErr).Should(gomega.MatchRegexp(`Error.+needs an argument.+`))
 				})
 
-				By("When I run 'gitops add cluster'", func() {
+				ginkgo.By("When I run 'gitops add cluster'", func() {
 					stdOut, stdErr = runGitopsCommand("add cluster")
 				})
 
-				By("Then I should see gitops error message", func() {
-					Eventually(stdErr).Should(MatchRegexp("Error"))
+				ginkgo.By("Then I should see gitops error message", func() {
+					gomega.Eventually(stdErr).Should(gomega.MatchRegexp("Error"))
 				})
 			})
 		})
