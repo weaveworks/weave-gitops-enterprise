@@ -185,14 +185,25 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
     namespace: string;
   }>({ name: '', namespace: '' });
 
-  const getProfileYaml = useCallback((name: string, version: string) => {
-    setLoading(true);
-    return request('GET', `${profilesUrl}/${name}/${version}/values`, {
-      headers: {
-        Accept: 'application/octet-stream',
-      },
-    }).finally(() => setLoading(false));
-  }, []);
+  const getProfileYaml = useCallback(
+    (name: string, version: string) => {
+      const profilesYamlUrl = `${profilesUrl}/${name}/${version}/values`;
+      setLoading(true);
+      return request(
+        'GET',
+        helmRepo?.name !== '' && helmRepo?.name !== ''
+          ? profilesYamlUrl +
+              `?helmRepoName=${helmRepo?.name}&helmRepoNamespace=${helmRepo?.namespace}`
+          : profilesYamlUrl,
+        {
+          headers: {
+            Accept: 'application/octet-stream',
+          },
+        },
+      ).finally(() => setLoading(false));
+    },
+    [helmRepo.name, helmRepo.namespace],
+  );
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
