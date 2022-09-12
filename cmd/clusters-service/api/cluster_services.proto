@@ -41,9 +41,9 @@ service ClustersService {
       body : "*"
     };
   }
-  rpc RenderKustomization(RenderKustomizationRequest) returns (RenderKustomizationResponse) {
+  rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
     option (google.api.http) = {
-      post : "/v1/kustomization/render"
+      post : "/v1/enterprise/automations/render"
       body : "*"
     };
   }
@@ -223,11 +223,11 @@ message RenderTemplateResponse {
   repeated CommitFile kustomization_files = 3;
 }
 
-message RenderKustomizationRequest {
+message RenderAutomationRequest {
   repeated Kustomization kustomizations = 1;
 }
 
-message RenderKustomizationResponse { 
+message RenderAutomationResponse { 
   repeated CommitFile kustomization_files = 1;
 }
 

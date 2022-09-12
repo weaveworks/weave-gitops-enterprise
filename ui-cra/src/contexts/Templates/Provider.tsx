@@ -26,12 +26,6 @@ const TemplatesProvider: FC = ({ children }) => {
     });
   }, []);
 
-  const renderKustomization = (data: any) => {
-    return request('POST', `kustomization/render`, {
-      body: JSON.stringify(data),
-    });
-  };
-
   const addCluster = useCallback(
     ({ ...data }, token: string, templateKind: string) => {
       setLoading(true);
@@ -74,7 +68,6 @@ const TemplatesProvider: FC = ({ children }) => {
         getTemplate,
         addCluster,
         renderTemplate,
-        renderKustomization,
       }}
     >
       {children}

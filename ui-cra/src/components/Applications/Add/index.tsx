@@ -3,7 +3,11 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { AddApplicationRequest, useApplicationsCount } from '../utils';
+import {
+  AddApplicationRequest,
+  renderKustomization,
+  useApplicationsCount,
+} from '../utils';
 import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -15,7 +19,6 @@ import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useClusters from '../../../contexts/Clusters';
-import useTemplates from '../../../contexts/Templates';
 import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
@@ -37,7 +40,6 @@ const AddApplication = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const { setNotifications } = useNotifications();
-  const { renderKustomization } = useTemplates();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
@@ -109,6 +111,8 @@ const AddApplication = () => {
       'name',
     ).filter(p => p.selected);
     if (formData.source_type === 'HelmRepository') {
+      console.log(formData.clusterAutomations);
+
       for (let kustomization of formData.clusterAutomations) {
         for (let profile of selectedProfilesList) {
           let values: string = '';
@@ -172,8 +176,8 @@ const AddApplication = () => {
           };
         },
       );
-      return clusterAutomations;
     }
+    return clusterAutomations;
   }, [
     formData.clusterAutomations,
     formData.source_name,
@@ -197,12 +201,7 @@ const AddApplication = () => {
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [
-    setOpenPreview,
-    renderKustomization,
-    setNotifications,
-    getKustomizations,
-  ]);
+  }, [setOpenPreview, setNotifications, getKustomizations]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {

@@ -123,6 +123,33 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	}, nil
 }
 
+// Get the data for Applications PR Preview
+func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderAutomationRequest) (*capiv1_proto.RenderAutomationResponse, error) {
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var kustomizationFiles []*capiv1_proto.CommitFile
+
+	var kustomization = msg.Kustomizations[0]
+
+	cluster := createNamespacedName(kustomization.Metadata.GetName(), kustomization.Metadata.GetNamespace())
+
+	if len(msg.Kustomizations) > 0 {
+		for _, k := range msg.Kustomizations {
+			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
+			if err != nil {
+				return nil, err
+			}
+
+			kustomizationFiles = append(kustomizationFiles, toCommitFile(kustomization))
+		}
+	}
+
+	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: kustomizationFiles}, err
+}
+
 func generateHelmReleaseFile(
 	ctx context.Context,
 	isControlPlane bool,

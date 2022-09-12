@@ -241,6 +241,38 @@
         ]
       }
     },
+    "/v1/enterprise/automations/render": {
+      "post": {
+        "operationId": "ClustersService_RenderAutomation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/enterprise/events": {
       "get": {
         "summary": "ListEvents returns the k8s events for a given object",
@@ -308,38 +340,6 @@
             }
           }
         },
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/kustomization/render": {
-      "post": {
-        "operationId": "ClustersService_RenderKustomization",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RenderKustomizationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1RenderKustomizationRequest"
-            }
-          }
-        ],
         "tags": [
           "ClustersService"
         ]
@@ -1805,7 +1805,7 @@
         }
       }
     },
-    "v1RenderKustomizationRequest": {
+    "v1RenderAutomationRequest": {
       "type": "object",
       "properties": {
         "kustomizations": {
@@ -1816,7 +1816,7 @@
         }
       }
     },
-    "v1RenderKustomizationResponse": {
+    "v1RenderAutomationResponse": {
       "type": "object",
       "properties": {
         "kustomizationFiles": {

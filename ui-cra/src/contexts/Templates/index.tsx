@@ -6,7 +6,6 @@ interface TemplatesContext {
   loading: boolean;
   addCluster: (data: any, token: string, templateKind: string) => Promise<any>;
   renderTemplate: (templateName: string, data: any) => Promise<any>;
-  renderKustomization: (data: any) => Promise<any>;
   getTemplate: (templateName: string) => TemplateEnriched | null;
   isLoading: boolean;
 }

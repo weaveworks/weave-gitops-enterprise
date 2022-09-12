@@ -78,11 +78,11 @@ export type RenderTemplateResponse = {
   kustomizationFiles?: CommitFile[]
 }
 
-export type RenderKustomizationRequest = {
+export type RenderAutomationRequest = {
   kustomizations?: Kustomization[]
 }
 
-export type RenderKustomizationResponse = {
+export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
 }
 
@@ -526,8 +526,8 @@ export class ClustersService {
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static RenderKustomization(req: RenderKustomizationRequest, initReq?: fm.InitReq): Promise<RenderKustomizationResponse> {
-    return fm.fetchReq<RenderKustomizationRequest, RenderKustomizationResponse>(`/v1/kustomization/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static RenderAutomation(req: RenderAutomationRequest, initReq?: fm.InitReq): Promise<RenderAutomationResponse> {
+    return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(`/v1/enterprise/automations/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
     return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
