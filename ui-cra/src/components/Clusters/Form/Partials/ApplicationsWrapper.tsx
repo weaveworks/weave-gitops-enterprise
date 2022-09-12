@@ -51,6 +51,7 @@ export const ApplicationsWrapper: FC<{
                   formData={formData}
                   setFormData={setFormData}
                   index={index}
+                  allowSelectCluster={false}
                 />
               </Grid>
               <Grid
