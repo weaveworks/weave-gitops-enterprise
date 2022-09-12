@@ -53,14 +53,6 @@ const FlexCenter = styled.div`
   align-items: center;
 `;
 
-function errorInfo(item: ListError): string {
-  const msg = `Cluster: ${item.clusterName}`;
-  if (!item.namespace) {
-    return msg;
-  }
-  return `${msg}, Namespace: ${item.namespace}`;
-}
-
 export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   const [index, setIndex] = useState<number>(0);
   const [filteredErrors, setFilteredErrors] = useState<ListError[]>([]);
