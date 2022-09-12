@@ -1281,6 +1281,12 @@ github.com/weaveworks/policy-agent/api v1.0.4 h1:dznn4I3+tfSniNbERFaAXOMpLsvwW+6
 github.com/weaveworks/policy-agent/api v1.0.4/go.mod h1:GbePwORMtByaPqKoD7xuY/oqdq8iagfh5R6NZS14+AA=
 github.com/weaveworks/progressive-delivery v0.0.0-20220808183836-c7c637e887d0 h1:49pW4S2L2fqQYGqqr/5Grps55RopEbQcepTnQeNZ+sE=
 github.com/weaveworks/progressive-delivery v0.0.0-20220808183836-c7c637e887d0/go.mod h1:XRrKv9SdRa6r/CGlT78c50dyxz+r9DWOiy09npLS3L8=
+github.com/weaveworks/progressive-delivery v0.0.0-20220907203058-0d1699c37aea h1:hl+fp9DvpDoO1c5WBxkaq9tEJoQvDzvkm1aEjo7woJU=
+github.com/weaveworks/progressive-delivery v0.0.0-20220907203058-0d1699c37aea/go.mod h1:XRrKv9SdRa6r/CGlT78c50dyxz+r9DWOiy09npLS3L8=
+github.com/weaveworks/progressive-delivery v0.0.0-20220908164304-34d93e303edc h1:3tuEgUC4h8cSD/Lsxyain/dVWeHJ/tqkiih5gLqRnQA=
+github.com/weaveworks/progressive-delivery v0.0.0-20220908164304-34d93e303edc/go.mod h1:XRrKv9SdRa6r/CGlT78c50dyxz+r9DWOiy09npLS3L8=
+github.com/weaveworks/weave-gitops v0.9.4 h1:u7N+E9Sli7w0+Xm1nfyu61Px6Y/2AZbJ5ys0dtekbUY=
+github.com/weaveworks/weave-gitops v0.9.4/go.mod h1:Nuzl3WYDMRe1lfSA471MrxMdSyNL/JPr9HL1ANVfM/M=
 github.com/weaveworks/weave-gitops v0.9.5-0.20220901155506-34d779b3703d h1:70epo2tnYpjxEN+pFvbEe8fZYHW0v01mfKDMpuxcuJ8=
 github.com/weaveworks/weave-gitops v0.9.5-0.20220901155506-34d779b3703d/go.mod h1:Nuzl3WYDMRe1lfSA471MrxMdSyNL/JPr9HL1ANVfM/M=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=

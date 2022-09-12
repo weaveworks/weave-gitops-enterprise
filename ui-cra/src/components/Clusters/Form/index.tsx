@@ -9,6 +9,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
   Button,
   CallbackStateContextProvider,
+  clearCallbackState,
   getProviderToken,
   LoadingPage,
   theme as weaveTheme,
@@ -244,6 +245,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
+    clearCallbackState();
+  }, []);
+
+  useEffect(() => {
     setUpdatedProfiles({
       ..._.keyBy(profiles, 'name'),
       ...callbackState?.state?.updatedProfiles,
@@ -255,7 +260,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
-  const authRedirectPage = `/clusters/templates/${template?.name}/create`;
+  const authRedirectPage = cluster
+    ? `/clusters/${cluster?.name}/edit`
+    : `/clusters/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
