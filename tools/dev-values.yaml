@@ -4,3 +4,6 @@ images:
 
 # Turns on pipelines features when using Tilt.
 enablePipelines: true
+
+# Turns on terraform UI features for local dev
+enableTerraformUI: true

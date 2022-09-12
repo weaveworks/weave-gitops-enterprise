@@ -22,6 +22,7 @@ interface NavigationItem {
   name: string;
   link: string;
   subItems?: Array<SubNavItem>;
+  isVisible?: boolean;
 }
 
 const NavWrapper = styled.div`
@@ -94,6 +95,10 @@ const useStyles = makeStyles({
 
 const NavItems = (navItems: Array<NavigationItem>) => {
   return navItems.map(item => {
+    if (item.isVisible === false) {
+      return null;
+    }
+
     return (
       <NavWrapper key={item.name}>
         <NavItem
@@ -175,6 +180,7 @@ export const Navigation: FC = () => {
       name: 'Terraform',
       link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
+      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
       name: 'Flux Runtime',
