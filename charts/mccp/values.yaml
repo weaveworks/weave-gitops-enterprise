@@ -71,6 +71,9 @@ clusterBootstrapController:
 rbac:
   userRoles:
     create: true
+    roleAggregation:
+      # Aggregate reader user roles into common `gitops-reader` role
+      enabled: true
   adminUserRoleBindings:
     create: true
 
