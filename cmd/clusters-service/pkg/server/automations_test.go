@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"net/http/httptest"
 	"testing"
@@ -76,8 +75,9 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path:      "./apps/capi",
-								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+								Path:            "./apps/capi",
+								SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+								TargetNamespace: "foo-ns",
 							},
 						},
 					},
@@ -87,7 +87,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
 								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "test", "test-ns")),
-								Values: base64.StdEncoding.EncodeToString([]byte(``)),
+								Values: "",
 							},
 						},
 					},
@@ -114,8 +114,9 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 						Kustomization: &capiv1_protos.Kustomization{
 							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
 							Spec: &capiv1_protos.KustomizationSpec{
-								Path:      "./apps/capi",
-								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+								Path:            "./apps/capi",
+								SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+								TargetNamespace: "foo-ns",
 							},
 						},
 					},
@@ -148,6 +149,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
+  targetNamespace: foo-ns
 status: {}
 `,
 				},
@@ -272,7 +274,7 @@ status: {}
 							Metadata: testNewMetadata(t, "first-profile", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
 								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
-								Values: base64.StdEncoding.EncodeToString([]byte(``)),
+								Values: "foo: bar",
 							},
 						},
 					},
@@ -282,7 +284,7 @@ status: {}
 							Metadata: testNewMetadata(t, "second-profile", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
 								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
-								Values: base64.StdEncoding.EncodeToString([]byte(``)),
+								Values: "",
 							},
 						},
 					},
@@ -307,7 +309,8 @@ spec:
         name: weaveworks-charts
         namespace: default
   interval: 10m0s
-  values: null
+  values:
+    foo: bar
 status: {}
 `,
 				},
@@ -405,6 +408,33 @@ status: {}
 			err: errors.New("2 errors occurred:\nchart must be specified in HelmRelease foo-hr\nchart name must be specified in HelmRelease bar-hr"),
 		},
 		{
+			name: "chart values decoding errors, gotta be an object",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster HelmRelease",
+				Description:   "Creates cluster HelmReleases",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: testNewMetadata(t, "bar-hr", "flux-system"),
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart:  testNewChart(t, "foo", testNewSourceRef(t, "weaveworks-charts", "default")),
+								Values: "bar",
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("failed to create Helm Release object: flux-system/bar-hr: failed to yaml-unmarshal values: failed to parse values from JSON: error unmarshaling JSON: while decoding JSON: json: cannot unmarshal string into Go value of type map[string]interface {}"),
+		},
+		{
 			name: "helmrelease with metadata is nil",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
@@ -484,7 +514,7 @@ status: {}
 							Metadata: testNewMetadata(t, "test-profile", "flux-system"),
 							Spec: &capiv1_protos.HelmReleaseSpec{
 								Chart:  testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
-								Values: base64.StdEncoding.EncodeToString([]byte(``)),
+								Values: "",
 							},
 						},
 						FilePath: "clusters/prod/test-hr.yaml",

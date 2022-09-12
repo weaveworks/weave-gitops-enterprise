@@ -16,6 +16,7 @@ import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
+import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 
 interface SourceEnriched extends Source {
   url?: string;
@@ -36,6 +37,18 @@ const FormWrapper = styled.form`
   }
 `;
 
+const toCluster = (clusterName: string): GitopsCluster => {
+  const [firstBit, secondBit] = clusterName.split('/');
+  const [namespace, name, controlPlane] = secondBit
+    ? [firstBit, secondBit, false]
+    : ['', firstBit, true];
+  return {
+    name,
+    namespace,
+    controlPlane,
+  };
+};
+
 const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
@@ -50,10 +63,18 @@ const AppFields: FC<{
   clusters = undefined,
   onPRPreview,
   previewLoading,
+  allowSelectCluster
 }) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
+
+  let clusters: GitopsCluster[] | undefined = undefined;
+  if (allowSelectCluster) {
+    clusters = _.uniq(data?.result?.map(s => s.clusterName))
+      .sort()
+      .map(toCluster);
+  }
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
@@ -210,7 +231,10 @@ const AppFields: FC<{
             defaultValue={''}
             description="select target cluster"
           >
-            {clusters?.map((option: GitopsClusterEnriched, index: number) => {
+            {clusters.length === 0 && (
+              <MenuItem disabled={true}>Loading...</MenuItem>
+            )}
+            {clusters?.map((option: GitopsCluster, index: number) => {
               return (
                 <MenuItem key={index} value={JSON.stringify(option)}>
                   {option.name}
@@ -274,9 +298,17 @@ const AppFields: FC<{
           />
           <Input
             className="form-section"
+            name="target_namespace"
+            label="TARGET NAMESPACE"
+            description="OPTIONAL If omitted all resources must specify a namespace"
+            value={formData.clusterAutomations[index].target_namespace}
+            onChange={event => handleFormData(event, 'target_namespace')}
+          />
+          <Input
+            className="form-section"
             required={true}
             name="path"
-            label="SELECT PATH/CHART"
+            label="SELECT PATH"
             value={formData.clusterAutomations[index].path}
             onChange={event => handleFormData(event, 'path')}
             description="Path within the git repository to read yaml files"

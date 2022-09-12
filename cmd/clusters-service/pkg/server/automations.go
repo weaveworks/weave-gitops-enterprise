@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -157,7 +158,10 @@ func generateHelmReleaseFile(
 	kubeClient client.Client,
 	helmRelease *capiv1_proto.HelmRelease,
 	filePath string) (gitprovider.CommitFile, error) {
-	kustomizationYAML := createHelmReleaseObject(helmRelease)
+	kustomizationYAML, err := createHelmReleaseObject(helmRelease)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("failed to create Helm Release object: %s/%s: %w", helmRelease.Metadata.Namespace, helmRelease.Metadata.Name, err)
+	}
 
 	b, err := yaml.Marshal(kustomizationYAML)
 	if err != nil {
@@ -181,7 +185,21 @@ func generateHelmReleaseFile(
 	return *file, nil
 }
 
-func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) *helmv2.HelmRelease {
+func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease, error) {
+	var jsonValues []byte
+
+	if hr.Spec.Values != "" {
+		valuesData, err := ParseValues([]byte(hr.Spec.Values))
+		if err != nil {
+			return nil, fmt.Errorf("failed to yaml-unmarshal values: %w", err)
+		}
+
+		jsonValues, err = json.Marshal(valuesData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to json-marshal values %w", err)
+		}
+	}
+
 	generatedHelmRelease := helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: helmv2.GroupVersion.Identifier(),
@@ -205,11 +223,11 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) *helmv2.HelmRelease {
 				},
 			},
 			Interval: metav1.Duration{Duration: time.Minute * 10},
-			Values:   &apiextensionsv1.JSON{Raw: []byte(hr.Spec.Values)},
+			Values:   &apiextensionsv1.JSON{Raw: []byte(jsonValues)},
 		},
 	}
 
-	return &generatedHelmRelease
+	return &generatedHelmRelease, nil
 }
 
 func applyCreateAutomationDefaults(msg *capiv1_proto.CreateAutomationsPullRequestRequest) {

@@ -365,6 +365,7 @@ export type Kustomization = {
 export type KustomizationSpec = {
   path?: string
   sourceRef?: SourceRef
+  targetNamespace?: string
 }
 
 export type HelmRelease = {

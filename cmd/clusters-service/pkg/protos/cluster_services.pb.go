@@ -3722,8 +3722,9 @@ type KustomizationSpec struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Path      string     `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	SourceRef *SourceRef `protobuf:"bytes,2,opt,name=source_ref,json=sourceRef,proto3" json:"source_ref,omitempty"`
+	Path            string     `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	SourceRef       *SourceRef `protobuf:"bytes,2,opt,name=source_ref,json=sourceRef,proto3" json:"source_ref,omitempty"`
+	TargetNamespace string     `protobuf:"bytes,3,opt,name=target_namespace,json=targetNamespace,proto3" json:"target_namespace,omitempty"`
 }
 
 func (x *KustomizationSpec) Reset() {
@@ -3770,6 +3771,13 @@ func (x *KustomizationSpec) GetSourceRef() *SourceRef {
 		return x.SourceRef
 	}
 	return nil
+}
+
+func (x *KustomizationSpec) GetTargetNamespace() string {
+	if x != nil {
+		return x.TargetNamespace
+	}
+	return ""
 }
 
 type HelmRelease struct {

@@ -43,7 +43,6 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
-  const { clusters, isLoading } = useClusters();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -60,6 +59,7 @@ const AddApplication = () => {
       {
         name: '',
         namespace: '',
+        target_namespace: '',
         cluster_name: '',
         cluster_namespace: '',
         cluster: '',
@@ -171,6 +171,7 @@ const AddApplication = () => {
                   name: kustomization.source_name,
                   namespace: kustomization.source_namespace,
                 },
+                targetNamespace: kustomization.target_namespace,
               },
             },
           };
@@ -274,23 +275,19 @@ const AddApplication = () => {
             <ContentWrapper>
               <Grid container>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
-                  {!isLoading &&
-                    formData.clusterAutomations.map(
-                      (automation: ClusterAutomation, index: number) => {
-                        return (
-                          <AppFields
-                            key={index}
-                            index={index}
-                            formData={formData}
-                            setFormData={setFormData}
-                            clusters={clusters}
-                            onPRPreview={handlePRPreview}
-                            previewLoading={previewLoading}
-                          />
-                        );
-                      },
-                    )}
-                  {isLoading && <Loader />}
+                 {formData.clusterAutomations.map(
+                    (automation: ClusterAutomation, index: number) => {
+                      return (
+                        <AppFields
+                          key={index}
+                          index={index}
+                          formData={formData}
+                          setFormData={setFormData}
+                          allowSelectCluster
+                        />
+                      );
+                    },
+                  )}
                   {openPreview && PRPreview ? (
                     <Preview
                       openPreview={openPreview}

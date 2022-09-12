@@ -600,7 +600,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
 
-		parsed, err := parseValues(data)
+		parsed, err := ParseValues(data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -796,7 +796,8 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	return version, nil
 }
 
-func parseValues(v []byte) (map[string]interface{}, error) {
+// ParseValues takes a YAML encoded values string and returns a struct
+func ParseValues(v []byte) (map[string]interface{}, error) {
 	vals := map[string]interface{}{}
 	if err := yaml.Unmarshal(v, &vals); err != nil {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
@@ -927,9 +928,10 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 				Name:      kustomization.Spec.SourceRef.Name,
 				Namespace: kustomization.Spec.SourceRef.Namespace,
 			},
-			Interval: metav1.Duration{Duration: time.Minute * 10},
-			Prune:    true,
-			Path:     kustomization.Spec.Path,
+			Interval:        metav1.Duration{Duration: time.Minute * 10},
+			Prune:           true,
+			Path:            kustomization.Spec.Path,
+			TargetNamespace: kustomization.Spec.TargetNamespace,
 		},
 	}
 
