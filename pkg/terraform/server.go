@@ -157,20 +157,3 @@ func serializeObj(scheme *k8sruntime.Scheme, obj client.Object) ([]byte, error) 
 
 	return buf.Bytes(), nil
 }
-
-// Copied from PD: https://github.com/weaveworks/progressive-delivery/blob/34d93e303edc6a38fc99f96f58f8e58ee18bb92d/pkg/convert/flagger.go#L203
-// Populate the GVK from scheme, since it is cleared by design on typed objects.
-// https://github.com/kubernetes/client-go/issues/413
-func setGVKFromScheme(object k8sruntime.Object, scheme *k8sruntime.Scheme) error {
-	gvks, unversioned, err := scheme.ObjectKinds(object)
-	if err != nil {
-		return err
-	}
-	if len(gvks) == 0 {
-		return fmt.Errorf("no ObjectKinds available for %T", object)
-	}
-	if !unversioned {
-		object.GetObjectKind().SetGroupVersionKind(gvks[0])
-	}
-	return nil
-}
