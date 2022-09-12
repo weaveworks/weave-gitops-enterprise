@@ -13,7 +13,7 @@ import {
   theme,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { useListConfig } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core';
 
@@ -74,12 +74,10 @@ const WGApplicationsDashboard: FC = () => {
             >
               ADD AN APPLICATION
             </Button>
-            <Link
-              target={'_blank'}
-              className="actionButton btn"
-              rel="noopener noreferrer"
-              component={Button}
-              to={{ pathname: repoLink }}
+            <Button
+              onClick={() =>
+                window.open(repoLink, '_blank', 'noopener,noreferrer')
+              }
             >
               <Icon
                 className={classes.externalIcon}
@@ -87,7 +85,7 @@ const WGApplicationsDashboard: FC = () => {
                 size="base"
               />
               GO TO OPEN PULL REQUESTS
-            </Link>
+            </Button>
           </ActionsWrapper>
         </div>
         {isLoading ? (

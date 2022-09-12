@@ -106,12 +106,6 @@ const useStyles = makeStyles(() =>
     externalIcon: {
       marginRight: theme.spacing.small,
     },
-    link: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: theme.colors.primary10,
-    },
   }),
 );
 
@@ -414,20 +408,17 @@ const MCCP: FC = () => {
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Button>
-                <Link
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  to={{ pathname: repoLink }}
-                  className={classes.link}
-                >
-                  <Icon
-                    className={classes.externalIcon}
-                    type={IconType.ExternalTab}
-                    size="base"
-                  />
-                  GO TO OPEN PULL REQUESTS
-                </Link>
+              <Button
+                onClick={() =>
+                  window.open(repoLink, '_blank', 'noopener,noreferrer')
+                }
+              >
+                <Icon
+                  className={classes.externalIcon}
+                  type={IconType.ExternalTab}
+                  size="base"
+                />
+                GO TO OPEN PULL REQUESTS
               </Button>
             </ActionsWrapper>
           </div>
