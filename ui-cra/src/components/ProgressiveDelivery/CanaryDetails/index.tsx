@@ -1,6 +1,3 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../../muiTheme';
-
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
@@ -30,36 +27,34 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
   });
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Delivery">
-        <SectionHeader
-          className="count-header"
-          path={[
-            {
-              label: 'Applications',
-              url: '/applications',
-              count: applicationsCount,
-            },
-            {
-              label: 'Delivery',
-              url: '/applications/delivery',
-              count: canariesCount,
-            },
-            { label: name },
-          ]}
-        />
-        <ContentWrapper>
-          {isLoading && <LoadingPage />}
-          {error && <Alert severity="error">{error.message}</Alert>}
-          {data?.canary && (
-            <CanaryDetailsSection
-              canary={data.canary}
-              automation={data.automation}
-            />
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate documentTitle="WeGo · Delivery">
+      <SectionHeader
+        className="count-header"
+        path={[
+          {
+            label: 'Applications',
+            url: '/applications',
+            count: applicationsCount,
+          },
+          {
+            label: 'Delivery',
+            url: '/applications/delivery',
+            count: canariesCount,
+          },
+          { label: name },
+        ]}
+      />
+      <ContentWrapper>
+        {isLoading && <LoadingPage />}
+        {error && <Alert severity="error">{error.message}</Alert>}
+        {data?.canary && (
+          <CanaryDetailsSection
+            canary={data.canary}
+            automation={data.automation}
+          />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 }
 
