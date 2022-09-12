@@ -1,5 +1,3 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../muiTheme';
 import { PageTemplate } from '../Layout/PageTemplate';
 import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
@@ -16,16 +14,14 @@ const ProgressiveDelivery = () => {
   } = useIsFlaggerAvailable();
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Delivery">
-        {isLoading && <LoadingPage />}
-        {error && <Alert severity="error">{error.message}</Alert>}
+    <PageTemplate documentTitle="WeGo · Delivery">
+      {isLoading && <LoadingPage />}
+      {error && <Alert severity="error">{error.message}</Alert>}
 
-        {!isLoading && (
-          <>{isFlaggerAvailable ? <CanariesList /> : <OnboardingMessage />}</>
-        )}
-      </PageTemplate>
-    </ThemeProvider>
+      {!isLoading && (
+        <>{isFlaggerAvailable ? <CanariesList /> : <OnboardingMessage />}</>
+      )}
+    </PageTemplate>
   );
 };
 
