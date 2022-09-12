@@ -22,8 +22,6 @@ import AppFields from './form/Partials/AppFields';
 import Profiles from '../../Clusters/Form/Partials/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
-import useClusters from '../../../contexts/Clusters';
-import { Loader } from '../../Loader';
 import _ from 'lodash';
 import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
@@ -38,7 +36,6 @@ const AddApplication = () => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
-  const { clusters, isLoading } = useClusters();
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -240,21 +237,19 @@ const AddApplication = () => {
             <ContentWrapper>
               <Grid container>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
-                  {!isLoading &&
-                    formData.clusterAutomations.map(
-                      (automation: ClusterAutomation, index: number) => {
-                        return (
-                          <AppFields
-                            key={index}
-                            index={index}
-                            formData={formData}
-                            setFormData={setFormData}
-                            clusters={clusters}
-                          />
-                        );
-                      },
-                    )}
-                  {isLoading && <Loader></Loader>}
+                  {formData.clusterAutomations.map(
+                    (automation: ClusterAutomation, index: number) => {
+                      return (
+                        <AppFields
+                          key={index}
+                          index={index}
+                          formData={formData}
+                          setFormData={setFormData}
+                          allowSelectCluster
+                        />
+                      );
+                    },
+                  )}
                 </Grid>
                 {formData.source_type === 'HelmRepository' ? (
                   <Profiles
@@ -291,8 +286,6 @@ const AddApplication = () => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
-    clusters,
-    isLoading,
   ]);
 };
 
