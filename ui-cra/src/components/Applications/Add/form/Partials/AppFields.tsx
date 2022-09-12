@@ -4,13 +4,13 @@ import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
 import { ListSubheader, MenuItem } from '@material-ui/core';
-import { GitopsClusterEnriched } from '../../../../../types/custom';
 import { useListSources, theme } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
+import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 
 interface SourceEnriched extends Source {
   url?: string;
@@ -31,15 +31,34 @@ const FormWrapper = styled.form`
   }
 `;
 
+const toCluster = (clusterName: string): GitopsCluster => {
+  const [firstBit, secondBit] = clusterName.split('/');
+  const [namespace, name, controlPlane] = secondBit
+    ? [firstBit, secondBit, false]
+    : ['', firstBit, true];
+  return {
+    name,
+    namespace,
+    controlPlane,
+  };
+};
+
 const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
-  clusters?: GitopsClusterEnriched[];
-}> = ({ formData, setFormData, index = 0, clusters = undefined }) => {
+  allowSelectCluster: boolean;
+}> = ({ formData, setFormData, index = 0, allowSelectCluster }) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
+
+  let clusters: GitopsCluster[] | undefined = undefined;
+  if (allowSelectCluster) {
+    clusters = _.uniq(data?.result?.map(s => s.clusterName))
+      .sort()
+      .map(toCluster);
+  }
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
@@ -196,7 +215,10 @@ const AppFields: FC<{
             defaultValue={''}
             description="select target cluster"
           >
-            {clusters?.map((option: GitopsClusterEnriched, index: number) => {
+            {clusters.length === 0 && (
+              <MenuItem disabled={true}>Loading...</MenuItem>
+            )}
+            {clusters?.map((option: GitopsCluster, index: number) => {
               return (
                 <MenuItem key={index} value={JSON.stringify(option)}>
                   {option.name}
