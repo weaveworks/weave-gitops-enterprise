@@ -13,6 +13,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -49,7 +50,10 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 			clusterName := fetcher.ManagementClusterName
 			if t.ClusterRef.Name != "" {
-				clusterName = t.ClusterRef.Name
+				clusterName = types.NamespacedName{
+					Name:      t.ClusterRef.Name,
+					Namespace: t.ClusterRef.Namespace,
+				}.String()
 			}
 
 			if err := c.Get(ctx, clusterName, client.ObjectKeyFromObject(app), app); err != nil {
