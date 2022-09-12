@@ -1,17 +1,21 @@
 import { ThemeProvider } from '@material-ui/core';
-import { DataTable, formatURL } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  formatURL,
+  KubeStatusIndicator,
+} from '@weaveworks/weave-gitops';
 
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import { useListTerraformObjects } from '../../contexts/Terraform';
 import { localEEMuiTheme } from '../../muiTheme';
+import { computeMessage } from '../../utils/conditions';
 import { getKindRoute, Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { TableWrapper } from '../Shared';
-
 type Props = {
   className?: string;
 };
@@ -27,8 +31,6 @@ function TerraformObjectList({ className }: Props) {
     console.log(data?.errors);
   }
 
-  console.log(data);
-
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Terraform">
@@ -43,7 +45,10 @@ function TerraformObjectList({ className }: Props) {
           ]}
         />
 
-        <ContentWrapper loading={isLoading}>
+        <ContentWrapper
+          errors={error ? [error] : data?.errors || []}
+          loading={isLoading}
+        >
           <TableWrapper>
             <DataTable
               className={className}
@@ -68,7 +73,7 @@ function TerraformObjectList({ className }: Props) {
                 },
                 { value: 'namespace', label: 'Namespace' },
                 { value: () => '-', label: 'Tenant' },
-                { value: 'cluster', label: 'Cluster' },
+                { value: 'clusterName', label: 'Cluster' },
                 {
                   label: 'Source',
                   value: (tf: TerraformObject) => {
@@ -84,6 +89,17 @@ function TerraformObjectList({ className }: Props) {
 
                     return <Link to={u}>{name}</Link>;
                   },
+                },
+                {
+                  value: (tf: TerraformObject) => (
+                    <KubeStatusIndicator conditions={tf.conditions || []} />
+                  ),
+                  label: 'Status',
+                },
+                {
+                  value: (tf: TerraformObject) =>
+                    computeMessage(tf.conditions as any),
+                  label: 'Message',
                 },
               ]}
               rows={data?.objects}
