@@ -260,9 +260,17 @@ const AppFields: FC<{
           />
           <Input
             className="form-section"
+            name="target_namespace"
+            label="TARGET NAMESPACE"
+            description="OPTIONAL If omitted all resources must specify a namespace"
+            value={formData.clusterAutomations[index].target_namespace}
+            onChange={event => handleFormData(event, 'target_namespace')}
+          />
+          <Input
+            className="form-section"
             required={true}
             name="path"
-            label="SELECT PATH/CHART"
+            label="SELECT PATH"
             value={formData.clusterAutomations[index].path}
             onChange={event => handleFormData(event, 'path')}
             description="Path within the git repository to read yaml files"

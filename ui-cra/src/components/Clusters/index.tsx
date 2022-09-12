@@ -30,7 +30,17 @@ import useNotifications from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
-import { EKSDefault, GKEDefault, Kind, Kubernetes } from '../../utils/icons';
+import {
+  EKSDefault,
+  GKEDefault,
+  Kind,
+  Kubernetes,
+  Vsphere,
+  LiquidMetal,
+  Rancher,
+  Openshift,
+  OtherOnprem,
+} from '../../utils/icons';
 import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -104,7 +114,7 @@ const useStyles = makeStyles(() =>
 export const ClusterIcon: FC<Props> = ({ cluster }) => {
   const classes = useStyles();
   const clusterKind =
-    cluster.annotations?.['weave.works/cluster-kind'] ||
+    cluster.labels?.['weave.works/cluster-kind'] ||
     cluster.capiCluster?.infrastructureRef?.kind;
 
   return (
@@ -166,6 +176,16 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     return Kubernetes;
   } else if (clusterType === 'GCPCluster') {
     return GKEDefault;
+  } else if (clusterType === 'VSphereCluster') {
+    return Vsphere;
+  } else if (clusterType === 'MicrovmCluster') {
+    return LiquidMetal;
+  } else if (clusterType === 'Rancher') {
+    return Rancher;
+  } else if (clusterType === 'Openshift') {
+    return Openshift;
+  } else if (clusterType === 'OtherOnprem') {
+    return OtherOnprem;
   }
   return Kubernetes;
 };

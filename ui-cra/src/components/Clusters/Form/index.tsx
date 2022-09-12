@@ -129,10 +129,11 @@ function getInitialData(
       : 'This PR creates a new cluster',
     parameterValues: clusterData?.parameter_values || {},
     clusterAutomations:
-      clusterData?.kustomizations?.map((k: Kustomization) => ({
+      clusterData?.kustomizations?.map((k: any) => ({
         name: k.metadata?.name,
         namespace: k.metadata?.namespace,
         path: k.spec?.path,
+        target_namespace: k.spec?.target_namespace,
       })) || [],
   };
 
@@ -188,6 +189,7 @@ const toPayload = (
             name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
             namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
           },
+          targetNamespace: kustomization.target_namespace,
         },
       };
     },
