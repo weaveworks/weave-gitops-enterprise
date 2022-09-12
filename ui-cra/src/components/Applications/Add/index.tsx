@@ -55,6 +55,7 @@ const AddApplication = () => {
       {
         name: '',
         namespace: '',
+        target_namespace: '',
         cluster_name: '',
         cluster_namespace: '',
         cluster: '',
@@ -162,6 +163,7 @@ const AddApplication = () => {
                   name: kustomization.source_name,
                   namespace: kustomization.source_namespace,
                 },
+                targetNamespace: kustomization.target_namespace,
               },
             },
           };
