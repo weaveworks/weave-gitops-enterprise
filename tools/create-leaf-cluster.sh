@@ -9,7 +9,7 @@ fi
 
 if ! command -v vcluster &> /dev/null
 then
-    echo "vcluster could not be found"
+    echo "vcluster could not be found. You can install it by following https://www.vcluster.com/docs/getting-started/setup"
     exit
 fi
 
@@ -17,7 +17,12 @@ echo "Creating cluster..."
 vcluster create --connect=false $1
 
 echo "Waiting cluster config..."
-until kubectl get secret -n vcluster-$1 vc-$1; do sleep 5; done
+TRY=12
+until [[ $i -gt TRY  ]] || kubectl get secret -n vcluster-$1 vc-$1 &>/dev/null
+do
+    sleep 10
+    ((i++))
+done
 
 echo "Creating GitopsCluster secret..."
 kubectl get secret -n vcluster-$1 vc-$1 --template={{.data.config}} \
