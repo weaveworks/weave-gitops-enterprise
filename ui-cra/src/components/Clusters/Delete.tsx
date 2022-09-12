@@ -8,7 +8,7 @@ import {
 } from '@material-ui/core';
 import styled from 'styled-components';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
-import useClusters from '../../contexts/Clusters';
+import useClusters from '../../hooks/clusters';
 import useNotifications from '../../contexts/Notifications';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
@@ -43,7 +43,7 @@ interface Props {
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
   selectedCapiClusters: ClusterNamespacedName[];
-  setOpenDeletePR: Dispatch<React.SetStateAction<boolean>>;
+  onRequestClose: () => void;
   prDefaults: PRDefaults;
 }
 
@@ -51,13 +51,13 @@ export const DeleteClusterDialog: FC<Props> = ({
   formData,
   setFormData,
   selectedCapiClusters,
-  setOpenDeletePR,
+  onRequestClose,
   prDefaults,
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
-  const { deleteCreatedClusters, loading, setSelectedClusters } = useClusters();
+  const { deleteCreatedClusters, loading } = useClusters();
   const { setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
@@ -140,10 +140,9 @@ export const DeleteClusterDialog: FC<Props> = ({
   const cleanUp = useCallback(() => {
     clearCallbackState();
     setShowAuthDialog(false);
-    setSelectedClusters([]);
     setFormData(prDefaults);
-    setOpenDeletePR(false);
-  }, [setSelectedClusters, setFormData, setOpenDeletePR, prDefaults]);
+    onRequestClose();
+  }, [onRequestClose, setFormData, prDefaults]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>

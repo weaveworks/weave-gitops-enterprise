@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
-import useClusters from '../../contexts/Clusters';
+import useClusters from '../../hooks/clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { useHistory, useRouteMatch } from 'react-router-dom';

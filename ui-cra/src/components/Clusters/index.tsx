@@ -25,7 +25,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import useClusters from '../../contexts/Clusters';
+import useClusters from '../../hooks/clusters';
 import useNotifications from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
@@ -197,21 +197,27 @@ interface FormData {
 }
 
 const MCCP: FC = () => {
-  const { clusters, isLoading, count, selectedClusters, setSelectedClusters } =
-    useClusters();
+  const { clusters, isLoading, count } = useClusters();
+  const [selectedClusters, setSelectedClusters] = useState<
+    ClusterNamespacedName[]
+  >([]);
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
+  const handleRequestClose = useCallback(() => {
+    setOpenDeletePR(false);
+    setSelectedClusters([]);
+  }, [setOpenDeletePR, setSelectedClusters]);
   const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
-    () => clusters.filter(cls => cls.capiCluster),
+    () => clusters?.filter(cls => cls.capiCluster),
     [clusters],
   );
   let selectedCapiClusters = useMemo(
     () =>
       selectedClusters.filter(({ name, namespace }) =>
-        capiClusters.find(c => c.name === name && c.namespace === namespace),
+        capiClusters?.find(c => c.name === name && c.namespace === namespace),
       ),
     [capiClusters, selectedClusters],
   );
@@ -305,7 +311,7 @@ const MCCP: FC = () => {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       setSelectedClusters(
-        clusters.map(({ name, namespace }: GitopsClusterEnriched) => ({
+        (clusters || []).map(({ name, namespace }: GitopsClusterEnriched) => ({
           name,
           namespace,
         })),
@@ -399,7 +405,7 @@ const MCCP: FC = () => {
                   formData={formData}
                   setFormData={setFormData}
                   selectedCapiClusters={selectedCapiClusters}
-                  setOpenDeletePR={setOpenDeletePR}
+                  onRequestClose={handleRequestClose}
                   prDefaults={PRdefaults}
                 />
               )}

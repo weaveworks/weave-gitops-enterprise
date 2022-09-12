@@ -1,8 +1,8 @@
 import Grid from '@material-ui/core/Grid';
 import { FC } from 'react';
 import { Redirect, useParams } from 'react-router-dom';
-import useClusters from '../../../contexts/Clusters';
-import useTemplates from '../../../contexts/Templates';
+import useClusters from '../../../hooks/clusters';
+import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
