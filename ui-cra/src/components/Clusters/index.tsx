@@ -68,9 +68,6 @@ const ClustersTableWrapper = styled(TableWrapper)`
       padding: ${({ theme }) => theme.spacing.xs}
         ${({ theme }) => theme.spacing.base};
     }
-    h2 {
-      line-height: 1;
-    }
   }
   td:first-of-type {
     text-overflow: clip;
