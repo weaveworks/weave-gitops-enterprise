@@ -4,7 +4,6 @@ import {
   makeStyles,
   withStyles,
 } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/core/styles';
 import EditIcon from '@material-ui/icons/Edit';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
@@ -29,7 +28,6 @@ import { ClusterNamespacedName } from '../../cluster-services/cluster_services.p
 import useClusters from '../../contexts/Clusters';
 import useNotifications from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
-import { localEEMuiTheme } from '../../muiTheme';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
 import {
@@ -68,6 +66,9 @@ const ClustersTableWrapper = styled(TableWrapper)`
   thead {
     th:first-of-type {
       padding: ${({ theme }) => theme.spacing.base};
+    }
+    h2 {
+      line-height: 1;
     }
   }
   td:first-of-type {
@@ -341,209 +342,199 @@ const MCCP: FC = () => {
   const rowCount = clusters.length || 0;
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Clusters">
-        <CallbackStateContextProvider
-          callbackState={{
-            page: authRedirectPage as PageRoute,
-            state: { formData, selectedCapiClusters },
-          }}
-        >
-          <SectionHeader
-            className="count-header"
-            path={[{ label: 'Clusters', url: 'clusters', count }]}
-          />
-          <ContentWrapper>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <ActionsWrapper>
-                <Button
-                  id="create-cluster"
-                  startIcon={<Icon type={IconType.AddIcon} size="base" />}
-                  onClick={handleAddCluster}
-                >
-                  CREATE A CLUSTER
-                </Button>
-                <Button
-                  id="connect-cluster"
-                  startIcon={
-                    <Icon type={IconType.ArrowUpwardIcon} size="base" />
-                  }
-                  onClick={() => setOpenConnectInfo(true)}
-                >
-                  CONNECT A CLUSTER
-                </Button>
-                <Tooltip
-                  title="No CAPI clusters selected"
-                  placement="top"
-                  disabled={selectedCapiClusters.length !== 0}
-                >
-                  <div>
-                    <Button
-                      id="delete-cluster"
-                      startIcon={
-                        <Icon type={IconType.DeleteIcon} size="base" />
-                      }
-                      onClick={() => {
-                        setNotifications([]);
-                        setOpenDeletePR(true);
-                      }}
-                      color="secondary"
-                      disabled={selectedCapiClusters.length === 0}
-                    >
-                      CREATE A PR TO DELETE CLUSTERS
-                    </Button>
-                  </div>
-                </Tooltip>
-                {openDeletePR && (
-                  <DeleteClusterDialog
-                    formData={formData}
-                    setFormData={setFormData}
-                    selectedCapiClusters={selectedCapiClusters}
-                    setOpenDeletePR={setOpenDeletePR}
-                    prDefaults={PRdefaults}
-                  />
-                )}
-                {openConnectInfo && (
-                  <ConnectClusterDialog
-                    onFinish={() => setOpenConnectInfo(false)}
-                  />
-                )}
-                <Link
-                  target={'_blank'}
-                  rel="noopener noreferrer"
-                  component={Button}
-                  to={{ pathname: repoLink }}
-                >
-                  <Icon
-                    className={classes.externalIcon}
-                    type={IconType.ExternalTab}
-                    size="base"
-                  />
-                  GO TO OPEN PULL REQUESTS
-                </Link>
-              </ActionsWrapper>
-            </div>
-            {!isLoading ? (
-              <ClustersTableWrapper id="clusters-list">
-                <DataTable
-                  key={clusters.length}
-                  filters={initialFilterState}
-                  rows={clusters}
-                  fields={[
-                    {
-                      label: 'checkbox',
-                      labelRenderer: () => (
-                        <Checkbox
-                          indeterminate={
-                            numSelected > 0 && numSelected < rowCount
-                          }
-                          checked={rowCount > 0 && numSelected === rowCount}
-                          onChange={handleSelectAllClick}
-                          inputProps={{ 'aria-label': 'select all rows' }}
-                          style={{
-                            color: theme.colors.primary,
-                          }}
-                        />
-                      ),
-                      value: ({ name, namespace }: GitopsClusterEnriched) => (
-                        <ClusterRowCheckbox
-                          name={name}
-                          namespace={namespace}
-                          onChange={handleIndividualClick}
-                          checked={Boolean(
-                            selectedClusters.find(
-                              cls =>
-                                cls.name === name &&
-                                cls.namespace === namespace,
-                            ),
-                          )}
-                        />
-                      ),
-                      maxWidth: 25,
-                    },
-                    {
-                      label: 'Name',
-                      value: (c: GitopsClusterEnriched) =>
-                        c.controlPlane === true ? (
-                          <span data-cluster-name={c.name}>{c.name}</span>
-                        ) : (
-                          <Link
-                            to={`/cluster?clusterName=${c.name}`}
-                            color={theme.colors.primary}
-                            data-cluster-name={c.name}
-                          >
-                            {c.name}
-                          </Link>
-                        ),
-                      sortValue: ({ name }) => name,
-                      textSearchable: true,
-                      maxWidth: 275,
-                    },
-                    {
-                      label: 'Dashboards',
-                      value: (c: GitopsClusterEnriched) => (
-                        <DashboardsList cluster={c} />
-                      ),
-                    },
-                    {
-                      label: 'Type',
-                      value: (c: GitopsClusterEnriched) => (
-                        <ClusterIcon cluster={c}></ClusterIcon>
-                      ),
-                    },
-                    {
-                      label: 'Namespace',
-                      value: 'namespace',
-                    },
-                    {
-                      label: 'Status',
-                      value: (c: GitopsClusterEnriched) =>
-                        c.conditions && c.conditions.length > 0 ? (
-                          <KubeStatusIndicator
-                            short
-                            conditions={c.conditions}
-                          />
-                        ) : null,
-                      sortValue: statusSortHelper,
-                    },
-                    {
-                      label: 'Message',
-                      value: (c: GitopsClusterEnriched) =>
-                        (c.conditions && c.conditions[0]?.message) || null,
-                      sortValue: ({ conditions }) => computeMessage(conditions),
-                      maxWidth: 600,
-                    },
-                    {
-                      label: '',
-                      value: (c: GitopsClusterEnriched) => (
-                        <Button
-                          id="edit-cluster"
-                          startIcon={<EditIcon fontSize="small" />}
-                          onClick={event => handleEditCluster(event, c)}
-                          disabled={!Boolean(getCreateRequestAnnotation(c))}
-                        >
-                          EDIT CLUSTER
-                        </Button>
-                      ),
-                    },
-                  ]}
+    <PageTemplate documentTitle="WeGo · Clusters">
+      <CallbackStateContextProvider
+        callbackState={{
+          page: authRedirectPage as PageRoute,
+          state: { formData, selectedCapiClusters },
+        }}
+      >
+        <SectionHeader
+          className="count-header"
+          path={[{ label: 'Clusters', url: 'clusters', count }]}
+        />
+        <ContentWrapper>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <ActionsWrapper>
+              <Button
+                id="create-cluster"
+                startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                onClick={handleAddCluster}
+              >
+                CREATE A CLUSTER
+              </Button>
+              <Button
+                id="connect-cluster"
+                startIcon={<Icon type={IconType.ArrowUpwardIcon} size="base" />}
+                onClick={() => setOpenConnectInfo(true)}
+              >
+                CONNECT A CLUSTER
+              </Button>
+              <Tooltip
+                title="No CAPI clusters selected"
+                placement="top"
+                disabled={selectedCapiClusters.length !== 0}
+              >
+                <div>
+                  <Button
+                    id="delete-cluster"
+                    startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+                    onClick={() => {
+                      setNotifications([]);
+                      setOpenDeletePR(true);
+                    }}
+                    color="secondary"
+                    disabled={selectedCapiClusters.length === 0}
+                  >
+                    CREATE A PR TO DELETE CLUSTERS
+                  </Button>
+                </div>
+              </Tooltip>
+              {openDeletePR && (
+                <DeleteClusterDialog
+                  formData={formData}
+                  setFormData={setFormData}
+                  selectedCapiClusters={selectedCapiClusters}
+                  setOpenDeletePR={setOpenDeletePR}
+                  prDefaults={PRdefaults}
                 />
-              </ClustersTableWrapper>
-            ) : (
-              <LoadingWrapper>
-                <LoadingPage />
-              </LoadingWrapper>
-            )}
-          </ContentWrapper>
-        </CallbackStateContextProvider>
-      </PageTemplate>
-    </ThemeProvider>
+              )}
+              {openConnectInfo && (
+                <ConnectClusterDialog
+                  onFinish={() => setOpenConnectInfo(false)}
+                />
+              )}
+              <Link
+                target={'_blank'}
+                rel="noopener noreferrer"
+                component={Button}
+                to={{ pathname: repoLink }}
+              >
+                <Icon
+                  className={classes.externalIcon}
+                  type={IconType.ExternalTab}
+                  size="base"
+                />
+                GO TO OPEN PULL REQUESTS
+              </Link>
+            </ActionsWrapper>
+          </div>
+          {!isLoading ? (
+            <ClustersTableWrapper id="clusters-list">
+              <DataTable
+                key={clusters.length}
+                filters={initialFilterState}
+                rows={clusters}
+                fields={[
+                  {
+                    label: 'checkbox',
+                    labelRenderer: () => (
+                      <Checkbox
+                        indeterminate={
+                          numSelected > 0 && numSelected < rowCount
+                        }
+                        checked={rowCount > 0 && numSelected === rowCount}
+                        onChange={handleSelectAllClick}
+                        inputProps={{ 'aria-label': 'select all rows' }}
+                        style={{
+                          color: theme.colors.primary,
+                        }}
+                      />
+                    ),
+                    value: ({ name, namespace }: GitopsClusterEnriched) => (
+                      <ClusterRowCheckbox
+                        name={name}
+                        namespace={namespace}
+                        onChange={handleIndividualClick}
+                        checked={Boolean(
+                          selectedClusters.find(
+                            cls =>
+                              cls.name === name && cls.namespace === namespace,
+                          ),
+                        )}
+                      />
+                    ),
+                    maxWidth: 25,
+                  },
+                  {
+                    label: 'Name',
+                    value: (c: GitopsClusterEnriched) =>
+                      c.controlPlane === true ? (
+                        <span data-cluster-name={c.name}>{c.name}</span>
+                      ) : (
+                        <Link
+                          to={`/cluster?clusterName=${c.name}`}
+                          color={theme.colors.primary}
+                          data-cluster-name={c.name}
+                        >
+                          {c.name}
+                        </Link>
+                      ),
+                    sortValue: ({ name }) => name,
+                    textSearchable: true,
+                    maxWidth: 275,
+                  },
+                  {
+                    label: 'Dashboards',
+                    value: (c: GitopsClusterEnriched) => (
+                      <DashboardsList cluster={c} />
+                    ),
+                  },
+                  {
+                    label: 'Type',
+                    value: (c: GitopsClusterEnriched) => (
+                      <ClusterIcon cluster={c}></ClusterIcon>
+                    ),
+                  },
+                  {
+                    label: 'Namespace',
+                    value: 'namespace',
+                  },
+                  {
+                    label: 'Status',
+                    value: (c: GitopsClusterEnriched) =>
+                      c.conditions && c.conditions.length > 0 ? (
+                        <KubeStatusIndicator short conditions={c.conditions} />
+                      ) : null,
+                    sortValue: statusSortHelper,
+                  },
+                  {
+                    label: 'Message',
+                    value: (c: GitopsClusterEnriched) =>
+                      (c.conditions && c.conditions[0]?.message) || null,
+                    sortValue: ({ conditions }) => computeMessage(conditions),
+                    maxWidth: 600,
+                  },
+                  {
+                    label: '',
+                    value: (c: GitopsClusterEnriched) => (
+                      <Button
+                        id="edit-cluster"
+                        startIcon={<EditIcon fontSize="small" />}
+                        onClick={event => handleEditCluster(event, c)}
+                        disabled={!Boolean(getCreateRequestAnnotation(c))}
+                      >
+                        EDIT CLUSTER
+                      </Button>
+                    ),
+                  },
+                ]}
+              />
+            </ClustersTableWrapper>
+          ) : (
+            <LoadingWrapper>
+              <LoadingPage />
+            </LoadingWrapper>
+          )}
+        </ContentWrapper>
+      </CallbackStateContextProvider>
+    </PageTemplate>
   );
 };
 
