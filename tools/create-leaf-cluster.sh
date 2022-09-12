@@ -14,7 +14,7 @@ then
 fi
 
 echo "Creating cluster..."
-vcluster create --connect=false $1
+vcluster create --connect=false -n vcluster-$1 $1
 
 echo "Waiting cluster config..."
 TRY=12
