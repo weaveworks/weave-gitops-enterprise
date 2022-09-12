@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -12,12 +13,16 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/convert"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	k8sruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type ServerOpts struct {
 	logr.Logger
 	ClientsFactory clustersmngr.ClientsFactory
+	Scheme         *k8sruntime.Scheme
 }
 
 type server struct {
@@ -25,6 +30,7 @@ type server struct {
 
 	log     logr.Logger
 	clients clustersmngr.ClientsFactory
+	scheme  *k8sruntime.Scheme
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -37,6 +43,7 @@ func NewTerraformServer(opts ServerOpts) pb.TerraformServer {
 	return &server{
 		log:     opts.Logger,
 		clients: opts.ClientsFactory,
+		scheme:  opts.Scheme,
 	}
 }
 
@@ -94,7 +101,7 @@ func (s *server) ListTerraformObjects(ctx context.Context, msg *pb.ListTerraform
 			}
 
 			for _, t := range list.Items {
-				o := convert.ToPBTerraformObject(clusterName, t)
+				o := convert.ToPBTerraformObject(clusterName, &t)
 				results = append(results, &o)
 			}
 		}
@@ -104,4 +111,66 @@ func (s *server) ListTerraformObjects(ctx context.Context, msg *pb.ListTerraform
 		Objects: results,
 		Errors:  listErrors,
 	}, nil
+}
+
+func (s *server) GetTerraformObject(ctx context.Context, msg *pb.GetTerraformObjectRequest) (*pb.GetTerraformObjectResponse, error) {
+	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
+
+	n := types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}
+
+	result := &tfctrl.Terraform{}
+	if err := c.Get(ctx, msg.ClusterName, n, result); err != nil {
+		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
+	}
+
+	yaml, err := serializeObj(s.scheme, result)
+	if err != nil {
+		return nil, fmt.Errorf("serializing yaml: %w", err)
+	}
+
+	obj := convert.ToPBTerraformObject(msg.ClusterName, result)
+
+	return &pb.GetTerraformObjectResponse{
+		Object: &obj,
+		Yaml:   string(yaml),
+	}, nil
+}
+
+func serializeObj(scheme *k8sruntime.Scheme, obj client.Object) ([]byte, error) {
+
+	obj.GetObjectKind().SetGroupVersionKind(tfctrl.GroupVersion.WithKind(tfctrl.TerraformKind))
+
+	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{
+		Pretty: true,
+		Yaml:   true,
+		Strict: true,
+	})
+
+	buf := bytes.NewBufferString("")
+
+	if err := serializer.Encode(obj, buf); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// Copied from PD: https://github.com/weaveworks/progressive-delivery/blob/34d93e303edc6a38fc99f96f58f8e58ee18bb92d/pkg/convert/flagger.go#L203
+// Populate the GVK from scheme, since it is cleared by design on typed objects.
+// https://github.com/kubernetes/client-go/issues/413
+func setGVKFromScheme(object k8sruntime.Object, scheme *k8sruntime.Scheme) error {
+	gvks, unversioned, err := scheme.ObjectKinds(object)
+	if err != nil {
+		return err
+	}
+	if len(gvks) == 0 {
+		return fmt.Errorf("no ObjectKinds available for %T", object)
+	}
+	if !unversioned {
+		object.GetObjectKind().SetGroupVersionKind(gvks[0])
+	}
+	return nil
 }

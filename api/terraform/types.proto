@@ -30,13 +30,13 @@ message TerraformObject {
 
     SourceRef sourceRef            = 4;
     string    appliedRevision      = 5;
-    string    cluster              = 6;
-    string    path                 = 7;
-    Interval  interval             = 8;
-    string    lastUpdatedAt        = 9;
-    bool      driftDetectionResult = 10;
+    string    path                 = 6;
+    Interval  interval             = 7;
+    string    lastUpdatedAt        = 8;
+    bool      driftDetectionResult = 9;
 
-    repeated ResourceRef inventory = 11;
+    repeated ResourceRef inventory = 10;
+    repeated Condition conditions  = 11;
 }
 
 message Pagination {
@@ -44,9 +44,16 @@ message Pagination {
     string pageToken = 2;
 }
 
-
 message TerraformListError {
     string clusterName = 1;
     string namespace   = 2;
     string message     = 3;
+}
+
+message Condition {
+    string type = 1;
+    string status = 2;
+    string reason = 3;
+    string message = 4;
+    string timestamp = 5;
 }

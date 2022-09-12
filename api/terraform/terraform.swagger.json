@@ -65,6 +65,48 @@
           "Terraform"
         ]
       }
+    },
+    "/v1/terraform_objects/{name}": {
+      "get": {
+        "operationId": "Terraform_GetTerraformObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTerraformObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
     }
   },
   "definitions": {
@@ -92,6 +134,37 @@
           "items": {
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetTerraformObjectResponse": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "$ref": "#/definitions/v1TerraformObject"
+        },
+        "yaml": {
+          "type": "string"
         }
       }
     },
@@ -204,9 +277,6 @@
         "appliedRevision": {
           "type": "string"
         },
-        "cluster": {
-          "type": "string"
-        },
         "path": {
           "type": "string"
         },
@@ -223,6 +293,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ResourceRef"
+          }
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
           }
         }
       }

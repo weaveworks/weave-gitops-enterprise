@@ -32,6 +32,7 @@ import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import { TerraformProvider } from '../contexts/Terraform';
+import { Routes } from '../utils/nav';
 import WGApplicationsDashboard from './Applications';
 import AddApplication from './Applications/Add';
 import WGApplicationsBucket from './Applications/Bucket';
@@ -62,7 +63,8 @@ import ProgressiveDelivery from './ProgressiveDelivery';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
 import Compose from './ProvidersCompose';
 import TemplatesDashboard from './Templates';
-import ObjectList from './Terraform/ObjectList';
+import TerraformObjectDetail from './Terraform/TerraformObjectDetail';
+import TerraformObjectList from './Terraform/TerraformObjectList';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -378,8 +380,12 @@ const App = () => {
               />
               <Route
                 exact
-                path="/terraform"
-                component={withSearchParams(ObjectList)}
+                path={Routes.TerraformObjects}
+                component={withSearchParams(TerraformObjectList)}
+              />
+              <Route
+                path={Routes.TerraformDetail}
+                component={withSearchParams(TerraformObjectDetail)}
               />
               <Route
                 exact

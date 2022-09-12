@@ -10,6 +10,7 @@ import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { Routes } from '../utils/nav';
 
 interface SubNavItem {
   name: string;
@@ -172,7 +173,7 @@ export const Navigation: FC = () => {
     },
     {
       name: 'Terraform',
-      link: '/terraform',
+      link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
     },
     {

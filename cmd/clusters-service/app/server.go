@@ -539,6 +539,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if err := tfserver.Hydrate(ctx, grpcMux, tfserver.ServerOpts{
 		Logger:         args.Log,
 		ClientsFactory: args.ClustersManager,
+		Scheme:         args.KubernetesClient.Scheme(),
 	}); err != nil {
 		return fmt.Errorf("hydrating terraform server: %w", err)
 	}

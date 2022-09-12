@@ -28,12 +28,12 @@ export type TerraformObject = {
   clusterName?: string
   sourceRef?: SourceRef
   appliedRevision?: string
-  cluster?: string
   path?: string
   interval?: Interval
   lastUpdatedAt?: string
   driftDetectionResult?: boolean
   inventory?: ResourceRef[]
+  conditions?: Condition[]
 }
 
 export type Pagination = {
@@ -45,4 +45,12 @@ export type TerraformListError = {
   clusterName?: string
   namespace?: string
   message?: string
+}
+
+export type Condition = {
+  type?: string
+  status?: string
+  reason?: string
+  message?: string
+  timestamp?: string
 }

@@ -27,6 +27,12 @@ service Terraform {
         };
     }
 
+    rpc GetTerraformObject(GetTerraformObjectRequest) returns (GetTerraformObjectResponse) {
+        option (google.api.http) = {
+            get : "/v1/terraform_objects/{name}"
+        };
+    }
+
 }
 
 message ListTerraformObjectsRequest {
@@ -39,5 +45,16 @@ message ListTerraformObjectsRequest {
 message ListTerraformObjectsResponse {
     repeated TerraformObject objects = 1;
     repeated TerraformListError errors = 2;
-
 }
+
+message GetTerraformObjectRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+}
+
+message GetTerraformObjectResponse {
+    TerraformObject object = 1;
+    string          yaml   = 2;
+}
+

@@ -6,7 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ToPBTerraformObject(clusterName string, tf tfctrl.Terraform) pb.TerraformObject {
+func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformObject {
 
 	inv := []*pb.ResourceRef{}
 
@@ -33,7 +33,6 @@ func ToPBTerraformObject(clusterName string, tf tfctrl.Terraform) pb.TerraformOb
 		},
 
 		AppliedRevision: tf.Status.LastAppliedRevision,
-		Cluster:         clusterName,
 		Path:            tf.Spec.Path,
 		Interval:        durationToInterval(tf.Spec.Interval),
 		// LastUpdatedAt:        tf.Status.LastAppliedByDriftDetectionAt.Format(time.RFC3339),
