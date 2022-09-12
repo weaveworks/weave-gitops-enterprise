@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 )
 
@@ -61,12 +61,12 @@ type ClusterDetailPage struct {
 
 // This function waits for progressbar circle to disappear
 func WaitForPageToLoad(webDriver *agouti.Page) {
-	Eventually(func(g Gomega) bool {
+	gomega.Eventually(func(g gomega.Gomega) bool {
 		if pCount, _ := webDriver.All(`[class^=MuiCircularProgress]`).Count(); pCount > 0 {
 			return true
 		}
 		return false
-	}, 30*time.Second).Should(BeFalse(), "Page took too long to load")
+	}, 30*time.Second).Should(gomega.BeFalse(), "Page took too long to load")
 }
 
 // FindClusterInList finds the cluster with given name
