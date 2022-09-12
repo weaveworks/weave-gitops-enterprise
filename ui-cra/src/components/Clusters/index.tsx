@@ -175,7 +175,7 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     return Kubernetes;
   } else if (clusterType === 'GCPCluster') {
     return GKEDefault;
-  } else if (clusterType === 'Tanzu') {
+  } else if (clusterType === 'VSphereCluster') {
     return Vsphere;
   } else if (clusterType === 'MicrovmCluster') {
     return LiquidMetal;
