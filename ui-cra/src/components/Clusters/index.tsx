@@ -65,10 +65,8 @@ const ActionsWrapper = styled.div<Size>`
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
     th:first-of-type {
-      padding: ${({ theme }) => theme.spacing.base};
-    }
-    h2 {
-      line-height: 1;
+      padding: ${({ theme }) => theme.spacing.xs}
+        ${({ theme }) => theme.spacing.base};
     }
   }
   td:first-of-type {
