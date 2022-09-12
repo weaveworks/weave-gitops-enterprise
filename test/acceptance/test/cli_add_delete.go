@@ -54,6 +54,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 			templateFiles = []string{}
+			resumeReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
 		})
 
 		ginkgo.Context("[CLI] When Capi Templates are available in the cluster", func() {
@@ -378,10 +379,12 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
 
+				suspendReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(capdClusters)
+				resumeReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
 
 			ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("capd", "git"), func() {

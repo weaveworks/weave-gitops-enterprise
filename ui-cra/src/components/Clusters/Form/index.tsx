@@ -8,6 +8,7 @@ import {
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
   CallbackStateContextProvider,
+  clearCallbackState,
   getProviderToken,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -128,10 +129,11 @@ function getInitialData(
       : 'This PR creates a new cluster',
     parameterValues: clusterData?.parameter_values || {},
     clusterAutomations:
-      clusterData?.kustomizations?.map((k: Kustomization) => ({
+      clusterData?.kustomizations?.map((k: any) => ({
         name: k.metadata?.name,
         namespace: k.metadata?.namespace,
         path: k.spec?.path,
+        target_namespace: k.spec?.target_namespace,
       })) || [],
   };
 
@@ -187,6 +189,7 @@ const toPayload = (
             name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
             namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
           },
+          targetNamespace: kustomization.target_namespace,
         },
       };
     },
@@ -230,6 +233,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
+    clearCallbackState();
+  }, []);
+
+  useEffect(() => {
     setUpdatedProfiles({
       ..._.keyBy(profiles, 'name'),
       ...callbackState?.state?.updatedProfiles,
@@ -241,7 +248,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
-  const authRedirectPage = `/clusters/templates/${template?.name}/create`;
+  const authRedirectPage = cluster
+    ? `/clusters/${cluster?.name}/edit`
+    : `/clusters/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -338,7 +347,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     if (!cluster) {
       setFormData((prevState: any) => ({
         ...prevState,
-        pullRequestTitle: `Creates cluster ${formData.parameterValues.CLUSTER_NAME || ''}`,
+        pullRequestTitle: `Creates cluster ${
+          formData.parameterValues.CLUSTER_NAME || ''
+        }`,
       }));
     }
   }, [cluster, formData.parameterValues, setFormData]);

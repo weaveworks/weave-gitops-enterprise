@@ -927,9 +927,10 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 				Name:      kustomization.Spec.SourceRef.Name,
 				Namespace: kustomization.Spec.SourceRef.Namespace,
 			},
-			Interval: metav1.Duration{Duration: time.Minute * 10},
-			Prune:    true,
-			Path:     kustomization.Spec.Path,
+			Interval:        metav1.Duration{Duration: time.Minute * 10},
+			Prune:           true,
+			Path:            kustomization.Spec.Path,
+			TargetNamespace: kustomization.Spec.TargetNamespace,
 		},
 	}
 
