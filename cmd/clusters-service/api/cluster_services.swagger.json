@@ -1309,6 +1309,9 @@
         },
         "sourceRef": {
           "$ref": "#/definitions/v1SourceRef"
+        },
+        "targetNamespace": {
+          "type": "string"
         }
       }
     },
