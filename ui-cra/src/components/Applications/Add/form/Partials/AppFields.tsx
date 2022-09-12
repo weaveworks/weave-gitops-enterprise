@@ -215,6 +215,9 @@ const AppFields: FC<{
             defaultValue={''}
             description="select target cluster"
           >
+            {clusters.length === 0 && (
+              <MenuItem disabled={true}>Loading...</MenuItem>
+            )}
             {clusters?.map((option: GitopsCluster, index: number) => {
               return (
                 <MenuItem key={index} value={JSON.stringify(option)}>
