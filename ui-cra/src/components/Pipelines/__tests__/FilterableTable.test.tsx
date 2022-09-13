@@ -104,9 +104,3 @@ export class TestFilterableTable {
     this.testRowValues(tds, rowValues);
   }
 }
-test('should TestFilterableTable class', () => {
-  const tblId = 'list';
-  const testClass = new TestFilterableTable(tblId);
-
-  expect(testClass.tableId).toBe(tblId);
-});
