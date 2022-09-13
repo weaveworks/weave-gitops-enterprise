@@ -53,17 +53,16 @@ const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
-  clusters?: GitopsClusterEnriched[];
   onPRPreview?: () => void;
   previewLoading?: boolean;
+  allowSelectCluster: any;
 }> = ({
   formData,
   setFormData,
   index = 0,
-  clusters = undefined,
   onPRPreview,
   previewLoading,
-  allowSelectCluster
+  allowSelectCluster,
 }) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();

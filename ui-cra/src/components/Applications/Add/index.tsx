@@ -111,8 +111,6 @@ const AddApplication = () => {
       'name',
     ).filter(p => p.selected);
     if (formData.source_type === 'HelmRepository') {
-      console.log(formData.clusterAutomations);
-
       for (let kustomization of formData.clusterAutomations) {
         for (let profile of selectedProfilesList) {
           let values: string = '';
@@ -275,7 +273,7 @@ const AddApplication = () => {
             <ContentWrapper>
               <Grid container>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
-                 {formData.clusterAutomations.map(
+                  {formData.clusterAutomations.map(
                     (automation: ClusterAutomation, index: number) => {
                       return (
                         <AppFields
@@ -283,6 +281,8 @@ const AddApplication = () => {
                           index={index}
                           formData={formData}
                           setFormData={setFormData}
+                          onPRPreview={handlePRPreview}
+                          previewLoading={previewLoading}
                           allowSelectCluster
                         />
                       );
@@ -331,11 +331,9 @@ const AddApplication = () => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
-    clusters,
-    isLoading,
     PRPreview,
-    handlePRPreview,
     openPreview,
+    handlePRPreview,
     previewLoading,
   ]);
 };
