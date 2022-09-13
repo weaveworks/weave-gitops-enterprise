@@ -1,9 +1,6 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
-import { theme, Link } from '@weaveworks/weave-gitops';
-import {
-  PipelineStatusTargetStatusList,
-  PipelineTargetStatus,
-} from '../../../api/pipelines/types.pb';
+import { theme } from '@weaveworks/weave-gitops';
+import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useCountPipelines, useGetPipeline } from '../../../contexts/Pipelines';
 import { useApplicationsCount } from '../../Applications/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
