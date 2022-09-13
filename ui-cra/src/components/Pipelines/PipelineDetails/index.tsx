@@ -1,8 +1,10 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/core/styles';
 import { theme, Link } from '@weaveworks/weave-gitops';
+import {
+  PipelineStatusTargetStatusList,
+  PipelineTargetStatus,
+} from '../../../api/pipelines/types.pb';
 import { useCountPipelines, useGetPipeline } from '../../../contexts/Pipelines';
-import { localEEMuiTheme } from '../../../muiTheme';
 import { useApplicationsCount } from '../../Applications/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
@@ -10,7 +12,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
-const { white, neutral10 } = theme.colors;
+const { white, neutral10, neutral30 } = theme.colors;
 const useStyles = makeStyles(() =>
   createStyles({
     gridContainer: {
@@ -56,9 +58,16 @@ const useStyles = makeStyles(() =>
       overflow: 'hidden',
       width: `calc(250px - ${large})`,
     },
+    subtitleColor: {
+      color: neutral30,
+    },
   }),
 );
-
+const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
+  return targetsStatuses?.reduce((prev, next) => {
+    return next.workloads?.length || 0 + prev;
+  }, 0);
+};
 const PipelineDetails = ({
   name,
   namespace,
@@ -76,67 +85,73 @@ const PipelineDetails = ({
   });
   const classes = useStyles();
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Pipeline Details">
-        <SectionHeader
-          className="count-header"
-          path={[
-            {
-              label: 'Applications',
-              url: '/applications',
-              count: applicationsCount,
-            },
-            {
-              label: 'Pipelines',
-              url: '/applications/pipelines',
-              count: pipelinesCount,
-            },
-            {
-              label: pipelineName,
-            },
-          ]}
-        />
-        <ContentWrapper loading={isLoading} errorMessage={error?.message}>
-          {data?.pipeline && (
-            <Grid className={classes.gridWrapper} container spacing={8}>
-              {Object.entries(data.pipeline.status?.environments || {}).map(
-                ([key, value], index) => (
+    <PageTemplate documentTitle="WeGo · Pipeline Details">
+      <SectionHeader
+        className="count-header"
+        path={[
+          {
+            label: 'Applications',
+            url: '/applications',
+            count: applicationsCount,
+          },
+          {
+            label: 'Pipelines',
+            url: '/applications/pipelines',
+            count: pipelinesCount,
+          },
+          {
+            label: pipelineName,
+          },
+        ]}
+      />
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        {data?.pipeline && (
+          <Grid className={classes.gridWrapper} container spacing={8}>
+            {Object.entries(data.pipeline.status?.environments || {}).map(
+              ([key, value], index) => {
+                return (
                   <Grid item xs key={index} className={classes.gridContainer}>
                     <div className={classes.cardHeader}>
                       <div className={classes.title}>{key}</div>
                       <div className={classes.subtitle}>
-                        {value.length} Targets
+                        {getTargetsCount(value.targetsStatuses || [])} Targets
                       </div>
                     </div>
-                    {value.map((target, indx) => (
-                      <div className={classes.cardContainer} key={indx}>
-                        <div
-                          className={classes.target}
-                          title={`${target.clusterRef?.name}/${target.namespace}`}
-                        >
-                          {target.clusterRef?.name}/{target.namespace}
-                        </div>
-                        <div>
-                          <Link
-                            to={`/helm_release/details?clusterName=${target.clusterRef?.name}&name=${name}&namespace=${namespace}`}
+                    {value.targetsStatuses?.map((target, indx) =>
+                      target?.workloads?.map((workload, wrkIndex) => (
+                        <div className={classes.cardContainer} key={wrkIndex}>
+                          <div
+                            className={classes.target}
+                            title={`${target?.clusterRef?.name}/${target?.namespace}`}
                           >
-                            {target.workloads![0].name}
-                          </Link>
-                          <div className={classes.subtitle}>Version</div>
-                          <div className={classes.subtitle}>{`v${
-                            target.workloads![0].version
-                          }`}</div>
+                            {target?.clusterRef?.name}/{target?.namespace}
+                          </div>
+                          <div>
+                            <Link
+                              to={`/helm_release/details?clusterName=${target?.clusterRef?.name}&name=${name}&namespace=${namespace}`}
+                            >
+                              {workload?.name}
+                            </Link>
+                            <div
+                              className={`${classes.subtitle} ${classes.subtitleColor}`}
+                            >
+                              Version
+                            </div>
+                            <div
+                              className={classes.subtitle}
+                            >{`v${workload?.version}`}</div>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )),
+                    )}
                   </Grid>
-                ),
-              )}
-            </Grid>
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+                );
+              },
+            )}
+          </Grid>
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 
