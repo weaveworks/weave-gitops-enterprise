@@ -211,13 +211,13 @@ const MCCP: FC = () => {
   const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
-    () => clusters?.filter(cls => cls.capiCluster),
+    () => clusters.filter(cls => cls.capiCluster),
     [clusters],
   );
   let selectedCapiClusters = useMemo(
     () =>
       selectedClusters.filter(({ name, namespace }) =>
-        capiClusters?.find(c => c.name === name && c.namespace === namespace),
+        capiClusters.find(c => c.name === name && c.namespace === namespace),
       ),
     [capiClusters, selectedClusters],
   );
@@ -311,7 +311,7 @@ const MCCP: FC = () => {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       setSelectedClusters(
-        (clusters || []).map(({ name, namespace }: GitopsClusterEnriched) => ({
+        clusters.map(({ name, namespace }: GitopsClusterEnriched) => ({
           name,
           namespace,
         })),
