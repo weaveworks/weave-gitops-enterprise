@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
-	github.com/weaveworks/weave-gitops v0.9.4
+	github.com/weaveworks/weave-gitops v0.9.5-0.20220912204043-7b7ceff3737d
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -71,7 +71,9 @@ require (
 	github.com/alecthomas/colour v0.0.0-20160524082231-60882d9e2721 // indirect
 	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
 	github.com/cloudflare/circl v1.1.0 // indirect
+	github.com/fluxcd/notification-controller/api v0.25.2 // indirect
 	github.com/google/go-github/v45 v45.2.0 // indirect
+	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )
 
