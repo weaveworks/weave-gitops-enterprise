@@ -606,7 +606,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
 
-		parsed, err := parseValues(data)
+		parsed, err := ParseValues(data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -802,7 +802,8 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	return version, nil
 }
 
-func parseValues(v []byte) (map[string]interface{}, error) {
+// ParseValues takes a YAML encoded values string and returns a struct
+func ParseValues(v []byte) (map[string]interface{}, error) {
 	vals := map[string]interface{}{}
 	if err := yaml.Unmarshal(v, &vals); err != nil {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)

@@ -19,8 +19,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
-import { muiTheme } from '../../muiTheme';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
@@ -52,22 +50,6 @@ const FilteringSection = styled.div`
 const Error = styled.span`
   color: ${theme.colors.alert};
 `;
-
-const localMuiTheme = createTheme({
-  ...muiTheme,
-  overrides: {
-    ...muiTheme.overrides,
-    MuiInputBase: {
-      ...muiTheme.overrides?.MuiInputBase,
-      input: {
-        ...muiTheme.overrides?.MuiInputBase?.input,
-        border: 'none',
-        position: 'static',
-        backgroundColor: 'transparent',
-      },
-    },
-  },
-});
 
 const TemplatesDashboard: FC = () => {
   const { templates, isLoading } = useTemplates();
@@ -107,115 +89,111 @@ const TemplatesDashboard: FC = () => {
   );
 
   return (
-    <ThemeProvider theme={localMuiTheme}>
-      <PageTemplate documentTitle="WeGO · Templates">
-        <SectionHeader
-          path={[
-            { label: 'Clusters', url: '/clusters', count: clustersCount },
-            {
-              label: 'Templates',
-              url: '/clusters/templates',
-              count: templatesCount,
-            },
-          ]}
-        />
-        <ContentWrapper loading={isLoading}>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <ActionsWrapper id="display-action">
-              <GridView
-                className={view === 'grid' ? 'active' : 'inactive'}
-                onClick={() => setView('grid')}
+    <PageTemplate documentTitle="WeGO · Templates">
+      <SectionHeader
+        path={[
+          { label: 'Clusters', url: '/clusters', count: clustersCount },
+          {
+            label: 'Templates',
+            url: '/clusters/templates',
+            count: templatesCount,
+          },
+        ]}
+      />
+      <ContentWrapper loading={isLoading}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <ActionsWrapper id="display-action">
+            <GridView
+              className={view === 'grid' ? 'active' : 'inactive'}
+              onClick={() => setView('grid')}
+            />
+            <ListView
+              className={view === 'table' ? 'active' : 'inactive'}
+              onClick={() => setView('table')}
+            />
+          </ActionsWrapper>
+          {view === 'grid' && (
+            <>
+              <FilteringSection>
+                <div style={{ width: '200px' }}>
+                  <Autocomplete
+                    value={selectedProvider}
+                    disablePortal
+                    id="filter-by-provider"
+                    options={validProviders}
+                    onChange={onProviderChange}
+                    clearOnEscape
+                    blurOnSelect="mouse"
+                    renderInput={params => (
+                      <TextField {...params} label="Provider" />
+                    )}
+                  />
+                </div>
+              </FilteringSection>
+              <Grid container spacing={3} justifyContent="center">
+                {filteredTemplates?.map((template: any, index: number) => (
+                  <Grid key={index} item xs={11} sm={8} md={4}>
+                    <TemplateCard template={template} />
+                  </Grid>
+                ))}
+              </Grid>
+            </>
+          )}
+          {view === 'table' && (
+            <TableWrapper id="templates-list">
+              <DataTable
+                key={templates?.length}
+                filters={initialFilterState}
+                rows={templates || []}
+                fields={[
+                  {
+                    label: 'Name',
+                    value: 'name',
+                    sortValue: ({ name }) => name,
+                    textSearchable: true,
+                  },
+                  {
+                    label: 'Kind',
+                    value: 'templateKind',
+                    sortValue: ({ name }) => name,
+                    textSearchable: true,
+                  },
+                  {
+                    label: 'Provider',
+                    value: 'provider',
+                    sortValue: ({ name }) => name,
+                    textSearchable: true,
+                  },
+                  {
+                    label: 'Description',
+                    value: (t: Template) => (
+                      <>
+                        {t.description}
+                        <Error>{t.error}</Error>
+                      </>
+                    ),
+                    maxWidth: 600,
+                  },
+                  {
+                    label: '',
+                    value: (t: Template) => (
+                      <Button
+                        id="create-cluster"
+                        startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                        onClick={event => handleAddCluster(event, t)}
+                        disabled={Boolean(t.error)}
+                      >
+                        CREATE CLUSTER WITH THIS TEMPLATE
+                      </Button>
+                    ),
+                  },
+                ]}
               />
-              <ListView
-                className={view === 'table' ? 'active' : 'inactive'}
-                onClick={() => setView('table')}
-              />
-            </ActionsWrapper>
-            {view === 'grid' && (
-              <>
-                <FilteringSection>
-                  <div style={{ width: '200px' }}>
-                    <Autocomplete
-                      value={selectedProvider}
-                      disablePortal
-                      id="filter-by-provider"
-                      options={validProviders}
-                      onChange={onProviderChange}
-                      clearOnEscape
-                      blurOnSelect="mouse"
-                      renderInput={params => (
-                        <TextField {...params} label="Provider" />
-                      )}
-                    />
-                  </div>
-                </FilteringSection>
-                <Grid container spacing={3} justifyContent="center">
-                  {filteredTemplates?.map((template: any, index: number) => (
-                    <Grid key={index} item xs={11} sm={8} md={4}>
-                      <TemplateCard template={template} />
-                    </Grid>
-                  ))}
-                </Grid>
-              </>
-            )}
-            {view === 'table' && (
-              <TableWrapper id="templates-list">
-                <DataTable
-                  key={templates?.length}
-                  filters={initialFilterState}
-                  rows={templates || []}
-                  fields={[
-                    {
-                      label: 'Name',
-                      value: 'name',
-                      sortValue: ({ name }) => name,
-                      textSearchable: true,
-                    },
-                    {
-                      label: 'Kind',
-                      value: 'templateKind',
-                      sortValue: ({ name }) => name,
-                      textSearchable: true,
-                    },
-                    {
-                      label: 'Provider',
-                      value: 'provider',
-                      sortValue: ({ name }) => name,
-                      textSearchable: true,
-                    },
-                    {
-                      label: 'Description',
-                      value: (t: Template) => (
-                        <>
-                          {t.description}
-                          <Error>{t.error}</Error>
-                        </>
-                      ),
-                      maxWidth: 600,
-                    },
-                    {
-                      label: '',
-                      value: (t: Template) => (
-                        <Button
-                          id="create-cluster"
-                          startIcon={
-                            <Icon type={IconType.AddIcon} size="base" />
-                          }
-                          onClick={event => handleAddCluster(event, t)}
-                          disabled={Boolean(t.error)}
-                        >
-                          CREATE CLUSTER WITH THIS TEMPLATE
-                        </Button>
-                      ),
-                    },
-                  ]}
-                />
-              </TableWrapper>
-            )}
-          </div>
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+            </TableWrapper>
+          )}
+        </div>
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 
