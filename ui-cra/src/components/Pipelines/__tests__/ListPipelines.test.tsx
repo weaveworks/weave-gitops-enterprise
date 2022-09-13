@@ -2,11 +2,10 @@ import { act, render, screen } from '@testing-library/react';
 import Pipelines from '..';
 import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
+  defaultContexts,
   PipelinesClientMock,
   withContext,
-  defaultContexts,
 } from '../../../utils/test-utils';
-import { TestFilterableTable } from './FilterableTable.test';
 
 const pipelines = {
   pipelines: [
@@ -73,8 +72,6 @@ const pipelines = {
   ],
 };
 
-const fitlerTabale = new TestFilterableTable('pipelines-list');
-
 describe('ListPipelines', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PipelinesClientMock;
@@ -92,41 +89,9 @@ describe('ListPipelines', () => {
 
     expect(await screen.findByText('Pipelines')).toBeTruthy();
 
-    fitlerTabale.testRenderTable(
-      ['Pipeline Name', 'Pipeline Namespace', 'Type', 'Environments'],
-      2,
-    );
-  });
+    const tbl = document.querySelector('#pipelines-list table');
+    const rows = tbl?.querySelectorAll('tbody tr');
 
-  it('search table by pipeline name test pipline 2', async () => {
-    api.ListPipelinesReturns = pipelines;
-
-    await act(async () => {
-      const c = wrap(<Pipelines />);
-      render(c);
-    });
-
-    fitlerTabale.testSearchTableByValue('test pipline 2', 0, [
-      'test pipline 2',
-      'flux-system',
-      'HelmRelease',
-      'dev',
-    ]);
-  });
-
-  it('filter table by flux-system namespace', async () => {
-    api.ListPipelinesReturns = pipelines;
-
-    await act(async () => {
-      const c = wrap(<Pipelines />);
-      render(c);
-    });
-
-    fitlerTabale.testFilterTableByValue(0, 'namespace:flux-system', [
-      'test pipline 2',
-      'flux-system',
-      'HelmRelease',
-      'dev',
-    ]);
+    expect(rows).toHaveLength(pipelines.pipelines.length);
   });
 });

@@ -11,6 +11,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
 const { white, neutral10, neutral30 } = theme.colors;
+
 const useStyles = makeStyles(() =>
   createStyles({
     gridContainer: {
@@ -66,21 +67,21 @@ const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
     return next.workloads?.length || 0 + prev;
   }, 0);
 };
-const PipelineDetails = ({
-  name,
-  namespace,
-  pipelineName,
-}: {
+
+interface Props {
   name: string;
   namespace: string;
   pipelineName: string;
-}) => {
+}
+
+const PipelineDetails = ({ name, namespace, pipelineName }: Props) => {
   const applicationsCount = useApplicationsCount();
   const pipelinesCount = useCountPipelines();
   const { isLoading, error, data } = useGetPipeline({
     name,
     namespace,
   });
+
   const classes = useStyles();
   return (
     <PageTemplate documentTitle="WeGo · Pipeline Details">
@@ -104,21 +105,18 @@ const PipelineDetails = ({
       />
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
         <Grid className={classes.gridWrapper} container spacing={8}>
-          {_.map(data?.pipeline?.status?.environments, (value, key) => {
-            <Grid item xs key={key} className={classes.gridContainer}>
+          {_.map(data?.pipeline?.status?.environments, (envStatus, envName) => (
+            <Grid item xs key={envName} className={classes.gridContainer}>
               <div className={classes.cardHeader}>
-                <div className={classes.title}>{key}</div>
+                <div className={classes.title}>{envName}</div>
                 <div className={classes.subtitle}>
-                  {getTargetsCount(value.targetsStatuses || [])} Targets
+                  {getTargetsCount(envStatus.targetsStatuses || [])} Targets
                 </div>
               </div>
-              {_.map(value.targetsStatuses, target =>
-                _.map(target.workloads, (workload, wrkIndex) => {
+              {_.map(envStatus.targetsStatuses, target =>
+                _.map(target.workloads, (workload, wrkIndex) => (
                   <div className={classes.cardContainer} key={wrkIndex}>
-                    <div
-                      className={classes.target}
-                      title={`${target?.clusterRef?.name}/${target?.namespace}`}
-                    >
+                    <div className={classes.target}>
                       {target?.clusterRef?.name}/{target?.namespace}
                     </div>
                     <div>
@@ -137,11 +135,11 @@ const PipelineDetails = ({
                         className={classes.subtitle}
                       >{`v${workload?.version}`}</div>
                     </div>
-                  </div>;
-                }),
+                  </div>
+                )),
               )}
-            </Grid>;
-          })}
+            </Grid>
+          ))}
         </Grid>
       </ContentWrapper>
     </PageTemplate>

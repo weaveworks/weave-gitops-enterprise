@@ -1,4 +1,5 @@
 import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
 import { useApplicationsCount } from '../Applications/utils';
@@ -8,7 +9,7 @@ import { SectionHeader } from '../Layout/SectionHeader';
 import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
-const Pipelines = () => {
+const Pipelines = ({ className }: any) => {
   const applicationsCount = useApplicationsCount();
   const { error, data, isLoading } = useListPipelines();
 
@@ -31,7 +32,7 @@ const Pipelines = () => {
       />
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
         {data?.pipelines && (
-          <TableWrapper id="pipelines-list">
+          <TableWrapper className={className} id="pipelines-list">
             <DataTable
               filters={initialFilterState}
               rows={data?.pipelines}
@@ -78,4 +79,4 @@ const Pipelines = () => {
   );
 };
 
-export default Pipelines;
+export default styled(Pipelines).attrs({ className: Pipelines.name })``;
