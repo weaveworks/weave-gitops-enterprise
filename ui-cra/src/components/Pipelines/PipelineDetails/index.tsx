@@ -1,5 +1,6 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { theme } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useCountPipelines, useGetPipeline } from '../../../contexts/Pipelines';
 import { useApplicationsCount } from '../../Applications/utils';
@@ -102,52 +103,46 @@ const PipelineDetails = ({
         ]}
       />
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
-        {data?.pipeline && (
-          <Grid className={classes.gridWrapper} container spacing={8}>
-            {Object.entries(data.pipeline.status?.environments || {}).map(
-              ([key, value], index) => {
-                return (
-                  <Grid item xs key={index} className={classes.gridContainer}>
-                    <div className={classes.cardHeader}>
-                      <div className={classes.title}>{key}</div>
-                      <div className={classes.subtitle}>
-                        {getTargetsCount(value.targetsStatuses || [])} Targets
-                      </div>
+        <Grid className={classes.gridWrapper} container spacing={8}>
+          {_.map(data?.pipeline?.status?.environments, (value, key) => {
+            <Grid item xs key={key} className={classes.gridContainer}>
+              <div className={classes.cardHeader}>
+                <div className={classes.title}>{key}</div>
+                <div className={classes.subtitle}>
+                  {getTargetsCount(value.targetsStatuses || [])} Targets
+                </div>
+              </div>
+              {_.map(value.targetsStatuses, target =>
+                _.map(target.workloads, (workload, wrkIndex) => {
+                  <div className={classes.cardContainer} key={wrkIndex}>
+                    <div
+                      className={classes.target}
+                      title={`${target?.clusterRef?.name}/${target?.namespace}`}
+                    >
+                      {target?.clusterRef?.name}/{target?.namespace}
                     </div>
-                    {value.targetsStatuses?.map((target, indx) =>
-                      target?.workloads?.map((workload, wrkIndex) => (
-                        <div className={classes.cardContainer} key={wrkIndex}>
-                          <div
-                            className={classes.target}
-                            title={`${target?.clusterRef?.name}/${target?.namespace}`}
-                          >
-                            {target?.clusterRef?.name}/{target?.namespace}
-                          </div>
-                          <div>
-                            {workload?.name}
-                            {/* <Link
-                              to={`/helm_release/details?clusterName=${target?.clusterRef?.name}&name=${name}&namespace=${namespace}`}
-                            >
-                              {workload?.name}
-                            </Link> */}
-                            <div
-                              className={`${classes.subtitle} ${classes.subtitleColor}`}
-                            >
-                              Version
-                            </div>
-                            <div
-                              className={classes.subtitle}
-                            >{`v${workload?.version}`}</div>
-                          </div>
-                        </div>
-                      )),
-                    )}
-                  </Grid>
-                );
-              },
-            )}
-          </Grid>
-        )}
+                    <div>
+                      {workload?.name}
+                      {/* <Link
+                          to={`/helm_release/details?clusterName=${target?.clusterRef?.name}&name=${name}&namespace=${namespace}`}
+                        >
+                          {workload?.name}
+                        </Link> */}
+                      <div
+                        className={`${classes.subtitle} ${classes.subtitleColor}`}
+                      >
+                        Version
+                      </div>
+                      <div
+                        className={classes.subtitle}
+                      >{`v${workload?.version}`}</div>
+                    </div>
+                  </div>;
+                }),
+              )}
+            </Grid>;
+          })}
+        </Grid>
       </ContentWrapper>
     </PageTemplate>
   );
