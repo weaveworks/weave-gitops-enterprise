@@ -62,7 +62,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
           ]}
         />
 
-        <ContentWrapper loading={isLoading}>
+        <ContentWrapper errors={error ? [error] : []} loading={isLoading}>
           <div className={className}>
             <Box paddingY={2}>
               <KubeStatusIndicator conditions={object?.conditions || []} />

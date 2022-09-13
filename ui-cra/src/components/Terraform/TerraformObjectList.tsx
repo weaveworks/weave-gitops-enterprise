@@ -23,14 +23,6 @@ type Props = {
 function TerraformObjectList({ className }: Props) {
   const { isLoading, data, error } = useListTerraformObjects();
 
-  if (error) {
-    console.error(error);
-  }
-
-  if (data && data?.errors && data.errors.length > 0) {
-    console.log(data?.errors);
-  }
-
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate documentTitle="WeGo · Terraform">
