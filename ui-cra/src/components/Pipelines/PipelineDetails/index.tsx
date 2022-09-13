@@ -127,11 +127,12 @@ const PipelineDetails = ({
                             {target?.clusterRef?.name}/{target?.namespace}
                           </div>
                           <div>
-                            <Link
+                            {workload?.name}
+                            {/* <Link
                               to={`/helm_release/details?clusterName=${target?.clusterRef?.name}&name=${name}&namespace=${namespace}`}
                             >
                               {workload?.name}
-                            </Link>
+                            </Link> */}
                             <div
                               className={`${classes.subtitle} ${classes.subtitleColor}`}
                             >
