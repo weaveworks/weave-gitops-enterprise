@@ -110,7 +110,7 @@ describe('ListPipelines', () => {
     );
   });
 
-  it('search table by pipeline name podinfo', async () => {
+  it('search table by pipeline name test pipline 2', async () => {
     api.ListPipelinesReturns = pipelines;
 
     await act(async () => {
@@ -118,11 +118,11 @@ describe('ListPipelines', () => {
       render(c);
     });
 
-    fitlerTabale.testSearchTableByValue('podinfo', 0, [
-      'podinfo',
+    fitlerTabale.testSearchTableByValue('test pipline 2', 0, [
+      'test pipline 2',
       'default',
       'HelmRelease',
-      'devprod',
+      'dev',
     ]);
   });
 
