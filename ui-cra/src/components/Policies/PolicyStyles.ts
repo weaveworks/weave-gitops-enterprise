@@ -159,7 +159,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
 
 export const LinkWrapper = styled(Link)`
   color: ${primary};
-  fontweight: 600;
+  font-weight: 600;
 `;
 
 export const ChipWrapper = styled.span`
