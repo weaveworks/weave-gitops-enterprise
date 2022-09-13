@@ -67,18 +67,6 @@ const pipelines = {
             },
           ],
         },
-        {
-          name: 'prod',
-          targets: [
-            {
-              namespace: 'podinfo',
-              clusterRef: {
-                kind: 'GitopsCluster',
-                name: 'prod',
-              },
-            },
-          ],
-        },
       ],
       targets: [],
     },
@@ -120,7 +108,7 @@ describe('ListPipelines', () => {
 
     fitlerTabale.testSearchTableByValue('test pipline 2', 0, [
       'test pipline 2',
-      'default',
+      'flux-system',
       'HelmRelease',
       'dev',
     ]);
