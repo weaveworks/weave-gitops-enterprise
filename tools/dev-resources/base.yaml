@@ -33,14 +33,18 @@ spec:
       description: This is used for the cluster naming.
     - name: NAMESPACE
       description: Namespace to create the cluster in
+      default: default
     - name: KUBERNETES_VERSION
       description: Kubernetes version to use for the cluster
       options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
+      default: "1.23.3"
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
       options: ["1", "2", "3"]
+      default: "1"
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
+      default: "1"
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
@@ -189,3 +193,41 @@ spec:
   resources:
     - kind: ConfigMap
       name: calico-crs-configmap
+---
+apiVersion: capi.weave.works/v1alpha1
+kind: ClusterBootstrapConfig
+metadata:
+  name: capi-gitops
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+      weave.works/capi: bootstrap
+  jobTemplate:
+    generateName: "run-gitops-{{ .ObjectMeta.Name }}"
+    spec:
+      containers:
+        - image: ghcr.io/fluxcd/flux-cli:v0.34.0
+          name: flux-bootstrap
+          resources: {}
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/etc/gitops"
+              readOnly: true
+          args:
+            [
+              "bootstrap",
+              "github",
+              "--kubeconfig=/etc/gitops/value",
+              "--owner=$(GITHUB_USER)",
+              "--repository=$(GITHUB_REPO)",
+              "--path=./clusters/{{ .ObjectMeta.Namespace }}/{{ .ObjectMeta.Name }}",
+            ]
+          envFrom:
+            - secretRef:
+                name: my-pat
+      restartPolicy: Never
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: "{{ .ObjectMeta.Name }}-kubeconfig"
