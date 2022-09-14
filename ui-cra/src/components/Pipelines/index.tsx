@@ -68,7 +68,7 @@ const Pipelines = ({ className }: any) => {
                       ))}
                     </>
                   ),
-                  sortValue: ({ appRef }: Pipeline) => appRef?.name,
+                  sortValue: (p: Pipeline) => p.name,
                 },
               ]}
             />
