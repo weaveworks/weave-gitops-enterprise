@@ -1,0 +1,6 @@
+tenants:
+  - name: foo-tenant
+    namespaces:
+    - foo-ns
+    roleKind: Role
+    roleName: foo-role

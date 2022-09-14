@@ -23,7 +23,11 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const tenantLabel = "toolkit.fluxcd.io/tenant"
+const (
+	tenantLabel     = "toolkit.fluxcd.io/tenant"
+	defaultRoleKind = "ClusterRole"
+	defaultRoleName = "cluster-admin"
+)
 
 var (
 	namespaceTypeMeta      = typeMeta("Namespace", "v1")
@@ -72,12 +76,13 @@ type Config struct {
 type Tenant struct {
 	Name                string                `yaml:"name"`
 	Namespaces          []string              `yaml:"namespaces"`
-	ClusterRole         string                `yaml:"clusterRole"`
 	Labels              map[string]string     `yaml:"labels"`
 	AllowedRepositories []AllowedRepository   `yaml:"allowedRepositories"`
 	AllowedClusters     []AllowedCluster      `yaml:"allowedClusters"`
 	TeamRBAC            *TenantTeamRBAC       `yaml:"teamRBAC,omitempty"`
 	DeploymentRBAC      *TenantDeploymentRBAC `yaml:"deploymentRBAC,omitempty"`
+	RoleName            string                `yaml:"roleName"`
+	RoleKind            string                `yaml:"roleKind"`
 }
 
 // Validate returns an error if any of the fields isn't valid
@@ -312,19 +317,29 @@ func generateTenantResource(tenant Tenant, serviceAccount *ServiceAccountOptions
 
 	tenantLabels[tenantLabel] = tenant.Name
 	serviceAccountName := tenant.Name
+	isGlobalServiceAccount := false
 	if serviceAccount != nil {
 		serviceAccountName = serviceAccount.Name
+		isGlobalServiceAccount = true
 	}
 
 	for _, namespace := range tenant.Namespaces {
 		generated = append(generated, newNamespace(namespace, tenantLabels))
-		generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
+		if !isGlobalServiceAccount {
+			generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
+		}
 		if tenant.DeploymentRBAC != nil {
-			generated = append(generated, newRoleBinding(tenant.Name, namespace, "", tenant.ClusterRole, tenantLabels))
-			generated = append(generated, newDeploymentRole(tenant.Name, namespace, tenantLabels, tenant.DeploymentRBAC.Rules))
-			generated = append(generated, newDeploymentRoleBinding(tenant.Name, namespace, serviceAccountName, tenantLabels))
+			generated = append(generated, newServiceAccountRole(tenant.Name, namespace, tenantLabels, tenant.DeploymentRBAC.Rules))
+			generated = append(generated, newServiceAccountRoleBinding(tenant.Name, namespace, serviceAccountName, tenantLabels))
 		} else {
-			generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
+			generated = append(generated, newDefaultServiceAccountRoleBinding(
+				tenant.Name,
+				namespace,
+				serviceAccountName,
+				tenant.RoleKind,
+				tenant.RoleName,
+				tenantLabels,
+			))
 		}
 
 		if tenant.TeamRBAC != nil {
@@ -396,26 +411,70 @@ func newServiceAccount(name, namespace string, labels map[string]string) *corev1
 	}
 }
 
-func newRoleBinding(name, namespace, serviceAccountName, clusterRole string, labels map[string]string) *rbacv1.RoleBinding {
-	if clusterRole == "" {
-		clusterRole = "cluster-admin"
+func newServiceAccountRoleBinding(tenantName, namespace, serviceAccountName string, labels map[string]string) *rbacv1.RoleBinding {
+	name := fmt.Sprintf("%s-service-account", tenantName)
+	return newRoleBinding(
+		name,
+		namespace,
+		"Role",
+		name,
+		[]rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      serviceAccountName,
+				Namespace: namespace,
+			},
+		},
+		labels,
+	)
+}
+
+func newDefaultServiceAccountRoleBinding(tenantName, namespace, serviceAccountName, roleKind, roleName string, labels map[string]string) *rbacv1.RoleBinding {
+	if roleKind == "" {
+		roleKind = defaultRoleKind
 	}
 
-	subjects := []rbacv1.Subject{
-		{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "User",
-			Name:     "gotk:" + namespace + ":reconciler",
-		}}
+	if roleName == "" {
+		roleName = defaultRoleName
+	}
 
-	if serviceAccountName != "" {
+	return newRoleBinding(
+		fmt.Sprintf("%s-service-account", tenantName),
+		namespace,
+		roleKind,
+		roleName,
+		[]rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      serviceAccountName,
+				Namespace: namespace,
+			},
+		},
+		labels,
+	)
+}
+
+func newTeamRoleBinding(tenantName, namespace string, groupNames []string, labels map[string]string) *rbacv1.RoleBinding {
+	name := fmt.Sprintf("%s-team", tenantName)
+	subjects := []rbacv1.Subject{}
+	for _, groupName := range groupNames {
 		subjects = append(subjects, rbacv1.Subject{
-			Kind:      "ServiceAccount",
-			Name:      serviceAccountName,
-			Namespace: namespace,
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Group",
+			Name:     groupName,
 		})
 	}
+	return newRoleBinding(
+		name,
+		namespace,
+		"Role",
+		name,
+		subjects,
+		labels,
+	)
+}
 
+func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv1.Subject, labels map[string]string) *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		TypeMeta: roleBindingTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
@@ -425,19 +484,19 @@ func newRoleBinding(name, namespace, serviceAccountName, clusterRole string, lab
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     clusterRole,
+			Kind:     roleKind,
+			Name:     roleName,
 		},
 		Subjects: subjects,
 	}
 }
 
 func newTeamRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
-	return newRole(fmt.Sprintf("%s-team-role", name), namespace, labels, rules)
+	return newRole(fmt.Sprintf("%s-team", name), namespace, labels, rules)
 }
 
-func newDeploymentRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
-	return newRole(fmt.Sprintf("%s-deployment-role", name), namespace, labels, rules)
+func newServiceAccountRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
+	return newRole(fmt.Sprintf("%s-service-account", name), namespace, labels, rules)
 }
 
 func newRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
@@ -449,55 +508,6 @@ func newRole(name, namespace string, labels map[string]string, rules []rbacv1.Po
 			Labels:    labels,
 		},
 		Rules: rules,
-	}
-}
-
-func newTeamRoleBinding(name, namespace string, groupNames []string, labels map[string]string) *rbacv1.RoleBinding {
-	subjects := []rbacv1.Subject{}
-	for _, groupName := range groupNames {
-		subjects = append(subjects, rbacv1.Subject{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Group",
-			Name:     groupName,
-		})
-	}
-
-	return &rbacv1.RoleBinding{
-		TypeMeta: roleBindingTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-team-rolebinding", name),
-			Namespace: namespace,
-			Labels:    labels,
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Role",
-			Name:     fmt.Sprintf("%s-team-role", name),
-		},
-		Subjects: subjects,
-	}
-}
-
-func newDeploymentRoleBinding(name, namespace, serviceAccountName string, labels map[string]string) *rbacv1.RoleBinding {
-	return &rbacv1.RoleBinding{
-		TypeMeta: roleBindingTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-deployment-rolebinding", name),
-			Namespace: namespace,
-			Labels:    labels,
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Role",
-			Name:     fmt.Sprintf("%s-deployment-role", name),
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Name:      serviceAccountName,
-				Namespace: namespace,
-			},
-		},
 	}
 }
 

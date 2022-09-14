@@ -26,16 +26,13 @@ metadata:
   labels:
     example.com/test-label: testing
     toolkit.fluxcd.io/tenant: foo-tenant
-  name: foo-tenant
+  name: foo-tenant-service-account
   namespace: foo-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: gotk:foo-ns:reconciler
 - kind: ServiceAccount
   name: foo-tenant
   namespace: foo-ns
@@ -68,16 +65,13 @@ metadata:
   labels:
     example.com/test-label: testing
     toolkit.fluxcd.io/tenant: foo-tenant
-  name: foo-tenant
+  name: foo-tenant-service-account
   namespace: bar-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: gotk:bar-ns:reconciler
 - kind: ServiceAccount
   name: foo-tenant
   namespace: bar-ns
