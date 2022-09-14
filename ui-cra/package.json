@@ -56,7 +56,9 @@
     "**/react-dom": "^17.0.2",
     "**/react-query": "^3.34.7",
     "@weaveworks/weave-gitops/react-router-dom": "^5.2.0",
-    "mini-css-extract-plugin": "~2.4.5"
+    "mini-css-extract-plugin": "~2.4.5",
+    "parse-path": "~5.0.0",
+    "parse-url": "~8.1.0"
   },
   "scripts": {
     "start": "react-scripts start",

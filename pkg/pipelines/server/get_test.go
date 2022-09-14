@@ -37,7 +37,7 @@ func TestGetPipeline(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
 	})
 
 	t.Run("cluster ref is set", func(t *testing.T) {
@@ -57,7 +57,7 @@ func TestGetPipeline(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
 	})
 
 }

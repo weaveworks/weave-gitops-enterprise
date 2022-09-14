@@ -239,6 +239,19 @@ To run all tests before pushing run:
 make test
 ```
 
+### Creating leaf cluster
+To create leaf clusters to test out our features, we can rely on the [vcluster](https://www.vcluster.com/) to help us deploy new clusters on the fly. That project will basically create a entire cluster inside you kind cluster without adding much overhead.
+
+to get started install the `vcluster` cli first, by following https://www.vcluster.com/docs/getting-started/setup and then just run the `./tools/create-leaf-cluster.sh` script.
+
+```shell
+$ ./tools/create-leaf-cluster.sh leaf-cluster-01
+```
+
+This command will create a new cluster and configure the `GitopsCluster` CR pointing to the cluster's kubeconfig.
+
+Note that this won't configure completelly the cluster, you might need to install flux and rbac rules in order to be able to query it properly. But it should be already visible on the Weave Gitops cluster's tab.
+
 ### How to install everything from your working branch on a cluster
 
 When you push your changes to a remote branch (even before creating a PR for

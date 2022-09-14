@@ -1,6 +1,5 @@
 import React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
-import ClustersProvider from '../contexts/Clusters/Provider';
 import MCCP from './Clusters';
 import TemplatesDashboard from './Templates';
 import { Navigation } from './Navigation';
@@ -25,7 +24,6 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import TemplatesProvider from '../contexts/Templates/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import Compose from './ProvidersCompose';
 import Box from '@material-ui/core/Box';
@@ -191,9 +189,7 @@ const App = () => {
   };
 
   return (
-    <Compose
-      components={[NotificationsProvider, TemplatesProvider, ClustersProvider]}
-    >
+    <Compose components={[NotificationsProvider]}>
       <div className={classes.root}>
         <CssBaseline />
         <Box className={classes.menuButtonBox}>
