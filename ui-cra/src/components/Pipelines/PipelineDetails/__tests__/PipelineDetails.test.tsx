@@ -111,6 +111,8 @@ describe('PipelineDetails', () => {
     });
 
     expect(await screen.findByText('prod')).toBeTruthy();
+    expect(await screen.findByText('v6.2.0')).toBeTruthy();
+    expect(await screen.findByText('dev')).toBeTruthy();
     expect(await screen.findByText('v6.1.8')).toBeTruthy();
   });
   describe('snapshots', () => {
