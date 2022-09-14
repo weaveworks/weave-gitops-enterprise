@@ -132,10 +132,12 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Create(ctx, obj); err != nil {
 				return err
 			}
+
 			fmt.Fprintf(out, "%s created\n", objectID)
 
 			return nil
 		}
+
 		return err
 	}
 
@@ -153,54 +155,71 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 			if err := kubeClient.Delete(ctx, existing); err != nil {
 				return err
 			}
+
 			if err := kubeClient.Create(ctx, to); err != nil {
 				return err
 			}
+
 			fmt.Fprintf(out, "%s recreated\n", objectID)
 		}
 	case *rbacv1.Role:
 		existingRole := existing.(*rbacv1.Role)
+
 		var changed bool
+
 		if !equality.Semantic.DeepDerivative(to.GetLabels(), existingRole.GetLabels()) {
 			existingRole.SetLabels(to.GetLabels())
+
 			changed = true
 		}
+
 		if !equality.Semantic.DeepDerivative(to.Rules, existingRole.Rules) {
 			existingRole.Rules = to.Rules
 			changed = true
 		}
+
 		if changed {
 			if err := kubeClient.Update(ctx, existing); err != nil {
 				return fmt.Errorf("failed to update existing role: %w", err)
 			}
+
 			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	case *pacv2beta1.Policy:
 		existingPolicy := existing.(*pacv2beta1.Policy)
+
 		var changed bool
+
 		if !equality.Semantic.DeepDerivative(to.GetLabels(), existingPolicy.GetLabels()) {
 			existingPolicy.SetLabels(to.GetLabels())
+
 			changed = true
 		}
+
 		if !equality.Semantic.DeepDerivative(to.Spec, existingPolicy.Spec) {
 			existingPolicy.Spec = to.Spec
 			changed = true
 		}
+
 		if changed {
 			if err := patchHelper.Patch(ctx, existing); err != nil {
 				return fmt.Errorf("failed to patch existing policy: %w", err)
 			}
+
 			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	default:
 		if !equality.Semantic.DeepDerivative(obj.GetLabels(), existing.GetLabels()) {
 			existing.SetLabels(obj.GetLabels())
+
 			if err := kubeClient.Update(ctx, existing); err != nil {
 				return err
 			}
+
 			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
 	}
+
 	return nil
 }
 
@@ -258,6 +277,7 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 
 		tenantLabels[tenantLabel] = tenant.Name
 		serviceAccountName := tenant.Name
+
 		if config.ServiceAccount != nil {
 			serviceAccountName = config.ServiceAccount.Name
 		}
@@ -266,16 +286,19 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 			generated = append(generated, newNamespace(namespace, tenantLabels))
 			generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
 			generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
+
 			if tenant.TeamRBAC != nil {
 				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, tenant.TeamRBAC.Rules))
 				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupNames, tenantLabels))
 			}
 		}
+
 		if len(tenant.AllowedRepositories) != 0 {
 			policy, err := newAllowedRepositoriesPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
 			if err != nil {
 				return nil, err
 			}
+
 			generated = append(generated, policy)
 		}
 
@@ -284,6 +307,7 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			generated = append(generated, policy)
 		}
 	}
@@ -406,7 +430,9 @@ func newAllowedRepositoriesPolicy(tenantName string, namespaces []string, allowe
 			Tags: []string{"tenancy"},
 		},
 	}
-	var gitURLs, bucketEndpoints, helmURLs []string
+
+	var gitURLs, bucketEndpoints, helmURLs, ociURLs []string
+
 	for _, allowedRepository := range allowedRepositories {
 		switch allowedRepository.Kind {
 		case policyRepoGitKind:
@@ -415,23 +441,30 @@ func newAllowedRepositoriesPolicy(tenantName string, namespaces []string, allowe
 			bucketEndpoints = append(bucketEndpoints, allowedRepository.URL)
 		case policyRepoHelmKind:
 			helmURLs = append(helmURLs, allowedRepository.URL)
+		case policyRepoOCIKind:
+			ociURLs = append(ociURLs, allowedRepository.URL)
 		}
 	}
 
-	policyParams, err := generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs)
+	policyParams, err := generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs, ociURLs)
 	if err != nil {
 		return nil, err
 	}
+
 	policy.Spec.Parameters = policyParams
+
 	return policy, nil
 }
 
 func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) (*pacv2beta1.Policy, error) {
 	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-clusters", tenantName)
+
 	var clusterSecrets []string
+
 	for _, allowedCluster := range allowedClusters {
 		clusterSecrets = append(clusterSecrets, allowedCluster.KubeConfig)
 	}
+
 	clusterSecretstBytes, err := json.Marshal(clusterSecrets)
 	if err != nil {
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)

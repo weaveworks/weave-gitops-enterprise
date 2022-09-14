@@ -64,7 +64,8 @@ func Test_CreateTenants(t *testing.T) {
 								{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"},
 								{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"},
 								{URL: "minio.example.com", Kind: "Bucket"},
-								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"}},
+								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"},
+								{URL: "oci://ghcr.io/testreg/testrepo", Kind: "OCIRepository"}},
 							map[string]string{
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
 							},
@@ -157,7 +158,8 @@ func Test_CreateTenants(t *testing.T) {
 								{URL: "https://github.com/testorg/testrepo", Kind: "GitRepository"},
 								{URL: "https://github.com/testorg/testinfo", Kind: "GitRepository"},
 								{URL: "minio.example.com", Kind: "Bucket"},
-								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"}},
+								{URL: "https://testorg.github.io/testrepo", Kind: "HelmRepository"},
+								{URL: "oci://ghcr.io/testreg/testrepo", Kind: "OCIRepository"}},
 							map[string]string{
 								"toolkit.fluxcd.io/tenant": "bar-tenant",
 							},
@@ -600,7 +602,6 @@ func Test_newTeamRoleBinding(t *testing.T) {
 	assert.Equal(t, rb.RoleRef.Name, "test-tenant-team-role")
 	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 	assert.Equal(t, rb.Subjects, subjects)
-
 }
 
 func Test_newTeamRole(t *testing.T) {
@@ -621,7 +622,6 @@ func Test_newTeamRole(t *testing.T) {
 	assert.Equal(t, rb.Namespace, "test-namespace")
 	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 	assert.Equal(t, rb.Rules, rules)
-
 }
 
 func Test_newAllowedRepositoriesPolicy(t *testing.T) {
@@ -640,6 +640,7 @@ func Test_newAllowedRepositoriesPolicy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	val, err := json.Marshal([]string{"https://github.com/testorg/testrepo"})
 	if err != nil {
 		t.Fatal(err)
@@ -667,13 +668,19 @@ func Test_newAllowedRepositoriesPolicy(t *testing.T) {
 			},
 			Type: "array",
 		},
+		{
+			Name: "oci_urls",
+			Value: &apiextensionsv1.JSON{
+				Raw: []byte("null"),
+			},
+			Type: "array",
+		},
 	}
 
 	assert.Equal(t, pol.Name, "weave.policies.tenancy.test-tenant-allowed-repositories")
 	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
 	assert.Equal(t, pol.Spec.Parameters, expectedParams)
 	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
-
 }
 
 func Test_newAllowedClustersPolicy(t *testing.T) {
@@ -692,10 +699,13 @@ func Test_newAllowedClustersPolicy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	val, err := json.Marshal([]string{"demo-kubeconfig"})
+
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	expectedParams := []pacv2beta1.PolicyParameters{
 		{
 			Name: "cluster_secrets",
@@ -705,11 +715,11 @@ func Test_newAllowedClustersPolicy(t *testing.T) {
 			Type: "array",
 		},
 	}
+
 	assert.Equal(t, pol.Name, "weave.policies.tenancy.test-tenant-allowed-clusters")
 	assert.Equal(t, pol.Spec.Targets.Namespaces, namespaces)
 	assert.Equal(t, pol.Spec.Parameters, expectedParams)
 	assert.Equal(t, pol.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
-
 }
 
 func readGoldenFile(t *testing.T, filename string) string {
@@ -745,11 +755,15 @@ func newFakeClient(t *testing.T, objs ...runtime.Object) client.Client {
 func verifyNamespaces(ns ...*corev1.Namespace) func(t *testing.T, cl client.Client) {
 	return func(t *testing.T, cl client.Client) {
 		sort.Slice(ns, func(i, j int) bool { return ns[i].GetName() < ns[j].GetName() })
+
 		namespaces := corev1.NamespaceList{}
+
 		if err := cl.List(context.TODO(), &namespaces); err != nil {
 			t.Fatal(err)
 		}
+
 		sort.Slice(namespaces.Items, func(i, j int) bool { return namespaces.Items[i].GetName() < namespaces.Items[j].GetName() })
+
 		for i := range ns {
 			assert.Equal(t, ns[i], &namespaces.Items[i])
 		}
@@ -764,7 +778,9 @@ func verifyServiceAccounts(sa ...*corev1.ServiceAccount) func(t *testing.T, cl c
 		if err := cl.List(context.TODO(), &accounts, client.InNamespace("foo-ns")); err != nil {
 			t.Fatal(err)
 		}
+
 		sort.Slice(accounts.Items, func(i, j int) bool { return accounts.Items[i].GetName() < accounts.Items[j].GetName() })
+
 		for i := range sa {
 			assert.Equal(t, sa[i], &accounts.Items[i])
 		}
@@ -774,12 +790,15 @@ func verifyServiceAccounts(sa ...*corev1.ServiceAccount) func(t *testing.T, cl c
 func verifyRoleBindings(rb ...*rbacv1.RoleBinding) func(t *testing.T, cl client.Client) {
 	return func(t *testing.T, cl client.Client) {
 		sort.Slice(rb, func(i, j int) bool { return rb[i].GetName() < rb[j].GetName() })
+
 		roleBindings := rbacv1.RoleBindingList{}
+
 		if err := cl.List(context.TODO(), &roleBindings, client.InNamespace("foo-ns")); err != nil {
 			t.Fatal(err)
 		}
 
 		sort.Slice(roleBindings.Items, func(i, j int) bool { return roleBindings.Items[i].GetName() < roleBindings.Items[j].GetName() })
+
 		for i := range rb {
 			assert.Equal(t, rb[i], &roleBindings.Items[i])
 		}
@@ -789,12 +808,15 @@ func verifyRoleBindings(rb ...*rbacv1.RoleBinding) func(t *testing.T, cl client.
 func verifyRoles(rb ...*rbacv1.Role) func(t *testing.T, cl client.Client) {
 	return func(t *testing.T, cl client.Client) {
 		sort.Slice(rb, func(i, j int) bool { return rb[i].GetName() < rb[j].GetName() })
+
 		roles := rbacv1.RoleList{}
+
 		if err := cl.List(context.TODO(), &roles, client.InNamespace("bar-ns")); err != nil {
 			t.Fatal(err)
 		}
 
 		sort.Slice(roles.Items, func(i, j int) bool { return roles.Items[i].GetName() < roles.Items[j].GetName() })
+
 		for i := range rb {
 			assert.Equal(t, rb[i], &roles.Items[i])
 		}
@@ -804,13 +826,17 @@ func verifyRoles(rb ...*rbacv1.Role) func(t *testing.T, cl client.Client) {
 func verifyPolicies(expected ...*pacv2beta1.Policy) func(t *testing.T, cl client.Client) {
 	return func(t *testing.T, cl client.Client) {
 		sort.Slice(expected, func(i, j int) bool { return expected[i].GetName() < expected[j].GetName() })
+
 		policies := pacv2beta1.PolicyList{}
+
 		if err := cl.List(context.TODO(), &policies); err != nil {
 			t.Fatal(err)
 		}
+
 		sort.Slice(policies.Items, func(i, j int) bool { return policies.Items[i].GetName() < policies.Items[j].GetName() })
 
 		assert.Equal(t, len(expected), len(policies.Items))
+
 		for i := range policies.Items {
 			// This doesn't compare the entirety of the spec, because it contains the
 			// complete text of the policy.
@@ -818,9 +844,11 @@ func verifyPolicies(expected ...*pacv2beta1.Policy) func(t *testing.T, cl client
 			expectedPolicy := expected[i]
 
 			assert.Equal(t, expectedPolicy.ObjectMeta, policy.ObjectMeta)
+
 			if diff := cmp.Diff(expectedPolicy.Spec.Parameters, policy.Spec.Parameters); diff != "" {
 				t.Fatalf("parameters don't match:\n%s", diff)
 			}
+
 			assert.Equal(t, expectedPolicy.Spec.Targets, policy.Spec.Targets)
 		}
 	}
@@ -845,6 +873,7 @@ func makeTestTenant(t *testing.T, options ...func(*Tenant)) Tenant {
 
 func testNewAllowedReposPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta1.Policy {
 	t.Helper()
+
 	p, err := newAllowedRepositoriesPolicy(tenantName, namespaces, allowedRepositories, labels)
 	if err != nil {
 		t.Fatal(err)
@@ -855,6 +884,7 @@ func testNewAllowedReposPolicy(t *testing.T, tenantName string, namespaces []str
 
 func testNewAllowedClustersPolicy(t *testing.T, tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) *pacv2beta1.Policy {
 	t.Helper()
+
 	p, err := newAllowedClustersPolicy(tenantName, namespaces, allowedClusters, labels)
 	if err != nil {
 		t.Fatal(err)
