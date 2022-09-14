@@ -21,12 +21,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func Test_CreateTenants(t *testing.T) {
+func Test_ApplyTenants(t *testing.T) {
 	testCases := []struct {
 		name              string
 		clusterState      []runtime.Object
 		verifications     []verifyFunc
 		expectedResources map[client.Object][]client.Object
+		prune             bool
 	}{
 		{
 			name:         "create tenant with new resources",
@@ -218,6 +219,28 @@ func Test_CreateTenants(t *testing.T) {
 				),
 			},
 		},
+		{
+			name: "prune resources",
+			clusterState: []runtime.Object{
+				setResourceVersion(newNamespace("test-ns", map[string]string{
+					"toolkit.fluxcd.io/tenant": "bar-tenant",
+				}), 1),
+			},
+			prune: true,
+			verifications: []verifyFunc{
+				verifyNamespaces(
+					setResourceVersion(newNamespace("foo-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "foo-tenant",
+					}), 1),
+					setResourceVersion(newNamespace("bar-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "bar-tenant",
+					}), 1),
+					setResourceVersion(newNamespace("foobar-ns", map[string]string{
+						"toolkit.fluxcd.io/tenant": "bar-tenant",
+					}), 1),
+				),
+			},
+		},
 	}
 
 	for _, tt := range testCases {
@@ -229,7 +252,7 @@ func Test_CreateTenants(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = CreateTenants(context.TODO(), &Config{Tenants: tenants.Tenants}, fc, os.Stdout)
+			err = ApplyTenants(context.TODO(), &Config{Tenants: tenants.Tenants}, fc, tt.prune, os.Stdout)
 			assert.NoError(t, err)
 
 			for _, f := range tt.verifications {
@@ -762,6 +785,7 @@ func verifyNamespaces(ns ...*corev1.Namespace) func(t *testing.T, cl client.Clie
 			t.Fatal(err)
 		}
 
+		assert.Equal(t, len(ns), len(namespaces.Items))
 		sort.Slice(namespaces.Items, func(i, j int) bool { return namespaces.Items[i].GetName() < namespaces.Items[j].GetName() })
 
 		for i := range ns {
@@ -779,6 +803,7 @@ func verifyServiceAccounts(sa ...*corev1.ServiceAccount) func(t *testing.T, cl c
 			t.Fatal(err)
 		}
 
+		assert.Equal(t, len(sa), len(accounts.Items))
 		sort.Slice(accounts.Items, func(i, j int) bool { return accounts.Items[i].GetName() < accounts.Items[j].GetName() })
 
 		for i := range sa {
@@ -797,6 +822,7 @@ func verifyRoleBindings(rb ...*rbacv1.RoleBinding) func(t *testing.T, cl client.
 			t.Fatal(err)
 		}
 
+		assert.Equal(t, len(rb), len(roleBindings.Items))
 		sort.Slice(roleBindings.Items, func(i, j int) bool { return roleBindings.Items[i].GetName() < roleBindings.Items[j].GetName() })
 
 		for i := range rb {
@@ -815,6 +841,7 @@ func verifyRoles(rb ...*rbacv1.Role) func(t *testing.T, cl client.Client) {
 			t.Fatal(err)
 		}
 
+		assert.Equal(t, len(rb), len(roles.Items))
 		sort.Slice(roles.Items, func(i, j int) bool { return roles.Items[i].GetName() < roles.Items[j].GetName() })
 
 		for i := range rb {

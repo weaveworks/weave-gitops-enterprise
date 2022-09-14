@@ -80,6 +80,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
   name: bar-tenant-team-role
   namespace: bar-ns
 rules:
@@ -155,6 +157,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
   name: bar-tenant-team-role
   namespace: foobar-ns
 rules:
