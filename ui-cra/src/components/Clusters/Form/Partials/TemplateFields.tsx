@@ -9,27 +9,13 @@ const FormWrapper = styled.form`
   .form-section {
     width: 50%;
   }
-  // .preview-cta {
-  //   display: flex;
-  //   justify-content: flex-end;
-  //   padding: ${({ theme }) => theme.spacing.small}
-  //     ${({ theme }) => theme.spacing.base};
-  //   button {
-  //     width: 200px;
-  //   }
-  // }
-  // .preview-loading {
-  //   padding: ${({ theme }) => theme.spacing.base};
-  // }
 `;
 
 const TemplateFields: FC<{
   template: TemplateEnriched;
-  onPRPreview: () => void;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  previewLoading: boolean;
-}> = ({ template, onPRPreview, formData, setFormData, previewLoading }) => {
+}> = ({ template, formData, setFormData }) => {
   const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
   const { isExact: isEditing } = useRouteMatch(EDIT_CLUSTER) || {};
   const parameterValues = formData.parameterValues || {};

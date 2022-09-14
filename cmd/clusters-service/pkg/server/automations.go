@@ -124,31 +124,44 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	}, nil
 }
 
-// Get the data for Applications PR Preview
+// RenderAutomation receives a list of {kustomization, helmrelease, cluster}
+// generates a kustomization file and/or a helm release file for each provided cluster in the list
+// and returns the generated files
 func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderAutomationRequest) (*capiv1_proto.RenderAutomationResponse, error) {
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var kustomizationFiles []*capiv1_proto.CommitFile
+	var automationFiles []*capiv1_proto.CommitFile
 
-	var kustomization = msg.Kustomizations[0]
+	if len(msg.ClusterAutomations) > 0 {
+		for _, c := range msg.ClusterAutomations {
+			cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
-	cluster := createNamespacedName(kustomization.Metadata.GetName(), kustomization.Metadata.GetNamespace())
+			if c.Kustomization != nil {
+				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
 
-	if len(msg.Kustomizations) > 0 {
-		for _, k := range msg.Kustomizations {
-			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
-			if err != nil {
-				return nil, err
+				if err != nil {
+					return nil, err
+				}
+
+				automationFiles = append(automationFiles, toCommitFile(kustomization))
 			}
 
-			kustomizationFiles = append(kustomizationFiles, toCommitFile(kustomization))
+			if c.HelmRelease != nil {
+				helmRelease, err := generateHelmReleaseFile(ctx, c.IsControlPlane, cluster, client, c.HelmRelease, c.FilePath)
+
+				if err != nil {
+					return nil, err
+				}
+
+				automationFiles = append(automationFiles, toCommitFile(helmRelease))
+			}
 		}
 	}
 
-	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: kustomizationFiles}, err
+	return &capiv1_proto.RenderAutomationResponse{AutomationFiles: automationFiles}, err
 }
 
 func generateHelmReleaseFile(

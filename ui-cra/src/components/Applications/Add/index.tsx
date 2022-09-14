@@ -18,7 +18,6 @@ import {
 import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import useClusters from '../../../contexts/Clusters';
 import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
@@ -27,7 +26,6 @@ import AppFields from './form/Partials/AppFields';
 import Profiles from '../../Clusters/Form/Partials/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
-import { Loader } from '../../Loader';
 import Preview from '../../Clusters/Form/Partials/Preview';
 import _ from 'lodash';
 import useProfiles from '../../../contexts/Profiles';
@@ -188,7 +186,7 @@ const AddApplication = () => {
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
     return renderKustomization({
-      kustomizations: getKustomizations(),
+      clusterAutomations: getKustomizations(),
     })
       .then(data => {
         setOpenPreview(true);
@@ -290,6 +288,7 @@ const AddApplication = () => {
                   )}
                   {openPreview && PRPreview ? (
                     <Preview
+                      context="app"
                       openPreview={openPreview}
                       setOpenPreview={setOpenPreview}
                       PRPreview={PRPreview}

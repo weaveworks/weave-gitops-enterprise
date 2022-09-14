@@ -270,7 +270,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const getKustomizations = useCallback(() => {
-    const { clusterAutomations, ...rest } = formData;
+    const { clusterAutomations } = formData;
     // filter out empty kustomization
     const filteredKustomizations = clusterAutomations.filter(
       (kustomization: any) =>
@@ -423,8 +423,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             template={template}
             formData={formData}
             setFormData={setFormData}
-            onPRPreview={handlePRPreview}
-            previewLoading={previewLoading}
           />
         </Grid>
         <Profiles

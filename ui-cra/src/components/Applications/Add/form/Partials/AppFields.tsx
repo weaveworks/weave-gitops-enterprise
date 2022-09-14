@@ -4,7 +4,6 @@ import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select, validateFormData } from '../../../../../utils/form';
 import { ListSubheader, MenuItem } from '@material-ui/core';
-import { GitopsClusterEnriched } from '../../../../../types/custom';
 import {
   useListSources,
   theme,
@@ -34,6 +33,18 @@ const FormWrapper = styled.form`
   }
   .input-wrapper {
     padding-bottom: ${({ theme }) => theme.spacing.medium};
+  }
+  .preview-cta {
+    display: flex;
+    justify-content: flex-end;
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
+  }
+  .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
   }
 `;
 
@@ -331,13 +342,18 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-      {onPRPreview && previewLoading && (
+      {previewLoading ? (
         <LoadingPage className="preview-loading" />
-      )}
-      {onPRPreview && !previewLoading && (
+      ) : (
         <div className="preview-cta">
-          {/* <Button onClick={event => validateFormData(event, onPRPreview)}> */}
-          <Button onClick={onPRPreview}>PREVIEW PR</Button>
+          <Button
+            // onClick={event =>
+            //   validateFormData(event, handlePRPreview)
+            // }
+            onClick={onPRPreview}
+          >
+            PREVIEW PR
+          </Button>
         </div>
       )}
     </FormWrapper>

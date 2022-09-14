@@ -224,11 +224,11 @@ message RenderTemplateResponse {
 }
 
 message RenderAutomationRequest {
-  repeated Kustomization kustomizations = 1;
+  repeated ClusterAutomation cluster_automations = 1;
 }
 
 message RenderAutomationResponse { 
-  repeated CommitFile kustomization_files = 1;
+  repeated CommitFile automation_files = 1;
 }
 
 message ListGitopsClustersRequest {

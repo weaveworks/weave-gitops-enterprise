@@ -79,11 +79,11 @@ export type RenderTemplateResponse = {
 }
 
 export type RenderAutomationRequest = {
-  kustomizations?: Kustomization[]
+  clusterAutomations?: ClusterAutomation[]
 }
 
 export type RenderAutomationResponse = {
-  kustomizationFiles?: CommitFile[]
+  automationFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {

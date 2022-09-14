@@ -1811,10 +1811,10 @@
     "v1RenderAutomationRequest": {
       "type": "object",
       "properties": {
-        "kustomizations": {
+        "clusterAutomations": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Kustomization"
+            "$ref": "#/definitions/v1ClusterAutomation"
           }
         }
       }
@@ -1822,7 +1822,7 @@
     "v1RenderAutomationResponse": {
       "type": "object",
       "properties": {
-        "kustomizationFiles": {
+        "automationFiles": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"

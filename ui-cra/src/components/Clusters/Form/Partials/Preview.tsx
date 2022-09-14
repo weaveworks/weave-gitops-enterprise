@@ -41,7 +41,8 @@ const Preview: FC<{
     kustomizationFiles: { path: string; content: string }[];
     profileFiles: { path: string; content: string }[];
   };
-}> = ({ PRPreview, openPreview, setOpenPreview }) => {
+  context?: string;
+}> = ({ PRPreview, openPreview, setOpenPreview, context }) => {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
 
@@ -94,34 +95,42 @@ const Preview: FC<{
         onChange={handleChange}
         aria-label="pr-preview-sections"
       >
-        {['Cluster Definition', 'Profiles', 'Kustomizations'].map(
-          (tabName, index) => (
-            <Tab key={index} className={classes.tabLabel} label={tabName} />
-          ),
-        )}
+        {(context === 'app'
+          ? ['Kustomizations']
+          : ['Cluster Definition', 'Profiles', 'Kustomizations']
+        ).map((tabName, index) => (
+          <Tab key={index} className={classes.tabLabel} label={tabName} />
+        ))}
       </Tabs>
       <DialogContent>
-        <TabPanel value={value} index={0}>
+        {context !== 'app' && (
+          <TabPanel value={value} index={0}>
+            <TextareaAutosize
+              className={classes.textarea}
+              value={PRPreview.renderedTemplate}
+              readOnly
+            />
+          </TabPanel>
+        )}
+        {context !== 'app' && (
+          <TabPanel value={value} index={1}>
+            <TextareaAutosize
+              className={classes.textarea}
+              value={PRPreview.profileFiles?.map(
+                profileFile => profileFile.content + '---',
+              )}
+              readOnly
+            />
+          </TabPanel>
+        )}
+        <TabPanel value={value} index={context === 'app' ? 0 : 2}>
           <TextareaAutosize
             className={classes.textarea}
-            value={PRPreview.renderedTemplate}
-            readOnly
-          />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          <TextareaAutosize
-            className={classes.textarea}
-            value={PRPreview.profileFiles.map(
-              profileFile => profileFile.content + '---',
-            )}
-            readOnly
-          />
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          <TextareaAutosize
-            className={classes.textarea}
-            value={PRPreview.kustomizationFiles.map(
-              kustomizationFile => kustomizationFile.content + '---',
+            value={PRPreview.kustomizationFiles?.map(
+              (kustomizationFile, index) =>
+                index === 0
+                  ? kustomizationFile.content
+                  : '\n---\n' + kustomizationFile.content,
             )}
             readOnly
           />
