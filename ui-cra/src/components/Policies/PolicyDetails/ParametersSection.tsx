@@ -2,7 +2,7 @@ import {
   Policy,
   PolicyParam,
 } from '../../../cluster-services/cluster_services.pb';
-import { usePolicyStyle } from '../PolicyStyles';
+import { ChipWrapper, usePolicyStyle } from '../PolicyStyles';
 
 function ParametersSection({ parameters }: Policy) {
   const classes = usePolicyStyle();
@@ -38,7 +38,7 @@ function ParametersSection({ parameters }: Policy) {
                 {parameter.value ? (
                   parseValue(parameter)
                 ) : (
-                  <div className={classes.chip}>undefined</div>
+                  <ChipWrapper> undefined</ChipWrapper>
                 )}
               </span>
             </div>

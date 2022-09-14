@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import useClusters from './../../contexts/Clusters';
+import useClusters from '../../hooks/clusters';
 import { List, ListItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { isAllowedLink } from '@weaveworks/weave-gitops';

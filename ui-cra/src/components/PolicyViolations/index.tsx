@@ -2,7 +2,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { FieldsType, PolicyViolationsTable } from './Table';
-import useClusters from './../../contexts/Clusters';
+import useClusters from '../../hooks/clusters';
 import { useListPolicyValidations } from '../../contexts/PolicyViolations';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';

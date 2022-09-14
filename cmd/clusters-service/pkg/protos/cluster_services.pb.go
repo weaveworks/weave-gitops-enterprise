@@ -3240,10 +3240,11 @@ type TemplateProfile struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name     string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Version  string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
-	Editable bool   `protobuf:"varint,3,opt,name=editable,proto3" json:"editable,omitempty"`
-	Values   string `protobuf:"bytes,4,opt,name=values,proto3" json:"values,omitempty"`
+	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Version   string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	Editable  bool   `protobuf:"varint,3,opt,name=editable,proto3" json:"editable,omitempty"`
+	Values    string `protobuf:"bytes,4,opt,name=values,proto3" json:"values,omitempty"`
+	Namespace string `protobuf:"bytes,5,opt,name=namespace,proto3" json:"namespace,omitempty"`
 }
 
 func (x *TemplateProfile) Reset() {
@@ -3302,6 +3303,13 @@ func (x *TemplateProfile) GetEditable() bool {
 func (x *TemplateProfile) GetValues() string {
 	if x != nil {
 		return x.Values
+	}
+	return ""
+}
+
+func (x *TemplateProfile) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
 	}
 	return ""
 }
