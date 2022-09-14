@@ -2335,15 +2335,16 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.9.4-41-g7b7ceff3":
-  version "0.9.4-41-g7b7ceff3"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.9.4-41-g7b7ceff3/182a7a9a09ffe8ee64e43abd2342517157190138#182a7a9a09ffe8ee64e43abd2342517157190138"
-  integrity sha512-1KauG1GDvPIYEY4jbMXiVZbZpT2HAlsIfCSv2owaeeBrdILHWUAciYkPIi4W23gh1MOfFw5T2nwTgRDNMQJXdQ==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.9.5-rc.1-1-gdf0001ab":
+  version "0.9.5-rc.1-1-gdf0001ab"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.9.5-rc.1-1-gdf0001ab/b66a092be4e38df319b04776adeb44ae85fb2584#b66a092be4e38df319b04776adeb44ae85fb2584"
+  integrity sha512-aBzTc7kHNlrh2TDwhPALMtJ0Woep+2fMYfbONZzau9xIopDbvkj+/TCun0wOOUJrClmp1vugMHEUbRhStSQe7w==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
     "@material-ui/lab" "^4.0.0-alpha.58"
     d3 "^6.6.0"
+    d3-dag "^0.11.5"
     history "^5.0.0"
     http-proxy-middleware "^2.0.3"
     jest-canvas-mock "^2.4.0"
@@ -3820,6 +3821,13 @@ d3-array@2, d3-array@^2.3.0, d3-array@^2.5.0:
   dependencies:
     internmap "1 - 2"
 
+d3-array@^3.1.6:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-3.2.0.tgz#15bf96cd9b7333e02eb8de8053d78962eafcff14"
+  integrity sha512-3yXFQo0oG3QCxbF06rMPFyGRMGJNS7NvsV1+2joOjbBE+9xvWQ8+GcMJAjRCzw06zQ3/arXeJgbPYcjUCuC+3g==
+  dependencies:
+    internmap "1 - 2"
+
 d3-axis@2:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/d3-axis/-/d3-axis-2.1.0.tgz#978db534092711117d032fad5d733d206307f6a0"
@@ -3859,6 +3867,16 @@ d3-contour@2:
   integrity sha512-9unAtvIaNk06UwqBmvsdHX7CZ+NPDZnn8TtNH1myW93pWJkhsV25JcgnYAu0Ck5Veb1DHiCv++Ic5uvJ+h50JA==
   dependencies:
     d3-array "2"
+
+d3-dag@^0.11.5:
+  version "0.11.5"
+  resolved "https://registry.yarnpkg.com/d3-dag/-/d3-dag-0.11.5.tgz#666675d763770ca013d13b609eba5fc66d8d419e"
+  integrity sha512-sNHvYqjzDlvV2fyEkoOCSuLs2GeWliIg7pJcAiKXgtUSxl0kIX0C2q1J8JzzA9CQWptKxYtzxFCXiKptTW8qsQ==
+  dependencies:
+    d3-array "^3.1.6"
+    fastpriorityqueue "0.7.2"
+    javascript-lp-solver "0.4.24"
+    quadprog "^1.6.1"
 
 d3-delaunay@5:
   version "5.3.0"
@@ -4968,6 +4986,11 @@ fastest-stable-stringify@^2.0.2:
   resolved "https://registry.npmjs.org/fastest-stable-stringify/-/fastest-stable-stringify-2.0.2.tgz"
   integrity sha512-bijHueCGd0LqqNK9b5oCMHc0MluJAx0cwqASgbWMvkO01lCYgIhacVRLcaDz3QnyYIRNJRDwMb41VuT6pHJ91Q==
 
+fastpriorityqueue@0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/fastpriorityqueue/-/fastpriorityqueue-0.7.2.tgz#64dfee2c2adbc18c076cf7552dc4bfbef7befe3f"
+  integrity sha512-5DtIKh6vtOmEGkYdEPNNb+mxeYCnBiKbK3s4gq52l6cX8I5QaTDWWw0Wx/iYo80fVOblSycHu1/iJeqeNxG8Jw==
+
 fastq@^1.6.0:
   version "1.13.0"
   resolved "https://registry.npmjs.org/fastq/-/fastq-1.13.0.tgz"
@@ -6044,6 +6067,11 @@ jake@^10.6.1:
     chalk "^2.4.2"
     filelist "^1.0.1"
     minimatch "^3.0.4"
+
+javascript-lp-solver@0.4.24:
+  version "0.4.24"
+  resolved "https://registry.yarnpkg.com/javascript-lp-solver/-/javascript-lp-solver-0.4.24.tgz#3bb5f8aa051f0bf04747e39130133a0f738f635c"
+  integrity sha512-5edoDKnMrt/u3M6GnZKDDIPxOyFOg+WrwDv8mjNiMC2DePhy2H9/FFQgf4ggywaXT1utvkxusJcjQUER72cZmA==
 
 jest-canvas-mock@^2.4.0:
   version "2.4.0"
@@ -8702,6 +8730,11 @@ qs@6.9.7:
   version "6.9.7"
   resolved "https://registry.npmjs.org/qs/-/qs-6.9.7.tgz"
   integrity sha512-IhMFgUmuNpyRfxA90umL7ByLlgRXu6tIfKPpF5TmcfRLlLCckfP/g3IQmju6jjpu+Hh8rA+2p6A27ZSPOOHdKw==
+
+quadprog@^1.6.1:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/quadprog/-/quadprog-1.6.1.tgz#1cd3b13700de9553ef939a6fa73d0d55ddb2f082"
+  integrity sha512-fN5Jkcjlln/b3pJkseDKREf89JkKIyu6cKIVXisgL6ocKPQ0yTp9n6NZUAq3otEPPw78WZMG9K0o9WsfKyMWJw==
 
 query-string@*, query-string@^7.0.0, query-string@^7.0.1:
   version "7.1.1"
