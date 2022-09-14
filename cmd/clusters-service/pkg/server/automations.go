@@ -161,7 +161,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		}
 	}
 
-	return &capiv1_proto.RenderAutomationResponse{AutomationFiles: automationFiles}, err
+	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automationFiles}, err
 }
 
 func generateHelmReleaseFile(

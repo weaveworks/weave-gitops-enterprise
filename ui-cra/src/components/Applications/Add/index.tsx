@@ -30,7 +30,7 @@ import Preview from '../../Clusters/Form/Partials/Preview';
 import _ from 'lodash';
 import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
-import { ProfilesIndex } from '../../../types/custom';
+import { ProfilesIndex, PRPreview } from '../../../types/custom';
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -77,7 +77,7 @@ const AddApplication = () => {
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<any | null>(null);
+  const [PRPreview, setPRPreview] = useState<PRPreview | null>(null);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -214,6 +214,7 @@ const AddApplication = () => {
       getProviderToken(formData.provider as GitProvider),
     )
       .then(response => {
+        setPRPreview(null);
         history.push('/applications');
         setNotifications([
           {

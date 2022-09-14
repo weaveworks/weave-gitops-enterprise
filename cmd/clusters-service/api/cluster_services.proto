@@ -228,7 +228,7 @@ message RenderAutomationRequest {
 }
 
 message RenderAutomationResponse { 
-  repeated CommitFile automation_files = 1;
+  repeated CommitFile kustomization_files = 1;
 }
 
 message ListGitopsClustersRequest {

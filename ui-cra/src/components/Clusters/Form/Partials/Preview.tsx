@@ -12,6 +12,7 @@ import {
   TextareaAutosize,
   Box,
 } from '@material-ui/core';
+import { PRPreview } from '../../../../types/custom';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -36,11 +37,7 @@ const useStyles = makeStyles(() =>
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
-  PRPreview: {
-    renderedTemplate: string;
-    kustomizationFiles: { path: string; content: string }[];
-    profileFiles: { path: string; content: string }[];
-  };
+  PRPreview: PRPreview;
   context?: string;
 }> = ({ PRPreview, openPreview, setOpenPreview, context }) => {
   const classes = useStyles();
@@ -116,8 +113,10 @@ const Preview: FC<{
           <TabPanel value={value} index={1}>
             <TextareaAutosize
               className={classes.textarea}
-              value={PRPreview.profileFiles?.map(
-                profileFile => profileFile.content + '---',
+              value={PRPreview.profileFiles?.map((profileFile, index) =>
+                index === 0
+                  ? profileFile.content
+                  : '\n---\n' + profileFile.content,
               )}
               readOnly
             />

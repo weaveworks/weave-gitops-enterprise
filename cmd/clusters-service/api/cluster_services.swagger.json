@@ -1822,7 +1822,7 @@
     "v1RenderAutomationResponse": {
       "type": "object",
       "properties": {
-        "automationFiles": {
+        "kustomizationFiles": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"

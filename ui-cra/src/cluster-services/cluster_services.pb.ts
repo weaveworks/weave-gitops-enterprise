@@ -83,7 +83,7 @@ export type RenderAutomationRequest = {
 }
 
 export type RenderAutomationResponse = {
-  automationFiles?: CommitFile[]
+  kustomizationFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {

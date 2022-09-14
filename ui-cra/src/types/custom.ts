@@ -147,3 +147,9 @@ export type ClusterAutomation = {
 };
 
 export type ProfilesIndex = { [name: string]: UpdatedProfile };
+
+export interface PRPreview {
+  renderedTemplate: string;
+  kustomizationFiles: { path: string; content: string }[];
+  profileFiles: { path: string; content: string }[];
+}

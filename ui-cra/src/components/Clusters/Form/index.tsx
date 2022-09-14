@@ -35,6 +35,7 @@ import {
   Credential,
   GitopsClusterEnriched,
   ProfilesIndex,
+  PRPreview,
   TemplateEnriched,
 } from '../../../types/custom';
 import { utf8_to_b64 } from '../../../utils/base64';
@@ -266,7 +267,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     ? `/clusters/${cluster?.name}/edit`
     : `/clusters/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<any | null>(null);
+  const [PRPreview, setPRPreview] = useState<PRPreview | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const getKustomizations = useCallback(() => {

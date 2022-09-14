@@ -66,7 +66,7 @@ const AppFields: FC<{
   index?: number;
   onPRPreview?: () => void;
   previewLoading?: boolean;
-  allowSelectCluster: any;
+  allowSelectCluster: boolean;
 }> = ({
   formData,
   setFormData,
@@ -346,12 +346,7 @@ const AppFields: FC<{
         <LoadingPage className="preview-loading" />
       ) : (
         <div className="preview-cta">
-          <Button
-            // onClick={event =>
-            //   validateFormData(event, handlePRPreview)
-            // }
-            onClick={onPRPreview}
-          >
+          <Button onClick={event => validateFormData(event, onPRPreview)}>
             PREVIEW PR
           </Button>
         </div>
