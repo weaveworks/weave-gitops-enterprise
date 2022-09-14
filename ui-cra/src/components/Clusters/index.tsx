@@ -204,7 +204,7 @@ const MCCP: FC = () => {
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const handleRequestClose = useCallback(() => {
+  const handleClose = useCallback(() => {
     setOpenDeletePR(false);
     setSelectedClusters([]);
   }, [setOpenDeletePR, setSelectedClusters]);
@@ -405,7 +405,7 @@ const MCCP: FC = () => {
                   formData={formData}
                   setFormData={setFormData}
                   selectedCapiClusters={selectedCapiClusters}
-                  onRequestClose={handleRequestClose}
+                  onClose={handleClose}
                   prDefaults={PRdefaults}
                 />
               )}

@@ -43,7 +43,7 @@ interface Props {
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
   selectedCapiClusters: ClusterNamespacedName[];
-  onRequestClose: () => void;
+  onClose: () => void;
   prDefaults: PRDefaults;
 }
 
@@ -51,7 +51,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   formData,
   setFormData,
   selectedCapiClusters,
-  onRequestClose,
+  onClose,
   prDefaults,
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -141,8 +141,8 @@ export const DeleteClusterDialog: FC<Props> = ({
     clearCallbackState();
     setShowAuthDialog(false);
     setFormData(prDefaults);
-    onRequestClose();
-  }, [onRequestClose, setFormData, prDefaults]);
+    onClose();
+  }, [onClose, setFormData, prDefaults]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
