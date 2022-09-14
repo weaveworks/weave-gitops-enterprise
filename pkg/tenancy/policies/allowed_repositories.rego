@@ -32,6 +32,16 @@ violation[result] {
     "msg": sprintf("Helm repository url %v is not allowed for namespace %v", [url, namespace]),
     }
 }
+violation[result] {
+    controller_input.kind == "OCIRepository"
+    urls := input.parameters.oci_urls
+    url := controller_input.spec.url
+    not contains_array(url, urls)
+    result = {
+    "issue detected": true,
+    "msg": sprintf("OCI repository url %v is not allowed for namespace %v", [url, namespace]),
+    }
+}
 contains_array(item, items) {
     items[_] = item
 }
