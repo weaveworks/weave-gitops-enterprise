@@ -15,6 +15,8 @@ tenants:
       url: minio.example.com
     - kind: HelmRepository
       url: https://testorg.github.io/testrepo
+    - kind: OCIRepository
+      url: oci://ghcr.io/testreg/testrepo
     allowedClusters:
     - kubeConfig: cluster-1-kubeconfig
     - kubeConfig: cluster-2-kubeconfig

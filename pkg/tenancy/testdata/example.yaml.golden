@@ -235,6 +235,16 @@ spec:
         "msg": sprintf("Helm repository url %v is not allowed for namespace %v", [url, namespace]),
         }
     }
+    violation[result] {
+        controller_input.kind == "OCIRepository"
+        urls := input.parameters.oci_urls
+        url := controller_input.spec.url
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("OCI repository url %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
     contains_array(item, items) {
         items[_] = item
     }
@@ -259,6 +269,11 @@ spec:
     type: array
     value:
     - https://testorg.github.io/testrepo
+  - name: oci_urls
+    required: false
+    type: array
+    value:
+    - oci://ghcr.io/testreg/testrepo
   severity: high
   standards: []
   tags:
@@ -268,6 +283,7 @@ spec:
     - GitRepository
     - Bucket
     - HelmRepository
+    - OCIRepository
     labels: []
     namespaces:
     - bar-ns
