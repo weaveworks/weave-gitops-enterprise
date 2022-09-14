@@ -140,7 +140,7 @@ func CheckClusterService(capiEndpointURL string) {
 // Ignore all errors (connection refused, 500s etc)
 func waitForGitopsResources(ctx context.Context, resourceName string, timeout time.Duration) error {
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
-	waitCtx, cancel := context.WithTimeout(ctx, ASSERTION_2MINUTE_TIME_OUT)
+	waitCtx, cancel := context.WithTimeout(ctx, ASSERTION_15MINUTE_TIME_OUT)
 	defer cancel()
 
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
