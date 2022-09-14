@@ -6,7 +6,7 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import ViolationDetails from './ViolationDetails';
-import useClusters from '../../../contexts/Clusters';
+import useClusters from '../../../hooks/clusters';
 import {
   useCountPolicyValidations,
   useGetPolicyValidationDetails,

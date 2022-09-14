@@ -85,6 +85,17 @@
     }
   },
   "definitions": {
+    "PipelineStatusTargetStatusList": {
+      "type": "object",
+      "properties": {
+        "targetsStatuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PipelineTargetStatus"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -205,7 +216,7 @@
         "environments": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/v1PipelineTargetStatus"
+            "$ref": "#/definitions/PipelineStatusTargetStatusList"
           }
         }
       }

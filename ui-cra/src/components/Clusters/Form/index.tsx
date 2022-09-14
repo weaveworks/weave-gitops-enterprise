@@ -26,7 +26,7 @@ import {
 import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
-import useTemplates from '../../../contexts/Templates';
+import useTemplates from '../../../hooks/templates';
 import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
 import {
