@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
-	"strings"
 
 	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/go-multierror"
@@ -19,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	errs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -103,14 +101,21 @@ func (t Tenant) Validate() error {
 	return result
 }
 
-// CreateTenants creates resources for tenants given a file for definition.
-func CreateTenants(ctx context.Context, config *Config, c client.Client, out io.Writer) error {
-	resources, err := GenerateTenantResources(config)
+// ApplyTenants applies resources for state defined in each tenant given a file for definition.
+func ApplyTenants(ctx context.Context, config *Config, c client.Client, prune bool, out io.Writer) error {
+	newResources, err := GenerateTenantResources(config)
 	if err != nil {
 		return fmt.Errorf("failed to generate tenant output: %w", err)
 	}
-
-	for _, resource := range resources {
+	existingResources, err := getCurrentResources(ctx, c)
+	if err != nil {
+		return fmt.Errorf("failed to check current tenant resources: %w", err)
+	}
+	err = cleanResources(ctx, c, newResources, existingResources, prune, out)
+	if err != nil {
+		return fmt.Errorf("failed to clean up policies resources: %w", err)
+	}
+	for _, resource := range newResources {
 		err := upsert(ctx, c, resource, out)
 		if err != nil {
 			return fmt.Errorf("failed to create resource %s: %w", resource.GetName(), err)
@@ -120,11 +125,59 @@ func CreateTenants(ctx context.Context, config *Config, c client.Client, out io.
 	return nil
 }
 
+// getCurrentResources checks current tenant resources that exists on a cluster
+func getCurrentResources(ctx context.Context, kubeClient client.Client) ([]client.Object, error) {
+	var resources []client.Object
+	existingTypeMetas := []metav1.TypeMeta{
+		namespaceTypeMeta,
+		roleBindingTypeMeta,
+		serviceAccountTypeMeta,
+		roleTypeMeta,
+		policyTypeMeta,
+	}
+
+	opts := []client.ListOption{client.HasLabels{tenantLabel}}
+
+	for _, existingTypeMeta := range existingTypeMetas {
+		existing := unstructured.UnstructuredList{}
+		existing.SetGroupVersionKind(existingTypeMeta.GroupVersionKind())
+
+		err := kubeClient.List(ctx, &existing, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list tenant resources: %w", err)
+		}
+		for i := range existing.Items {
+			resources = append(resources, &existing.Items[i])
+		}
+	}
+
+	return resources, nil
+}
+
+// cleanResources cleanup resources that should be pruned when certain configuration is removed
+func cleanResources(ctx context.Context, kubeClient client.Client, newResources, existingResources []client.Object, prune bool, out io.Writer) error {
+	resourcesToDelete := getResourcesToDelete(newResources, existingResources)
+	for i := range resourcesToDelete {
+		resourceToDeleteID := getObjectID(resourcesToDelete[i])
+		if prune {
+			err := kubeClient.Delete(ctx, resourcesToDelete[i])
+			if err != nil {
+				fmt.Fprintf(out, "failed to clean up tenant resource %s: %s", resourceToDeleteID, err)
+				continue
+			}
+			fmt.Fprintf(out, "%s deleted\n", resourceToDeleteID)
+		} else {
+			fmt.Fprintf(out, "%s no longer defined as part of a tenant use --prune to remove\n", resourceToDeleteID)
+		}
+	}
+	return nil
+}
+
 // upsert applies runtime objects to the cluster, if they already exist,
 // patching them with type specific elements.
 func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, out io.Writer) error {
 	existing := runtimeObjectFromObject(obj)
-	objectID := fmt.Sprintf("%s/%s", strings.ToLower(obj.GetObjectKind().GroupVersionKind().GroupKind().String()), obj.GetName())
+	objectID := getObjectID(obj)
 
 	err := kubeClient.Get(ctx, client.ObjectKeyFromObject(obj), existing)
 	if err != nil {
@@ -214,32 +267,51 @@ func ExportTenants(config *Config, out io.Writer) error {
 	return outputResources(out, resources)
 }
 
-func marshalOutput(out io.Writer, output runtime.Object) error {
-	data, err := yaml.Marshal(output)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
+// generateTenantResource create resources for a tenant
+func generateTenantResource(tenant Tenant, serviceAccount *ServiceAccountOptions) ([]client.Object, error) {
+	generated := []client.Object{}
+	if err := tenant.Validate(); err != nil {
+		return nil, err
+	}
+	// TODO: validate tenant name for creation of namespace.
+	tenantLabels := tenant.Labels
+	if tenantLabels == nil {
+		tenantLabels = map[string]string{}
 	}
 
-	_, err = fmt.Fprintf(out, "%s", data)
-	if err != nil {
-		return fmt.Errorf("failed to write data: %v", err)
+	tenantLabels[tenantLabel] = tenant.Name
+	serviceAccountName := tenant.Name
+	if serviceAccount != nil {
+		serviceAccountName = serviceAccount.Name
 	}
 
-	return nil
-}
-
-func outputResources(out io.Writer, resources []client.Object) error {
-	for _, v := range resources {
-		if err := marshalOutput(out, v); err != nil {
-			return fmt.Errorf("failed outputting tenant: %w", err)
+	for _, namespace := range tenant.Namespaces {
+		generated = append(generated, newNamespace(namespace, tenantLabels))
+		generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
+		generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
+		if tenant.TeamRBAC != nil {
+			generated = append(generated, newTeamRole(tenant.Name, namespace, tenantLabels, tenant.TeamRBAC.Rules))
+			generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupNames, tenantLabels))
 		}
-
-		if _, err := out.Write([]byte("---\n")); err != nil {
-			return err
+	}
+	if len(tenant.AllowedRepositories) != 0 {
+		policy, err := newAllowedRepositoriesPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
+		if err != nil {
+			return nil, err
 		}
+		generated = append(generated, policy)
 	}
 
-	return nil
+	if len(tenant.AllowedClusters) != 0 {
+		policy, err := newAllowedClustersPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedClusters, tenantLabels)
+		if err != nil {
+			return nil, err
+		}
+		generated = append(generated, policy)
+	}
+
+	return generated, nil
+
 }
 
 // GenerateTenantResources creates all the resources for tenants.
@@ -247,45 +319,11 @@ func GenerateTenantResources(config *Config) ([]client.Object, error) {
 	generated := []client.Object{}
 
 	for _, tenant := range config.Tenants {
-		if err := tenant.Validate(); err != nil {
+		tenantGenerated, err := generateTenantResource(tenant, config.ServiceAccount)
+		if err != nil {
 			return nil, err
 		}
-		// TODO: validate tenant name for creation of namespace.
-		tenantLabels := tenant.Labels
-		if tenantLabels == nil {
-			tenantLabels = map[string]string{}
-		}
-
-		tenantLabels[tenantLabel] = tenant.Name
-		serviceAccountName := tenant.Name
-		if config.ServiceAccount != nil {
-			serviceAccountName = config.ServiceAccount.Name
-		}
-
-		for _, namespace := range tenant.Namespaces {
-			generated = append(generated, newNamespace(namespace, tenantLabels))
-			generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
-			generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
-			if tenant.TeamRBAC != nil {
-				generated = append(generated, newTeamRole(tenant.Name, namespace, tenant.Labels, tenant.TeamRBAC.Rules))
-				generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupNames, tenantLabels))
-			}
-		}
-		if len(tenant.AllowedRepositories) != 0 {
-			policy, err := newAllowedRepositoriesPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
-			if err != nil {
-				return nil, err
-			}
-			generated = append(generated, policy)
-		}
-
-		if len(tenant.AllowedClusters) != 0 {
-			policy, err := newAllowedClustersPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedClusters, tenantLabels)
-			if err != nil {
-				return nil, err
-			}
-			generated = append(generated, policy)
-		}
+		generated = append(generated, tenantGenerated...)
 	}
 
 	return generated, nil
@@ -472,13 +510,6 @@ func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClu
 	return policy, nil
 }
 
-func typeMeta(kind, apiVersion string) metav1.TypeMeta {
-	return metav1.TypeMeta{
-		Kind:       kind,
-		APIVersion: apiVersion,
-	}
-}
-
 // Parse a raw tenant declaration, and parses it from the YAML and returns the
 // extracted Tenants.
 func Parse(filename string) (*Config, error) {
@@ -498,8 +529,4 @@ func Parse(filename string) (*Config, error) {
 	}
 
 	return &Config{Tenants: tenancy.Tenants, ServiceAccount: tenancy.ServiceAccount}, nil
-}
-
-func runtimeObjectFromObject(o client.Object) client.Object {
-	return reflect.New(reflect.TypeOf(o).Elem()).Interface().(client.Object)
 }

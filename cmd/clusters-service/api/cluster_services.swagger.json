@@ -1847,6 +1847,9 @@
         },
         "values": {
           "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     }
