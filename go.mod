@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
-	github.com/weaveworks/weave-gitops v0.9.5-0.20220912204043-7b7ceff3737d
+	github.com/weaveworks/weave-gitops v0.9.5-rc.1.0.20220914151138-df0001ab0aa8
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -31,11 +31,11 @@ require (
 	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.8.1-0.20220823125407-dd5c65fdaf4e
-	github.com/fluxcd/helm-controller/api v0.23.1
-	github.com/fluxcd/kustomize-controller/api v0.27.1
+	github.com/fluxcd/helm-controller/api v0.24.0
+	github.com/fluxcd/kustomize-controller/api v0.28.0
 	github.com/fluxcd/pkg/apis/meta v0.15.0
-	github.com/fluxcd/pkg/runtime v0.17.0
-	github.com/fluxcd/source-controller/api v0.28.0
+	github.com/fluxcd/pkg/runtime v0.18.0
+	github.com/fluxcd/source-controller/api v0.29.0
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
@@ -49,7 +49,7 @@ require (
 	github.com/weaveworks/cluster-controller v1.2.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.4
-	github.com/weaveworks/progressive-delivery v0.0.0-20220908164304-34d93e303edc
+	github.com/weaveworks/progressive-delivery v0.0.0-20220914160241-d21d76484f5a
 	github.com/xanzy/go-gitlab v0.69.0
 	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d
 	golang.org/x/oauth2 v0.0.0-20220722155238-128564f6959c
@@ -71,7 +71,7 @@ require (
 	github.com/alecthomas/colour v0.0.0-20160524082231-60882d9e2721 // indirect
 	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
 	github.com/cloudflare/circl v1.1.0 // indirect
-	github.com/fluxcd/notification-controller/api v0.25.2 // indirect
+	github.com/fluxcd/notification-controller/api v0.26.0 // indirect
 	github.com/google/go-github/v45 v45.2.0 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -83,8 +83,8 @@ require (
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/fluxcd/flux2 v0.33.0 // indirect
-	github.com/fluxcd/pkg/kustomize v0.6.0 // indirect
+	github.com/fluxcd/flux2 v0.34.0 // indirect
+	github.com/fluxcd/pkg/kustomize v0.7.0 // indirect
 	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -162,7 +162,7 @@ require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.5.0 // indirect
-	github.com/fluxcd/pkg/ssa v0.18.0 // indirect
+	github.com/fluxcd/pkg/ssa v0.19.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-asset/generics v0.0.0-20220317100214-d5f632c68060 // indirect
