@@ -29,11 +29,9 @@ import {
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
-import ClustersProvider from '../contexts/Clusters/Provider';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
-import TemplatesProvider from '../contexts/Templates/Provider';
 import { muiTheme } from '../muiTheme';
 
 export const withContext = (contexts: any[]) => {
@@ -88,8 +86,6 @@ export const defaultContexts = () => [
   ],
   [MemoryRouter],
   [NotificationProvider],
-  [TemplatesProvider],
-  [ClustersProvider],
 ];
 
 const promisify = <R, E>(res: R, errRes?: E) =>
@@ -250,7 +246,6 @@ export function sortTableByColumn(tableId: string, column: string) {
     }
   });
 }
-
 
 // Helper to ensure that tests still pass if columns get re-ordered
 function findColByHeading(

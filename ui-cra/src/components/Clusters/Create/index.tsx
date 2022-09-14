@@ -1,7 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import { useParams } from 'react-router-dom';
-import useClusters from '../../../contexts/Clusters';
-import useTemplates from '../../../contexts/Templates';
+import useClusters from '../../../hooks/clusters';
+import useTemplates from '../../../hooks/templates';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
