@@ -30,6 +30,11 @@ describe('ListPolicies', () => {
           message:
             'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
         },
+        {
+          clusterName: 'default/tw-test-cluster',
+          namespace: '',
+          message: 'second Error message',
+        },
       ],
     };
 
@@ -38,16 +43,30 @@ describe('ListPolicies', () => {
       render(c);
     });
 
-    expect(
-      await screen.findByText(
-        'There were errors while listing some resources:',
-      ),
-    ).toBeTruthy();
+   // TODO "Move Error tests to shared Test"
 
-    const alert = document.querySelector('#alert-list-errors');
-    const alerts = alert?.querySelectorAll('#alert-list-errors li');
+   const alertMessage = screen.queryByTestId('error-message');
+   expect(alertMessage).toHaveTextContent(
+     'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
+   );
 
-    expect(alerts).toHaveLength(1);
+   // Next Error
+   const nextError = screen.queryByTestId('nextError');
+   nextError?.click();
+
+   expect(alertMessage).toHaveTextContent('second Error message');
+
+   // Prev error
+   const prevError = screen.queryByTestId('prevError');
+   prevError?.click();
+
+   expect(alertMessage).toHaveTextContent(
+     'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
+   );
+
+   // Error Count
+   const errorCount = screen.queryByTestId('errorsCount');
+   expect(errorCount?.textContent).toEqual('2');
   });
   it('renders a list of policies', async () => {
     api.ListPoliciesReturns = {
