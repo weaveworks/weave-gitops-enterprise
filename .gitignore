@@ -60,3 +60,6 @@ tilt_modules
 # .vscode
 .vscode
 *.env
+
+# Helm files pulled in by Tilt
+.helm

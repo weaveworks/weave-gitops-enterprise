@@ -1,4 +1,5 @@
 load('ext://restart_process', 'docker_build_with_restart')
+load('ext://helm_remote', 'helm_remote')
 
 if not os.path.exists("./charts/mccp/charts"):
    # Download chart deps on first run. This command is slow, so you'd have to
@@ -10,9 +11,6 @@ if not os.path.exists("../cluster-bootstrap-controller"):
 
 if not os.path.exists("../cluster-controller"):
    fail("You need to git clone https://github.com/weaveworks/cluster-controller to a directory next to this")
-
-if not os.path.exists("../tf-controller"):
-   fail("You need to git clone https://github.com/weaveworks/tf-controller to a directory next to this")
 
 
 # This is needed for javascript access
@@ -41,10 +39,10 @@ docker_build('weaveworks/cluster-controller', '../cluster-controller/')
 docker_build('weaveworks/cluster-bootstrap-controller', '../cluster-bootstrap-controller/',
    build_args={'GITHUB_BUILD_USERNAME': 'wge-build-bot', 'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN')}
 )
-k8s_yaml(helm(
-   "../tf-controller/charts/tf-controller",
-   namespace="flux-system",
-))
+
+helm_remote('tf-controller',
+            repo_url='https://weaveworks.github.io/tf-controller',
+            namespace='flux-system')
 
 native_build = os.getenv('NATIVE_BUILD', False)
 
