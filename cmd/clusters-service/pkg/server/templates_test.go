@@ -612,6 +612,15 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
+			name:             "render template with apps",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
 			name:             "render template with optional value",
 			pruneEnvVar:      "disabled",
 			clusterNamespace: "test-ns",
@@ -786,6 +795,139 @@ func TestRenderTemplate(t *testing.T) {
 				}
 			} else {
 				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
+	u := &unstructured.Unstructured{}
+	u.Object = map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name":      "cred-name",
+			"namespace": "cred-namespace",
+		},
+	}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Kind:    "AWSClusterStaticIdentity",
+		Version: "v1alpha4",
+	})
+
+	testCases := []struct {
+		name             string
+		pruneEnvVar      string
+		clusterNamespace string
+		clusterState     []runtime.Object
+		expected         *capiv1_protos.RenderTemplateResponse
+		err              error
+		expectedErrorStr string
+		credentials      *capiv1_protos.Credential
+		req              *capiv1_protos.RenderTemplateRequest
+	}{
+		{
+			name:             "render template with apps",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			req: &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				Kustomizations: []*capiv1_protos.Kustomization{
+					{
+						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
+						Spec: &capiv1_protos.KustomizationSpec{
+							Path:            "./apps/capi",
+							SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+							TargetNamespace: "foo-ns",
+						},
+					},
+					{
+						Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
+						Spec: &capiv1_protos.KustomizationSpec{
+							Path:      "./apps/billing",
+							SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+						},
+					},
+				},
+			},
+			expected: *capiv1_protos.RenderTemplateResponse{
+				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+				KustomizationFiles: []*capiv1_protos.CommitFile{
+					{
+						Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+	kind: Kustomization
+	metadata:
+	  creationTimestamp: null
+	  name: apps-capi
+	  namespace: flux-system
+	spec:
+	  interval: 10m0s
+	  path: ./apps/capi
+	  prune: true
+	  sourceRef:
+		kind: GitRepository
+		name: flux-system
+		namespace: flux-system
+	  targetNamespace: foo-ns
+	status: {}
+	`,
+					},
+					{
+						Path: "clusters/clusters-namespace/dev/apps-billing-flux-system-kustomization.yaml",
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+	kind: Kustomization
+	metadata:
+	  creationTimestamp: null
+	  name: apps-billing
+	  namespace: flux-system
+	spec:
+	  interval: 10m0s
+	  path: ./apps/billing
+	  prune: true
+	  sourceRef:
+		kind: GitRepository
+		name: flux-system
+		namespace: flux-system
+	status: {}
+	`,
+					},
+				},
+				ProfileFiles: []*capiv1_protos.CommitFile{},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.Reset()
+			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
+			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
+
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+			})
+
+			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
+
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the templates:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}

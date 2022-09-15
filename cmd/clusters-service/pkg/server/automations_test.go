@@ -614,18 +614,17 @@ func TestRenderAutomation(t *testing.T) {
 	viper.SetDefault("capi-repository-clusters-path", "clusters")
 	viper.SetDefault("add-bases-kustomization", "enabled")
 
-
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
 		pruneEnvVar    string
 		req            *capiv1_protos.RenderAutomationRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 	}{
 		{
-			name:     "render automations",
+			name: "render automations",
 			req: &capiv1_protos.RenderAutomationRequest{
 				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
 					{
@@ -650,7 +649,7 @@ func TestRenderAutomation(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -724,10 +723,10 @@ status: {}
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.committedFiles, renderAutomationResponse.KustomizationFiles); diff != "" {
+				if diff := cmp.Diff(tt.committedFiles, renderAutomationResponse.KustomizationFiles, protocmp.Transform()); diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
-			}	
+			}
 		})
 	}
 }
