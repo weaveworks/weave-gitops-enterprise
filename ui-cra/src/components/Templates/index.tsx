@@ -2,7 +2,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
-import useTemplates from '../../contexts/Templates';
+import useTemplates from '../../hooks/templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';

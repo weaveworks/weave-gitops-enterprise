@@ -6,11 +6,9 @@ import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
-import ClustersProvider from '../../../contexts/Clusters/Provider';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
-import TemplatesProvider from '../../../contexts/Templates/Provider';
 import { muiTheme } from '../../../muiTheme';
 import {
   CoreClientMock,
@@ -41,8 +39,6 @@ describe('Applications index test', () => {
       [CoreClientContextProvider, { api }],
       [MemoryRouter],
       [NotificationsProvider],
-      [TemplatesProvider],
-      [ClustersProvider],
     ]);
   });
   it('renders table rows', async () => {

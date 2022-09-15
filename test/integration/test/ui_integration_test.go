@@ -105,12 +105,12 @@ func ListenAndServe(ctx context.Context, srv *http.Server) error {
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	t.Helper()
 
-	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
-	clientsFactory.GetServerClientReturns(client, nil)
+	clustersManager.GetServerClientReturns(client, nil)
 
-	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
+	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
 }
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {

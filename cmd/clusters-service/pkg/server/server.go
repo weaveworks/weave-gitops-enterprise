@@ -32,7 +32,7 @@ type server struct {
 	log              logr.Logger
 	templatesLibrary templates.Library
 	clustersLibrary  clusters.Library
-	clientsFactory   clustersmngr.ClientsFactory
+	clustersManager  clustersmngr.ClustersManager
 	provider         git.Provider
 	clientGetter     kube.ClientGetter
 	discoveryClient  discovery.DiscoveryInterface
@@ -47,7 +47,7 @@ type ServerOpts struct {
 	Logger                    logr.Logger
 	TemplatesLibrary          templates.Library
 	ClustersLibrary           clusters.Library
-	ClientsFactory            clustersmngr.ClientsFactory
+	ClustersManager           clustersmngr.ClustersManager
 	GitProvider               git.Provider
 	ClientGetter              kube.ClientGetter
 	DiscoveryClient           discovery.DiscoveryInterface
@@ -62,7 +62,7 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		log:                       opts.Logger,
 		clustersLibrary:           opts.ClustersLibrary,
 		templatesLibrary:          opts.TemplatesLibrary,
-		clientsFactory:            opts.ClientsFactory,
+		clustersManager:           opts.ClustersManager,
 		provider:                  opts.GitProvider,
 		clientGetter:              opts.ClientGetter,
 		discoveryClient:           opts.DiscoveryClient,

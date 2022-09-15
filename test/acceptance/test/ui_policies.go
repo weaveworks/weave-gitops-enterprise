@@ -256,7 +256,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By(fmt.Sprintf("And filter leaf cluster '%s' policies", leafClusterName), func() {
-					filterID := "clusterName:" + leafClusterNamespace + `/` + leafClusterName
+					filterID := "clusterName: " + leafClusterNamespace + `/` + leafClusterName
 					searchPage := pages.GetSearchPage(webDriver)
 					gomega.Eventually(searchPage.FilterBtn.Click).Should(gomega.Succeed(), "Failed to click filter buttton")
 					searchPage.SelectFilter("cluster", filterID)

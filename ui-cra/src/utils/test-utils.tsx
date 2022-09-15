@@ -16,6 +16,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
+  GetPipelineResponse,
   ListPipelinesResponse,
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
@@ -29,11 +30,9 @@ import {
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
-import ClustersProvider from '../contexts/Clusters/Provider';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
-import TemplatesProvider from '../contexts/Templates/Provider';
 import { muiTheme } from '../muiTheme';
 
 export const withContext = (contexts: any[]) => {
@@ -88,8 +87,6 @@ export const defaultContexts = () => [
   ],
   [MemoryRouter],
   [NotificationProvider],
-  [TemplatesProvider],
-  [ClustersProvider],
 ];
 
 const promisify = <R, E>(res: R, errRes?: E) =>
@@ -202,12 +199,20 @@ export class PolicyClientMock {
 export class PipelinesClientMock implements Pipelines {
   constructor() {
     this.ListPipelines = this.ListPipelines.bind(this);
+    this.GetPipeline = this.GetPipeline.bind(this);
   }
   ListPipelinesReturns: ListPipelinesResponse = {};
+  GetPipelineReturns: GetPipelineResponse = {};
+
   ListPipelines() {
     return promisify(this.ListPipelinesReturns);
   }
+
+  GetPipeline() {
+    return promisify(this.GetPipelineReturns);
+  }
 }
+
 export function findCellInCol(cell: string, tableSelector: string) {
   const tbl = document.querySelector(tableSelector);
 
@@ -238,6 +243,10 @@ export function getTableInfo(id: string) {
 
   return { rows, headers };
 }
+export function getRowInfoByIndex(tableId: string, rowIndex: number) {
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  return rows[rowIndex].querySelectorAll('td');
+}
 
 export function sortTableByColumn(tableId: string, column: string) {
   const btns = document.querySelectorAll<HTMLElement>(
@@ -250,7 +259,6 @@ export function sortTableByColumn(tableId: string, column: string) {
     }
   });
 }
-
 
 // Helper to ensure that tests still pass if columns get re-ordered
 function findColByHeading(

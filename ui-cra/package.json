@@ -15,7 +15,7 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@types/classnames": "^2.3.1",
     "@types/d3-scale": "^3.2.2",
-    "@types/git-url-parse": "9.0.0",
+    "@types/git-url-parse": "^9.0.1",
     "@types/lodash": "^4.14.169",
     "@types/query-string": "^6.3.0",
     "@types/react": "^17.0.0",
@@ -24,11 +24,11 @@
     "@types/react-syntax-highlighter": "^13.5.2",
     "@types/styled-components": "^5.1.9",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "0.9.4",
+    "@weaveworks/weave-gitops": "0.9.5-rc.1",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
     "d3-time": "^3.0.0",
-    "git-url-parse": "11.1.2",
+    "git-url-parse": "^13.0.0",
     "http-proxy-middleware": "^2.0.0",
     "js-file-download": "^0.4.12",
     "json-schema": "0.4.0",
@@ -56,7 +56,9 @@
     "**/react-dom": "^17.0.2",
     "**/react-query": "^3.34.7",
     "@weaveworks/weave-gitops/react-router-dom": "^5.2.0",
-    "mini-css-extract-plugin": "~2.4.5"
+    "mini-css-extract-plugin": "~2.4.5",
+    "parse-path": "~5.0.0",
+    "parse-url": "~8.1.0"
   },
   "scripts": {
     "start": "react-scripts start",

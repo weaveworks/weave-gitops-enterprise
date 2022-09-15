@@ -57,13 +57,13 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 }
 
 type serverOptions struct {
-	clusterState   []runtime.Object
-	namespace      string
-	provider       git.Provider
-	ns             string
-	hr             *sourcev1.HelmRepository
-	clientsFactory clustersmngr.ClientsFactory
-	capiEnabled    bool
+	clusterState    []runtime.Object
+	namespace       string
+	provider        git.Provider
+	ns              string
+	hr              *sourcev1.HelmRepository
+	clustersManager clustersmngr.ClustersManager
+	capiEnabled     bool
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -83,7 +83,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 				ClientGetter: kubefakes.NewFakeClientGetter(c),
 				Namespace:    o.namespace,
 			},
-			ClientsFactory:            o.clientsFactory,
+			ClustersManager:           o.clustersManager,
 			GitProvider:               o.provider,
 			ClientGetter:              kubefakes.NewFakeClientGetter(c),
 			DiscoveryClient:           dc,
