@@ -652,8 +652,8 @@ func TestRenderAutomation(t *testing.T) {
 			},
 			committedFiles: []CommittedFile{
 				{
-					"path": "",
-					"content": `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Path: "",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
   creationTimestamp: null
