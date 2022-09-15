@@ -199,7 +199,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
 				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 			),
-			app.WithClientsFactory(pipetesting.MakeClientsFactory(k)),
+			app.WithClustersManager(pipetesting.MakeClustersManager(k)),
 		)
 		t.Logf("%v", err)
 	}(ctx)
@@ -219,17 +219,17 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 
-	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
 
 	// A fake to support kustomizations, sorry, this is pretty frgaile and will likely break.
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(map[string]client.Client{})
 
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
-	clientsFactory.GetImpersonatedClientReturns(client, nil)
-	clientsFactory.GetServerClientReturns(client, nil)
+	clustersManager.GetImpersonatedClientReturns(client, nil)
+	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
+	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
 	return coreConfig
 }
 

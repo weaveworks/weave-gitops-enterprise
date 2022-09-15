@@ -282,7 +282,7 @@ func deleteRepo(gp GitProviderEnv) {
 func verifyPRCreated(gp GitProviderEnv, repoAbsolutePath string) string {
 	ctx := context.Background()
 
-	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
+	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteURL(repoAbsolutePath, "origin")
 	gomega.Expect(repoUrlErr).ShouldNot(gomega.HaveOccurred())
 
 	org, _ := extractOrgAndRepo(repoUrlString)
@@ -312,7 +312,7 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 	prNumber, numErr := strconv.Atoi(prNumberStr)
 	gomega.Expect(numErr).ShouldNot(gomega.HaveOccurred())
 
-	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteUrl(repoAbsolutePath, "origin")
+	repoUrlString, repoUrlErr := git.New(nil, wrapper.NewGoGit()).GetRemoteURL(repoAbsolutePath, "origin")
 	gomega.Expect(repoUrlErr).ShouldNot(gomega.HaveOccurred())
 
 	org, repo := extractOrgAndRepo(repoUrlString)

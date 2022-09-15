@@ -1931,10 +1931,10 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
-"@types/git-url-parse@9.0.0":
-  version "9.0.0"
-  resolved "https://registry.npmjs.org/@types/git-url-parse/-/git-url-parse-9.0.0.tgz"
-  integrity sha512-kA2RxBT/r/ZuDDKwMl+vFWn1Z0lfm1/Ik6Qb91wnSzyzCDa/fkM8gIOq6ruB7xfr37n6Mj5dyivileUVKsidlg==
+"@types/git-url-parse@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/@types/git-url-parse/-/git-url-parse-9.0.1.tgz#1c7cc89527ca8b5afcf260ead3b0e4e373c43938"
+  integrity sha512-Zf9mY4Mz7N3Nyi341nUkOtgVUQn4j6NS4ndqEha/lOgEbTkHzpD7wZuRagYKzrXNtvawWfsrojoC1nhsQexvNA==
 
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"
@@ -2335,15 +2335,16 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.9.4":
-  version "0.9.4"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.9.4/bdc383441e0ceec77d99463d046cf3f1c190ed1a#bdc383441e0ceec77d99463d046cf3f1c190ed1a"
-  integrity sha512-J7JrWSO2je9HxNbHBERJEVOHtAlN/oSEGCLpbW4dr3Xs2othRaRV8lo7x8XRPy1FyYIksUJPRxkEg89yd+vmJg==
+"@weaveworks/weave-gitops@0.9.5-rc.1":
+  version "0.9.5-rc.1"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.9.5-rc.1/51489c40881b52bb1fe09da60649ea55a38a6337#51489c40881b52bb1fe09da60649ea55a38a6337"
+  integrity sha512-JlfCDFiy8oxZKoSDgyPlaCOUjC5gQNliSrm1CFuiLthlyh5UqrjUjGgmFuujCOihuki998hnAVtFiLh9fMeSww==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
     "@material-ui/lab" "^4.0.0-alpha.58"
     d3 "^6.6.0"
+    d3-dag "^0.11.5"
     history "^5.0.0"
     http-proxy-middleware "^2.0.3"
     jest-canvas-mock "^2.4.0"
@@ -3820,6 +3821,13 @@ d3-array@2, d3-array@^2.3.0, d3-array@^2.5.0:
   dependencies:
     internmap "1 - 2"
 
+d3-array@^3.1.6:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-3.2.0.tgz#15bf96cd9b7333e02eb8de8053d78962eafcff14"
+  integrity sha512-3yXFQo0oG3QCxbF06rMPFyGRMGJNS7NvsV1+2joOjbBE+9xvWQ8+GcMJAjRCzw06zQ3/arXeJgbPYcjUCuC+3g==
+  dependencies:
+    internmap "1 - 2"
+
 d3-axis@2:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/d3-axis/-/d3-axis-2.1.0.tgz#978db534092711117d032fad5d733d206307f6a0"
@@ -3859,6 +3867,16 @@ d3-contour@2:
   integrity sha512-9unAtvIaNk06UwqBmvsdHX7CZ+NPDZnn8TtNH1myW93pWJkhsV25JcgnYAu0Ck5Veb1DHiCv++Ic5uvJ+h50JA==
   dependencies:
     d3-array "2"
+
+d3-dag@^0.11.5:
+  version "0.11.5"
+  resolved "https://registry.yarnpkg.com/d3-dag/-/d3-dag-0.11.5.tgz#666675d763770ca013d13b609eba5fc66d8d419e"
+  integrity sha512-sNHvYqjzDlvV2fyEkoOCSuLs2GeWliIg7pJcAiKXgtUSxl0kIX0C2q1J8JzzA9CQWptKxYtzxFCXiKptTW8qsQ==
+  dependencies:
+    d3-array "^3.1.6"
+    fastpriorityqueue "0.7.2"
+    javascript-lp-solver "0.4.24"
+    quadprog "^1.6.1"
 
 d3-delaunay@5:
   version "5.3.0"
@@ -4968,6 +4986,11 @@ fastest-stable-stringify@^2.0.2:
   resolved "https://registry.npmjs.org/fastest-stable-stringify/-/fastest-stable-stringify-2.0.2.tgz"
   integrity sha512-bijHueCGd0LqqNK9b5oCMHc0MluJAx0cwqASgbWMvkO01lCYgIhacVRLcaDz3QnyYIRNJRDwMb41VuT6pHJ91Q==
 
+fastpriorityqueue@0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/fastpriorityqueue/-/fastpriorityqueue-0.7.2.tgz#64dfee2c2adbc18c076cf7552dc4bfbef7befe3f"
+  integrity sha512-5DtIKh6vtOmEGkYdEPNNb+mxeYCnBiKbK3s4gq52l6cX8I5QaTDWWw0Wx/iYo80fVOblSycHu1/iJeqeNxG8Jw==
+
 fastq@^1.6.0:
   version "1.13.0"
   resolved "https://registry.npmjs.org/fastq/-/fastq-1.13.0.tgz"
@@ -5239,20 +5262,20 @@ get-symbol-description@^1.0.0:
     call-bind "^1.0.2"
     get-intrinsic "^1.1.1"
 
-git-up@^4.0.0:
-  version "4.0.5"
-  resolved "https://registry.npmjs.org/git-up/-/git-up-4.0.5.tgz"
-  integrity sha512-YUvVDg/vX3d0syBsk/CKUTib0srcQME0JyHkL5BaYdwLsiCslPWmDSi8PUMo9pXYjrryMcmsCoCgsTpSCJEQaA==
+git-up@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/git-up/-/git-up-7.0.0.tgz#bace30786e36f56ea341b6f69adfd83286337467"
+  integrity sha512-ONdIrbBCFusq1Oy0sC71F5azx8bVkvtZtMJAsv+a6lz5YAmbNnLD6HAB4gptHZVLPR8S2/kVN6Gab7lryq5+lQ==
   dependencies:
-    is-ssh "^1.3.0"
-    parse-url "^6.0.0"
+    is-ssh "^1.4.0"
+    parse-url "^8.1.0"
 
-git-url-parse@11.1.2:
-  version "11.1.2"
-  resolved "https://registry.npmjs.org/git-url-parse/-/git-url-parse-11.1.2.tgz"
-  integrity sha512-gZeLVGY8QVKMIkckncX+iCq2/L8PlwncvDFKiWkBn9EtCfYDbliRTTp6qzyQ1VMdITUfq7293zDzfpjdiGASSQ==
+git-url-parse@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/git-url-parse/-/git-url-parse-13.0.0.tgz#9a18d0eaec579fb6379c368aecb09f00b544669c"
+  integrity sha512-X1kozCqKL82dMrCLi4vie9SHDC+QugKskAMs4VUbIkhURKg5yDwxDmf6Ixg73J+/xVgK5TXKhzn8a94nHJHpnA==
   dependencies:
-    git-up "^4.0.0"
+    git-up "^7.0.0"
 
 glob-parent@^5.1.2, glob-parent@~5.1.2:
   version "5.1.2"
@@ -5928,12 +5951,12 @@ is-shared-array-buffer@^1.0.1:
   resolved "https://registry.npmjs.org/is-shared-array-buffer/-/is-shared-array-buffer-1.0.1.tgz"
   integrity sha512-IU0NmyknYZN0rChcKhRO1X8LYz5Isj/Fsqh8NJOSf+N/hCOTwy29F32Ik7a+QszE63IdvmwdTPDd6cZ5pg4cwA==
 
-is-ssh@^1.3.0:
-  version "1.3.3"
-  resolved "https://registry.npmjs.org/is-ssh/-/is-ssh-1.3.3.tgz"
-  integrity sha512-NKzJmQzJfEEma3w5cJNcUMxoXfDjz0Zj0eyCalHn2E6VOwlzjZo0yuO2fcBSf8zhFuVCL/82/r5gRcoi6aEPVQ==
+is-ssh@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/is-ssh/-/is-ssh-1.4.0.tgz#4f8220601d2839d8fa624b3106f8e8884f01b8b2"
+  integrity sha512-x7+VxdxOdlV3CYpjvRLBv5Lo9OJerlYanjwFrPR9fuGPjCiNiCzFgAWpiLAohSbsnH4ZAys3SBh+hq5rJosxUQ==
   dependencies:
-    protocols "^1.1.0"
+    protocols "^2.0.1"
 
 is-stream@^2.0.0:
   version "2.0.1"
@@ -6044,6 +6067,11 @@ jake@^10.6.1:
     chalk "^2.4.2"
     filelist "^1.0.1"
     minimatch "^3.0.4"
+
+javascript-lp-solver@0.4.24:
+  version "0.4.24"
+  resolved "https://registry.yarnpkg.com/javascript-lp-solver/-/javascript-lp-solver-0.4.24.tgz#3bb5f8aa051f0bf04747e39130133a0f738f635c"
+  integrity sha512-5edoDKnMrt/u3M6GnZKDDIPxOyFOg+WrwDv8mjNiMC2DePhy2H9/FFQgf4ggywaXT1utvkxusJcjQUER72cZmA==
 
 jest-canvas-mock@^2.4.0:
   version "2.4.0"
@@ -7916,7 +7944,7 @@ parse-path@^7.0.0, parse-path@~5.0.0:
   dependencies:
     protocols "^2.0.0"
 
-parse-url@^6.0.0, parse-url@~8.1.0:
+parse-url@^8.1.0, parse-url@~8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/parse-url/-/parse-url-8.1.0.tgz#972e0827ed4b57fc85f0ea6b0d839f0d8a57a57d"
   integrity sha512-xDvOoLU5XRrcOZvnI6b8zA6n9O9ejNk/GExuz1yBuWUGn9KA97GI6HTs6u02wKara1CeVmZhH+0TZFdWScR89w==
@@ -8670,12 +8698,7 @@ property-information@^6.0.0:
   resolved "https://registry.npmjs.org/property-information/-/property-information-6.1.1.tgz"
   integrity sha512-hrzC564QIl0r0vy4l6MvRLhafmUowhO/O3KgVSoXIbbA2Sz4j8HGpJc6T2cubRVwMwpdiG/vKGfhT4IixmKN9w==
 
-protocols@^1.1.0:
-  version "1.4.8"
-  resolved "https://registry.npmjs.org/protocols/-/protocols-1.4.8.tgz"
-  integrity sha512-IgjKyaUSjsROSO8/D49Ab7hP8mJgTYcqApOqdPhLoPxAplXmkp+zRvsrSQjFn5by0rhm4VH0GAUELIPpx7B1yg==
-
-protocols@^2.0.0:
+protocols@^2.0.0, protocols@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/protocols/-/protocols-2.0.1.tgz#8f155da3fc0f32644e83c5782c8e8212ccf70a86"
   integrity sha512-/XJ368cyBJ7fzLMwLKv1e4vLxOju2MNAIokcr7meSaNcVbWz/CPcW22cP04mwxOErdA5mwjA8Q6w/cdAQxVn7Q==
@@ -8707,6 +8730,11 @@ qs@6.9.7:
   version "6.9.7"
   resolved "https://registry.npmjs.org/qs/-/qs-6.9.7.tgz"
   integrity sha512-IhMFgUmuNpyRfxA90umL7ByLlgRXu6tIfKPpF5TmcfRLlLCckfP/g3IQmju6jjpu+Hh8rA+2p6A27ZSPOOHdKw==
+
+quadprog@^1.6.1:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/quadprog/-/quadprog-1.6.1.tgz#1cd3b13700de9553ef939a6fa73d0d55ddb2f082"
+  integrity sha512-fN5Jkcjlln/b3pJkseDKREf89JkKIyu6cKIVXisgL6ocKPQ0yTp9n6NZUAq3otEPPw78WZMG9K0o9WsfKyMWJw==
 
 query-string@*, query-string@^7.0.0, query-string@^7.0.1:
   version "7.1.1"

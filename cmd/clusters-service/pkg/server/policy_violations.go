@@ -106,7 +106,7 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 
 func (s *server) listEvents(ctx context.Context, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
 	respErrors := []*capiv1_proto.ListError{}
-	clustersClient, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	clustersClient, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
 			for _, err := range merr.Errors {

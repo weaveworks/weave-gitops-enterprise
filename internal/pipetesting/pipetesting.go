@@ -34,15 +34,15 @@ func buildScheme() *runtime.Scheme {
 	return scheme
 }
 
-func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClientsFactory) {
+func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClustersManager) {
 	k8s := fake.NewClientBuilder().WithScheme(buildScheme()).WithObjects(objects...).Build()
 
-	factory := MakeClientsFactory(k8s)
+	factory := MakeClustersManager(k8s)
 
 	return k8s, factory
 }
 
-func MakeClientsFactory(k8s client.Client) *clustersmngrfakes.FakeClientsFactory {
+func MakeClustersManager(k8s client.Client) *clustersmngrfakes.FakeClustersManager {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 
 	clientsPool.ClientsReturns(map[string]client.Client{"Default": k8s})
@@ -57,15 +57,15 @@ func MakeClientsFactory(k8s client.Client) *clustersmngrfakes.FakeClientsFactory
 	nsMap := map[string][]v1.Namespace{"Default": {}}
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
-	factory := &clustersmngrfakes.FakeClientsFactory{}
+	factory := &clustersmngrfakes.FakeClustersManager{}
 	factory.GetImpersonatedClientReturns(clustersClient, nil)
 
 	return factory
 }
 
-func SetupServer(t *testing.T, fact clustersmngr.ClientsFactory) pb.PipelinesClient {
+func SetupServer(t *testing.T, fact clustersmngr.ClustersManager) pb.PipelinesClient {
 	pipeSrv := server.NewPipelinesServer(server.ServerOpts{
-		ClientsFactory: fact,
+		ClustersManager: fact,
 	})
 
 	lis := bufconn.Listen(1024 * 1024)
