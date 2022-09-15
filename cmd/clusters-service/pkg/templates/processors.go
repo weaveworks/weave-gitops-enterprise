@@ -3,10 +3,10 @@ package templates
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"regexp"
 	"sort"
 	"strings"
+	"text/template"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,8 +14,11 @@ import (
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
 
+	"github.com/Masterminds/sprig"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
+
+var templateFuncs template.FuncMap = makeTemplateFunctions()
 
 // Processor is a generic template parser/renderer.
 type Processor interface {
@@ -148,7 +151,7 @@ type TextTemplateProcessor struct {
 }
 
 func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
-	parsed, err := template.New("capi-template").Parse(string(tmpl))
+	parsed, err := template.New("capi-template").Funcs(templateFuncs).Parse(string(tmpl))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -241,4 +244,13 @@ func (p *EnvsubstTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([
 	variables.Insert(tv...)
 
 	return variables.List(), nil
+}
+
+func makeTemplateFunctions() template.FuncMap {
+	f := sprig.TxtFuncMap()
+	unwanted := []string{"env", "expandenv", "base", "dir", "ext", "clean", "isAbs", "osBase", "osDir", "osExt", "osClean", "osIsAbs"}
+	for _, v := range unwanted {
+		delete(f, v)
+	}
+	return f
 }
