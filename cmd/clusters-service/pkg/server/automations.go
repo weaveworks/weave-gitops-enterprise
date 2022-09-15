@@ -146,7 +146,10 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 					return nil, err
 				}
 
-				automationFiles = append(automationFiles, toCommitFile(kustomization))
+				automationFiles = append(automationFiles, &capiv1_proto.CommitFile{
+					Path: *kustomization.Path,
+					Content: *kustomization.Content,
+				})
 			}
 
 			if c.HelmRelease != nil {
@@ -156,7 +159,10 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 					return nil, err
 				}
 
-				automationFiles = append(automationFiles, toCommitFile(helmRelease))
+				automationFiles = append(automationFiles, &capiv1_proto.CommitFile{
+					Path: *helmRelease.Path,
+					Content: *helmRelease.Content,
+				})
 			}
 		}
 	}

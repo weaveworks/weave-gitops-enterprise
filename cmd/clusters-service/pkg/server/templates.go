@@ -114,6 +114,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 
 func toCommitFile(file gitprovider.CommitFile) *capiv1_proto.CommitFile {
 	return &capiv1_proto.CommitFile{
+		Path: *file.Path,
 		Content: *file.Content,
 	}
 }
