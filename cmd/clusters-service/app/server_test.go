@@ -44,7 +44,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pipepb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 )
 
@@ -199,7 +199,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
 				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 			),
-			app.WithClustersManager(pipetesting.MakeClustersManager(k)),
+			app.WithClustersManager(grpctesting.MakeClustersManager(k)),
 		)
 		t.Logf("%v", err)
 	}(ctx)
