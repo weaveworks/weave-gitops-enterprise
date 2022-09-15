@@ -60,9 +60,15 @@ type TenantTeamRBAC struct {
 	Rules      []rbacv1.PolicyRule `yaml:"rules"`
 }
 
+type TenantRoleBinding struct {
+	Name string `yaml:"Name"`
+	Kind string `yaml:"Kind"`
+}
+
 // TenantDeploymentRBAC defines the permissions of the tenants service account
 type TenantDeploymentRBAC struct {
-	Rules []rbacv1.PolicyRule `yaml:"rules"`
+	Rules     []rbacv1.PolicyRule `yaml:"rules"`
+	BindRoles []TenantRoleBinding `yaml:"bindRoles"`
 }
 
 // Config represents the structure of the Tenancy file.
@@ -81,8 +87,6 @@ type Tenant struct {
 	AllowedClusters     []AllowedCluster      `yaml:"allowedClusters"`
 	TeamRBAC            *TenantTeamRBAC       `yaml:"teamRBAC,omitempty"`
 	DeploymentRBAC      *TenantDeploymentRBAC `yaml:"deploymentRBAC,omitempty"`
-	RoleName            string                `yaml:"roleName"`
-	RoleKind            string                `yaml:"roleKind"`
 }
 
 // Validate returns an error if any of the fields isn't valid
@@ -110,8 +114,14 @@ func (t Tenant) Validate() error {
 	}
 
 	if t.DeploymentRBAC != nil {
-		if len(t.DeploymentRBAC.Rules) == 0 {
-			result = multierror.Append(result, errors.New("must provide rules in deployment RBAC"))
+		if len(t.DeploymentRBAC.Rules) == 0 && len(t.DeploymentRBAC.BindRoles) == 0 {
+			result = multierror.Append(result, errors.New("must provide rules or bindings in deployment RBAC"))
+		}
+
+		for _, bindRole := range t.DeploymentRBAC.BindRoles {
+			if bindRole.Kind != "Role" && bindRole.Kind != "ClusterRole" {
+				result = multierror.Append(result, errors.New("invalid kind for deployment RBAC rule binds"))
+			}
 		}
 	}
 
@@ -329,15 +339,28 @@ func generateTenantResource(tenant Tenant, serviceAccount *ServiceAccountOptions
 			generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
 		}
 		if tenant.DeploymentRBAC != nil {
-			generated = append(generated, newServiceAccountRole(tenant.Name, namespace, tenantLabels, tenant.DeploymentRBAC.Rules))
-			generated = append(generated, newServiceAccountRoleBinding(tenant.Name, namespace, serviceAccountName, tenantLabels))
+			if len(tenant.DeploymentRBAC.Rules) != 0 {
+				generated = append(generated, newServiceAccountRole(tenant.Name, namespace, tenantLabels, tenant.DeploymentRBAC.Rules))
+				generated = append(generated, newDeploymentRBACRoleBinding(tenant.Name, namespace, serviceAccountName, tenantLabels))
+			}
+			for _, bindRole := range tenant.DeploymentRBAC.BindRoles {
+				generated = append(generated, newServiceAccountRoleBinding(
+					tenant.Name,
+					namespace,
+					serviceAccountName,
+					bindRole.Kind,
+					bindRole.Name,
+					tenantLabels,
+				))
+			}
+
 		} else {
-			generated = append(generated, newDefaultServiceAccountRoleBinding(
+			generated = append(generated, newServiceAccountRoleBinding(
 				tenant.Name,
 				namespace,
 				serviceAccountName,
-				tenant.RoleKind,
-				tenant.RoleName,
+				"",
+				"",
 				tenantLabels,
 			))
 		}
@@ -411,8 +434,8 @@ func newServiceAccount(name, namespace string, labels map[string]string) *corev1
 	}
 }
 
-func newServiceAccountRoleBinding(tenantName, namespace, serviceAccountName string, labels map[string]string) *rbacv1.RoleBinding {
-	name := fmt.Sprintf("%s-service-account", tenantName)
+func newDeploymentRBACRoleBinding(tenantName, namespace, serviceAccountName string, labels map[string]string) *rbacv1.RoleBinding {
+	name := fmt.Sprintf("%s-service-account-deployment", tenantName)
 	return newRoleBinding(
 		name,
 		namespace,
@@ -429,7 +452,7 @@ func newServiceAccountRoleBinding(tenantName, namespace, serviceAccountName stri
 	)
 }
 
-func newDefaultServiceAccountRoleBinding(tenantName, namespace, serviceAccountName, roleKind, roleName string, labels map[string]string) *rbacv1.RoleBinding {
+func newServiceAccountRoleBinding(tenantName, namespace, serviceAccountName, roleKind, roleName string, labels map[string]string) *rbacv1.RoleBinding {
 	if roleKind == "" {
 		roleKind = defaultRoleKind
 	}
@@ -439,7 +462,7 @@ func newDefaultServiceAccountRoleBinding(tenantName, namespace, serviceAccountNa
 	}
 
 	return newRoleBinding(
-		fmt.Sprintf("%s-service-account", tenantName),
+		fmt.Sprintf("%s-service-account-%s", tenantName, roleName),
 		namespace,
 		roleKind,
 		roleName,

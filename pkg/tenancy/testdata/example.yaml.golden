@@ -41,12 +41,12 @@ metadata:
   creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: foo-tenant
-  name: foo-tenant-service-account
+  name: foo-tenant-service-account-deployment
   namespace: foo-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: foo-tenant-service-account
+  name: foo-tenant-service-account-deployment
 subjects:
 - kind: ServiceAccount
   name: foo-tenant
@@ -154,12 +154,12 @@ metadata:
   creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: bar-tenant
-  name: bar-tenant-service-account
+  name: bar-tenant-service-account-deployment
   namespace: bar-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: bar-tenant-service-account
+  name: bar-tenant-service-account-deployment
 subjects:
 - kind: ServiceAccount
   name: bar-tenant
@@ -246,12 +246,12 @@ metadata:
   creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: bar-tenant
-  name: bar-tenant-service-account
+  name: bar-tenant-service-account-deployment
   namespace: foobar-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: bar-tenant-service-account
+  name: bar-tenant-service-account-deployment
 subjects:
 - kind: ServiceAccount
   name: bar-tenant
