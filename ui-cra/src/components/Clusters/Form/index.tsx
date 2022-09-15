@@ -250,7 +250,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const { setNotifications } = useNotifications();
   const authRedirectPage = cluster
     ? `/clusters/${cluster?.name}/edit`
-    : `/clusters/templates/${template?.name}/create`;
+    : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);

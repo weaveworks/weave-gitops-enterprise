@@ -80,7 +80,7 @@ const TemplatesDashboard: FC = () => {
     : templates;
 
   const handleAddCluster = useCallback(
-    (event, t) => history.push(`/clusters/templates/${t.name}/create`),
+    (event, t) => history.push(`/templates/${t.name}/create`),
     [history],
   );
 
@@ -98,13 +98,13 @@ const TemplatesDashboard: FC = () => {
       <ContentWrapper loading={isLoading}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">
-            <GridView
-              className={view === 'grid' ? 'active' : 'inactive'}
-              onClick={() => setView('grid')}
-            />
             <ListView
               className={view === 'table' ? 'active' : 'inactive'}
               onClick={() => setView('table')}
+            />
+            <GridView
+              className={view === 'grid' ? 'active' : 'inactive'}
+              onClick={() => setView('grid')}
             />
           </ActionsWrapper>
           {view === 'grid' && (

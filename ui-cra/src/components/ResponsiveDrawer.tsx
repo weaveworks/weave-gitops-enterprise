@@ -252,7 +252,7 @@ const App = () => {
               <Route
                 component={AddClusterWithCredentials}
                 exact
-                path="/clusters/templates/:templateName/create"
+                path="/templates/:templateName/create"
               />
               <Route
                 component={PoliciesViolations}
