@@ -49,7 +49,7 @@ require (
 	github.com/weaveworks/cluster-controller v1.2.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.4
-	github.com/weaveworks/progressive-delivery v0.0.0-20220914162207-a2208d9c3e2e
+	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
 	github.com/xanzy/go-gitlab v0.69.0
 	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d
 	golang.org/x/oauth2 v0.0.0-20220722155238-128564f6959c
