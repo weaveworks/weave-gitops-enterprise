@@ -68,6 +68,7 @@ const AppFields: FC<{
       cluster_name: JSON.parse(value).name,
       cluster_namespace: JSON.parse(value).namespace,
       cluster_isControlPlane: JSON.parse(value).controlPlane,
+      create_namespace: JSON.parse(value).createNamespace,
       cluster: value,
     };
     setFormData({

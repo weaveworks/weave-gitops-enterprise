@@ -502,10 +502,11 @@ message CreateAutomationsPullRequestRequest {
 message ClusterAutomation {
   ClusterNamespacedName cluster = 1;
   bool is_control_plane = 2;
-  Kustomization kustomization = 3;
-  HelmRelease helm_release = 4;
+  bool create_namespace = 3;
+  Kustomization kustomization = 4;
+  HelmRelease helm_release = 5;
   // A path to write the resource to in the management git repo
-  string file_path = 5;
+  string file_path = 6;
 }
 
 message Kustomization {

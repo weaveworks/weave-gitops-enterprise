@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -63,6 +64,21 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
 		if c.Kustomization != nil {
+			if c.CreateNamespace {
+				namespace := &corev1.Namespace{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Namespace",
+						APIVersion: corev1.SchemeGroupVersion.String(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name: c.Cluster.Namespace,
+					},
+				}
+
+				if err := client.Create(ctx, namespace); err != nil {
+					return nil, err
+				}
+			}
 			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
 
 			if err != nil {
