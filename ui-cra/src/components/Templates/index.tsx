@@ -2,7 +2,6 @@ import React, { FC, useCallback, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
-import useClusters from '../../contexts/Clusters';
 import useTemplates from '../../contexts/Templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -57,9 +56,8 @@ const TemplatesDashboard: FC = () => {
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
   ];
-  const clustersCount = useClusters().count;
   const templatesCount = templates?.length;
-  const [view, setView] = useState<string>('grid');
+  const [view, setView] = useState<string>('table');
   const [selectedProvider, setSelectedProvider] = useState<
     string | null | undefined
   >();
@@ -92,10 +90,9 @@ const TemplatesDashboard: FC = () => {
     <PageTemplate documentTitle="WeGO · Templates">
       <SectionHeader
         path={[
-          { label: 'Clusters', url: '/clusters', count: clustersCount },
           {
             label: 'Templates',
-            url: '/clusters/templates',
+            url: '/templates',
             count: templatesCount,
           },
         ]}

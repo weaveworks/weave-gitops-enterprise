@@ -8,6 +8,7 @@ import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
+import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 
 interface SubNavItem {
@@ -134,11 +135,6 @@ export const Navigation: FC = () => {
       icon: <Clusters />,
       subItems: [
         {
-          name: 'Templates',
-          link: '/clusters/templates',
-          isVisible: true,
-        },
-        {
           name: 'Violation Log',
           link: '/clusters/violations',
           isVisible: true,
@@ -167,6 +163,11 @@ export const Navigation: FC = () => {
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
         },
       ],
+    },
+    {
+      name: 'Templates',
+      link: '/templates',
+      icon: <Templates />,
     },
     {
       name: 'Flux Runtime',

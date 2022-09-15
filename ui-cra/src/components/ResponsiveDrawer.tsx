@@ -259,11 +259,6 @@ const App = () => {
                 path="/clusters/templates/:templateName/create"
               />
               <Route
-                component={TemplatesDashboard}
-                exact
-                path="/clusters/templates"
-              />
-              <Route
                 component={PoliciesViolations}
                 exact
                 path="/clusters/violations"
@@ -377,6 +372,7 @@ const App = () => {
                 path="/policies/details"
                 component={withSearchParams(PolicyDetails)}
               />
+              <Route component={TemplatesDashboard} exact path="/templates" />
               <Route
                 exact
                 path={GITLAB_OAUTH_CALLBACK}

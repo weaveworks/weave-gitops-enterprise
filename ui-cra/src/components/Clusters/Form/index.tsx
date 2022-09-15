@@ -442,7 +442,7 @@ interface Props {
 
 const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
   if (!template) {
-    return <Redirect to="/clusters/templates" />;
+    return <Redirect to="/templates" />;
   }
 
   return (
