@@ -64,7 +64,7 @@ const useStyles = makeStyles(() =>
 );
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
-    return next.workloads?.length || 0 + prev;
+    return prev + (next.workloads?.length || 0);
   }, 0);
 };
 
