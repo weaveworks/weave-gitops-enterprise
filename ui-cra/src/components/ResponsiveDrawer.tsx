@@ -1,65 +1,70 @@
-import React from 'react';
-import { Switch, Route, Redirect } from 'react-router-dom';
-import MCCP from './Clusters';
-import TemplatesDashboard from './Templates';
-import { Navigation } from './Navigation';
+import Box from '@material-ui/core/Box';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
 import Hidden from '@material-ui/core/Hidden';
 import IconButton from '@material-ui/core/IconButton';
-import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import {
-  makeStyles,
-  useTheme,
-  Theme,
   createStyles,
+  makeStyles,
+  Theme,
+  useTheme,
 } from '@material-ui/core/styles';
 import {
-  AuthContextProvider,
   AuthCheck,
+  AuthContextProvider,
   coreClient,
   CoreClientContextProvider,
   OAuthCallback,
   SignIn,
+  theme as weaveTheme,
   V2Routes,
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
-import NotificationsProvider from '../contexts/Notifications/Provider';
-import Compose from './ProvidersCompose';
-import Box from '@material-ui/core/Box';
-import { PageTemplate } from './Layout/PageTemplate';
-import { SectionHeader } from './Layout/SectionHeader';
-import { ContentWrapper } from './Layout/ContentWrapper';
+import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import qs from 'query-string';
+import React from 'react';
 import Lottie from 'react-lottie-player';
+import { Redirect, Route, Switch } from 'react-router-dom';
+import styled from 'styled-components';
+import { Terraform } from '../api/terraform/terraform.pb';
 import error404 from '../assets/img/error404.json';
+import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
+import { ClustersService } from '../cluster-services/cluster_services.pb';
+import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import NotificationsProvider from '../contexts/Notifications/Provider';
+import { TerraformProvider } from '../contexts/Terraform';
+import { Routes } from '../utils/nav';
+import WGApplicationsDashboard from './Applications';
+import AddApplication from './Applications/Add';
+import WGApplicationsBucket from './Applications/Bucket';
+import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
+import WGApplicationsGitRepository from './Applications/GitRepository';
+import WGApplicationsHelmChart from './Applications/HelmChart';
+import WGApplicationsHelmRelease from './Applications/HelmRelease';
+import WGApplicationsHelmRepository from './Applications/HelmRepository';
+import WGApplicationsKustomization from './Applications/Kustomization';
+import WGApplicationsOCIRepository from './Applications/OCIRepository';
+import WGApplicationsSources from './Applications/Sources';
+import MCCP from './Clusters';
+import ClusterDashboard from './Clusters/ClusterDashboard';
 import AddClusterWithCredentials from './Clusters/Create';
 import EditCluster from './Clusters/Edit';
-import WGApplicationsDashboard from './Applications';
-import WGApplicationsSources from './Applications/Sources';
-import WGApplicationsKustomization from './Applications/Kustomization';
-import WGApplicationsGitRepository from './Applications/GitRepository';
-import WGApplicationsHelmRepository from './Applications/HelmRepository';
-import WGApplicationsBucket from './Applications/Bucket';
-import WGApplicationsHelmRelease from './Applications/HelmRelease';
-import WGApplicationsHelmChart from './Applications/HelmChart';
-import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
-import qs from 'query-string';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import ErrorBoundary from './ErrorBoundary';
+import { ContentWrapper } from './Layout/ContentWrapper';
+import { PageTemplate } from './Layout/PageTemplate';
+import { SectionHeader } from './Layout/SectionHeader';
+import { Navigation } from './Navigation';
+import Pipelines from './Pipelines';
+import PipelineDetails from './Pipelines/PipelineDetails';
 import Policies from './Policies';
 import PolicyDetails from './Policies/PolicyDetails';
 import PoliciesViolations from './PolicyViolations';
 import PolicyViolationDetails from './PolicyViolations/ViolationDetails';
-import { ClustersService } from '../cluster-services/cluster_services.pb';
-import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import ProgressiveDelivery from './ProgressiveDelivery';
-import ClusterDashboard from './Clusters/ClusterDashboard';
-import ErrorBoundary from './ErrorBoundary';
 import CanaryDetails from './ProgressiveDelivery/CanaryDetails';
-import AddApplication from './Applications/Add';
-import Pipelines from './Pipelines';
-import WGApplicationsOCIRepository from './Applications/OCIRepository';
-import PipelineDetails from './Pipelines/PipelineDetails';
+import Compose from './ProvidersCompose';
+import TemplatesDashboard from './Templates';
+import TerraformObjectDetail from './Terraform/TerraformObjectDetail';
+import TerraformObjectList from './Terraform/TerraformObjectList';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
@@ -375,6 +380,15 @@ const App = () => {
               />
               <Route
                 exact
+                path={Routes.TerraformObjects}
+                component={withSearchParams(TerraformObjectList)}
+              />
+              <Route
+                path={Routes.TerraformDetail}
+                component={withSearchParams(TerraformObjectDetail)}
+              />
+              <Route
+                exact
                 path={GITLAB_OAUTH_CALLBACK}
                 component={({ location }: any) => {
                   const params = qs.parse(location.search);
@@ -400,23 +414,25 @@ const ResponsiveDrawer = () => {
     <AuthContextProvider>
       <EnterpriseClientProvider api={ClustersService}>
         <CoreClientContextProvider api={coreClient}>
-          <Switch>
-            <Route
-              component={() => (
-                <SignInWrapper>
-                  <SignIn />
-                </SignInWrapper>
-              )}
-              exact={true}
-              path="/sign_in"
-            />
-            <Route path="*">
-              {/* Check we've got a logged in user otherwise redirect back to signin */}
-              <AuthCheck>
-                <App />
-              </AuthCheck>
-            </Route>
-          </Switch>
+          <TerraformProvider api={Terraform}>
+            <Switch>
+              <Route
+                component={() => (
+                  <SignInWrapper>
+                    <SignIn />
+                  </SignInWrapper>
+                )}
+                exact={true}
+                path="/sign_in"
+              />
+              <Route path="*">
+                {/* Check we've got a logged in user otherwise redirect back to signin */}
+                <AuthCheck>
+                  <App />
+                </AuthCheck>
+              </Route>
+            </Switch>
+          </TerraformProvider>
         </CoreClientContextProvider>
       </EnterpriseClientProvider>
     </AuthContextProvider>

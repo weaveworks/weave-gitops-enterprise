@@ -52,6 +52,7 @@ if native_build:
       'GOOS=linux GOARCH=amd64 make build',
       deps=[
          './cmd/clusters-service',
+         './pkg'
       ],
       ignore=[
          './cmd/clusters-service/bin'

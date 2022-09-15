@@ -62,6 +62,10 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_PIPELINES
               value: "true"
             {{- end }}
+            {{- if .Values.enableTerraformUI }}
+            - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
+              value: "true"
+            {{- end }}
             {{- if .Values.envVars }}
             {{- with .Values.envVars }}
               {{- toYaml . | nindent 12 }}
