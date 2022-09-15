@@ -44,7 +44,6 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
-import { validateFormData } from '../../../utils/form';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import Credentials from './Partials/Credentials';
