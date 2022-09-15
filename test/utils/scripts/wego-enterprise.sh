@@ -178,7 +178,8 @@ function setup {
     --namespace ingress-nginx --create-namespace \
     --version 4.0.18 \
     --set controller.service.type=NodePort \
-    --set controller.service.nodePorts.https=${UI_NODEPORT}
+    --set controller.service.nodePorts.https=${UI_NODEPORT} \
+    --set controller.extraArgs="--v=5"
   kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
   
   cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
