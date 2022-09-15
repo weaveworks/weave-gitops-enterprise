@@ -67,6 +67,7 @@ const AppFields: FC<{
   onPRPreview?: () => void;
   previewLoading?: boolean;
   allowSelectCluster: boolean;
+  context?: string;
 }> = ({
   formData,
   setFormData,
@@ -74,6 +75,7 @@ const AppFields: FC<{
   onPRPreview,
   previewLoading,
   allowSelectCluster,
+  context,
 }) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
@@ -342,9 +344,10 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-      {previewLoading ? (
+      {context === 'app' && previewLoading && (
         <LoadingPage className="preview-loading" />
-      ) : (
+      )}
+      {context === 'app' && !previewLoading && (
         <div className="preview-cta">
           <Button onClick={event => validateFormData(event, onPRPreview)}>
             PREVIEW PR

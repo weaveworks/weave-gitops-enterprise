@@ -44,6 +44,7 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
+import { validateFormData } from '../../../utils/form';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import Credentials from './Partials/Credentials';
@@ -437,14 +438,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             <LoadingPage className={classes.previewLoading} />
           ) : (
             <div className={classes.previewCta}>
-              <Button
-                // onClick={event =>
-                //   validateFormData(event, handlePRPreview)
-                // }
-                onClick={handlePRPreview}
-              >
-                PREVIEW PR
-              </Button>
+              <Button onClick={handlePRPreview}>PREVIEW PR</Button>
             </div>
           )}
         </Grid>

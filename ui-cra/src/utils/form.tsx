@@ -183,7 +183,6 @@ export const validateFormData = (event: any, onSubmit: any) => {
   const { form } = event.currentTarget;
   const isValid = form?.reportValidity();
   event.preventDefault();
-  console.log(event);
   if (isValid) {
     onSubmit();
   } else {

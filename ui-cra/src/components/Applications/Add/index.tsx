@@ -276,6 +276,7 @@ const AddApplication = () => {
                     (automation: ClusterAutomation, index: number) => {
                       return (
                         <AppFields
+                          context="app"
                           key={index}
                           index={index}
                           formData={formData}
