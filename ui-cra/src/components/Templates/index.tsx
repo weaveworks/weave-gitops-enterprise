@@ -23,8 +23,6 @@ import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
 
 const ActionsWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.small} 0
-    ${({ theme }) => theme.spacing.medium} 0;
   display: flex;
   justify-content: end;
   svg {
