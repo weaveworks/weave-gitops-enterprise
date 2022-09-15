@@ -110,9 +110,9 @@ func (t TemplatesPage) SelectProvider(providerName string) *agouti.Selection {
 func (t TemplatesPage) SelectView(viewName string) *agouti.Selection {
 	switch viewName {
 	case "grid":
-		return t.TemplateView.At(0)
-	case "table":
 		return t.TemplateView.At(1)
+	case "table":
+		return t.TemplateView.At(0)
 	}
 	return nil
 }
