@@ -312,11 +312,11 @@ func TestListPolicies(t *testing.T) {
 			}
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 
-			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
-				clientsFactory: fakeFactory,
+				clustersManager: fakeFactory,
 			})
 
 			req := capiv1_proto.ListPoliciesRequest{ClusterName: tt.clusterName}
@@ -346,14 +346,14 @@ func TestPartialPoliciesConnectionErrors(t *testing.T) {
 
 	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
-	fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientStub = func(ctx context.Context, user *auth.UserPrincipal) (clustersmngr.Client, error) {
 		var multi *multierror.Error
 		multi = multierror.Append(multi, &clusterErr)
 		return clustersClient, multi
 	}
 	s := createServer(t, serverOptions{
-		clientsFactory: fakeFactory,
+		clustersManager: fakeFactory,
 	})
 
 	req := capiv1_proto.ListPoliciesRequest{}
@@ -496,11 +496,11 @@ func TestGetPolicy(t *testing.T) {
 			clientsPool.ClientReturns(fakeCl, nil)
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
 
-			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
-				clientsFactory: fakeFactory,
+				clustersManager: fakeFactory,
 			})
 
 			gotResponse, err := s.GetPolicy(context.Background(), &capiv1_proto.GetPolicyRequest{

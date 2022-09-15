@@ -11,14 +11,14 @@ import (
 
 type ServerOpts struct {
 	logr.Logger
-	ClientsFactory clustersmngr.ClientsFactory
+	ClustersManager clustersmngr.ClustersManager
 }
 
 type server struct {
 	pb.UnimplementedPipelinesServer
 
 	log     logr.Logger
-	clients clustersmngr.ClientsFactory
+	clients clustersmngr.ClustersManager
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -30,6 +30,6 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error 
 func NewPipelinesServer(opts ServerOpts) pb.PipelinesServer {
 	return &server{
 		log:     opts.Logger,
-		clients: opts.ClientsFactory,
+		clients: opts.ClustersManager,
 	}
 }
