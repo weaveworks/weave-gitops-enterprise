@@ -88,11 +88,11 @@ func TestGetPolicyViolation(t *testing.T) {
 				corev1.Namespace{},
 			}})
 
-			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
-				clientsFactory: fakeFactory,
+				clustersManager: fakeFactory,
 			})
 
 			policyViolation, err := s.GetPolicyValidation(context.Background(), &capiv1_proto.GetPolicyValidationRequest{
@@ -189,11 +189,11 @@ func TestListPolicyValidations(t *testing.T) {
 				corev1.Namespace{},
 			}})
 
-			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
-				clientsFactory: fakeFactory,
+				clustersManager: fakeFactory,
 			})
 			policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{
 				ClusterName: tt.clusterName,
@@ -227,7 +227,7 @@ func TestPartialPolicyValidationsConnectionErrors(t *testing.T) {
 	}})
 
 	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
-	fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientStub = func(ctx context.Context, user *auth.UserPrincipal) (clustersmngr.Client, error) {
 		var multi *multierror.Error
 		multi = multierror.Append(multi, &clusterErr)
@@ -235,7 +235,7 @@ func TestPartialPolicyValidationsConnectionErrors(t *testing.T) {
 	}
 
 	s := createServer(t, serverOptions{
-		clientsFactory: fakeFactory,
+		clustersManager: fakeFactory,
 	})
 
 	policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{})

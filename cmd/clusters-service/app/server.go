@@ -367,7 +367,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 
-	clientsFactoryScheme, err := kube.CreateScheme()
+	clustersManagerScheme, err := kube.CreateScheme()
 	if err != nil {
 		return fmt.Errorf("could not create scheme: %w", err)
 	}
@@ -377,19 +377,19 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
-	runtimeUtil.Must(pacv1.AddToScheme(clientsFactoryScheme))
-	runtimeUtil.Must(pacv2beta1.AddToScheme(clientsFactoryScheme))
-	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clientsFactoryScheme))
-	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clientsFactoryScheme))
-	clusterClientsFactory := clustersmngr.NewClientFactory(
+	runtimeUtil.Must(pacv1.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
+	clustersManager := clustersmngr.NewClustersManager(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
-		clientsFactoryScheme,
+		clustersManagerScheme,
 		clustersmngr.NewClustersClientsPool,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
-	clusterClientsFactory.Start(ctx)
+	clustersManager.Start(ctx)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
@@ -413,7 +413,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(core_core.NewCoreConfig(
-			log, rest, clusterName, clusterClientsFactory,
+			log, rest, clusterName, clustersManager,
 		)),
 		WithProfilesConfig(core.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
@@ -435,7 +435,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCAPIEnabled(p.CAPIEnabled),
 		WithRuntimeNamespace(p.RuntimeNamespace),
 		WithDevMode(p.DevMode),
-		WithClientsFactory(clusterClientsFactory),
+		WithClustersManager(clustersManager),
 	)
 }
 
@@ -463,8 +463,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.ClientGetter == nil {
 		return errors.New("kubernetes client getter is not set")
 	}
-	if args.CoreServerConfig.ClientsFactory == nil {
-		return errors.New("clients factory is not set")
+	if args.CoreServerConfig.ClustersManager == nil {
+		return errors.New("clusters manager is not set")
 	}
 	// TokenDuration at least should be set
 	if (args.OIDC == OIDCAuthenticationOptions{}) {
@@ -479,7 +479,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			Logger:                    args.Log,
 			TemplatesLibrary:          args.TemplateLibrary,
 			ClustersLibrary:           args.ClustersLibrary,
-			ClientsFactory:            args.CoreServerConfig.ClientsFactory,
+			ClustersManager:           args.CoreServerConfig.ClustersManager,
 			GitProvider:               args.GitProvider,
 			ClientGetter:              args.ClientGetter,
 			DiscoveryClient:           args.DiscoveryClient,
@@ -518,15 +518,15 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	// Add progressive-delivery handlers
 	if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
-		ClientFactory: args.CoreServerConfig.ClientsFactory,
-		Logger:        args.Log,
+		ClustersManager: args.CoreServerConfig.ClustersManager,
+		Logger:          args.Log,
 	}); err != nil {
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
-			ClientsFactory: args.ClientsFactory,
+			ClustersManager: args.ClustersManager,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
