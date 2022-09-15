@@ -21,7 +21,7 @@ import (
 
 type ServerOpts struct {
 	logr.Logger
-	ClientsFactory clustersmngr.ClientsFactory
+	ClientsFactory clustersmngr.ClustersManager
 	Scheme         *k8sruntime.Scheme
 }
 
@@ -29,7 +29,7 @@ type server struct {
 	pb.UnimplementedTerraformServer
 
 	log     logr.Logger
-	clients clustersmngr.ClientsFactory
+	clients clustersmngr.ClustersManager
 	scheme  *k8sruntime.Scheme
 }
 
