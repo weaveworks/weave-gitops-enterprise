@@ -110,6 +110,7 @@ func controllerStatus(controllerName, namespace string) error {
 func CheckClusterService(capiEndpointURL string) {
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
 	gomega.Eventually(func(g gomega.Gomega) {
+		logger.Info("Trying to login to cluster service")
 		// login to obtain cookie
 		stdOut, _ := runCommandAndReturnStringOutput(
 			fmt.Sprintf(
@@ -140,7 +141,7 @@ func CheckClusterService(capiEndpointURL string) {
 // Ignore all errors (connection refused, 500s etc)
 func waitForGitopsResources(ctx context.Context, resourceName string, timeout time.Duration) error {
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
-	waitCtx, cancel := context.WithTimeout(ctx, ASSERTION_15MINUTE_TIME_OUT)
+	waitCtx, cancel := context.WithTimeout(ctx, ASSERTION_5MINUTE_TIME_OUT)
 	defer cancel()
 
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
