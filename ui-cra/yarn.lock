@@ -3184,9 +3184,9 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001297, caniuse-lite@^1.0.30001312:
-  version "1.0.30001312"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001312.tgz"
-  integrity sha512-Wiz1Psk2MEK0pX3rUzWaunLTZzqS2JYZFzNKqAiJGiuxIjRPLgV6+VDPOg6lQOUxmDwhTlh198JsTTi8Hzw6aQ==
+  version "1.0.30001399"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001399.tgz"
+  integrity sha512-4vQ90tMKS+FkvuVWS5/QY1+d805ODxZiKFzsU8o/RsVJz49ZSRR8EjykLJbqhzdPgadbX6wB538wOzle3JniRA==
 
 case-sensitive-paths-webpack-plugin@^2.4.0:
   version "2.4.0"
@@ -7937,14 +7937,14 @@ parse-json@^5.0.0, parse-json@^5.2.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
-parse-path@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/parse-path/-/parse-path-7.0.0.tgz#605a2d58d0a749c8594405d8cc3a2bf76d16099b"
-  integrity sha512-Euf9GG8WT9CdqwuWJGdf3RkUcTBArppHABkO7Lm8IzRQp0e2r/kkFnmhu4TSK30Wcu5rVAZLmfPKSBBi9tWFog==
+parse-path@^7.0.0, parse-path@~5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/parse-path/-/parse-path-5.0.0.tgz#f933152f3c6d34f4cf36cfc3d07b138ac113649d"
+  integrity sha512-qOpH55/+ZJ4jUu/oLO+ifUKjFPNZGfnPJtzvGzKN/4oLMil5m9OH4VpOj6++9/ytJcfks4kzH2hhi87GL/OU9A==
   dependencies:
     protocols "^2.0.0"
 
-parse-url@^8.1.0:
+parse-url@^8.1.0, parse-url@~8.1.0:
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/parse-url/-/parse-url-8.1.0.tgz#972e0827ed4b57fc85f0ea6b0d839f0d8a57a57d"
   integrity sha512-xDvOoLU5XRrcOZvnI6b8zA6n9O9ejNk/GExuz1yBuWUGn9KA97GI6HTs6u02wKara1CeVmZhH+0TZFdWScR89w==

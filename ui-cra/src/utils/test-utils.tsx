@@ -16,6 +16,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
+  GetPipelineResponse,
   ListPipelinesResponse,
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
@@ -198,12 +199,20 @@ export class PolicyClientMock {
 export class PipelinesClientMock implements Pipelines {
   constructor() {
     this.ListPipelines = this.ListPipelines.bind(this);
+    this.GetPipeline = this.GetPipeline.bind(this);
   }
   ListPipelinesReturns: ListPipelinesResponse = {};
+  GetPipelineReturns: GetPipelineResponse = {};
+
   ListPipelines() {
     return promisify(this.ListPipelinesReturns);
   }
+
+  GetPipeline() {
+    return promisify(this.GetPipelineReturns);
+  }
 }
+
 export function findCellInCol(cell: string, tableSelector: string) {
   const tbl = document.querySelector(tableSelector);
 
@@ -233,6 +242,10 @@ export function getTableInfo(id: string) {
   const headers = tbl?.querySelectorAll('thead tr th');
 
   return { rows, headers };
+}
+export function getRowInfoByIndex(tableId: string, rowIndex: number) {
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  return rows[rowIndex].querySelectorAll('td');
 }
 
 export function sortTableByColumn(tableId: string, column: string) {

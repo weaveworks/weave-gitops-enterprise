@@ -159,5 +159,18 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
 
 export const LinkWrapper = styled(Link)`
   color: ${primary};
-  fontweight: 600;
+  font-weight: 600;
+`;
+
+export const ChipWrapper = styled.span`
+  background: ${neutral10};
+  border-radius: ${xs};
+  padding: ${xxs} ${xs};
+  margin-right: ${xs};
+`;
+
+export const SpaceBetween = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
