@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
@@ -12,8 +13,10 @@ import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
+  Button,
   CallbackStateContextProvider,
   getProviderToken,
+  LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
@@ -31,6 +34,21 @@ import _ from 'lodash';
 import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import { ProfilesIndex, PRPreview } from '../../../types/custom';
+
+const PRPreviewWrapper = styled.div`
+  .preview-cta {
+    display: flex;
+    justify-content: flex-end;
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
+  }
+  .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+`;
 
 const AddApplication = () => {
   const applicationsCount = useApplicationsCount();
@@ -281,8 +299,6 @@ const AddApplication = () => {
                           index={index}
                           formData={formData}
                           setFormData={setFormData}
-                          onPRPreview={handlePRPreview}
-                          previewLoading={previewLoading}
                           allowSelectCluster
                         />
                       );
@@ -306,6 +322,17 @@ const AddApplication = () => {
                     setUpdatedProfiles={setUpdatedProfiles}
                   />
                 ) : null}
+                <Grid item xs={12} sm={10} md={10} lg={8}>
+                  <PRPreviewWrapper>
+                    {previewLoading ? (
+                      <LoadingPage className="preview-loading" />
+                    ) : (
+                      <div className="preview-cta">
+                        <Button onClick={handlePRPreview}>PREVIEW PR</Button>
+                      </div>
+                    )}
+                  </PRPreviewWrapper>
+                </Grid>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
                   <GitOps
                     loading={loading}

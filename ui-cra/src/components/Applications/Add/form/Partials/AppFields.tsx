@@ -2,14 +2,9 @@ import React, { FC, Dispatch } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
-import { Input, Select, validateFormData } from '../../../../../utils/form';
+import { Input, Select } from '../../../../../utils/form';
 import { ListSubheader, MenuItem } from '@material-ui/core';
-import {
-  useListSources,
-  theme,
-  Button,
-  LoadingPage,
-} from '@weaveworks/weave-gitops';
+import { useListSources, theme } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
@@ -68,15 +63,7 @@ const AppFields: FC<{
   previewLoading?: boolean;
   allowSelectCluster: boolean;
   context?: string;
-}> = ({
-  formData,
-  setFormData,
-  index = 0,
-  onPRPreview,
-  previewLoading,
-  allowSelectCluster,
-  context,
-}) => {
+}> = ({ formData, setFormData, index = 0, allowSelectCluster }) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
@@ -344,16 +331,6 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-      {context === 'app' && previewLoading && (
-        <LoadingPage className="preview-loading" />
-      )}
-      {context === 'app' && !previewLoading && (
-        <div className="preview-cta">
-          <Button onClick={event => validateFormData(event, onPRPreview)}>
-            PREVIEW PR
-          </Button>
-        </div>
-      )}
     </FormWrapper>
   );
 };
