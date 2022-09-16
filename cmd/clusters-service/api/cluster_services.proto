@@ -14,11 +14,16 @@ service ClustersService {
       get : "/v1/templates"
     };
   }
+
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}"
     };
   }
+
+  /*
+   * Get the Values.yaml for a template if one exists.
+   */
   rpc ListTemplateParams(ListTemplateParamsRequest)
       returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
@@ -75,7 +80,6 @@ service ClustersService {
       body : "*"
     };
   }
-
 
   rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
       returns (DeleteClustersPullRequestResponse) {
@@ -155,6 +159,24 @@ service ClustersService {
       get : "/v1/enterprise/events"
     };
   }
+
+  // ListChartsForRepository lists the discovered Helm charts in the provided
+  // repository.
+  rpc ListChartsForRepository(ListChartsForRepositoryRequest) returns
+    (ListChartsForRepositoryResponse) {
+     option (google.api.http) = {
+        get : "/v1/charts/list",
+      };
+    }
+
+  // GetValuesForChart gets the default Values.yaml for the provided Chart
+  // reference.
+  rpc GetValuesForChart(GetValuesForChartRequest) returns
+    (GetValuesForChartResponse) {
+     option (google.api.http) = {
+        get : "/v1/charts/values",
+      };
+    }
 }
 
 message ListTemplatesRequest {
@@ -699,4 +721,37 @@ message ListEventsRequest {
 
 message ListEventsResponse {
   repeated Event events = 1;
+}
+
+message RepositoryRef {
+  string cluster_name = 1;
+  string name = 2;
+  string namespace = 3;
+  string kind = 4;
+}
+
+message ListChartsForRepositoryRequest {
+  RepositoryRef repository = 1;
+  string kind = 2;
+}
+
+message RepositoryChart {
+  string name = 1;
+  // This is the available versions in reverse semver order.
+  repeated string versions = 2;
+}
+
+message ListChartsForRepositoryResponse {
+  repeated RepositoryChart charts = 1;
+}
+
+message GetValuesForChartRequest {
+  RepositoryRef repository = 1;
+  string name = 2;
+  string version = 3;
+}
+
+message GetValuesForChartResponse {
+  // This is the base64 encoded version of the raw values data.
+  string values = 1;
 }

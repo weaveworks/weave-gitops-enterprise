@@ -16,6 +16,122 @@
     "application/json"
   ],
   "paths": {
+    "/v1/charts/list": {
+      "get": {
+        "summary": "ListChartsForRepository lists the discovered Helm charts in the provided\nrepository.",
+        "operationId": "ClustersService_ListChartsForRepository",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListChartsForRepositoryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "repository.clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/charts/values": {
+      "get": {
+        "summary": "GetValuesForChart gets the default Values.yaml for the provided Chart\nreference.",
+        "operationId": "ClustersService_GetValuesForChart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "repository.clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/clusters": {
       "get": {
         "operationId": "ClustersService_ListGitopsClusters",
@@ -570,6 +686,7 @@
     },
     "/v1/templates/{templateName}/params": {
       "get": {
+        "summary": "Get the Values.yaml for a template if one exists.",
         "operationId": "ClustersService_ListTemplateParams",
         "responses": {
           "200": {
@@ -1302,6 +1419,15 @@
         }
       }
     },
+    "v1GetValuesForChartResponse": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "string",
+          "description": "This is the base64 encoded version of the raw values data."
+        }
+      }
+    },
     "v1GitopsCluster": {
       "type": "object",
       "properties": {
@@ -1398,6 +1524,17 @@
         },
         "createNamespace": {
           "type": "boolean"
+        }
+      }
+    },
+    "v1ListChartsForRepositoryResponse": {
+      "type": "object",
+      "properties": {
+        "charts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1RepositoryChart"
+          }
         }
       }
     },
@@ -1887,6 +2024,38 @@
         },
         "costEstimate": {
           "$ref": "#/definitions/v1CostEstimate"
+        }
+      }
+    },
+    "v1RepositoryChart": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "This is the available versions in reverse semver order."
+        }
+      }
+    },
+    "v1RepositoryRef": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
         }
       }
     },
