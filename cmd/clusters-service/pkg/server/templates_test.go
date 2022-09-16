@@ -858,7 +858,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 					},
 				},
 			},
-			expected: *capiv1_protos.RenderTemplateResponse{
+			expected: &capiv1_protos.RenderTemplateResponse{
 				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
