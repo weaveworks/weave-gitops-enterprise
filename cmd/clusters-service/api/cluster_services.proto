@@ -724,7 +724,7 @@ message ListEventsResponse {
 }
 
 message RepositoryRef {
-  string cluster_name = 1;
+  ClusterNamespacedName cluster = 1;
   string name = 2;
   string namespace = 3;
   string kind = 4;

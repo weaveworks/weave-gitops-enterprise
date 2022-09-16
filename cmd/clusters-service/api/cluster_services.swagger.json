@@ -36,7 +36,13 @@
         },
         "parameters": [
           {
-            "name": "repository.clusterName",
+            "name": "repository.cluster.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.cluster.name",
             "in": "query",
             "required": false,
             "type": "string"
@@ -91,7 +97,13 @@
         },
         "parameters": [
           {
-            "name": "repository.clusterName",
+            "name": "repository.cluster.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.cluster.name",
             "in": "query",
             "required": false,
             "type": "string"
@@ -2045,8 +2057,8 @@
     "v1RepositoryRef": {
       "type": "object",
       "properties": {
-        "clusterName": {
-          "type": "string"
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
         },
         "name": {
           "type": "string"

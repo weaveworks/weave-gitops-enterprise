@@ -23,10 +23,13 @@ func TestListChartsForRepository(t *testing.T) {
 			name: "matching cluster and repo",
 			request: &protos.ListChartsForRepositoryRequest{
 				Repository: &protos.RepositoryRef{
-					ClusterName: "demo-cluster",
-					Name:        "bitnami-charts",
-					Namespace:   "demo",
-					Kind:        "HelmRepository",
+					Cluster: &protos.ClusterNamespacedName{
+						Namespace: "clusters",
+						Name:      "demo-cluster",
+					},
+					Name:      "bitnami-charts",
+					Namespace: "demo",
+					Kind:      "HelmRepository",
 				},
 				Kind: "chart",
 			},
@@ -46,10 +49,13 @@ func TestListChartsForRepository(t *testing.T) {
 			name: "multiple versions of the same chart",
 			request: &protos.ListChartsForRepositoryRequest{
 				Repository: &protos.RepositoryRef{
-					ClusterName: "demo-cluster",
-					Name:        "bitnami-charts",
-					Namespace:   "demo",
-					Kind:        "HelmRepository",
+					Cluster: &protos.ClusterNamespacedName{
+						Namespace: "clusters",
+						Name:      "demo-cluster",
+					},
+					Name:      "bitnami-charts",
+					Namespace: "demo",
+					Kind:      "HelmRepository",
 				},
 				Kind: "chart",
 			},
@@ -99,8 +105,8 @@ type fakeChartCache struct {
 // ListChartsForRepository returns a list of charts for a given repository.
 func (s *server) ListChartsForRepository(ctx context.Context, request *protos.ListChartsForRepositoryRequest) (*protos.ListChartsForRepositoryResponse, error) {
 	clusterRef := types.NamespacedName{
-		Name:      request.Repository.ClusterName,
-		Namespace: "clusters",
+		Name:      request.Repository.Cluster.Name,
+		Namespace: request.Repository.Cluster.Namespace,
 	}
 
 	repoRef := ObjectReference{

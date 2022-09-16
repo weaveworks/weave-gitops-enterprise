@@ -528,7 +528,7 @@ export type ListEventsResponse = {
 }
 
 export type RepositoryRef = {
-  clusterName?: string
+  cluster?: ClusterNamespacedName
   name?: string
   namespace?: string
   kind?: string
