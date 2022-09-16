@@ -46,6 +46,7 @@ type Chart struct {
 
 type chartsCache interface {
 	ListChartsByRepositoryAndCluster(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) ([]Chart, error)
+	GetChartValues(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName, chart Chart) ([]byte, error)
 }
 
 type server struct {
