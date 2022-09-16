@@ -122,7 +122,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
             startIcon={<Icon type={IconType.FilterIcon} size="base" />}
             onClick={() => {
               const filtersValues = encodeURIComponent(
-                `clusterName:${currentCluster?.namespace}/${currentCluster?.name}`,
+                `clusterName: ${currentCluster?.namespace}/${currentCluster?.name}`,
               );
               history.push(`/applications?filters=${filtersValues}`);
             }}
