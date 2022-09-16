@@ -246,9 +246,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
           <span
             class="c5 makeStyles-labelLink-29"
-            title="podinfo"
+            title="podinfo-pipeline"
           >
-            podinfo
+            podinfo-pipeline
           </span>
         </div>
       </div>
