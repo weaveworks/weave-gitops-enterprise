@@ -1,9 +1,12 @@
 package server
 
 import (
+	"context"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
@@ -26,6 +29,23 @@ var providers = map[string]string{
 	"OpenStackCluster":       "openstack",
 	"PacketCluster":          "packet",
 	"VSphereCluster":         "vsphere",
+}
+
+// TODO: Remove this when syncing with the database!
+// ObjectReference points to a resource.
+type ObjectReference struct {
+	Kind      string
+	Name      string
+	Namespace string
+}
+
+type Chart struct {
+	Name    string
+	Version string
+}
+
+type chartsCache interface {
+	ListChartsByRepositoryAndCluster(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) ([]Chart, error)
 }
 
 type server struct {
@@ -55,6 +75,7 @@ type ServerOpts struct {
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
+	ChartsCache               chartsCache
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {

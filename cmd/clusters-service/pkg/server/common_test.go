@@ -64,6 +64,7 @@ type serverOptions struct {
 	hr              *sourcev1.HelmRepository
 	clustersManager clustersmngr.ClustersManager
 	capiEnabled     bool
+	chartsCache
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -91,6 +92,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ProfileHelmRepositoryName: "weaveworks-charts",
 			HelmRepositoryCacheDir:    t.TempDir(),
 			CAPIEnabled:               o.capiEnabled,
+			ChartsCache:               o.chartsCache,
 		},
 	)
 }
