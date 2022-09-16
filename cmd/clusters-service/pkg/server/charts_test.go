@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"google.golang.org/protobuf/testing/protocmp"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -59,7 +60,7 @@ func TestListChartsForRepository(t *testing.T) {
 				), []Chart{{Name: "redis", Version: "1.0.1"}, {Name: "redis", Version: "1.0.2"}}),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
-					{Name: "redis", Versions: []string{"1.0.2", "1.0.1"}},
+					{Name: "redis", Versions: []string{"1.0.1", "1.0.2"}},
 				},
 			},
 		},
@@ -76,7 +77,7 @@ func TestListChartsForRepository(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if diff := cmp.Diff(tt.want, response); diff != "" {
+			if diff := cmp.Diff(tt.want, response, protocmp.Transform()); diff != "" {
 				t.Fatalf("failed to get response:\n%s", diff)
 			}
 		})
@@ -93,6 +94,40 @@ func newFakeChartCache(key string, charts []Chart) *fakeChartCache {
 
 type fakeChartCache struct {
 	charts map[string][]Chart
+}
+
+// ListChartsForRepository returns a list of charts for a given repository.
+func (s *server) ListChartsForRepository(ctx context.Context, request *protos.ListChartsForRepositoryRequest) (*protos.ListChartsForRepositoryResponse, error) {
+	clusterRef := types.NamespacedName{
+		Name:      request.Repository.ClusterName,
+		Namespace: "clusters",
+	}
+
+	repoRef := ObjectReference{
+		Kind:      request.Repository.Kind,
+		Name:      request.Repository.Name,
+		Namespace: request.Repository.Namespace,
+	}
+
+	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, repoRef, clusterRef)
+	if err != nil {
+		return nil, err
+	}
+
+	chartsWithVersions := map[string][]string{}
+	for _, chart := range charts {
+		chartsWithVersions[chart.Name] = append(chartsWithVersions[chart.Name], chart.Version)
+	}
+
+	responseCharts := []*protos.RepositoryChart{}
+	for name, versions := range chartsWithVersions {
+		responseCharts = append(responseCharts, &protos.RepositoryChart{
+			Name:     name,
+			Versions: versions,
+		})
+	}
+
+	return &protos.ListChartsForRepositoryResponse{Charts: responseCharts}, nil
 }
 
 func (fc fakeChartCache) ListChartsByRepositoryAndCluster(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) ([]Chart, error) {

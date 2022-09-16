@@ -61,6 +61,7 @@ type server struct {
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
 	capiEnabled               bool
+	chartsCache               chartsCache
 }
 
 type ServerOpts struct {
@@ -91,5 +92,6 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		profileHelmRepositoryName: opts.ProfileHelmRepositoryName,
 		helmRepositoryCacheDir:    opts.HelmRepositoryCacheDir,
 		capiEnabled:               opts.CAPIEnabled,
+		chartsCache:               opts.ChartsCache,
 	}
 }
