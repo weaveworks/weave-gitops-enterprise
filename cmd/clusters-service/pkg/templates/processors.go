@@ -248,7 +248,9 @@ func (p *EnvsubstTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([
 
 func makeTemplateFunctions() template.FuncMap {
 	f := sprig.TxtFuncMap()
-	unwanted := []string{"env", "expandenv", "base", "dir", "ext", "clean", "isAbs", "osBase", "osDir", "osExt", "osClean", "osIsAbs"}
+	unwanted := []string{
+		"env", "expandenv", "getHostByName", "genPrivateKey", "derivePassword", "sha256sum",
+		"base", "dir", "ext", "clean", "isAbs", "osBase", "osDir", "osExt", "osClean", "osIsAbs"}
 	for _, v := range unwanted {
 		delete(f, v)
 	}
