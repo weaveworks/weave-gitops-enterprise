@@ -102,18 +102,23 @@ C4Container
 
   Container_Boundary(runtime, "runtime") {
          System_Ext(KubernetesCluster, "Kubernetes Cluster", "run customer applications")
+         Container(PolicyAgent, "Policy Agent", "", "components for enforcing policy resources")
+         Rel(PolicyAgent, KubernetesCluster, "read policies from")
+        UpdateRelStyle(PolicyAgent, KubernetesCluster, "", "", "-35", "-15")
+
          System_Ext(Flagger, "Flagger", "controller for progressive delivery capabilities")
          Rel(Flagger, KubernetesCluster, "manage canary resources from")
          UpdateRelStyle(Flagger, KubernetesCluster, "", "", "-35", "30")
 
          System_Ext(Flux, "Flux", "deploy customer applications")
          Rel(Flux, KubernetesCluster, "deploy apps to")
-         UpdateRelStyle(Flux, KubernetesCluster, "", "", "-85", "15")
+         UpdateRelStyle(Flux, KubernetesCluster, "", "", "75", "15")
          Rel(Flux, Github, "read apps from")        
         UpdateRelStyle(Flux, Github, "", "", "25", "15")
         
         System_Ext(CAPI, "CAPI", "manages kube clusters in the infra layer")
         Rel(CAPI, KubernetesCluster, "manage capi resources from")
+        UpdateRelStyle(CAPI, KubernetesCluster, "", "", 10", "85")
         Rel(CAPI, aws, "manage clusters in cloud")
         UpdateRelStyle(CAPI, aws, "", "", "75", "35")
   }
