@@ -34,7 +34,7 @@ brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
 ```
 
-Now lets use the `gitops` command to generate a secret to store the has of the admin password
+Now lets use the `gitops` command to generate a secret to store the hash of the admin password
 
 ```
 PASSWORD="<your password>"
