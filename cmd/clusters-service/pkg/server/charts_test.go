@@ -41,6 +41,28 @@ func TestListChartsForRepository(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "multiple versions of the same chart",
+			request: &protos.ListChartsForRepositoryRequest{
+				Repository: &protos.RepositoryRef{
+					ClusterName: "demo-cluster",
+					Name:        "bitnami-charts",
+					Namespace:   "demo",
+					Kind:        "HelmRepository",
+				},
+				Kind: "chart",
+			},
+			fc: newFakeChartCache(
+				objectRefToString(
+					ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
+					types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+				), []Chart{{Name: "redis", Version: "1.0.1"}, {Name: "redis", Version: "1.0.2"}}),
+			want: &protos.ListChartsForRepositoryResponse{
+				Charts: []*protos.RepositoryChart{
+					{Name: "redis", Versions: []string{"1.0.2", "1.0.1"}},
+				},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
