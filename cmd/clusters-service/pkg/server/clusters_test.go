@@ -1025,7 +1025,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		name           string
 		provider       git.Provider
 		req            *capiv1_protos.DeleteClustersPullRequestRequest
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		expected       string
 		err            error
 	}{
@@ -1234,10 +1234,10 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 	return nil, nil
 }
 
-func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
-	var committedFiles []CommittedFile
+func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
+	var committedFiles []*capiv1_protos.CommitFile
 	for _, f := range p.committedFiles {
-		committedFiles = append(committedFiles, CommittedFile{
+		committedFiles = append(committedFiles, &capiv1_protos.CommitFile{
 			Path:    *f.Path,
 			Content: *f.Content,
 		})
@@ -1266,11 +1266,6 @@ func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, r
 
 	}
 	return treeEntries, nil
-}
-
-type CommittedFile struct {
-	Path    string
-	Content string
 }
 
 func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
