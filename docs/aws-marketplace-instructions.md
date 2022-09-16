@@ -1,19 +1,15 @@
-## 1. Apply the entitlement provided by Weaveworks to your cluster
+## 1. Install Flux onto the cluster if not already installed
+
+```
+flux install
+```
+
+## 2. Apply the entitlement provided by Weaveworks to your cluster
 
 ```
 kubectl apply -f entitlements.yaml
 ```
 
-## 2. Install Flux
-
-```
-flux bootstrap github \
-  --owner=<github username> \
-  --repository=fleet-infra \
-  --branch=main \
-  --path=./clusters/management \
-  --personal
-```
 
 ## 3. Create a password for the admin user
 
@@ -50,7 +46,7 @@ kubectl create secret generic cluster-user-auth \
 ## 4. Run Helm Install
 
 ```
-helm install oci://709825985650.dkr.ecr.us-east-1.amazonaws.com/weaveworks/weave-gitops-eks-accelerator:chart-v0.9.4 --namespace flux-system
+helm install weave-gitops-enterprise oci://709825985650.dkr.ecr.us-east-1.amazonaws.com/weaveworks/weave-gitops-eks-accelerator:chart-v0.9.4 --namespace flux-system
 ```
 
 ## 5. Get to the GUI
@@ -59,5 +55,3 @@ kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000
 ```
 
 Now you have a running Weave GitOps EKS Accelerator
-
-
