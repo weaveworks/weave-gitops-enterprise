@@ -835,11 +835,11 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
-				TemplateName: "cluster-template-1",
-				Values: map[string]string{
-					"CLUSTER_NAME": "dev",
-					"NAMESPACE":    "clusters-namespace",
-				},
+				// TemplateName: "cluster-template-1",
+				// Values: map[string]string{
+				// 	"CLUSTER_NAME": "dev",
+				// 	"NAMESPACE":    "clusters-namespace",
+				// },
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
@@ -858,7 +858,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 					},
 				},
 			},
-			expected: *capiv1_protos.RenderTemplateResponse{
+			expected: &capiv1_protos.RenderTemplateResponse{
 				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
@@ -927,9 +927,15 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, renderTemplateResponse, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected.RenderedTemplate, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
+				// if diff := cmp.Diff(tt.expected, renderTemplateResponse, protocmp.Transform()); diff != "" {
+				// 	t.Fatalf("templates didn't match expected:\n%s", diff)
+				// }
+				// if diff := cmp.Diff(tt.expected, renderTemplateResponse, protocmp.Transform()); diff != "" {
+				// 	t.Fatalf("templates didn't match expected:\n%s", diff)
+				// }
 			}
 		})
 	}
