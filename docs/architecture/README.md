@@ -111,6 +111,11 @@ C4Container
          UpdateRelStyle(Flux, KubernetesCluster, "", "", "-85", "15")
          Rel(Flux, Github, "read apps from")        
         UpdateRelStyle(Flux, Github, "", "", "25", "15")
+        
+        System_Ext(CAPI, "CAPI", "manages kube clusters in the infra layer")
+        Rel(CAPI, KubernetesCluster, "manage capi resources from")
+        Rel(CAPI, aws, "manage clusters in cloud")
+        UpdateRelStyle(CAPI, aws, "", "", "75", "35")
   }
 
   Container_Boundary(auth, "auth") {
@@ -121,7 +126,11 @@ C4Container
     System_Ext(Github, "GitHub", "Source storage in Git")      
   }
 
-  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")   
+ Container_Boundary(cloud, "cloud") {
+          System_Ext(aws, "AWS", "aws cloud or any other public or private infra layer")
+ }
+
+UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2") 
 ```
 
 ## Weave Gitops Enterprise as Business Domains
