@@ -29,7 +29,7 @@ func TestPipelineToProto(t *testing.T) {
 				Name: "env",
 				Targets: []ctrl.Target{{
 					Namespace: ns,
-					ClusterRef: ctrl.CrossNamespaceClusterReference{
+					ClusterRef: &ctrl.CrossNamespaceClusterReference{
 						Name: cluster,
 						Kind: "GitopsCluster",
 					},
