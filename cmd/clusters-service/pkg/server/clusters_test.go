@@ -364,7 +364,7 @@ func TestCreatePullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreatePullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 	}{
 		{
@@ -485,7 +485,7 @@ func TestCreatePullRequest(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/default/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -588,7 +588,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -702,7 +702,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -887,14 +887,14 @@ status: {}
 	}
 }
 
-func prepCommitedFiles(t *testing.T, serverUrl string, files []CommittedFile) []CommittedFile {
+func prepCommitedFiles(t *testing.T, serverUrl string, files []*capiv1_protos.CommitFile) []*capiv1_protos.CommitFile {
 	parsedURL, err := url.Parse(serverUrl)
 	if err != nil {
 		t.Fatalf("failed to parse URL %s", err)
 	}
-	newFiles := []CommittedFile{}
+	newFiles := []*capiv1_protos.CommitFile{}
 	for _, f := range files {
-		newFiles = append(newFiles, CommittedFile{
+		newFiles = append(newFiles, &capiv1_protos.CommitFile{
 			Path:    f.Path,
 			Content: simpleTemplate(t, f.Content, struct{ Port string }{Port: parsedURL.Port()}),
 		})

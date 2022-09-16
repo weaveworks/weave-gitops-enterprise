@@ -25,7 +25,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreateTfControllerPullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 		dbRows         int
 	}{
