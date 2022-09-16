@@ -1013,11 +1013,11 @@ status: {}
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 
-				if diff := cmp.Diff(tt.expected.KustomizationFiles, renderTemplateResponse.KustomizationFiles, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected.KustomizationFiles, renderTemplateResponse.KustomizationFiles, protocmp.Transform()); len(renderTemplateResponse.KustomizationFiles) > 0 && diff != "" {
 					t.Fatalf("template kustomizations didn't match expected:\n%s", diff)
 				}
 
-				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.expected.ProfileFiles), renderTemplateResponse.ProfileFiles, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.expected.ProfileFiles), renderTemplateResponse.ProfileFiles, protocmp.Transform()); len(tt.expected.ProfileFiles) > 0 && diff != "" {
 					t.Fatalf("templates profiles didn't match expected:\n%s", diff)
 				}
 			}
