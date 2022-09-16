@@ -34,7 +34,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
 
-	applyCreateAutomationDefaults(msg)
+	applyCreateAutomationDefaults(msg.ClusterAutomations)
 
 	if err := validateCreateAutomationsPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
@@ -133,6 +133,8 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		return nil, err
 	}
 
+	applyCreateAutomationDefaults(msg.ClusterAutomations)
+
 	var automationFiles []*capiv1_proto.CommitFile
 
 	if len(msg.ClusterAutomations) > 0 {
@@ -147,7 +149,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 				}
 
 				automationFiles = append(automationFiles, &capiv1_proto.CommitFile{
-					Path: *kustomization.Path,
+					Path:    *kustomization.Path,
 					Content: *kustomization.Content,
 				})
 			}
@@ -160,7 +162,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 				}
 
 				automationFiles = append(automationFiles, &capiv1_proto.CommitFile{
-					Path: *helmRelease.Path,
+					Path:    *helmRelease.Path,
 					Content: *helmRelease.Content,
 				})
 			}
@@ -249,8 +251,8 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease,
 	return &generatedHelmRelease, nil
 }
 
-func applyCreateAutomationDefaults(msg *capiv1_proto.CreateAutomationsPullRequestRequest) {
-	for _, c := range msg.ClusterAutomations {
+func applyCreateAutomationDefaults(msg []*capiv1_proto.ClusterAutomation) {
+	for _, c := range msg {
 		if c.HelmRelease != nil && c.HelmRelease.Metadata != nil && c.HelmRelease.Metadata.Namespace == "" {
 			c.HelmRelease.Metadata.Namespace = defaultAutomationNamespace
 		}

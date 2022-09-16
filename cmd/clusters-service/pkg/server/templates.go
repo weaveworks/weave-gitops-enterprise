@@ -114,7 +114,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 
 func toCommitFile(file gitprovider.CommitFile) *capiv1_proto.CommitFile {
 	return &capiv1_proto.CommitFile{
-		Path: *file.Path,
+		Path:    *file.Path,
 		Content: *file.Content,
 	}
 }
@@ -155,7 +155,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	var profileFiles []*capiv1_proto.CommitFile
 	var kustomizationFiles []*capiv1_proto.CommitFile
 
-	cluster := createNamespacedName(msg.Values["CLUSTER_NAME"], msg.Values["CLUSTER_NAMESPACE"])
+	cluster := createNamespacedName(msg.Values["CLUSTER_NAME"], msg.Values["NAMESPACE"])
 
 	if len(msg.Profiles) > 0 {
 		profilesFile, err := generateProfileFiles(

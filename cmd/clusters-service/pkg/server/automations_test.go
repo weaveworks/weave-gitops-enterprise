@@ -651,7 +651,7 @@ func TestRenderAutomation(t *testing.T) {
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "",
+					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
@@ -670,7 +670,7 @@ status: {}
 `,
 				},
 				{
-					Path: "",
+					Path: "clusters/dev/billing/test-profile-flux-system-helmrelease.yaml",
 					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:

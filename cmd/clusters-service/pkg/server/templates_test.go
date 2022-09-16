@@ -835,11 +835,11 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				makeCAPITemplate(t),
 			},
 			req: &capiv1_protos.RenderTemplateRequest{
-				// TemplateName: "cluster-template-1",
-				// Values: map[string]string{
-				// 	"CLUSTER_NAME": "dev",
-				// 	"NAMESPACE":    "clusters-namespace",
-				// },
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
@@ -859,46 +859,46 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: dev\n  namespace: test-ns\n",
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
 						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-	kind: Kustomization
-	metadata:
-	  creationTimestamp: null
-	  name: apps-capi
-	  namespace: flux-system
-	spec:
-	  interval: 10m0s
-	  path: ./apps/capi
-	  prune: true
-	  sourceRef:
-		kind: GitRepository
-		name: flux-system
-		namespace: flux-system
-	  targetNamespace: foo-ns
-	status: {}
-	`,
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-capi
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/capi
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: foo-ns
+status: {}
+`,
 					},
 					{
 						Path: "clusters/clusters-namespace/dev/apps-billing-flux-system-kustomization.yaml",
 						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-	kind: Kustomization
-	metadata:
-	  creationTimestamp: null
-	  name: apps-billing
-	  namespace: flux-system
-	spec:
-	  interval: 10m0s
-	  path: ./apps/billing
-	  prune: true
-	  sourceRef:
-		kind: GitRepository
-		name: flux-system
-		namespace: flux-system
-	status: {}
-	`,
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-billing
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/billing
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
 					},
 				},
 				ProfileFiles: []*capiv1_protos.CommitFile{},
@@ -911,6 +911,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 			viper.Reset()
 			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
+			viper.SetDefault("capi-repository-clusters-path", "clusters")
 
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
@@ -927,16 +928,11 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected.RenderedTemplate, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
-				// if diff := cmp.Diff(tt.expected, renderTemplateResponse, protocmp.Transform()); diff != "" {
-				// 	t.Fatalf("templates didn't match expected:\n%s", diff)
-				// }
-				// if diff := cmp.Diff(tt.expected, renderTemplateResponse, protocmp.Transform()); diff != "" {
-				// 	t.Fatalf("templates didn't match expected:\n%s", diff)
-				// }
 			}
+
 		})
 	}
 }
