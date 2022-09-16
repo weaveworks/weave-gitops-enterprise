@@ -39,7 +39,7 @@ func TestListChartsForRepository(t *testing.T) {
 					clusterRefToString(
 						ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
-					), []Chart{{Name: "redis", Version: "1.0.1"}, {Name: "postgres", Version: "1.0.2"}})),
+					), []Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "postgres", Version: "1.0.2", Kind: "chart"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
 					{Name: "redis", Versions: []string{"1.0.1"}},
@@ -66,7 +66,7 @@ func TestListChartsForRepository(t *testing.T) {
 					clusterRefToString(
 						ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
-					), []Chart{{Name: "redis", Version: "1.0.1"}, {Name: "redis", Version: "1.0.2"}})),
+					), []Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "redis", Version: "1.0.2", Kind: "chart"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
 					{Name: "redis", Versions: []string{"1.0.2", "1.0.1"}},
@@ -116,7 +116,7 @@ func TestListChartsForRepository(t *testing.T) {
 					clusterRefToString(
 						ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
-					), []Chart{{Name: "weaveworks-profile", Version: "1.0.1"}, {Name: "postgres", Version: "1.0.2"}})),
+					), []Chart{{Name: "weaveworks-profile", Version: "1.0.1", Kind: "profile"}, {Name: "postgres", Version: "1.0.2", Kind: "chart"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
 					{Name: "weaveworks-profile", Versions: []string{"1.0.1"}},

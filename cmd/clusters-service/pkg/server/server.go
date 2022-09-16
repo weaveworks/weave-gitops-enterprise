@@ -42,6 +42,7 @@ type ObjectReference struct {
 type Chart struct {
 	Name    string
 	Version string
+	Kind    string
 }
 
 type chartsCache interface {
