@@ -129,8 +129,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
 				ginkgo.By("And wait for Templates page to be fully rendered", func() {
-					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 					pages.WaitForPageToLoad(webDriver)
+					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
 					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`[0-9]+`))
 
