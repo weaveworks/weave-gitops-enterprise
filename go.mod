@@ -30,7 +30,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
 	github.com/fluxcd/flagger v1.21.0
-	github.com/fluxcd/go-git-providers v0.8.1-0.20220823125407-dd5c65fdaf4e
+	github.com/fluxcd/go-git-providers v0.9.0
 	github.com/fluxcd/helm-controller/api v0.24.0
 	github.com/fluxcd/kustomize-controller/api v0.28.0
 	github.com/fluxcd/pkg/apis/meta v0.15.0
@@ -50,7 +50,7 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.4
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
-	github.com/xanzy/go-gitlab v0.69.0
+	github.com/xanzy/go-gitlab v0.73.1
 	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d
 	golang.org/x/oauth2 v0.0.0-20220722155238-128564f6959c
 	google.golang.org/genproto v0.0.0-20220725144611-272f38e5d71b
@@ -72,7 +72,7 @@ require (
 	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
 	github.com/cloudflare/circl v1.1.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.26.0 // indirect
-	github.com/google/go-github/v45 v45.2.0 // indirect
+	github.com/google/go-github/v47 v47.0.0 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )
@@ -127,7 +127,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
