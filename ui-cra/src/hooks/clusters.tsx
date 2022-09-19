@@ -1,30 +1,51 @@
-import React, { FC, useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { request } from '../../utils/request';
-import { Clusters } from './index';
-import useNotifications from './../Notifications';
+import { request } from '../utils/request';
+import useNotifications from '../contexts/Notifications';
 import fileDownload from 'js-file-download';
-import { EnterpriseClientContext } from '../EnterpriseClient';
-import {
-  ClusterNamespacedName,
-  ListGitopsClustersResponse,
-} from '../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
+import { ListGitopsClustersResponse } from '../cluster-services/cluster_services.pb';
 import {
   GitopsClusterEnriched,
   DeleteClustersPRRequestEnriched,
-} from '../../types/custom';
+} from '../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
-const ClustersProvider: FC = ({ children }) => {
+const useClusters = () => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [clusters, setClusters] = useState<GitopsClusterEnriched[]>([]);
-  const [count, setCount] = useState<number | null>(null);
-  const [selectedClusters, setSelectedClusters] = useState<
-    ClusterNamespacedName[]
-  >([]);
   const { notifications, setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
+
+  const onError = (error: Error) => {
+    if (
+      error &&
+      notifications?.some(
+        notification => error.message === notification.message.text,
+      ) === false
+    ) {
+      setNotifications([
+        ...notifications,
+        { message: { text: error.message }, variant: 'danger' },
+      ]);
+    }
+  };
+
+  const { isLoading, data } = useQuery<ListGitopsClustersResponse, Error>(
+    'clusters',
+    () => api.ListGitopsClusters({}),
+    {
+      keepPreviousData: true,
+      refetchInterval: CLUSTERS_POLL_INTERVAL,
+      onError,
+    },
+  );
+
+  const clusters = useMemo(
+    () => data?.gitopsClusters || [],
+    [data],
+  ) as GitopsClusterEnriched[];
+  const count: number | null = data?.gitopsClusters?.length || null;
 
   const getCluster = (clusterName: string) =>
     clusters?.find(cluster => cluster.name === clusterName) || null;
@@ -80,55 +101,16 @@ const ClustersProvider: FC = ({ children }) => {
     },
     [setNotifications],
   );
-
-  const onError = (error: Error) => {
-    if (
-      error &&
-      notifications?.some(
-        notification => error.message === notification.message.text,
-      ) === false
-    ) {
-      setNotifications([
-        ...notifications,
-        { message: { text: error.message }, variant: 'danger' },
-      ]);
-    }
+  return {
+    clusters,
+    isLoading,
+    count,
+    loading,
+    deleteCreatedClusters,
+    getKubeconfig,
+    getDashboardAnnotations,
+    getCluster,
   };
-
-  const onSuccess = (data: ListGitopsClustersResponse) => {
-    setClusters(data.gitopsClusters as GitopsClusterEnriched[]);
-    setCount(data.total as number);
-  };
-
-  const { isLoading } = useQuery<ListGitopsClustersResponse, Error>(
-    'clusters',
-    () => api.ListGitopsClusters({}),
-    {
-      keepPreviousData: true,
-      refetchInterval: CLUSTERS_POLL_INTERVAL,
-      onSuccess,
-      onError,
-    },
-  );
-
-  return (
-    <Clusters.Provider
-      value={{
-        clusters,
-        isLoading,
-        count,
-        loading,
-        selectedClusters,
-        setSelectedClusters,
-        deleteCreatedClusters,
-        getKubeconfig,
-        getDashboardAnnotations,
-        getCluster,
-      }}
-    >
-      {children}
-    </Clusters.Provider>
-  );
 };
 
-export default ClustersProvider;
+export default useClusters;

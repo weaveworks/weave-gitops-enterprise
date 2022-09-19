@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +18,7 @@ import (
 func TestGetPipeline(t *testing.T) {
 	ctx := context.Background()
 
-	kclient, factory := pipetesting.MakeFactoryWithObjects()
+	kclient, factory := grpctesting.MakeFactoryWithObjects()
 	serverClient := pipetesting.SetupServer(t, factory)
 
 	ns := pipetesting.NewNamespace(ctx, t, kclient)
@@ -37,7 +38,7 @@ func TestGetPipeline(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
 	})
 
 	t.Run("cluster ref is set", func(t *testing.T) {
@@ -57,7 +58,7 @@ func TestGetPipeline(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
 	})
 
 }

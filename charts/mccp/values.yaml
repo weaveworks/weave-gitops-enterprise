@@ -27,6 +27,9 @@ listOCIRepositories: false
 # Turns on pipelines features if set to true. This includes the UI elements.
 enablePipelines: false
 
+# Turns on UI elements for Terraform objects
+enableTerraformUI: false
+
 config:
   cluster:
     name: default
@@ -71,6 +74,9 @@ clusterBootstrapController:
 rbac:
   userRoles:
     create: true
+    roleAggregation:
+      # Aggregate reader user roles into common `gitops-reader` role
+      enabled: true
   adminUserRoleBindings:
     create: true
 
