@@ -8,7 +8,10 @@ Fixes #5678
 -->
 Closes
 
-<!-- Describe what has changed in this PR -->
+<!--
+Describe what has changed in this PR.
+For UI changes also include a screenshot.
+-->
 **What changed?**
 
 
@@ -40,5 +43,9 @@ required? If so, please mention it.
 **Release notes**
 
 
-<!-- Are there any documentation updates that should be made for these changes? -->
+<!--
+Are there any documentation updates that should be made for these changes? We want to keep these sources up to date:
+- user-guide: https://docs.gitops.weave.works
+- internal docs: https://github.com/weaveworks/weave-gitops-enterprise/tree/main/docs
+-->
 **Documentation Changes**
