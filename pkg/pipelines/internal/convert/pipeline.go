@@ -24,12 +24,19 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 		}
 
 		for _, t := range e.Targets {
-			env.Targets = append(env.Targets, &pb.Target{
-				Namespace: t.Namespace,
-				ClusterRef: &pb.ClusterRef{
-					Name: t.ClusterRef.Name,
+			var clusterRef pb.ClusterRef
+
+			if t.ClusterRef != nil {
+				clusterRef = pb.ClusterRef{
 					Kind: t.ClusterRef.Kind,
-				}})
+					Name: t.ClusterRef.Name,
+				}
+			}
+
+			env.Targets = append(env.Targets, &pb.Target{
+				Namespace:  t.Namespace,
+				ClusterRef: &clusterRef,
+			})
 		}
 
 		r.Environments = append(r.Environments, env)
