@@ -237,6 +237,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   }, []);
 
   useEffect(() => {
+    console.log({
+      ..._.keyBy(profiles, 'name'),
+      ...callbackState?.state?.updatedProfiles,
+    });
     setUpdatedProfiles({
       ..._.keyBy(profiles, 'name'),
       ...callbackState?.state?.updatedProfiles,
