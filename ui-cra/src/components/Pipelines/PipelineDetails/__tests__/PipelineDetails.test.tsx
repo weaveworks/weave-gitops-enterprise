@@ -10,7 +10,7 @@ import {
 
 const res: GetPipelineResponse = {
   pipeline: {
-    name: 'podinfo',
+    name: 'podinfo-pipeline',
     namespace: 'default',
     appRef: {
       apiVersion: 'helm.toolkit.fluxcd.io/v2beta1',
@@ -104,7 +104,6 @@ describe('PipelineDetails', () => {
         <PipelineDetails
           name={params.name}
           namespace={params.namespace}
-          pipelineName={params.name}
         />,
       );
       render(c);
@@ -126,7 +125,6 @@ describe('PipelineDetails', () => {
           <PipelineDetails
             name={params.name}
             namespace={params.namespace}
-            pipelineName={params.name}
           />,
         );
         result = await render(c);
