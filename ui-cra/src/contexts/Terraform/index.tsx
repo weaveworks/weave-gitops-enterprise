@@ -64,3 +64,13 @@ export function useGetTerraformObjectDetail({
     () => tf.GetTerraformObject({ name, namespace, clusterName }),
   );
 }
+
+export function useSyncTerraformObject({
+  name,
+  namespace,
+  clusterName,
+}: DetailParams) {
+  const tf = useTerraform();
+
+  return () => tf.SyncTerraformObject({ name, namespace, clusterName });
+}
