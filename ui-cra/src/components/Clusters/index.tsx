@@ -196,6 +196,11 @@ interface FormData {
   pullRequestDescription: string;
 }
 
+const ClusterTemplatesKind = {
+  CAPI: 'CAPITemplate',
+  GITOPS: 'GitOpsTemplate',
+};
+
 const MCCP: FC = () => {
   const { clusters, isLoading, count } = useClusters();
   const [selectedClusters, setSelectedClusters] = useState<
@@ -263,7 +268,10 @@ const MCCP: FC = () => {
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    history.push('/templates');
+    const filtersValues = encodeURIComponent(
+      `templateKind:${ClusterTemplatesKind.CAPI}_templateKind:${ClusterTemplatesKind.GITOPS}_`,
+    );
+    history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
   const initialFilterState = {
