@@ -563,7 +563,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	for _, v := range args.profileValues {
 		var requiredProfile *capiv1_proto.TemplateProfile
 		for _, rp := range requiredProfiles {
-			if rp.Name == v.Name && rp.Version == ""  {
+			if rp.Name == v.Name && rp.Version == "" {
 				requiredProfile.Name = rp.Name
 				requiredProfile.Version = v.Version
 			} else if rp.Name == v.Name && rp.Version == v.Version {
