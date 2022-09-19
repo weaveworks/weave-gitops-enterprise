@@ -16,6 +16,7 @@ const (
 	policyRepoOCIKind       = "OCIRepository"
 	policyClustersKind      = "GitopsCluster"
 	policyKustomizationKind = "Kustomization"
+	policyHelmReleaseKind   = "HelmRelease"
 )
 
 var (
@@ -29,6 +30,8 @@ var (
 	repoPolicyCode string
 	//go:embed policies/allowed_clusters.rego
 	clusterPolicyCode string
+	//go:embed policies/allowed_application_deploy.rego
+	applicationPolicyCode string
 )
 
 func validatePolicyRepoKind(kind string) error {
