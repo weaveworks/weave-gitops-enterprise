@@ -33,6 +33,13 @@ service Terraform {
         };
     }
 
+    rpc SyncTerraformObject(SyncTerraformObjectRequest) returns (SyncTerraformObjectResponse) {
+        option (google.api.http) = {
+            post : "/v1/terraform_objects/sync"
+            body: "*"
+        };  
+    }
+
 }
 
 message ListTerraformObjectsRequest {
@@ -58,3 +65,12 @@ message GetTerraformObjectResponse {
     string          yaml   = 2;
 }
 
+message SyncTerraformObjectRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+}
+
+message  SyncTerraformObjectResponse {
+    bool success = 1;
+}

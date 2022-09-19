@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type TerraformClient interface {
 	ListTerraformObjects(ctx context.Context, in *ListTerraformObjectsRequest, opts ...grpc.CallOption) (*ListTerraformObjectsResponse, error)
 	GetTerraformObject(ctx context.Context, in *GetTerraformObjectRequest, opts ...grpc.CallOption) (*GetTerraformObjectResponse, error)
+	SyncTerraformObject(ctx context.Context, in *SyncTerraformObjectRequest, opts ...grpc.CallOption) (*SyncTerraformObjectResponse, error)
 }
 
 type terraformClient struct {
@@ -48,12 +49,22 @@ func (c *terraformClient) GetTerraformObject(ctx context.Context, in *GetTerrafo
 	return out, nil
 }
 
+func (c *terraformClient) SyncTerraformObject(ctx context.Context, in *SyncTerraformObjectRequest, opts ...grpc.CallOption) (*SyncTerraformObjectResponse, error) {
+	out := new(SyncTerraformObjectResponse)
+	err := c.cc.Invoke(ctx, "/terraform.v1.Terraform/SyncTerraformObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TerraformServer is the server API for Terraform service.
 // All implementations must embed UnimplementedTerraformServer
 // for forward compatibility
 type TerraformServer interface {
 	ListTerraformObjects(context.Context, *ListTerraformObjectsRequest) (*ListTerraformObjectsResponse, error)
 	GetTerraformObject(context.Context, *GetTerraformObjectRequest) (*GetTerraformObjectResponse, error)
+	SyncTerraformObject(context.Context, *SyncTerraformObjectRequest) (*SyncTerraformObjectResponse, error)
 	mustEmbedUnimplementedTerraformServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedTerraformServer) ListTerraformObjects(context.Context, *ListT
 }
 func (UnimplementedTerraformServer) GetTerraformObject(context.Context, *GetTerraformObjectRequest) (*GetTerraformObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTerraformObject not implemented")
+}
+func (UnimplementedTerraformServer) SyncTerraformObject(context.Context, *SyncTerraformObjectRequest) (*SyncTerraformObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncTerraformObject not implemented")
 }
 func (UnimplementedTerraformServer) mustEmbedUnimplementedTerraformServer() {}
 
@@ -116,6 +130,24 @@ func _Terraform_GetTerraformObject_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Terraform_SyncTerraformObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncTerraformObjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TerraformServer).SyncTerraformObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/terraform.v1.Terraform/SyncTerraformObject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TerraformServer).SyncTerraformObject(ctx, req.(*SyncTerraformObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Terraform_ServiceDesc is the grpc.ServiceDesc for Terraform service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +162,10 @@ var Terraform_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTerraformObject",
 			Handler:    _Terraform_GetTerraformObject_Handler,
+		},
+		{
+			MethodName: "SyncTerraformObject",
+			Handler:    _Terraform_SyncTerraformObject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -66,6 +66,38 @@
         ]
       }
     },
+    "/v1/terraform_objects/sync": {
+      "post": {
+        "operationId": "Terraform_SyncTerraformObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncTerraformObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SyncTerraformObjectRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
+    },
     "/v1/terraform_objects/{name}": {
       "get": {
         "operationId": "Terraform_GetTerraformObject",
@@ -242,6 +274,28 @@
         },
         "namespace": {
           "type": "string"
+        }
+      }
+    },
+    "v1SyncTerraformObjectRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SyncTerraformObjectResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
         }
       }
     },
