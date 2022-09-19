@@ -23,7 +23,11 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const tenantLabel = "toolkit.fluxcd.io/tenant"
+const (
+	tenantLabel     = "toolkit.fluxcd.io/tenant"
+	defaultRoleKind = "ClusterRole"
+	defaultRoleName = "cluster-admin"
+)
 
 var (
 	namespaceTypeMeta      = typeMeta("Namespace", "v1")
@@ -56,6 +60,17 @@ type TenantTeamRBAC struct {
 	Rules      []rbacv1.PolicyRule `yaml:"rules"`
 }
 
+type TenantRoleBinding struct {
+	Name string `yaml:"Name"`
+	Kind string `yaml:"Kind"`
+}
+
+// TenantDeploymentRBAC defines the permissions of the tenants service account
+type TenantDeploymentRBAC struct {
+	Rules     []rbacv1.PolicyRule `yaml:"rules"`
+	BindRoles []TenantRoleBinding `yaml:"bindRoles"`
+}
+
 // Config represents the structure of the Tenancy file.
 type Config struct {
 	ServiceAccount *ServiceAccountOptions `yaml:"serviceAccount,optional"`
@@ -65,13 +80,13 @@ type Config struct {
 // Tenant represents a tenant that we generate resources for in the tenancy
 // system.
 type Tenant struct {
-	Name                string              `yaml:"name"`
-	Namespaces          []string            `yaml:"namespaces"`
-	ClusterRole         string              `yaml:"clusterRole"`
-	Labels              map[string]string   `yaml:"labels"`
-	AllowedRepositories []AllowedRepository `yaml:"allowedRepositories"`
-	AllowedClusters     []AllowedCluster    `yaml:"allowedClusters"`
-	TeamRBAC            *TenantTeamRBAC     `yaml:"teamRBAC,omitempty"`
+	Name                string                `yaml:"name"`
+	Namespaces          []string              `yaml:"namespaces"`
+	Labels              map[string]string     `yaml:"labels"`
+	AllowedRepositories []AllowedRepository   `yaml:"allowedRepositories"`
+	AllowedClusters     []AllowedCluster      `yaml:"allowedClusters"`
+	TeamRBAC            *TenantTeamRBAC       `yaml:"teamRBAC,omitempty"`
+	DeploymentRBAC      *TenantDeploymentRBAC `yaml:"deploymentRBAC,omitempty"`
 }
 
 // Validate returns an error if any of the fields isn't valid
@@ -95,6 +110,18 @@ func (t Tenant) Validate() error {
 	if t.TeamRBAC != nil {
 		if len(t.TeamRBAC.GroupNames) == 0 || len(t.TeamRBAC.Rules) == 0 {
 			result = multierror.Append(result, errors.New("must provide group names and team rules in team RBAC"))
+		}
+	}
+
+	if t.DeploymentRBAC != nil {
+		if len(t.DeploymentRBAC.Rules) == 0 && len(t.DeploymentRBAC.BindRoles) == 0 {
+			result = multierror.Append(result, errors.New("must provide rules or bindings in deployment RBAC"))
+		}
+
+		for _, bindRole := range t.DeploymentRBAC.BindRoles {
+			if bindRole.Kind != "Role" && bindRole.Kind != "ClusterRole" {
+				result = multierror.Append(result, errors.New("invalid kind for deployment RBAC rule binds"))
+			}
 		}
 	}
 
@@ -202,7 +229,7 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 	switch to := obj.(type) {
 	case *rbacv1.RoleBinding:
 		existingRB := existing.(*rbacv1.RoleBinding)
-		if !equality.Semantic.DeepDerivative(to.Subjects, existingRB.Subjects) ||
+		if !equality.Semantic.DeepEqual(to.Subjects, existingRB.Subjects) ||
 			!equality.Semantic.DeepDerivative(to.RoleRef, existingRB.RoleRef) ||
 			!equality.Semantic.DeepDerivative(to.GetLabels(), existingRB.GetLabels()) {
 			if err := kubeClient.Delete(ctx, existing); err != nil {
@@ -300,19 +327,56 @@ func generateTenantResource(tenant Tenant, serviceAccount *ServiceAccountOptions
 
 	tenantLabels[tenantLabel] = tenant.Name
 	serviceAccountName := tenant.Name
+	isGlobalServiceAccount := false
 	if serviceAccount != nil {
 		serviceAccountName = serviceAccount.Name
+		isGlobalServiceAccount = true
 	}
 
 	for _, namespace := range tenant.Namespaces {
 		generated = append(generated, newNamespace(namespace, tenantLabels))
-		generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
-		generated = append(generated, newRoleBinding(tenant.Name, namespace, serviceAccountName, tenant.ClusterRole, tenantLabels))
+		if !isGlobalServiceAccount {
+			generated = append(generated, newServiceAccount(serviceAccountName, namespace, tenantLabels))
+		}
+		if tenant.DeploymentRBAC != nil {
+			if len(tenant.DeploymentRBAC.Rules) != 0 {
+				generated = append(generated, newServiceAccountRole(tenant.Name, namespace, tenantLabels, tenant.DeploymentRBAC.Rules))
+				generated = append(generated, newDeploymentRBACRoleBinding(tenant.Name, namespace, serviceAccountName, tenantLabels))
+			}
+			for _, bindRole := range tenant.DeploymentRBAC.BindRoles {
+				generated = append(generated, newServiceAccountRoleBinding(
+					tenant.Name,
+					namespace,
+					serviceAccountName,
+					bindRole.Kind,
+					bindRole.Name,
+					tenantLabels,
+				))
+			}
+
+		} else {
+			generated = append(generated, newServiceAccountRoleBinding(
+				tenant.Name,
+				namespace,
+				serviceAccountName,
+				"",
+				"",
+				tenantLabels,
+			))
+		}
+
 		if tenant.TeamRBAC != nil {
 			generated = append(generated, newTeamRole(tenant.Name, namespace, tenantLabels, tenant.TeamRBAC.Rules))
 			generated = append(generated, newTeamRoleBinding(tenant.Name, namespace, tenant.TeamRBAC.GroupNames, tenantLabels))
 		}
 	}
+
+	policy, err := newAllowedApplicationDeployPolicy(tenant.Name, serviceAccountName, tenant.Namespaces, tenantLabels)
+	if err != nil {
+		return nil, err
+	}
+	generated = append(generated, policy)
+
 	if len(tenant.AllowedRepositories) != 0 {
 		policy, err := newAllowedRepositoriesPolicy(tenant.Name, tenant.Namespaces, tenant.AllowedRepositories, tenantLabels)
 		if err != nil {
@@ -370,11 +434,70 @@ func newServiceAccount(name, namespace string, labels map[string]string) *corev1
 	}
 }
 
-func newRoleBinding(name, namespace, serviceAccountName, clusterRole string, labels map[string]string) *rbacv1.RoleBinding {
-	if clusterRole == "" {
-		clusterRole = "cluster-admin"
+func newDeploymentRBACRoleBinding(tenantName, namespace, serviceAccountName string, labels map[string]string) *rbacv1.RoleBinding {
+	name := fmt.Sprintf("%s-service-account-deployment", tenantName)
+	return newRoleBinding(
+		name,
+		namespace,
+		"Role",
+		name,
+		[]rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      serviceAccountName,
+				Namespace: namespace,
+			},
+		},
+		labels,
+	)
+}
+
+func newServiceAccountRoleBinding(tenantName, namespace, serviceAccountName, roleKind, roleName string, labels map[string]string) *rbacv1.RoleBinding {
+	if roleKind == "" {
+		roleKind = defaultRoleKind
 	}
 
+	if roleName == "" {
+		roleName = defaultRoleName
+	}
+
+	return newRoleBinding(
+		fmt.Sprintf("%s-service-account-%s", tenantName, roleName),
+		namespace,
+		roleKind,
+		roleName,
+		[]rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      serviceAccountName,
+				Namespace: namespace,
+			},
+		},
+		labels,
+	)
+}
+
+func newTeamRoleBinding(tenantName, namespace string, groupNames []string, labels map[string]string) *rbacv1.RoleBinding {
+	name := fmt.Sprintf("%s-team", tenantName)
+	subjects := []rbacv1.Subject{}
+	for _, groupName := range groupNames {
+		subjects = append(subjects, rbacv1.Subject{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Group",
+			Name:     groupName,
+		})
+	}
+	return newRoleBinding(
+		name,
+		namespace,
+		"Role",
+		name,
+		subjects,
+		labels,
+	)
+}
+
+func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv1.Subject, labels map[string]string) *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		TypeMeta: roleBindingTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
@@ -384,55 +507,26 @@ func newRoleBinding(name, namespace, serviceAccountName, clusterRole string, lab
 		},
 		RoleRef: rbacv1.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     clusterRole,
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				APIGroup: "rbac.authorization.k8s.io",
-				Kind:     "User",
-				Name:     "gotk:" + namespace + ":reconciler",
-			},
-			{
-				Kind:      "ServiceAccount",
-				Name:      serviceAccountName,
-				Namespace: namespace,
-			},
-		},
-	}
-}
-
-func newTeamRoleBinding(name, namespace string, groupNames []string, labels map[string]string) *rbacv1.RoleBinding {
-	subjects := []rbacv1.Subject{}
-	for _, groupName := range groupNames {
-		subjects = append(subjects, rbacv1.Subject{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Group",
-			Name:     groupName,
-		})
-	}
-
-	return &rbacv1.RoleBinding{
-		TypeMeta: roleBindingTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-team-rolebinding", name),
-			Namespace: namespace,
-			Labels:    labels,
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "Role",
-			Name:     fmt.Sprintf("%s-team-role", name),
+			Kind:     roleKind,
+			Name:     roleName,
 		},
 		Subjects: subjects,
 	}
 }
 
 func newTeamRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
+	return newRole(fmt.Sprintf("%s-team", name), namespace, labels, rules)
+}
+
+func newServiceAccountRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
+	return newRole(fmt.Sprintf("%s-service-account", name), namespace, labels, rules)
+}
+
+func newRole(name, namespace string, labels map[string]string, rules []rbacv1.PolicyRule) *rbacv1.Role {
 	return &rbacv1.Role{
 		TypeMeta: roleTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-team-role", name),
+			Name:      name,
 			Namespace: namespace,
 			Labels:    labels,
 		},
@@ -530,6 +624,61 @@ func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClu
 					Type: "array",
 					Value: &apiextensionsv1.JSON{
 						Raw: clusterSecretstBytes,
+					},
+				},
+			},
+		},
+	}
+
+	return policy, nil
+}
+
+func newAllowedApplicationDeployPolicy(tenantName, serviceAccountName string, namespaces []string, labels map[string]string) (*pacv2beta1.Policy, error) {
+	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-application-deploy", tenantName)
+
+	namespacesBytes, err := json.Marshal(namespaces)
+	if err != nil {
+		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
+	}
+
+	serviceAccountNameBytes, err := json.Marshal(serviceAccountName)
+	if err != nil {
+		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
+	}
+
+	policy := &pacv2beta1.Policy{
+		TypeMeta: policyTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   policyName,
+			Labels: labels,
+		},
+		Spec: pacv2beta1.PolicySpec{
+			ID:          policyName,
+			Name:        fmt.Sprintf("%s allowed application deploy", tenantName),
+			Category:    "weave.categories.tenancy",
+			Severity:    "high",
+			Description: "Determines which helm release and kustomization can be used in a tenant",
+			Standards:   []pacv2beta1.PolicyStandard{},
+			Targets: pacv2beta1.PolicyTargets{
+				Labels:     []map[string]string{},
+				Kinds:      []string{policyHelmReleaseKind, policyKustomizationKind},
+				Namespaces: namespaces,
+			},
+			Code: applicationPolicyCode,
+			Tags: []string{"tenancy"},
+			Parameters: []pacv2beta1.PolicyParameters{
+				{
+					Name: "namespaces",
+					Type: "array",
+					Value: &apiextensionsv1.JSON{
+						Raw: namespacesBytes,
+					},
+				},
+				{
+					Name: "service_account_name",
+					Type: "string",
+					Value: &apiextensionsv1.JSON{
+						Raw: serviceAccountNameBytes,
 					},
 				},
 			},

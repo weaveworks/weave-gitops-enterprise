@@ -263,7 +263,7 @@ const MCCP: FC = () => {
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    history.push('/clusters/templates');
+    history.push('/templates');
   }, [history]);
 
   const initialFilterState = {

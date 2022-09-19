@@ -257,12 +257,7 @@ const App = () => {
               <Route
                 component={AddClusterWithCredentials}
                 exact
-                path="/clusters/templates/:templateName/create"
-              />
-              <Route
-                component={TemplatesDashboard}
-                exact
-                path="/clusters/templates"
+                path="/templates/:templateName/create"
               />
               <Route
                 component={PoliciesViolations}
@@ -378,6 +373,7 @@ const App = () => {
                 path="/policies/details"
                 component={withSearchParams(PolicyDetails)}
               />
+              <Route component={TemplatesDashboard} exact path="/templates" />
               <Route
                 exact
                 path={Routes.TerraformObjects}

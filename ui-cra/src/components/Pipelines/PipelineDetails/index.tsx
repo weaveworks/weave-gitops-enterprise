@@ -116,7 +116,12 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                 _.map(target.workloads, (workload, wrkIndex) => (
                   <div className={classes.cardContainer} key={wrkIndex}>
                     <div className={classes.target}>
-                      {target?.clusterRef?.name}/{target?.namespace}
+                      {target?.clusterRef?.name ? (
+                        `${target?.clusterRef?.name}/${target?.namespace}`
+                       ) : (
+                        target?.namespace
+                       )
+                      }
                     </div>
                     <div>
                       {workload?.name}

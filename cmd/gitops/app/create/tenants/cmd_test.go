@@ -30,7 +30,7 @@ func Test_PreFlightChecks(t *testing.T) {
 		expectError  bool
 	}{
 		{
-			name: "no policies applied to any tenants",
+			name: "check performed with only base resources",
 			tenants: &tenancy.Config{
 				Tenants: []tenancy.Tenant{
 					{
@@ -48,7 +48,7 @@ func Test_PreFlightChecks(t *testing.T) {
 				},
 			},
 			clusterState: []runtime.Object{},
-			expectError:  false,
+			expectError:  true,
 		},
 		{
 			name: "tenant contains policy and crd exists",

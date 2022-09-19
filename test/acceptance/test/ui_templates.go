@@ -81,6 +81,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.WaitForPageToLoad(webDriver)
 
 				ginkgo.By("And wait for Templates page to be rendered", func() {
+					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
 					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`0`))
 
@@ -129,6 +130,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Templates page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
+					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
 					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`[0-9]+`))
 
@@ -177,6 +179,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And templates can be filtered by provider - grid view", func() {
+					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 					// Select cluster provider by selecting from the popup list
 					gomega.Expect(templatesPage.TemplateProvider.Click()).To(gomega.Succeed())
 					gomega.Expect(templatesPage.SelectProvider("aws").Click()).To(gomega.Succeed())
@@ -204,6 +207,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
+				templatesPage := pages.GetTemplatesPage(webDriver)
+				gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 
 				ginkgo.By("And I should choose a template - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-9")
@@ -219,7 +224,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
-				templatesPage := pages.GetTemplatesPage(webDriver)
 				ginkgo.By("And I should change the templates view to 'table'", func() {
 					pages.WaitForPageToLoad(webDriver)
 					gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
@@ -251,6 +255,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
+				gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 
 				ginkgo.By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
 					templateTile := pages.GetTemplateTile(webDriver, "cluster-invalid-template-0")
@@ -286,9 +291,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
+				pages.WaitForPageToLoad(webDriver)
+				templatesPage := pages.GetTemplatesPage(webDriver)
+				gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 				ginkgo.By("And wait for Templates page to be fully rendered", func() {
-					templatesPage := pages.GetTemplatesPage(webDriver)
-					pages.WaitForPageToLoad(webDriver)
+
+					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
+
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
 
 					count, _ := templatesPage.TemplateCount.Text()

@@ -2,6 +2,16 @@ tenants:
   - name: foo-tenant
     namespaces:
     - foo-ns
+    deploymentRBAC:
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'
   - name: bar-tenant
     namespaces:
     - bar-ns
@@ -24,6 +34,16 @@ tenants:
       groupNames:
       - foo-group
       - bar-group
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'
+    deploymentRBAC:
       rules:
         - apiGroups:
             - ''
