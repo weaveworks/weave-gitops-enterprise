@@ -82,6 +82,8 @@ const PipelineDetails = ({ name, namespace, pipelineName }: Props) => {
     namespace,
   });
 
+  const environments = data?.pipeline?.status?.environments || {};
+
   const classes = useStyles();
   return (
     <PageTemplate documentTitle="WeGo · Pipeline Details">
@@ -105,7 +107,7 @@ const PipelineDetails = ({ name, namespace, pipelineName }: Props) => {
       />
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
         <Grid className={classes.gridWrapper} container spacing={8}>
-          {_.map(data?.pipeline?.status?.environments, (envStatus, envName) => (
+          {Object.entries(environments).map(([envName, envStatus], index) => (
             <Grid item xs key={envName} className={classes.gridContainer}>
               <div className={classes.cardHeader}>
                 <div className={classes.title}>{envName}</div>
@@ -117,20 +119,17 @@ const PipelineDetails = ({ name, namespace, pipelineName }: Props) => {
                 _.map(target.workloads, (workload, wrkIndex) => (
                   <div className={classes.cardContainer} key={wrkIndex}>
                     <div className={classes.target}>
-                      {target?.clusterRef?.name ? (
-                        `${target?.clusterRef?.name}/${target?.namespace}`
-                       ) : (
-                        target?.namespace
-                       )
-                      }
+                      {target?.clusterRef?.name
+                        ? `${target?.clusterRef?.name}/${target?.namespace}`
+                        : target?.namespace}
                     </div>
                     <div>
                       {workload?.name}
                       {/* <Link
-                          to={`/helm_release/details?clusterName=${target?.clusterRef?.name}&name=${name}&namespace=${namespace}`}
-                        >
-                          {workload?.name}
-                        </Link> */}
+                     to={`/helm_release/details?clusterName=${target?.clusterRef?.name}&name=${name}&namespace=${namespace}`}
+                   >
+                     {workload?.name}
+                   </Link> */}
                       <div
                         className={`${classes.subtitle} ${classes.subtitleColor}`}
                       >
