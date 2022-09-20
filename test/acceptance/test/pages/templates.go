@@ -4,29 +4,32 @@ import (
 	"fmt"
 
 	"github.com/sclevine/agouti"
+	"github.com/weaveworks/weave-gitops-enterprise/test/selectors"
 )
 
 // Header webDriver elements
 type TemplatesPage struct {
-	TemplateHeader        *agouti.Selection
-	TemplateCount         *agouti.Selection
-	TemplateTiles         *agouti.MultiSelection
-	TemplatesList         *agouti.MultiSelection
-	TemplateProvider      *agouti.Selection
-	TemplateProviderPopup *agouti.MultiSelection
-	TemplateView          *agouti.MultiSelection
+	TemplateHeader         *agouti.Selection
+	TemplateCount          *agouti.Selection
+	TemplateTiles          *agouti.MultiSelection
+	TemplatesList          *agouti.MultiSelection
+	TemplateProvider       *agouti.Selection
+	TemplateProviderPopup  *agouti.MultiSelection
+	TemplateViewGridButton *agouti.Selection
+	TemplateViewListButton *agouti.Selection
 }
 
 // TemplatesPage webdriver initialises the webDriver object
 func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
-		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/templates"]`),
-		TemplateCount:         webDriver.FindByXPath(`//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div`),
-		TemplateTiles:         webDriver.All(`[data-template-name]`),
-		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
-		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
-		TemplateProviderPopup: webDriver.All(`ul#filter-by-provider-popup li`),
-		TemplateView:          webDriver.All(`#display-action > svg`),
+		TemplateHeader:         selectors.Get(webDriver, "templates", "page", "header"),
+		TemplateCount:          selectors.Get(webDriver, "templates", "page", "count"),
+		TemplateTiles:          selectors.GetMulti(webDriver, "templates", "page", "tiles"),
+		TemplatesList:          selectors.GetMulti(webDriver, "templates", "page", "listView"),
+		TemplateProvider:       selectors.Get(webDriver, "templates", "page", "provider"),
+		TemplateProviderPopup:  selectors.GetMulti(webDriver, "templates", "page", "providerPopup"),
+		TemplateViewGridButton: selectors.Get(webDriver, "templates", "page", "gridViewButton"),
+		TemplateViewListButton: selectors.Get(webDriver, "templates", "page", "listViewButton"),
 	}
 
 	return &templatesPage
@@ -110,9 +113,9 @@ func (t TemplatesPage) SelectProvider(providerName string) *agouti.Selection {
 func (t TemplatesPage) SelectView(viewName string) *agouti.Selection {
 	switch viewName {
 	case "table":
-		return t.TemplateView.At(0)
+		return t.TemplateViewListButton
 	case "grid":
-		return t.TemplateView.At(1)
+		return t.TemplateViewGridButton
 	}
 	return nil
 }

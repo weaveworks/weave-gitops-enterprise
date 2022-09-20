@@ -1,5 +1,7 @@
 import React from 'react';
 import { mount } from '@cypress/react';
+import YAML from 'yamljs';
+
 import { withContext } from '../../src/utils/test-utils';
 import ResponsiveDrawer from '../../src/components/ResponsiveDrawer';
 
@@ -39,24 +41,8 @@ const responses = {
         name: 'cluster-template-development',
         description: 'A simple CAPD template',
         provider: 'docker',
-        parameters: [
-          {
-            name: 'CLUSTER_NAME',
-            description: 'This is used for the cluster naming.',
-            required: true,
-            options: [],
-            default: '',
-          },
-        ],
-        objects: [
-          {
-            kind: 'GitopsCluster',
-            apiVersion: 'gitops.weave.works/v1alpha1',
-            parameters: ['CLUSTER_NAME', 'NAMESPACE'],
-            name: '${CLUSTER_NAME}',
-            displayName: '',
-          },
-        ],
+        parameters: [],
+        objects: [],
         error: '',
         annotations: {},
         templateKind: 'CAPITemplate',
@@ -114,44 +100,32 @@ export const defaultContexts = () => [
   [AppContextProvider, { applicationsClient }],
 ];
 
-const page = [
-  {
-    name: 'templateHeader',
-    select: `div[role="heading"] a[href="/templates"]`,
-  },
-  {
-    name: 'templateCount',
-    selectByXPath: `//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div`,
-  },
-  { name: 'templateTiles', selectAll: `[data-template-name]` },
-  { name: 'templatesList', selectAll: `#templates-list tbody tr` },
-  { name: 'templateProvider', select: `#filter-by-provider` },
-  {
-    name: 'templateProviderPopup',
-    selectAll: `ul#filter-by-provider-popup li`,
-  },
-  { name: 'templateView', selectAll: `#display-action > svg` },
-];
+interface Selector {
+  select?: string;
+  selectAll?: string;
+  selectByXPath?: string;
+}
 
-const templatesSelectors = {
-  page,
+type Selectors = {
+  [group: string]: { [section: string]: { [name: string]: Selector } };
 };
 
-// const templateHeader = { name: "templateHeader", select: `div[role="heading"] a[href="/templates"]` };
-// const templateCount = {
-//   select: `//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div`,
-// };
-// const templateTiles = { selectAll: `[data-template-name]` };
-// const templatesList = { selectAll: `#templates-list tbody tr` };
-// const templateProvider = { select: `#filter-by-provider` };
-// const templateProviderPopup = { selectAll: `ul#filter-by-provider-popup li` };
-// const templateView = { selectAll: `#display-action > svg` };
+const select = (selector: Selector) => {
+  if (selector.select) {
+    return cy.get(selector.select).should('have.length', 1);
+  } else if (selector.selectAll) {
+    return cy.get(selector.selectAll).should('exist');
+  } else if (selector.selectByXPath) {
+    return cy.xpath(selector.selectByXPath).should('exist');
+  }
+};
 
 it('renders learn react link', () => {
   const wrap = withContext([...defaultContexts()]);
   for (const [url, response] of Object.entries(responses)) {
     cy.intercept('GET', url, response).as(`get ${url}`);
   }
+
   mount(
     wrap(
       <>
@@ -161,13 +135,16 @@ it('renders learn react link', () => {
     ),
   );
 
-  for (const selector of templatesSelectors.page) {
-    if (selector.select) {
-      cy.get(selector.select).should('exist');
-    } else if (selector.selectAll) {
-      cy.get(selector.selectAll).should('exist');
-    } else if (selector.selectByXPath) {
-      cy.xpath(selector.selectByXPath).should('exist');
-    }
-  }
+  cy.readFile('../test/selectors/selectors.yaml')
+    .then(yaml => YAML.parse(yaml) as Selectors)
+    .then(({ templates: selectors }) => {
+      for (const [selectorName, selector] of Object.entries(selectors.page)) {
+        select(selector);
+      }
+
+      select(selectors.page.gridViewButton).click();
+      select(selectors.gridView.tiles);
+      select(selectors.gridView.provider).click();
+      select(selectors.gridView.providerPopup);
+    });
 });

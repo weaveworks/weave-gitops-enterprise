@@ -1277,8 +1277,6 @@ github.com/weaveworks/cluster-controller v1.2.0 h1:Q+c5GncBHAf6z7KgvyXM4sCDftC4L
 github.com/weaveworks/cluster-controller v1.2.0/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
-github.com/weaveworks/pipeline-controller/api v0.0.0-20220826142840-8bf571a1f799 h1:O1fLCFHLsHghhDhIijL9fjs8pBzN+IPDI/Utvllu16I=
-github.com/weaveworks/pipeline-controller/api v0.0.0-20220826142840-8bf571a1f799/go.mod h1:BW37buP/YOallo3/ujy2u5UlwZtJed4ZcilBT5yeJsE=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20220916165727-cb8504f08c22 h1:Nn0uFFztrATEyTIwYd0yLXKk7Ee9Ndx6P3DFZsU4TxU=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20220916165727-cb8504f08c22/go.mod h1:BW37buP/YOallo3/ujy2u5UlwZtJed4ZcilBT5yeJsE=
 github.com/weaveworks/policy-agent/api v1.0.4 h1:dznn4I3+tfSniNbERFaAXOMpLsvwW+6MvjemkNou0NE=

@@ -99,10 +99,12 @@ const TemplatesDashboard: FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">
             <ListView
+              data-testid="list-view"
               className={view === 'table' ? 'active' : 'inactive'}
               onClick={() => setView('table')}
             />
             <GridView
+              data-testid="grid-view"
               className={view === 'grid' ? 'active' : 'inactive'}
               onClick={() => setView('grid')}
             />
