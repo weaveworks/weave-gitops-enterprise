@@ -71,10 +71,9 @@ const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
 interface Props {
   name: string;
   namespace: string;
-  pipelineName: string;
 }
 
-const PipelineDetails = ({ name, namespace, pipelineName }: Props) => {
+const PipelineDetails = ({ name, namespace }: Props) => {
   const applicationsCount = useApplicationsCount();
   const pipelinesCount = useCountPipelines();
   const { isLoading, error, data } = useGetPipeline({
@@ -101,7 +100,7 @@ const PipelineDetails = ({ name, namespace, pipelineName }: Props) => {
             count: pipelinesCount,
           },
           {
-            label: pipelineName,
+            label: name,
           },
         ]}
       />
