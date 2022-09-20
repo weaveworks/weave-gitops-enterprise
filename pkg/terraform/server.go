@@ -174,6 +174,39 @@ func (s *server) SyncTerraformObject(ctx context.Context, msg *pb.SyncTerraformO
 	return &pb.SyncTerraformObjectResponse{Success: true}, nil
 }
 
+func (s *server) ToggleSuspendTerraformObject(ctx context.Context, msg *pb.ToggleSuspendTerraformObjectRequest) (*pb.ToggleSuspendTerraformObjectResponse, error) {
+	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
+
+	c, err := clustersClient.Scoped(msg.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("getting scoped client: %w", err)
+	}
+
+	key := client.ObjectKey{
+		Name:      msg.Name,
+		Namespace: msg.Namespace,
+	}
+
+	obj := &tfctrl.Terraform{}
+
+	if err := c.Get(ctx, key, obj); err != nil {
+		return nil, fmt.Errorf("getting object %s in namespace %s: %w", msg.Name, msg.Namespace, err)
+	}
+
+	patch := client.MergeFrom(obj.DeepCopy())
+
+	obj.Spec.Suspend = msg.Suspend
+
+	if err := c.Patch(ctx, obj, patch); err != nil {
+		return nil, fmt.Errorf("patching object: %w", err)
+	}
+
+	return &pb.ToggleSuspendTerraformObjectResponse{}, nil
+}
+
 func serializeObj(scheme *k8sruntime.Scheme, obj client.Object) ([]byte, error) {
 
 	obj.GetObjectKind().SetGroupVersionKind(tfctrl.GroupVersion.WithKind(tfctrl.TerraformKind))

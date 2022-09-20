@@ -38,6 +38,16 @@ export type SyncTerraformObjectResponse = {
   success?: boolean
 }
 
+export type ToggleSuspendTerraformObjectRequest = {
+  clusterName?: string
+  name?: string
+  namespace?: string
+  suspend?: boolean
+}
+
+export type ToggleSuspendTerraformObjectResponse = {
+}
+
 export class Terraform {
   static ListTerraformObjects(req: ListTerraformObjectsRequest, initReq?: fm.InitReq): Promise<ListTerraformObjectsResponse> {
     return fm.fetchReq<ListTerraformObjectsRequest, ListTerraformObjectsResponse>(`/v1/terraform_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -47,5 +57,8 @@ export class Terraform {
   }
   static SyncTerraformObject(req: SyncTerraformObjectRequest, initReq?: fm.InitReq): Promise<SyncTerraformObjectResponse> {
     return fm.fetchReq<SyncTerraformObjectRequest, SyncTerraformObjectResponse>(`/v1/terraform_objects/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ToggleSuspendTerraformObject(req: ToggleSuspendTerraformObjectRequest, initReq?: fm.InitReq): Promise<ToggleSuspendTerraformObjectResponse> {
+    return fm.fetchReq<ToggleSuspendTerraformObjectRequest, ToggleSuspendTerraformObjectResponse>(`/v1/terraform_objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

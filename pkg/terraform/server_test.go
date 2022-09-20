@@ -126,6 +126,36 @@ func TestSyncTerraformObject(t *testing.T) {
 	}
 }
 
+func TestSuspendTerraformObject(t *testing.T) {
+	ctx := context.Background()
+	client, k8s := setup(t)
+
+	obj := &tfctrl.Terraform{}
+	obj.Name = "my-obj"
+	obj.Namespace = "default"
+	obj.Spec = tfctrl.TerraformSpec{
+		Suspend: false,
+	}
+
+	assert.NoError(t, k8s.Create(ctx, obj))
+
+	_, err := client.ToggleSuspendTerraformObject(ctx, &pb.ToggleSuspendTerraformObjectRequest{
+		Name:        obj.Name,
+		Namespace:   obj.Namespace,
+		ClusterName: "Default",
+		Suspend:     true,
+	})
+	assert.NoError(t, err)
+
+	s := &tfctrl.Terraform{}
+	key := types.NamespacedName{Name: obj.Name, Namespace: obj.Namespace}
+
+	assert.NoError(t, k8s.Get(ctx, key, s))
+
+	assert.True(t, s.Spec.Suspend, "expected Spec.Suspend to be true")
+
+}
+
 func setup(t *testing.T) (pb.TerraformClient, client.Client) {
 	k8s, factory := grpctesting.MakeFactoryWithObjects()
 	opts := terraform.ServerOpts{
