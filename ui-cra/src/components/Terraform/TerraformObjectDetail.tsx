@@ -149,6 +149,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 <>
                   <Box marginBottom={2}>
                     <InfoList
+                      data-testid="info-list"
                       items={[
                         ['Source', object?.sourceRef?.name],
                         ['Applied Revision', object?.appliedRevision],

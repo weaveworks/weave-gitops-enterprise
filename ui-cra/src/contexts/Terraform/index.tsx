@@ -90,8 +90,6 @@ export function useToggleSuspendTerraformObject(params: DetailParams) {
 
   return (suspend: boolean) =>
     tf.ToggleSuspendTerraformObject({ ...params, suspend }).then(res => {
-      invalidate(qc, params);
-
-      return res;
+      return invalidate(qc, params).then(() => res);
     });
 }
