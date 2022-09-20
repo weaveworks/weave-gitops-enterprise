@@ -21,7 +21,7 @@ import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 
-const GlobalStyle = createGlobalStyle`
+export const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
   /* https://github.com/necolas/normalize.css/issues/694 */
   button,

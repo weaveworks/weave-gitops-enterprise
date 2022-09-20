@@ -95,8 +95,12 @@
     ]
   },
   "devDependencies": {
+    "@cypress/react": "^6.2.0",
+    "@cypress/webpack-dev-server": "^2.3.0",
     "@testing-library/react": "^12.1.5",
     "@types/react-syntax-highlighter": "^13.5.2",
+    "cypress": "^10.8.0",
+    "cypress-xpath": "^2.0.1",
     "express": "^4.17.1",
     "http-proxy-middleware": "^2.0.0",
     "jest-styled-components": "^7.0.8",
