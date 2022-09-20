@@ -105,7 +105,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         ]}
       />
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
-        <Grid className={classes.gridWrapper} container spacing={8}>
+        <Grid className={classes.gridWrapper} container spacing={4}>
           {environments.map((env, index) => {
             const status = targetsStatuses[env.name!].targetsStatuses || [];
             return (

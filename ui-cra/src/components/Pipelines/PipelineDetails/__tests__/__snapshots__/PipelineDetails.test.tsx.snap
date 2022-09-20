@@ -301,7 +301,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c11"
       >
         <div
-          class="MuiGrid-root makeStyles-gridWrapper-17 MuiGrid-container MuiGrid-spacing-xs-8"
+          class="MuiGrid-root makeStyles-gridWrapper-17 MuiGrid-container MuiGrid-spacing-xs-4"
         >
           <div
             class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
