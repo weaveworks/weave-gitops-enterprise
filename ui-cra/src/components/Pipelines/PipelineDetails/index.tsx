@@ -1,6 +1,5 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { theme } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useCountPipelines, useGetPipeline } from '../../../contexts/Pipelines';
 import { useApplicationsCount } from '../../Applications/utils';
@@ -114,8 +113,8 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                   {getTargetsCount(envStatus.targetsStatuses || [])} Targets
                 </div>
               </div>
-              {_.map(envStatus.targetsStatuses, target =>
-                _.map(target.workloads, (workload, wrkIndex) => (
+              {envStatus?.targetsStatuses?.map(target =>
+                target?.workloads?.map((workload, wrkIndex) => (
                   <div className={classes.cardContainer} key={wrkIndex}>
                     <div className={classes.target}>
                       {target?.clusterRef?.name
