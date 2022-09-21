@@ -1,0 +1,22 @@
+templates:
+  # main templates page
+  page:
+    header:
+      select: 'div[role="heading"] a[href="/templates"]'
+    count:
+      selectByXPath: '//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div'
+    listView:
+      selectAll: "#templates-list tbody tr"
+    listViewButton:
+      select: '#display-action > svg[data-testid="list-view"]'
+    gridViewButton:
+      select: '#display-action > svg[data-testid="grid-view"]'
+
+  # gridview variant
+  gridView:
+    tiles:
+      selectAll: "[data-template-name]"
+    provider:
+      select: "#filter-by-provider"
+    providerPopup:
+      selectAll: "ul#filter-by-provider-popup li"

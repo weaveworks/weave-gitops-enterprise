@@ -24,10 +24,10 @@ func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
 		TemplateHeader:         selectors.Get(webDriver, "templates", "page", "header"),
 		TemplateCount:          selectors.Get(webDriver, "templates", "page", "count"),
-		TemplateTiles:          selectors.GetMulti(webDriver, "templates", "page", "tiles"),
+		TemplateTiles:          selectors.GetMulti(webDriver, "templates", "gridView", "tiles"),
 		TemplatesList:          selectors.GetMulti(webDriver, "templates", "page", "listView"),
-		TemplateProvider:       selectors.Get(webDriver, "templates", "page", "provider"),
-		TemplateProviderPopup:  selectors.GetMulti(webDriver, "templates", "page", "providerPopup"),
+		TemplateProvider:       selectors.Get(webDriver, "templates", "gridView", "provider"),
+		TemplateProviderPopup:  selectors.GetMulti(webDriver, "templates", "gridView", "providerPopup"),
 		TemplateViewGridButton: selectors.Get(webDriver, "templates", "page", "gridViewButton"),
 		TemplateViewListButton: selectors.Get(webDriver, "templates", "page", "listViewButton"),
 	}
