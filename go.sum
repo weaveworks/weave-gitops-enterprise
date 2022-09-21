@@ -1277,6 +1277,8 @@ github.com/weaveworks/cluster-controller v1.3.1 h1:SHtfhgYu9RUPcfuk1Zqh+zSwdis8W
 github.com/weaveworks/cluster-controller v1.3.1/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
 github.com/weaveworks/cluster-controller v1.3.2-0.20220921062305-80f3cebd833a h1:LyzAiYDNAsSagBdP1OxiEVgJMrOn0GbWGcxs1JbgrXw=
 github.com/weaveworks/cluster-controller v1.3.2-0.20220921062305-80f3cebd833a/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
+github.com/weaveworks/cluster-controller v1.3.2 h1:MBM2u5KDHhizXyx0oEByPXejgvg9e1qTQZuYtXgRVrI=
+github.com/weaveworks/cluster-controller v1.3.2/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20220916165727-cb8504f08c22 h1:Nn0uFFztrATEyTIwYd0yLXKk7Ee9Ndx6P3DFZsU4TxU=

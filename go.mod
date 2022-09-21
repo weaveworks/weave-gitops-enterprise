@@ -46,7 +46,7 @@ require (
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/spf13/viper v1.12.0
-	github.com/weaveworks/cluster-controller v1.3.2-0.20220921062305-80f3cebd833a
+	github.com/weaveworks/cluster-controller v1.3.2
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.4
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
