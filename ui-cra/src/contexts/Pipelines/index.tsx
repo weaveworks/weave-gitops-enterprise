@@ -32,11 +32,6 @@ export const useListPipelines = () => {
   );
 };
 
-export const useCountPipelines = () => {
-  const { data } = useListPipelines();
-  return data?.pipelines?.length;
-};
-
 export const useGetPipeline = (req: GetPipelineRequest) => {
   const pipelinsService = usePipelines();
   return useQuery<GetPipelineResponse, Error>(

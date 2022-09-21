@@ -79,18 +79,6 @@ export const useGetCanaryDetails = (params: CanaryParams) => {
   );
 };
 
-const GET_CANARIES_COUNT_KEY = 'get_canaries_count';
-
-export const useCanariesCount = () => {
-  const pd = useProgressiveDelivery();
-
-  const { data } = useQuery<ListCanariesResponse, Error>(
-    [PD_QUERY_KEY, GET_CANARIES_COUNT_KEY],
-    () => pd.ListCanaries({}),
-  );
-  return data?.canaries?.length;
-};
-
 const CANARY_OBJS_KEY = 'canary_objects';
 export const useListFlaggerObjects = (params: CanaryParams) => {
   const pd = useProgressiveDelivery();

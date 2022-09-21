@@ -9,7 +9,6 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
-import { useApplicationsCount } from './utils';
 
 type Props = {
   name: string;
@@ -22,7 +21,6 @@ const WGApplicationsKustomization: FC<Props> = ({
   namespace,
   clusterName,
 }) => {
-  const applicationsCount = useApplicationsCount();
   const { data, isLoading, error } = useGetKustomization(
     name,
     namespace,
@@ -57,7 +55,6 @@ const WGApplicationsKustomization: FC<Props> = ({
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           {
             label: `${name}`,
