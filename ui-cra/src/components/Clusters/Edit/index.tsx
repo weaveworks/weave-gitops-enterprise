@@ -25,17 +25,14 @@ const EditCluster: FC<{ cluster?: GitopsClusterEnriched | null }> = ({
 };
 
 const EditClusterPage = () => {
-  const { count: clustersCount, isLoading, getCluster } = useClusters();
+  const { isLoading, getCluster } = useClusters();
   const { clusterName } = useParams<{ clusterName: string }>();
   const { isLoading: isTemplateLoading } = useTemplates();
   return (
     <PageTemplate documentTitle="WeGo · Create new cluster">
       <SectionHeader
         className="count-header"
-        path={[
-          { label: 'Clusters', url: '/', count: clustersCount },
-          { label: clusterName },
-        ]}
+        path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
       />
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>
