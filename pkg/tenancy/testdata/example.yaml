@@ -2,6 +2,16 @@ tenants:
   - name: foo-tenant
     namespaces:
     - foo-ns
+    deploymentRBAC:
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'
   - name: bar-tenant
     namespaces:
     - bar-ns
@@ -15,6 +25,8 @@ tenants:
       url: minio.example.com
     - kind: HelmRepository
       url: https://testorg.github.io/testrepo
+    - kind: OCIRepository
+      url: oci://ghcr.io/testreg/testrepo
     allowedClusters:
     - kubeConfig: cluster-1-kubeconfig
     - kubeConfig: cluster-2-kubeconfig
@@ -22,6 +34,16 @@ tenants:
       groupNames:
       - foo-group
       - bar-group
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'
+    deploymentRBAC:
       rules:
         - apiGroups:
             - ''

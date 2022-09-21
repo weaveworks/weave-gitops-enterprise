@@ -22,11 +22,11 @@ export const PipelinesProvider = ({ api, children }: Props) => (
 
 export const usePipelines = () => React.useContext(PipelinesContext);
 
-const LIST_PIPLINES_KEY = 'list-piplines';
+const PIPELINES_KEY = 'pipelines';
 export const useListPipelines = () => {
   const pipelinsService = usePipelines();
   return useQuery<ListPipelinesResponse, Error>(
-    [LIST_PIPLINES_KEY],
+    [PIPELINES_KEY],
     () => pipelinsService.ListPipelines({}),
     { retry: false },
   );
@@ -37,11 +37,10 @@ export const useCountPipelines = () => {
   return data?.pipelines?.length;
 };
 
-const GET_PIPLINES_KEY = 'get-pipline';
 export const useGetPipeline = (req: GetPipelineRequest) => {
   const pipelinsService = usePipelines();
   return useQuery<GetPipelineResponse, Error>(
-    [GET_PIPLINES_KEY],
+    [PIPELINES_KEY, req.namespace, req.name],
     () => pipelinsService.GetPipeline(req),
     { retry: false },
   );

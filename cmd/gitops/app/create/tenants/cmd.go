@@ -24,6 +24,7 @@ type tenantCommandFlags struct {
 	fromFile            string
 	export              bool
 	skipPreFlightChecks bool
+	Prune               bool
 }
 
 var flags tenantCommandFlags
@@ -44,7 +45,7 @@ var CreateCommand = &cobra.Command{
 	  # Export tenant resources to stdout
 	  gitops create tenants --from-file tenants.yaml --export
 	`,
-	RunE: createTenantsCmdRunE(),
+	RunE: applyTenantsCmdRunE(),
 }
 
 func init() {
@@ -53,11 +54,12 @@ func init() {
 	CreateCommand.Flags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
 	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
 	CreateCommand.Flags().BoolVar(&flags.skipPreFlightChecks, "skip-preflight-checks", false, "skip preflight checks before creating resources in cluster")
+	CreateCommand.Flags().BoolVar(&flags.Prune, "prune", false, "prunes resources not needed by the config file")
 
 	cobra.CheckErr(CreateCommand.MarkFlagRequired("from-file"))
 }
 
-func createTenantsCmdRunE() func(*cobra.Command, []string) error {
+func applyTenantsCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var tenancyConfig *tenancy.Config
 
@@ -104,7 +106,7 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 			}
 		}
 
-		err = tenancy.CreateTenants(ctx, tenancyConfig, kubeClient, os.Stdout)
+		err = tenancy.ApplyTenants(ctx, tenancyConfig, kubeClient, flags.Prune, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -114,19 +116,6 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 }
 
 func preFlightCheck(ctx context.Context, config *tenancy.Config, kubeClient *kube.KubeHTTP) error {
-	var hasPolicy bool
-
-	for _, tenant := range config.Tenants {
-		if len(tenant.AllowedRepositories) != 0 || len(tenant.AllowedClusters) != 0 {
-			hasPolicy = true
-			break
-		}
-	}
-
-	if !hasPolicy {
-		return nil
-	}
-
 	crd := &apiextentionsv1.CustomResourceDefinition{}
 	err := kubeClient.Get(ctx, client.ObjectKey{Name: policyCRDName}, crd)
 	if err != nil {

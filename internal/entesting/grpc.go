@@ -34,7 +34,7 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 		return n, nil
 	}
 
-	clientsFactory := clustersmngr.NewClientFactory(
+	clustersManager := clustersmngr.NewClustersManager(
 		fetcher,
 		&nsChecker,
 		log,
@@ -44,15 +44,15 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 	)
 
 	opts := server.ServerOpts{
-		Logger:         log,
-		ClientsFactory: clientsFactory,
+		Logger:          log,
+		ClustersManager: clustersManager,
 	}
 
 	enServer := server.NewClusterServer(opts)
 	lis := bufconn.Listen(1024 * 1024)
 	principal := auth.NewUserPrincipal(auth.Token("1234"))
 	s := grpc.NewServer(
-		withClientsPoolInterceptor(clientsFactory, cfg, principal),
+		withClientsPoolInterceptor(clustersManager, cfg, principal),
 	)
 
 	pb.RegisterClustersServiceServer(s, enServer)
@@ -93,20 +93,20 @@ func restConfigToCluster(cfg *rest.Config) clustersmngr.Cluster {
 	}
 }
 
-func withClientsPoolInterceptor(clientsFactory clustersmngr.ClientsFactory, config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
+func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		if err := clientsFactory.UpdateClusters(ctx); err != nil {
+		if err := clustersManager.UpdateClusters(ctx); err != nil {
 			return nil, fmt.Errorf("failed to update clusters: %w", err)
 		}
-		if err := clientsFactory.UpdateNamespaces(ctx); err != nil {
+		if err := clustersManager.UpdateNamespaces(ctx); err != nil {
 			return nil, fmt.Errorf("failed to update namespaces: %w", err)
 		}
 
-		clientsFactory.UpdateUserNamespaces(ctx, user)
+		clustersManager.UpdateUserNamespaces(ctx, user)
 
 		ctx = auth.WithPrincipal(ctx, user)
 
-		clusterClient, err := clientsFactory.GetImpersonatedClient(ctx, user)
+		clusterClient, err := clustersManager.GetImpersonatedClient(ctx, user)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get impersonating client: %w", err)
 		}

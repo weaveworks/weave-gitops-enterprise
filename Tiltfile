@@ -1,4 +1,5 @@
 load('ext://restart_process', 'docker_build_with_restart')
+load('ext://helm_remote', 'helm_remote')
 
 if not os.path.exists("./charts/mccp/charts"):
    # Download chart deps on first run. This command is slow, so you'd have to
@@ -39,6 +40,10 @@ docker_build('weaveworks/cluster-bootstrap-controller', '../cluster-bootstrap-co
    build_args={'GITHUB_BUILD_USERNAME': 'wge-build-bot', 'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN')}
 )
 
+helm_remote('tf-controller',
+            repo_url='https://weaveworks.github.io/tf-controller',
+            namespace='flux-system')
+
 native_build = os.getenv('NATIVE_BUILD', False)
 
 if native_build:
@@ -47,6 +52,7 @@ if native_build:
       'GOOS=linux GOARCH=amd64 make build',
       deps=[
          './cmd/clusters-service',
+         './pkg'
       ],
       ignore=[
          './cmd/clusters-service/bin'

@@ -44,7 +44,7 @@ type Options struct {
 	TLSKey                       string
 	NoTLS                        bool
 	DevMode                      bool
-	ClientsFactory               clustersmngr.ClientsFactory
+	ClustersManager              clustersmngr.ClustersManager
 }
 
 type Option func(*Options)
@@ -226,9 +226,9 @@ func WithDevMode(devMode bool) Option {
 	}
 }
 
-// WithClientsFactory defines the clients factory that will be use for cross-cluster queries.
-func WithClientsFactory(factory clustersmngr.ClientsFactory) Option {
+// WithClustersManager defines the clusters manager that will be use for cross-cluster queries.
+func WithClustersManager(factory clustersmngr.ClustersManager) Option {
 	return func(o *Options) {
-		o.ClientsFactory = factory
+		o.ClustersManager = factory
 	}
 }
