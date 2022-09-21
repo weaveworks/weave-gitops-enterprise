@@ -1,7 +1,8 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useState, useEffect } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
+import useNotifications from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -48,8 +49,10 @@ const Error = styled.span`
   color: ${theme.colors.alert};
 `;
 
-const TemplatesDashboard: FC = () => {
+const TemplatesDashboard: FC<{ location: { state: any } }> = ({ location }) => {
   const { templates, isLoading } = useTemplates();
+  const { setNotifications } = useNotifications();
+  const notification = location.state?.notification;
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
@@ -83,6 +86,12 @@ const TemplatesDashboard: FC = () => {
     (event, t) => history.push(`/templates/${t.name}/create`),
     [history],
   );
+
+  useEffect(() => {
+    if (notification) {
+      setNotifications(notification);
+    }
+  }, [notification, setNotifications]);
 
   return (
     <PageTemplate documentTitle="WeGO · Templates">
