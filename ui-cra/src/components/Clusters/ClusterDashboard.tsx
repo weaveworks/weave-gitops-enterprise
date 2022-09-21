@@ -30,6 +30,7 @@ import {
 import { DashboardsList } from './DashboardsList';
 import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
+import { useIsClusterWithSources } from '../Applications/utils';
 
 type Props = {
   className?: string;
@@ -67,6 +68,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
   const history = useHistory();
   const [disabled, setDisabled] = useState<boolean>(false);
   const classes = useStyles();
+  const isClusterWithSources = useIsClusterWithSources(clusterName);
 
   const handleClick = () => {
     setDisabled(true);
@@ -128,6 +130,20 @@ const ClusterDashboard = ({ clusterName }: Props) => {
             }}
           >
             GO TO APPLICATIONS
+          </WeaveButton>
+          <WeaveButton
+            id="cluster-add-application"
+            className={classes.clusterApplicationBtn}
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
+            onClick={() => {
+              const filtersValues = encodeURIComponent(
+                `${currentCluster?.name}`,
+              );
+              history.push(`/applications/create?clusterName=${filtersValues}`);
+            }}
+            disabled={!isClusterWithSources}
+          >
+            ADD APPLICATION TO THIS CLUSTER
           </WeaveButton>
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>

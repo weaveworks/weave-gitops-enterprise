@@ -27,7 +27,7 @@ import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import { ProfilesIndex } from '../../../types/custom';
 
-const AddApplication = ({ selectedCluster }: { selectedCluster?: string }) => {
+const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const applicationsCount = useApplicationsCount();
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -246,6 +246,7 @@ const AddApplication = ({ selectedCluster }: { selectedCluster?: string }) => {
                           formData={formData}
                           setFormData={setFormData}
                           allowSelectCluster
+                          clusterName={clusterName}
                         />
                       );
                     },
@@ -286,11 +287,12 @@ const AddApplication = ({ selectedCluster }: { selectedCluster?: string }) => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
+    clusterName,
   ]);
 };
 
-export default ({ ...props }) => (
+export default ({ ...rest }) => (
   <ProfilesProvider>
-    <AddApplication {...props} />
+    <AddApplication {...rest} />
   </ProfilesProvider>
 );
