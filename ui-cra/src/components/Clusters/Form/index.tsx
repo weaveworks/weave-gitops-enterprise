@@ -165,7 +165,7 @@ function getInitialData(
   return { initialFormData, initialInfraCredentials };
 }
 
-const getKustomizations = useCallback(formData => {
+const getKustomizations = (formData: any) => {
   const { clusterAutomations } = formData;
   // filter out empty kustomization
   const filteredKustomizations = clusterAutomations.filter(
@@ -187,7 +187,7 @@ const getKustomizations = useCallback(formData => {
       },
     };
   });
-}, []);
+};
 
 const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
   _.sortBy(Object.values(profiles), 'name')
