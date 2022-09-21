@@ -12,10 +12,7 @@ import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
 import { ResourceRef } from '../../api/terraform/types.pb';
-import {
-  useGetTerraformObjectDetail,
-  useTerraformObjectCount,
-} from '../../contexts/Terraform';
+import { useGetTerraformObjectDetail } from '../../contexts/Terraform';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -33,7 +30,6 @@ type Props = {
 };
 
 function TerraformObjectDetail({ className, ...params }: Props) {
-  const count = useTerraformObjectCount();
   const { path } = useRouteMatch();
 
   const { data, isLoading, error } = useGetTerraformObjectDetail(params);
@@ -49,7 +45,6 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             {
               label: 'Terraform Objects',
               url: Routes.TerraformObjects,
-              count,
             },
             {
               label: params?.name,
