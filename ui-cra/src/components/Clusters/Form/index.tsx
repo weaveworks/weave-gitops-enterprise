@@ -16,7 +16,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Redirect, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   CreatePullRequestRequest,
@@ -441,14 +441,33 @@ interface Props {
 }
 
 const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
-  if (!template) {
-    return <Redirect to="/templates" />;
-  }
+  const { setNotifications } = useNotifications();
+  const history = useHistory();
+
+  useEffect(() => {
+    if (template === null || template === undefined) {
+      history.push('/templates');
+      setNotifications([
+        {
+          message: {
+            text: 'No template information is available to create a cluster.',
+          },
+          variant: 'danger',
+        },
+      ]);
+    }
+  }, [template, setNotifications, history]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <ProfilesProvider cluster={cluster || undefined} template={template}>
-        <ClusterForm template={template} cluster={cluster || undefined} />
+      <ProfilesProvider
+        cluster={cluster || undefined}
+        template={template || undefined}
+      >
+        <ClusterForm
+          template={template || ({} as TemplateEnriched)}
+          cluster={cluster || undefined}
+        />
       </ProfilesProvider>
     </ThemeProvider>
   );
