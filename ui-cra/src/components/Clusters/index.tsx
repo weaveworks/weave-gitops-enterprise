@@ -53,11 +53,6 @@ import { getCreateRequestAnnotation } from './Form/utils';
 interface Size {
   size?: 'small';
 }
-
-type Props = {
-  cluster: GitopsClusterEnriched;
-};
-
 const ActionsWrapper = styled.div<Size>`
   display: flex;
 `;
@@ -109,7 +104,9 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const ClusterIcon: FC<Props> = ({ cluster }) => {
+export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
+  cluster,
+}) => {
   const classes = useStyles();
   const clusterKind =
     cluster.labels?.['weave.works/cluster-kind'] ||
@@ -196,8 +193,9 @@ interface FormData {
   pullRequestDescription: string;
 }
 
-const MCCP: FC = () => {
+const MCCP: FC<{ location: { state: any } }> = ({ location }) => {
   const { clusters, isLoading, count } = useClusters();
+  const notification = location.state?.notification;
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
@@ -225,6 +223,12 @@ const MCCP: FC = () => {
     Math.random().toString(36).substring(7),
   );
   const classes = useStyles();
+
+  useEffect(() => {
+    if (notification) {
+      setNotifications(notification);
+    }
+  }, [notification, setNotifications]);
 
   useEffect(() => {
     if (openDeletePR === true) {
