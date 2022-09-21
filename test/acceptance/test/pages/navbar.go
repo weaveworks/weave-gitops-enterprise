@@ -23,7 +23,7 @@ func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 	navbar := NavbarwebDriver{
 		Title:        webDriver.Find(`nav a[title="Home"]`),
 		Clusters:     webDriver.Find(`nav a[href="/clusters"]`),
-		Templates:    webDriver.Find(`nav a[href="/clusters/templates"]`),
+		Templates:    webDriver.Find(`nav a[href="/templates"]`),
 		Applications: webDriver.Find(`nav a[href="/applications"]`),
 		Policies:     webDriver.Find(`nav a[href="/policies"]`),
 		Violations:   webDriver.Find(`nav a[href="/clusters/violations"]`),

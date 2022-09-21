@@ -49,7 +49,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetNamespace(t.Namespace)
 
 			clusterName := fetcher.ManagementClusterName
-			if t.ClusterRef.Name != "" {
+			if t.ClusterRef != nil {
 				clusterName = types.NamespacedName{
 					Name:      t.ClusterRef.Name,
 					Namespace: t.ClusterRef.Namespace,
@@ -72,13 +72,19 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			}
 
 			targetsStatuses := pipelineResp.Status.Environments[e.Name].TargetsStatuses
-			pipelineResp.Status.Environments[e.Name].TargetsStatuses = append(targetsStatuses, &pb.PipelineTargetStatus{
-				ClusterRef: &pb.ClusterRef{
+
+			var clusterRef pb.ClusterRef
+
+			if t.ClusterRef != nil {
+				clusterRef = pb.ClusterRef{
 					Kind: t.ClusterRef.Kind,
 					Name: t.ClusterRef.Name,
-				},
-				Namespace: p.Namespace,
-				Workloads: []*pb.WorkloadStatus{ws},
+				}
+			}
+			pipelineResp.Status.Environments[e.Name].TargetsStatuses = append(targetsStatuses, &pb.PipelineTargetStatus{
+				ClusterRef: &clusterRef,
+				Namespace:  t.Namespace,
+				Workloads:  []*pb.WorkloadStatus{ws},
 			})
 		}
 	}

@@ -2,7 +2,6 @@ import React, { FC, useCallback, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
-import useClusters from '../../hooks/clusters';
 import useTemplates from '../../hooks/templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -24,8 +23,6 @@ import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
 
 const ActionsWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.small} 0
-    ${({ theme }) => theme.spacing.medium} 0;
   display: flex;
   justify-content: end;
   svg {
@@ -57,9 +54,8 @@ const TemplatesDashboard: FC = () => {
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
   ];
-  const clustersCount = useClusters().count;
   const templatesCount = templates?.length;
-  const [view, setView] = useState<string>('grid');
+  const [view, setView] = useState<string>('table');
   const [selectedProvider, setSelectedProvider] = useState<
     string | null | undefined
   >();
@@ -84,7 +80,7 @@ const TemplatesDashboard: FC = () => {
     : templates;
 
   const handleAddCluster = useCallback(
-    (event, t) => history.push(`/clusters/templates/${t.name}/create`),
+    (event, t) => history.push(`/templates/${t.name}/create`),
     [history],
   );
 
@@ -92,10 +88,9 @@ const TemplatesDashboard: FC = () => {
     <PageTemplate documentTitle="WeGO · Templates">
       <SectionHeader
         path={[
-          { label: 'Clusters', url: '/clusters', count: clustersCount },
           {
             label: 'Templates',
-            url: '/clusters/templates',
+            url: '/templates',
             count: templatesCount,
           },
         ]}
@@ -103,13 +98,13 @@ const TemplatesDashboard: FC = () => {
       <ContentWrapper loading={isLoading}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">
-            <GridView
-              className={view === 'grid' ? 'active' : 'inactive'}
-              onClick={() => setView('grid')}
-            />
             <ListView
               className={view === 'table' ? 'active' : 'inactive'}
               onClick={() => setView('table')}
+            />
+            <GridView
+              className={view === 'grid' ? 'active' : 'inactive'}
+              onClick={() => setView('grid')}
             />
           </ActionsWrapper>
           {view === 'grid' && (
