@@ -148,8 +148,13 @@ export type ClusterAutomation = {
 
 export type ProfilesIndex = { [name: string]: UpdatedProfile };
 
-export interface PRPreview {
+export interface ClusterPRPreview {
   renderedTemplate: string;
   kustomizationFiles: { path: string; content: string }[];
   profileFiles: { path: string; content: string }[];
+}
+
+export interface AppPRPreview {
+  kustomizationFiles: { path: string; content: string }[];
+  helmReleaseFiles: { path: string; content: string }[];
 }

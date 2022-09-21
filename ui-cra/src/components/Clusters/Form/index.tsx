@@ -35,7 +35,7 @@ import {
   Credential,
   GitopsClusterEnriched,
   ProfilesIndex,
-  PRPreview,
+  ClusterPRPreview,
   TemplateEnriched,
 } from '../../../types/custom';
 import { utf8_to_b64 } from '../../../utils/base64';
@@ -165,6 +165,30 @@ function getInitialData(
   return { initialFormData, initialInfraCredentials };
 }
 
+const getKustomizations = useCallback(formData => {
+  const { clusterAutomations } = formData;
+  // filter out empty kustomization
+  const filteredKustomizations = clusterAutomations.filter(
+    (kustomization: any) => Object.values(kustomization).join('').trim() !== '',
+  );
+  return filteredKustomizations.map((kustomization: any): Kustomization => {
+    return {
+      metadata: {
+        name: kustomization.name,
+        namespace: kustomization.namespace,
+      },
+      spec: {
+        path: kustomization.path,
+        sourceRef: {
+          name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+          namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+        },
+        targetNamespace: kustomization.target_namespace,
+      },
+    };
+  });
+}, []);
+
 const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
   _.sortBy(Object.values(profiles), 'name')
     .filter(p => p.selected)
@@ -186,29 +210,7 @@ const toPayload = (
   templateName: string,
   updatedProfiles: ProfilesIndex,
 ): CreatePullRequestRequest => {
-  const { clusterAutomations, parameterValues } = formData;
-  // filter out empty kustomization
-  const filteredKustomizations = clusterAutomations.filter(
-    (kustomization: any) => Object.values(kustomization).join('').trim() !== '',
-  );
-  const kustomizations = filteredKustomizations.map(
-    (kustomization: any): Kustomization => {
-      return {
-        metadata: {
-          name: kustomization.name,
-          namespace: kustomization.namespace,
-        },
-        spec: {
-          path: kustomization.path,
-          sourceRef: {
-            name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
-            namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
-          },
-          targetNamespace: kustomization.target_namespace,
-        },
-      };
-    },
-  );
+  const { parameterValues } = formData;
   return {
     headBranch: formData.branchName,
     title: formData.pullRequestTitle,
@@ -217,7 +219,7 @@ const toPayload = (
     credentials: infraCredential,
     templateName,
     parameterValues,
-    kustomizations,
+    kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
   };
 };
@@ -267,32 +269,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     ? `/clusters/${cluster?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<PRPreview | null>(null);
+  const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-
-  const getKustomizations = useCallback(() => {
-    const { clusterAutomations } = formData;
-    // filter out empty kustomization
-    const filteredKustomizations = clusterAutomations.filter(
-      (kustomization: any) =>
-        Object.values(kustomization).join('').trim() !== '',
-    );
-    return filteredKustomizations.map((kustomization: any): Kustomization => {
-      return {
-        metadata: {
-          name: kustomization.name,
-          namespace: kustomization.namespace,
-        },
-        spec: {
-          path: kustomization.path,
-          sourceRef: {
-            name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
-            namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
-          },
-        },
-      };
-    });
-  }, [formData]);
 
   const handlePRPreview = useCallback(() => {
     const { url, provider, clusterAutomations, ...templateFields } = formData;
@@ -300,7 +278,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     return renderTemplate(template.name, {
       values: templateFields.parameterValues,
       credentials: infraCredential,
-      kustomizations: getKustomizations(),
+      kustomizations: getKustomizations(formData),
     })
       .then(data => {
         setOpenPreview(true);

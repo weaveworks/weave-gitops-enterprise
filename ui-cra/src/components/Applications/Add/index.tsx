@@ -33,7 +33,11 @@ import Preview from '../../Clusters/Form/Partials/Preview';
 import _ from 'lodash';
 import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
-import { ProfilesIndex, PRPreview } from '../../../types/custom';
+import {
+  AppPRPreview,
+  ProfilesIndex,
+  ClusterPRPreview,
+} from '../../../types/custom';
 
 const PRPreviewWrapper = styled.div`
   .preview-cta {
@@ -95,7 +99,9 @@ const AddApplication = () => {
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<PRPreview | null>(null);
+  const [PRPreview, setPRPreview] = useState<
+    ClusterPRPreview | AppPRPreview | null
+  >(null);
 
   useEffect(() => {
     setUpdatedProfiles({

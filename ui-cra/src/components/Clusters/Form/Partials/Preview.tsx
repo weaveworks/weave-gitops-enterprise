@@ -1,6 +1,6 @@
-import React, { FC, Dispatch } from 'react';
+import React, { FC, Dispatch, useState } from 'react';
+import styled from 'styled-components';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
   Tab,
@@ -12,36 +12,37 @@ import {
   TextareaAutosize,
   Box,
 } from '@material-ui/core';
-import { PRPreview } from '../../../../types/custom';
+import { AppPRPreview, ClusterPRPreview } from '../../../../types/custom';
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    textarea: {
-      width: '100%',
-      padding: weaveTheme.spacing.xs,
-      border: `1px solid ${weaveTheme.colors.neutral20}`,
-    },
-    info: {
-      padding: weaveTheme.spacing.medium,
-    },
-    tabsContainer: {
-      marginLeft: weaveTheme.spacing.large,
-    },
-    tabLabel: {
-      color: weaveTheme.colors.primary10,
-      fontSize: weaveTheme.fontSizes.small,
-    },
-  }),
-);
+const DialogWrapper = styled(Dialog)`
+  div[class*='MuiPaper-root']{
+    height: 700px;
+  }
+  .textarea {
+    width: 100%;
+      padding:  ${({ theme }) => theme.spacing.xs};
+      border: 1px solid ${({ theme }) => theme.colors.neutral20};
+    }
+  }
+  .info {
+    padding:  ${({ theme }) => theme.spacing.medium};
+  }
+  .tabs-container{
+    margin-left:  ${({ theme }) => theme.spacing.large};
+  }
+  .tab-label {
+    color: ${({ theme }) => theme.colors.primary10};
+    font-size: ${({ theme }) => theme.fontSizes.small}
+  }
+`;
 
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
-  PRPreview: PRPreview;
+  PRPreview: ClusterPRPreview | AppPRPreview;
   context?: string;
 }> = ({ PRPreview, openPreview, setOpenPreview, context }) => {
-  const classes = useStyles();
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = useState(0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -74,7 +75,7 @@ const Preview: FC<{
   }
 
   return (
-    <Dialog
+    <DialogWrapper
       open={openPreview}
       maxWidth="md"
       fullWidth
@@ -86,61 +87,77 @@ const Preview: FC<{
         <CloseIconButton onClick={() => setOpenPreview(false)} />
       </DialogTitle>
       <Tabs
-        className={classes.tabsContainer}
+        className="tabs-container"
         indicatorColor="primary"
         value={value}
         onChange={handleChange}
         aria-label="pr-preview-sections"
       >
         {(context === 'app'
-          ? ['Kustomizations']
+          ? ['Kustomizations', 'Helm Releases']
           : ['Cluster Definition', 'Profiles', 'Kustomizations']
         ).map((tabName, index) => (
-          <Tab key={index} className={classes.tabLabel} label={tabName} />
+          <Tab key={index} className="tab-label" label={tabName} />
         ))}
       </Tabs>
       <DialogContent>
-        {context !== 'app' && (
-          <TabPanel value={value} index={0}>
-            <TextareaAutosize
-              className={classes.textarea}
-              value={PRPreview.renderedTemplate}
-              readOnly
-            />
-          </TabPanel>
+        {context !== 'app' ? (
+          <>
+            <TabPanel value={value} index={0}>
+              <TextareaAutosize
+                className="textarea"
+                value={(PRPreview as ClusterPRPreview).renderedTemplate}
+                readOnly
+              />
+            </TabPanel>
+            <TabPanel value={value} index={1}>
+              <TextareaAutosize
+                className="textarea"
+                value={(PRPreview as ClusterPRPreview).profileFiles
+                  ?.map(profileFile => profileFile.content)
+                  .join('\n---\n')}
+                readOnly
+              />
+            </TabPanel>
+            <TabPanel value={value} index={2}>
+              <TextareaAutosize
+                className="textarea"
+                value={PRPreview.kustomizationFiles
+                  ?.map(kustomizationFile => kustomizationFile.content)
+                  .join('\n---\n')}
+                readOnly
+              />
+            </TabPanel>
+          </>
+        ) : (
+          <>
+            <TabPanel value={value} index={0}>
+              <TextareaAutosize
+                className="textarea"
+                value={PRPreview.kustomizationFiles
+                  ?.map(kustomizationFile => kustomizationFile.content)
+                  .join('\n---\n')}
+                readOnly
+              />
+            </TabPanel>
+            <TabPanel value={value} index={1}>
+              <TextareaAutosize
+                className="textarea"
+                value={(PRPreview as AppPRPreview).helmReleaseFiles
+                  ?.map(helmReleaseFile => helmReleaseFile.content)
+                  .join('\n---\n')}
+                readOnly
+              />
+            </TabPanel>
+          </>
         )}
-        {context !== 'app' && (
-          <TabPanel value={value} index={1}>
-            <TextareaAutosize
-              className={classes.textarea}
-              value={PRPreview.profileFiles?.map((profileFile, index) =>
-                index === 0
-                  ? profileFile.content
-                  : '\n---\n' + profileFile.content,
-              )}
-              readOnly
-            />
-          </TabPanel>
-        )}
-        <TabPanel value={value} index={context === 'app' ? 0 : 2}>
-          <TextareaAutosize
-            className={classes.textarea}
-            value={PRPreview.kustomizationFiles?.map(
-              (kustomizationFile, index) =>
-                index === 0
-                  ? kustomizationFile.content
-                  : '\n---\n' + kustomizationFile.content,
-            )}
-            readOnly
-          />
-        </TabPanel>
       </DialogContent>
-      <div className={classes.info}>
+      <div className="info">
         <span>
           You may edit these as part of the pull request with your git provider.
         </span>
       </div>
-    </Dialog>
+    </DialogWrapper>
   );
 };
 
