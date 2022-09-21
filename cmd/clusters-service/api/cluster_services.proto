@@ -229,6 +229,7 @@ message RenderAutomationRequest {
 
 message RenderAutomationResponse { 
   repeated CommitFile kustomization_files = 1;
+  repeated CommitFile helm_release_files = 2;
 }
 
 message ListGitopsClustersRequest {

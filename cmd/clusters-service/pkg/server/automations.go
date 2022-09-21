@@ -135,7 +135,8 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 
 	applyCreateAutomationDefaults(msg.ClusterAutomations)
 
-	var automationFiles []*capiv1_proto.CommitFile
+	var kustomizationFiles []*capiv1_proto.CommitFile
+	var helmReleaseFiles []*capiv1_proto.CommitFile
 
 	if len(msg.ClusterAutomations) > 0 {
 		for _, c := range msg.ClusterAutomations {
@@ -148,7 +149,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 					return nil, err
 				}
 
-				automationFiles = append(automationFiles, &capiv1_proto.CommitFile{
+				kustomizationFiles = append(kustomizationFiles, &capiv1_proto.CommitFile{
 					Path:    *kustomization.Path,
 					Content: *kustomization.Content,
 				})
@@ -161,7 +162,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 					return nil, err
 				}
 
-				automationFiles = append(automationFiles, &capiv1_proto.CommitFile{
+				helmReleaseFiles = append(helmReleaseFiles, &capiv1_proto.CommitFile{
 					Path:    *helmRelease.Path,
 					Content: *helmRelease.Content,
 				})
@@ -169,7 +170,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		}
 	}
 
-	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automationFiles}, err
+	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles}, err
 }
 
 func generateHelmReleaseFile(

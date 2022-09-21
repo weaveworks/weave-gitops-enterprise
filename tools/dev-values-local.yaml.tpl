@@ -1,4 +1,5 @@
 ---
 config:
   capi:
-    repositoryURL: https://github.com/AlinaGoaga/dev-core
+    repositoryURL: https://github.com/$GITHUB_USER/$GITHUB_REPO.git
+    

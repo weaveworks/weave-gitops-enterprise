@@ -1827,6 +1827,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "helmReleaseFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },

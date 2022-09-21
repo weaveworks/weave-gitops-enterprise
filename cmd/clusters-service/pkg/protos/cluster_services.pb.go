@@ -839,6 +839,7 @@ type RenderAutomationResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	KustomizationFiles []*CommitFile `protobuf:"bytes,1,rep,name=kustomization_files,json=kustomizationFiles,proto3" json:"kustomization_files,omitempty"`
+	HelmReleaseFiles   []*CommitFile `protobuf:"bytes,2,rep,name=helm_release_files,json=helmReleaseFiles,proto3" json:"helm_release_files,omitempty"`
 }
 
 func (x *RenderAutomationResponse) Reset() {
@@ -876,6 +877,13 @@ func (*RenderAutomationResponse) Descriptor() ([]byte, []int) {
 func (x *RenderAutomationResponse) GetKustomizationFiles() []*CommitFile {
 	if x != nil {
 		return x.KustomizationFiles
+	}
+	return nil
+}
+
+func (x *RenderAutomationResponse) GetHelmReleaseFiles() []*CommitFile {
+	if x != nil {
+		return x.HelmReleaseFiles
 	}
 	return nil
 }
@@ -5413,13 +5421,18 @@ var file_cluster_services_proto_rawDesc = []byte{
 	0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6c, 0x75,
 	0x73, 0x74, 0x65, 0x72, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x12,
 	0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f,
-	0x6e, 0x73, 0x22, 0x6c, 0x0a, 0x18, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x41, 0x75, 0x74, 0x6f,
-	0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x50,
-	0x0a, 0x13, 0x6b, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f,
-	0x66, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x63, 0x6c,
-	0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2e, 0x76,
-	0x31, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x12, 0x6b, 0x75,
-	0x73, 0x74, 0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x69, 0x6c, 0x65, 0x73,
+	0x6e, 0x73, 0x22, 0xbb, 0x01, 0x0a, 0x18, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x41, 0x75, 0x74,
+	0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x50, 0x0a, 0x13, 0x6b, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x5f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x63,
+	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2e,
+	0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x12, 0x6b,
+	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x69, 0x6c, 0x65,
+	0x73, 0x12, 0x4d, 0x0a, 0x12, 0x68, 0x65, 0x6c, 0x6d, 0x5f, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73,
+	0x65, 0x5f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e,
+	0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73,
+	0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x10,
+	0x68, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x46, 0x69, 0x6c, 0x65, 0x73,
 	0x22, 0x88, 0x01, 0x0a, 0x19, 0x4c, 0x69, 0x73, 0x74, 0x47, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x43,
 	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14,
 	0x0a, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c,
@@ -6434,106 +6447,107 @@ var file_cluster_services_proto_depIdxs = []int32{
 	11, // 11: cluster_services.v1.RenderTemplateResponse.kustomization_files:type_name -> cluster_services.v1.CommitFile
 	52, // 12: cluster_services.v1.RenderAutomationRequest.cluster_automations:type_name -> cluster_services.v1.ClusterAutomation
 	11, // 13: cluster_services.v1.RenderAutomationResponse.kustomization_files:type_name -> cluster_services.v1.CommitFile
-	39, // 14: cluster_services.v1.ListGitopsClustersResponse.gitops_clusters:type_name -> cluster_services.v1.GitopsCluster
-	1,  // 15: cluster_services.v1.ListPoliciesRequest.pagination:type_name -> cluster_services.v1.Pagination
-	73, // 16: cluster_services.v1.GetPolicyResponse.policy:type_name -> cluster_services.v1.Policy
-	73, // 17: cluster_services.v1.ListPoliciesResponse.policies:type_name -> cluster_services.v1.Policy
-	2,  // 18: cluster_services.v1.ListPoliciesResponse.errors:type_name -> cluster_services.v1.ListError
-	1,  // 19: cluster_services.v1.ListPolicyValidationsRequest.pagination:type_name -> cluster_services.v1.Pagination
-	26, // 20: cluster_services.v1.ListPolicyValidationsResponse.violations:type_name -> cluster_services.v1.PolicyValidation
-	2,  // 21: cluster_services.v1.ListPolicyValidationsResponse.errors:type_name -> cluster_services.v1.ListError
-	26, // 22: cluster_services.v1.GetPolicyValidationResponse.violation:type_name -> cluster_services.v1.PolicyValidation
-	25, // 23: cluster_services.v1.PolicyValidation.occurrences:type_name -> cluster_services.v1.PolicyValidationOccurrence
-	79, // 24: cluster_services.v1.CreatePullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreatePullRequestRequest.ParameterValuesEntry
-	44, // 25: cluster_services.v1.CreatePullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
-	65, // 26: cluster_services.v1.CreatePullRequestRequest.values:type_name -> cluster_services.v1.ProfileValues
-	53, // 27: cluster_services.v1.CreatePullRequestRequest.kustomizations:type_name -> cluster_services.v1.Kustomization
-	80, // 28: cluster_services.v1.CreateTfControllerPullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreateTfControllerPullRequestRequest.ParameterValuesEntry
-	44, // 29: cluster_services.v1.DeleteClustersPullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
-	31, // 30: cluster_services.v1.DeleteClustersPullRequestRequest.cluster_namespaced_names:type_name -> cluster_services.v1.ClusterNamespacedName
-	44, // 31: cluster_services.v1.ListCredentialsResponse.credentials:type_name -> cluster_services.v1.Credential
-	81, // 32: cluster_services.v1.GitopsCluster.annotations:type_name -> cluster_services.v1.GitopsCluster.AnnotationsEntry
-	82, // 33: cluster_services.v1.GitopsCluster.labels:type_name -> cluster_services.v1.GitopsCluster.LabelsEntry
-	38, // 34: cluster_services.v1.GitopsCluster.conditions:type_name -> cluster_services.v1.Condition
-	43, // 35: cluster_services.v1.GitopsCluster.capiClusterRef:type_name -> cluster_services.v1.GitopsClusterRef
-	43, // 36: cluster_services.v1.GitopsCluster.secretRef:type_name -> cluster_services.v1.GitopsClusterRef
-	40, // 37: cluster_services.v1.GitopsCluster.capi_cluster:type_name -> cluster_services.v1.CapiCluster
-	83, // 38: cluster_services.v1.CapiCluster.annotations:type_name -> cluster_services.v1.CapiCluster.AnnotationsEntry
-	84, // 39: cluster_services.v1.CapiCluster.labels:type_name -> cluster_services.v1.CapiCluster.LabelsEntry
-	41, // 40: cluster_services.v1.CapiCluster.status:type_name -> cluster_services.v1.CapiClusterStatus
-	42, // 41: cluster_services.v1.CapiCluster.infrastructureRef:type_name -> cluster_services.v1.CapiClusterInfrastructureRef
-	38, // 42: cluster_services.v1.CapiClusterStatus.conditions:type_name -> cluster_services.v1.Condition
-	46, // 43: cluster_services.v1.Template.parameters:type_name -> cluster_services.v1.Parameter
-	48, // 44: cluster_services.v1.Template.objects:type_name -> cluster_services.v1.TemplateObject
-	85, // 45: cluster_services.v1.Template.annotations:type_name -> cluster_services.v1.Template.AnnotationsEntry
-	52, // 46: cluster_services.v1.CreateAutomationsPullRequestRequest.cluster_automations:type_name -> cluster_services.v1.ClusterAutomation
-	31, // 47: cluster_services.v1.ClusterAutomation.cluster:type_name -> cluster_services.v1.ClusterNamespacedName
-	53, // 48: cluster_services.v1.ClusterAutomation.kustomization:type_name -> cluster_services.v1.Kustomization
-	55, // 49: cluster_services.v1.ClusterAutomation.helm_release:type_name -> cluster_services.v1.HelmRelease
-	59, // 50: cluster_services.v1.Kustomization.metadata:type_name -> cluster_services.v1.Metadata
-	54, // 51: cluster_services.v1.Kustomization.spec:type_name -> cluster_services.v1.KustomizationSpec
-	60, // 52: cluster_services.v1.KustomizationSpec.source_ref:type_name -> cluster_services.v1.SourceRef
-	59, // 53: cluster_services.v1.HelmRelease.metadata:type_name -> cluster_services.v1.Metadata
-	56, // 54: cluster_services.v1.HelmRelease.spec:type_name -> cluster_services.v1.HelmReleaseSpec
-	57, // 55: cluster_services.v1.HelmReleaseSpec.chart:type_name -> cluster_services.v1.Chart
-	58, // 56: cluster_services.v1.Chart.spec:type_name -> cluster_services.v1.ChartSpec
-	60, // 57: cluster_services.v1.ChartSpec.source_ref:type_name -> cluster_services.v1.SourceRef
-	62, // 58: cluster_services.v1.Profile.maintainers:type_name -> cluster_services.v1.Maintainer
-	86, // 59: cluster_services.v1.Profile.annotations:type_name -> cluster_services.v1.Profile.AnnotationsEntry
-	63, // 60: cluster_services.v1.Profile.helm_repository:type_name -> cluster_services.v1.HelmRepository
-	88, // 61: cluster_services.v1.PolicyParam.value:type_name -> google.protobuf.Any
-	87, // 62: cluster_services.v1.PolicyTargetLabel.values:type_name -> cluster_services.v1.PolicyTargetLabel.ValuesEntry
-	70, // 63: cluster_services.v1.PolicyTargets.labels:type_name -> cluster_services.v1.PolicyTargetLabel
-	72, // 64: cluster_services.v1.Policy.standards:type_name -> cluster_services.v1.PolicyStandard
-	69, // 65: cluster_services.v1.Policy.parameters:type_name -> cluster_services.v1.PolicyParam
-	71, // 66: cluster_services.v1.Policy.targets:type_name -> cluster_services.v1.PolicyTargets
-	74, // 67: cluster_services.v1.ListEventsRequest.involvedObject:type_name -> cluster_services.v1.ObjectRef
-	75, // 68: cluster_services.v1.ListEventsResponse.events:type_name -> cluster_services.v1.Event
-	0,  // 69: cluster_services.v1.ClustersService.ListTemplates:input_type -> cluster_services.v1.ListTemplatesRequest
-	4,  // 70: cluster_services.v1.ClustersService.GetTemplate:input_type -> cluster_services.v1.GetTemplateRequest
-	6,  // 71: cluster_services.v1.ClustersService.ListTemplateParams:input_type -> cluster_services.v1.ListTemplateParamsRequest
-	8,  // 72: cluster_services.v1.ClustersService.ListTemplateProfiles:input_type -> cluster_services.v1.ListTemplateProfilesRequest
-	10, // 73: cluster_services.v1.ClustersService.RenderTemplate:input_type -> cluster_services.v1.RenderTemplateRequest
-	13, // 74: cluster_services.v1.ClustersService.RenderAutomation:input_type -> cluster_services.v1.RenderAutomationRequest
-	15, // 75: cluster_services.v1.ClustersService.ListGitopsClusters:input_type -> cluster_services.v1.ListGitopsClustersRequest
-	27, // 76: cluster_services.v1.ClustersService.CreatePullRequest:input_type -> cluster_services.v1.CreatePullRequestRequest
-	29, // 77: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:input_type -> cluster_services.v1.CreateTfControllerPullRequestRequest
-	32, // 78: cluster_services.v1.ClustersService.DeleteClustersPullRequest:input_type -> cluster_services.v1.DeleteClustersPullRequestRequest
-	34, // 79: cluster_services.v1.ClustersService.ListCredentials:input_type -> cluster_services.v1.ListCredentialsRequest
-	36, // 80: cluster_services.v1.ClustersService.GetKubeconfig:input_type -> cluster_services.v1.GetKubeconfigRequest
-	49, // 81: cluster_services.v1.ClustersService.GetEnterpriseVersion:input_type -> cluster_services.v1.GetEnterpriseVersionRequest
-	51, // 82: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:input_type -> cluster_services.v1.CreateAutomationsPullRequestRequest
-	66, // 83: cluster_services.v1.ClustersService.GetConfig:input_type -> cluster_services.v1.GetConfigRequest
-	18, // 84: cluster_services.v1.ClustersService.ListPolicies:input_type -> cluster_services.v1.ListPoliciesRequest
-	17, // 85: cluster_services.v1.ClustersService.GetPolicy:input_type -> cluster_services.v1.GetPolicyRequest
-	21, // 86: cluster_services.v1.ClustersService.ListPolicyValidations:input_type -> cluster_services.v1.ListPolicyValidationsRequest
-	23, // 87: cluster_services.v1.ClustersService.GetPolicyValidation:input_type -> cluster_services.v1.GetPolicyValidationRequest
-	76, // 88: cluster_services.v1.ClustersService.ListEvents:input_type -> cluster_services.v1.ListEventsRequest
-	3,  // 89: cluster_services.v1.ClustersService.ListTemplates:output_type -> cluster_services.v1.ListTemplatesResponse
-	5,  // 90: cluster_services.v1.ClustersService.GetTemplate:output_type -> cluster_services.v1.GetTemplateResponse
-	7,  // 91: cluster_services.v1.ClustersService.ListTemplateParams:output_type -> cluster_services.v1.ListTemplateParamsResponse
-	9,  // 92: cluster_services.v1.ClustersService.ListTemplateProfiles:output_type -> cluster_services.v1.ListTemplateProfilesResponse
-	12, // 93: cluster_services.v1.ClustersService.RenderTemplate:output_type -> cluster_services.v1.RenderTemplateResponse
-	14, // 94: cluster_services.v1.ClustersService.RenderAutomation:output_type -> cluster_services.v1.RenderAutomationResponse
-	16, // 95: cluster_services.v1.ClustersService.ListGitopsClusters:output_type -> cluster_services.v1.ListGitopsClustersResponse
-	28, // 96: cluster_services.v1.ClustersService.CreatePullRequest:output_type -> cluster_services.v1.CreatePullRequestResponse
-	30, // 97: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:output_type -> cluster_services.v1.CreateTfControllerPullRequestResponse
-	33, // 98: cluster_services.v1.ClustersService.DeleteClustersPullRequest:output_type -> cluster_services.v1.DeleteClustersPullRequestResponse
-	35, // 99: cluster_services.v1.ClustersService.ListCredentials:output_type -> cluster_services.v1.ListCredentialsResponse
-	89, // 100: cluster_services.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
-	50, // 101: cluster_services.v1.ClustersService.GetEnterpriseVersion:output_type -> cluster_services.v1.GetEnterpriseVersionResponse
-	61, // 102: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:output_type -> cluster_services.v1.CreateAutomationsPullRequestResponse
-	67, // 103: cluster_services.v1.ClustersService.GetConfig:output_type -> cluster_services.v1.GetConfigResponse
-	20, // 104: cluster_services.v1.ClustersService.ListPolicies:output_type -> cluster_services.v1.ListPoliciesResponse
-	19, // 105: cluster_services.v1.ClustersService.GetPolicy:output_type -> cluster_services.v1.GetPolicyResponse
-	22, // 106: cluster_services.v1.ClustersService.ListPolicyValidations:output_type -> cluster_services.v1.ListPolicyValidationsResponse
-	24, // 107: cluster_services.v1.ClustersService.GetPolicyValidation:output_type -> cluster_services.v1.GetPolicyValidationResponse
-	77, // 108: cluster_services.v1.ClustersService.ListEvents:output_type -> cluster_services.v1.ListEventsResponse
-	89, // [89:109] is the sub-list for method output_type
-	69, // [69:89] is the sub-list for method input_type
-	69, // [69:69] is the sub-list for extension type_name
-	69, // [69:69] is the sub-list for extension extendee
-	0,  // [0:69] is the sub-list for field type_name
+	11, // 14: cluster_services.v1.RenderAutomationResponse.helm_release_files:type_name -> cluster_services.v1.CommitFile
+	39, // 15: cluster_services.v1.ListGitopsClustersResponse.gitops_clusters:type_name -> cluster_services.v1.GitopsCluster
+	1,  // 16: cluster_services.v1.ListPoliciesRequest.pagination:type_name -> cluster_services.v1.Pagination
+	73, // 17: cluster_services.v1.GetPolicyResponse.policy:type_name -> cluster_services.v1.Policy
+	73, // 18: cluster_services.v1.ListPoliciesResponse.policies:type_name -> cluster_services.v1.Policy
+	2,  // 19: cluster_services.v1.ListPoliciesResponse.errors:type_name -> cluster_services.v1.ListError
+	1,  // 20: cluster_services.v1.ListPolicyValidationsRequest.pagination:type_name -> cluster_services.v1.Pagination
+	26, // 21: cluster_services.v1.ListPolicyValidationsResponse.violations:type_name -> cluster_services.v1.PolicyValidation
+	2,  // 22: cluster_services.v1.ListPolicyValidationsResponse.errors:type_name -> cluster_services.v1.ListError
+	26, // 23: cluster_services.v1.GetPolicyValidationResponse.violation:type_name -> cluster_services.v1.PolicyValidation
+	25, // 24: cluster_services.v1.PolicyValidation.occurrences:type_name -> cluster_services.v1.PolicyValidationOccurrence
+	79, // 25: cluster_services.v1.CreatePullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreatePullRequestRequest.ParameterValuesEntry
+	44, // 26: cluster_services.v1.CreatePullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
+	65, // 27: cluster_services.v1.CreatePullRequestRequest.values:type_name -> cluster_services.v1.ProfileValues
+	53, // 28: cluster_services.v1.CreatePullRequestRequest.kustomizations:type_name -> cluster_services.v1.Kustomization
+	80, // 29: cluster_services.v1.CreateTfControllerPullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreateTfControllerPullRequestRequest.ParameterValuesEntry
+	44, // 30: cluster_services.v1.DeleteClustersPullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
+	31, // 31: cluster_services.v1.DeleteClustersPullRequestRequest.cluster_namespaced_names:type_name -> cluster_services.v1.ClusterNamespacedName
+	44, // 32: cluster_services.v1.ListCredentialsResponse.credentials:type_name -> cluster_services.v1.Credential
+	81, // 33: cluster_services.v1.GitopsCluster.annotations:type_name -> cluster_services.v1.GitopsCluster.AnnotationsEntry
+	82, // 34: cluster_services.v1.GitopsCluster.labels:type_name -> cluster_services.v1.GitopsCluster.LabelsEntry
+	38, // 35: cluster_services.v1.GitopsCluster.conditions:type_name -> cluster_services.v1.Condition
+	43, // 36: cluster_services.v1.GitopsCluster.capiClusterRef:type_name -> cluster_services.v1.GitopsClusterRef
+	43, // 37: cluster_services.v1.GitopsCluster.secretRef:type_name -> cluster_services.v1.GitopsClusterRef
+	40, // 38: cluster_services.v1.GitopsCluster.capi_cluster:type_name -> cluster_services.v1.CapiCluster
+	83, // 39: cluster_services.v1.CapiCluster.annotations:type_name -> cluster_services.v1.CapiCluster.AnnotationsEntry
+	84, // 40: cluster_services.v1.CapiCluster.labels:type_name -> cluster_services.v1.CapiCluster.LabelsEntry
+	41, // 41: cluster_services.v1.CapiCluster.status:type_name -> cluster_services.v1.CapiClusterStatus
+	42, // 42: cluster_services.v1.CapiCluster.infrastructureRef:type_name -> cluster_services.v1.CapiClusterInfrastructureRef
+	38, // 43: cluster_services.v1.CapiClusterStatus.conditions:type_name -> cluster_services.v1.Condition
+	46, // 44: cluster_services.v1.Template.parameters:type_name -> cluster_services.v1.Parameter
+	48, // 45: cluster_services.v1.Template.objects:type_name -> cluster_services.v1.TemplateObject
+	85, // 46: cluster_services.v1.Template.annotations:type_name -> cluster_services.v1.Template.AnnotationsEntry
+	52, // 47: cluster_services.v1.CreateAutomationsPullRequestRequest.cluster_automations:type_name -> cluster_services.v1.ClusterAutomation
+	31, // 48: cluster_services.v1.ClusterAutomation.cluster:type_name -> cluster_services.v1.ClusterNamespacedName
+	53, // 49: cluster_services.v1.ClusterAutomation.kustomization:type_name -> cluster_services.v1.Kustomization
+	55, // 50: cluster_services.v1.ClusterAutomation.helm_release:type_name -> cluster_services.v1.HelmRelease
+	59, // 51: cluster_services.v1.Kustomization.metadata:type_name -> cluster_services.v1.Metadata
+	54, // 52: cluster_services.v1.Kustomization.spec:type_name -> cluster_services.v1.KustomizationSpec
+	60, // 53: cluster_services.v1.KustomizationSpec.source_ref:type_name -> cluster_services.v1.SourceRef
+	59, // 54: cluster_services.v1.HelmRelease.metadata:type_name -> cluster_services.v1.Metadata
+	56, // 55: cluster_services.v1.HelmRelease.spec:type_name -> cluster_services.v1.HelmReleaseSpec
+	57, // 56: cluster_services.v1.HelmReleaseSpec.chart:type_name -> cluster_services.v1.Chart
+	58, // 57: cluster_services.v1.Chart.spec:type_name -> cluster_services.v1.ChartSpec
+	60, // 58: cluster_services.v1.ChartSpec.source_ref:type_name -> cluster_services.v1.SourceRef
+	62, // 59: cluster_services.v1.Profile.maintainers:type_name -> cluster_services.v1.Maintainer
+	86, // 60: cluster_services.v1.Profile.annotations:type_name -> cluster_services.v1.Profile.AnnotationsEntry
+	63, // 61: cluster_services.v1.Profile.helm_repository:type_name -> cluster_services.v1.HelmRepository
+	88, // 62: cluster_services.v1.PolicyParam.value:type_name -> google.protobuf.Any
+	87, // 63: cluster_services.v1.PolicyTargetLabel.values:type_name -> cluster_services.v1.PolicyTargetLabel.ValuesEntry
+	70, // 64: cluster_services.v1.PolicyTargets.labels:type_name -> cluster_services.v1.PolicyTargetLabel
+	72, // 65: cluster_services.v1.Policy.standards:type_name -> cluster_services.v1.PolicyStandard
+	69, // 66: cluster_services.v1.Policy.parameters:type_name -> cluster_services.v1.PolicyParam
+	71, // 67: cluster_services.v1.Policy.targets:type_name -> cluster_services.v1.PolicyTargets
+	74, // 68: cluster_services.v1.ListEventsRequest.involvedObject:type_name -> cluster_services.v1.ObjectRef
+	75, // 69: cluster_services.v1.ListEventsResponse.events:type_name -> cluster_services.v1.Event
+	0,  // 70: cluster_services.v1.ClustersService.ListTemplates:input_type -> cluster_services.v1.ListTemplatesRequest
+	4,  // 71: cluster_services.v1.ClustersService.GetTemplate:input_type -> cluster_services.v1.GetTemplateRequest
+	6,  // 72: cluster_services.v1.ClustersService.ListTemplateParams:input_type -> cluster_services.v1.ListTemplateParamsRequest
+	8,  // 73: cluster_services.v1.ClustersService.ListTemplateProfiles:input_type -> cluster_services.v1.ListTemplateProfilesRequest
+	10, // 74: cluster_services.v1.ClustersService.RenderTemplate:input_type -> cluster_services.v1.RenderTemplateRequest
+	13, // 75: cluster_services.v1.ClustersService.RenderAutomation:input_type -> cluster_services.v1.RenderAutomationRequest
+	15, // 76: cluster_services.v1.ClustersService.ListGitopsClusters:input_type -> cluster_services.v1.ListGitopsClustersRequest
+	27, // 77: cluster_services.v1.ClustersService.CreatePullRequest:input_type -> cluster_services.v1.CreatePullRequestRequest
+	29, // 78: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:input_type -> cluster_services.v1.CreateTfControllerPullRequestRequest
+	32, // 79: cluster_services.v1.ClustersService.DeleteClustersPullRequest:input_type -> cluster_services.v1.DeleteClustersPullRequestRequest
+	34, // 80: cluster_services.v1.ClustersService.ListCredentials:input_type -> cluster_services.v1.ListCredentialsRequest
+	36, // 81: cluster_services.v1.ClustersService.GetKubeconfig:input_type -> cluster_services.v1.GetKubeconfigRequest
+	49, // 82: cluster_services.v1.ClustersService.GetEnterpriseVersion:input_type -> cluster_services.v1.GetEnterpriseVersionRequest
+	51, // 83: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:input_type -> cluster_services.v1.CreateAutomationsPullRequestRequest
+	66, // 84: cluster_services.v1.ClustersService.GetConfig:input_type -> cluster_services.v1.GetConfigRequest
+	18, // 85: cluster_services.v1.ClustersService.ListPolicies:input_type -> cluster_services.v1.ListPoliciesRequest
+	17, // 86: cluster_services.v1.ClustersService.GetPolicy:input_type -> cluster_services.v1.GetPolicyRequest
+	21, // 87: cluster_services.v1.ClustersService.ListPolicyValidations:input_type -> cluster_services.v1.ListPolicyValidationsRequest
+	23, // 88: cluster_services.v1.ClustersService.GetPolicyValidation:input_type -> cluster_services.v1.GetPolicyValidationRequest
+	76, // 89: cluster_services.v1.ClustersService.ListEvents:input_type -> cluster_services.v1.ListEventsRequest
+	3,  // 90: cluster_services.v1.ClustersService.ListTemplates:output_type -> cluster_services.v1.ListTemplatesResponse
+	5,  // 91: cluster_services.v1.ClustersService.GetTemplate:output_type -> cluster_services.v1.GetTemplateResponse
+	7,  // 92: cluster_services.v1.ClustersService.ListTemplateParams:output_type -> cluster_services.v1.ListTemplateParamsResponse
+	9,  // 93: cluster_services.v1.ClustersService.ListTemplateProfiles:output_type -> cluster_services.v1.ListTemplateProfilesResponse
+	12, // 94: cluster_services.v1.ClustersService.RenderTemplate:output_type -> cluster_services.v1.RenderTemplateResponse
+	14, // 95: cluster_services.v1.ClustersService.RenderAutomation:output_type -> cluster_services.v1.RenderAutomationResponse
+	16, // 96: cluster_services.v1.ClustersService.ListGitopsClusters:output_type -> cluster_services.v1.ListGitopsClustersResponse
+	28, // 97: cluster_services.v1.ClustersService.CreatePullRequest:output_type -> cluster_services.v1.CreatePullRequestResponse
+	30, // 98: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:output_type -> cluster_services.v1.CreateTfControllerPullRequestResponse
+	33, // 99: cluster_services.v1.ClustersService.DeleteClustersPullRequest:output_type -> cluster_services.v1.DeleteClustersPullRequestResponse
+	35, // 100: cluster_services.v1.ClustersService.ListCredentials:output_type -> cluster_services.v1.ListCredentialsResponse
+	89, // 101: cluster_services.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
+	50, // 102: cluster_services.v1.ClustersService.GetEnterpriseVersion:output_type -> cluster_services.v1.GetEnterpriseVersionResponse
+	61, // 103: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:output_type -> cluster_services.v1.CreateAutomationsPullRequestResponse
+	67, // 104: cluster_services.v1.ClustersService.GetConfig:output_type -> cluster_services.v1.GetConfigResponse
+	20, // 105: cluster_services.v1.ClustersService.ListPolicies:output_type -> cluster_services.v1.ListPoliciesResponse
+	19, // 106: cluster_services.v1.ClustersService.GetPolicy:output_type -> cluster_services.v1.GetPolicyResponse
+	22, // 107: cluster_services.v1.ClustersService.ListPolicyValidations:output_type -> cluster_services.v1.ListPolicyValidationsResponse
+	24, // 108: cluster_services.v1.ClustersService.GetPolicyValidation:output_type -> cluster_services.v1.GetPolicyValidationResponse
+	77, // 109: cluster_services.v1.ClustersService.ListEvents:output_type -> cluster_services.v1.ListEventsResponse
+	90, // [90:110] is the sub-list for method output_type
+	70, // [70:90] is the sub-list for method input_type
+	70, // [70:70] is the sub-list for extension type_name
+	70, // [70:70] is the sub-list for extension extendee
+	0,  // [0:70] is the sub-list for field type_name
 }
 
 func init() { file_cluster_services_proto_init() }

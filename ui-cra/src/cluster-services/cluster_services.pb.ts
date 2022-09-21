@@ -84,6 +84,7 @@ export type RenderAutomationRequest = {
 
 export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
+  helmReleaseFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {

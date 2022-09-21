@@ -615,13 +615,14 @@ func TestRenderAutomation(t *testing.T) {
 	viper.SetDefault("add-bases-kustomization", "enabled")
 
 	testCases := []struct {
-		name           string
-		clusterState   []runtime.Object
-		pruneEnvVar    string
-		req            *capiv1_protos.RenderAutomationRequest
-		expected       string
-		committedFiles []*capiv1_protos.CommitFile
-		err            error
+		name               string
+		clusterState       []runtime.Object
+		pruneEnvVar        string
+		req                *capiv1_protos.RenderAutomationRequest
+		expected           string
+		kustomizationFiles []*capiv1_protos.CommitFile
+		helmreleaseFiles   []*capiv1_protos.CommitFile
+		err                error
 	}{
 		{
 			name: "render automations",
@@ -649,7 +650,7 @@ func TestRenderAutomation(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			kustomizationFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -669,6 +670,8 @@ spec:
 status: {}
 `,
 				},
+			},
+			helmreleaseFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/dev/billing/test-profile-flux-system-helmrelease.yaml",
 					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -723,8 +726,11 @@ status: {}
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.committedFiles, renderAutomationResponse.KustomizationFiles, protocmp.Transform()); diff != "" {
-					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+				if diff := cmp.Diff(tt.kustomizationFiles, renderAutomationResponse.KustomizationFiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("kustomization files do not match expected committed files:\n%s", diff)
+				}
+				if diff := cmp.Diff(tt.helmreleaseFiles, renderAutomationResponse.HelmReleaseFiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("helmrelease files do not match expected committed files:\n%s", diff)
 				}
 			}
 		})
