@@ -2,9 +2,11 @@ package selectors
 
 import (
 	_ "embed"
+	"fmt"
 	"log"
 	"testing"
 
+	"github.com/osteele/liquid"
 	"github.com/sclevine/agouti"
 	"gopkg.in/yaml.v3"
 )
@@ -32,7 +34,19 @@ func SetTestContext(test *testing.T) {
 	t = test
 }
 
-func Get(webDriver *agouti.Page, group, section, name string) *agouti.Selection {
+func Get(webDriver *agouti.Page, group, section, name string, keyValuePairs ...[]string) *agouti.Selection {
+	engine := liquid.NewEngine()
+	bindings := map[string]interface{}{
+		"page": map[string]string{
+			"title": "Introduction",
+		},
+	}
+	out, err := engine.ParseAndRenderString(template, bindings)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println(out)
+
 	sel := selectorData[group][section][name]
 	res := get(webDriver, sel)
 	if res == nil {
