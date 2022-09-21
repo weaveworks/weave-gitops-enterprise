@@ -1,9 +1,8 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
+import styled from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
-import { useCountPipelines, useGetPipeline } from '../../../contexts/Pipelines';
-import { useApplicationsCount } from '../../Applications/utils';
+import { useGetPipeline } from '../../../contexts/Pipelines';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
@@ -34,13 +33,6 @@ const useStyles = makeStyles(() =>
       fontWeight: 600,
       textTransform: 'capitalize',
     },
-    cardContainer: {
-      background: white,
-      padding: medium,
-      marginBottom: xs,
-      boxShadow: '0px 0px 1px rgba(26, 32, 36, 0.32)',
-      borderRadius: '10px',
-    },
     subtitle: {
       fontSize: small,
       fontWeight: 400,
@@ -62,6 +54,13 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
+const CardContainer = styled.div`
+  background: ${white};
+  padding: ${medium};
+  margin-bottom: ${xs};
+  box-shadow: 0px 0px 1px rgba(26, 32, 36, 0.32);
+  border-radius: 10px;
+`;
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
     return prev + (next.workloads?.length || 0);
@@ -74,28 +73,26 @@ interface Props {
 }
 
 const PipelineDetails = ({ name, namespace }: Props) => {
-  const applicationsCount = useApplicationsCount();
-  const pipelinesCount = useCountPipelines();
   const { isLoading, error, data } = useGetPipeline({
     name,
     namespace,
   });
 
+  const environments = data?.pipeline?.environments || [];
+  const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
   return (
-    <PageTemplate documentTitle="WeGo · Pipeline Details">
+    <PageTemplate documentTitle="WeGO · Pipeline Details">
       <SectionHeader
         className="count-header"
         path={[
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           {
             label: 'Pipelines',
             url: '/applications/pipelines',
-            count: pipelinesCount,
           },
           {
             label: name,
@@ -103,47 +100,48 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         ]}
       />
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
-        <Grid className={classes.gridWrapper} container spacing={8}>
-          {_.map(data?.pipeline?.status?.environments, (envStatus, envName) => (
-            <Grid item xs key={envName} className={classes.gridContainer}>
-              <div className={classes.cardHeader}>
-                <div className={classes.title}>{envName}</div>
-                <div className={classes.subtitle}>
-                  {getTargetsCount(envStatus.targetsStatuses || [])} Targets
-                </div>
-              </div>
-              {_.map(envStatus.targetsStatuses, target =>
-                _.map(target.workloads, (workload, wrkIndex) => (
-                  <div className={classes.cardContainer} key={wrkIndex}>
-                    <div className={classes.target}>
-                      {target?.clusterRef?.name ? (
-                        `${target?.clusterRef?.name}/${target?.namespace}`
-                       ) : (
-                        target?.namespace
-                       )
-                      }
-                    </div>
-                    <div>
-                      {workload?.name}
-                      {/* <Link
-                          to={`/helm_release/details?clusterName=${target?.clusterRef?.name}&name=${name}&namespace=${namespace}`}
-                        >
-                          {workload?.name}
-                        </Link> */}
-                      <div
-                        className={`${classes.subtitle} ${classes.subtitleColor}`}
-                      >
-                        Version
-                      </div>
-                      <div
-                        className={classes.subtitle}
-                      >{`v${workload?.version}`}</div>
-                    </div>
+        <Grid className={classes.gridWrapper} container spacing={4}>
+          {environments.map((env, index) => {
+            const status = targetsStatuses[env.name!].targetsStatuses || [];
+            return (
+              <Grid
+                item
+                xs
+                key={index}
+                className={classes.gridContainer}
+                id={env.name}
+              >
+                <div className={classes.cardHeader}>
+                  <div className={classes.title}>{env.name}</div>
+                  <div className={classes.subtitle}>
+                    {getTargetsCount(status || [])} Targets
                   </div>
-                )),
-              )}
-            </Grid>
-          ))}
+                </div>
+                {status.map(target =>
+                  target?.workloads?.map((workload, wrkIndex) => (
+                    <CardContainer key={wrkIndex} role="targeting">
+                      <div className={`${classes.target} workloadTarget`}>
+                        {target?.clusterRef?.name
+                          ? `${target?.clusterRef?.name}/${target?.namespace}`
+                          : target?.namespace}
+                      </div>
+                      <div>
+                        <div className="workloadName">{workload?.name}</div>
+                        <div
+                          className={`${classes.subtitle} ${classes.subtitleColor}`}
+                        >
+                          Version
+                        </div>
+                        <div
+                          className={`${classes.subtitle} version`}
+                        >{`v${workload?.version}`}</div>
+                      </div>
+                    </CardContainer>
+                  )),
+                )}
+              </Grid>
+            );
+          })}
         </Grid>
       </ContentWrapper>
     </PageTemplate>

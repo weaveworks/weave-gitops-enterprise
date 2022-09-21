@@ -154,9 +154,11 @@ const ProfilesListItem: FC<{
       setVersion(selectedValue.version);
       setYaml(selectedValue.yaml);
     } else {
-      setVersion(profile.values[0].version);
-      setYaml(profile.values[0].yaml);
-      profile.values[0].selected = true;
+      if (profile.values.length > 0) {
+        setVersion(profile.values?.[0]?.version);
+        setYaml(profile.values?.[0]?.yaml);
+        profile.values[0].selected = true;
+      }
     }
   }, [profile]);
 
@@ -166,7 +168,7 @@ const ProfilesListItem: FC<{
         <div className="profile-version">
           <FormControl>
             <Select
-              disabled={profile.required}
+              disabled={profile.required && profile.values.length === 1}
               value={version}
               onChange={handleSelectVersion}
               autoWidth

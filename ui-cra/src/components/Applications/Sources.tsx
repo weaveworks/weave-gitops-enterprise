@@ -4,12 +4,9 @@ import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { useApplicationsCount } from './utils';
 
 const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading, error } = useListSources();
-  const applicationsCount = useApplicationsCount();
-
   return (
     <PageTemplate documentTitle="WeGO · Application Sources">
       <SectionHeader
@@ -17,7 +14,6 @@ const WGApplicationsSources: FC = () => {
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           {
             label: 'Sources',
