@@ -63,7 +63,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-radius: 8px 8px 0 0;
 }
 
-.c12 {
+.c13 {
   padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
@@ -79,7 +79,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c12 a {
+.c13 a {
   color: #00b3ec;
 }
 
@@ -165,6 +165,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
   background-color: #f5f5f5;
 }
 
+.c12 {
+  background: #fff;
+  padding: 24px;
+  margin-bottom: 8px;
+  box-shadow: 0px 0px 1px rgba(26,32,36,0.32);
+  border-radius: 10px;
+}
+
 <div>
   <div
     class="c0"
@@ -176,7 +184,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-25"
+          class="makeStyles-path-23"
           style="align-items: center;"
         >
           <div
@@ -184,7 +192,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-28"
+              class="makeStyles-link-26"
               href="/applications"
             >
               Applications
@@ -197,15 +205,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-25"
+          class="makeStyles-path-23"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-26"
+            class="makeStyles-divider-24"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-27"
+              class="MuiSvgIcon-root makeStyles-iconDivider-25"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -219,7 +227,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-28"
+              class="makeStyles-link-26"
               href="/applications/pipelines"
             >
               Pipelines
@@ -227,15 +235,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-25"
+          class="makeStyles-path-23"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-26"
+            class="makeStyles-divider-24"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-27"
+              class="MuiSvgIcon-root makeStyles-iconDivider-25"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -245,10 +253,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </svg>
           </div>
           <span
-            class="c5 makeStyles-labelLink-29"
-            title="podinfo-pipeline"
+            class="c5 makeStyles-labelLink-27"
+            title="podinfo-02"
           >
-            podinfo-pipeline
+            podinfo-02
           </span>
         </div>
       </div>
@@ -293,43 +301,123 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c11"
       >
         <div
-          class="MuiGrid-root makeStyles-gridWrapper-18 MuiGrid-container MuiGrid-spacing-xs-8"
+          class="MuiGrid-root makeStyles-gridWrapper-17 MuiGrid-container MuiGrid-spacing-xs-4"
         >
           <div
-            class="MuiGrid-root makeStyles-gridContainer-17 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            id="dev"
           >
             <div
-              class="makeStyles-cardHeader-22"
+              class="makeStyles-cardHeader-20"
             >
               <div
-                class="makeStyles-title-19"
+                class="makeStyles-title-18"
               >
                 dev
               </div>
               <div
-                class="makeStyles-subtitle-21"
+                class="makeStyles-subtitle-19"
               >
                 1
                  Targets
               </div>
             </div>
             <div
-              class="makeStyles-cardContainer-20"
+              class="c12"
+              role="targeting"
             >
               <div
-                class="makeStyles-target-23"
+                class="makeStyles-target-21 workloadTarget"
               >
-                default
+                dev/podinfo-02-dev
               </div>
               <div>
-                podinfo
                 <div
-                  class="makeStyles-subtitle-21 makeStyles-subtitleColor-24"
+                  class="workloadName"
+                >
+                  podinfo
+                </div>
+                <div
+                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
                 >
                   Version
                 </div>
                 <div
-                  class="makeStyles-subtitle-21"
+                  class="makeStyles-subtitle-19 version"
+                >
+                  v6.2.0
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            id="test"
+          >
+            <div
+              class="makeStyles-cardHeader-20"
+            >
+              <div
+                class="makeStyles-title-18"
+              >
+                test
+              </div>
+              <div
+                class="makeStyles-subtitle-19"
+              >
+                2
+                 Targets
+              </div>
+            </div>
+            <div
+              class="c12"
+              role="targeting"
+            >
+              <div
+                class="makeStyles-target-21 workloadTarget"
+              >
+                dev/podinfo-02-qa
+              </div>
+              <div>
+                <div
+                  class="workloadName"
+                >
+                  podinfo
+                </div>
+                <div
+                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
+                >
+                  Version
+                </div>
+                <div
+                  class="makeStyles-subtitle-19 version"
+                >
+                  v6.1.8
+                </div>
+              </div>
+            </div>
+            <div
+              class="c12"
+              role="targeting"
+            >
+              <div
+                class="makeStyles-target-21 workloadTarget"
+              >
+                dev/podinfo-02-perf
+              </div>
+              <div>
+                <div
+                  class="workloadName"
+                >
+                  podinfo
+                </div>
+                <div
+                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
+                >
+                  Version
+                </div>
+                <div
+                  class="makeStyles-subtitle-19 version"
                 >
                   v6.1.8
                 </div>
@@ -337,42 +425,48 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </div>
           </div>
           <div
-            class="MuiGrid-root makeStyles-gridContainer-17 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            id="prod"
           >
             <div
-              class="makeStyles-cardHeader-22"
+              class="makeStyles-cardHeader-20"
             >
               <div
-                class="makeStyles-title-19"
+                class="makeStyles-title-18"
               >
                 prod
               </div>
               <div
-                class="makeStyles-subtitle-21"
+                class="makeStyles-subtitle-19"
               >
                 1
                  Targets
               </div>
             </div>
             <div
-              class="makeStyles-cardContainer-20"
+              class="c12"
+              role="targeting"
             >
               <div
-                class="makeStyles-target-23"
+                class="makeStyles-target-21 workloadTarget"
               >
-                default
+                prod/podinfo-02-prod
               </div>
               <div>
-                podinfo
                 <div
-                  class="makeStyles-subtitle-21 makeStyles-subtitleColor-24"
+                  class="workloadName"
+                >
+                  podinfo
+                </div>
+                <div
+                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
                 >
                   Version
                 </div>
                 <div
-                  class="makeStyles-subtitle-21"
+                  class="makeStyles-subtitle-19 version"
                 >
-                  v6.2.0
+                  v6.1.6
                 </div>
               </div>
             </div>
@@ -380,7 +474,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c12"
+        class="c13"
       >
         <div>
           Need help? Raise a 
