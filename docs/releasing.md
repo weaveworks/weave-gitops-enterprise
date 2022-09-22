@@ -34,7 +34,7 @@ In particular:
 - cluster-bootstrap-controller ([releases](https://github.com/weaveworks/cluster-bootstrap-controller/releases))
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
 
-Check [../CONTRIBUTING.md](../CONTRIBUTING.md) for instructions on how to update properly.
+Check [how to update things in ../CONTRIBUTING.md](../CONTRIBUTING.md#how-to-update-the-version-of-weave-gitops) for instructions on how to update properly.
 
 ## Release
 ### Create a tag
