@@ -24,6 +24,17 @@ type validationList struct {
 }
 
 func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.ListPolicyValidationsRequest) (*capiv1_proto.ListPolicyValidationsResponse, error) {
+	var respErrors []*capiv1_proto.ListError
+	clustersClient, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+				}
+			}
+		}
+	}
 	labelSelector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
 		"pac.weave.works/type": "Admission"})
 	if err != nil {
@@ -55,20 +66,26 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 	})
 	opts = append(opts, sigsClient.InNamespace(v1.NamespaceAll))
 
-	validationsList, err := s.listEvents(ctx, m.ClusterName, false, opts)
+	validationsList, err := s.listEvents(ctx, clustersClient, m.ClusterName, false, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events: %v", err)
 	}
+	respErrors = append(respErrors, validationsList.Errors...)
 	policyviolationlist := capiv1_proto.ListPolicyValidationsResponse{
 		Total:         int32(len(validationsList.Validations)),
 		Violations:    validationsList.Validations,
-		Errors:        validationsList.Errors,
+		Errors:        respErrors,
 		NextPageToken: validationsList.Token,
 	}
 	return &policyviolationlist, nil
 }
 
 func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPolicyValidationRequest) (*capiv1_proto.GetPolicyValidationResponse, error) {
+	clusterClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
 	if m.ClusterName == "" {
 		return nil, requiredClusterNameErr
 	}
@@ -89,7 +106,7 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 	})
 	opts = append(opts, sigsClient.InNamespace(v1.NamespaceAll))
 
-	validationsList, err := s.listEvents(ctx, m.ClusterName, true, opts)
+	validationsList, err := s.listEvents(ctx, clusterClient, m.ClusterName, true, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events: %v", err)
 	}
@@ -104,23 +121,13 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 	}, nil
 }
 
-func (s *server) listEvents(ctx context.Context, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
+func (s *server) listEvents(ctx context.Context, clusterClient clustersmngr.Client, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
 	respErrors := []*capiv1_proto.ListError{}
-	clustersClient, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
-			for _, err := range merr.Errors {
-				if cerr, ok := err.(*clustersmngr.ClientError); ok {
-					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
-				}
-			}
-		}
-	}
 	clist := clustersmngr.NewClusteredList(func() sigsClient.ObjectList {
 		return &v1.EventList{}
 	})
 
-	if err := clustersClient.ClusteredList(ctx, clist, true, opts...); err != nil {
+	if err := clusterClient.ClusteredList(ctx, clist, true, opts...); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {
 			return nil, fmt.Errorf("error while listing events: %w", err)
