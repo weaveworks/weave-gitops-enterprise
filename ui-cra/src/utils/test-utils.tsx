@@ -21,13 +21,6 @@ import {
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
 import {
-  GetTerraformObjectResponse,
-  ListTerraformObjectsResponse,
-  SyncTerraformObjectResponse,
-  Terraform,
-  ToggleSuspendTerraformObjectResponse,
-} from '../api/terraform/terraform.pb';
-import {
   GetConfigResponse,
   GetPolicyResponse,
   GetPolicyValidationResponse,
@@ -217,37 +210,6 @@ export class PipelinesClientMock implements Pipelines {
 
   GetPipeline() {
     return promisify(this.GetPipelineReturns);
-  }
-}
-
-export class TerraformClientMock implements Terraform {
-  constructor() {
-    this.ListTerraformObjects = this.ListTerraformObjects.bind(this);
-    this.GetTerraformObject = this.GetTerraformObject.bind(this);
-    this.SyncTerraformObject = this.SyncTerraformObject.bind(this);
-    this.ToggleSuspendTerraformObject =
-      this.ToggleSuspendTerraformObject.bind(this);
-  }
-
-  ListTerraformObjectsReturns: ListTerraformObjectsResponse = {};
-  ListTerraformObjects() {
-    return promisify(this.ListTerraformObjectsReturns);
-  }
-
-  GetTerraformObjectReturns: GetTerraformObjectResponse = {};
-  GetTerraformObject() {
-    return promisify(this.GetTerraformObjectReturns);
-  }
-
-  SyncTerraformObjectReturns: SyncTerraformObjectResponse = {};
-  SyncTerraformObject() {
-    return promisify(this.SyncTerraformObjectReturns);
-  }
-
-  ToggleSuspendTerraformObjectReturns: ToggleSuspendTerraformObjectResponse =
-    {};
-  ToggleSuspendTerraformObject() {
-    return promisify(this.ToggleSuspendTerraformObjectReturns);
   }
 }
 
