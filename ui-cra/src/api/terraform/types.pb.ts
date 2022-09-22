@@ -34,7 +34,6 @@ export type TerraformObject = {
   driftDetectionResult?: boolean
   inventory?: ResourceRef[]
   conditions?: Condition[]
-  suspended?: boolean
 }
 
 export type Pagination = {
