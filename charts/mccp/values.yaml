@@ -57,6 +57,11 @@ config:
     cookieDuration: 1h
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
     clientCredentialsSecret: ""
+    # Name of configmap in flux-system namespace that contains a 'ca-bundle.crt'
+    # key with the CA used by the issuerURL.
+    # Only needed if the issuerURL does not present a certificate that is
+    # trusted by the CAs installed in the container image.
+    serverCAName: ""
   auth:
     userAccount:
       enabled: true

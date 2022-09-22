@@ -66,6 +66,10 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
               value: "true"
             {{- end }}
+            {{- if .Values.config.oidc.serverCAName }}
+            - name: SSL_CERT_FILE
+              value: /etc/tls/certs/ca-bundle.crt
+            {{- end }}
             {{- if .Values.envVars }}
             {{- with .Values.envVars }}
               {{- toYaml . | nindent 12 }}
@@ -77,6 +81,10 @@ spec:
             {{- end }}
             {{- end }}
           volumeMounts:
+            {{- if .Values.config.oidc.serverCAName }}
+            - mountPath: /etc/tls/certs
+              name: custom-ca-chain
+            {{- end }}
             - name: ui-server-volume
               mountPath: /html
             {{- if .Values.tls.secretName }}
@@ -91,6 +99,12 @@ spec:
       - name: clusters-service-tls-volume
         secret:
           secretName: {{ .Values.tls.secretName }}
+      {{- end }}
+      {{- if .Values.config.oidc.serverCAName }}
+      - name: custom-ca-chain
+        configMap:
+          name: {{ .Values.config.oidc.serverCAName }}
+          defaultMode: 420
       {{- end }}
       - name: ui-server-volume
         emptyDir: {}
