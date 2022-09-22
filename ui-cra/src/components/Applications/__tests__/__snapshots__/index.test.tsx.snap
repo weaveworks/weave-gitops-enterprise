@@ -310,13 +310,10 @@ exports[`Applications index test snapshots loading 1`] = `
                 ADD AN APPLICATION
               </span>
             </button>
-            <a
-              aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
-              href="/"
-              rel="noopener noreferrer"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 MuiButton-outlinedPrimary MuiButton-disableElevation"
               tabindex="0"
-              target="_blank"
+              type="button"
             >
               <span
                 class="MuiButton-label"
@@ -337,7 +334,7 @@ exports[`Applications index test snapshots loading 1`] = `
                 </div>
                 GO TO OPEN PULL REQUESTS
               </span>
-            </a>
+            </button>
           </div>
         </div>
         <div
@@ -1121,13 +1118,10 @@ exports[`Applications index test snapshots success 1`] = `
                 class="MuiTouchRipple-root"
               />
             </button>
-            <a
-              aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
-              href="/"
-              rel="noopener noreferrer"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
               tabindex="0"
-              target="_blank"
+              type="button"
             >
               <span
                 class="MuiButton-label"
@@ -1151,7 +1145,7 @@ exports[`Applications index test snapshots success 1`] = `
               <span
                 class="MuiTouchRipple-root"
               />
-            </a>
+            </button>
           </div>
         </div>
         <div
