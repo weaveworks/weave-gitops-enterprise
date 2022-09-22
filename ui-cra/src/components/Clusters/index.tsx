@@ -415,12 +415,7 @@ const MCCP: FC = () => {
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Button
-                onClick={useCallback(
-                  () => openLinkHandler(repoLink),
-                  [repoLink],
-                )}
-              >
+              <Button onClick={openLinkHandler(repoLink)}>
                 <Icon
                   className={classes.externalIcon}
                   type={IconType.ExternalTab}
