@@ -2,7 +2,9 @@ import React, { FC, useCallback, useState, useEffect } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
-import useNotifications from '../../contexts/Notifications';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -49,7 +51,9 @@ const Error = styled.span`
   color: ${theme.colors.alert};
 `;
 
-const TemplatesDashboard: FC<{ location: { state: any } }> = ({ location }) => {
+const TemplatesDashboard: FC<{
+  location: { state: { notification: NotificationData[] } };
+}> = ({ location }) => {
   const { templates, isLoading } = useTemplates();
   const { setNotifications } = useNotifications();
   const notification = location.state?.notification;

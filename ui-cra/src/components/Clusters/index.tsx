@@ -26,7 +26,9 @@ import { Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../hooks/clusters';
-import useNotifications from '../../contexts/Notifications';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
@@ -193,7 +195,9 @@ interface FormData {
   pullRequestDescription: string;
 }
 
-const MCCP: FC<{ location: { state: any } }> = ({ location }) => {
+const MCCP: FC<{
+  location: { state: { notification: NotificationData[] } };
+}> = ({ location }) => {
   const { clusters, isLoading, count } = useClusters();
   const notification = location.state?.notification;
   const [selectedClusters, setSelectedClusters] = useState<
