@@ -49,6 +49,7 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { getCreateRequestAnnotation } from './Form/utils';
+import { openLinkHandler } from '../../utils/link-checker';
 
 interface Size {
   size?: 'small';
@@ -415,9 +416,10 @@ const MCCP: FC = () => {
                 />
               )}
               <Button
-                onClick={() =>
-                  window.open(repoLink, '_blank', 'noopener,noreferrer')
-                }
+                onClick={useCallback(
+                  () => openLinkHandler(repoLink),
+                  [repoLink],
+                )}
               >
                 <Icon
                   className={classes.externalIcon}

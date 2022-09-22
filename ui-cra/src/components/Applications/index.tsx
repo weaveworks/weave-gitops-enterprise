@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -15,6 +15,7 @@ import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
 import { useListConfig } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core';
+import { openLinkHandler } from '../../utils/link-checker';
 
 interface Size {
   size?: 'small';
@@ -73,9 +74,7 @@ const WGApplicationsDashboard: FC = () => {
               ADD AN APPLICATION
             </Button>
             <Button
-              onClick={() =>
-                window.open(repoLink, '_blank', 'noopener,noreferrer')
-              }
+              onClick={useCallback(() => openLinkHandler(repoLink), [repoLink])}
             >
               <Icon
                 className={classes.externalIcon}
