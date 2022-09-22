@@ -1,9 +1,9 @@
-import React, { FC, Dispatch } from 'react';
+import React, { FC, Dispatch, useState } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
-import { ListSubheader, MenuItem } from '@material-ui/core';
+import { ListSubheader, MenuItem, Checkbox } from '@material-ui/core';
 import { useListSources, theme } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -52,6 +52,7 @@ const AppFields: FC<{
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
+  const [createNamespace, setCreateNamespace] = useState<boolean>(false);
 
   let clusters: GitopsCluster[] | undefined = undefined;
   if (allowSelectCluster) {
@@ -154,6 +155,17 @@ const AppFields: FC<{
     setFormData({
       ...formData,
       clusterAutomations: currentAutomation,
+    });
+  };
+
+  const handleCreateNamespace = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setCreateNamespace(event.target.checked);
+
+    setFormData({
+      ...formData,
+      createNamespace,
     });
   };
 
@@ -315,6 +327,11 @@ const AppFields: FC<{
               </span>
             </Tooltip>
           )}
+          <Checkbox
+            checked={createNamespace}
+            onChange={handleCreateNamespace}
+            inputProps={{ 'aria-label': 'controlled' }}
+          />
         </>
       ) : null}
     </FormWrapper>
