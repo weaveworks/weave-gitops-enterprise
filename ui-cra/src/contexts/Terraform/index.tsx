@@ -1,11 +1,11 @@
 import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import * as React from 'react';
-import { useQuery } from 'react-query';
+import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
-  Terraform,
+  Terraform
 } from '../../api/terraform/terraform.pb';
 
 const TerraformContext = React.createContext<typeof Terraform>(
@@ -65,12 +65,31 @@ export function useGetTerraformObjectDetail({
   );
 }
 
-export function useSyncTerraformObject({
-  name,
-  namespace,
-  clusterName,
-}: DetailParams) {
-  const tf = useTerraform();
+function invalidate(
+  qc: QueryClient,
+  { name, namespace, clusterName }: DetailParams,
+) {
+  return qc.invalidateQueries([TERRAFORM_KEY, clusterName, namespace, name]);
+}
 
-  return () => tf.SyncTerraformObject({ name, namespace, clusterName });
+export function useSyncTerraformObject(params: DetailParams) {
+  const tf = useTerraform();
+  const qc = useQueryClient();
+
+  return () =>
+    tf.SyncTerraformObject(params).then(res => {
+      invalidate(qc, params);
+
+      return res;
+    });
+}
+
+export function useToggleSuspendTerraformObject(params: DetailParams) {
+  const tf = useTerraform();
+  const qc = useQueryClient();
+
+  return (suspend: boolean) =>
+    tf.ToggleSuspendTerraformObject({ ...params, suspend }).then(res => {
+      return invalidate(qc, params).then(() => res);
+    });
 }
