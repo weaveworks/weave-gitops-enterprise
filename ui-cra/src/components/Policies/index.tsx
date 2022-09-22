@@ -10,7 +10,7 @@ const Policies = () => {
   const { data, isLoading, error } = useListListPolicies({});
 
   return (
-      <PageTemplate documentTitle="WeGo · Policies">
+      <PageTemplate documentTitle="WeGO · Policies">
         <SectionHeader
           className="count-header"
           path={[{ label: 'Policies', url: 'policies', count: data?.total }]}

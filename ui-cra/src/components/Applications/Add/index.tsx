@@ -55,7 +55,6 @@ const PRPreviewWrapper = styled.div`
 `;
 
 const AddApplication = () => {
-  const applicationsCount = useApplicationsCount();
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
@@ -288,7 +287,6 @@ const AddApplication = () => {
                 {
                   label: 'Applications',
                   url: '/applications',
-                  count: applicationsCount,
                 },
                 { label: 'Add new application' },
               ]}
@@ -356,7 +354,6 @@ const AddApplication = () => {
       </ThemeProvider>
     );
   }, [
-    applicationsCount,
     authRedirectPage,
     formData,
     handleAddApplication,

@@ -8,14 +8,13 @@ import ClusterForm from '../Form';
 
 const CreateClusterPage = () => {
   const { templateName } = useParams<{ templateName: string }>();
-  const { templates, getTemplate, isLoading } = useTemplates();
-  const templatesCount = templates?.length;
+  const { getTemplate, isLoading } = useTemplates();
   return (
     <PageTemplate documentTitle="WeGo · Create new cluster">
       <SectionHeader
         className="count-header"
         path={[
-          { label: 'Templates', url: '/templates', count: templatesCount },
+          { label: 'Templates', url: '/templates' },
           { label: 'Create new cluster' },
         ]}
       />
