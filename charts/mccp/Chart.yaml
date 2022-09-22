@@ -29,6 +29,6 @@ dependencies:
     repository: "file://../cluster-controller"
     condition: cluster-controller.enabled
   - name: policy-agent
-    version: "0.4.3"
+    version: "1.1.0"
     repository: "https://weaveworks.github.io/policy-agent"
     condition: policy-agent.enabled
