@@ -64,23 +64,15 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
 		if c.Kustomization != nil {
-			if c.CreateKustomizationTargetNamespace {
-				namespace := &corev1.Namespace{
-					TypeMeta: metav1.TypeMeta{
-						Kind:       "Namespace",
-						APIVersion: corev1.SchemeGroupVersion.String(),
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name: c.Cluster.Namespace,
-					},
-				}
-
-				if err := client.Create(ctx, namespace); err != nil {
-					return nil, err
+			if c.Kustomization.Spec.CreateNamespace {
+				if err := createNamespace(ctx, client, c.Kustomization.Spec.TargetNamespace); err != nil {
+					return nil, fmt.Errorf(
+						"unable to create namespace for kustomization %s: %w",
+						c.Kustomization.Metadata.Name, err)
 				}
 			}
-			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
 
+			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
 			if err != nil {
 				return nil, err
 			}
@@ -308,4 +300,22 @@ func validateHelmRelease(helmRelease *capiv1_proto.HelmRelease) error {
 	}
 
 	return err
+}
+
+func createNamespace(ctx context.Context, client client.Client, name string) error {
+	namespace := &corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Namespace",
+			APIVersion: corev1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+
+	if err := client.Create(ctx, namespace); err != nil {
+		return err
+	}
+
+	return nil
 }

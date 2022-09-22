@@ -232,6 +232,14 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	if len(msg.Kustomizations) > 0 {
 		for _, k := range msg.Kustomizations {
+			if k.Spec.CreateNamespace {
+				if err := createNamespace(ctx, client, k.Spec.TargetNamespace); err != nil {
+					return nil, fmt.Errorf(
+						"unable to create namespace for kustomization %s: %w",
+						k.Metadata.Name, err)
+				}
+			}
+
 			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
 			if err != nil {
 				return nil, err

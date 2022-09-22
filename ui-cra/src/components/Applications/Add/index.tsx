@@ -116,7 +116,6 @@ const AddApplication = () => {
                   namespace: kustomization.cluster_namespace,
                 },
                 isControlPlane: kustomization.cluster_isControlPlane,
-                createKustomizationTargetNamespace: kustomization.create_kustomization_target_namespace,
                 helmRelease: {
                   metadata: {
                     name: profile.name,
@@ -150,7 +149,6 @@ const AddApplication = () => {
               namespace: kustomization.cluster_namespace,
             },
             isControlPlane: kustomization.cluster_isControlPlane,
-            createKustomizationTargetNamespace: kustomization.create_kustomization_target_namespace,
             kustomization: {
               metadata: {
                 name: kustomization.name,
@@ -163,6 +161,7 @@ const AddApplication = () => {
                   namespace: kustomization.source_namespace,
                 },
                 targetNamespace: kustomization.target_namespace,
+                createNamespace: kustomization.create_namespace,
               },
             },
           };

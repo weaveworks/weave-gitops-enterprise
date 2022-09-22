@@ -336,7 +336,6 @@ export type CreateAutomationsPullRequestRequest = {
 export type ClusterAutomation = {
   cluster?: ClusterNamespacedName
   isControlPlane?: boolean
-  createKustomizationTargetNamespace?: boolean
   kustomization?: Kustomization
   helmRelease?: HelmRelease
   filePath?: string
@@ -351,6 +350,7 @@ export type KustomizationSpec = {
   path?: string
   sourceRef?: SourceRef
   targetNamespace?: string
+  createNamespace?: boolean
 }
 
 export type HelmRelease = {
