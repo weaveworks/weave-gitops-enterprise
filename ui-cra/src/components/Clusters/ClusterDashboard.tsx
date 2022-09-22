@@ -70,8 +70,7 @@ const useStyles = makeStyles(() =>
 );
 
 const ClusterDashboard = ({ clusterName }: Props) => {
-  const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
-    useClusters();
+  const { getCluster, getDashboardAnnotations, getKubeconfig } = useClusters();
   const [currentCluster, setCurrentCluster] =
     useState<GitopsClusterEnriched | null>(null);
   const { path } = useRouteMatch();
@@ -129,7 +128,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters', count },
+            { label: 'Clusters', url: '/clusters' },
             { label: clusterName },
           ]}
         />

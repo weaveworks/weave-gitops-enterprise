@@ -1,18 +1,8 @@
-import { useListAutomations, useListSources } from '@weaveworks/weave-gitops';
+import { useListSources } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
 import { request } from '../../utils/request';
-
-export const useApplicationsCount = (): number => {
-  const { data: automations } = useListAutomations(undefined, {});
-  return automations?.result?.length || 0;
-};
-
-export const useSourcesCount = (): number => {
-  const { data: sources } = useListSources(undefined, undefined, {});
-  return sources?.result?.length || 0;
-};
 
 const toCluster = (clusterName: string): GitopsCluster => {
   const [firstBit, secondBit] = clusterName.split('/');

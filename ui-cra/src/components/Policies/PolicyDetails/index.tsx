@@ -24,7 +24,7 @@ const PolicyDetails = ({
   const policy = data?.policy;
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Policies">
+      <PageTemplate documentTitle="WeGO · Policies">
         <SectionHeader
           className="count-header"
           path={[
