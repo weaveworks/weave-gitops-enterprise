@@ -851,7 +851,7 @@
         "isControlPlane": {
           "type": "boolean"
         },
-        "createNamespace": {
+        "createKustomizationTargetNamespace": {
           "type": "boolean"
         },
         "kustomization": {

@@ -64,7 +64,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
 		if c.Kustomization != nil {
-			if c.CreateNamespace {
+			if c.CreateKustomizationTargetNamespace {
 				namespace := &corev1.Namespace{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Namespace",
