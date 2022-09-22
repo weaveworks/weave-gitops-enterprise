@@ -297,7 +297,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     infraCredential,
     setNotifications,
     template.name,
-    getKustomizations,
   ]);
 
   const handleAddCluster = useCallback(() => {

@@ -1,6 +1,5 @@
 import React, { FC, Dispatch, useState } from 'react';
 import styled from 'styled-components';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
   Tab,

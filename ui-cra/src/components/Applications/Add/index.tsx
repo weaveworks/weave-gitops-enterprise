@@ -4,11 +4,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import {
-  AddApplicationRequest,
-  renderKustomization,
-  useApplicationsCount,
-} from '../utils';
+import { AddApplicationRequest, renderKustomization } from '../utils';
 import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
