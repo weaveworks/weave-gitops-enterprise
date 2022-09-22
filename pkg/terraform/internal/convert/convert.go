@@ -32,12 +32,12 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 			Namespace:  tf.Spec.SourceRef.Namespace,
 		},
 
-		AppliedRevision:      tf.Status.LastAppliedRevision,
-		Path:                 tf.Spec.Path,
-		Interval:             durationToInterval(tf.Spec.Interval),
+		AppliedRevision: tf.Status.LastAppliedRevision,
+		Path:            tf.Spec.Path,
+		Interval:        durationToInterval(tf.Spec.Interval),
+		// LastUpdatedAt:        tf.Status.LastAppliedByDriftDetectionAt.Format(time.RFC3339),
 		DriftDetectionResult: tf.HasDrift(),
 		Inventory:            inv,
-		Suspended:            tf.Spec.Suspend,
 	}
 }
 

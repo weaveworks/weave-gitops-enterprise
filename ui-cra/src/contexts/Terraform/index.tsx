@@ -1,7 +1,7 @@
 import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import * as React from 'react';
-import { QueryClient, useQuery, useQueryClient } from 'react-query';
+import { useQuery } from 'react-query';
 import {
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
@@ -63,33 +63,4 @@ export function useGetTerraformObjectDetail({
     [TERRAFORM_KEY, clusterName, namespace, name],
     () => tf.GetTerraformObject({ name, namespace, clusterName }),
   );
-}
-
-function invalidate(
-  qc: QueryClient,
-  { name, namespace, clusterName }: DetailParams,
-) {
-  return qc.invalidateQueries([TERRAFORM_KEY, clusterName, namespace, name]);
-}
-
-export function useSyncTerraformObject(params: DetailParams) {
-  const tf = useTerraform();
-  const qc = useQueryClient();
-
-  return () =>
-    tf.SyncTerraformObject(params).then(res => {
-      invalidate(qc, params);
-
-      return res;
-    });
-}
-
-export function useToggleSuspendTerraformObject(params: DetailParams) {
-  const tf = useTerraform();
-  const qc = useQueryClient();
-
-  return (suspend: boolean) =>
-    tf.ToggleSuspendTerraformObject({ ...params, suspend }).then(res => {
-      return invalidate(qc, params).then(() => res);
-    });
 }
