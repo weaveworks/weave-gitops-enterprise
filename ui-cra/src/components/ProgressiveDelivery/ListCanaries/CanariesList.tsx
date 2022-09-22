@@ -1,12 +1,9 @@
 import { useListCanaries } from '../../../contexts/ProgressiveDelivery';
-import { useApplicationsCount } from '../../Applications/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { CanaryTable } from './Table';
 
 const ProgressiveDelivery = () => {
-  const applicationsCount = useApplicationsCount();
-
   const { error, data, isLoading } = useListCanaries();
 
   return (
@@ -17,7 +14,6 @@ const ProgressiveDelivery = () => {
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           { label: 'Delivery', count: data?.canaries?.length },
         ]}

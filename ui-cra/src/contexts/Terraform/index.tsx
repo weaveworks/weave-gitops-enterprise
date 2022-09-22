@@ -46,12 +46,6 @@ export function useListTerraformObjects() {
   );
 }
 
-export function useTerraformObjectCount() {
-  const { data } = useListTerraformObjects();
-
-  return data?.objects?.length || 0;
-}
-
 interface DetailParams {
   name: string;
   namespace: string;

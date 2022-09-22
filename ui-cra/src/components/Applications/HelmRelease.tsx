@@ -6,7 +6,6 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
-import { useApplicationsCount } from './utils';
 
 type Props = {
   name: string;
@@ -15,7 +14,6 @@ type Props = {
 };
 
 const WGApplicationsHelmRelease: FC<Props> = props => {
-  const applicationsCount = useApplicationsCount();
   const { name, namespace, clusterName } = props;
   const { data, isLoading, error } = useGetHelmRelease(
     name,
@@ -51,7 +49,6 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           {
             label: `${name}`,

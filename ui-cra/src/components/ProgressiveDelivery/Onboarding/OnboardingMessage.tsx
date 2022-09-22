@@ -1,5 +1,4 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { useApplicationsCount } from '../../Applications/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import {
@@ -11,8 +10,6 @@ import {
 } from '../CanaryStyles';
 
 const OnboardingMessage = () => {
-  const applicationsCount = useApplicationsCount();
-
   return (
     <>
       <SectionHeader
@@ -21,7 +18,6 @@ const OnboardingMessage = () => {
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           { label: 'Delivery' },
         ]}

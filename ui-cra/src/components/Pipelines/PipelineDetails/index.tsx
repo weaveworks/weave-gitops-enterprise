@@ -2,8 +2,7 @@ import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import styled from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
-import { useCountPipelines, useGetPipeline } from '../../../contexts/Pipelines';
-import { useApplicationsCount } from '../../Applications/utils';
+import { useGetPipeline } from '../../../contexts/Pipelines';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
@@ -74,8 +73,6 @@ interface Props {
 }
 
 const PipelineDetails = ({ name, namespace }: Props) => {
-  const applicationsCount = useApplicationsCount();
-  const pipelinesCount = useCountPipelines();
   const { isLoading, error, data } = useGetPipeline({
     name,
     namespace,
@@ -85,19 +82,17 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
   return (
-    <PageTemplate documentTitle="WeGo · Pipeline Details">
+    <PageTemplate documentTitle="WeGO · Pipeline Details">
       <SectionHeader
         className="count-header"
         path={[
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           {
             label: 'Pipelines',
             url: '/applications/pipelines',
-            count: pipelinesCount,
           },
           {
             label: name,

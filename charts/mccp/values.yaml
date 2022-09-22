@@ -104,10 +104,9 @@ cluster-controller:
 
 policy-agent:
   enabled: false
-  accountId: ""
-  clusterId: ""
-  persistence:
-    enabled: false
+  config:
+    accountId: ""
+    clusterId: ""
 
 ingress:
   enabled: false

@@ -53,15 +53,3 @@ export function useGetPolicyValidationDetails(req: GetPolicyValidationRequest) {
     () => api.GetPolicyValidation(req),
   );
 }
-
-const COUNT_POLICY_VIOLATION_QUERY_KEY = 'count-policy-violations';
-
-export function useCountPolicyValidations(req: ListPolicyValidationsRequest) {
-  const { api } = useContext(EnterpriseClientContext);
-
-  const { data } = useQuery<ListPolicyValidationsResponse, Error>(
-    [COUNT_POLICY_VIOLATION_QUERY_KEY, req],
-    () => api.ListPolicyValidations(req),
-  );
-  return data?.total;
-}
