@@ -10,8 +10,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/terraform"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/adapter"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/convert"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
@@ -137,6 +139,39 @@ func (s *server) GetTerraformObject(ctx context.Context, msg *pb.GetTerraformObj
 		Object: &obj,
 		Yaml:   string(yaml),
 	}, nil
+}
+
+func (s *server) SyncTerraformObject(ctx context.Context, msg *pb.SyncTerraformObjectRequest) (*pb.SyncTerraformObjectResponse, error) {
+	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
+
+	c, err := clustersClient.Scoped(msg.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("getting scoped client: %w", err)
+	}
+
+	key := client.ObjectKey{
+		Name:      msg.Name,
+		Namespace: msg.Namespace,
+	}
+
+	obj := adapter.TerraformObjectAdapter{Terraform: &tfctrl.Terraform{}}
+
+	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
+		return nil, fmt.Errorf("getting object %s in namespace %s: %w", msg.Name, msg.Namespace, err)
+	}
+
+	if err := fluxsync.RequestReconciliation(ctx, c, key, obj.GroupVersionKind()); err != nil {
+		return nil, fmt.Errorf("requesting reconciliation: %w", err)
+	}
+
+	if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
+		return nil, fmt.Errorf("waiting for sync: %w", err)
+	}
+
+	return &pb.SyncTerraformObjectResponse{Success: true}, nil
 }
 
 func serializeObj(scheme *k8sruntime.Scheme, obj client.Object) ([]byte, error) {

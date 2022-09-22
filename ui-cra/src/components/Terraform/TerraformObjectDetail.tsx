@@ -1,18 +1,21 @@
 import { Box, ThemeProvider } from '@material-ui/core';
 import {
+  Button,
   DataTable,
   formatURL,
   InfoList,
   Interval,
   KubeStatusIndicator,
   RouterTab,
-  SubRouterTabs,
+  SubRouterTabs
 } from '@weaveworks/weave-gitops';
+import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
 import { ResourceRef } from '../../api/terraform/types.pb';
-import { useGetTerraformObjectDetail } from '../../contexts/Terraform';
+import useNotifications from '../../contexts/Notifications';
+import { useGetTerraformObjectDetail, useSyncTerraformObject } from '../../contexts/Terraform';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -31,10 +34,33 @@ type Props = {
 
 function TerraformObjectDetail({ className, ...params }: Props) {
   const { path } = useRouteMatch();
+  const [syncing, setSyncing] = useState(false);
+  const { setNotifications } = useNotifications();
 
   const { data, isLoading, error } = useGetTerraformObjectDetail(params);
+  const sync = useSyncTerraformObject(params);
 
   const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
+
+  const handleSyncClick = () => {
+    setSyncing(true);
+
+    return sync()
+      .then(() => {
+        setNotifications([
+          {
+            message: { text: 'Sync successful' },
+            variant: 'success',
+          },
+        ]);
+      })
+      .catch(err => {
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]);
+      })
+      .finally(() => setSyncing(false));
+  };
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -59,8 +85,18 @@ function TerraformObjectDetail({ className, ...params }: Props) {
 
         <ContentWrapper errors={error ? [error] : []} loading={isLoading}>
           <div className={className}>
-            <Box paddingY={2}>
+            <Box paddingBottom={3}>
               <KubeStatusIndicator conditions={object?.conditions || []} />
+            </Box>
+            <Box paddingBottom={3}>
+              <Button
+                loading={syncing}
+                variant="outlined"
+                onClick={handleSyncClick}
+                style={{ marginRight: 0, textTransform: 'uppercase' }}
+              >
+                Sync
+              </Button>
             </Box>
 
             <SubRouterTabs rootPath={`${path}/details`}>

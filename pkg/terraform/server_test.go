@@ -2,14 +2,18 @@ package terraform_test
 
 import (
 	"context"
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/adapter"
 	"google.golang.org/grpc"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -78,6 +82,50 @@ status:
 	assert.Equal(t, res.Yaml, expectedYaml)
 }
 
+func TestSyncTerraformObject(t *testing.T) {
+	ctx := context.Background()
+	client, k8s := setup(t)
+
+	obj := &tfctrl.Terraform{}
+	obj.Name = "my-obj"
+	obj.Namespace = "default"
+
+	key := types.NamespacedName{Name: obj.Name, Namespace: obj.Namespace}
+
+	assert.NoError(t, k8s.Create(context.Background(), obj))
+
+	done := make(chan error)
+	defer close(done)
+
+	go func() {
+		_, err := client.SyncTerraformObject(ctx, &pb.SyncTerraformObjectRequest{
+			ClusterName: "Default",
+			Name:        obj.Name,
+			Namespace:   obj.Namespace,
+		})
+		done <- err
+	}()
+
+	ticker := time.NewTicker(500 * time.Millisecond)
+	for {
+		select {
+		case <-ticker.C:
+
+			r := adapter.TerraformObjectAdapter{Terraform: obj}
+
+			if err := simulateReconcile(ctx, k8s, key, r.AsClientObject()); err != nil {
+				t.Fatalf("simulating reconcile: %s", err.Error())
+			}
+
+		case err := <-done:
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			return
+		}
+	}
+}
+
 func setup(t *testing.T) (pb.TerraformClient, client.Client) {
 	k8s, factory := grpctesting.MakeFactoryWithObjects()
 	opts := terraform.ServerOpts{
@@ -90,4 +138,18 @@ func setup(t *testing.T) (pb.TerraformClient, client.Client) {
 	})
 
 	return pb.NewTerraformClient(conn), k8s
+}
+
+func simulateReconcile(ctx context.Context, k client.Client, name types.NamespacedName, o client.Object) error {
+	switch obj := o.(type) {
+	case *tfctrl.Terraform:
+		if err := k.Get(ctx, name, obj); err != nil {
+			return err
+		}
+
+		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+		return k.Status().Update(ctx, obj)
+	}
+
+	return errors.New("simulating reconcile: unsupported type")
 }
