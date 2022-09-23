@@ -233,11 +233,12 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if len(msg.Kustomizations) > 0 {
 		for _, k := range msg.Kustomizations {
 			if k.Spec.CreateNamespace {
-				if err := createNamespace(ctx, client, k.Spec.TargetNamespace); err != nil {
-					return nil, fmt.Errorf(
-						"unable to create namespace for kustomization %s: %w",
-						k.Metadata.Name, err)
+				namespace, err := generateNamespaceFile(ctx, false, cluster, k.Spec.TargetNamespace, "")
+				if err != nil {
+					return nil, err
 				}
+
+				files = append(files, namespace)
 			}
 
 			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
@@ -921,11 +922,17 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		clusterNamespace = cluster.Namespace
 	}
 
+	fileName := fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType)
+
+	if resourceType == "namespace" {
+		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
+	}
+
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
 		cluster.Name,
-		fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType),
+		fileName,
 	)
 }
 
