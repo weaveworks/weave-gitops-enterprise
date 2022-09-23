@@ -4,7 +4,7 @@ import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
 import { ListSubheader, MenuItem, Checkbox } from '@material-ui/core';
-import { useListSources, theme } from '@weaveworks/weave-gitops';
+import { useListSources, theme, Flex } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
@@ -52,7 +52,7 @@ const AppFields: FC<{
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
-  const [createNamespace, setCreateNamespace] = useState<boolean>(true);
+  const { createNamespace } = automation;
 
   let clusters: GitopsCluster[] | undefined = undefined;
   if (allowSelectCluster) {
@@ -69,7 +69,6 @@ const AppFields: FC<{
       cluster_name: JSON.parse(value).name,
       cluster_namespace: JSON.parse(value).namespace,
       cluster_isControlPlane: JSON.parse(value).controlPlane,
-      create_namespace: JSON.parse(value).createNamespace,
       cluster: value,
     };
     setFormData({
@@ -161,13 +160,11 @@ const AppFields: FC<{
   const handleCreateNamespace = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    setCreateNamespace(event.target.checked);
-
     let currentAutomation = [...formData.clusterAutomations];
 
     currentAutomation[index] = {
       ...automation,
-      createNamespace,
+      createNamespace: event.target.checked,
     };
 
     setFormData({
@@ -175,36 +172,6 @@ const AppFields: FC<{
       clusterAutomations: currentAutomation,
     });
   };
-
-  // const handleSelectSource = (event: React.ChangeEvent<any>) => {
-  //   const { value } = event.target;
-  //   const { obj } = JSON.parse(value);
-
-  //   let currentAutomation = [...formData.clusterAutomations];
-
-  //   currentAutomation[index] = {
-  //     ...automation,
-  //     source_name: obj?.metadata.name,
-  //     source_namespace: obj?.metadata?.namespace,
-  //     source: value,
-  //   };
-
-  //   setFormData({
-  //     ...formData,
-  //     source_name: obj?.metadata?.name,
-  //     source_namespace: obj?.metadata?.namespace,
-  //     source_type: obj?.kind,
-  //     source: value,
-  //     clusterAutomations: currentAutomation,
-  //   });
-
-  //   if (obj?.kind === 'HelmRepository') {
-  //     setHelmRepo({
-  //       name: obj?.metadata?.name,
-  //       namespace: obj?.metadata?.namespace,
-  //     });
-  //   }
-  // };
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -366,12 +333,18 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-      <Checkbox
-        checked={createNamespace}
-        onChange={handleCreateNamespace}
-        inputProps={{ 'aria-label': 'controlled' }}
-      />
-      Create target namespace for kustomization
+      {formData.source_type === 'GitRepository' ? (
+        <Flex align={true}>
+          <Checkbox
+            style={{ marginRight: theme.spacing.small }}
+            checked={createNamespace}
+            onChange={handleCreateNamespace}
+            inputProps={{ 'aria-label': 'controlled' }}
+            color="primary"
+          />
+          <span>Create target namespace for kustomization</span>
+        </Flex>
+      ) : null}
     </FormWrapper>
   );
 };

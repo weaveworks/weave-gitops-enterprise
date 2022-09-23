@@ -56,7 +56,7 @@ const AddApplication = () => {
         cluster_namespace: '',
         cluster: '',
         cluster_isControlPlane: false,
-        create_namespace: false,
+        createNamespace: false,
         path: '',
         source_name: '',
         source_namespace: '',
