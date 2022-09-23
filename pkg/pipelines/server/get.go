@@ -13,6 +13,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -36,7 +37,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
-		Environments: map[string]*pb.PipelineTargetStatus{},
+		Environments: map[string]*pb.PipelineStatus_TargetStatusList{},
 	}
 
 	for _, e := range p.Spec.Environments {
@@ -48,8 +49,11 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetNamespace(t.Namespace)
 
 			clusterName := fetcher.ManagementClusterName
-			if t.ClusterRef.Name != "" {
-				clusterName = t.ClusterRef.Name
+			if t.ClusterRef != nil {
+				clusterName = types.NamespacedName{
+					Name:      t.ClusterRef.Name,
+					Namespace: t.ClusterRef.Namespace,
+				}.String()
 			}
 
 			if err := c.Get(ctx, clusterName, client.ObjectKeyFromObject(app), app); err != nil {
@@ -60,15 +64,28 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			if err != nil {
 				return nil, err
 			}
-			pipelineResp.Status.Environments[e.Name] = &pb.PipelineTargetStatus{
-				ClusterRef: &pb.ClusterRef{
-					Kind: t.ClusterRef.Kind,
-					Name: t.ClusterRef.Name,
-				},
-				Namespace: p.Namespace,
-				Workloads: []*pb.WorkloadStatus{ws},
+
+			if _, ok := pipelineResp.Status.Environments[e.Name]; !ok {
+				pipelineResp.Status.Environments[e.Name] = &pb.PipelineStatus_TargetStatusList{
+					TargetsStatuses: []*pb.PipelineTargetStatus{},
+				}
 			}
 
+			targetsStatuses := pipelineResp.Status.Environments[e.Name].TargetsStatuses
+
+			var clusterRef pb.ClusterRef
+
+			if t.ClusterRef != nil {
+				clusterRef = pb.ClusterRef{
+					Kind: t.ClusterRef.Kind,
+					Name: t.ClusterRef.Name,
+				}
+			}
+			pipelineResp.Status.Environments[e.Name].TargetsStatuses = append(targetsStatuses, &pb.PipelineTargetStatus{
+				ClusterRef: &clusterRef,
+				Namespace:  t.Namespace,
+				Workloads:  []*pb.WorkloadStatus{ws},
+			})
 		}
 	}
 

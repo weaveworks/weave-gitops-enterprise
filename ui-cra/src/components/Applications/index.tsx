@@ -2,7 +2,6 @@ import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
 import {
   AutomationsTable,
   Button,
@@ -37,7 +36,6 @@ const useStyles = makeStyles(() =>
 
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
-  const applicationsCount = useApplicationsCount();
   const history = useHistory();
   const { repoLink } = useListConfig();
   const classes = useStyles();
@@ -53,7 +51,7 @@ const WGApplicationsDashboard: FC = () => {
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
+            count: automations?.result?.length,
           },
         ]}
       />

@@ -2,13 +2,11 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { FieldsType, PolicyViolationsTable } from './Table';
-import useClusters from './../../contexts/Clusters';
 import { useListPolicyValidations } from '../../contexts/PolicyViolations';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 
 const PoliciesViolations = () => {
-  const clustersCount = useClusters().count;
   const { data, isLoading, error } = useListPolicyValidations({});
 
   return (
@@ -16,7 +14,7 @@ const PoliciesViolations = () => {
       <SectionHeader
         className="count-header"
         path={[
-          { label: 'Clusters', url: '/clusters', count: clustersCount },
+          { label: 'Clusters', url: '/clusters' },
           {
             label: 'Violation Log',
             count: data?.total,

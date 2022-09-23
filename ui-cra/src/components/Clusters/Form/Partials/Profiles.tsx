@@ -11,9 +11,6 @@ import _ from 'lodash';
 const ProfilesWrapper = styled.div`
   width: 85%;
   padding-bottom: ${({ theme }) => theme.spacing.xl};
-  div[class*='DataTable__IconFlex'] {
-    visibility: hidden;
-  }
   table {
     thead {
       th:first-of-type {
@@ -153,6 +150,7 @@ const Profiles: FC<{
                 ),
               },
             ]}
+            hideSearchAndFilters={true}
           />
         )}
       </>

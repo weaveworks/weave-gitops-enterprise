@@ -8,7 +8,10 @@ import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
+import { ReactComponent as Templates } from '../assets/img/templates.svg';
+import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { Routes } from '../utils/nav';
 
 interface SubNavItem {
   name: string;
@@ -20,6 +23,7 @@ interface NavigationItem {
   name: string;
   link: string;
   subItems?: Array<SubNavItem>;
+  isVisible?: boolean;
 }
 
 const NavWrapper = styled.div`
@@ -34,9 +38,10 @@ const NavWrapper = styled.div`
     display: flex;
     align-items: center;
     justify-content: start;
-    padding: ${({ theme }) => theme.spacing.xs}
-      ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.xs}
-      ${({ theme }) => theme.spacing.medium};
+    padding-top: ${({ theme }) => theme.spacing.xs};
+    padding-bottom: ${({ theme }) => theme.spacing.xs};
+    padding-left: ${({ theme }) => theme.spacing.medium};
+    padding-right: ${({ theme }) => theme.spacing.medium};
   }
 
   span.parent-route {
@@ -91,6 +96,10 @@ const useStyles = makeStyles({
 
 const NavItems = (navItems: Array<NavigationItem>) => {
   return navItems.map(item => {
+    if (item.isVisible === false) {
+      return null;
+    }
+
     return (
       <NavWrapper key={item.name}>
         <NavItem
@@ -134,11 +143,6 @@ export const Navigation: FC = () => {
       icon: <Clusters />,
       subItems: [
         {
-          name: 'Templates',
-          link: '/clusters/templates',
-          isVisible: true,
-        },
-        {
           name: 'Violation Log',
           link: '/clusters/violations',
           isVisible: true,
@@ -167,6 +171,17 @@ export const Navigation: FC = () => {
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
         },
       ],
+    },
+    {
+      name: 'Templates',
+      link: '/templates',
+      icon: <Templates />,
+    },
+    {
+      name: 'Terraform',
+      link: Routes.TerraformObjects,
+      icon: <TerraformLogo />,
+      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
       name: 'Flux Runtime',

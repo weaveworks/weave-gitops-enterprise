@@ -1,7 +1,4 @@
-import {
-  FluxObjectKind,
-  V2Routes,
-} from '@weaveworks/weave-gitops';
+import { FluxObjectKind, V2Routes } from '@weaveworks/weave-gitops';
 
 export function getKindRoute(k: FluxObjectKind | string): string {
   switch (k) {
@@ -32,4 +29,9 @@ export function getKindRoute(k: FluxObjectKind | string): string {
     default:
       return V2Routes.NotImplemented;
   }
+}
+
+export enum Routes {
+  TerraformObjects = '/terraform_objects',
+  TerraformDetail = '/terraform',
 }

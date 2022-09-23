@@ -13,8 +13,10 @@ const (
 	policyRepoGitKind       = "GitRepository"
 	policyRepoBucketKind    = "Bucket"
 	policyRepoHelmKind      = "HelmRepository"
+	policyRepoOCIKind       = "OCIRepository"
 	policyClustersKind      = "GitopsCluster"
 	policyKustomizationKind = "Kustomization"
+	policyHelmReleaseKind   = "HelmRelease"
 )
 
 var (
@@ -22,11 +24,14 @@ var (
 		policyRepoGitKind,
 		policyRepoBucketKind,
 		policyRepoHelmKind,
+		policyRepoOCIKind,
 	}
 	//go:embed policies/allowed_repositories.rego
 	repoPolicyCode string
 	//go:embed policies/allowed_clusters.rego
 	clusterPolicyCode string
+	//go:embed policies/allowed_application_deploy.rego
+	applicationPolicyCode string
 )
 
 func validatePolicyRepoKind(kind string) error {
@@ -35,10 +40,11 @@ func validatePolicyRepoKind(kind string) error {
 			return nil
 		}
 	}
+
 	return fmt.Errorf("invalid repository kind: %s", kind)
 }
 
-func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs []string) ([]pacv2beta1.PolicyParameters, error) {
+func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs, ociURLs []string) ([]pacv2beta1.PolicyParameters, error) {
 	gitBytes, err := json.Marshal(gitURLs)
 	if err != nil {
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
@@ -53,6 +59,12 @@ func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs []string) ([]pa
 	if err != nil {
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
 	}
+
+	ociBytes, err := json.Marshal(ociURLs)
+	if err != nil {
+		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
+	}
+
 	return []pacv2beta1.PolicyParameters{
 		{
 			Name: "git_urls",
@@ -73,6 +85,13 @@ func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs []string) ([]pa
 			Type: "array",
 			Value: &apiextensionsv1.JSON{
 				Raw: helmBytes,
+			},
+		},
+		{
+			Name: "oci_urls",
+			Type: "array",
+			Value: &apiextensionsv1.JSON{
+				Raw: ociBytes,
 			},
 		},
 	}, nil

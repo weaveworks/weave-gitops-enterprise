@@ -1,17 +1,14 @@
-import { ThemeProvider } from '@material-ui/core/styles';
 import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
-import { localEEMuiTheme } from '../../muiTheme';
-import { useApplicationsCount } from '../Applications/utils';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { LinkWrapper } from '../Policies/PolicyStyles';
+import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
-const Pipelines = () => {
-  const applicationsCount = useApplicationsCount();
+const Pipelines = ({ className }: any) => {
   const { error, data, isLoading } = useListPipelines();
 
   const initialFilterState = {
@@ -19,61 +16,64 @@ const Pipelines = () => {
   };
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Pipelines">
-        <SectionHeader
-          className="count-header"
-          path={[
-            {
-              label: 'Applications',
-              url: '/applications',
-              count: applicationsCount,
-            },
-            { label: 'Pipelines', count: data?.pipelines?.length },
-          ]}
-        />
-        <ContentWrapper loading={isLoading} errorMessage={error?.message}>
-          {data?.pipelines && (
-            <TableWrapper id="pipelines-list">
-              <DataTable
-                filters={initialFilterState}
-                rows={data?.pipelines}
-                fields={[
-                  {
-                    label: 'Name',
-                    value: ({ name, namespace }: Pipeline) => (
-                      <LinkWrapper
-                        to={`/applications/pipelines/details?namespace=${namespace}&name=${name}`}
-                      >
-                        {name}
-                      </LinkWrapper>
-                    ),
-                    sortValue: ({ name }: Pipeline) => name,
-                    textSearchable: true,
-                  },
-                  {
-                    label: 'Namespace',
-                    value: 'namespace',
-                    textSearchable: true,
-                  },
-                  {
-                    label: 'Application Name',
-                    value: ({ appRef }: Pipeline) => <>{appRef?.name}</>,
-                    sortValue: ({ appRef }: Pipeline) => appRef?.name,
-                  },
-                  {
-                    label: 'Application Kind',
-                    value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
-                    sortValue: ({ appRef }: Pipeline) => appRef?.name,
-                  },
-                ]}
-              />
-            </TableWrapper>
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate documentTitle="WeGO · Pipelines">
+      <SectionHeader
+        className="count-header"
+        path={[
+          {
+            label: 'Applications',
+            url: '/applications',
+          },
+          { label: 'Pipelines', count: data?.pipelines?.length },
+        ]}
+      />
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        {data?.pipelines && (
+          <TableWrapper className={className} id="pipelines-list">
+            <DataTable
+              filters={initialFilterState}
+              rows={data?.pipelines}
+              fields={[
+                {
+                  label: 'Pipeline Name',
+                  value: ({ name, namespace }: Pipeline) => (
+                    <LinkWrapper
+                      to={`/applications/pipelines/details?namespace=${namespace}&name=${name}`}
+                    >
+                      {name}
+                    </LinkWrapper>
+                  ),
+                  sortValue: ({ name }: Pipeline) => name,
+                  textSearchable: true,
+                },
+                {
+                  label: 'Pipeline Namespace',
+                  value: 'namespace',
+                  textSearchable: true,
+                },
+                {
+                  label: 'Type',
+                  value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
+                  sortValue: ({ appRef }: Pipeline) => appRef?.name,
+                },
+                {
+                  label: 'Environments',
+                  value: ({ environments }: Pipeline) => (
+                    <>
+                      {environments?.map(env => (
+                        <ChipWrapper key={env.name}>{env.name}</ChipWrapper>
+                      ))}
+                    </>
+                  ),
+                  sortValue: (p: Pipeline) => p.name,
+                },
+              ]}
+            />
+          </TableWrapper>
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 
-export default Pipelines;
+export default styled(Pipelines).attrs({ className: Pipelines.name })``;

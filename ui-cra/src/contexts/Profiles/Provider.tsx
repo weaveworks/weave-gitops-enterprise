@@ -32,38 +32,22 @@ const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
     if (key.includes('capi.weave.works/profile')) {
       const data = maybeParseJSON(value);
       if (data) {
-        const { name, version, values, editable } = data;
+        const { name, version, values, editable, namespace } = data;
         defaultProfiles.push({
           name,
           editable,
-          values: [{ version, yaml: values || '', selected: false }],
+          values: [
+            { version: version || '', yaml: values || '', selected: false },
+          ],
           required: true,
           selected: true,
           layer: getProfileLayer(profiles, name),
+          namespace,
         });
       }
     }
   }
   return defaultProfiles;
-};
-
-const getValidDefaultProfiles = (
-  template: Template | null,
-  initialProfiles: UpdatedProfile[],
-) => {
-  const defaultProfiles =
-    template && getDefaultProfiles(template, initialProfiles);
-  return (
-    defaultProfiles?.filter(defaultProfile =>
-      initialProfiles.find(
-        profile =>
-          defaultProfile.name === profile.name &&
-          profile.values.map(
-            value => value.version === defaultProfile.values[0].version,
-          )?.length !== 0,
-      ),
-    ) || []
-  );
 };
 
 const toUpdatedProfiles = (profiles?: Profile[]): UpdatedProfile[] => {
@@ -96,13 +80,13 @@ const setVersionAndValuesFromTemplate = (
   template: TemplateEnriched,
 ) => {
   // get default / required profiles for the active template
-  const validDefaultProfiles = getValidDefaultProfiles(template, profiles);
+  let defaultProfiles = getDefaultProfiles(template, profiles);
 
   // get the optional profiles by excluding the default profiles from the /v1/profiles response
   const optionalProfiles =
     profiles.filter(
       profile =>
-        !validDefaultProfiles.find(
+        !defaultProfiles.find(
           p =>
             profile.name === p.name &&
             profile.values.map(value => value.version === p.values[0].version)
@@ -110,7 +94,18 @@ const setVersionAndValuesFromTemplate = (
         ),
     ) || [];
 
-  return [...optionalProfiles, ...validDefaultProfiles];
+  // populate default profiles versions with those from initial profiles where they are missing
+  defaultProfiles = defaultProfiles.map(defaultProfile => {
+    if (defaultProfile.values[0].version === '') {
+      defaultProfile.values =
+        profiles?.find(
+          optionalProfile => optionalProfile.name === defaultProfile.name,
+        )?.values || [];
+    }
+    return defaultProfile;
+  });
+
+  return [...optionalProfiles, ...defaultProfiles];
 };
 
 interface Props {

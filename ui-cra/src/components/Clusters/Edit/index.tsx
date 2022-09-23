@@ -1,8 +1,8 @@
 import Grid from '@material-ui/core/Grid';
 import { FC } from 'react';
-import { Redirect, useParams } from 'react-router-dom';
-import useClusters from '../../../contexts/Clusters';
-import useTemplates from '../../../contexts/Templates';
+import { useParams, Redirect } from 'react-router-dom';
+import useClusters from '../../../hooks/clusters';
+import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
@@ -17,25 +17,39 @@ const EditCluster: FC<{ cluster?: GitopsClusterEnriched | null }> = ({
 
   const templateName =
     cluster && getCreateRequestAnnotation(cluster)?.template_name;
+
   if (!templateName) {
-    return <Redirect to="/clusters" />;
+    return (
+      <Redirect
+        to={{
+          pathname: '/clusters',
+          state: {
+            notification: [
+              {
+                message: {
+                  text: 'No edit information is available for this cluster.',
+                },
+                variant: 'danger',
+              },
+            ],
+          },
+        }}
+      />
+    );
   }
 
   return <ClusterForm template={getTemplate(templateName)} cluster={cluster} />;
 };
 
 const EditClusterPage = () => {
-  const { count: clustersCount, isLoading, getCluster } = useClusters();
+  const { isLoading, getCluster } = useClusters();
   const { clusterName } = useParams<{ clusterName: string }>();
   const { isLoading: isTemplateLoading } = useTemplates();
   return (
     <PageTemplate documentTitle="WeGo · Create new cluster">
       <SectionHeader
         className="count-header"
-        path={[
-          { label: 'Clusters', url: '/', count: clustersCount },
-          { label: clusterName },
-        ]}
+        path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
       />
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>

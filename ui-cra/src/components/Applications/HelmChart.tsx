@@ -2,7 +2,6 @@ import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount, useSourcesCount } from './utils';
 import { HelmChartDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 
@@ -14,8 +13,6 @@ type Props = {
 
 const WGApplicationsHelmChart: FC<Props> = props => {
   const { name, namespace, clusterName } = props;
-  const applicationsCount = useApplicationsCount();
-  const sourcesCount = useSourcesCount();
   const {
     data: helmChart,
     isLoading,
@@ -29,12 +26,10 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           {
             label: 'Sources',
             url: '/sources',
-            count: sourcesCount,
           },
           {
             label: `${props.name}`,

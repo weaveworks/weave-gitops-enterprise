@@ -1,22 +1,20 @@
 import Grid from '@material-ui/core/Grid';
 import { useParams } from 'react-router-dom';
-import useClusters from '../../../contexts/Clusters';
-import useTemplates from '../../../contexts/Templates';
+import useTemplates from '../../../hooks/templates';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import ClusterForm from '../Form';
 
 const CreateClusterPage = () => {
-  const clustersCount = useClusters().count;
   const { templateName } = useParams<{ templateName: string }>();
   const { getTemplate, isLoading } = useTemplates();
   return (
-    <PageTemplate documentTitle="WeGo · Create new cluster">
+    <PageTemplate documentTitle="WeGO · Create new cluster">
       <SectionHeader
         className="count-header"
         path={[
-          { label: 'Clusters', url: '/', count: clustersCount },
+          { label: 'Templates', url: '/templates' },
           { label: 'Create new cluster' },
         ]}
       />

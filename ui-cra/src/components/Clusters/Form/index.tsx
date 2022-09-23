@@ -16,7 +16,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Redirect, useHistory } from 'react-router-dom';
+import { useHistory, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   CreatePullRequestRequest,
@@ -26,7 +26,7 @@ import {
 import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
-import useTemplates from '../../../contexts/Templates';
+import useTemplates from '../../../hooks/templates';
 import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
 import {
@@ -250,7 +250,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const { setNotifications } = useNotifications();
   const authRedirectPage = cluster
     ? `/clusters/${cluster?.name}/edit`
-    : `/clusters/templates/${template?.name}/create`;
+    : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -442,7 +442,23 @@ interface Props {
 
 const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
   if (!template) {
-    return <Redirect to="/clusters/templates" />;
+    return (
+      <Redirect
+        to={{
+          pathname: '/templates',
+          state: {
+            notification: [
+              {
+                message: {
+                  text: 'No template information is available to create a cluster.',
+                },
+                variant: 'danger',
+              },
+            ],
+          },
+        }}
+      />
+    );
   }
 
   return (

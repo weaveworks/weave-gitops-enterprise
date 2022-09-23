@@ -556,7 +556,6 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	var installs []charts.ChartInstall
 
 	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
-
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
@@ -564,8 +563,11 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	for _, v := range args.profileValues {
 		var requiredProfile *capiv1_proto.TemplateProfile
 		for _, rp := range requiredProfiles {
-			if rp.Version == v.Version && rp.Name == v.Name {
+			if rp.Name == v.Name && rp.Version == v.Version {
 				requiredProfile = rp
+			} else if rp.Name == v.Name && rp.Version == "" {
+				requiredProfile = rp
+				requiredProfile.Version = v.Version
 			}
 		}
 
@@ -587,6 +589,13 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			v.Version, err = getProfileLatestVersion(ctx, v.Name, helmRepo)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
+			}
+		}
+
+		// Check the namespace and if empty, use the profile default
+		if v.Namespace == "" {
+			if requiredProfile != nil && requiredProfile.Namespace != "" {
+				v.Namespace = requiredProfile.Namespace
 			}
 		}
 

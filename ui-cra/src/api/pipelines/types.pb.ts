@@ -42,8 +42,12 @@ export type PipelineTargetStatus = {
   workloads?: WorkloadStatus[]
 }
 
+export type PipelineStatusTargetStatusList = {
+  targetsStatuses?: PipelineTargetStatus[]
+}
+
 export type PipelineStatus = {
-  environments?: {[key: string]: PipelineTargetStatus}
+  environments?: {[key: string]: PipelineStatusTargetStatusList}
 }
 
 export type Pipeline = {

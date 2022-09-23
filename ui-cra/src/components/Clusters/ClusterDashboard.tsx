@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
-import useClusters from '../../contexts/Clusters';
+import useClusters from '../../hooks/clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
 import { useHistory, useRouteMatch } from 'react-router-dom';
@@ -54,8 +54,7 @@ const useStyles = makeStyles(() =>
 );
 
 const ClusterDashboard = ({ clusterName }: Props) => {
-  const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
-    useClusters();
+  const { getCluster, getDashboardAnnotations, getKubeconfig } = useClusters();
   const [currentCluster, setCurrentCluster] =
     useState<GitopsClusterEnriched | null>(null);
   const { path } = useRouteMatch();
@@ -111,7 +110,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters', count },
+            { label: 'Clusters', url: '/clusters' },
             { label: clusterName },
           ]}
         />
@@ -122,7 +121,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
             startIcon={<Icon type={IconType.FilterIcon} size="base" />}
             onClick={() => {
               const filtersValues = encodeURIComponent(
-                `clusterName:${currentCluster?.namespace}/${currentCluster?.name}`,
+                `clusterName: ${currentCluster?.namespace}/${currentCluster?.name}`,
               );
               history.push(`/applications?filters=${filtersValues}`);
             }}

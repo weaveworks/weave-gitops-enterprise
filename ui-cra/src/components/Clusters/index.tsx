@@ -25,8 +25,10 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import useClusters from '../../contexts/Clusters';
-import useNotifications from '../../contexts/Notifications';
+import useClusters from '../../hooks/clusters';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
@@ -53,11 +55,6 @@ import { getCreateRequestAnnotation } from './Form/utils';
 interface Size {
   size?: 'small';
 }
-
-type Props = {
-  cluster: GitopsClusterEnriched;
-};
-
 const ActionsWrapper = styled.div<Size>`
   display: flex;
 `;
@@ -109,7 +106,9 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const ClusterIcon: FC<Props> = ({ cluster }) => {
+export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
+  cluster,
+}) => {
   const classes = useStyles();
   const clusterKind =
     cluster.labels?.['weave.works/cluster-kind'] ||
@@ -196,12 +195,21 @@ interface FormData {
   pullRequestDescription: string;
 }
 
-const MCCP: FC = () => {
-  const { clusters, isLoading, count, selectedClusters, setSelectedClusters } =
-    useClusters();
+const MCCP: FC<{
+  location: { state: { notification: NotificationData[] } };
+}> = ({ location }) => {
+  const { clusters, isLoading, count } = useClusters();
+  const notification = location.state?.notification;
+  const [selectedClusters, setSelectedClusters] = useState<
+    ClusterNamespacedName[]
+  >([]);
   const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
+  const handleClose = useCallback(() => {
+    setOpenDeletePR(false);
+    setSelectedClusters([]);
+  }, [setOpenDeletePR, setSelectedClusters]);
   const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
@@ -219,6 +227,12 @@ const MCCP: FC = () => {
     Math.random().toString(36).substring(7),
   );
   const classes = useStyles();
+
+  useEffect(() => {
+    if (notification) {
+      setNotifications(notification);
+    }
+  }, [notification, setNotifications]);
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -257,7 +271,7 @@ const MCCP: FC = () => {
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    history.push('/clusters/templates');
+    history.push('/templates');
   }, [history]);
 
   const initialFilterState = {
@@ -399,7 +413,7 @@ const MCCP: FC = () => {
                   formData={formData}
                   setFormData={setFormData}
                   selectedCapiClusters={selectedCapiClusters}
-                  setOpenDeletePR={setOpenDeletePR}
+                  onClose={handleClose}
                   prDefaults={PRdefaults}
                 />
               )}

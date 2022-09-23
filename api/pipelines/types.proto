@@ -45,7 +45,11 @@ message PipelineTargetStatus {
 }
 
 message PipelineStatus {
-    map<string, PipelineTargetStatus> environments = 1;
+    message TargetStatusList {
+        repeated PipelineTargetStatus targetsStatuses = 1;
+    }
+
+    map<string, TargetStatusList> environments = 1;
 }
 
 message Pipeline {

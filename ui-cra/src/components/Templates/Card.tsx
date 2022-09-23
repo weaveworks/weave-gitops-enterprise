@@ -34,7 +34,7 @@ const TemplateCard: FC<{ template: Template }> = ({ template }) => {
   const classes = useStyles();
   const history = useHistory();
   const handleCreateClick = () => {
-    history.push(`/clusters/templates/${template.name}/create`);
+    history.push(`/templates/${template.name}/create`);
   };
   const getTile = () => {
     switch (template.provider) {

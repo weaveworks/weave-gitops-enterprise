@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,56 +18,59 @@ import (
 func TestGetPipeline(t *testing.T) {
 	ctx := context.Background()
 
-	kclient, factory := pipetesting.MakeFactoryWithObjects()
+	kclient, factory := grpctesting.MakeFactoryWithObjects()
 	serverClient := pipetesting.SetupServer(t, factory)
 
-	ns := pipetesting.NewNamespace(ctx, t, kclient)
+	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
+	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 
-	hr := createHelmRelease(ctx, t, kclient, "app-1", ns.Name)
+	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)
 
 	envName := "env-1"
 
 	t.Run("cluster ref is not set", func(t *testing.T) {
-		p := newPipeline("pipe-1", ns.Name, envName, hr)
+		p := newPipeline("pipe-1", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		require.NoError(t, kclient.Create(ctx, p))
 
 		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
 			Name:      p.Name,
-			Namespace: ns.Name,
+			Namespace: pipelineNamespace.Name,
 		})
 		require.NoError(t, err)
 
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
 	})
 
 	t.Run("cluster ref is set", func(t *testing.T) {
-		p := newPipeline("pipe-2", ns.Name, envName, hr)
-		p.Spec.Environments[0].Targets[0].ClusterRef = ctrl.CrossNamespaceClusterReference{
+		p := newPipeline("pipe-2", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
 			APIVersion: ctrl.GroupVersion.String(),
 			Kind:       "GitopsCluster",
 			Name:       "cluster-1",
-			Namespace:  ns.Name,
+			Namespace:  pipelineNamespace.Name,
 		}
 		require.NoError(t, kclient.Create(ctx, p))
 
 		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
 			Name:      p.Name,
-			Namespace: ns.Name,
+			Namespace: pipelineNamespace.Name,
 		})
 		require.NoError(t, err)
 
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
 	})
 
 }
 
-func newPipeline(name string, namespace string, envName string, hr *helm.HelmRelease) *ctrl.Pipeline {
+func newPipeline(name string, pNamespace string, tNamespace string, envName string, hr *helm.HelmRelease) *ctrl.Pipeline {
 	return &ctrl.Pipeline{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
-			Namespace: namespace,
+			Namespace: pNamespace,
 		},
 		Spec: ctrl.PipelineSpec{
 			AppRef: ctrl.LocalAppReference{
@@ -79,7 +83,7 @@ func newPipeline(name string, namespace string, envName string, hr *helm.HelmRel
 					Name: envName,
 					Targets: []ctrl.Target{
 						{
-							Namespace: namespace,
+							Namespace: tNamespace,
 						},
 					},
 				},
