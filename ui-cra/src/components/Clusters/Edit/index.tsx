@@ -1,6 +1,6 @@
 import Grid from '@material-ui/core/Grid';
 import { FC } from 'react';
-import { Redirect, useParams } from 'react-router-dom';
+import { useParams, Redirect } from 'react-router-dom';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
@@ -17,8 +17,25 @@ const EditCluster: FC<{ cluster?: GitopsClusterEnriched | null }> = ({
 
   const templateName =
     cluster && getCreateRequestAnnotation(cluster)?.template_name;
+
   if (!templateName) {
-    return <Redirect to="/clusters" />;
+    return (
+      <Redirect
+        to={{
+          pathname: '/clusters',
+          state: {
+            notification: [
+              {
+                message: {
+                  text: 'No edit information is available for this cluster.',
+                },
+                variant: 'danger',
+              },
+            ],
+          },
+        }}
+      />
+    );
   }
 
   return <ClusterForm template={getTemplate(templateName)} cluster={cluster} />;

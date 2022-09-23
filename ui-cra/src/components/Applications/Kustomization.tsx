@@ -1,8 +1,10 @@
 import {
+  Kind,
   KustomizationDetail,
-  useGetKustomization,
+  useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { Kustomization } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -21,12 +23,16 @@ const WGApplicationsKustomization: FC<Props> = ({
   namespace,
   clusterName,
 }) => {
-  const { data, isLoading, error } = useGetKustomization(
+  const {
+    data: kustomization,
+    isLoading,
+    error,
+  } = useGetObject<Kustomization>(
     name,
     namespace,
+    Kind.HelmRepository,
     clusterName,
   );
-  const kustomization = data?.kustomization;
   const { path } = useRouteMatch();
 
   const customTabs: Array<routeTab> = [
