@@ -65,11 +65,12 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 
 		if c.Kustomization != nil {
 			if c.Kustomization.Spec.CreateNamespace {
-				if err := createNamespace(ctx, client, c.Kustomization.Spec.TargetNamespace); err != nil {
-					return nil, fmt.Errorf(
-						"unable to create namespace for kustomization %s: %w",
-						c.Kustomization.Metadata.Name, err)
+				namespace, err := generateNamespaceFile(ctx, c.IsControlPlane, cluster, c.Kustomization.Spec.TargetNamespace, c.FilePath)
+				if err != nil {
+					return nil, err
 				}
+
+				files = append(files, namespace)
 			}
 
 			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
@@ -302,7 +303,12 @@ func validateHelmRelease(helmRelease *capiv1_proto.HelmRelease) error {
 	return err
 }
 
-func createNamespace(ctx context.Context, client client.Client, name string) error {
+func generateNamespaceFile(
+	ctx context.Context,
+	isControlPlane bool,
+	cluster types.NamespacedName,
+	name,
+	filePath string) (gitprovider.CommitFile, error) {
 	namespace := &corev1.Namespace{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Namespace",
@@ -313,9 +319,25 @@ func createNamespace(ctx context.Context, client client.Client, name string) err
 		},
 	}
 
-	if err := client.Create(ctx, namespace); err != nil {
-		return err
+	b, err := yaml.Marshal(namespace)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s namespace, %w", name, err)
 	}
 
-	return nil
+	k := createNamespacedName(name, "")
+
+	namespacePath := getClusterResourcePath(isControlPlane, "namespace", cluster, k)
+
+	if filePath != "" {
+		namespacePath = filePath
+	}
+
+	namespaceContent := string(b)
+
+	file := &gitprovider.CommitFile{
+		Path:    &namespacePath,
+		Content: &namespaceContent,
+	}
+
+	return *file, nil
 }
