@@ -190,7 +190,7 @@ func verifyAppDetails(app Application, cluster ClusterConfig) {
 		gomega.Eventually(details.Name.Text).Should(gomega.MatchRegexp(app.DeploymentName), fmt.Sprintf("Failed to verify %s Deployment name", app.Name))
 		gomega.Eventually(details.Type.Text).Should(gomega.MatchRegexp("Deployment"), fmt.Sprintf("Failed to verify %s Type", app.Name))
 		gomega.Eventually(details.Namespace.Text).Should(gomega.MatchRegexp(app.TargetNamespace), fmt.Sprintf("Failed to verify %s Namespace", app.Name))
-		gomega.Eventually(details.Status.Text, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", app.Name))
+		gomega.Eventually(details.Status.Text, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", app.Name))
 		gomega.Eventually(details.Message.Text).Should(gomega.MatchRegexp("Deployment is available"), fmt.Sprintf("Failed to verify %s Message", app.Name))
 
 	})
@@ -444,8 +444,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				pullRequest := PullRequest{
 					Branch:  "management-helm-apps",
-					Title:   "Managment Helm Applications",
-					Message: "Adding managment helm applications",
+					Title:   "Management Helm Applications",
+					Message: "Adding management helm applications",
 				}
 
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
@@ -553,8 +553,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				pullRequest := PullRequest{
 					Branch:  "management-kustomization-apps",
-					Title:   "Managment Kustomization Application",
-					Message: "Adding managment kustomization applications",
+					Title:   "Management Kustomization Application",
+					Message: "Adding management kustomization applications",
 				}
 
 				sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -702,8 +702,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				pullRequest := PullRequest{
 					Branch:  "management-kustomization-leaf-cluster-apps",
-					Title:   "Managment Kustomization Leaf Cluster Application",
-					Message: "Adding managment kustomization leaf cluster applications",
+					Title:   "Management Kustomization Leaf Cluster Application",
+					Message: "Adding management kustomization leaf cluster applications",
 				}
 
 				sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -774,7 +774,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -250, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -230, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
 				})
 
 				AddKustomizationApp(application, podinfo)
@@ -862,8 +862,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				pullRequest := PullRequest{
 					Branch:  "management-helm-leaf-cluster-apps",
-					Title:   "Managment Helm Leaf Cluster Application",
-					Message: "Adding managment helm leaf cluster applications",
+					Title:   "Management Helm Leaf Cluster Application",
+					Message: "Adding management helm leaf cluster applications",
 				}
 
 				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"

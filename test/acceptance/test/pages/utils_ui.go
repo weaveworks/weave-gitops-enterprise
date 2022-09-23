@@ -68,7 +68,7 @@ func ClearFieldValue(field *agouti.Selection) {
 }
 
 func ClickElement(webDriver *agouti.Page, element *agouti.Selection, xOffset, yOffset int) error {
-	element.MouseToElement()
-	webDriver.MoveMouseBy(xOffset, yOffset)
+	gomega.Expect(element.MouseToElement()).Should(gomega.Succeed(), "Failed to move mouse to element")
+	gomega.Expect(webDriver.MoveMouseBy(xOffset, yOffset)).Should(gomega.Succeed(), fmt.Sprintf("Failed to move mouse by offset (%d, %d)", xOffset, yOffset))
 	return webDriver.Click(agouti.SingleClick, agouti.LeftButton)
 }
