@@ -283,7 +283,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   ]);
 
   const handleAddCluster = useCallback(() => {
-    console.log(formData);
     const payload = toPayload(
       formData,
       infraCredential,
