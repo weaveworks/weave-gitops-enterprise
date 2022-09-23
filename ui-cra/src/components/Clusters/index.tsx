@@ -51,6 +51,7 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { getCreateRequestAnnotation } from './Form/utils';
+import { openLinkHandler } from '../../utils/link-checker';
 
 interface Size {
   size?: 'small';
@@ -430,19 +431,14 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Link
-                target={'_blank'}
-                rel="noopener noreferrer"
-                component={Button}
-                to={{ pathname: repoLink }}
-              >
+              <Button onClick={openLinkHandler(repoLink)}>
                 <Icon
                   className={classes.externalIcon}
                   type={IconType.ExternalTab}
                   size="base"
                 />
                 GO TO OPEN PULL REQUESTS
-              </Link>
+              </Button>
             </ActionsWrapper>
           </div>
           {!isLoading ? (
