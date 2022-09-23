@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
-	github.com/weaveworks/weave-gitops v0.9.5-rc.1
+	github.com/weaveworks/weave-gitops v0.9.6-0.20220922171106-9a2f69969acf
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -46,7 +46,7 @@ require (
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/spf13/viper v1.12.0
-	github.com/weaveworks/cluster-controller v1.2.0
+	github.com/weaveworks/cluster-controller v1.3.2
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.4
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
@@ -105,7 +105,7 @@ require (
 	github.com/rs/cors v1.8.2 // indirect
 	github.com/rs/xid v1.2.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/weaveworks/pipeline-controller/api v0.0.0-20220826142840-8bf571a1f799
+	github.com/weaveworks/pipeline-controller/api v0.0.0-20220916165727-cb8504f08c22
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.33.0 // indirect
 	go.opentelemetry.io/otel v1.8.0 // indirect

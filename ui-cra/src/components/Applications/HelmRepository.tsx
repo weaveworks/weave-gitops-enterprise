@@ -2,7 +2,6 @@ import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
-import { useApplicationsCount, useSourcesCount } from './utils';
 import {
   HelmRepositoryDetail,
   Kind,
@@ -18,9 +17,6 @@ type Props = {
 
 const WGApplicationsHelmRepository: FC<Props> = props => {
   const { name, namespace, clusterName } = props;
-  const applicationsCount = useApplicationsCount();
-  const sourcesCount = useSourcesCount();
-
   const {
     data: helmRepository,
     isLoading,
@@ -39,12 +35,10 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           {
             label: 'Sources',
             url: '/sources',
-            count: sourcesCount,
           },
           {
             label: `${props.name}`,

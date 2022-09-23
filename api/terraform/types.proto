@@ -37,6 +37,8 @@ message TerraformObject {
 
     repeated ResourceRef inventory = 10;
     repeated Condition conditions  = 11;
+
+    bool suspended = 12;
 }
 
 message Pagination {

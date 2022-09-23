@@ -8,32 +8,30 @@ metadata:
 spec: {}
 status: {}
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  creationTimestamp: null
-  labels:
-    toolkit.fluxcd.io/tenant: foo-tenant
-  name: foo-tenant-service-account-cluster-admin
-  namespace: foo-ns
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- kind: ServiceAccount
-  name: test-sa
-  namespace: foo-ns
----
 apiVersion: v1
-kind: Namespace
+kind: ServiceAccount
 metadata:
   creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: foo-tenant
-  name: bar-ns
-spec: {}
-status: {}
+  name: foo-tenant
+  namespace: foo-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant-service-account
+  namespace: foo-ns
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -41,16 +39,33 @@ metadata:
   creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: foo-tenant
-  name: foo-tenant-service-account-cluster-admin
-  namespace: bar-ns
+  name: foo-tenant-service-account-deployment
+  namespace: foo-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
+  kind: Role
+  name: foo-tenant-service-account-deployment
 subjects:
 - kind: ServiceAccount
-  name: test-sa
-  namespace: bar-ns
+  name: foo-tenant
+  namespace: foo-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant-service-account-foo-role
+  namespace: foo-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: foo-role
+subjects:
+- kind: ServiceAccount
+  name: foo-tenant
+  namespace: foo-ns
 ---
 apiVersion: pac.weave.works/v2beta1
 kind: Policy
@@ -95,11 +110,10 @@ spec:
     type: array
     value:
     - foo-ns
-    - bar-ns
   - name: service_account_name
     required: false
     type: string
-    value: test-sa
+    value: foo-tenant
   severity: high
   standards: []
   tags:
@@ -111,5 +125,4 @@ spec:
     labels: []
     namespaces:
     - foo-ns
-    - bar-ns
 ---

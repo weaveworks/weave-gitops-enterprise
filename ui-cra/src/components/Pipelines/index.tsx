@@ -2,7 +2,6 @@ import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
-import { useApplicationsCount } from '../Applications/utils';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { SectionHeader } from '../Layout/SectionHeader';
@@ -10,7 +9,6 @@ import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
 const Pipelines = ({ className }: any) => {
-  const applicationsCount = useApplicationsCount();
   const { error, data, isLoading } = useListPipelines();
 
   const initialFilterState = {
@@ -18,14 +16,13 @@ const Pipelines = ({ className }: any) => {
   };
 
   return (
-    <PageTemplate documentTitle="WeGo · Pipelines">
+    <PageTemplate documentTitle="WeGO · Pipelines">
       <SectionHeader
         className="count-header"
         path={[
           {
             label: 'Applications',
             url: '/applications',
-            count: applicationsCount,
           },
           { label: 'Pipelines', count: data?.pipelines?.length },
         ]}
@@ -39,9 +36,9 @@ const Pipelines = ({ className }: any) => {
               fields={[
                 {
                   label: 'Pipeline Name',
-                  value: ({ appRef, name, namespace }: Pipeline) => (
+                  value: ({ name, namespace }: Pipeline) => (
                     <LinkWrapper
-                      to={`/applications/pipelines/details?namespace=${namespace}&name=${appRef?.name}&pipelineName=${name}`}
+                      to={`/applications/pipelines/details?namespace=${namespace}&name=${name}`}
                     >
                       {name}
                     </LinkWrapper>
