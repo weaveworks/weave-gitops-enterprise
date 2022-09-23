@@ -12,7 +12,7 @@ If you aren't using the GPG suite, you will need to [add the GPG key to your .ba
 
 ## Checklist
 
-### Radiate that a release is happening (**30 mins** waiting for objections)
+### Radiate that a release is happening (**30 mins** waiting for objections, but a day or two is better)
 
 Write a message in `#weave-gitops-dev` on slack. Ideally we want to fall into a predicatable release cadence so that the release doesn't come as a surprise to anyone.
 
@@ -21,6 +21,12 @@ Wait and see if any team has an objection like a known release blocking bug.
 ### Make sure weave-gitops-enterprise on `main` is green (**30s** to check)
 
 Look for the green tick next to the last commit on [weave-gitops-enterprise](https://github.com/weaveworks/weave-gitops-enterprise)
+
+### Make sure all new features in the latest weave-gitops core release work
+
+In the past we have released WGE without making sure the new features in Weave GitOps core have been integrated.
+
+Review the release notes of the [latest version of core](https://github.com/weaveworks/weave-gitops/releases) and check the new features listed there work in WGE.
 
 ### Make sure dependencies are up to date (**5 mins** to check. **30 mins** to correct versions and wait for green `main`)
 
@@ -35,6 +41,10 @@ In particular:
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
 
 Check [how to update things in ../CONTRIBUTING.md](../CONTRIBUTING.md#how-to-update-the-version-of-weave-gitops) for instructions on how to update properly.
+
+> **info**
+> **For non-rc.x releases:**
+> None of the above versions should be pinned to a commit hash. They should all be pinned to a release tag.
 
 ## Release
 ### Create a tag
@@ -61,9 +71,24 @@ This will kick off the release process in GitHub actions
 
 ### Update the release notes with *Dependencies* and *Highlights*
 
+#### Github releases page
+
 You can use a [previous release](https://github.com/weaveworks/weave-gitops-enterprise/releases) as a template here.
 
-Edit the new release, copy and paste the _Dependency Versions_ section from an older releases. Update any versions that have been changed.
+- Edit the new release, copy and paste the **Dependency Versions** section from an older releases. Update any versions that have been changed.
+- Add a **Highlights** section, calling out the significant changes in this new release.
+- Add a **Breaking Changes** section, calling out any breaking changes in this new release.
+- Add a **Known Issues** section, calling out any known issues in this new release.
 
-Add a Highlights section, calling out the significant changes in this new release.
+#### https://docs.gitops.weave.works/ Enterprise releases page
 
+> **info**
+> This is for non-rc.x releases only
+
+Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://docs.gitops.weave.works/docs/enterprise/releases/).
+
+Paste it up the top, keeping previous releases in order.
+
+Make sure to backport the docs changes to the versioned docs. For example when releasing 0.9.5, both these files should be the same:
+- weave-gitops/website/docs/enterprise/releases.mdx
+- weave-gitops/website/versioned_docs/version-0.9.5/enterprise/releases.mdx
