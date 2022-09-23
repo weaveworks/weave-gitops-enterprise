@@ -729,19 +729,6 @@ exports[`Applications index test snapshots success 1`] = `
   z-index: 1;
 }
 
-.c26 {
-  height: 40px;
-  padding: 4px 0px;
-  -webkit-flex-wrap: nowrap;
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-}
-
-.c26 .MuiChip-root {
-  margin-right: 4px;
-}
-
 .c37 {
   position: relative;
   height: 100%;
@@ -779,6 +766,19 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c40 .MuiCheckbox-colorSecondary.Mui-checked {
   color: #00b3ec;
+}
+
+.c26 {
+  height: 40px;
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.c26 .MuiChip-root {
+  margin-right: 4px;
 }
 
 .c29 {
