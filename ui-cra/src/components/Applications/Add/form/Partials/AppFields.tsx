@@ -52,7 +52,7 @@ const AppFields: FC<{
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
-  const [createNamespace, setCreateNamespace] = useState<boolean>(false);
+  const [createNamespace, setCreateNamespace] = useState<boolean>(true);
 
   let clusters: GitopsCluster[] | undefined = undefined;
   if (allowSelectCluster) {
@@ -163,11 +163,48 @@ const AppFields: FC<{
   ) => {
     setCreateNamespace(event.target.checked);
 
+    let currentAutomation = [...formData.clusterAutomations];
+
+    currentAutomation[index] = {
+      ...automation,
+      createNamespace,
+    };
+
     setFormData({
       ...formData,
-      createNamespace,
+      clusterAutomations: currentAutomation,
     });
   };
+
+  // const handleSelectSource = (event: React.ChangeEvent<any>) => {
+  //   const { value } = event.target;
+  //   const { obj } = JSON.parse(value);
+
+  //   let currentAutomation = [...formData.clusterAutomations];
+
+  //   currentAutomation[index] = {
+  //     ...automation,
+  //     source_name: obj?.metadata.name,
+  //     source_namespace: obj?.metadata?.namespace,
+  //     source: value,
+  //   };
+
+  //   setFormData({
+  //     ...formData,
+  //     source_name: obj?.metadata?.name,
+  //     source_namespace: obj?.metadata?.namespace,
+  //     source_type: obj?.kind,
+  //     source: value,
+  //     clusterAutomations: currentAutomation,
+  //   });
+
+  //   if (obj?.kind === 'HelmRepository') {
+  //     setHelmRepo({
+  //       name: obj?.metadata?.name,
+  //       namespace: obj?.metadata?.namespace,
+  //     });
+  //   }
+  // };
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -327,13 +364,14 @@ const AppFields: FC<{
               </span>
             </Tooltip>
           )}
-          <Checkbox
-            checked={createNamespace}
-            onChange={handleCreateNamespace}
-            inputProps={{ 'aria-label': 'controlled' }}
-          />
         </>
       ) : null}
+      <Checkbox
+        checked={createNamespace}
+        onChange={handleCreateNamespace}
+        inputProps={{ 'aria-label': 'controlled' }}
+      />
+      Create target namespace for kustomization
     </FormWrapper>
   );
 };

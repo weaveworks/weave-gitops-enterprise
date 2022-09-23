@@ -161,7 +161,7 @@ const AddApplication = () => {
                   namespace: kustomization.source_namespace,
                 },
                 targetNamespace: kustomization.target_namespace,
-                createNamespace: kustomization.create_namespace,
+                createNamespace: kustomization.createNamespace,
               },
             },
           };
