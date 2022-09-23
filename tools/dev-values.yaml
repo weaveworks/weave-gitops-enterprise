@@ -7,6 +7,9 @@ policy-agent:
     accountId: "weaveworks"
     clusterId: "tilt-cluster"
 
+tls:
+  enabled: false
+
 # Turns on pipelines features when using Tilt.
 enablePipelines: true
 
