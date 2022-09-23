@@ -44,6 +44,7 @@ import (
 	core_profiles_proto "github.com/weaveworks/weave-gitops/pkg/api/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher"
+
 	"github.com/weaveworks/weave-gitops/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
@@ -71,6 +72,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/clusterswatcher"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 )
@@ -366,6 +368,13 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return err
 	}
+
+	clustersWatcher, err := clusterswatcher.NewWatcher(clusterswatcher.Options{ClusterFetcher: mcf})
+	if err != nil {
+		return fmt.Errorf("Failed creating watcher: %w", err)
+	}
+
+	go clustersWatcher.Watch(ctx)
 
 	clientsFactoryScheme, err := kube.CreateScheme()
 	if err != nil {
