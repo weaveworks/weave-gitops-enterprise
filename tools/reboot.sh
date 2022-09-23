@@ -25,8 +25,8 @@ github_env_check() {
 }
 
 tool_check() {
-  if [[ -f "${TOOLS}/${1}" ]];
-    then return
+  if [[ -f "${TOOLS}/${1}" ]]; then
+    return
   fi
 
   echo '!!! Missing tool: '${1}
