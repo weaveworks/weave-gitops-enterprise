@@ -8,7 +8,8 @@ import (
 )
 
 // InjectJSONAnnotation marshals a value as JSON and adds an annotation to the
-// first resource in a slice of bytes.
+// first resource in a slice of bytes, or to any resource that already has the
+// annotation.
 func InjectJSONAnnotation(resources [][]byte, annotation string, value interface{}) ([][]byte, error) {
 	b, err := json.Marshal(value)
 	if err != nil {
@@ -16,17 +17,21 @@ func InjectJSONAnnotation(resources [][]byte, annotation string, value interface
 	}
 	updated := make([][]byte, len(resources))
 	for i := range resources {
-		if i != 0 {
-			updated[i] = resources[i]
-			continue
-		}
 		annotated, err := processUnstructured(resources[i], func(uns *unstructured.Unstructured) error {
+			// This doesn't use GetAnnotations because we're processing templates
+			// that may not be valid, and GetAnnotations drops invalid data
+			// silently.
 			ann, _, err := unstructured.NestedStringMap(uns.Object, "metadata", "annotations")
 			if err != nil {
 				return fmt.Errorf("error getting existing annotations: %w", err)
 			}
 			if ann == nil {
 				ann = make(map[string]string)
+			}
+			_, ok := ann[annotation]
+			if i != 0 && !ok {
+				updated[i] = resources[i]
+				return nil
 			}
 			ann[annotation] = string(b)
 			uns.SetAnnotations(ann)
