@@ -6,7 +6,10 @@ import {
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
 import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
-import { ListObjectsResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import {
+  ListObjectsRequest,
+  ListObjectsResponse,
+} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
@@ -124,11 +127,16 @@ export class EnterpriseClientMock {
   }
 }
 
+const defaultListObjectsResponse: ListObjectsResponse = {
+  objects: [],
+  errors: [],
+};
+
 export class CoreClientMock {
   constructor() {
     this.ListObjects = this.ListObjects.bind(this);
   }
-  ListObjectsReturns: ListObjectsResponse = {};
+  ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
 
   GetFeatureFlags() {
     // FIXME: this is not working
@@ -139,8 +147,10 @@ export class CoreClientMock {
     });
   }
 
-  ListObjects() {
-    return promisify(this.ListObjectsReturns);
+  ListObjects(req: ListObjectsRequest) {
+    return promisify(
+      this.ListObjectsReturns[req.kind!] || defaultListObjectsResponse,
+    );
   }
 }
 

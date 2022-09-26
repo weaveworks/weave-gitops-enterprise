@@ -1,5 +1,5 @@
 import { V2Routes } from '@weaveworks/weave-gitops';
-import { Kind } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb.d';
+import { Kind } from '@weaveworks/weave-gitops';
 
 export function getKindRoute(k: Kind | string): string {
   switch (k) {

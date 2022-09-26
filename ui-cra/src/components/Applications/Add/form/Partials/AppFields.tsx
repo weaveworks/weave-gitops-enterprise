@@ -10,7 +10,7 @@ import {
   GitRepository,
   HelmRepository,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Kind } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
+import { Kind } from '@weaveworks/weave-gitops';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
