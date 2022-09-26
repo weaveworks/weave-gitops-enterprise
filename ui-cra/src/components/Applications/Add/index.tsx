@@ -50,7 +50,7 @@ const PRPreviewWrapper = styled.div`
   }
 `;
 
-const AddApplication = () => {
+const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
@@ -300,6 +300,7 @@ const AddApplication = () => {
                           formData={formData}
                           setFormData={setFormData}
                           allowSelectCluster
+                          clusterName={clusterName}
                         />
                       );
                     },
@@ -362,11 +363,12 @@ const AddApplication = () => {
     openPreview,
     handlePRPreview,
     previewLoading,
+    clusterName,
   ]);
 };
 
-export default () => (
+export default ({ ...rest }) => (
   <ProfilesProvider>
-    <AddApplication />
+    <AddApplication {...rest} />
   </ProfilesProvider>
 );
