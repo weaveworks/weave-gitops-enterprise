@@ -25,10 +25,6 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-
-const (
-	HelmReleaseNamespace                       = "flux-system"
-)
 // CreateAutomationsPullRequest receives a list of {kustomization, helmrelease, cluster}
 // generates a kustomization file and/or a helm release file for each provided cluster in the list
 // and creates a pull request for the generated files
