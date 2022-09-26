@@ -25,6 +25,10 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
+
+const (
+	HelmReleaseNamespace                       = "flux-system"
+)
 // CreateAutomationsPullRequest receives a list of {kustomization, helmrelease, cluster}
 // generates a kustomization file and/or a helm release file for each provided cluster in the list
 // and creates a pull request for the generated files
@@ -180,7 +184,7 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      hr.Metadata.Name,
-			Namespace: "flux-system",
+			Namespace: HelmReleaseNamespace,
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
