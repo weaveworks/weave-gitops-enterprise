@@ -166,7 +166,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
     class="c0"
   >
     <div
-      class="c1 count-header"
+      class="c1"
     >
       <div
         class="c2"
