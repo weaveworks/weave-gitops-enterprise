@@ -180,7 +180,7 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      hr.Metadata.Name,
-			Namespace: hr.Metadata.Namespace,
+			Namespace: "flux-system",
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
