@@ -42,7 +42,7 @@ In particular:
 
 Check [how to update things in ../CONTRIBUTING.md](../CONTRIBUTING.md#how-to-update-the-version-of-weave-gitops) for instructions on how to update properly.
 
-> **info**
+> **Note**
 > **For non-rc.x releases:**
 > None of the above versions should be pinned to a commit hash. They should all be pinned to a release tag.
 
@@ -82,7 +82,7 @@ You can use a [previous release](https://github.com/weaveworks/weave-gitops-ente
 
 #### https://docs.gitops.weave.works/ Enterprise releases page
 
-> **info**
+> **Note**
 > This is for non-rc.x releases only
 
 Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://docs.gitops.weave.works/docs/enterprise/releases/).
