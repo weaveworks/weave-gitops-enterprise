@@ -11,7 +11,7 @@ import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
-import { UseClustersWithSources } from '../../../utils';
+import { useClustersWithSources } from '../../../utils';
 import { useHistory, useLocation } from 'react-router-dom';
 
 interface SourceEnriched extends Source {
@@ -52,10 +52,8 @@ const AppFields: FC<{
   const history = useHistory();
   const location = useLocation();
 
-  let clusters: GitopsCluster[] | undefined = undefined;
-  if (allowSelectCluster) {
-    clusters = UseClustersWithSources();
-  }
+  let clusters: GitopsCluster[] | undefined =
+    useClustersWithSources(allowSelectCluster);
 
   const updateCluster = useCallback(
     (cluster: GitopsCluster) => {

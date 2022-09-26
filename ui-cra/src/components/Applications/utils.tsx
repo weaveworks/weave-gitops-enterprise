@@ -15,19 +15,21 @@ const toCluster = (clusterName: string): GitopsCluster => {
     controlPlane,
   };
 };
-export const UseClustersWithSources = (): GitopsCluster[] => {
+export const useClustersWithSources = (
+  allowSelectCluster: boolean,
+): GitopsCluster[] | undefined => {
   const { data } = useListSources();
   const clusters = useMemo(() => {
     return _.uniq(data?.result?.map(s => s.clusterName))
       .sort()
       .map(toCluster);
   }, [data]);
-  return clusters;
+  return allowSelectCluster ? clusters : undefined;
 };
 
 export const useIsClusterWithSources = (clusterName: string): boolean => {
-  const clusters = UseClustersWithSources();
-  return clusters.some((c: GitopsCluster) => c.name === clusterName);
+  const clusters = useClustersWithSources(true);
+  return clusters?.some((c: GitopsCluster) => c.name === clusterName) || false;
 };
 
 export const AddApplicationRequest = ({ ...data }, token: string) => {
