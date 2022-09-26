@@ -7,7 +7,7 @@ const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading, error } = useListSources();
   return (
     <PageTemplate
-      documentTitle="WeGO · Application Sources"
+      documentTitle="Application Sources"
       path={[
         {
           label: 'Applications',

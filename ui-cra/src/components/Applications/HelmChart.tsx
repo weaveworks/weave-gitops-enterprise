@@ -20,7 +20,7 @@ const WGApplicationsHelmChart: FC<Props> = props => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Helm Chart"
+      documentTitle="Helm Chart"
       path={[
         {
           label: 'Applications',

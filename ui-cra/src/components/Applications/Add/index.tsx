@@ -212,7 +212,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     return (
       <ThemeProvider theme={localEEMuiTheme}>
         <PageTemplate
-          documentTitle="WeGO · Add new application"
+          documentTitle="Add new application"
           path={[
             {
               label: 'Applications',

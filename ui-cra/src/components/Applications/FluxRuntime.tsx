@@ -11,7 +11,7 @@ const WGApplicationsFluxRuntime: FC = () => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Flux Runtime"
+      documentTitle="Flux Runtime"
       path={[
         {
           label: 'Flux Runtime',

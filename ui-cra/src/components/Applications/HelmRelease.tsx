@@ -47,7 +47,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Helm Release"
+      documentTitle="Helm Release"
       path={[
         {
           label: 'Applications',

@@ -46,7 +46,7 @@ const WGApplicationsDashboard: FC = () => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Applications"
+      documentTitle="Applications"
       path={[
         {
           label: 'Applications',

@@ -98,7 +98,7 @@ const TemplatesDashboard: FC<{
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Templates"
+      documentTitle="Templates"
       path={[
         {
           label: 'Templates',

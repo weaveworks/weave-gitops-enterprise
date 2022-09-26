@@ -82,7 +82,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   const classes = useStyles();
   return (
     <PageTemplate
-      documentTitle="WeGO · Pipeline Details"
+      documentTitle="Pipeline Details"
       path={[
         {
           label: 'Applications',

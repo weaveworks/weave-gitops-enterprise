@@ -171,7 +171,7 @@ const CoreWrapper = styled.div`
 `;
 
 const Page404 = () => (
-  <PageTemplate documentTitle="WeGO · NotFound" path={[{ label: 'Error' }]}>
+  <PageTemplate documentTitle="NotFound" path={[{ label: 'Error' }]}>
     <ContentWrapper>
       <Lottie
         loop

@@ -7,7 +7,7 @@ const PoliciesViolations = () => {
   const { data, isLoading, error } = useListPolicyValidations({});
   return (
     <PageTemplate
-      documentTitle="WeGo · Violation Log"
+      documentTitle="Violation Log"
       path={[
         { label: 'Clusters', url: '/clusters' },
         {

@@ -9,7 +9,7 @@ const WGNotifications: FC = () => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Notifications"
+      documentTitle="Notifications"
       path={[
         {
           label: 'Notifications',

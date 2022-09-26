@@ -7,7 +7,7 @@ const Policies = () => {
   const { data, isLoading, error } = useListListPolicies({});
 
   return (
-    <PageTemplate documentTitle="WeGO · Policies" path={[{ label: 'Policies', url: 'policies', count: data?.total }]}>
+    <PageTemplate documentTitle="Policies" path={[{ label: 'Policies', url: 'policies', count: data?.total }]}>
       <ContentWrapper
         loading={isLoading}
         errorMessage={error?.message}

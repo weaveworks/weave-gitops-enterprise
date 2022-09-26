@@ -95,7 +95,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Terraform"
+      documentTitle="Terraform"
       path={[
         {
           label: 'Terraform Objects',

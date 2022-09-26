@@ -10,7 +10,7 @@ const CreateClusterPage = () => {
   const { getTemplate, isLoading } = useTemplates();
   return (
     <PageTemplate
-      documentTitle="WeGO · Create new cluster"
+      documentTitle="Create new cluster"
       path={[
         { label: 'Templates', url: '/templates' },
         { label: 'Create new cluster' },

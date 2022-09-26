@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const PageTemplate: FC<Props> = ({ children, documentTitle, path }) => {
-  useDocumentTitle(documentTitle);
+  useDocumentTitle(documentTitle ? `WeGO · ${documentTitle}` : null);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'test') {
@@ -20,7 +20,7 @@ export const PageTemplate: FC<Props> = ({ children, documentTitle, path }) => {
 
   return (
     <PageWrapper>
-      {path?.length && <SectionHeader path={path} className='count-header'/>}
+      {path?.length && <SectionHeader path={path} className="count-header" />}
       {children}
     </PageWrapper>
   );

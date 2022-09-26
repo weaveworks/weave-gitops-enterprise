@@ -16,7 +16,7 @@ const Pipelines = ({ className }: any) => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Pipelines"
+      documentTitle="Pipelines"
       path={[
         {
           label: 'Applications',

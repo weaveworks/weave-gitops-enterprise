@@ -363,7 +363,7 @@ const MCCP: FC<{
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Clusters"
+      documentTitle="Clusters"
       path={[{ label: 'Clusters', url: 'clusters', count }]}
     >
       <CallbackStateContextProvider

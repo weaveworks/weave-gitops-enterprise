@@ -19,7 +19,7 @@ const PolicyDetails = ({
   const policy = data?.policy;
   return (
     <PageTemplate
-      documentTitle="WeGO · Policies"
+      documentTitle="Policies"
       path={[
         { label: 'Policies', url: '/policies' },
         { label: data?.policy?.name || '' },

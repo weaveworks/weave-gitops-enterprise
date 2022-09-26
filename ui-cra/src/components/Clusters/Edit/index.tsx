@@ -46,7 +46,7 @@ const EditClusterPage = () => {
   const { isLoading: isTemplateLoading } = useTemplates();
   return (
     <PageTemplate
-      documentTitle="WeGO · Create new cluster"
+      documentTitle="Create new cluster"
       path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
     >
       <ContentWrapper loading={isLoading || isTemplateLoading}>

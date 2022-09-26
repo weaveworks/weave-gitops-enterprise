@@ -29,7 +29,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Git Repository"
+      documentTitle="Git Repository"
       path={[
         {
           label: 'Applications',

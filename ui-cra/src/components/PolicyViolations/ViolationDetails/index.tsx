@@ -37,7 +37,7 @@ const PolicyViolationDetails = ({
         { label: data?.violation?.name || '' },
       ];
   return (
-    <PageTemplate documentTitle="WeGO · Violation Logs" path={headerPath}>
+    <PageTemplate documentTitle="Violation Logs" path={headerPath}>
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
         {data?.violation && (
           <ViolationDetails violation={data.violation} source={source} />

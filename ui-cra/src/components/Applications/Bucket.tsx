@@ -20,7 +20,7 @@ const WGApplicationsBucket: FC<Props> = props => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Bucket"
+      documentTitle="Bucket"
       path={[
         {
           label: 'Applications',

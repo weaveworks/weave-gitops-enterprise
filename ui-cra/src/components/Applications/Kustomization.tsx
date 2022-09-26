@@ -55,7 +55,7 @@ const WGApplicationsKustomization: FC<Props> = ({
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Kustomization"
+      documentTitle="Kustomization"
       path={[
         {
           label: 'Applications',

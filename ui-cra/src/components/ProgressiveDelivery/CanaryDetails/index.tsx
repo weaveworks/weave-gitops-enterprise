@@ -18,7 +18,7 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Delivery"
+      documentTitle="Delivery"
       path={[
         {
           label: 'Applications',

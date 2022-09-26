@@ -29,7 +29,7 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
 
   return (
     <PageTemplate
-      documentTitle="WeGO · Helm Repository"
+      documentTitle="Helm Repository"
       path={[
         {
           label: 'Applications',

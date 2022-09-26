@@ -124,7 +124,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate
-        documentTitle="WeGo · Cluster Page"
+        documentTitle="Cluster Page"
         path={[{ label: 'Clusters', url: '/clusters' }, { label: clusterName }]}
       >
         <ContentWrapper>

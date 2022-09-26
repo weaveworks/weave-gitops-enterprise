@@ -22,7 +22,7 @@ function TerraformObjectList({ className }: Props) {
 
   return (
     <PageTemplate
-      documentTitle="WeGo · Terraform"
+      documentTitle="Terraform"
       path={[
         {
           label: 'Terraform Objects',
