@@ -7,6 +7,8 @@ import { SectionHeader } from '../Layout/SectionHeader';
 
 const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading, error } = useListSources();
+
+  console.log(sources?.errors);
   return (
     <PageTemplate documentTitle="WeGO · Application Sources">
       <SectionHeader
