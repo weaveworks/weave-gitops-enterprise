@@ -196,11 +196,6 @@ interface FormData {
   pullRequestDescription: string;
 }
 
-const ClusterTemplatesKind = {
-  CAPI: 'CAPITemplate',
-  GITOPS: 'GitOpsTemplate',
-};
-
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
