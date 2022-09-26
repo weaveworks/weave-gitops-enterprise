@@ -78,6 +78,7 @@ const TemplatesDashboard: FC<{
   const initialFilterState = {
     ...filterConfig(templates, 'provider'),
     ...filterConfig(templates, 'templateKind'),
+    ...filterConfig(templates, 'templateType'),
   };
 
   const filteredTemplates = selectedProvider
@@ -164,13 +165,16 @@ const TemplatesDashboard: FC<{
                     label: 'Kind',
                     value: 'templateKind',
                     sortValue: ({ name }) => name,
-                    textSearchable: true,
+                  },
+                  {
+                    label: 'Type',
+                    value: 'templateType',
+                    sortValue: ({ name }) => name,
                   },
                   {
                     label: 'Provider',
                     value: 'provider',
                     sortValue: ({ name }) => name,
-                    textSearchable: true,
                   },
                   {
                     label: 'Description',

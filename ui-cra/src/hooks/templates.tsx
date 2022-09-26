@@ -22,7 +22,10 @@ const useTemplates = () => {
       onError,
     },
   );
-  const templates = data?.templates as TemplateEnriched[] | undefined;
+  const templates = data?.templates?.map(template => ({
+    ...template,
+    templateType: template?.labels?.['weave.works/template-type'] || '',
+  })) as TemplateEnriched[] | undefined;
 
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;
