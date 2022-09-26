@@ -1,5 +1,4 @@
 import React, { FC, Dispatch, useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
@@ -40,9 +39,9 @@ const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
   PRPreview: ClusterPRPreview | AppPRPreview;
+  sourceType?: string;
   context?: string;
-}> = ({ PRPreview, openPreview, setOpenPreview, context }) => {
-  const history = useHistory();
+}> = ({ PRPreview, openPreview, setOpenPreview, sourceType, context }) => {
   const [value, setValue] = useState<number>(0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -77,14 +76,10 @@ const Preview: FC<{
   }
 
   useEffect(() => {
-    if (context === 'app' && PRPreview.kustomizationFiles.length === 0) {
-      console.log('setting it');
+    if (context === 'app' && sourceType === 'HelmRepository') {
       setValue(1);
     }
-    // return history.listen(() => setValue(0));
-  }, [PRPreview.kustomizationFiles.length, context, history]);
-
-  console.log(PRPreview.kustomizationFiles.length);
+  }, [context, sourceType]);
 
   return (
     <DialogWrapper
@@ -92,10 +87,7 @@ const Preview: FC<{
       maxWidth="md"
       fullWidth
       scroll="paper"
-      onClose={() => {
-        setOpenPreview(false);
-        setValue(0);
-      }}
+      onClose={() => setOpenPreview(false)}
     >
       <DialogTitle disableTypography>
         <Typography variant="h5">PR Preview</Typography>

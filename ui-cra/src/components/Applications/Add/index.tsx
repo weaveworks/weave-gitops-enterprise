@@ -311,6 +311,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       openPreview={openPreview}
                       setOpenPreview={setOpenPreview}
                       PRPreview={PRPreview}
+                      sourceType={formData.source_type}
                     />
                   ) : null}
                 </Grid>
