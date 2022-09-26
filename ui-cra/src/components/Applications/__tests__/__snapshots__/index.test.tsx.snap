@@ -215,7 +215,7 @@ exports[`Applications index test snapshots loading 1`] = `
     class="c0"
   >
     <div
-      class="c1"
+      class="c1 count-header"
     >
       <div
         class="c2"
@@ -1012,7 +1012,7 @@ exports[`Applications index test snapshots success 1`] = `
     class="c0"
   >
     <div
-      class="c1"
+      class="c1 count-header"
     >
       <div
         class="c2"
