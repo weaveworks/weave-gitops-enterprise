@@ -42,24 +42,33 @@ describe('Applications index test', () => {
     ]);
   });
   it('renders table rows', async () => {
-    api.ListKustomizationsReturns = {
-      kustomizations: [
+    api.ListObjectsReturns = {
+      objects: [
         {
-          namespace: 'my-ns',
-          name: 'my-kustomization',
-          path: './',
-          sourceRef: {},
-          interval: {},
-          conditions: [],
-          lastAppliedRevision: '',
-          lastAttemptedRevision: '',
-          inventory: [],
-          suspended: false,
+          payload: JSON.stringify({
+            // maybe?
+            apiVersion: 'kustomize.toolkit.fluxcd.io/v1beta2',
+            kind: 'Kustomization',
+            metadata: {
+              namespace: 'my-ns',
+              name: 'my-kustomization',
+            },
+            spec: {
+              path: './',
+              interval: {},
+              sourceRef: {},
+            },
+            status: {
+              conditions: [],
+              lastAppliedRevision: '',
+              lastAttemptedRevision: '',
+              inventory: [],
+            },
+          }),
           clusterName: 'my-cluster',
         },
       ],
     };
-    api.ListHelmReleasesReturns = [] as any;
 
     await act(async () => {
       const c = wrap(<Applications />);
