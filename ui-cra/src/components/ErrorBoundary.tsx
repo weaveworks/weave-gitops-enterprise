@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { ContentWrapper } from './Layout/ContentWrapper';
 import { PageTemplate } from './Layout/PageTemplate';
-import { SectionHeader } from './Layout/SectionHeader';
-
 export default class ErrorBoundary extends React.Component<
   any,
   { hasError: boolean; error: Error | null }
@@ -26,8 +24,7 @@ export default class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       // You can render any custom fallback UI
       return (
-        <PageTemplate documentTitle="Error">
-          <SectionHeader path={[{ label: 'Error' }]} />
+        <PageTemplate documentTitle="Error" path={[{ label: 'Error' }]}>
           <ContentWrapper>
             <h3>Something went wrong.</h3>
             <pre>{this.state.error?.message}</pre>
