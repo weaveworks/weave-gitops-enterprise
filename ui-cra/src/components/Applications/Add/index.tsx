@@ -3,7 +3,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import { AddApplicationRequest, useApplicationsCount } from '../utils';
+import { AddApplicationRequest } from '../utils';
 import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -27,8 +27,7 @@ import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import { ProfilesIndex } from '../../../types/custom';
 
-const AddApplication = () => {
-  const applicationsCount = useApplicationsCount();
+const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
@@ -229,7 +228,6 @@ const AddApplication = () => {
                 {
                   label: 'Applications',
                   url: '/applications',
-                  count: applicationsCount,
                 },
                 { label: 'Add new application' },
               ]}
@@ -246,6 +244,7 @@ const AddApplication = () => {
                           formData={formData}
                           setFormData={setFormData}
                           allowSelectCluster
+                          clusterName={clusterName}
                         />
                       );
                     },
@@ -277,7 +276,6 @@ const AddApplication = () => {
       </ThemeProvider>
     );
   }, [
-    applicationsCount,
     authRedirectPage,
     formData,
     handleAddApplication,
@@ -286,11 +284,12 @@ const AddApplication = () => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
+    clusterName,
   ]);
 };
 
-export default () => (
+export default ({ ...rest }) => (
   <ProfilesProvider>
-    <AddApplication />
+    <AddApplication {...rest} />
   </ProfilesProvider>
 );

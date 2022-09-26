@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Applications index test snapshots loading 1`] = `
-.c8 {
+.c7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -15,7 +15,7 @@ exports[`Applications index test snapshots loading 1`] = `
   align-items: center;
 }
 
-.c14 {
+.c13 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -34,43 +34,43 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: center;
 }
 
-.c9 svg {
+.c8 svg {
   fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c9.downward {
+.c8.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c9.upward {
+.c8.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c13 svg {
+.c12 svg {
   fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c13.downward {
+.c12.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c13.upward {
+.c12.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c12.MuiButton-root {
+.c11.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -82,26 +82,26 @@ exports[`Applications index test snapshots loading 1`] = `
   font-weight: 600;
 }
 
-.c12.MuiButton-outlined {
+.c11.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
 }
 
-.c7 {
+.c6 {
   height: 40px;
   width: 40px;
 }
 
-.c7.MuiIconButton-root {
+.c6.MuiIconButton-root {
   background-color: #fff;
 }
 
-.c7.MuiIconButton-root:hover {
+.c6.MuiIconButton-root:hover {
   background-color: #fff;
   color: #009CCC;
 }
 
-.c5 {
+.c4 {
   padding-right: 12px;
 }
 
@@ -110,14 +110,14 @@ exports[`Applications index test snapshots loading 1`] = `
   margin: 0 auto;
 }
 
-.c10 {
+.c9 {
   margin: 0 16px;
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
 }
 
-.c15 {
+.c14 {
   padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
@@ -133,7 +133,7 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: space-between;
 }
 
-.c15 a {
+.c14 a {
   color: #00b3ec;
 }
 
@@ -157,18 +157,6 @@ exports[`Applications index test snapshots loading 1`] = `
 .c3 {
   margin-right: 8px;
   white-space: nowrap;
-}
-
-.c4 {
-  background: #98E0F7;
-  padding: 0 4px;
-  -webkit-align-self: center;
-  -ms-flex-item-align: center;
-  align-self: center;
-  font-size: 14px;
-  color: #1a1a1a;
-  margin-left: 4px;
-  border-radius: 2px;
 }
 
 .c1 {
@@ -203,22 +191,22 @@ exports[`Applications index test snapshots loading 1`] = `
   min-width: 30px;
 }
 
-.c6 svg {
+.c5 svg {
   fill: #00b3ec;
 }
 
-.c6 button {
+.c5 button {
   background-color: #f5f5f5;
 }
 
-.c11 {
+.c10 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
 }
 
-.c11 > .actionButton.btn {
+.c10 > .actionButton.btn {
   margin-right: 12px;
 }
 
@@ -247,19 +235,14 @@ exports[`Applications index test snapshots loading 1`] = `
               Applications
             </a>
           </div>
-          <div
-            class="c4 section-header-count"
-          >
-            0
-          </div>
         </div>
       </div>
       <div
-        class="c5 c6"
+        class="c4 c5"
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c7"
+          class="MuiButtonBase-root MuiIconButton-root c6"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -268,7 +251,7 @@ exports[`Applications index test snapshots loading 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c8 c9"
+              class="c7 c8"
             >
               <svg
                 aria-hidden="true"
@@ -289,16 +272,16 @@ exports[`Applications index test snapshots loading 1`] = `
       style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
-        class="c10"
+        class="c9"
       >
         <div
           style="display: flex; align-items: center; justify-content: space-between;"
         >
           <div
-            class="c11"
+            class="c10"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
               id="add-application"
               tabindex="0"
               type="button"
@@ -310,7 +293,7 @@ exports[`Applications index test snapshots loading 1`] = `
                   class="MuiButton-startIcon MuiButton-iconSizeMedium"
                 >
                   <div
-                    class="c8 c13"
+                    class="c7 c12"
                   >
                     <svg
                       aria-hidden="true"
@@ -327,19 +310,16 @@ exports[`Applications index test snapshots loading 1`] = `
                 ADD AN APPLICATION
               </span>
             </button>
-            <a
-              aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
-              href="/"
-              rel="noopener noreferrer"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 MuiButton-outlinedPrimary MuiButton-disableElevation"
               tabindex="0"
-              target="_blank"
+              type="button"
             >
               <span
                 class="MuiButton-label"
               >
                 <div
-                  class="c8 c13 makeStyles-externalIcon-18"
+                  class="c7 c12 makeStyles-externalIcon-18"
                 >
                   <svg
                     aria-hidden="true"
@@ -354,11 +334,11 @@ exports[`Applications index test snapshots loading 1`] = `
                 </div>
                 GO TO OPEN PULL REQUESTS
               </span>
-            </a>
+            </button>
           </div>
         </div>
         <div
-          class="c14 "
+          class="c13 "
         >
           <div
             class="MuiCircularProgress-root MuiCircularProgress-colorPrimary MuiCircularProgress-indeterminate"
@@ -382,7 +362,7 @@ exports[`Applications index test snapshots loading 1`] = `
         </div>
       </div>
       <div
-        class="c15"
+        class="c14"
       >
         <div>
           Need help? Raise a 
@@ -749,19 +729,6 @@ exports[`Applications index test snapshots success 1`] = `
   z-index: 1;
 }
 
-.c26 {
-  height: 40px;
-  padding: 4px 0px;
-  -webkit-flex-wrap: nowrap;
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-}
-
-.c26 .MuiChip-root {
-  margin-right: 4px;
-}
-
 .c37 {
   position: relative;
   height: 100%;
@@ -799,6 +766,19 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c40 .MuiCheckbox-colorSecondary.Mui-checked {
   color: #00b3ec;
+}
+
+.c26 {
+  height: 40px;
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.c26 .MuiChip-root {
+  margin-right: 4px;
 }
 
 .c29 {
@@ -1138,13 +1118,10 @@ exports[`Applications index test snapshots success 1`] = `
                 class="MuiTouchRipple-root"
               />
             </button>
-            <a
-              aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
-              href="/"
-              rel="noopener noreferrer"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
               tabindex="0"
-              target="_blank"
+              type="button"
             >
               <span
                 class="MuiButton-label"
@@ -1168,7 +1145,7 @@ exports[`Applications index test snapshots success 1`] = `
               <span
                 class="MuiTouchRipple-root"
               />
-            </a>
+            </button>
           </div>
         </div>
         <div

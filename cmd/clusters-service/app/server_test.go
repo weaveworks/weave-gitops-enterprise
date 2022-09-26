@@ -66,7 +66,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/kustomizations?namespace=foo", port))
+	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/objects?kind=Kustomization", port))
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}

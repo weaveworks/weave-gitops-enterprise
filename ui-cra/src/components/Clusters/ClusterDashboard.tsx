@@ -18,6 +18,7 @@ import {
   IconType,
   Button as WeaveButton,
   KubeStatusIndicator,
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import {
@@ -26,10 +27,17 @@ import {
   makeStyles,
   Typography,
   createStyles,
+  CircularProgress,
 } from '@material-ui/core';
 import { DashboardsList } from './DashboardsList';
 import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
+import { useIsClusterWithSources } from '../Applications/utils';
+import { Tooltip } from '../Shared';
+
+interface Size {
+  size?: 'small';
+}
 
 type Props = {
   className?: string;
@@ -45,17 +53,24 @@ const ClusterDashbordWrapper = styled.div`
     color: ${theme.colors.primary};
   }
 `;
+
+const ActionsWrapper = styled.div<Size>`
+  display: flex;
+`;
+
 const useStyles = makeStyles(() =>
   createStyles({
     clusterApplicationBtn: {
       marginBottom: theme.spacing.medium,
     },
+    addApplicationBtnLoader: {
+      marginLeft: theme.spacing.xl,
+    },
   }),
 );
 
 const ClusterDashboard = ({ clusterName }: Props) => {
-  const { getCluster, getDashboardAnnotations, getKubeconfig, count } =
-    useClusters();
+  const { getCluster, getDashboardAnnotations, getKubeconfig } = useClusters();
   const [currentCluster, setCurrentCluster] =
     useState<GitopsClusterEnriched | null>(null);
   const { path } = useRouteMatch();
@@ -67,6 +82,8 @@ const ClusterDashboard = ({ clusterName }: Props) => {
   const history = useHistory();
   const [disabled, setDisabled] = useState<boolean>(false);
   const classes = useStyles();
+  const isClusterWithSources = useIsClusterWithSources(clusterName);
+  const { isLoading } = useListSources();
 
   const handleClick = () => {
     setDisabled(true);
@@ -111,24 +128,59 @@ const ClusterDashboard = ({ clusterName }: Props) => {
         <SectionHeader
           className="count-header"
           path={[
-            { label: 'Clusters', url: '/clusters', count },
+            { label: 'Clusters', url: '/clusters' },
             { label: clusterName },
           ]}
         />
         <ContentWrapper>
-          <WeaveButton
-            id="cluster-application"
-            className={classes.clusterApplicationBtn}
-            startIcon={<Icon type={IconType.FilterIcon} size="base" />}
-            onClick={() => {
-              const filtersValues = encodeURIComponent(
-                `clusterName: ${currentCluster?.namespace}/${currentCluster?.name}`,
-              );
-              history.push(`/applications?filters=${filtersValues}`);
-            }}
-          >
-            GO TO APPLICATIONS
-          </WeaveButton>
+          <ActionsWrapper>
+            <WeaveButton
+              id="cluster-application"
+              className={classes.clusterApplicationBtn}
+              startIcon={<Icon type={IconType.FilterIcon} size="base" />}
+              onClick={() => {
+                const filtersValues = encodeURIComponent(
+                  `clusterName: ${currentCluster?.namespace}/${currentCluster?.name}`,
+                );
+                history.push(`/applications?filters=${filtersValues}`);
+              }}
+            >
+              GO TO APPLICATIONS
+            </WeaveButton>
+
+            {isLoading ? (
+              <CircularProgress
+                size={30}
+                className={classes.addApplicationBtnLoader}
+              />
+            ) : (
+              <Tooltip
+                title="No sources available for this cluster"
+                placement="top"
+                disabled={isClusterWithSources === true}
+              >
+                <div>
+                  <WeaveButton
+                    id="cluster-add-application"
+                    className={classes.clusterApplicationBtn}
+                    startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                    onClick={() => {
+                      const filtersValues = encodeURIComponent(
+                        `${currentCluster?.name}`,
+                      );
+                      history.push(
+                        `/applications/create?clusterName=${filtersValues}`,
+                      );
+                    }}
+                    disabled={!isClusterWithSources}
+                  >
+                    ADD APPLICATION TO THIS CLUSTER
+                  </WeaveButton>
+                </div>
+              </Tooltip>
+            )}
+          </ActionsWrapper>
+
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
               <ClusterDashbordWrapper>
