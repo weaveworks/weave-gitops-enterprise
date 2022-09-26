@@ -44,9 +44,14 @@ const NavWrapper = styled.div`
     padding-right: ${({ theme }) => theme.spacing.medium};
   }
 
+  .parent-icon {
+    width: 20px;
+    height: 20px;
+  }
   span.parent-route {
     margin-left: ${({ theme }) => theme.spacing.xs};
   }
+
   a:not(a.nav-link-active):hover {
     background: ${({ theme }) => theme.colors.neutral10};
   }
@@ -57,7 +62,10 @@ const NavWrapper = styled.div`
   .subroute-nav {
     padding: ${({ theme }) => theme.spacing.xs}
       ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.xs}
-      calc(${({ theme }) => theme.spacing.medium} * 2);
+      calc(
+        ${({ theme }) => theme.spacing.medium} * 2 +
+          ${({ theme }) => theme.spacing.xxs}
+      );
     color: ${({ theme }) => theme.colors.neutral30};
     font-weight: 600;
   }
@@ -107,7 +115,7 @@ const NavItems = (navItems: Array<NavigationItem>) => {
           to={item.link}
           className="route-nav"
         >
-          {item.icon && item.icon}
+          <div className="parent-icon">{item.icon}</div>
           <span className="parent-route">{item.name}</span>
         </NavItem>
 
