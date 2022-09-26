@@ -20,7 +20,7 @@ export const PageTemplate: FC<Props> = ({ children, documentTitle, path }) => {
 
   return (
     <PageWrapper>
-      {path?.length && <SectionHeader path={path} />}
+      {path?.length && <SectionHeader path={path} className='count-header'/>}
       {children}
     </PageWrapper>
   );
