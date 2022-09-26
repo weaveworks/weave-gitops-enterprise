@@ -280,7 +280,7 @@ const App = () => {
                 path={V2Routes.Automations}
               />
               <Route
-                component={AddApplication}
+                component={withSearchParams(AddApplication)}
                 exact
                 path="/applications/create"
               />

@@ -1,4 +1,4 @@
-import React, { FC, Dispatch } from 'react';
+import React, { FC, Dispatch, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
@@ -11,6 +11,8 @@ import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
+import { useClustersWithSources } from '../../../utils';
+import { useHistory, useLocation } from 'react-router-dom';
 
 interface SourceEnriched extends Source {
   url?: string;
@@ -31,49 +33,67 @@ const FormWrapper = styled.form`
   }
 `;
 
-const toCluster = (clusterName: string): GitopsCluster => {
-  const [firstBit, secondBit] = clusterName.split('/');
-  const [namespace, name, controlPlane] = secondBit
-    ? [firstBit, secondBit, false]
-    : ['', firstBit, true];
-  return {
-    name,
-    namespace,
-    controlPlane,
-  };
-};
-
 const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
   allowSelectCluster: boolean;
-}> = ({ formData, setFormData, index = 0, allowSelectCluster }) => {
+  clusterName?: string;
+}> = ({
+  formData,
+  setFormData,
+  index = 0,
+  allowSelectCluster,
+  clusterName,
+}) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
+  const history = useHistory();
+  const location = useLocation();
 
-  let clusters: GitopsCluster[] | undefined = undefined;
-  if (allowSelectCluster) {
-    clusters = _.uniq(data?.result?.map(s => s.clusterName))
-      .sort()
-      .map(toCluster);
-  }
+  let clusters: GitopsCluster[] | undefined =
+    useClustersWithSources(allowSelectCluster);
+
+  const updateCluster = useCallback(
+    (cluster: GitopsCluster) => {
+      setFormData((formData: any) => {
+        const params = new URLSearchParams(`clusterName=${cluster.name}`);
+        history.replace({
+          pathname: location.pathname,
+          search: params.toString(),
+        });
+        let currentAutomation = [...formData.clusterAutomations];
+        currentAutomation[index] = {
+          ...currentAutomation[index],
+          cluster_name: cluster.name,
+          cluster_namespace: cluster.namespace,
+          cluster_isControlPlane: cluster.controlPlane,
+          cluster: JSON.stringify(cluster),
+        };
+        return {
+          ...formData,
+          clusterAutomations: currentAutomation,
+        };
+      });
+    },
+    [index, setFormData, history, location.pathname],
+  );
+
+  useEffect(() => {
+    if (clusterName && clusters) {
+      const cluster = clusters.find(
+        (c: GitopsCluster) => c.name === clusterName,
+      );
+      if (cluster) {
+        updateCluster(cluster);
+      }
+    }
+  }, [clusterName, clusters, updateCluster]);
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
-    let currentAutomation = [...formData.clusterAutomations];
-    currentAutomation[index] = {
-      ...automation,
-      cluster_name: JSON.parse(value).name,
-      cluster_namespace: JSON.parse(value).namespace,
-      cluster_isControlPlane: JSON.parse(value).controlPlane,
-      cluster: value,
-    };
-    setFormData({
-      ...formData,
-      clusterAutomations: currentAutomation,
-    });
+    updateCluster(JSON.parse(value));
   };
 
   let gitRepos = [] as Source[];

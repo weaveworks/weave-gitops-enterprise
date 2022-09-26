@@ -51,6 +51,7 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { getCreateRequestAnnotation } from './Form/utils';
+import { openLinkHandler } from '../../utils/link-checker';
 
 interface Size {
   size?: 'small';
@@ -195,6 +196,11 @@ interface FormData {
   pullRequestDescription: string;
 }
 
+const ClusterTemplatesKind = {
+  CAPI: 'CAPITemplate',
+  GITOPS: 'GitOpsTemplate',
+};
+
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
@@ -271,7 +277,10 @@ const MCCP: FC<{
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    history.push('/templates');
+    const filtersValues = encodeURIComponent(
+      `templateKind:${ClusterTemplatesKind.CAPI}_templateKind:${ClusterTemplatesKind.GITOPS}_`,
+    );
+    history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
   const initialFilterState = {
@@ -422,19 +431,14 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Link
-                target={'_blank'}
-                rel="noopener noreferrer"
-                component={Button}
-                to={{ pathname: repoLink }}
-              >
+              <Button onClick={openLinkHandler(repoLink)}>
                 <Icon
                   className={classes.externalIcon}
                   type={IconType.ExternalTab}
                   size="base"
                 />
                 GO TO OPEN PULL REQUESTS
-              </Link>
+              </Button>
             </ActionsWrapper>
           </div>
           {!isLoading ? (
