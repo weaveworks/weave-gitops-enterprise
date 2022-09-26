@@ -7196,6 +7196,13 @@ spec:
                 - generateName
                 - spec
                 type: object
+              requireClusterProvisioned:
+                description: "Trigger the bootstrapping when the linked cluster has
+                  a True \"ClusterProvisioned\" condition. \n A new job will not be
+                  triggered when the cluster is finally \"Ready\" because it will
+                  already have the annotation that indicates the cluster has been
+                  bootstrapped. \n Defaults to false."
+                type: boolean
               requireClusterReady:
                 description: Wait for the remote cluster to be "ready" before creating
                   the jobs. Defaults to false.

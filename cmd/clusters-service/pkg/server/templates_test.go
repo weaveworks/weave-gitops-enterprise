@@ -70,6 +70,7 @@ func TestListTemplates(t *testing.T) {
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
 					ct.Spec.Description = "this is test template 2"
+					ct.Labels = map[string]string{"weave.works/template-kind": "cluster"}
 				}),
 				makeCAPITemplate(t),
 			},
@@ -100,6 +101,7 @@ func TestListTemplates(t *testing.T) {
 					Description:  "this is test template 2",
 					Provider:     "",
 					TemplateKind: "CAPITemplate",
+					Labels:       map[string]string{"weave.works/template-kind": "cluster"},
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        string("${CLUSTER_NAME}"),
@@ -422,11 +424,13 @@ func TestGetTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 					c.Annotations = map[string]string{"hi": "there"}
+					c.Labels = map[string]string{"weave.works/template-kind": "cluster"}
 				}),
 			},
 			expected: &capiv1_protos.Template{
 				Name:         "cluster-template-1",
 				Annotations:  map[string]string{"hi": "there"},
+				Labels:       map[string]string{"weave.works/template-kind": "cluster"},
 				Description:  "this is test template 1",
 				Provider:     "",
 				TemplateKind: "CAPITemplate",

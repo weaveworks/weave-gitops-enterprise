@@ -10,7 +10,7 @@ const CreateClusterPage = () => {
   const { templateName } = useParams<{ templateName: string }>();
   const { getTemplate, isLoading } = useTemplates();
   return (
-    <PageTemplate documentTitle="WeGo · Create new cluster">
+    <PageTemplate documentTitle="WeGO · Create new cluster">
       <SectionHeader
         className="count-header"
         path={[
