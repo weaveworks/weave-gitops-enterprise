@@ -272,7 +272,7 @@ const MCCP: FC<{
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    const filtersValues = encodeURIComponent(`templateType:cluster_`);
+    const filtersValues = encodeURIComponent(`templateType: cluster_`);
     history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
