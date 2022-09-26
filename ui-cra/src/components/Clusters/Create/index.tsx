@@ -3,21 +3,19 @@ import { useParams } from 'react-router-dom';
 import useTemplates from '../../../hooks/templates';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
 import ClusterForm from '../Form';
 
 const CreateClusterPage = () => {
   const { templateName } = useParams<{ templateName: string }>();
   const { getTemplate, isLoading } = useTemplates();
   return (
-    <PageTemplate documentTitle="WeGO · Create new cluster">
-      <SectionHeader
-        className="count-header"
-        path={[
-          { label: 'Templates', url: '/templates' },
-          { label: 'Create new cluster' },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="WeGO · Create new cluster"
+      path={[
+        { label: 'Templates', url: '/templates' },
+        { label: 'Create new cluster' },
+      ]}
+    >
       <ContentWrapper loading={isLoading}>
         <Grid container>
           <Grid item xs={12} sm={10} md={10} lg={8}>

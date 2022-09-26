@@ -9,7 +9,6 @@ import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 
 type Props = {
@@ -47,18 +46,18 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
   ];
 
   return (
-    <PageTemplate documentTitle="WeGO · Helm Release">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-          },
-          {
-            label: `${name}`,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="WeGO · Helm Release"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        {
+          label: `${name}`,
+        },
+      ]}
+    >
       <ContentWrapper
         loading={isLoading}
         errors={

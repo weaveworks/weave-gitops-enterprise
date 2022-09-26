@@ -4,7 +4,6 @@ import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
@@ -16,17 +15,16 @@ const Pipelines = ({ className }: any) => {
   };
 
   return (
-    <PageTemplate documentTitle="WeGO · Pipelines">
-      <SectionHeader
-        className="count-header"
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-          },
-          { label: 'Pipelines', count: data?.pipelines?.length },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="WeGO · Pipelines"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        { label: 'Pipelines', count: data?.pipelines?.length },
+      ]}
+    >
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
         {data?.pipelines && (
           <TableWrapper className={className} id="pipelines-list">

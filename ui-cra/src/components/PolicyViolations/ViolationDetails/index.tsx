@@ -1,14 +1,7 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { Alert } from '@material-ui/lab';
-import { LoadingPage } from '@weaveworks/weave-gitops';
 import ViolationDetails from './ViolationDetails';
-import {
-  useGetPolicyValidationDetails,
-} from '../../../contexts/PolicyViolations';
+import { useGetPolicyValidationDetails } from '../../../contexts/PolicyViolations';
 import { Breadcrumb } from '../../Breadcrumbs';
 
 const PolicyViolationDetails = ({
@@ -44,18 +37,13 @@ const PolicyViolationDetails = ({
         { label: data?.violation?.name || '' },
       ];
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGO · Violation Logs">
-        <SectionHeader className="count-header" path={headerPath} />
-        <ContentWrapper>
-          {isLoading && <LoadingPage />}
-          {error && <Alert severity="error">{error.message}</Alert>}
-          {data?.violation && (
-            <ViolationDetails violation={data.violation} source={source} />
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate documentTitle="WeGO · Violation Logs" path={headerPath}>
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        {data?.violation && (
+          <ViolationDetails violation={data.violation} source={source} />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 

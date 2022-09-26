@@ -6,7 +6,6 @@ import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
@@ -98,16 +97,16 @@ const TemplatesDashboard: FC<{
   }, [notification, setNotifications]);
 
   return (
-    <PageTemplate documentTitle="WeGO · Templates">
-      <SectionHeader
-        path={[
-          {
-            label: 'Templates',
-            url: '/templates',
-            count: templatesCount,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="WeGO · Templates"
+      path={[
+        {
+          label: 'Templates',
+          url: '/templates',
+          count: templatesCount,
+        },
+      ]}
+    >
       <ContentWrapper loading={isLoading}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">

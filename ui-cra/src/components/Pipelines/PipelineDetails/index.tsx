@@ -5,7 +5,6 @@ import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -82,23 +81,22 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
   return (
-    <PageTemplate documentTitle="WeGO · Pipeline Details">
-      <SectionHeader
-        className="count-header"
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-          },
-          {
-            label: 'Pipelines',
-            url: '/applications/pipelines',
-          },
-          {
-            label: name,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="WeGO · Pipeline Details"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        {
+          label: 'Pipelines',
+          url: '/applications/pipelines',
+        },
+        {
+          label: name,
+        },
+      ]}
+    >
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
         <Grid className={classes.gridWrapper} container spacing={4}>
           {environments.map((env, index) => {

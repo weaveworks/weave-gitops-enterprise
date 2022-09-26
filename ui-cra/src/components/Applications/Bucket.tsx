@@ -2,7 +2,6 @@ import { FC } from 'react';
 import { BucketDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
@@ -20,22 +19,22 @@ const WGApplicationsBucket: FC<Props> = props => {
   } = useGetObject<Bucket>(name, namespace, Kind.Bucket, clusterName);
 
   return (
-    <PageTemplate documentTitle="WeGO · Bucket">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-          },
-          {
-            label: 'Sources',
-            url: '/sources',
-          },
-          {
-            label: `${props.name}`,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="WeGO · Bucket"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        {
+          label: 'Sources',
+          url: '/sources',
+        },
+        {
+          label: `${props.name}`,
+        },
+      ]}
+    >
       <ContentWrapper
         loading={isLoading}
         errors={

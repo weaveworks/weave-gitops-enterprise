@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import {
   GitRepositoryDetail,
   Kind,
@@ -29,22 +28,22 @@ const WGApplicationsGitRepository: FC<Props> = props => {
   );
 
   return (
-    <PageTemplate documentTitle="WeGO · Git Repository">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-          },
-          {
-            label: 'Sources',
-            url: '/sources',
-          },
-          {
-            label: `${props.name}`,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="WeGO · Git Repository"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        {
+          label: 'Sources',
+          url: '/sources',
+        },
+        {
+          label: `${props.name}`,
+        },
+      ]}
+    >
       <ContentWrapper
         loading={isLoading}
         errors={
