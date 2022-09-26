@@ -30,7 +30,7 @@ const WGApplicationsKustomization: FC<Props> = ({
   } = useGetObject<Kustomization>(
     name,
     namespace,
-    Kind.HelmRepository,
+    Kind.Kustomization,
     clusterName,
   );
   const { path } = useRouteMatch();

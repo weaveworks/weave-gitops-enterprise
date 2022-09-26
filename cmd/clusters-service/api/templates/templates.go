@@ -11,6 +11,7 @@ type Template interface {
 	GetName() string
 	GetSpec() TemplateSpec
 	GetAnnotations() map[string]string
+	GetLabels() map[string]string
 	GetObjectKind() schema.ObjectKind
 }
 
