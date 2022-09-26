@@ -35,7 +35,7 @@ const CustomUserSettings = styled(UserSettings)`
   }
   button {
     background-color: ${({ theme }) => theme.colors.neutral10};
-}
+  }
 `;
 
 interface Props extends Size {
@@ -52,7 +52,7 @@ export const SectionHeader: FC<Props> = ({
 }) => {
   return (
     <Wrapper className={className} size={size}>
-      {path ? <Breadcrumbs path={path} /> : null}
+      {path && <Breadcrumbs path={path} />}
       {children}
       <CustomUserSettings />
     </Wrapper>
