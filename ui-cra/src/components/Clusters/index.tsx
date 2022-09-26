@@ -277,9 +277,7 @@ const MCCP: FC<{
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    const filtersValues = encodeURIComponent(
-      `templateKind:${ClusterTemplatesKind.CAPI}_templateKind:${ClusterTemplatesKind.GITOPS}_`,
-    );
+    const filtersValues = encodeURIComponent(`templateType:cluster_`);
     history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
