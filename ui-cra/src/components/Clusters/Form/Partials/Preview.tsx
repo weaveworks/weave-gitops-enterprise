@@ -1,4 +1,5 @@
-import React, { FC, Dispatch, useState } from 'react';
+import React, { FC, Dispatch, useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
@@ -41,7 +42,8 @@ const Preview: FC<{
   PRPreview: ClusterPRPreview | AppPRPreview;
   context?: string;
 }> = ({ PRPreview, openPreview, setOpenPreview, context }) => {
-  const [value, setValue] = useState(0);
+  const history = useHistory();
+  const [value, setValue] = useState<number>(0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -51,10 +53,11 @@ const Preview: FC<{
     children?: React.ReactNode;
     index: number;
     value: number;
+    empty?: boolean;
   }
 
   function TabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
+    const { children, value, index, empty, ...other } = props;
 
     return (
       <div
@@ -73,13 +76,26 @@ const Preview: FC<{
     );
   }
 
+  useEffect(() => {
+    if (context === 'app' && PRPreview.kustomizationFiles.length === 0) {
+      console.log('setting it');
+      setValue(1);
+    }
+    // return history.listen(() => setValue(0));
+  }, [PRPreview.kustomizationFiles.length, context, history]);
+
+  console.log(PRPreview.kustomizationFiles.length);
+
   return (
     <DialogWrapper
       open={openPreview}
       maxWidth="md"
       fullWidth
       scroll="paper"
-      onClose={() => setOpenPreview(false)}
+      onClose={() => {
+        setOpenPreview(false);
+        setValue(0);
+      }}
     >
       <DialogTitle disableTypography>
         <Typography variant="h5">PR Preview</Typography>
@@ -91,6 +107,7 @@ const Preview: FC<{
         value={value}
         onChange={handleChange}
         aria-label="pr-preview-sections"
+        selectionFollowsFocus={true}
       >
         {(context === 'app'
           ? ['Kustomizations', 'Helm Releases']
