@@ -52,7 +52,6 @@ import EditCluster from './Clusters/Edit';
 import ErrorBoundary from './ErrorBoundary';
 import { ContentWrapper } from './Layout/ContentWrapper';
 import { PageTemplate } from './Layout/PageTemplate';
-import { SectionHeader } from './Layout/SectionHeader';
 import { Navigation } from './Navigation';
 import Pipelines from './Pipelines';
 import PipelineDetails from './Pipelines/PipelineDetails';
@@ -172,8 +171,7 @@ const CoreWrapper = styled.div`
 `;
 
 const Page404 = () => (
-  <PageTemplate documentTitle="WeGO · NotFound">
-    <SectionHeader path={[{ label: 'Error' }]} />
+  <PageTemplate documentTitle="NotFound" path={[{ label: 'Error' }]}>
     <ContentWrapper>
       <Lottie
         loop

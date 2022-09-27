@@ -314,8 +314,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				pages.NavigateToPage(webDriver, "Applications")
 
-				ginkgo.By("And wait for  good looking response from /v1/kustomizations", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "kustomizations", POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/kustomizations")
+				ginkgo.By("And wait for  good looking response from /v1/objects", func() {
+					gomega.Expect(waitForGitopsResources(context.Background(), "objects?kind=Kustomization", POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/objects")
 				})
 
 				applicationsPage := pages.GetApplicationsPage(webDriver)
