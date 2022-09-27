@@ -3,7 +3,13 @@ This document outlines an architecture documentation for Weave Gitops Trusted De
 
 ## Motivation
 
-TBA
+While we want to empower developers and DevOps teams to build better software faster through our [Application Delivery](./application-delivery.md#motivation), 
+we also want them to be able to do it confidently. Moving fast often means risking quality and security, and counting on humans to spot problems is often error-prone and is not scalable. 
+Trusted Delivery covers this part of the value we're trying to deliver to our customers.
+
+Trusted Delivery enables customers to use Policies to have continuous security and compliance checks across their software delivery pipeline. 
+Currently, the checks can happen during 1) Commit/Build Time using our github action, 2) Runtime using our built-in admission controller 
+and 3) Periodically using our audit scans.
 
 ## Glossary
 
