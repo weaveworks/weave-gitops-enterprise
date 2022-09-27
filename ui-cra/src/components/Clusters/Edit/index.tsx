@@ -6,7 +6,6 @@ import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
 import ClusterForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 
@@ -46,11 +45,10 @@ const EditClusterPage = () => {
   const { clusterName } = useParams<{ clusterName: string }>();
   const { isLoading: isTemplateLoading } = useTemplates();
   return (
-    <PageTemplate documentTitle="WeGo · Create new cluster">
-      <SectionHeader
-        className="count-header"
-        path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
-      />
+    <PageTemplate
+      documentTitle="Create new cluster"
+      path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
+    >
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>
           <Grid item xs={12} sm={10} md={10} lg={8}>

@@ -1,12 +1,15 @@
+import {
+  Canary,
+  CanaryMetricTemplate,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { FluxObjectRef } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import * as React from 'react';
 import styled from 'styled-components';
 
 type Props = {
   className?: string;
   yaml: string;
-  object: FluxObjectRef;
+  object: Canary | CanaryMetricTemplate;
   kind: string;
 };
 

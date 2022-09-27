@@ -6,20 +6,17 @@ import { Input, Select } from '../../../../../utils/form';
 import { ListSubheader, MenuItem } from '@material-ui/core';
 import { useListSources, theme } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
-import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
+import {
+  GitRepository,
+  HelmRepository,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Kind } from '@weaveworks/weave-gitops';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 import { useClustersWithSources } from '../../../utils';
 import { useHistory, useLocation } from 'react-router-dom';
-
-interface SourceEnriched extends Source {
-  url?: string;
-  reference?: {
-    branch?: string;
-  };
-}
 
 const FormWrapper = styled.form`
   .form-section {
@@ -111,8 +108,8 @@ const AppFields: FC<{
     updateCluster(JSON.parse(value));
   };
 
-  let gitRepos = [] as Source[];
-  let helmRepos = [] as Source[];
+  let gitRepos: GitRepository[] = [];
+  let helmRepos: HelmRepository[] = [];
 
   if (clusters) {
     const clusterName = automation.cluster_namespace
@@ -122,8 +119,8 @@ const AppFields: FC<{
     gitRepos = _.orderBy(
       _.filter(
         data?.result,
-        item =>
-          item.kind === 'KindGitRepository' && item.clusterName === clusterName,
+        (item): item is GitRepository =>
+          item.type === Kind.GitRepository && item.clusterName === clusterName,
       ),
       ['name'],
       ['asc'],
@@ -132,9 +129,8 @@ const AppFields: FC<{
     helmRepos = _.orderBy(
       _.filter(
         data?.result,
-        item =>
-          item.kind === 'KindHelmRepository' &&
-          item.clusterName === clusterName,
+        (item): item is HelmRepository =>
+          item.type === Kind.HelmRepository && item.clusterName === clusterName,
       ),
       ['name'],
       ['asc'],
@@ -279,7 +275,7 @@ const AppFields: FC<{
             {gitRepos.length !== 0 && (
               <ListSubheader>GitRepository</ListSubheader>
             )}
-            {gitRepos?.map((option: SourceEnriched, index: number) => (
+            {gitRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}&nbsp;&nbsp;
                 {optionUrl(option?.url, option?.reference?.branch)}
@@ -288,7 +284,7 @@ const AppFields: FC<{
             {helmRepos.length !== 0 && (
               <ListSubheader>HelmRepository</ListSubheader>
             )}
-            {helmRepos?.map((option: SourceEnriched, index: number) => (
+            {helmRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}&nbsp;&nbsp;
                 {optionUrl(option?.url)}
