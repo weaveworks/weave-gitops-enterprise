@@ -33,8 +33,9 @@ import {
   ProfilesIndex,
   ClusterPRPreview,
 } from '../../../types/custom';
+import { validateFormData } from '../../../utils/form';
 
-const PRPreviewWrapper = styled.div`
+const FormWrapper = styled.form`
   .preview-cta {
     display: flex;
     justify-content: flex-end;
@@ -45,6 +46,17 @@ const PRPreviewWrapper = styled.div`
     }
   }
   .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+  .create-cta {
+    display: flex;
+    justify-content: end;
+    padding: ${({ theme }) => theme.spacing.small};
+    button {
+      width: 200px;
+    }
+  }
+  .create-loading {
     padding: ${({ theme }) => theme.spacing.base};
   }
 `;
@@ -96,6 +108,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [PRPreview, setPRPreview] = useState<
     ClusterPRPreview | AppPRPreview | null
   >(null);
+  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -286,44 +299,44 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper>
-              <Grid container>
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  {formData.clusterAutomations.map(
-                    (automation: ClusterAutomation, index: number) => {
-                      return (
-                        <AppFields
-                          context="app"
-                          key={index}
-                          index={index}
-                          formData={formData}
-                          setFormData={setFormData}
-                          allowSelectCluster
-                          clusterName={clusterName}
-                        />
-                      );
-                    },
-                  )}
-                  {openPreview && PRPreview ? (
-                    <Preview
+              <FormWrapper>
+                <Grid container>
+                  <Grid item xs={12} sm={10} md={10} lg={8}>
+                    {formData.clusterAutomations.map(
+                      (automation: ClusterAutomation, index: number) => {
+                        return (
+                          <AppFields
+                            context="app"
+                            key={index}
+                            index={index}
+                            formData={formData}
+                            setFormData={setFormData}
+                            allowSelectCluster
+                            clusterName={clusterName}
+                          />
+                        );
+                      },
+                    )}
+                    {openPreview && PRPreview ? (
+                      <Preview
+                        context="app"
+                        openPreview={openPreview}
+                        setOpenPreview={setOpenPreview}
+                        PRPreview={PRPreview}
+                        sourceType={formData.source_type}
+                      />
+                    ) : null}
+                  </Grid>
+                  {formData.source_type === 'HelmRepository' ? (
+                    <Profiles
+                      // Temp fix to hide layers when using profiles in Add App until we update the BE
                       context="app"
-                      openPreview={openPreview}
-                      setOpenPreview={setOpenPreview}
-                      PRPreview={PRPreview}
-                      sourceType={formData.source_type}
+                      isLoading={profilesIsLoading}
+                      updatedProfiles={updatedProfiles}
+                      setUpdatedProfiles={setUpdatedProfiles}
                     />
                   ) : null}
-                </Grid>
-                {formData.source_type === 'HelmRepository' ? (
-                  <Profiles
-                    // Temp fix to hide layers when using profiles in Add App until we update the BE
-                    context="app"
-                    isLoading={profilesIsLoading}
-                    updatedProfiles={updatedProfiles}
-                    setUpdatedProfiles={setUpdatedProfiles}
-                  />
-                ) : null}
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  <PRPreviewWrapper>
+                  <Grid item xs={12} sm={10} md={10} lg={8}>
                     {previewLoading ? (
                       <LoadingPage className="preview-loading" />
                     ) : (
@@ -331,19 +344,32 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                         <Button onClick={handlePRPreview}>PREVIEW PR</Button>
                       </div>
                     )}
-                  </PRPreviewWrapper>
+                  </Grid>
+                  <Grid item xs={12} sm={10} md={10} lg={8}>
+                    <GitOps
+                      formData={formData}
+                      setFormData={setFormData}
+                      showAuthDialog={showAuthDialog}
+                      setShowAuthDialog={setShowAuthDialog}
+                      setEnableCreatePR={setEnableCreatePR}
+                    />
+                    {loading ? (
+                      <LoadingPage className="create-loading" />
+                    ) : (
+                      <div className="create-cta">
+                        <Button
+                          onClick={event =>
+                            validateFormData(event, handleAddApplication)
+                          }
+                          disabled={!enableCreatePR}
+                        >
+                          CREATE PULL REQUEST
+                        </Button>
+                      </div>
+                    )}
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  <GitOps
-                    loading={loading}
-                    formData={formData}
-                    setFormData={setFormData}
-                    onSubmit={handleAddApplication}
-                    showAuthDialog={showAuthDialog}
-                    setShowAuthDialog={setShowAuthDialog}
-                  />
-                </Grid>
-              </Grid>
+              </FormWrapper>
             </ContentWrapper>
           </CallbackStateContextProvider>
         </PageTemplate>
