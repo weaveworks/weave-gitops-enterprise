@@ -14,7 +14,7 @@ const ProgressiveDelivery = () => {
   } = useIsFlaggerAvailable();
 
   return (
-    <PageTemplate documentTitle="WeGo · Delivery">
+    <PageTemplate documentTitle="Delivery">
       {isLoading && <LoadingPage />}
       {error && <Alert severity="error">{error.message}</Alert>}
 

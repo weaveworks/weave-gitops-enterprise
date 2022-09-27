@@ -2,7 +2,11 @@ import Applications from '../';
 
 import { MuiThemeProvider } from '@material-ui/core';
 import { act, render, RenderResult, screen } from '@testing-library/react';
-import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
+import {
+  CoreClientContextProvider,
+  Kind,
+  theme,
+} from '@weaveworks/weave-gitops';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
@@ -42,24 +46,38 @@ describe('Applications index test', () => {
     ]);
   });
   it('renders table rows', async () => {
-    api.ListKustomizationsReturns = {
-      kustomizations: [
-        {
-          namespace: 'my-ns',
-          name: 'my-kustomization',
-          path: './',
-          sourceRef: {},
-          interval: {},
-          conditions: [],
-          lastAppliedRevision: '',
-          lastAttemptedRevision: '',
-          inventory: [],
-          suspended: false,
-          clusterName: 'my-cluster',
-        },
-      ],
+    api.ListObjectsReturns = {
+      [Kind.Kustomization]: {
+        errors: [],
+        objects: [
+          {
+            uid: 'uid1',
+            payload: JSON.stringify({
+              // maybe?
+              apiVersion: 'kustomize.toolkit.fluxcd.io/v1beta2',
+              kind: 'Kustomization',
+              metadata: {
+                namespace: 'my-ns',
+                name: 'my-kustomization',
+                uid: 'uid1',
+              },
+              spec: {
+                path: './',
+                interval: {},
+                sourceRef: {},
+              },
+              status: {
+                conditions: [],
+                lastAppliedRevision: '',
+                lastAttemptedRevision: '',
+                inventory: [],
+              },
+            }),
+            clusterName: 'my-cluster',
+          },
+        ],
+      },
     };
-    api.ListHelmReleasesReturns = [] as any;
 
     await act(async () => {
       const c = wrap(<Applications />);

@@ -11,6 +11,6 @@ identityProviders:
     issuerUrl: "{{ISSUER_URL}}"
     clientId: "{{CLIENT_ID}}"
     usernameClaim: email
-    usernamePrefix: "-"
+    groupsClaim: groups
     tags:
       env: test
