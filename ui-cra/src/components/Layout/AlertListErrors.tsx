@@ -17,6 +17,7 @@ const useAlertStyles = makeStyles(() =>
     navigationBtn: {
       padding: 0,
       minWidth: 'auto',
+      margin:0,
     },
     errosCount: {
       background: '#D58572',

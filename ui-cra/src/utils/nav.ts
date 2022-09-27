@@ -1,28 +1,29 @@
-import { FluxObjectKind, V2Routes } from '@weaveworks/weave-gitops';
+import { V2Routes } from '@weaveworks/weave-gitops';
+import { Kind } from '@weaveworks/weave-gitops';
 
-export function getKindRoute(k: FluxObjectKind | string): string {
+export function getKindRoute(k: Kind | string): string {
   switch (k) {
-    case FluxObjectKind.KindGitRepository:
+    case Kind.GitRepository:
     case 'GitRepository':
       return V2Routes.GitRepo;
 
-    case FluxObjectKind.KindBucket:
+    case Kind.Bucket:
     case 'Bucket':
       return V2Routes.Bucket;
 
-    case FluxObjectKind.KindHelmRepository:
+    case Kind.HelmRepository:
     case 'HelmRepository':
       return V2Routes.HelmRepo;
 
-    case FluxObjectKind.KindHelmChart:
+    case Kind.HelmChart:
     case 'HelmChart':
       return V2Routes.HelmChart;
 
-    case FluxObjectKind.KindKustomization:
+    case Kind.Kustomization:
     case 'Kustomization':
       return V2Routes.Kustomization;
 
-    case FluxObjectKind.KindHelmRelease:
+    case Kind.HelmRelease:
     case 'HelmRelease':
       return V2Routes.HelmRelease;
 
