@@ -10,7 +10,7 @@ import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 
 const { base, medium, xs, xxs } = theme.spacing;
-const {  neutral00 } = theme.colors;
+const { neutral00 } = theme.colors;
 
 const useAlertStyles = makeStyles(() =>
   createStyles({
@@ -83,6 +83,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
           <FlexCenter>
             <ErrorIcon className={classes.alertIcon} />
             <div className={classes.errorMessage} data-testid="error-message">
+              {filteredErrors[index].clusterName}:&nbsp;
               {filteredErrors[index].message}
             </div>
           </FlexCenter>
