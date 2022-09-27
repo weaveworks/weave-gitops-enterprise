@@ -15,10 +15,10 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
-	github.com/weaveworks/weave-gitops v0.9.6-0.20220923172312-3977758e0841
+	github.com/weaveworks/weave-gitops v0.9.6-0.20220926173902-fa7508a1cedf
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.25.0
 	k8s.io/apimachinery v0.25.0
 	k8s.io/cli-runtime v0.25.0
@@ -45,6 +45,7 @@ require (
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.1.6
+	github.com/osteele/liquid v1.3.0
 	github.com/spf13/viper v1.12.0
 	github.com/weaveworks/cluster-controller v1.3.2
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
@@ -73,6 +74,7 @@ require (
 	github.com/cloudflare/circl v1.1.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.26.0 // indirect
 	github.com/google/go-github/v47 v47.0.0 // indirect
+	github.com/osteele/tuesday v1.0.3 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )
@@ -261,7 +263,7 @@ require (
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.7
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

@@ -1052,6 +1052,10 @@ github.com/opencontainers/image-spec v1.0.1/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zM
 github.com/opencontainers/image-spec v1.0.3-0.20220114050600-8b9d41f48198 h1:+czc/J8SlhPKLOtVLMQc+xDCFBT73ZStMsRhSsUhsSg=
 github.com/opencontainers/image-spec v1.0.3-0.20220114050600-8b9d41f48198/go.mod h1:j4h1pJW6ZcJTgMZWP3+7RlG3zTaP02aDZ/Qw0sppK7Q=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
+github.com/osteele/liquid v1.3.0 h1:TwZNI5Y0K+v0MF6JDSoEeRGeHugV8OTi7GIXfdA91fY=
+github.com/osteele/liquid v1.3.0/go.mod h1:VmzQQHa5v4E0GvGzqccfAfLgMwRk2V+s1QbxYx9dGak=
+github.com/osteele/tuesday v1.0.3 h1:SrCmo6sWwSgnvs1bivmXLvD7Ko9+aJvvkmDjB5G4FTU=
+github.com/osteele/tuesday v1.0.3/go.mod h1:pREKpE+L03UFuR+hiznj3q7j3qB1rUZ4XfKejwWFF2M=
 github.com/otiai10/copy v1.2.0/go.mod h1:rrF5dJ5F0t/EWSYODDu4j9/vEeYHMkc8jt0zJChqQWw=
 github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95/go.mod h1:9qAhocn7zKJG+0mI8eUu6xqkFDYS2kb2saOteoSB3cE=
 github.com/otiai10/curr v1.0.0/go.mod h1:LskTG5wDwr8Rs+nNQ+1LlxRjAtTZZjtJW4rMXl6j4vs=
@@ -1285,8 +1289,8 @@ github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
-github.com/weaveworks/weave-gitops v0.9.6-0.20220923172312-3977758e0841 h1:7vb+Z1phNehb9Y9gCZaSAbOoHTG2E9fJdt4YaVeUaA8=
-github.com/weaveworks/weave-gitops v0.9.6-0.20220923172312-3977758e0841/go.mod h1:gMMz59W8g+f8od0Gv1jrqljH+w9AbbVTpCph++EMjlE=
+github.com/weaveworks/weave-gitops v0.9.6-0.20220926173902-fa7508a1cedf h1:nbdpTYr1jirp5kwEKey8I4mnPsHNPT13SMnEt6AOd/A=
+github.com/weaveworks/weave-gitops v0.9.6-0.20220926173902-fa7508a1cedf/go.mod h1:gMMz59W8g+f8od0Gv1jrqljH+w9AbbVTpCph++EMjlE=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.73.1 h1:UMagqUZLJdjss1SovIC+kJCH4k2AZWXl58gJd38Y/hI=
