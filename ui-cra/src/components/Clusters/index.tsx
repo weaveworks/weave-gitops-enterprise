@@ -45,7 +45,6 @@ import {
 } from '../../utils/icons';
 import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
@@ -356,17 +355,16 @@ const MCCP: FC<{
   const rowCount = clusters.length || 0;
 
   return (
-    <PageTemplate documentTitle="WeGo · Clusters">
+    <PageTemplate
+      documentTitle="Clusters"
+      path={[{ label: 'Clusters', url: 'clusters', count }]}
+    >
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
           state: { formData, selectedCapiClusters },
         }}
       >
-        <SectionHeader
-          className="count-header"
-          path={[{ label: 'Clusters', url: 'clusters', count }]}
-        />
         <ContentWrapper>
           <div
             style={{

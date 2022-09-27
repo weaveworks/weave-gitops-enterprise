@@ -7,8 +7,8 @@ import {
 } from '@weaveworks/progressive-delivery';
 import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import {
-  ListHelmReleasesResponse,
-  ListKustomizationsResponse,
+  ListObjectsRequest,
+  ListObjectsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
@@ -127,13 +127,16 @@ export class EnterpriseClientMock {
   }
 }
 
+const defaultListObjectsResponse: ListObjectsResponse = {
+  objects: [],
+  errors: [],
+};
+
 export class CoreClientMock {
   constructor() {
-    this.ListKustomizations = this.ListKustomizations.bind(this);
-    this.ListHelmReleases = this.ListHelmReleases.bind(this);
+    this.ListObjects = this.ListObjects.bind(this);
   }
-  ListKustomizationsReturns: ListKustomizationsResponse = {};
-  ListHelmReleasesReturns: ListHelmReleasesResponse = {};
+  ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
 
   GetFeatureFlags() {
     // FIXME: this is not working
@@ -144,12 +147,10 @@ export class CoreClientMock {
     });
   }
 
-  ListKustomizations() {
-    return promisify(this.ListKustomizationsReturns);
-  }
-
-  ListHelmReleases() {
-    return promisify(this.ListHelmReleasesReturns);
+  ListObjects(req: ListObjectsRequest) {
+    return promisify(
+      this.ListObjectsReturns[req.kind!] || defaultListObjectsResponse,
+    );
   }
 }
 
@@ -321,7 +322,7 @@ function findColByHeading(
 // WIP - Make a sharable class to test all Filterable table functionality
 
 export class TestFilterableTable {
-  constructor(_tableId: string,_fireEvent:any) {
+  constructor(_tableId: string, _fireEvent: any) {
     this.tableId = _tableId;
     this.fireEvent = _fireEvent;
   }

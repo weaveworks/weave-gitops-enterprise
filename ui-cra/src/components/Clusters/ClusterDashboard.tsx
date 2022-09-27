@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
 import useClusters from '../../hooks/clusters';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { localEEMuiTheme } from '../../muiTheme';
@@ -124,14 +123,10 @@ const ClusterDashboard = ({ clusterName }: Props) => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Cluster Page">
-        <SectionHeader
-          className="count-header"
-          path={[
-            { label: 'Clusters', url: '/clusters' },
-            { label: clusterName },
-          ]}
-        />
+      <PageTemplate
+        documentTitle="Cluster Page"
+        path={[{ label: 'Clusters', url: '/clusters' }, { label: clusterName }]}
+      >
         <ContentWrapper>
           <ActionsWrapper>
             <WeaveButton

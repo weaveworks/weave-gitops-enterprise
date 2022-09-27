@@ -1,6 +1,5 @@
 import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   AutomationsTable,
@@ -46,16 +45,16 @@ const WGApplicationsDashboard: FC = () => {
   };
 
   return (
-    <PageTemplate documentTitle="WeGO · Applications">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: automations?.result?.length,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="Applications"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+          count: automations?.result?.length,
+        },
+      ]}
+    >
       <ContentWrapper errors={automations?.errors}>
         <div
           style={{
