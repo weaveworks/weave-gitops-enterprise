@@ -18,7 +18,7 @@ import { GitopsCluster } from '../../../../../cluster-services/cluster_services.
 import { useClustersWithSources } from '../../../utils';
 import { useHistory, useLocation } from 'react-router-dom';
 
-const FormWrapper = styled.form`
+const AppFieldsWrapper = styled.div`
   .form-section {
     width: 50%;
   }
@@ -233,7 +233,7 @@ const AppFields: FC<{
   };
 
   return (
-    <FormWrapper>
+    <AppFieldsWrapper>
       {!!clusters && (
         <>
           <Select
@@ -347,7 +347,7 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-    </FormWrapper>
+    </AppFieldsWrapper>
   );
 };
 

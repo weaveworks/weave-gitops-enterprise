@@ -488,6 +488,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     updatedProfiles,
     previewLoading,
     loading,
+    enableCreatePR,
   ]);
 };
 

@@ -389,6 +389,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     handlePRPreview,
     previewLoading,
     clusterName,
+    enableCreatePR,
   ]);
 };
 
