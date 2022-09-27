@@ -436,7 +436,11 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
               <LoadingPage className={classes.previewLoading} />
             ) : (
               <div className={classes.previewCta}>
-                <Button onClick={handlePRPreview}>PREVIEW PR</Button>
+                <Button
+                  onClick={event => validateFormData(event, handlePRPreview)}
+                >
+                  PREVIEW PR
+                </Button>
               </div>
             )}
           </Grid>

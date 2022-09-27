@@ -341,7 +341,13 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       <LoadingPage className="preview-loading" />
                     ) : (
                       <div className="preview-cta">
-                        <Button onClick={handlePRPreview}>PREVIEW PR</Button>
+                        <Button
+                          onClick={event =>
+                            validateFormData(event, handlePRPreview)
+                          }
+                        >
+                          PREVIEW PR
+                        </Button>
                       </div>
                     )}
                   </Grid>
