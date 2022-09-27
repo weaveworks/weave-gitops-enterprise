@@ -310,6 +310,7 @@ spec:
         name: weaveworks-charts
         namespace: default
   interval: 10m0s
+  targetNamespace: flux-system
   values:
     foo: bar
 status: {}
@@ -333,6 +334,7 @@ spec:
         name: weaveworks-charts
         namespace: default
   interval: 10m0s
+  targetNamespace: flux-system
   values: null
 status: {}
 `,
@@ -560,6 +562,7 @@ spec:
         name: weaveworks-charts
         namespace: default
   interval: 10m0s
+  targetNamespace: flux-system
   values: null
 status: {}
 `,
