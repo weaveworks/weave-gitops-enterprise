@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import { ListTemplatesResponse } from '../cluster-services/cluster_services.pb';
 import { TemplateEnriched } from '../types/custom';
@@ -22,10 +22,14 @@ const useTemplates = () => {
       onError,
     },
   );
-  const templates = data?.templates?.map(template => ({
-    ...template,
-    templateType: template?.labels?.['weave.works/template-type'] || '',
-  })) as TemplateEnriched[] | undefined;
+  const templates = useMemo(
+    () =>
+      data?.templates?.map(template => ({
+        ...template,
+        templateType: template?.labels?.['weave.works/template-type'] || '',
+      })),
+    [data],
+  ) as TemplateEnriched[] | undefined;
 
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;
