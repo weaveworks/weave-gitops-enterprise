@@ -76,10 +76,10 @@ export const NavItem = styled(NavLink).attrs({
   activeClassName: 'nav-link-active',
 })`
   display: flex;
-  font-size: ${18}px;
+  font-size: ${12}px;
   box-sizing: border-box;
   color: ${({ theme }) => theme.colors.neutral40};
-  font-weight: 600;
+  font-weight: bold;
   &.${props => props.activeClassName} {
     border-right: 3px solid ${({ theme }) => theme.colors.primary};
     background: rgba(0, 179, 236, 0.1);
@@ -147,34 +147,34 @@ export const Navigation: FC = () => {
   const classes = useStyles();
   const navItems: Array<NavigationItem> = [
     {
-      name: 'Clusters',
+      name: 'CLUSTERS',
       link: '/clusters',
       icon: <Clusters />,
       subItems: [
         {
-          name: 'Violation Log',
+          name: 'VIOLATION LOG',
           link: '/clusters/violations',
           isVisible: true,
         },
       ],
     },
     {
-      name: 'Applications',
+      name: 'APPLICATIONS',
       link: V2Routes.Automations,
       icon: <Applications />,
       subItems: [
         {
-          name: 'Sources',
+          name: 'SOURCES',
           link: V2Routes.Sources,
           isVisible: true,
         },
         {
-          name: 'Pipelines',
+          name: 'PIPELINES',
           link: '/applications/pipelines',
           isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
-          name: 'Delivery',
+          name: 'DELIVERY',
           link: '/applications/delivery',
           isVisible:
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
@@ -182,23 +182,23 @@ export const Navigation: FC = () => {
       ],
     },
     {
-      name: 'Templates',
+      name: 'TEMPLATES',
       link: '/templates',
       icon: <Templates />,
     },
     {
-      name: 'Terraform',
+      name: 'TERRAFORM',
       link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
       isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
-      name: 'Flux Runtime',
+      name: 'FLUX RUNTIME',
       link: V2Routes.FluxRuntime,
       icon: <FluxIcon />,
     },
     {
-      name: 'Policies',
+      name: 'POLICIES',
       link: '/policies',
       icon: <Policies />,
     },
