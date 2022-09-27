@@ -3,7 +3,12 @@ import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
-import { ListSubheader, MenuItem, Checkbox } from '@material-ui/core';
+import {
+  ListSubheader,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+} from '@material-ui/core';
 import { useListSources, theme, Flex } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import {
@@ -349,16 +354,23 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-      {formData.source_type === 'GitRepository' ? (
+      {formData.source_type === 'GitRepository' || !clusters ? (
         <Flex align={true}>
-          <Checkbox
-            style={{ marginRight: theme.spacing.small }}
-            checked={createNamespace}
-            onChange={handleCreateNamespace}
-            inputProps={{ 'aria-label': 'controlled' }}
-            color="primary"
+          <FormControlLabel
+            value="top"
+            control={
+              <Checkbox
+                // Restore default paddingLeft for checkbox that is removed by the global style
+                // mui.FormControlLabel does some negative margin to align the checkbox with the label
+                style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
+                checked={createNamespace}
+                onChange={handleCreateNamespace}
+                inputProps={{ 'aria-label': 'controlled' }}
+                color="primary"
+              />
+            }
+            label="Create target namespace for kustomization"
           />
-          <span>Create target namespace for kustomization</span>
         </Flex>
       ) : null}
     </FormWrapper>
