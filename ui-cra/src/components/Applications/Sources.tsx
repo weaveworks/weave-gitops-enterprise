@@ -5,6 +5,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading, error } = useListSources();
+
   return (
     <PageTemplate
       documentTitle="Application Sources"
