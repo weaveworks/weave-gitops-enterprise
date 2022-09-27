@@ -48,6 +48,7 @@ const NavWrapper = styled.div`
     width: 20px;
     height: 20px;
   }
+
   span.parent-route {
     margin-left: ${({ theme }) => theme.spacing.xs};
   }
