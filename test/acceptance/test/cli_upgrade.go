@@ -36,7 +36,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				version := "1.4.20"
 
 				ginkgo.By("And I run gitops upgrade command", func() {
-					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/my-cluster/clusters --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --dry-run", gitops_bin_path, version, prBranch, repositoryURL, UI_NODEPORT)
+					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/management/clusters --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --dry-run", gitops_bin_path, version, prBranch, repositoryURL, UI_NODEPORT)
 					logger.Infof("Upgrade command: '%s'", upgradeCommand)
 					stdOut, stdErr = runCommandAndReturnStringOutput(upgradeCommand)
 					gomega.Expect(stdErr).Should(gomega.BeEmpty())
@@ -114,7 +114,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I install Profile (HelmRepository chart)", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "profile-repo.yaml")), "Failed to install profiles HelmRepository chart")
+					sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
+					addSource("helm", "weaveworks-charts", GITOPS_DEFAULT_NAMESPACE, sourceURL, "")
 				})
 
 				ginkgo.By("And I install the entitlement for cluster upgrade", func() {
@@ -152,7 +153,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 					gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 					// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
-					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/my-cluster/clusters  --set 'config.capi.repositoryPath=./clusters/capi/clusters' --set 'config.capi.repositoryClustersPath=./clusters'  --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --set config.oidc.enabled=true --set config.oidc.clientCredentialsSecret=client-credentials --set config.oidc.issuerURL=https://dex-01.wge.dev.weave.works --set config.oidc.redirectURL=https://weave.gitops.upgrade.enterprise.com:%s/oauth2/callback ",
+					upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/management/clusters  --set 'config.capi.repositoryPath=./clusters/capi/clusters' --set 'config.capi.repositoryClustersPath=./clusters'  --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --set config.oidc.enabled=true --set config.oidc.clientCredentialsSecret=client-credentials --set config.oidc.issuerURL=https://dex-01.wge.dev.weave.works --set config.oidc.redirectURL=https://weave.gitops.upgrade.enterprise.com:%s/oauth2/callback ",
 						gitops_bin_path, version, prBranch, gitRepositoryURL, gitRepositoryURL, gitProviderEnv.Type, gitProviderEnv.Hostname, UI_NODEPORT, UI_NODEPORT)
 
 					if gitProviderEnv.HostTypes != "" {
@@ -285,7 +286,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				pages.ScrollWindow(webDriver, 0, 500)
 				ginkgo.By("And verify selected weave-policy-agent profile values.yaml", func() {
-					profile := createPage.FindProfileInList("weave-policy-agent")
+					profile := createPage.GetProfileInList("weave-policy-agent")
 
 					gomega.Eventually(profile.Version.Click).Should(gomega.Succeed())
 					gomega.Eventually(pages.GetOption(webDriver, "0.3.1").Click).Should(gomega.Succeed(), "Failed to select weave-policy-agent version: 0.3.1")
@@ -330,12 +331,9 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					gitops := pages.GetGitOps(webDriver)
 					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
-					gomega.Expect(gitops.GitOpsFields[0].Label).Should(matchers.BeFound())
-					gomega.Expect(gitops.GitOpsFields[0].Field.SendKeys(prBranch)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[1].Label).Should(matchers.BeFound())
-					gomega.Expect(gitops.GitOpsFields[1].Field.SendKeys(prTitle)).To(gomega.Succeed())
-					gomega.Expect(gitops.GitOpsFields[2].Label).Should(matchers.BeFound())
-					gomega.Expect(gitops.GitOpsFields[2].Field.SendKeys(prCommit)).To(gomega.Succeed())
+					gomega.Expect(gitops.BranchName.SendKeys(prBranch)).To(gomega.Succeed())
+					gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
+					gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
 
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())

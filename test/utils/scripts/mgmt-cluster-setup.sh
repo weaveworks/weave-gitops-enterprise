@@ -70,7 +70,7 @@ function setup_eks {
     --exec-arg=--oidc-issuer-url=${OIDC_ISSUER_URL} \
     --exec-arg=--oidc-client-id=${DEX_CLI_CLIENT_ID} \
     --exec-arg=--oidc-client-secret=${DEX_CLI_CLIENT_SECRET} \
-    --exec-arg=--oidc-extra-scope="openid email offline_access" \
+    --exec-arg=--oidc-extra-scope="openid email groups offline_access" \
     --exec-arg=--skip-open-browser
 
   kubectl --kubeconfig=${OIDC_KUBECONFIG} config set-context --current --user=oidc-user

@@ -131,8 +131,7 @@ func cliOidcLogin() {
 	switch mgmtClusterKind {
 	case EKSMgmtCluster:
 		go func() {
-			err := runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get pods --kubeconfig=%s", userCredentials.UserKubeconfig))
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
+			_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get pods --kubeconfig=%s", userCredentials.UserKubeconfig))
 		}()
 
 		redirectUrl := "http://localhost:8000"

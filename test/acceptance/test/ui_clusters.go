@@ -206,9 +206,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
 				})
 
-				ginkgo.By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
-				})
+				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
 				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster is bootstraped)", leafClusterName), func() {
 					useClusterContext(leafClusterContext)

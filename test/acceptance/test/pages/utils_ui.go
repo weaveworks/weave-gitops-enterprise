@@ -66,3 +66,9 @@ func ClearFieldValue(field *agouti.Selection) {
 		gomega.Expect(field.SendKeys("\uE003")).To(gomega.Succeed())
 	}
 }
+
+func ClickElement(webDriver *agouti.Page, element *agouti.Selection, xOffset, yOffset int) error {
+	gomega.Expect(element.MouseToElement()).Should(gomega.Succeed(), "Failed to move mouse to element")
+	gomega.Expect(webDriver.MoveMouseBy(xOffset, yOffset)).Should(gomega.Succeed(), fmt.Sprintf("Failed to move mouse by offset (%d, %d)", xOffset, yOffset))
+	return webDriver.Click(agouti.SingleClick, agouti.LeftButton)
+}

@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v1
+apiVersion: pac.weave.works/v2beta1
 kind: Policy
 metadata:
   name: weave.policies.container-running-as-root-acceptance-test
@@ -18,16 +18,7 @@ spec:
     https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   category: weave.categories.pod-security
   severity: high
-  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
-  controls:
-    - weave.controls.pci-dss.2.2.4
-    - weave.controls.pci-dss.2.2.5
-    - weave.controls.cis-benchmark.5.2.6
-    - weave.controls.mitre-attack.4.1
-    - weave.controls.nist-800-190.3.3.1
-    - weave.controls.gdpr.24
-    - weave.controls.gdpr.25
-    - weave.controls.gdpr.32
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}  
   tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
   parameters:
     - name: exclude_namespace
@@ -109,7 +100,7 @@ spec:
     	kinds[_] = kind
     }
 ---
-apiVersion: pac.weave.works/v1
+apiVersion: pac.weave.works/v2beta1
 kind: Policy
 metadata:
   name: weave.policies.containers-read-only-root-filesystem-acceptance-test
@@ -132,9 +123,6 @@ spec:
   category: weave.categories.pod-security
   severity: high
   targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
-  controls:
-    - weave.controls.mitre-attack.3.2
-    - weave.controls.nist-800-190.4.4.4
   tags: [mitre-attack, nist800-190]
   parameters:
     - name: read_only
@@ -188,7 +176,7 @@ spec:
       kinds[_] = kind
     }
 ---
-apiVersion: pac.weave.works/v1
+apiVersion: pac.weave.works/v2beta1
 kind: Policy
 metadata:
   name: weave.policies.container-image-pull-policy-acceptance-test
@@ -268,7 +256,7 @@ spec:
       kinds[_] = kind
     }
 ---
-apiVersion: pac.weave.works/v1
+apiVersion: pac.weave.works/v2beta1
 kind: Policy
 metadata:
   name: weave.policies.containers-running-with-privilege-escalation-acceptance-test
@@ -295,17 +283,7 @@ spec:
     https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   category: weave.categories.pod-security
   severity: high
-  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
-  controls:
-    - weave.controls.pci-dss.2.2.4
-    - weave.controls.pci-dss.2.2.5
-    - weave.controls.cis-benchmark.5.2.5
-    - weave.controls.mitre-attack.4.1
-    - weave.controls.nist-800-190.3.3.2
-    - weave.controls.gdpr.25
-    - weave.controls.gdpr.32
-    - weave.controls.gdpr.24
-    - weave.controls.soc2-type-i.1.6.1
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}  
   tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default, soc2-type1]
   parameters:
     - name: exclude_namespace
