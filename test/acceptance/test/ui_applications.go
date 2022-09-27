@@ -339,7 +339,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			})
 		})
 
-		ginkgo.Context("[UI] Applications(s) can be installed", func() {
+		ginkgo.FContext("[UI] Applications(s) can be installed", func() {
 			appNameSpace := "test-kustomization"
 			appTargetNamespace := "test-system"
 
