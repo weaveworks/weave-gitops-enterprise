@@ -183,6 +183,7 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease,
 			Namespace: HelmReleaseNamespace,
 		},
 		Spec: helmv2.HelmReleaseSpec{
+			TargetNamespace: hr.Metadata.Namespace,
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: hr.Spec.Chart.Spec.Chart,
