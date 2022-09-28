@@ -78,6 +78,12 @@ export type RenderTemplateResponse = {
   kustomizationFiles?: CommitFile[]
 }
 
+export type GetAutomations = {
+  kustomizationFiles?: CommitFile[]
+  helmReleaseFiles?: CommitFile[]
+  clusters?: string[]
+}
+
 export type RenderAutomationRequest = {
   clusterAutomations?: ClusterAutomation[]
 }

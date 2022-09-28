@@ -223,6 +223,12 @@ message RenderTemplateResponse {
   repeated CommitFile kustomization_files = 3;
 }
 
+message GetAutomations { 
+  repeated CommitFile kustomization_files = 1;
+  repeated CommitFile helm_release_files = 2;
+  repeated string clusters = 3;
+}
+
 message RenderAutomationRequest {
   repeated ClusterAutomation cluster_automations = 1;
 }

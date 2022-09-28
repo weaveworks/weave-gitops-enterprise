@@ -786,6 +786,69 @@ func (x *RenderTemplateResponse) GetKustomizationFiles() []*CommitFile {
 	return nil
 }
 
+type GetAutomations struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	KustomizationFiles []*CommitFile `protobuf:"bytes,1,rep,name=kustomization_files,json=kustomizationFiles,proto3" json:"kustomization_files,omitempty"`
+	HelmReleaseFiles   []*CommitFile `protobuf:"bytes,2,rep,name=helm_release_files,json=helmReleaseFiles,proto3" json:"helm_release_files,omitempty"`
+	Clusters           []string      `protobuf:"bytes,3,rep,name=clusters,proto3" json:"clusters,omitempty"`
+}
+
+func (x *GetAutomations) Reset() {
+	*x = GetAutomations{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_cluster_services_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAutomations) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAutomations) ProtoMessage() {}
+
+func (x *GetAutomations) ProtoReflect() protoreflect.Message {
+	mi := &file_cluster_services_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAutomations.ProtoReflect.Descriptor instead.
+func (*GetAutomations) Descriptor() ([]byte, []int) {
+	return file_cluster_services_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetAutomations) GetKustomizationFiles() []*CommitFile {
+	if x != nil {
+		return x.KustomizationFiles
+	}
+	return nil
+}
+
+func (x *GetAutomations) GetHelmReleaseFiles() []*CommitFile {
+	if x != nil {
+		return x.HelmReleaseFiles
+	}
+	return nil
+}
+
+func (x *GetAutomations) GetClusters() []string {
+	if x != nil {
+		return x.Clusters
+	}
+	return nil
+}
+
 type RenderAutomationRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -797,7 +860,7 @@ type RenderAutomationRequest struct {
 func (x *RenderAutomationRequest) Reset() {
 	*x = RenderAutomationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[13]
+		mi := &file_cluster_services_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -810,7 +873,7 @@ func (x *RenderAutomationRequest) String() string {
 func (*RenderAutomationRequest) ProtoMessage() {}
 
 func (x *RenderAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[13]
+	mi := &file_cluster_services_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -823,7 +886,7 @@ func (x *RenderAutomationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenderAutomationRequest.ProtoReflect.Descriptor instead.
 func (*RenderAutomationRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{13}
+	return file_cluster_services_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *RenderAutomationRequest) GetClusterAutomations() []*ClusterAutomation {
@@ -845,7 +908,7 @@ type RenderAutomationResponse struct {
 func (x *RenderAutomationResponse) Reset() {
 	*x = RenderAutomationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[14]
+		mi := &file_cluster_services_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -858,7 +921,7 @@ func (x *RenderAutomationResponse) String() string {
 func (*RenderAutomationResponse) ProtoMessage() {}
 
 func (x *RenderAutomationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[14]
+	mi := &file_cluster_services_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -871,7 +934,7 @@ func (x *RenderAutomationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RenderAutomationResponse.ProtoReflect.Descriptor instead.
 func (*RenderAutomationResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{14}
+	return file_cluster_services_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *RenderAutomationResponse) GetKustomizationFiles() []*CommitFile {
@@ -902,7 +965,7 @@ type ListGitopsClustersRequest struct {
 func (x *ListGitopsClustersRequest) Reset() {
 	*x = ListGitopsClustersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[15]
+		mi := &file_cluster_services_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -915,7 +978,7 @@ func (x *ListGitopsClustersRequest) String() string {
 func (*ListGitopsClustersRequest) ProtoMessage() {}
 
 func (x *ListGitopsClustersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[15]
+	mi := &file_cluster_services_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -928,7 +991,7 @@ func (x *ListGitopsClustersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGitopsClustersRequest.ProtoReflect.Descriptor instead.
 func (*ListGitopsClustersRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{15}
+	return file_cluster_services_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListGitopsClustersRequest) GetLabel() string {
@@ -972,7 +1035,7 @@ type ListGitopsClustersResponse struct {
 func (x *ListGitopsClustersResponse) Reset() {
 	*x = ListGitopsClustersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[16]
+		mi := &file_cluster_services_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -985,7 +1048,7 @@ func (x *ListGitopsClustersResponse) String() string {
 func (*ListGitopsClustersResponse) ProtoMessage() {}
 
 func (x *ListGitopsClustersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[16]
+	mi := &file_cluster_services_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -998,7 +1061,7 @@ func (x *ListGitopsClustersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGitopsClustersResponse.ProtoReflect.Descriptor instead.
 func (*ListGitopsClustersResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{16}
+	return file_cluster_services_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListGitopsClustersResponse) GetGitopsClusters() []*GitopsCluster {
@@ -1034,7 +1097,7 @@ type GetPolicyRequest struct {
 func (x *GetPolicyRequest) Reset() {
 	*x = GetPolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[17]
+		mi := &file_cluster_services_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1047,7 +1110,7 @@ func (x *GetPolicyRequest) String() string {
 func (*GetPolicyRequest) ProtoMessage() {}
 
 func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[17]
+	mi := &file_cluster_services_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1060,7 +1123,7 @@ func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{17}
+	return file_cluster_services_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetPolicyRequest) GetPolicyName() string {
@@ -1089,7 +1152,7 @@ type ListPoliciesRequest struct {
 func (x *ListPoliciesRequest) Reset() {
 	*x = ListPoliciesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[18]
+		mi := &file_cluster_services_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1102,7 +1165,7 @@ func (x *ListPoliciesRequest) String() string {
 func (*ListPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[18]
+	mi := &file_cluster_services_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1115,7 +1178,7 @@ func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{18}
+	return file_cluster_services_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListPoliciesRequest) GetClusterName() string {
@@ -1144,7 +1207,7 @@ type GetPolicyResponse struct {
 func (x *GetPolicyResponse) Reset() {
 	*x = GetPolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[19]
+		mi := &file_cluster_services_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1157,7 +1220,7 @@ func (x *GetPolicyResponse) String() string {
 func (*GetPolicyResponse) ProtoMessage() {}
 
 func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[19]
+	mi := &file_cluster_services_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1170,7 +1233,7 @@ func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{19}
+	return file_cluster_services_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetPolicyResponse) GetPolicy() *Policy {
@@ -1201,7 +1264,7 @@ type ListPoliciesResponse struct {
 func (x *ListPoliciesResponse) Reset() {
 	*x = ListPoliciesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[20]
+		mi := &file_cluster_services_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1214,7 +1277,7 @@ func (x *ListPoliciesResponse) String() string {
 func (*ListPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[20]
+	mi := &file_cluster_services_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +1290,7 @@ func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{20}
+	return file_cluster_services_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ListPoliciesResponse) GetPolicies() []*Policy {
@@ -1272,7 +1335,7 @@ type ListPolicyValidationsRequest struct {
 func (x *ListPolicyValidationsRequest) Reset() {
 	*x = ListPolicyValidationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[21]
+		mi := &file_cluster_services_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1285,7 +1348,7 @@ func (x *ListPolicyValidationsRequest) String() string {
 func (*ListPolicyValidationsRequest) ProtoMessage() {}
 
 func (x *ListPolicyValidationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[21]
+	mi := &file_cluster_services_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1298,7 +1361,7 @@ func (x *ListPolicyValidationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPolicyValidationsRequest.ProtoReflect.Descriptor instead.
 func (*ListPolicyValidationsRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{21}
+	return file_cluster_services_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ListPolicyValidationsRequest) GetClusterName() string {
@@ -1343,7 +1406,7 @@ type ListPolicyValidationsResponse struct {
 func (x *ListPolicyValidationsResponse) Reset() {
 	*x = ListPolicyValidationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[22]
+		mi := &file_cluster_services_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1356,7 +1419,7 @@ func (x *ListPolicyValidationsResponse) String() string {
 func (*ListPolicyValidationsResponse) ProtoMessage() {}
 
 func (x *ListPolicyValidationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[22]
+	mi := &file_cluster_services_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1369,7 +1432,7 @@ func (x *ListPolicyValidationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPolicyValidationsResponse.ProtoReflect.Descriptor instead.
 func (*ListPolicyValidationsResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{22}
+	return file_cluster_services_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListPolicyValidationsResponse) GetViolations() []*PolicyValidation {
@@ -1412,7 +1475,7 @@ type GetPolicyValidationRequest struct {
 func (x *GetPolicyValidationRequest) Reset() {
 	*x = GetPolicyValidationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[23]
+		mi := &file_cluster_services_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1425,7 +1488,7 @@ func (x *GetPolicyValidationRequest) String() string {
 func (*GetPolicyValidationRequest) ProtoMessage() {}
 
 func (x *GetPolicyValidationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[23]
+	mi := &file_cluster_services_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1438,7 +1501,7 @@ func (x *GetPolicyValidationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyValidationRequest.ProtoReflect.Descriptor instead.
 func (*GetPolicyValidationRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{23}
+	return file_cluster_services_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetPolicyValidationRequest) GetViolationId() string {
@@ -1466,7 +1529,7 @@ type GetPolicyValidationResponse struct {
 func (x *GetPolicyValidationResponse) Reset() {
 	*x = GetPolicyValidationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[24]
+		mi := &file_cluster_services_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1479,7 +1542,7 @@ func (x *GetPolicyValidationResponse) String() string {
 func (*GetPolicyValidationResponse) ProtoMessage() {}
 
 func (x *GetPolicyValidationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[24]
+	mi := &file_cluster_services_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1492,7 +1555,7 @@ func (x *GetPolicyValidationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyValidationResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyValidationResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{24}
+	return file_cluster_services_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetPolicyValidationResponse) GetViolation() *PolicyValidation {
@@ -1513,7 +1576,7 @@ type PolicyValidationOccurrence struct {
 func (x *PolicyValidationOccurrence) Reset() {
 	*x = PolicyValidationOccurrence{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[25]
+		mi := &file_cluster_services_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1526,7 +1589,7 @@ func (x *PolicyValidationOccurrence) String() string {
 func (*PolicyValidationOccurrence) ProtoMessage() {}
 
 func (x *PolicyValidationOccurrence) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[25]
+	mi := &file_cluster_services_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1539,7 +1602,7 @@ func (x *PolicyValidationOccurrence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyValidationOccurrence.ProtoReflect.Descriptor instead.
 func (*PolicyValidationOccurrence) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{25}
+	return file_cluster_services_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *PolicyValidationOccurrence) GetMessage() string {
@@ -1574,7 +1637,7 @@ type PolicyValidation struct {
 func (x *PolicyValidation) Reset() {
 	*x = PolicyValidation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[26]
+		mi := &file_cluster_services_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1587,7 +1650,7 @@ func (x *PolicyValidation) String() string {
 func (*PolicyValidation) ProtoMessage() {}
 
 func (x *PolicyValidation) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[26]
+	mi := &file_cluster_services_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1600,7 +1663,7 @@ func (x *PolicyValidation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyValidation.ProtoReflect.Descriptor instead.
 func (*PolicyValidation) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{26}
+	return file_cluster_services_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *PolicyValidation) GetId() string {
@@ -1742,7 +1805,7 @@ type CreatePullRequestRequest struct {
 func (x *CreatePullRequestRequest) Reset() {
 	*x = CreatePullRequestRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[27]
+		mi := &file_cluster_services_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1755,7 +1818,7 @@ func (x *CreatePullRequestRequest) String() string {
 func (*CreatePullRequestRequest) ProtoMessage() {}
 
 func (x *CreatePullRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[27]
+	mi := &file_cluster_services_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1768,7 +1831,7 @@ func (x *CreatePullRequestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePullRequestRequest.ProtoReflect.Descriptor instead.
 func (*CreatePullRequestRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{27}
+	return file_cluster_services_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *CreatePullRequestRequest) GetRepositoryUrl() string {
@@ -1874,7 +1937,7 @@ type CreatePullRequestResponse struct {
 func (x *CreatePullRequestResponse) Reset() {
 	*x = CreatePullRequestResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[28]
+		mi := &file_cluster_services_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1887,7 +1950,7 @@ func (x *CreatePullRequestResponse) String() string {
 func (*CreatePullRequestResponse) ProtoMessage() {}
 
 func (x *CreatePullRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[28]
+	mi := &file_cluster_services_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1900,7 +1963,7 @@ func (x *CreatePullRequestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePullRequestResponse.ProtoReflect.Descriptor instead.
 func (*CreatePullRequestResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{28}
+	return file_cluster_services_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CreatePullRequestResponse) GetWebUrl() string {
@@ -1938,7 +2001,7 @@ type CreateTfControllerPullRequestRequest struct {
 func (x *CreateTfControllerPullRequestRequest) Reset() {
 	*x = CreateTfControllerPullRequestRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[29]
+		mi := &file_cluster_services_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1951,7 +2014,7 @@ func (x *CreateTfControllerPullRequestRequest) String() string {
 func (*CreateTfControllerPullRequestRequest) ProtoMessage() {}
 
 func (x *CreateTfControllerPullRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[29]
+	mi := &file_cluster_services_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1964,7 +2027,7 @@ func (x *CreateTfControllerPullRequestRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use CreateTfControllerPullRequestRequest.ProtoReflect.Descriptor instead.
 func (*CreateTfControllerPullRequestRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{29}
+	return file_cluster_services_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *CreateTfControllerPullRequestRequest) GetRepositoryUrl() string {
@@ -2042,7 +2105,7 @@ type CreateTfControllerPullRequestResponse struct {
 func (x *CreateTfControllerPullRequestResponse) Reset() {
 	*x = CreateTfControllerPullRequestResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[30]
+		mi := &file_cluster_services_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2055,7 +2118,7 @@ func (x *CreateTfControllerPullRequestResponse) String() string {
 func (*CreateTfControllerPullRequestResponse) ProtoMessage() {}
 
 func (x *CreateTfControllerPullRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[30]
+	mi := &file_cluster_services_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2068,7 +2131,7 @@ func (x *CreateTfControllerPullRequestResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use CreateTfControllerPullRequestResponse.ProtoReflect.Descriptor instead.
 func (*CreateTfControllerPullRequestResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{30}
+	return file_cluster_services_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *CreateTfControllerPullRequestResponse) GetWebUrl() string {
@@ -2090,7 +2153,7 @@ type ClusterNamespacedName struct {
 func (x *ClusterNamespacedName) Reset() {
 	*x = ClusterNamespacedName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[31]
+		mi := &file_cluster_services_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2103,7 +2166,7 @@ func (x *ClusterNamespacedName) String() string {
 func (*ClusterNamespacedName) ProtoMessage() {}
 
 func (x *ClusterNamespacedName) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[31]
+	mi := &file_cluster_services_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2116,7 +2179,7 @@ func (x *ClusterNamespacedName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClusterNamespacedName.ProtoReflect.Descriptor instead.
 func (*ClusterNamespacedName) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{31}
+	return file_cluster_services_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ClusterNamespacedName) GetNamespace() string {
@@ -2162,7 +2225,7 @@ type DeleteClustersPullRequestRequest struct {
 func (x *DeleteClustersPullRequestRequest) Reset() {
 	*x = DeleteClustersPullRequestRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[32]
+		mi := &file_cluster_services_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2175,7 +2238,7 @@ func (x *DeleteClustersPullRequestRequest) String() string {
 func (*DeleteClustersPullRequestRequest) ProtoMessage() {}
 
 func (x *DeleteClustersPullRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[32]
+	mi := &file_cluster_services_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2188,7 +2251,7 @@ func (x *DeleteClustersPullRequestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteClustersPullRequestRequest.ProtoReflect.Descriptor instead.
 func (*DeleteClustersPullRequestRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{32}
+	return file_cluster_services_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *DeleteClustersPullRequestRequest) GetRepositoryUrl() string {
@@ -2273,7 +2336,7 @@ type DeleteClustersPullRequestResponse struct {
 func (x *DeleteClustersPullRequestResponse) Reset() {
 	*x = DeleteClustersPullRequestResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[33]
+		mi := &file_cluster_services_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2286,7 +2349,7 @@ func (x *DeleteClustersPullRequestResponse) String() string {
 func (*DeleteClustersPullRequestResponse) ProtoMessage() {}
 
 func (x *DeleteClustersPullRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[33]
+	mi := &file_cluster_services_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2299,7 +2362,7 @@ func (x *DeleteClustersPullRequestResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeleteClustersPullRequestResponse.ProtoReflect.Descriptor instead.
 func (*DeleteClustersPullRequestResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{33}
+	return file_cluster_services_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *DeleteClustersPullRequestResponse) GetWebUrl() string {
@@ -2318,7 +2381,7 @@ type ListCredentialsRequest struct {
 func (x *ListCredentialsRequest) Reset() {
 	*x = ListCredentialsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[34]
+		mi := &file_cluster_services_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2331,7 +2394,7 @@ func (x *ListCredentialsRequest) String() string {
 func (*ListCredentialsRequest) ProtoMessage() {}
 
 func (x *ListCredentialsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[34]
+	mi := &file_cluster_services_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2344,7 +2407,7 @@ func (x *ListCredentialsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCredentialsRequest.ProtoReflect.Descriptor instead.
 func (*ListCredentialsRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{34}
+	return file_cluster_services_proto_rawDescGZIP(), []int{35}
 }
 
 type ListCredentialsResponse struct {
@@ -2359,7 +2422,7 @@ type ListCredentialsResponse struct {
 func (x *ListCredentialsResponse) Reset() {
 	*x = ListCredentialsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[35]
+		mi := &file_cluster_services_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2372,7 +2435,7 @@ func (x *ListCredentialsResponse) String() string {
 func (*ListCredentialsResponse) ProtoMessage() {}
 
 func (x *ListCredentialsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[35]
+	mi := &file_cluster_services_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2385,7 +2448,7 @@ func (x *ListCredentialsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCredentialsResponse.ProtoReflect.Descriptor instead.
 func (*ListCredentialsResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{35}
+	return file_cluster_services_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListCredentialsResponse) GetCredentials() []*Credential {
@@ -2415,7 +2478,7 @@ type GetKubeconfigRequest struct {
 func (x *GetKubeconfigRequest) Reset() {
 	*x = GetKubeconfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[36]
+		mi := &file_cluster_services_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2428,7 +2491,7 @@ func (x *GetKubeconfigRequest) String() string {
 func (*GetKubeconfigRequest) ProtoMessage() {}
 
 func (x *GetKubeconfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[36]
+	mi := &file_cluster_services_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2441,7 +2504,7 @@ func (x *GetKubeconfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubeconfigRequest.ProtoReflect.Descriptor instead.
 func (*GetKubeconfigRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{36}
+	return file_cluster_services_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetKubeconfigRequest) GetClusterName() string {
@@ -2470,7 +2533,7 @@ type GetKubeconfigResponse struct {
 func (x *GetKubeconfigResponse) Reset() {
 	*x = GetKubeconfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[37]
+		mi := &file_cluster_services_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2483,7 +2546,7 @@ func (x *GetKubeconfigResponse) String() string {
 func (*GetKubeconfigResponse) ProtoMessage() {}
 
 func (x *GetKubeconfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[37]
+	mi := &file_cluster_services_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2496,7 +2559,7 @@ func (x *GetKubeconfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKubeconfigResponse.ProtoReflect.Descriptor instead.
 func (*GetKubeconfigResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{37}
+	return file_cluster_services_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetKubeconfigResponse) GetKubeconfig() string {
@@ -2523,7 +2586,7 @@ type Condition struct {
 func (x *Condition) Reset() {
 	*x = Condition{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[38]
+		mi := &file_cluster_services_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2536,7 +2599,7 @@ func (x *Condition) String() string {
 func (*Condition) ProtoMessage() {}
 
 func (x *Condition) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[38]
+	mi := &file_cluster_services_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2549,7 +2612,7 @@ func (x *Condition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Condition.ProtoReflect.Descriptor instead.
 func (*Condition) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{38}
+	return file_cluster_services_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *Condition) GetType() string {
@@ -2606,7 +2669,7 @@ type GitopsCluster struct {
 func (x *GitopsCluster) Reset() {
 	*x = GitopsCluster{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[39]
+		mi := &file_cluster_services_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2619,7 +2682,7 @@ func (x *GitopsCluster) String() string {
 func (*GitopsCluster) ProtoMessage() {}
 
 func (x *GitopsCluster) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[39]
+	mi := &file_cluster_services_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2632,7 +2695,7 @@ func (x *GitopsCluster) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitopsCluster.ProtoReflect.Descriptor instead.
 func (*GitopsCluster) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{39}
+	return file_cluster_services_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GitopsCluster) GetName() string {
@@ -2714,7 +2777,7 @@ type CapiCluster struct {
 func (x *CapiCluster) Reset() {
 	*x = CapiCluster{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[40]
+		mi := &file_cluster_services_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2727,7 +2790,7 @@ func (x *CapiCluster) String() string {
 func (*CapiCluster) ProtoMessage() {}
 
 func (x *CapiCluster) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[40]
+	mi := &file_cluster_services_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2740,7 +2803,7 @@ func (x *CapiCluster) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CapiCluster.ProtoReflect.Descriptor instead.
 func (*CapiCluster) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{40}
+	return file_cluster_services_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *CapiCluster) GetName() string {
@@ -2801,7 +2864,7 @@ type CapiClusterStatus struct {
 func (x *CapiClusterStatus) Reset() {
 	*x = CapiClusterStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[41]
+		mi := &file_cluster_services_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2814,7 +2877,7 @@ func (x *CapiClusterStatus) String() string {
 func (*CapiClusterStatus) ProtoMessage() {}
 
 func (x *CapiClusterStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[41]
+	mi := &file_cluster_services_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2827,7 +2890,7 @@ func (x *CapiClusterStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CapiClusterStatus.ProtoReflect.Descriptor instead.
 func (*CapiClusterStatus) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{41}
+	return file_cluster_services_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *CapiClusterStatus) GetPhase() string {
@@ -2885,7 +2948,7 @@ type CapiClusterInfrastructureRef struct {
 func (x *CapiClusterInfrastructureRef) Reset() {
 	*x = CapiClusterInfrastructureRef{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[42]
+		mi := &file_cluster_services_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2898,7 +2961,7 @@ func (x *CapiClusterInfrastructureRef) String() string {
 func (*CapiClusterInfrastructureRef) ProtoMessage() {}
 
 func (x *CapiClusterInfrastructureRef) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[42]
+	mi := &file_cluster_services_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2911,7 +2974,7 @@ func (x *CapiClusterInfrastructureRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CapiClusterInfrastructureRef.ProtoReflect.Descriptor instead.
 func (*CapiClusterInfrastructureRef) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{42}
+	return file_cluster_services_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *CapiClusterInfrastructureRef) GetApiVersion() string {
@@ -2946,7 +3009,7 @@ type GitopsClusterRef struct {
 func (x *GitopsClusterRef) Reset() {
 	*x = GitopsClusterRef{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[43]
+		mi := &file_cluster_services_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2959,7 +3022,7 @@ func (x *GitopsClusterRef) String() string {
 func (*GitopsClusterRef) ProtoMessage() {}
 
 func (x *GitopsClusterRef) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[43]
+	mi := &file_cluster_services_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2972,7 +3035,7 @@ func (x *GitopsClusterRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GitopsClusterRef.ProtoReflect.Descriptor instead.
 func (*GitopsClusterRef) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{43}
+	return file_cluster_services_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GitopsClusterRef) GetName() string {
@@ -2997,7 +3060,7 @@ type Credential struct {
 func (x *Credential) Reset() {
 	*x = Credential{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[44]
+		mi := &file_cluster_services_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3010,7 +3073,7 @@ func (x *Credential) String() string {
 func (*Credential) ProtoMessage() {}
 
 func (x *Credential) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[44]
+	mi := &file_cluster_services_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3023,7 +3086,7 @@ func (x *Credential) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Credential.ProtoReflect.Descriptor instead.
 func (*Credential) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{44}
+	return file_cluster_services_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *Credential) GetGroup() string {
@@ -3080,7 +3143,7 @@ type Template struct {
 func (x *Template) Reset() {
 	*x = Template{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[45]
+		mi := &file_cluster_services_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3093,7 +3156,7 @@ func (x *Template) String() string {
 func (*Template) ProtoMessage() {}
 
 func (x *Template) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[45]
+	mi := &file_cluster_services_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3106,7 +3169,7 @@ func (x *Template) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Template.ProtoReflect.Descriptor instead.
 func (*Template) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{45}
+	return file_cluster_services_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *Template) GetName() string {
@@ -3187,7 +3250,7 @@ type Parameter struct {
 func (x *Parameter) Reset() {
 	*x = Parameter{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[46]
+		mi := &file_cluster_services_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3200,7 +3263,7 @@ func (x *Parameter) String() string {
 func (*Parameter) ProtoMessage() {}
 
 func (x *Parameter) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[46]
+	mi := &file_cluster_services_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3213,7 +3276,7 @@ func (x *Parameter) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Parameter.ProtoReflect.Descriptor instead.
 func (*Parameter) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{46}
+	return file_cluster_services_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *Parameter) GetName() string {
@@ -3266,7 +3329,7 @@ type TemplateProfile struct {
 func (x *TemplateProfile) Reset() {
 	*x = TemplateProfile{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[47]
+		mi := &file_cluster_services_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3279,7 +3342,7 @@ func (x *TemplateProfile) String() string {
 func (*TemplateProfile) ProtoMessage() {}
 
 func (x *TemplateProfile) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[47]
+	mi := &file_cluster_services_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3292,7 +3355,7 @@ func (x *TemplateProfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateProfile.ProtoReflect.Descriptor instead.
 func (*TemplateProfile) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{47}
+	return file_cluster_services_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *TemplateProfile) GetName() string {
@@ -3345,7 +3408,7 @@ type TemplateObject struct {
 func (x *TemplateObject) Reset() {
 	*x = TemplateObject{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[48]
+		mi := &file_cluster_services_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3358,7 +3421,7 @@ func (x *TemplateObject) String() string {
 func (*TemplateObject) ProtoMessage() {}
 
 func (x *TemplateObject) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[48]
+	mi := &file_cluster_services_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3371,7 +3434,7 @@ func (x *TemplateObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TemplateObject.ProtoReflect.Descriptor instead.
 func (*TemplateObject) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{48}
+	return file_cluster_services_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *TemplateObject) GetKind() string {
@@ -3418,7 +3481,7 @@ type GetEnterpriseVersionRequest struct {
 func (x *GetEnterpriseVersionRequest) Reset() {
 	*x = GetEnterpriseVersionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[49]
+		mi := &file_cluster_services_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3431,7 +3494,7 @@ func (x *GetEnterpriseVersionRequest) String() string {
 func (*GetEnterpriseVersionRequest) ProtoMessage() {}
 
 func (x *GetEnterpriseVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[49]
+	mi := &file_cluster_services_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3444,7 +3507,7 @@ func (x *GetEnterpriseVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseVersionRequest.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseVersionRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{49}
+	return file_cluster_services_proto_rawDescGZIP(), []int{50}
 }
 
 type GetEnterpriseVersionResponse struct {
@@ -3459,7 +3522,7 @@ type GetEnterpriseVersionResponse struct {
 func (x *GetEnterpriseVersionResponse) Reset() {
 	*x = GetEnterpriseVersionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[50]
+		mi := &file_cluster_services_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3472,7 +3535,7 @@ func (x *GetEnterpriseVersionResponse) String() string {
 func (*GetEnterpriseVersionResponse) ProtoMessage() {}
 
 func (x *GetEnterpriseVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[50]
+	mi := &file_cluster_services_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3485,7 +3548,7 @@ func (x *GetEnterpriseVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEnterpriseVersionResponse.ProtoReflect.Descriptor instead.
 func (*GetEnterpriseVersionResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{50}
+	return file_cluster_services_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetEnterpriseVersionResponse) GetVersion() string {
@@ -3521,7 +3584,7 @@ type CreateAutomationsPullRequestRequest struct {
 func (x *CreateAutomationsPullRequestRequest) Reset() {
 	*x = CreateAutomationsPullRequestRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[51]
+		mi := &file_cluster_services_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3534,7 +3597,7 @@ func (x *CreateAutomationsPullRequestRequest) String() string {
 func (*CreateAutomationsPullRequestRequest) ProtoMessage() {}
 
 func (x *CreateAutomationsPullRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[51]
+	mi := &file_cluster_services_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3547,7 +3610,7 @@ func (x *CreateAutomationsPullRequestRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateAutomationsPullRequestRequest.ProtoReflect.Descriptor instead.
 func (*CreateAutomationsPullRequestRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{51}
+	return file_cluster_services_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CreateAutomationsPullRequestRequest) GetRepositoryUrl() string {
@@ -3622,7 +3685,7 @@ type ClusterAutomation struct {
 func (x *ClusterAutomation) Reset() {
 	*x = ClusterAutomation{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[52]
+		mi := &file_cluster_services_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3635,7 +3698,7 @@ func (x *ClusterAutomation) String() string {
 func (*ClusterAutomation) ProtoMessage() {}
 
 func (x *ClusterAutomation) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[52]
+	mi := &file_cluster_services_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3648,7 +3711,7 @@ func (x *ClusterAutomation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClusterAutomation.ProtoReflect.Descriptor instead.
 func (*ClusterAutomation) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{52}
+	return file_cluster_services_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *ClusterAutomation) GetCluster() *ClusterNamespacedName {
@@ -3698,7 +3761,7 @@ type Kustomization struct {
 func (x *Kustomization) Reset() {
 	*x = Kustomization{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[53]
+		mi := &file_cluster_services_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3711,7 +3774,7 @@ func (x *Kustomization) String() string {
 func (*Kustomization) ProtoMessage() {}
 
 func (x *Kustomization) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[53]
+	mi := &file_cluster_services_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3724,7 +3787,7 @@ func (x *Kustomization) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Kustomization.ProtoReflect.Descriptor instead.
 func (*Kustomization) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{53}
+	return file_cluster_services_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *Kustomization) GetMetadata() *Metadata {
@@ -3754,7 +3817,7 @@ type KustomizationSpec struct {
 func (x *KustomizationSpec) Reset() {
 	*x = KustomizationSpec{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[54]
+		mi := &file_cluster_services_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3767,7 +3830,7 @@ func (x *KustomizationSpec) String() string {
 func (*KustomizationSpec) ProtoMessage() {}
 
 func (x *KustomizationSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[54]
+	mi := &file_cluster_services_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3780,7 +3843,7 @@ func (x *KustomizationSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KustomizationSpec.ProtoReflect.Descriptor instead.
 func (*KustomizationSpec) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{54}
+	return file_cluster_services_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *KustomizationSpec) GetPath() string {
@@ -3816,7 +3879,7 @@ type HelmRelease struct {
 func (x *HelmRelease) Reset() {
 	*x = HelmRelease{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[55]
+		mi := &file_cluster_services_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3829,7 +3892,7 @@ func (x *HelmRelease) String() string {
 func (*HelmRelease) ProtoMessage() {}
 
 func (x *HelmRelease) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[55]
+	mi := &file_cluster_services_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3842,7 +3905,7 @@ func (x *HelmRelease) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelmRelease.ProtoReflect.Descriptor instead.
 func (*HelmRelease) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{55}
+	return file_cluster_services_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *HelmRelease) GetMetadata() *Metadata {
@@ -3871,7 +3934,7 @@ type HelmReleaseSpec struct {
 func (x *HelmReleaseSpec) Reset() {
 	*x = HelmReleaseSpec{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[56]
+		mi := &file_cluster_services_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3884,7 +3947,7 @@ func (x *HelmReleaseSpec) String() string {
 func (*HelmReleaseSpec) ProtoMessage() {}
 
 func (x *HelmReleaseSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[56]
+	mi := &file_cluster_services_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3897,7 +3960,7 @@ func (x *HelmReleaseSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelmReleaseSpec.ProtoReflect.Descriptor instead.
 func (*HelmReleaseSpec) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{56}
+	return file_cluster_services_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *HelmReleaseSpec) GetChart() *Chart {
@@ -3925,7 +3988,7 @@ type Chart struct {
 func (x *Chart) Reset() {
 	*x = Chart{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[57]
+		mi := &file_cluster_services_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3938,7 +4001,7 @@ func (x *Chart) String() string {
 func (*Chart) ProtoMessage() {}
 
 func (x *Chart) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[57]
+	mi := &file_cluster_services_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3951,7 +4014,7 @@ func (x *Chart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Chart.ProtoReflect.Descriptor instead.
 func (*Chart) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{57}
+	return file_cluster_services_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *Chart) GetSpec() *ChartSpec {
@@ -3974,7 +4037,7 @@ type ChartSpec struct {
 func (x *ChartSpec) Reset() {
 	*x = ChartSpec{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[58]
+		mi := &file_cluster_services_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3987,7 +4050,7 @@ func (x *ChartSpec) String() string {
 func (*ChartSpec) ProtoMessage() {}
 
 func (x *ChartSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[58]
+	mi := &file_cluster_services_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4000,7 +4063,7 @@ func (x *ChartSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChartSpec.ProtoReflect.Descriptor instead.
 func (*ChartSpec) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{58}
+	return file_cluster_services_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ChartSpec) GetChart() string {
@@ -4036,7 +4099,7 @@ type Metadata struct {
 func (x *Metadata) Reset() {
 	*x = Metadata{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[59]
+		mi := &file_cluster_services_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4049,7 +4112,7 @@ func (x *Metadata) String() string {
 func (*Metadata) ProtoMessage() {}
 
 func (x *Metadata) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[59]
+	mi := &file_cluster_services_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4062,7 +4125,7 @@ func (x *Metadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Metadata.ProtoReflect.Descriptor instead.
 func (*Metadata) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{59}
+	return file_cluster_services_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *Metadata) GetName() string {
@@ -4091,7 +4154,7 @@ type SourceRef struct {
 func (x *SourceRef) Reset() {
 	*x = SourceRef{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[60]
+		mi := &file_cluster_services_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4104,7 +4167,7 @@ func (x *SourceRef) String() string {
 func (*SourceRef) ProtoMessage() {}
 
 func (x *SourceRef) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[60]
+	mi := &file_cluster_services_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4117,7 +4180,7 @@ func (x *SourceRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourceRef.ProtoReflect.Descriptor instead.
 func (*SourceRef) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{60}
+	return file_cluster_services_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *SourceRef) GetName() string {
@@ -4146,7 +4209,7 @@ type CreateAutomationsPullRequestResponse struct {
 func (x *CreateAutomationsPullRequestResponse) Reset() {
 	*x = CreateAutomationsPullRequestResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[61]
+		mi := &file_cluster_services_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4159,7 +4222,7 @@ func (x *CreateAutomationsPullRequestResponse) String() string {
 func (*CreateAutomationsPullRequestResponse) ProtoMessage() {}
 
 func (x *CreateAutomationsPullRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[61]
+	mi := &file_cluster_services_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4172,7 +4235,7 @@ func (x *CreateAutomationsPullRequestResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use CreateAutomationsPullRequestResponse.ProtoReflect.Descriptor instead.
 func (*CreateAutomationsPullRequestResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{61}
+	return file_cluster_services_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *CreateAutomationsPullRequestResponse) GetWebUrl() string {
@@ -4195,7 +4258,7 @@ type Maintainer struct {
 func (x *Maintainer) Reset() {
 	*x = Maintainer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[62]
+		mi := &file_cluster_services_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4208,7 +4271,7 @@ func (x *Maintainer) String() string {
 func (*Maintainer) ProtoMessage() {}
 
 func (x *Maintainer) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[62]
+	mi := &file_cluster_services_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4221,7 +4284,7 @@ func (x *Maintainer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Maintainer.ProtoReflect.Descriptor instead.
 func (*Maintainer) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{62}
+	return file_cluster_services_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *Maintainer) GetName() string {
@@ -4257,7 +4320,7 @@ type HelmRepository struct {
 func (x *HelmRepository) Reset() {
 	*x = HelmRepository{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[63]
+		mi := &file_cluster_services_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4270,7 +4333,7 @@ func (x *HelmRepository) String() string {
 func (*HelmRepository) ProtoMessage() {}
 
 func (x *HelmRepository) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[63]
+	mi := &file_cluster_services_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4283,7 +4346,7 @@ func (x *HelmRepository) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelmRepository.ProtoReflect.Descriptor instead.
 func (*HelmRepository) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{63}
+	return file_cluster_services_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *HelmRepository) GetName() string {
@@ -4321,7 +4384,7 @@ type Profile struct {
 func (x *Profile) Reset() {
 	*x = Profile{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[64]
+		mi := &file_cluster_services_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4334,7 +4397,7 @@ func (x *Profile) String() string {
 func (*Profile) ProtoMessage() {}
 
 func (x *Profile) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[64]
+	mi := &file_cluster_services_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4347,7 +4410,7 @@ func (x *Profile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Profile.ProtoReflect.Descriptor instead.
 func (*Profile) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{64}
+	return file_cluster_services_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *Profile) GetName() string {
@@ -4442,7 +4505,7 @@ type ProfileValues struct {
 func (x *ProfileValues) Reset() {
 	*x = ProfileValues{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[65]
+		mi := &file_cluster_services_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4455,7 +4518,7 @@ func (x *ProfileValues) String() string {
 func (*ProfileValues) ProtoMessage() {}
 
 func (x *ProfileValues) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[65]
+	mi := &file_cluster_services_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4468,7 +4531,7 @@ func (x *ProfileValues) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProfileValues.ProtoReflect.Descriptor instead.
 func (*ProfileValues) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{65}
+	return file_cluster_services_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ProfileValues) GetName() string {
@@ -4515,7 +4578,7 @@ type GetConfigRequest struct {
 func (x *GetConfigRequest) Reset() {
 	*x = GetConfigRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[66]
+		mi := &file_cluster_services_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4528,7 +4591,7 @@ func (x *GetConfigRequest) String() string {
 func (*GetConfigRequest) ProtoMessage() {}
 
 func (x *GetConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[66]
+	mi := &file_cluster_services_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4541,7 +4604,7 @@ func (x *GetConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetConfigRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{66}
+	return file_cluster_services_proto_rawDescGZIP(), []int{67}
 }
 
 type GetConfigResponse struct {
@@ -4555,7 +4618,7 @@ type GetConfigResponse struct {
 func (x *GetConfigResponse) Reset() {
 	*x = GetConfigResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[67]
+		mi := &file_cluster_services_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4568,7 +4631,7 @@ func (x *GetConfigResponse) String() string {
 func (*GetConfigResponse) ProtoMessage() {}
 
 func (x *GetConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[67]
+	mi := &file_cluster_services_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4581,7 +4644,7 @@ func (x *GetConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConfigResponse.ProtoReflect.Descriptor instead.
 func (*GetConfigResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{67}
+	return file_cluster_services_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetConfigResponse) GetRepositoryURL() string {
@@ -4602,7 +4665,7 @@ type PolicyParamRepeatedString struct {
 func (x *PolicyParamRepeatedString) Reset() {
 	*x = PolicyParamRepeatedString{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[68]
+		mi := &file_cluster_services_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4615,7 +4678,7 @@ func (x *PolicyParamRepeatedString) String() string {
 func (*PolicyParamRepeatedString) ProtoMessage() {}
 
 func (x *PolicyParamRepeatedString) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[68]
+	mi := &file_cluster_services_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4628,7 +4691,7 @@ func (x *PolicyParamRepeatedString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyParamRepeatedString.ProtoReflect.Descriptor instead.
 func (*PolicyParamRepeatedString) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{68}
+	return file_cluster_services_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *PolicyParamRepeatedString) GetValue() []string {
@@ -4654,7 +4717,7 @@ type PolicyParam struct {
 func (x *PolicyParam) Reset() {
 	*x = PolicyParam{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[69]
+		mi := &file_cluster_services_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4667,7 +4730,7 @@ func (x *PolicyParam) String() string {
 func (*PolicyParam) ProtoMessage() {}
 
 func (x *PolicyParam) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[69]
+	mi := &file_cluster_services_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4680,7 +4743,7 @@ func (x *PolicyParam) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyParam.ProtoReflect.Descriptor instead.
 func (*PolicyParam) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{69}
+	return file_cluster_services_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *PolicyParam) GetName() string {
@@ -4722,7 +4785,7 @@ type PolicyTargetLabel struct {
 func (x *PolicyTargetLabel) Reset() {
 	*x = PolicyTargetLabel{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[70]
+		mi := &file_cluster_services_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4735,7 +4798,7 @@ func (x *PolicyTargetLabel) String() string {
 func (*PolicyTargetLabel) ProtoMessage() {}
 
 func (x *PolicyTargetLabel) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[70]
+	mi := &file_cluster_services_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4748,7 +4811,7 @@ func (x *PolicyTargetLabel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyTargetLabel.ProtoReflect.Descriptor instead.
 func (*PolicyTargetLabel) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{70}
+	return file_cluster_services_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *PolicyTargetLabel) GetValues() map[string]string {
@@ -4771,7 +4834,7 @@ type PolicyTargets struct {
 func (x *PolicyTargets) Reset() {
 	*x = PolicyTargets{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[71]
+		mi := &file_cluster_services_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4784,7 +4847,7 @@ func (x *PolicyTargets) String() string {
 func (*PolicyTargets) ProtoMessage() {}
 
 func (x *PolicyTargets) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[71]
+	mi := &file_cluster_services_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4797,7 +4860,7 @@ func (x *PolicyTargets) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyTargets.ProtoReflect.Descriptor instead.
 func (*PolicyTargets) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{71}
+	return file_cluster_services_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *PolicyTargets) GetKinds() []string {
@@ -4833,7 +4896,7 @@ type PolicyStandard struct {
 func (x *PolicyStandard) Reset() {
 	*x = PolicyStandard{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[72]
+		mi := &file_cluster_services_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4846,7 +4909,7 @@ func (x *PolicyStandard) String() string {
 func (*PolicyStandard) ProtoMessage() {}
 
 func (x *PolicyStandard) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[72]
+	mi := &file_cluster_services_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4859,7 +4922,7 @@ func (x *PolicyStandard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyStandard.ProtoReflect.Descriptor instead.
 func (*PolicyStandard) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{72}
+	return file_cluster_services_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *PolicyStandard) GetId() string {
@@ -4901,7 +4964,7 @@ type Policy struct {
 func (x *Policy) Reset() {
 	*x = Policy{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[73]
+		mi := &file_cluster_services_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4914,7 +4977,7 @@ func (x *Policy) String() string {
 func (*Policy) ProtoMessage() {}
 
 func (x *Policy) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[73]
+	mi := &file_cluster_services_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4927,7 +4990,7 @@ func (x *Policy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Policy.ProtoReflect.Descriptor instead.
 func (*Policy) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{73}
+	return file_cluster_services_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *Policy) GetName() string {
@@ -5048,7 +5111,7 @@ type ObjectRef struct {
 func (x *ObjectRef) Reset() {
 	*x = ObjectRef{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[74]
+		mi := &file_cluster_services_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5061,7 +5124,7 @@ func (x *ObjectRef) String() string {
 func (*ObjectRef) ProtoMessage() {}
 
 func (x *ObjectRef) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[74]
+	mi := &file_cluster_services_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5074,7 +5137,7 @@ func (x *ObjectRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ObjectRef.ProtoReflect.Descriptor instead.
 func (*ObjectRef) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{74}
+	return file_cluster_services_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ObjectRef) GetKind() string {
@@ -5115,7 +5178,7 @@ type Event struct {
 func (x *Event) Reset() {
 	*x = Event{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[75]
+		mi := &file_cluster_services_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5128,7 +5191,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[75]
+	mi := &file_cluster_services_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5141,7 +5204,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{75}
+	return file_cluster_services_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *Event) GetType() string {
@@ -5205,7 +5268,7 @@ type ListEventsRequest struct {
 func (x *ListEventsRequest) Reset() {
 	*x = ListEventsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[76]
+		mi := &file_cluster_services_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5218,7 +5281,7 @@ func (x *ListEventsRequest) String() string {
 func (*ListEventsRequest) ProtoMessage() {}
 
 func (x *ListEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[76]
+	mi := &file_cluster_services_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5231,7 +5294,7 @@ func (x *ListEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEventsRequest.ProtoReflect.Descriptor instead.
 func (*ListEventsRequest) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{76}
+	return file_cluster_services_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ListEventsRequest) GetInvolvedObject() *ObjectRef {
@@ -5259,7 +5322,7 @@ type ListEventsResponse struct {
 func (x *ListEventsResponse) Reset() {
 	*x = ListEventsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cluster_services_proto_msgTypes[77]
+		mi := &file_cluster_services_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5272,7 +5335,7 @@ func (x *ListEventsResponse) String() string {
 func (*ListEventsResponse) ProtoMessage() {}
 
 func (x *ListEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cluster_services_proto_msgTypes[77]
+	mi := &file_cluster_services_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5285,7 +5348,7 @@ func (x *ListEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListEventsResponse.ProtoReflect.Descriptor instead.
 func (*ListEventsResponse) Descriptor() ([]byte, []int) {
-	return file_cluster_services_proto_rawDescGZIP(), []int{77}
+	return file_cluster_services_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *ListEventsResponse) GetEvents() []*Event {
@@ -5421,7 +5484,20 @@ var file_cluster_services_proto_rawDesc = []byte{
 	0x6c, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x63, 0x6c, 0x75, 0x73,
 	0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e,
 	0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x12, 0x6b, 0x75, 0x73, 0x74,
-	0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x69, 0x6c, 0x65, 0x73, 0x22, 0x72,
+	0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x69, 0x6c, 0x65, 0x73, 0x22, 0xcd,
+	0x01, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x12, 0x50, 0x0a, 0x13, 0x6b, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x5f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f,
+	0x2e, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x73, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x52,
+	0x12, 0x6b, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x69,
+	0x6c, 0x65, 0x73, 0x12, 0x4d, 0x0a, 0x12, 0x68, 0x65, 0x6c, 0x6d, 0x5f, 0x72, 0x65, 0x6c, 0x65,
+	0x61, 0x73, 0x65, 0x5f, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x1f, 0x2e, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x46, 0x69, 0x6c, 0x65,
+	0x52, 0x10, 0x68, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x46, 0x69, 0x6c,
+	0x65, 0x73, 0x12, 0x1a, 0x0a, 0x08, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x18, 0x03,
+	0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x73, 0x22, 0x72,
 	0x0a, 0x17, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69,
 	0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x57, 0x0a, 0x13, 0x63, 0x6c, 0x75,
 	0x73, 0x74, 0x65, 0x72, 0x5f, 0x61, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73,
@@ -6355,7 +6431,7 @@ func file_cluster_services_proto_rawDescGZIP() []byte {
 	return file_cluster_services_proto_rawDescData
 }
 
-var file_cluster_services_proto_msgTypes = make([]protoimpl.MessageInfo, 89)
+var file_cluster_services_proto_msgTypes = make([]protoimpl.MessageInfo, 90)
 var file_cluster_services_proto_goTypes = []interface{}{
 	(*ListTemplatesRequest)(nil),                  // 0: cluster_services.v1.ListTemplatesRequest
 	(*Pagination)(nil),                            // 1: cluster_services.v1.Pagination
@@ -6370,202 +6446,205 @@ var file_cluster_services_proto_goTypes = []interface{}{
 	(*RenderTemplateRequest)(nil),                 // 10: cluster_services.v1.RenderTemplateRequest
 	(*CommitFile)(nil),                            // 11: cluster_services.v1.CommitFile
 	(*RenderTemplateResponse)(nil),                // 12: cluster_services.v1.RenderTemplateResponse
-	(*RenderAutomationRequest)(nil),               // 13: cluster_services.v1.RenderAutomationRequest
-	(*RenderAutomationResponse)(nil),              // 14: cluster_services.v1.RenderAutomationResponse
-	(*ListGitopsClustersRequest)(nil),             // 15: cluster_services.v1.ListGitopsClustersRequest
-	(*ListGitopsClustersResponse)(nil),            // 16: cluster_services.v1.ListGitopsClustersResponse
-	(*GetPolicyRequest)(nil),                      // 17: cluster_services.v1.GetPolicyRequest
-	(*ListPoliciesRequest)(nil),                   // 18: cluster_services.v1.ListPoliciesRequest
-	(*GetPolicyResponse)(nil),                     // 19: cluster_services.v1.GetPolicyResponse
-	(*ListPoliciesResponse)(nil),                  // 20: cluster_services.v1.ListPoliciesResponse
-	(*ListPolicyValidationsRequest)(nil),          // 21: cluster_services.v1.ListPolicyValidationsRequest
-	(*ListPolicyValidationsResponse)(nil),         // 22: cluster_services.v1.ListPolicyValidationsResponse
-	(*GetPolicyValidationRequest)(nil),            // 23: cluster_services.v1.GetPolicyValidationRequest
-	(*GetPolicyValidationResponse)(nil),           // 24: cluster_services.v1.GetPolicyValidationResponse
-	(*PolicyValidationOccurrence)(nil),            // 25: cluster_services.v1.PolicyValidationOccurrence
-	(*PolicyValidation)(nil),                      // 26: cluster_services.v1.PolicyValidation
-	(*CreatePullRequestRequest)(nil),              // 27: cluster_services.v1.CreatePullRequestRequest
-	(*CreatePullRequestResponse)(nil),             // 28: cluster_services.v1.CreatePullRequestResponse
-	(*CreateTfControllerPullRequestRequest)(nil),  // 29: cluster_services.v1.CreateTfControllerPullRequestRequest
-	(*CreateTfControllerPullRequestResponse)(nil), // 30: cluster_services.v1.CreateTfControllerPullRequestResponse
-	(*ClusterNamespacedName)(nil),                 // 31: cluster_services.v1.ClusterNamespacedName
-	(*DeleteClustersPullRequestRequest)(nil),      // 32: cluster_services.v1.DeleteClustersPullRequestRequest
-	(*DeleteClustersPullRequestResponse)(nil),     // 33: cluster_services.v1.DeleteClustersPullRequestResponse
-	(*ListCredentialsRequest)(nil),                // 34: cluster_services.v1.ListCredentialsRequest
-	(*ListCredentialsResponse)(nil),               // 35: cluster_services.v1.ListCredentialsResponse
-	(*GetKubeconfigRequest)(nil),                  // 36: cluster_services.v1.GetKubeconfigRequest
-	(*GetKubeconfigResponse)(nil),                 // 37: cluster_services.v1.GetKubeconfigResponse
-	(*Condition)(nil),                             // 38: cluster_services.v1.Condition
-	(*GitopsCluster)(nil),                         // 39: cluster_services.v1.GitopsCluster
-	(*CapiCluster)(nil),                           // 40: cluster_services.v1.CapiCluster
-	(*CapiClusterStatus)(nil),                     // 41: cluster_services.v1.CapiClusterStatus
-	(*CapiClusterInfrastructureRef)(nil),          // 42: cluster_services.v1.CapiClusterInfrastructureRef
-	(*GitopsClusterRef)(nil),                      // 43: cluster_services.v1.GitopsClusterRef
-	(*Credential)(nil),                            // 44: cluster_services.v1.Credential
-	(*Template)(nil),                              // 45: cluster_services.v1.Template
-	(*Parameter)(nil),                             // 46: cluster_services.v1.Parameter
-	(*TemplateProfile)(nil),                       // 47: cluster_services.v1.TemplateProfile
-	(*TemplateObject)(nil),                        // 48: cluster_services.v1.TemplateObject
-	(*GetEnterpriseVersionRequest)(nil),           // 49: cluster_services.v1.GetEnterpriseVersionRequest
-	(*GetEnterpriseVersionResponse)(nil),          // 50: cluster_services.v1.GetEnterpriseVersionResponse
-	(*CreateAutomationsPullRequestRequest)(nil),   // 51: cluster_services.v1.CreateAutomationsPullRequestRequest
-	(*ClusterAutomation)(nil),                     // 52: cluster_services.v1.ClusterAutomation
-	(*Kustomization)(nil),                         // 53: cluster_services.v1.Kustomization
-	(*KustomizationSpec)(nil),                     // 54: cluster_services.v1.KustomizationSpec
-	(*HelmRelease)(nil),                           // 55: cluster_services.v1.HelmRelease
-	(*HelmReleaseSpec)(nil),                       // 56: cluster_services.v1.HelmReleaseSpec
-	(*Chart)(nil),                                 // 57: cluster_services.v1.Chart
-	(*ChartSpec)(nil),                             // 58: cluster_services.v1.ChartSpec
-	(*Metadata)(nil),                              // 59: cluster_services.v1.Metadata
-	(*SourceRef)(nil),                             // 60: cluster_services.v1.SourceRef
-	(*CreateAutomationsPullRequestResponse)(nil),  // 61: cluster_services.v1.CreateAutomationsPullRequestResponse
-	(*Maintainer)(nil),                            // 62: cluster_services.v1.Maintainer
-	(*HelmRepository)(nil),                        // 63: cluster_services.v1.HelmRepository
-	(*Profile)(nil),                               // 64: cluster_services.v1.Profile
-	(*ProfileValues)(nil),                         // 65: cluster_services.v1.ProfileValues
-	(*GetConfigRequest)(nil),                      // 66: cluster_services.v1.GetConfigRequest
-	(*GetConfigResponse)(nil),                     // 67: cluster_services.v1.GetConfigResponse
-	(*PolicyParamRepeatedString)(nil),             // 68: cluster_services.v1.PolicyParamRepeatedString
-	(*PolicyParam)(nil),                           // 69: cluster_services.v1.PolicyParam
-	(*PolicyTargetLabel)(nil),                     // 70: cluster_services.v1.PolicyTargetLabel
-	(*PolicyTargets)(nil),                         // 71: cluster_services.v1.PolicyTargets
-	(*PolicyStandard)(nil),                        // 72: cluster_services.v1.PolicyStandard
-	(*Policy)(nil),                                // 73: cluster_services.v1.Policy
-	(*ObjectRef)(nil),                             // 74: cluster_services.v1.ObjectRef
-	(*Event)(nil),                                 // 75: cluster_services.v1.Event
-	(*ListEventsRequest)(nil),                     // 76: cluster_services.v1.ListEventsRequest
-	(*ListEventsResponse)(nil),                    // 77: cluster_services.v1.ListEventsResponse
-	nil,                                           // 78: cluster_services.v1.RenderTemplateRequest.ValuesEntry
-	nil,                                           // 79: cluster_services.v1.CreatePullRequestRequest.ParameterValuesEntry
-	nil,                                           // 80: cluster_services.v1.CreateTfControllerPullRequestRequest.ParameterValuesEntry
-	nil,                                           // 81: cluster_services.v1.GitopsCluster.AnnotationsEntry
-	nil,                                           // 82: cluster_services.v1.GitopsCluster.LabelsEntry
-	nil,                                           // 83: cluster_services.v1.CapiCluster.AnnotationsEntry
-	nil,                                           // 84: cluster_services.v1.CapiCluster.LabelsEntry
-	nil,                                           // 85: cluster_services.v1.Template.AnnotationsEntry
-	nil,                                           // 86: cluster_services.v1.Template.LabelsEntry
-	nil,                                           // 87: cluster_services.v1.Profile.AnnotationsEntry
-	nil,                                           // 88: cluster_services.v1.PolicyTargetLabel.ValuesEntry
-	(*anypb.Any)(nil),                             // 89: google.protobuf.Any
-	(*httpbody.HttpBody)(nil),                     // 90: google.api.HttpBody
+	(*GetAutomations)(nil),                        // 13: cluster_services.v1.GetAutomations
+	(*RenderAutomationRequest)(nil),               // 14: cluster_services.v1.RenderAutomationRequest
+	(*RenderAutomationResponse)(nil),              // 15: cluster_services.v1.RenderAutomationResponse
+	(*ListGitopsClustersRequest)(nil),             // 16: cluster_services.v1.ListGitopsClustersRequest
+	(*ListGitopsClustersResponse)(nil),            // 17: cluster_services.v1.ListGitopsClustersResponse
+	(*GetPolicyRequest)(nil),                      // 18: cluster_services.v1.GetPolicyRequest
+	(*ListPoliciesRequest)(nil),                   // 19: cluster_services.v1.ListPoliciesRequest
+	(*GetPolicyResponse)(nil),                     // 20: cluster_services.v1.GetPolicyResponse
+	(*ListPoliciesResponse)(nil),                  // 21: cluster_services.v1.ListPoliciesResponse
+	(*ListPolicyValidationsRequest)(nil),          // 22: cluster_services.v1.ListPolicyValidationsRequest
+	(*ListPolicyValidationsResponse)(nil),         // 23: cluster_services.v1.ListPolicyValidationsResponse
+	(*GetPolicyValidationRequest)(nil),            // 24: cluster_services.v1.GetPolicyValidationRequest
+	(*GetPolicyValidationResponse)(nil),           // 25: cluster_services.v1.GetPolicyValidationResponse
+	(*PolicyValidationOccurrence)(nil),            // 26: cluster_services.v1.PolicyValidationOccurrence
+	(*PolicyValidation)(nil),                      // 27: cluster_services.v1.PolicyValidation
+	(*CreatePullRequestRequest)(nil),              // 28: cluster_services.v1.CreatePullRequestRequest
+	(*CreatePullRequestResponse)(nil),             // 29: cluster_services.v1.CreatePullRequestResponse
+	(*CreateTfControllerPullRequestRequest)(nil),  // 30: cluster_services.v1.CreateTfControllerPullRequestRequest
+	(*CreateTfControllerPullRequestResponse)(nil), // 31: cluster_services.v1.CreateTfControllerPullRequestResponse
+	(*ClusterNamespacedName)(nil),                 // 32: cluster_services.v1.ClusterNamespacedName
+	(*DeleteClustersPullRequestRequest)(nil),      // 33: cluster_services.v1.DeleteClustersPullRequestRequest
+	(*DeleteClustersPullRequestResponse)(nil),     // 34: cluster_services.v1.DeleteClustersPullRequestResponse
+	(*ListCredentialsRequest)(nil),                // 35: cluster_services.v1.ListCredentialsRequest
+	(*ListCredentialsResponse)(nil),               // 36: cluster_services.v1.ListCredentialsResponse
+	(*GetKubeconfigRequest)(nil),                  // 37: cluster_services.v1.GetKubeconfigRequest
+	(*GetKubeconfigResponse)(nil),                 // 38: cluster_services.v1.GetKubeconfigResponse
+	(*Condition)(nil),                             // 39: cluster_services.v1.Condition
+	(*GitopsCluster)(nil),                         // 40: cluster_services.v1.GitopsCluster
+	(*CapiCluster)(nil),                           // 41: cluster_services.v1.CapiCluster
+	(*CapiClusterStatus)(nil),                     // 42: cluster_services.v1.CapiClusterStatus
+	(*CapiClusterInfrastructureRef)(nil),          // 43: cluster_services.v1.CapiClusterInfrastructureRef
+	(*GitopsClusterRef)(nil),                      // 44: cluster_services.v1.GitopsClusterRef
+	(*Credential)(nil),                            // 45: cluster_services.v1.Credential
+	(*Template)(nil),                              // 46: cluster_services.v1.Template
+	(*Parameter)(nil),                             // 47: cluster_services.v1.Parameter
+	(*TemplateProfile)(nil),                       // 48: cluster_services.v1.TemplateProfile
+	(*TemplateObject)(nil),                        // 49: cluster_services.v1.TemplateObject
+	(*GetEnterpriseVersionRequest)(nil),           // 50: cluster_services.v1.GetEnterpriseVersionRequest
+	(*GetEnterpriseVersionResponse)(nil),          // 51: cluster_services.v1.GetEnterpriseVersionResponse
+	(*CreateAutomationsPullRequestRequest)(nil),   // 52: cluster_services.v1.CreateAutomationsPullRequestRequest
+	(*ClusterAutomation)(nil),                     // 53: cluster_services.v1.ClusterAutomation
+	(*Kustomization)(nil),                         // 54: cluster_services.v1.Kustomization
+	(*KustomizationSpec)(nil),                     // 55: cluster_services.v1.KustomizationSpec
+	(*HelmRelease)(nil),                           // 56: cluster_services.v1.HelmRelease
+	(*HelmReleaseSpec)(nil),                       // 57: cluster_services.v1.HelmReleaseSpec
+	(*Chart)(nil),                                 // 58: cluster_services.v1.Chart
+	(*ChartSpec)(nil),                             // 59: cluster_services.v1.ChartSpec
+	(*Metadata)(nil),                              // 60: cluster_services.v1.Metadata
+	(*SourceRef)(nil),                             // 61: cluster_services.v1.SourceRef
+	(*CreateAutomationsPullRequestResponse)(nil),  // 62: cluster_services.v1.CreateAutomationsPullRequestResponse
+	(*Maintainer)(nil),                            // 63: cluster_services.v1.Maintainer
+	(*HelmRepository)(nil),                        // 64: cluster_services.v1.HelmRepository
+	(*Profile)(nil),                               // 65: cluster_services.v1.Profile
+	(*ProfileValues)(nil),                         // 66: cluster_services.v1.ProfileValues
+	(*GetConfigRequest)(nil),                      // 67: cluster_services.v1.GetConfigRequest
+	(*GetConfigResponse)(nil),                     // 68: cluster_services.v1.GetConfigResponse
+	(*PolicyParamRepeatedString)(nil),             // 69: cluster_services.v1.PolicyParamRepeatedString
+	(*PolicyParam)(nil),                           // 70: cluster_services.v1.PolicyParam
+	(*PolicyTargetLabel)(nil),                     // 71: cluster_services.v1.PolicyTargetLabel
+	(*PolicyTargets)(nil),                         // 72: cluster_services.v1.PolicyTargets
+	(*PolicyStandard)(nil),                        // 73: cluster_services.v1.PolicyStandard
+	(*Policy)(nil),                                // 74: cluster_services.v1.Policy
+	(*ObjectRef)(nil),                             // 75: cluster_services.v1.ObjectRef
+	(*Event)(nil),                                 // 76: cluster_services.v1.Event
+	(*ListEventsRequest)(nil),                     // 77: cluster_services.v1.ListEventsRequest
+	(*ListEventsResponse)(nil),                    // 78: cluster_services.v1.ListEventsResponse
+	nil,                                           // 79: cluster_services.v1.RenderTemplateRequest.ValuesEntry
+	nil,                                           // 80: cluster_services.v1.CreatePullRequestRequest.ParameterValuesEntry
+	nil,                                           // 81: cluster_services.v1.CreateTfControllerPullRequestRequest.ParameterValuesEntry
+	nil,                                           // 82: cluster_services.v1.GitopsCluster.AnnotationsEntry
+	nil,                                           // 83: cluster_services.v1.GitopsCluster.LabelsEntry
+	nil,                                           // 84: cluster_services.v1.CapiCluster.AnnotationsEntry
+	nil,                                           // 85: cluster_services.v1.CapiCluster.LabelsEntry
+	nil,                                           // 86: cluster_services.v1.Template.AnnotationsEntry
+	nil,                                           // 87: cluster_services.v1.Template.LabelsEntry
+	nil,                                           // 88: cluster_services.v1.Profile.AnnotationsEntry
+	nil,                                           // 89: cluster_services.v1.PolicyTargetLabel.ValuesEntry
+	(*anypb.Any)(nil),                             // 90: google.protobuf.Any
+	(*httpbody.HttpBody)(nil),                     // 91: google.api.HttpBody
 }
 var file_cluster_services_proto_depIdxs = []int32{
-	45, // 0: cluster_services.v1.ListTemplatesResponse.templates:type_name -> cluster_services.v1.Template
-	45, // 1: cluster_services.v1.GetTemplateResponse.template:type_name -> cluster_services.v1.Template
-	46, // 2: cluster_services.v1.ListTemplateParamsResponse.parameters:type_name -> cluster_services.v1.Parameter
-	48, // 3: cluster_services.v1.ListTemplateParamsResponse.objects:type_name -> cluster_services.v1.TemplateObject
-	47, // 4: cluster_services.v1.ListTemplateProfilesResponse.profiles:type_name -> cluster_services.v1.TemplateProfile
-	48, // 5: cluster_services.v1.ListTemplateProfilesResponse.objects:type_name -> cluster_services.v1.TemplateObject
-	78, // 6: cluster_services.v1.RenderTemplateRequest.values:type_name -> cluster_services.v1.RenderTemplateRequest.ValuesEntry
-	44, // 7: cluster_services.v1.RenderTemplateRequest.credentials:type_name -> cluster_services.v1.Credential
-	65, // 8: cluster_services.v1.RenderTemplateRequest.profiles:type_name -> cluster_services.v1.ProfileValues
-	53, // 9: cluster_services.v1.RenderTemplateRequest.kustomizations:type_name -> cluster_services.v1.Kustomization
+	46, // 0: cluster_services.v1.ListTemplatesResponse.templates:type_name -> cluster_services.v1.Template
+	46, // 1: cluster_services.v1.GetTemplateResponse.template:type_name -> cluster_services.v1.Template
+	47, // 2: cluster_services.v1.ListTemplateParamsResponse.parameters:type_name -> cluster_services.v1.Parameter
+	49, // 3: cluster_services.v1.ListTemplateParamsResponse.objects:type_name -> cluster_services.v1.TemplateObject
+	48, // 4: cluster_services.v1.ListTemplateProfilesResponse.profiles:type_name -> cluster_services.v1.TemplateProfile
+	49, // 5: cluster_services.v1.ListTemplateProfilesResponse.objects:type_name -> cluster_services.v1.TemplateObject
+	79, // 6: cluster_services.v1.RenderTemplateRequest.values:type_name -> cluster_services.v1.RenderTemplateRequest.ValuesEntry
+	45, // 7: cluster_services.v1.RenderTemplateRequest.credentials:type_name -> cluster_services.v1.Credential
+	66, // 8: cluster_services.v1.RenderTemplateRequest.profiles:type_name -> cluster_services.v1.ProfileValues
+	54, // 9: cluster_services.v1.RenderTemplateRequest.kustomizations:type_name -> cluster_services.v1.Kustomization
 	11, // 10: cluster_services.v1.RenderTemplateResponse.profile_files:type_name -> cluster_services.v1.CommitFile
 	11, // 11: cluster_services.v1.RenderTemplateResponse.kustomization_files:type_name -> cluster_services.v1.CommitFile
-	52, // 12: cluster_services.v1.RenderAutomationRequest.cluster_automations:type_name -> cluster_services.v1.ClusterAutomation
-	11, // 13: cluster_services.v1.RenderAutomationResponse.kustomization_files:type_name -> cluster_services.v1.CommitFile
-	11, // 14: cluster_services.v1.RenderAutomationResponse.helm_release_files:type_name -> cluster_services.v1.CommitFile
-	39, // 15: cluster_services.v1.ListGitopsClustersResponse.gitops_clusters:type_name -> cluster_services.v1.GitopsCluster
-	1,  // 16: cluster_services.v1.ListPoliciesRequest.pagination:type_name -> cluster_services.v1.Pagination
-	73, // 17: cluster_services.v1.GetPolicyResponse.policy:type_name -> cluster_services.v1.Policy
-	73, // 18: cluster_services.v1.ListPoliciesResponse.policies:type_name -> cluster_services.v1.Policy
-	2,  // 19: cluster_services.v1.ListPoliciesResponse.errors:type_name -> cluster_services.v1.ListError
-	1,  // 20: cluster_services.v1.ListPolicyValidationsRequest.pagination:type_name -> cluster_services.v1.Pagination
-	26, // 21: cluster_services.v1.ListPolicyValidationsResponse.violations:type_name -> cluster_services.v1.PolicyValidation
-	2,  // 22: cluster_services.v1.ListPolicyValidationsResponse.errors:type_name -> cluster_services.v1.ListError
-	26, // 23: cluster_services.v1.GetPolicyValidationResponse.violation:type_name -> cluster_services.v1.PolicyValidation
-	25, // 24: cluster_services.v1.PolicyValidation.occurrences:type_name -> cluster_services.v1.PolicyValidationOccurrence
-	79, // 25: cluster_services.v1.CreatePullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreatePullRequestRequest.ParameterValuesEntry
-	44, // 26: cluster_services.v1.CreatePullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
-	65, // 27: cluster_services.v1.CreatePullRequestRequest.values:type_name -> cluster_services.v1.ProfileValues
-	53, // 28: cluster_services.v1.CreatePullRequestRequest.kustomizations:type_name -> cluster_services.v1.Kustomization
-	80, // 29: cluster_services.v1.CreateTfControllerPullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreateTfControllerPullRequestRequest.ParameterValuesEntry
-	44, // 30: cluster_services.v1.DeleteClustersPullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
-	31, // 31: cluster_services.v1.DeleteClustersPullRequestRequest.cluster_namespaced_names:type_name -> cluster_services.v1.ClusterNamespacedName
-	44, // 32: cluster_services.v1.ListCredentialsResponse.credentials:type_name -> cluster_services.v1.Credential
-	81, // 33: cluster_services.v1.GitopsCluster.annotations:type_name -> cluster_services.v1.GitopsCluster.AnnotationsEntry
-	82, // 34: cluster_services.v1.GitopsCluster.labels:type_name -> cluster_services.v1.GitopsCluster.LabelsEntry
-	38, // 35: cluster_services.v1.GitopsCluster.conditions:type_name -> cluster_services.v1.Condition
-	43, // 36: cluster_services.v1.GitopsCluster.capiClusterRef:type_name -> cluster_services.v1.GitopsClusterRef
-	43, // 37: cluster_services.v1.GitopsCluster.secretRef:type_name -> cluster_services.v1.GitopsClusterRef
-	40, // 38: cluster_services.v1.GitopsCluster.capi_cluster:type_name -> cluster_services.v1.CapiCluster
-	83, // 39: cluster_services.v1.CapiCluster.annotations:type_name -> cluster_services.v1.CapiCluster.AnnotationsEntry
-	84, // 40: cluster_services.v1.CapiCluster.labels:type_name -> cluster_services.v1.CapiCluster.LabelsEntry
-	41, // 41: cluster_services.v1.CapiCluster.status:type_name -> cluster_services.v1.CapiClusterStatus
-	42, // 42: cluster_services.v1.CapiCluster.infrastructureRef:type_name -> cluster_services.v1.CapiClusterInfrastructureRef
-	38, // 43: cluster_services.v1.CapiClusterStatus.conditions:type_name -> cluster_services.v1.Condition
-	46, // 44: cluster_services.v1.Template.parameters:type_name -> cluster_services.v1.Parameter
-	48, // 45: cluster_services.v1.Template.objects:type_name -> cluster_services.v1.TemplateObject
-	85, // 46: cluster_services.v1.Template.annotations:type_name -> cluster_services.v1.Template.AnnotationsEntry
-	86, // 47: cluster_services.v1.Template.labels:type_name -> cluster_services.v1.Template.LabelsEntry
-	52, // 48: cluster_services.v1.CreateAutomationsPullRequestRequest.cluster_automations:type_name -> cluster_services.v1.ClusterAutomation
-	31, // 49: cluster_services.v1.ClusterAutomation.cluster:type_name -> cluster_services.v1.ClusterNamespacedName
-	53, // 50: cluster_services.v1.ClusterAutomation.kustomization:type_name -> cluster_services.v1.Kustomization
-	55, // 51: cluster_services.v1.ClusterAutomation.helm_release:type_name -> cluster_services.v1.HelmRelease
-	59, // 52: cluster_services.v1.Kustomization.metadata:type_name -> cluster_services.v1.Metadata
-	54, // 53: cluster_services.v1.Kustomization.spec:type_name -> cluster_services.v1.KustomizationSpec
-	60, // 54: cluster_services.v1.KustomizationSpec.source_ref:type_name -> cluster_services.v1.SourceRef
-	59, // 55: cluster_services.v1.HelmRelease.metadata:type_name -> cluster_services.v1.Metadata
-	56, // 56: cluster_services.v1.HelmRelease.spec:type_name -> cluster_services.v1.HelmReleaseSpec
-	57, // 57: cluster_services.v1.HelmReleaseSpec.chart:type_name -> cluster_services.v1.Chart
-	58, // 58: cluster_services.v1.Chart.spec:type_name -> cluster_services.v1.ChartSpec
-	60, // 59: cluster_services.v1.ChartSpec.source_ref:type_name -> cluster_services.v1.SourceRef
-	62, // 60: cluster_services.v1.Profile.maintainers:type_name -> cluster_services.v1.Maintainer
-	87, // 61: cluster_services.v1.Profile.annotations:type_name -> cluster_services.v1.Profile.AnnotationsEntry
-	63, // 62: cluster_services.v1.Profile.helm_repository:type_name -> cluster_services.v1.HelmRepository
-	89, // 63: cluster_services.v1.PolicyParam.value:type_name -> google.protobuf.Any
-	88, // 64: cluster_services.v1.PolicyTargetLabel.values:type_name -> cluster_services.v1.PolicyTargetLabel.ValuesEntry
-	70, // 65: cluster_services.v1.PolicyTargets.labels:type_name -> cluster_services.v1.PolicyTargetLabel
-	72, // 66: cluster_services.v1.Policy.standards:type_name -> cluster_services.v1.PolicyStandard
-	69, // 67: cluster_services.v1.Policy.parameters:type_name -> cluster_services.v1.PolicyParam
-	71, // 68: cluster_services.v1.Policy.targets:type_name -> cluster_services.v1.PolicyTargets
-	74, // 69: cluster_services.v1.ListEventsRequest.involvedObject:type_name -> cluster_services.v1.ObjectRef
-	75, // 70: cluster_services.v1.ListEventsResponse.events:type_name -> cluster_services.v1.Event
-	0,  // 71: cluster_services.v1.ClustersService.ListTemplates:input_type -> cluster_services.v1.ListTemplatesRequest
-	4,  // 72: cluster_services.v1.ClustersService.GetTemplate:input_type -> cluster_services.v1.GetTemplateRequest
-	6,  // 73: cluster_services.v1.ClustersService.ListTemplateParams:input_type -> cluster_services.v1.ListTemplateParamsRequest
-	8,  // 74: cluster_services.v1.ClustersService.ListTemplateProfiles:input_type -> cluster_services.v1.ListTemplateProfilesRequest
-	10, // 75: cluster_services.v1.ClustersService.RenderTemplate:input_type -> cluster_services.v1.RenderTemplateRequest
-	13, // 76: cluster_services.v1.ClustersService.RenderAutomation:input_type -> cluster_services.v1.RenderAutomationRequest
-	15, // 77: cluster_services.v1.ClustersService.ListGitopsClusters:input_type -> cluster_services.v1.ListGitopsClustersRequest
-	27, // 78: cluster_services.v1.ClustersService.CreatePullRequest:input_type -> cluster_services.v1.CreatePullRequestRequest
-	29, // 79: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:input_type -> cluster_services.v1.CreateTfControllerPullRequestRequest
-	32, // 80: cluster_services.v1.ClustersService.DeleteClustersPullRequest:input_type -> cluster_services.v1.DeleteClustersPullRequestRequest
-	34, // 81: cluster_services.v1.ClustersService.ListCredentials:input_type -> cluster_services.v1.ListCredentialsRequest
-	36, // 82: cluster_services.v1.ClustersService.GetKubeconfig:input_type -> cluster_services.v1.GetKubeconfigRequest
-	49, // 83: cluster_services.v1.ClustersService.GetEnterpriseVersion:input_type -> cluster_services.v1.GetEnterpriseVersionRequest
-	51, // 84: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:input_type -> cluster_services.v1.CreateAutomationsPullRequestRequest
-	66, // 85: cluster_services.v1.ClustersService.GetConfig:input_type -> cluster_services.v1.GetConfigRequest
-	18, // 86: cluster_services.v1.ClustersService.ListPolicies:input_type -> cluster_services.v1.ListPoliciesRequest
-	17, // 87: cluster_services.v1.ClustersService.GetPolicy:input_type -> cluster_services.v1.GetPolicyRequest
-	21, // 88: cluster_services.v1.ClustersService.ListPolicyValidations:input_type -> cluster_services.v1.ListPolicyValidationsRequest
-	23, // 89: cluster_services.v1.ClustersService.GetPolicyValidation:input_type -> cluster_services.v1.GetPolicyValidationRequest
-	76, // 90: cluster_services.v1.ClustersService.ListEvents:input_type -> cluster_services.v1.ListEventsRequest
-	3,  // 91: cluster_services.v1.ClustersService.ListTemplates:output_type -> cluster_services.v1.ListTemplatesResponse
-	5,  // 92: cluster_services.v1.ClustersService.GetTemplate:output_type -> cluster_services.v1.GetTemplateResponse
-	7,  // 93: cluster_services.v1.ClustersService.ListTemplateParams:output_type -> cluster_services.v1.ListTemplateParamsResponse
-	9,  // 94: cluster_services.v1.ClustersService.ListTemplateProfiles:output_type -> cluster_services.v1.ListTemplateProfilesResponse
-	12, // 95: cluster_services.v1.ClustersService.RenderTemplate:output_type -> cluster_services.v1.RenderTemplateResponse
-	14, // 96: cluster_services.v1.ClustersService.RenderAutomation:output_type -> cluster_services.v1.RenderAutomationResponse
-	16, // 97: cluster_services.v1.ClustersService.ListGitopsClusters:output_type -> cluster_services.v1.ListGitopsClustersResponse
-	28, // 98: cluster_services.v1.ClustersService.CreatePullRequest:output_type -> cluster_services.v1.CreatePullRequestResponse
-	30, // 99: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:output_type -> cluster_services.v1.CreateTfControllerPullRequestResponse
-	33, // 100: cluster_services.v1.ClustersService.DeleteClustersPullRequest:output_type -> cluster_services.v1.DeleteClustersPullRequestResponse
-	35, // 101: cluster_services.v1.ClustersService.ListCredentials:output_type -> cluster_services.v1.ListCredentialsResponse
-	90, // 102: cluster_services.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
-	50, // 103: cluster_services.v1.ClustersService.GetEnterpriseVersion:output_type -> cluster_services.v1.GetEnterpriseVersionResponse
-	61, // 104: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:output_type -> cluster_services.v1.CreateAutomationsPullRequestResponse
-	67, // 105: cluster_services.v1.ClustersService.GetConfig:output_type -> cluster_services.v1.GetConfigResponse
-	20, // 106: cluster_services.v1.ClustersService.ListPolicies:output_type -> cluster_services.v1.ListPoliciesResponse
-	19, // 107: cluster_services.v1.ClustersService.GetPolicy:output_type -> cluster_services.v1.GetPolicyResponse
-	22, // 108: cluster_services.v1.ClustersService.ListPolicyValidations:output_type -> cluster_services.v1.ListPolicyValidationsResponse
-	24, // 109: cluster_services.v1.ClustersService.GetPolicyValidation:output_type -> cluster_services.v1.GetPolicyValidationResponse
-	77, // 110: cluster_services.v1.ClustersService.ListEvents:output_type -> cluster_services.v1.ListEventsResponse
-	91, // [91:111] is the sub-list for method output_type
-	71, // [71:91] is the sub-list for method input_type
-	71, // [71:71] is the sub-list for extension type_name
-	71, // [71:71] is the sub-list for extension extendee
-	0,  // [0:71] is the sub-list for field type_name
+	11, // 12: cluster_services.v1.GetAutomations.kustomization_files:type_name -> cluster_services.v1.CommitFile
+	11, // 13: cluster_services.v1.GetAutomations.helm_release_files:type_name -> cluster_services.v1.CommitFile
+	53, // 14: cluster_services.v1.RenderAutomationRequest.cluster_automations:type_name -> cluster_services.v1.ClusterAutomation
+	11, // 15: cluster_services.v1.RenderAutomationResponse.kustomization_files:type_name -> cluster_services.v1.CommitFile
+	11, // 16: cluster_services.v1.RenderAutomationResponse.helm_release_files:type_name -> cluster_services.v1.CommitFile
+	40, // 17: cluster_services.v1.ListGitopsClustersResponse.gitops_clusters:type_name -> cluster_services.v1.GitopsCluster
+	1,  // 18: cluster_services.v1.ListPoliciesRequest.pagination:type_name -> cluster_services.v1.Pagination
+	74, // 19: cluster_services.v1.GetPolicyResponse.policy:type_name -> cluster_services.v1.Policy
+	74, // 20: cluster_services.v1.ListPoliciesResponse.policies:type_name -> cluster_services.v1.Policy
+	2,  // 21: cluster_services.v1.ListPoliciesResponse.errors:type_name -> cluster_services.v1.ListError
+	1,  // 22: cluster_services.v1.ListPolicyValidationsRequest.pagination:type_name -> cluster_services.v1.Pagination
+	27, // 23: cluster_services.v1.ListPolicyValidationsResponse.violations:type_name -> cluster_services.v1.PolicyValidation
+	2,  // 24: cluster_services.v1.ListPolicyValidationsResponse.errors:type_name -> cluster_services.v1.ListError
+	27, // 25: cluster_services.v1.GetPolicyValidationResponse.violation:type_name -> cluster_services.v1.PolicyValidation
+	26, // 26: cluster_services.v1.PolicyValidation.occurrences:type_name -> cluster_services.v1.PolicyValidationOccurrence
+	80, // 27: cluster_services.v1.CreatePullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreatePullRequestRequest.ParameterValuesEntry
+	45, // 28: cluster_services.v1.CreatePullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
+	66, // 29: cluster_services.v1.CreatePullRequestRequest.values:type_name -> cluster_services.v1.ProfileValues
+	54, // 30: cluster_services.v1.CreatePullRequestRequest.kustomizations:type_name -> cluster_services.v1.Kustomization
+	81, // 31: cluster_services.v1.CreateTfControllerPullRequestRequest.parameter_values:type_name -> cluster_services.v1.CreateTfControllerPullRequestRequest.ParameterValuesEntry
+	45, // 32: cluster_services.v1.DeleteClustersPullRequestRequest.credentials:type_name -> cluster_services.v1.Credential
+	32, // 33: cluster_services.v1.DeleteClustersPullRequestRequest.cluster_namespaced_names:type_name -> cluster_services.v1.ClusterNamespacedName
+	45, // 34: cluster_services.v1.ListCredentialsResponse.credentials:type_name -> cluster_services.v1.Credential
+	82, // 35: cluster_services.v1.GitopsCluster.annotations:type_name -> cluster_services.v1.GitopsCluster.AnnotationsEntry
+	83, // 36: cluster_services.v1.GitopsCluster.labels:type_name -> cluster_services.v1.GitopsCluster.LabelsEntry
+	39, // 37: cluster_services.v1.GitopsCluster.conditions:type_name -> cluster_services.v1.Condition
+	44, // 38: cluster_services.v1.GitopsCluster.capiClusterRef:type_name -> cluster_services.v1.GitopsClusterRef
+	44, // 39: cluster_services.v1.GitopsCluster.secretRef:type_name -> cluster_services.v1.GitopsClusterRef
+	41, // 40: cluster_services.v1.GitopsCluster.capi_cluster:type_name -> cluster_services.v1.CapiCluster
+	84, // 41: cluster_services.v1.CapiCluster.annotations:type_name -> cluster_services.v1.CapiCluster.AnnotationsEntry
+	85, // 42: cluster_services.v1.CapiCluster.labels:type_name -> cluster_services.v1.CapiCluster.LabelsEntry
+	42, // 43: cluster_services.v1.CapiCluster.status:type_name -> cluster_services.v1.CapiClusterStatus
+	43, // 44: cluster_services.v1.CapiCluster.infrastructureRef:type_name -> cluster_services.v1.CapiClusterInfrastructureRef
+	39, // 45: cluster_services.v1.CapiClusterStatus.conditions:type_name -> cluster_services.v1.Condition
+	47, // 46: cluster_services.v1.Template.parameters:type_name -> cluster_services.v1.Parameter
+	49, // 47: cluster_services.v1.Template.objects:type_name -> cluster_services.v1.TemplateObject
+	86, // 48: cluster_services.v1.Template.annotations:type_name -> cluster_services.v1.Template.AnnotationsEntry
+	87, // 49: cluster_services.v1.Template.labels:type_name -> cluster_services.v1.Template.LabelsEntry
+	53, // 50: cluster_services.v1.CreateAutomationsPullRequestRequest.cluster_automations:type_name -> cluster_services.v1.ClusterAutomation
+	32, // 51: cluster_services.v1.ClusterAutomation.cluster:type_name -> cluster_services.v1.ClusterNamespacedName
+	54, // 52: cluster_services.v1.ClusterAutomation.kustomization:type_name -> cluster_services.v1.Kustomization
+	56, // 53: cluster_services.v1.ClusterAutomation.helm_release:type_name -> cluster_services.v1.HelmRelease
+	60, // 54: cluster_services.v1.Kustomization.metadata:type_name -> cluster_services.v1.Metadata
+	55, // 55: cluster_services.v1.Kustomization.spec:type_name -> cluster_services.v1.KustomizationSpec
+	61, // 56: cluster_services.v1.KustomizationSpec.source_ref:type_name -> cluster_services.v1.SourceRef
+	60, // 57: cluster_services.v1.HelmRelease.metadata:type_name -> cluster_services.v1.Metadata
+	57, // 58: cluster_services.v1.HelmRelease.spec:type_name -> cluster_services.v1.HelmReleaseSpec
+	58, // 59: cluster_services.v1.HelmReleaseSpec.chart:type_name -> cluster_services.v1.Chart
+	59, // 60: cluster_services.v1.Chart.spec:type_name -> cluster_services.v1.ChartSpec
+	61, // 61: cluster_services.v1.ChartSpec.source_ref:type_name -> cluster_services.v1.SourceRef
+	63, // 62: cluster_services.v1.Profile.maintainers:type_name -> cluster_services.v1.Maintainer
+	88, // 63: cluster_services.v1.Profile.annotations:type_name -> cluster_services.v1.Profile.AnnotationsEntry
+	64, // 64: cluster_services.v1.Profile.helm_repository:type_name -> cluster_services.v1.HelmRepository
+	90, // 65: cluster_services.v1.PolicyParam.value:type_name -> google.protobuf.Any
+	89, // 66: cluster_services.v1.PolicyTargetLabel.values:type_name -> cluster_services.v1.PolicyTargetLabel.ValuesEntry
+	71, // 67: cluster_services.v1.PolicyTargets.labels:type_name -> cluster_services.v1.PolicyTargetLabel
+	73, // 68: cluster_services.v1.Policy.standards:type_name -> cluster_services.v1.PolicyStandard
+	70, // 69: cluster_services.v1.Policy.parameters:type_name -> cluster_services.v1.PolicyParam
+	72, // 70: cluster_services.v1.Policy.targets:type_name -> cluster_services.v1.PolicyTargets
+	75, // 71: cluster_services.v1.ListEventsRequest.involvedObject:type_name -> cluster_services.v1.ObjectRef
+	76, // 72: cluster_services.v1.ListEventsResponse.events:type_name -> cluster_services.v1.Event
+	0,  // 73: cluster_services.v1.ClustersService.ListTemplates:input_type -> cluster_services.v1.ListTemplatesRequest
+	4,  // 74: cluster_services.v1.ClustersService.GetTemplate:input_type -> cluster_services.v1.GetTemplateRequest
+	6,  // 75: cluster_services.v1.ClustersService.ListTemplateParams:input_type -> cluster_services.v1.ListTemplateParamsRequest
+	8,  // 76: cluster_services.v1.ClustersService.ListTemplateProfiles:input_type -> cluster_services.v1.ListTemplateProfilesRequest
+	10, // 77: cluster_services.v1.ClustersService.RenderTemplate:input_type -> cluster_services.v1.RenderTemplateRequest
+	14, // 78: cluster_services.v1.ClustersService.RenderAutomation:input_type -> cluster_services.v1.RenderAutomationRequest
+	16, // 79: cluster_services.v1.ClustersService.ListGitopsClusters:input_type -> cluster_services.v1.ListGitopsClustersRequest
+	28, // 80: cluster_services.v1.ClustersService.CreatePullRequest:input_type -> cluster_services.v1.CreatePullRequestRequest
+	30, // 81: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:input_type -> cluster_services.v1.CreateTfControllerPullRequestRequest
+	33, // 82: cluster_services.v1.ClustersService.DeleteClustersPullRequest:input_type -> cluster_services.v1.DeleteClustersPullRequestRequest
+	35, // 83: cluster_services.v1.ClustersService.ListCredentials:input_type -> cluster_services.v1.ListCredentialsRequest
+	37, // 84: cluster_services.v1.ClustersService.GetKubeconfig:input_type -> cluster_services.v1.GetKubeconfigRequest
+	50, // 85: cluster_services.v1.ClustersService.GetEnterpriseVersion:input_type -> cluster_services.v1.GetEnterpriseVersionRequest
+	52, // 86: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:input_type -> cluster_services.v1.CreateAutomationsPullRequestRequest
+	67, // 87: cluster_services.v1.ClustersService.GetConfig:input_type -> cluster_services.v1.GetConfigRequest
+	19, // 88: cluster_services.v1.ClustersService.ListPolicies:input_type -> cluster_services.v1.ListPoliciesRequest
+	18, // 89: cluster_services.v1.ClustersService.GetPolicy:input_type -> cluster_services.v1.GetPolicyRequest
+	22, // 90: cluster_services.v1.ClustersService.ListPolicyValidations:input_type -> cluster_services.v1.ListPolicyValidationsRequest
+	24, // 91: cluster_services.v1.ClustersService.GetPolicyValidation:input_type -> cluster_services.v1.GetPolicyValidationRequest
+	77, // 92: cluster_services.v1.ClustersService.ListEvents:input_type -> cluster_services.v1.ListEventsRequest
+	3,  // 93: cluster_services.v1.ClustersService.ListTemplates:output_type -> cluster_services.v1.ListTemplatesResponse
+	5,  // 94: cluster_services.v1.ClustersService.GetTemplate:output_type -> cluster_services.v1.GetTemplateResponse
+	7,  // 95: cluster_services.v1.ClustersService.ListTemplateParams:output_type -> cluster_services.v1.ListTemplateParamsResponse
+	9,  // 96: cluster_services.v1.ClustersService.ListTemplateProfiles:output_type -> cluster_services.v1.ListTemplateProfilesResponse
+	12, // 97: cluster_services.v1.ClustersService.RenderTemplate:output_type -> cluster_services.v1.RenderTemplateResponse
+	15, // 98: cluster_services.v1.ClustersService.RenderAutomation:output_type -> cluster_services.v1.RenderAutomationResponse
+	17, // 99: cluster_services.v1.ClustersService.ListGitopsClusters:output_type -> cluster_services.v1.ListGitopsClustersResponse
+	29, // 100: cluster_services.v1.ClustersService.CreatePullRequest:output_type -> cluster_services.v1.CreatePullRequestResponse
+	31, // 101: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:output_type -> cluster_services.v1.CreateTfControllerPullRequestResponse
+	34, // 102: cluster_services.v1.ClustersService.DeleteClustersPullRequest:output_type -> cluster_services.v1.DeleteClustersPullRequestResponse
+	36, // 103: cluster_services.v1.ClustersService.ListCredentials:output_type -> cluster_services.v1.ListCredentialsResponse
+	91, // 104: cluster_services.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
+	51, // 105: cluster_services.v1.ClustersService.GetEnterpriseVersion:output_type -> cluster_services.v1.GetEnterpriseVersionResponse
+	62, // 106: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:output_type -> cluster_services.v1.CreateAutomationsPullRequestResponse
+	68, // 107: cluster_services.v1.ClustersService.GetConfig:output_type -> cluster_services.v1.GetConfigResponse
+	21, // 108: cluster_services.v1.ClustersService.ListPolicies:output_type -> cluster_services.v1.ListPoliciesResponse
+	20, // 109: cluster_services.v1.ClustersService.GetPolicy:output_type -> cluster_services.v1.GetPolicyResponse
+	23, // 110: cluster_services.v1.ClustersService.ListPolicyValidations:output_type -> cluster_services.v1.ListPolicyValidationsResponse
+	25, // 111: cluster_services.v1.ClustersService.GetPolicyValidation:output_type -> cluster_services.v1.GetPolicyValidationResponse
+	78, // 112: cluster_services.v1.ClustersService.ListEvents:output_type -> cluster_services.v1.ListEventsResponse
+	93, // [93:113] is the sub-list for method output_type
+	73, // [73:93] is the sub-list for method input_type
+	73, // [73:73] is the sub-list for extension type_name
+	73, // [73:73] is the sub-list for extension extendee
+	0,  // [0:73] is the sub-list for field type_name
 }
 
 func init() { file_cluster_services_proto_init() }
@@ -6731,7 +6810,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RenderAutomationRequest); i {
+			switch v := v.(*GetAutomations); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6743,7 +6822,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RenderAutomationResponse); i {
+			switch v := v.(*RenderAutomationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6755,7 +6834,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListGitopsClustersRequest); i {
+			switch v := v.(*RenderAutomationResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6767,7 +6846,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListGitopsClustersResponse); i {
+			switch v := v.(*ListGitopsClustersRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6779,7 +6858,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetPolicyRequest); i {
+			switch v := v.(*ListGitopsClustersResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6791,7 +6870,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListPoliciesRequest); i {
+			switch v := v.(*GetPolicyRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6803,7 +6882,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetPolicyResponse); i {
+			switch v := v.(*ListPoliciesRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6815,7 +6894,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListPoliciesResponse); i {
+			switch v := v.(*GetPolicyResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6827,7 +6906,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListPolicyValidationsRequest); i {
+			switch v := v.(*ListPoliciesResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6839,7 +6918,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListPolicyValidationsResponse); i {
+			switch v := v.(*ListPolicyValidationsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6851,7 +6930,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetPolicyValidationRequest); i {
+			switch v := v.(*ListPolicyValidationsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6863,7 +6942,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetPolicyValidationResponse); i {
+			switch v := v.(*GetPolicyValidationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6875,7 +6954,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyValidationOccurrence); i {
+			switch v := v.(*GetPolicyValidationResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6887,7 +6966,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyValidation); i {
+			switch v := v.(*PolicyValidationOccurrence); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6899,7 +6978,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreatePullRequestRequest); i {
+			switch v := v.(*PolicyValidation); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6911,7 +6990,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreatePullRequestResponse); i {
+			switch v := v.(*CreatePullRequestRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6923,7 +7002,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateTfControllerPullRequestRequest); i {
+			switch v := v.(*CreatePullRequestResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6935,7 +7014,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateTfControllerPullRequestResponse); i {
+			switch v := v.(*CreateTfControllerPullRequestRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6947,7 +7026,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ClusterNamespacedName); i {
+			switch v := v.(*CreateTfControllerPullRequestResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6959,7 +7038,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteClustersPullRequestRequest); i {
+			switch v := v.(*ClusterNamespacedName); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6971,7 +7050,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteClustersPullRequestResponse); i {
+			switch v := v.(*DeleteClustersPullRequestRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6983,7 +7062,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListCredentialsRequest); i {
+			switch v := v.(*DeleteClustersPullRequestResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6995,7 +7074,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListCredentialsResponse); i {
+			switch v := v.(*ListCredentialsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7007,7 +7086,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetKubeconfigRequest); i {
+			switch v := v.(*ListCredentialsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7019,7 +7098,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetKubeconfigResponse); i {
+			switch v := v.(*GetKubeconfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7031,7 +7110,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Condition); i {
+			switch v := v.(*GetKubeconfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7043,7 +7122,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GitopsCluster); i {
+			switch v := v.(*Condition); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7055,7 +7134,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CapiCluster); i {
+			switch v := v.(*GitopsCluster); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7067,7 +7146,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CapiClusterStatus); i {
+			switch v := v.(*CapiCluster); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7079,7 +7158,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CapiClusterInfrastructureRef); i {
+			switch v := v.(*CapiClusterStatus); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7091,7 +7170,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GitopsClusterRef); i {
+			switch v := v.(*CapiClusterInfrastructureRef); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7103,7 +7182,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Credential); i {
+			switch v := v.(*GitopsClusterRef); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7115,7 +7194,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Template); i {
+			switch v := v.(*Credential); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7127,7 +7206,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Parameter); i {
+			switch v := v.(*Template); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7139,7 +7218,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TemplateProfile); i {
+			switch v := v.(*Parameter); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7151,7 +7230,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TemplateObject); i {
+			switch v := v.(*TemplateProfile); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7163,7 +7242,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetEnterpriseVersionRequest); i {
+			switch v := v.(*TemplateObject); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7175,7 +7254,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetEnterpriseVersionResponse); i {
+			switch v := v.(*GetEnterpriseVersionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7187,7 +7266,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateAutomationsPullRequestRequest); i {
+			switch v := v.(*GetEnterpriseVersionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7199,7 +7278,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ClusterAutomation); i {
+			switch v := v.(*CreateAutomationsPullRequestRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7211,7 +7290,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Kustomization); i {
+			switch v := v.(*ClusterAutomation); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7223,7 +7302,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*KustomizationSpec); i {
+			switch v := v.(*Kustomization); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7235,7 +7314,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelmRelease); i {
+			switch v := v.(*KustomizationSpec); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7247,7 +7326,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelmReleaseSpec); i {
+			switch v := v.(*HelmRelease); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7259,7 +7338,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Chart); i {
+			switch v := v.(*HelmReleaseSpec); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7271,7 +7350,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ChartSpec); i {
+			switch v := v.(*Chart); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7283,7 +7362,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Metadata); i {
+			switch v := v.(*ChartSpec); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7295,7 +7374,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SourceRef); i {
+			switch v := v.(*Metadata); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7307,7 +7386,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateAutomationsPullRequestResponse); i {
+			switch v := v.(*SourceRef); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7319,7 +7398,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Maintainer); i {
+			switch v := v.(*CreateAutomationsPullRequestResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7331,7 +7410,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*HelmRepository); i {
+			switch v := v.(*Maintainer); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7343,7 +7422,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Profile); i {
+			switch v := v.(*HelmRepository); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7355,7 +7434,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ProfileValues); i {
+			switch v := v.(*Profile); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7367,7 +7446,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetConfigRequest); i {
+			switch v := v.(*ProfileValues); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7379,7 +7458,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetConfigResponse); i {
+			switch v := v.(*GetConfigRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7391,7 +7470,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyParamRepeatedString); i {
+			switch v := v.(*GetConfigResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7403,7 +7482,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyParam); i {
+			switch v := v.(*PolicyParamRepeatedString); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7415,7 +7494,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyTargetLabel); i {
+			switch v := v.(*PolicyParam); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7427,7 +7506,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyTargets); i {
+			switch v := v.(*PolicyTargetLabel); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7439,7 +7518,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyStandard); i {
+			switch v := v.(*PolicyTargets); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7451,7 +7530,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Policy); i {
+			switch v := v.(*PolicyStandard); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7463,7 +7542,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ObjectRef); i {
+			switch v := v.(*Policy); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7475,7 +7554,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Event); i {
+			switch v := v.(*ObjectRef); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7487,7 +7566,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListEventsRequest); i {
+			switch v := v.(*Event); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7499,6 +7578,18 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListEventsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_cluster_services_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListEventsResponse); i {
 			case 0:
 				return &v.state
@@ -7517,7 +7608,7 @@ func file_cluster_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_cluster_services_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   89,
+			NumMessages:   90,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
