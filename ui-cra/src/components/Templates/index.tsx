@@ -193,6 +193,13 @@ const TemplatesDashboard: FC<{
                     ),
                   },
                 ]}
+                emptyMessagePlaceholder={
+                  <>
+                    "No templates found or no templates match the selected
+                    filter. See [Adding a template] and [labelling your
+                    templates]"
+                  </>
+                }
               />
             </TableWrapper>
           )}
