@@ -63,7 +63,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		baseBranch = msg.BaseBranch
 	}
 
-	automations, err := getAutomations(ctx, client, msg.ClusterAutomations)
+	automations, _ := getAutomations(ctx, client, msg.ClusterAutomations)
 
 	var files []gitprovider.CommitFile
 
