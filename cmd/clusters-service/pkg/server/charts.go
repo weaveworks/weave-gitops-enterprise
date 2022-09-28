@@ -56,3 +56,29 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 
 	return &protos.ListChartsForRepositoryResponse{Charts: responseCharts}, nil
 }
+
+// GetValuesForChart returns the values for a given chart.
+func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesForChartRequest) (*protos.GetValuesForChartResponse, error) {
+	clusterRef := types.NamespacedName{
+		Name:      req.Repository.Cluster.Name,
+		Namespace: req.Repository.Cluster.Namespace,
+	}
+
+	repoRef := ObjectReference{
+		Kind:      req.Repository.Kind,
+		Name:      req.Repository.Name,
+		Namespace: req.Repository.Namespace,
+	}
+
+	chart := Chart{
+		Name:    req.Name,
+		Version: req.Version,
+	}
+
+	values, err := s.chartsCache.GetChartValues(ctx, repoRef, clusterRef, chart)
+	if err != nil {
+		return nil, err
+	}
+
+	return &protos.GetValuesForChartResponse{Values: string(values)}, nil
+}
