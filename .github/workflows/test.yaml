@@ -177,7 +177,6 @@ jobs:
       - name: Run selector tests
         uses: cypress-io/github-action@v4.2.0
         with:
-          install: false
           working-directory: ui-cra
           command: ./node_modules/.bin/cypress run --component
 
