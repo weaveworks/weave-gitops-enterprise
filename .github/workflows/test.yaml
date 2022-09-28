@@ -179,7 +179,7 @@ jobs:
         with:
           install: false
           working-directory: ui-cra
-          command: make ui-selector-tests
+          command: ./node_modules/.bin/cypress run --component
 
   ui-integration-tests:
     runs-on: ubuntu-latest
