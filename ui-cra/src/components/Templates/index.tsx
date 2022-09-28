@@ -24,7 +24,6 @@ import TextField from '@material-ui/core/TextField';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
-import { openLinkHandler } from '../../utils/link-checker';
 
 const ActionsWrapper = styled.div`
   display: flex;
@@ -210,9 +209,8 @@ const TemplatesDashboard: FC<{
                       filter. See
                     </CustomEmptyMessage>
                     <DocsLink
-                      onClick={openLinkHandler(
-                        'https://docs.gitops.weave.works/docs/gitops-templates/templates',
-                      )}
+                      href="https://docs.gitops.weave.works/docs/gitops-templates/templates"
+                      newTab
                     >
                       here
                     </DocsLink>
