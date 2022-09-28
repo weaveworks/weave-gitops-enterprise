@@ -172,12 +172,13 @@ jobs:
             ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
       - name: Install modules
         run: cd ui-cra && yarn --pure-lockfile
-      - name: Run Front-end Unit Tests
-        run: make ui-unit-tests
+      # - name: Run Front-end Unit Tests
+      #   run: make ui-unit-tests
       - name: Run selector tests
         uses: cypress-io/github-action@v4.2.0
         with:
-          start: make ui-selector-tests
+          install-command: "true"
+          working-directory: ui-cra
 
   ui-integration-tests:
     runs-on: ubuntu-latest
