@@ -177,8 +177,8 @@ jobs:
       - name: Run selector tests
         uses: cypress-io/github-action@v4.2.0
         with:
-          install-command: "true"
-          working-directory: ui-cra
+          install: false
+          command: make ui-selector-tests
 
   ui-integration-tests:
     runs-on: ubuntu-latest
