@@ -34,6 +34,14 @@ func SetTestContext(test *testing.T) {
 	t = test
 }
 
+func fromPairsToMap(pairs []string) map[string]string {
+	m := map[string]string{}
+	for i := 0; i < len(pairs); i += 2 {
+		m[pairs[i]] = pairs[i+1]
+	}
+	return m
+}
+
 func Get(webDriver *agouti.Page, group, section, name string, keyValuePairs ...[]string) *agouti.Selection {
 	engine := liquid.NewEngine()
 	bindings := map[string]interface{}{
