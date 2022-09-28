@@ -173,7 +173,9 @@ jobs:
       - name: Install modules
         run: cd ui-cra && yarn --pure-lockfile
       - name: Run Front-end Unit Tests
-        run: cd ui-cra && ./node_modules/.bin/react-scripts test
+        run: make ui-unit-tests
+      - name: Run selector tests
+        run: make ui-selector-tests
 
   ui-integration-tests:
     runs-on: ubuntu-latest
@@ -270,4 +272,3 @@ jobs:
           snyk test --org=product-engineering-ly9 --json --file=ui-cra/yarn.lock | snyk-delta
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-

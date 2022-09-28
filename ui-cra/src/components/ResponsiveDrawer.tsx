@@ -192,8 +192,6 @@ const App = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  console.log(window.location.pathname);
-
   return (
     <Compose components={[NotificationsProvider]}>
       <div className={classes.root}>

@@ -165,6 +165,12 @@ unit-tests: $(GENERATED)
 	cd cmd/clusters-service && go test $(TEST_V) ./...
 	go test $(TEST_V) ./test/acceptance/test/pages/...
 
+ui-unit-tests:
+	cd ui-cra && ./node_modules/.bin/react-scripts test
+
+ui-selector-tests:
+	cd ui-cra && yarn cypress run --component
+
 ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install && yarn build
