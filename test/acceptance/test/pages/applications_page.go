@@ -71,6 +71,11 @@ type ApplicationGraph struct {
 	Pod            *agouti.Selection
 }
 
+// Application Violations Details section
+type NoDataRowInApplicationViolationsList struct {
+	NoDataRow *agouti.Selection
+}
+
 type ApplicationViolationsDetailsPage struct {
 	ViolationHeader      *agouti.Selection
 	PolicyName           *agouti.Selection
@@ -185,6 +190,13 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 		Deployment:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Deployment"]/parent::node()`),
 		ReplicaSet:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="ReplicaSet"]/parent::node()`),
 		Pod:            webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Pod"]/parent::node()`),
+	}
+}
+
+// Application Violations Details methods
+func GetNoDataRowInApplicationViolationsList(WebDriver *agouti.Page) *NoDataRowInApplicationViolationsList {
+	return &NoDataRowInApplicationViolationsList{
+		NoDataRow: WebDriver.FindByXPath(`//td[contains(.,'No data')]`),
 	}
 }
 
