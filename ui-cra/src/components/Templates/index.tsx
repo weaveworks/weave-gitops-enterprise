@@ -17,12 +17,14 @@ import {
   theme,
   Button,
   Icon,
+  Link,
 } from '@weaveworks/weave-gitops';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
+import { openLinkHandler } from '../../utils/link-checker';
 
 const ActionsWrapper = styled.div`
   display: flex;
@@ -52,7 +54,7 @@ const Error = styled.span`
 const CustomEmptyMessage = styled.span`
   color: ${theme.colors.neutral30};
 `;
-const DocsLink = styled.a`
+const DocsLink = styled(Link)`
   color: ${theme.colors.primary};
   padding-right: ${({ theme }) => theme.spacing.xxs};
   padding-left: ${({ theme }) => theme.spacing.xxs};
@@ -208,9 +210,9 @@ const TemplatesDashboard: FC<{
                       filter. See
                     </CustomEmptyMessage>
                     <DocsLink
-                      href="https://docs.gitops.weave.works/docs/gitops-templates/templates"
-                      target="_blank"
-                      rel="noreferrer"
+                      onClick={openLinkHandler(
+                        'https://docs.gitops.weave.works/docs/gitops-templates/templates',
+                      )}
                     >
                       here
                     </DocsLink>
