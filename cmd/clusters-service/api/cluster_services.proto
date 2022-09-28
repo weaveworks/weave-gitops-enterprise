@@ -518,6 +518,7 @@ message KustomizationSpec {
   string path = 1;
   SourceRef source_ref = 2;
   string target_namespace = 3;
+  bool create_namespace = 4;
 }
 
 message HelmRelease {
