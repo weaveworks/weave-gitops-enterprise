@@ -192,7 +192,7 @@ const TemplatesDashboard: FC<{
                     label: '',
                     value: (t: Template) => (
                       <Button
-                        id="use-template"
+                        id="create-cluster"
                         startIcon={<Icon type={IconType.AddIcon} size="base" />}
                         onClick={event => handleAddCluster(event, t)}
                         disabled={Boolean(t.error)}

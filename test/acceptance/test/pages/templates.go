@@ -46,7 +46,7 @@ func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateRecor
 	return &TemplateRecord{
 		Name:             templateName,
 		Description:      tileNode.Find(`P[class^=MuiTypography-root]`),
-		CreateTemplate:   tileNode.Find(`#use-template`),
+		CreateTemplate:   tileNode.Find(`#create-cluster`),
 		ErrorHeader:      tileNode.Find(`.template-error-header`),
 		ErrorDescription: tileNode.Find(`.template-error-description`),
 	}
@@ -76,7 +76,7 @@ func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName strin
 				Name:             templateName,
 				Provider:         tileRow.FindByXPath(`td[3]`),
 				Description:      tileRow.FindByXPath(`td[4]`),
-				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="use-template"]`),
+				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
 				ErrorHeader:      tileRow.Find(`.template-error-header`),
 				ErrorDescription: tileRow.Find(`.template-error-description`),
 			}
