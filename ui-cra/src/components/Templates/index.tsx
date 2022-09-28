@@ -49,6 +49,14 @@ const FilteringSection = styled.div`
 const Error = styled.span`
   color: ${theme.colors.alert};
 `;
+const CustomEmptyMessage = styled.span`
+  color: ${theme.colors.neutral30};
+`;
+const DocsLink = styled.a`
+  color: ${theme.colors.primary};
+  padding-right: ${({ theme }) => theme.spacing.xxs};
+  padding-left: ${({ theme }) => theme.spacing.xxs};
+`;
 
 const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
@@ -195,9 +203,20 @@ const TemplatesDashboard: FC<{
                 ]}
                 emptyMessagePlaceholder={
                   <>
-                    "No templates found or no templates match the selected
-                    filter. See [Adding a template] and [labelling your
-                    templates]"
+                    <CustomEmptyMessage>
+                      No templates found or no templates match the selected
+                      filter. See
+                    </CustomEmptyMessage>
+                    <DocsLink
+                      href="https://docs.gitops.weave.works/docs/gitops-templates/templates"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      here
+                    </DocsLink>
+                    <CustomEmptyMessage>
+                      How to add templates and how to label them
+                    </CustomEmptyMessage>
                   </>
                 }
               />
