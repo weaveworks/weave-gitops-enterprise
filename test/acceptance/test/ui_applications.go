@@ -194,7 +194,8 @@ func verifyAppDetails(app Application, cluster ClusterConfig) {
 		gomega.Eventually(details.Name.Text).Should(gomega.MatchRegexp(app.DeploymentName), fmt.Sprintf("Failed to verify %s Deployment name", app.Name))
 		gomega.Eventually(details.Type.Text).Should(gomega.MatchRegexp("Deployment"), fmt.Sprintf("Failed to verify %s Type", app.Name))
 		gomega.Eventually(details.Namespace.Text).Should(gomega.MatchRegexp(app.TargetNamespace), fmt.Sprintf("Failed to verify %s Namespace", app.Name))
-		gomega.Eventually(details.Status.Text, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", app.Name))
+
+		gomega.Eventually(details.Status.Text, ASSERTION_5MINUTE_TIME_OUT).Should(gomega.MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", app.Name))
 		gomega.Eventually(details.Message.Text).Should(gomega.MatchRegexp("Deployment is available"), fmt.Sprintf("Failed to verify %s Message", app.Name))
 
 	})
@@ -360,7 +361,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.JustAfterEach(func() {
-				// Wait for the application to be delete gracefully, needed when the test fails before deleting the application
+				// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
 				gomega.Eventually(func(g gomega.Gomega) int {
 					return getApplicationCount()
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
@@ -438,7 +439,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					SyncInterval:    "10m",
 					Name:            "metallb",
 					DeploymentName:  "metallb-controller",
-					Namespace:       GITOPS_DEFAULT_NAMESPACE, // HelmRelease application always installed in flux-system namespace
+					Namespace:       GITOPS_DEFAULT_NAMESPACE, // HelmRelease application always get installed in flux-system namespace
 					TargetNamespace: appNameSpace,
 					Source:          GITOPS_DEFAULT_NAMESPACE + "-metallb",
 					Version:         "0.0.2",
@@ -811,7 +812,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						count, _ := applicationsPage.ApplicationCount.Text()
 						return count
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
