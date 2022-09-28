@@ -170,7 +170,11 @@ func verifyAppDetails(app Application, cluster ClusterConfig) {
 
 		if app.Type == "helm_release" {
 			gomega.Eventually(details.Source.Text).Should(gomega.MatchRegexp("HelmChart/"+app.Namespace+"-"+app.Name), fmt.Sprintf("Failed to verify %s Source", app.Name))
-			gomega.Eventually(details.AppliedRevision.Text).Should(gomega.MatchRegexp(app.Name), fmt.Sprintf("Failed to verify %s Chart", app.Name))
+			gomega.Eventually(details.Chart.Text).Should(gomega.MatchRegexp(app.Name), fmt.Sprintf("Failed to verify %s Chart", app.Name))
+			gomega.Eventually(details.ChartVersion.Text).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Chart Version", app.Name))
+			gomega.Eventually(details.AppliedRevision.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Last Applied Version", app.Name))
+			gomega.Eventually(details.AttemptedRevision.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Last Attempted Version", app.Name))
+
 		} else {
 			gomega.Eventually(details.Source.Text).Should(gomega.MatchRegexp("GitRepository/"+app.Name), fmt.Sprintf("Failed to verify %s Source", app.Name))
 			gomega.Eventually(details.AppliedRevision.Text).Should(gomega.MatchRegexp("master"), fmt.Sprintf("Failed to verify %s AppliedRevision", app.Name))
@@ -340,6 +344,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] Applications(s) can be installed", func() {
+
+			var existingAppCount int
 			appNameSpace := "test-kustomization"
 			appTargetNamespace := "test-system"
 
@@ -354,6 +360,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.JustAfterEach(func() {
+				// Wait for the application to be delete gracefully, needed when the test fails before deleting the application
+				gomega.Eventually(func(g gomega.Gomega) int {
+					return getApplicationCount()
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 			})
 
@@ -371,7 +382,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount := getApplicationCount()
+				existingAppCount = getApplicationCount()
 
 				appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
 				defer cleanGitRepository(appKustomization)
@@ -427,9 +438,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					SyncInterval:    "10m",
 					Name:            "metallb",
 					DeploymentName:  "metallb-controller",
-					Namespace:       appNameSpace,
+					Namespace:       GITOPS_DEFAULT_NAMESPACE, // HelmRelease application always installed in flux-system namespace
 					TargetNamespace: appNameSpace,
-					Source:          appNameSpace + "-metallb",
+					Source:          GITOPS_DEFAULT_NAMESPACE + "-metallb",
 					Version:         "0.0.2",
 					ValuesRegex:     `namespace: ""`,
 					Values:          fmt.Sprintf(`namespace: %s`, appNameSpace),
@@ -451,7 +462,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount := getApplicationCount()
+				existingAppCount = getApplicationCount()
 
 				defer cleanGitRepository(appKustomization)
 
@@ -564,7 +575,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				defer cleanGitRepository(appKustomization)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount := getApplicationCount()
+				existingAppCount = getApplicationCount()
 
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
