@@ -169,7 +169,7 @@ ui-unit-tests:
 	cd ui-cra && ./node_modules/.bin/react-scripts test
 
 ui-selector-tests:
-	cd ui-cra && yarn cypress run --component
+	cd ui-cra && ./node_modules/.bin/cypress run --component
 
 ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
