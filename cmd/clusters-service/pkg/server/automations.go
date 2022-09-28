@@ -67,11 +67,18 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 
 	var files []gitprovider.CommitFile
 
-	for _, f := range automations.KustomizationFiles {
-		files = append(files, toGitCommitFile(f))
+	fmt.Sprintf("automations: %s,", automations)
+
+	if len(automations.KustomizationFiles) > 0 {
+		for _, f := range automations.KustomizationFiles {
+			files = append(files, toGitCommitFile(f))
+		}
 	}
-	for _, f := range automations.HelmReleaseFiles {
-		files = append(files, toGitCommitFile(f))
+
+	if len(automations.HelmReleaseFiles) > 0 {
+		for _, f := range automations.HelmReleaseFiles {
+			files = append(files, toGitCommitFile(f))
+		}
 	}
 
 	if msg.HeadBranch == "" {
