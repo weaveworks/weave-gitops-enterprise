@@ -138,10 +138,10 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c2 {
-  -webkit-align-items: flex-end;
-  -webkit-box-align: flex-end;
-  -ms-flex-align: flex-end;
-  align-items: flex-end;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -215,7 +215,7 @@ exports[`Applications index test snapshots loading 1`] = `
     class="c0"
   >
     <div
-      class="c1"
+      class="c1 count-header"
     >
       <div
         class="c2"
@@ -310,13 +310,10 @@ exports[`Applications index test snapshots loading 1`] = `
                 ADD AN APPLICATION
               </span>
             </button>
-            <a
-              aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
-              href="/"
-              rel="noopener noreferrer"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 MuiButton-outlinedPrimary MuiButton-disableElevation"
               tabindex="0"
-              target="_blank"
+              type="button"
             >
               <span
                 class="MuiButton-label"
@@ -337,7 +334,7 @@ exports[`Applications index test snapshots loading 1`] = `
                 </div>
                 GO TO OPEN PULL REQUESTS
               </span>
-            </a>
+            </button>
           </div>
         </div>
         <div
@@ -732,19 +729,6 @@ exports[`Applications index test snapshots success 1`] = `
   z-index: 1;
 }
 
-.c26 {
-  height: 40px;
-  padding: 4px 0px;
-  -webkit-flex-wrap: nowrap;
-  -ms-flex-wrap: nowrap;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-}
-
-.c26 .MuiChip-root {
-  margin-right: 4px;
-}
-
 .c37 {
   position: relative;
   height: 100%;
@@ -782,6 +766,19 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c40 .MuiCheckbox-colorSecondary.Mui-checked {
   color: #00b3ec;
+}
+
+.c26 {
+  height: 40px;
+  padding: 4px 0px;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.c26 .MuiChip-root {
+  margin-right: 4px;
 }
 
 .c29 {
@@ -926,10 +923,10 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c2 {
-  -webkit-align-items: flex-end;
-  -webkit-box-align: flex-end;
-  -ms-flex-align: flex-end;
-  align-items: flex-end;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1015,7 +1012,7 @@ exports[`Applications index test snapshots success 1`] = `
     class="c0"
   >
     <div
-      class="c1"
+      class="c1 count-header"
     >
       <div
         class="c2"
@@ -1121,13 +1118,10 @@ exports[`Applications index test snapshots success 1`] = `
                 class="MuiTouchRipple-root"
               />
             </button>
-            <a
-              aria-disabled="false"
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 actionButton btn MuiButton-outlinedPrimary MuiButton-disableElevation"
-              href="/"
-              rel="noopener noreferrer"
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
               tabindex="0"
-              target="_blank"
+              type="button"
             >
               <span
                 class="MuiButton-label"
@@ -1151,7 +1145,7 @@ exports[`Applications index test snapshots success 1`] = `
               <span
                 class="MuiTouchRipple-root"
               />
-            </a>
+            </button>
           </div>
         </div>
         <div
@@ -1558,6 +1552,39 @@ exports[`Applications index test snapshots success 1`] = `
                             <h2
                               class=""
                             >
+                              Cluster
+                            </h2>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </button>
+                        <div
+                          class="c23"
+                        />
+                        <div
+                          style="width: 16px;"
+                        />
+                      </div>
+                    </th>
+                    <th
+                      class="MuiTableCell-root MuiTableCell-head"
+                      scope="col"
+                    >
+                      <div
+                        class="c18"
+                      >
+                        <button
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c31 MuiButton-colorInherit MuiButton-disableElevation"
+                          tabindex="0"
+                          type="button"
+                        >
+                          <span
+                            class="MuiButton-label"
+                          >
+                            <h2
+                              class=""
+                            >
                               Source
                             </h2>
                           </span>
@@ -1723,11 +1750,11 @@ exports[`Applications index test snapshots success 1`] = `
                 >
                   <tr
                     class="MuiTableRow-root c32"
-                    colspan="8"
+                    colspan="9"
                   >
                     <td
                       class="MuiTableCell-root MuiTableCell-body"
-                      colspan="8"
+                      colspan="9"
                     >
                       <div
                         class="c33"
@@ -1787,6 +1814,56 @@ exports[`Applications index test snapshots success 1`] = `
                     <ul
                       class="MuiList-root MuiList-padding"
                     >
+                      <li
+                        class="MuiListItem-root MuiListItem-gutters"
+                      >
+                        <ul
+                          class="MuiList-root MuiList-padding"
+                        >
+                          <li
+                            class="MuiListItem-root MuiListItem-gutters"
+                          >
+                            <div
+                              class="MuiListItemIcon-root"
+                            >
+                              <span
+                                aria-disabled="true"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-50 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                tabindex="-1"
+                              >
+                                <span
+                                  class="MuiIconButton-label"
+                                >
+                                  <input
+                                    class="PrivateSwitchBase-input-51"
+                                    data-indeterminate="false"
+                                    disabled=""
+                                    id="clusterName"
+                                    type="checkbox"
+                                    value=""
+                                  />
+                                  <svg
+                                    aria-hidden="true"
+                                    class="MuiSvgIcon-root"
+                                    focusable="false"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                                    />
+                                  </svg>
+                                </span>
+                              </span>
+                            </div>
+                            <span
+                              class="c35 c42"
+                              color="neutral30"
+                            >
+                              cluster
+                            </span>
+                          </li>
+                        </ul>
+                      </li>
                       <li
                         class="MuiListItem-root MuiListItem-gutters"
                       >

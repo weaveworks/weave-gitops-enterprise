@@ -9,6 +9,7 @@ import (
 type ApplicationsPage struct {
 	ApplicationHeader *agouti.Selection
 	ApplicationCount  *agouti.Selection
+	AddApplication    *agouti.Selection
 	ApplicationsList  *agouti.Selection
 	SupportEmailLink  *agouti.Selection
 	MessageBar        *agouti.Selection
@@ -38,18 +39,21 @@ type ApplicationDetailPage struct {
 }
 
 type ApplicationDetail struct {
-	Source          *agouti.Selection
-	AppliedRevision *agouti.Selection
-	Cluster         *agouti.Selection
-	Path            *agouti.Selection
-	Interval        *agouti.Selection
-	LastUpdated     *agouti.Selection
-	Metadata        *agouti.Selection
-	Name            *agouti.Selection
-	Type            *agouti.Selection
-	Namespace       *agouti.Selection
-	Status          *agouti.Selection
-	Message         *agouti.Selection
+	Source            *agouti.Selection
+	Chart             *agouti.Selection
+	ChartVersion      *agouti.Selection
+	AppliedRevision   *agouti.Selection
+	AttemptedRevision *agouti.Selection
+	Cluster           *agouti.Selection
+	Path              *agouti.Selection
+	Interval          *agouti.Selection
+	LastUpdated       *agouti.Selection
+	Metadata          *agouti.Selection
+	Name              *agouti.Selection
+	Type              *agouti.Selection
+	Namespace         *agouti.Selection
+	Status            *agouti.Selection
+	Message           *agouti.Selection
 }
 
 type ApplicationEvent struct {
@@ -60,11 +64,13 @@ type ApplicationEvent struct {
 }
 
 type ApplicationGraph struct {
-	SourceGit     *agouti.Selection
-	Kustomization *agouti.Selection
-	Deployment    *agouti.Selection
-	ReplicaSet    *agouti.Selection
-	Pod           *agouti.Selection
+	GitRepository  *agouti.Selection
+	Kustomization  *agouti.Selection
+	HelmRepository *agouti.Selection
+	HelmRelease    *agouti.Selection
+	Deployment     *agouti.Selection
+	ReplicaSet     *agouti.Selection
+	Pod            *agouti.Selection
 }
 
 func (a ApplicationsPage) FindApplicationInList(applicationName string) *ApplicationInformation {
@@ -75,7 +81,7 @@ func (a ApplicationsPage) FindApplicationInList(applicationName string) *Applica
 		Namespace:   application.FindByXPath(`td[4]`),
 		Tenant:      application.FindByXPath(`td[5]`),
 		Cluster:     application.FindByXPath(`td[6]`),
-		Source:      application.FindByXPath(`td[7]`),
+		Source:      application.FindByXPath(`td[7]//a`),
 		Status:      application.FindByXPath(`td[8]`),
 		Message:     application.FindByXPath(`td[9]`),
 		Revision:    application.FindByXPath(`td[10]`),
@@ -93,6 +99,7 @@ func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	return &ApplicationsPage{
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
 		ApplicationCount:  webDriver.Find(`.section-header-count`),
+		AddApplication:    webDriver.FindByButton("ADD AN APPLICATION"),
 		ApplicationsList:  webDriver.First(`table tbody`),
 		SupportEmailLink:  webDriver.FindByLink(`support ticket`),
 		MessageBar:        webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
@@ -100,14 +107,14 @@ func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	}
 }
 
-func GetApplicationsDetailPage(webDriver *agouti.Page) *ApplicationDetailPage {
+func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *ApplicationDetailPage {
 	return &ApplicationDetailPage{
 		Header:  webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div`),
-		Title:   webDriver.FindByXPath(`//span[.="my-podinfo"]/parent::node()[contains(@class, "AutomationDetail")]`),
+		Title:   webDriver.First(`div[class*="AutomationDetail"]`),
 		Sync:    webDriver.FindByButton(`Sync`),
-		Details: webDriver.First(`div[role="tablist"] a[href*="/kustomization/detail"`),
-		Events:  webDriver.First(`div[role="tablist"] a[href*="/kustomization/event"`),
-		Graph:   webDriver.First(`div[role="tablist"] a[href*="/kustomization/graph"`),
+		Details: webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/detail"`, appType)),
+		Events:  webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/event"`, appType)),
+		Graph:   webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/graph"`, appType)),
 	}
 }
 
@@ -116,18 +123,21 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 	reconcileDetails := webDriver.FindByXPath(`//div[contains(@class, "ReconciledObjectsTable")]//table/tbody//td[2][.="Deployment"]/ancestor::tr`)
 
 	return &ApplicationDetail{
-		Source:          autoDetails.FindByXPath(`tr[1]/td[2]`),
-		AppliedRevision: autoDetails.FindByXPath(`tr[2]/td[2]`),
-		Cluster:         autoDetails.FindByXPath(`tr[3]/td[2]`),
-		Path:            autoDetails.FindByXPath(`tr[4]/td[2]`),
-		Interval:        autoDetails.FindByXPath(`tr[5]/td[2]`),
-		LastUpdated:     autoDetails.FindByXPath(`tr[6]/td[2]`),
-		Metadata:        webDriver.Find(`div[class*=Metadata] table tbody`),
-		Name:            reconcileDetails.FindByXPath(`td[1]`),
-		Type:            reconcileDetails.FindByXPath(`td[2]`),
-		Namespace:       reconcileDetails.FindByXPath(`td[3]`),
-		Status:          reconcileDetails.FindByXPath(`td[4]`),
-		Message:         reconcileDetails.FindByXPath(`td[5]`),
+		Source:            autoDetails.FindByXPath(`tr[1]/td[2]`),
+		Chart:             autoDetails.FindByXPath(`tr[contains(.,"Chart:")]/td[2]`),
+		ChartVersion:      autoDetails.FindByXPath(`tr[contains(.,"Chart Version")]/td[2]`),
+		AppliedRevision:   autoDetails.FindByXPath(`tr[contains(.,"Applied Revision")]/td[2]`),
+		AttemptedRevision: autoDetails.FindByXPath(`tr[contains(.,"Attempted Revision")]/td[2]`),
+		Cluster:           autoDetails.FindByXPath(`tr[contains(.,"Cluster")]/td[2]`),
+		Path:              autoDetails.FindByXPath(`tr[contains(.,"Path:")]/td[2]`),
+		Interval:          autoDetails.FindByXPath(`tr[contains(.,"Interval")]/td[2]`),
+		LastUpdated:       autoDetails.FindByXPath(`tr[contains(.,"Last Updated")]/td[2]`),
+		Metadata:          webDriver.Find(`div[class*=Metadata] table tbody`),
+		Name:              reconcileDetails.FindByXPath(`td[1]`),
+		Type:              reconcileDetails.FindByXPath(`td[2]`),
+		Namespace:         reconcileDetails.FindByXPath(`td[3]`),
+		Status:            reconcileDetails.FindByXPath(`td[4]`),
+		Message:           reconcileDetails.FindByXPath(`td[5]`),
 	}
 }
 
@@ -136,22 +146,24 @@ func (a ApplicationDetail) GetMetadata(name string) *agouti.Selection {
 }
 
 func GetApplicationEvent(webDriver *agouti.Page, reason string) *ApplicationEvent {
-	events := webDriver.AllByXPath(fmt.Sprintf(`//div[contains(@class,"EventsTable")]//table/tbody//td[1][.="%s"]/ancestor::tr`, reason))
+	events := webDriver.FirstByXPath(fmt.Sprintf(`//div[contains(@class,"EventsTable")]//table/tbody//td[1][.="%s"]/ancestor::tr`, reason))
 
 	return &ApplicationEvent{
-		Reason:    events.At(0).FindByXPath(`td[1]`),
-		Message:   events.At(0).FindByXPath(`td[2]`),
-		Component: events.At(0).FindByXPath(`td[3]`),
-		TimeStamp: events.At(0).FindByXPath(`td[4]`),
+		Reason:    events.FindByXPath(`td[1]`),
+		Message:   events.FindByXPath(`td[2]`),
+		Component: events.FindByXPath(`td[3]`),
+		TimeStamp: events.FindByXPath(`td[4]`),
 	}
 }
 
-func GetApplicationGraph(webDriver *agouti.Page, deploymentName string, appName string, namespace string, targetNamespace string) *ApplicationGraph {
+func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 	return &ApplicationGraph{
-		SourceGit:     webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][.="%s"]/following-sibling::div[contains(@class, "GraphNode")][.="GitRepository"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
-		Kustomization: webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][.="%s"]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
-		Deployment:    webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][.="%s"]/following-sibling::div[contains(@class, "GraphNode")][.="Deployment"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, deploymentName, targetNamespace)),
-		ReplicaSet:    webDriver.FindByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][contains(., "%s")]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
-		Pod:           webDriver.FirstByXPath(fmt.Sprintf(`//div[contains(@class, "GraphNode")][contains(., "%s")]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]//following-sibling::div[contains(@class, "GraphNode")][.="%s"]`, appName, namespace)),
+		GitRepository:  webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="GitRepository"]/parent::node()`),
+		Kustomization:  webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]/parent::node()`),
+		HelmRepository: webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="HelmRepository"]/parent::node()`),
+		HelmRelease:    webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="HelmRelease"]/parent::node()`),
+		Deployment:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Deployment"]/parent::node()`),
+		ReplicaSet:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="ReplicaSet"]/parent::node()`),
+		Pod:            webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Pod"]/parent::node()`),
 	}
 }

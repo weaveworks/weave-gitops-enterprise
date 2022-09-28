@@ -1,23 +1,27 @@
-import React, { FC, Dispatch } from 'react';
+import React, { FC, Dispatch, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
-import { ListSubheader, MenuItem } from '@material-ui/core';
-import { useListSources, theme } from '@weaveworks/weave-gitops';
+import {
+  ListSubheader,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+} from '@material-ui/core';
+import { useListSources, theme, Flex } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
-import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
+import {
+  GitRepository,
+  HelmRepository,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Kind } from '@weaveworks/weave-gitops';
 import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
 import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
-
-interface SourceEnriched extends Source {
-  url?: string;
-  reference?: {
-    branch?: string;
-  };
-}
+import { useClustersWithSources } from '../../../utils';
+import { useHistory, useLocation } from 'react-router-dom';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -31,53 +35,72 @@ const FormWrapper = styled.form`
   }
 `;
 
-const toCluster = (clusterName: string): GitopsCluster => {
-  const [firstBit, secondBit] = clusterName.split('/');
-  const [namespace, name, controlPlane] = secondBit
-    ? [firstBit, secondBit, false]
-    : ['', firstBit, true];
-  return {
-    name,
-    namespace,
-    controlPlane,
-  };
-};
-
 const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
   allowSelectCluster: boolean;
-}> = ({ formData, setFormData, index = 0, allowSelectCluster }) => {
+  clusterName?: string;
+}> = ({
+  formData,
+  setFormData,
+  index = 0,
+  allowSelectCluster,
+  clusterName,
+}) => {
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
+  const { createNamespace } = automation;
+  const history = useHistory();
+  const location = useLocation();
 
-  let clusters: GitopsCluster[] | undefined = undefined;
-  if (allowSelectCluster) {
-    clusters = _.uniq(data?.result?.map(s => s.clusterName))
-      .sort()
-      .map(toCluster);
-  }
+  let clusters: GitopsCluster[] | undefined =
+    useClustersWithSources(allowSelectCluster);
+
+  const updateCluster = useCallback(
+    (cluster: GitopsCluster) => {
+      setFormData((formData: any) => {
+        const params = new URLSearchParams(`clusterName=${cluster.name}`);
+        history.replace({
+          pathname: location.pathname,
+          search: params.toString(),
+        });
+        let currentAutomation = [...formData.clusterAutomations];
+        currentAutomation[index] = {
+          ...currentAutomation[index],
+          cluster_name: cluster.name,
+          cluster_namespace: cluster.namespace,
+          cluster_isControlPlane: cluster.controlPlane,
+          cluster: JSON.stringify(cluster),
+        };
+        return {
+          ...formData,
+          clusterAutomations: currentAutomation,
+        };
+      });
+    },
+    [index, setFormData, history, location.pathname],
+  );
+
+  useEffect(() => {
+    if (clusterName && clusters) {
+      const cluster = clusters.find(
+        (c: GitopsCluster) => c.name === clusterName,
+      );
+      if (cluster) {
+        updateCluster(cluster);
+      }
+    }
+  }, [clusterName, clusters, updateCluster]);
 
   const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const value = event.target.value;
-    let currentAutomation = [...formData.clusterAutomations];
-    currentAutomation[index] = {
-      ...automation,
-      cluster_name: JSON.parse(value).name,
-      cluster_namespace: JSON.parse(value).namespace,
-      cluster_isControlPlane: JSON.parse(value).controlPlane,
-      cluster: value,
-    };
-    setFormData({
-      ...formData,
-      clusterAutomations: currentAutomation,
-    });
+    updateCluster(JSON.parse(value));
   };
 
-  let gitRepos = [] as Source[];
-  let helmRepos = [] as Source[];
+  let gitRepos: GitRepository[] = [];
+  let helmRepos: HelmRepository[] = [];
 
   if (clusters) {
     const clusterName = automation.cluster_namespace
@@ -87,8 +110,8 @@ const AppFields: FC<{
     gitRepos = _.orderBy(
       _.filter(
         data?.result,
-        item =>
-          item.kind === 'KindGitRepository' && item.clusterName === clusterName,
+        (item): item is GitRepository =>
+          item.type === Kind.GitRepository && item.clusterName === clusterName,
       ),
       ['name'],
       ['asc'],
@@ -97,9 +120,8 @@ const AppFields: FC<{
     helmRepos = _.orderBy(
       _.filter(
         data?.result,
-        item =>
-          item.kind === 'KindHelmRepository' &&
-          item.clusterName === clusterName,
+        (item): item is HelmRepository =>
+          item.type === Kind.HelmRepository && item.clusterName === clusterName,
       ),
       ['name'],
       ['asc'],
@@ -148,6 +170,22 @@ const AppFields: FC<{
     currentAutomation[index] = {
       ...automation,
       [fieldName as string]: value,
+    };
+
+    setFormData({
+      ...formData,
+      clusterAutomations: currentAutomation,
+    });
+  };
+
+  const handleCreateNamespace = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    let currentAutomation = [...formData.clusterAutomations];
+
+    currentAutomation[index] = {
+      ...automation,
+      createNamespace: event.target.checked,
     };
 
     setFormData({
@@ -244,7 +282,7 @@ const AppFields: FC<{
             {gitRepos.length !== 0 && (
               <ListSubheader>GitRepository</ListSubheader>
             )}
-            {gitRepos?.map((option: SourceEnriched, index: number) => (
+            {gitRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}&nbsp;&nbsp;
                 {optionUrl(option?.url, option?.reference?.branch)}
@@ -253,7 +291,7 @@ const AppFields: FC<{
             {helmRepos.length !== 0 && (
               <ListSubheader>HelmRepository</ListSubheader>
             )}
-            {helmRepos?.map((option: SourceEnriched, index: number) => (
+            {helmRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
                 {option.name}&nbsp;&nbsp;
                 {optionUrl(option?.url)}
@@ -315,6 +353,25 @@ const AppFields: FC<{
             </Tooltip>
           )}
         </>
+      ) : null}
+      {formData.source_type === 'GitRepository' || !clusters ? (
+        <Flex align={true}>
+          <FormControlLabel
+            value="top"
+            control={
+              <Checkbox
+                // Restore default paddingLeft for checkbox that is removed by the global style
+                // mui.FormControlLabel does some negative margin to align the checkbox with the label
+                style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
+                checked={createNamespace}
+                onChange={handleCreateNamespace}
+                inputProps={{ 'aria-label': 'controlled' }}
+                color="primary"
+              />
+            }
+            label="Create target namespace for kustomization"
+          />
+        </Flex>
       ) : null}
     </FormWrapper>
   );

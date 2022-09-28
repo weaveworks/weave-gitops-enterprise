@@ -89,7 +89,7 @@ func TestGetPolicyViolation(t *testing.T) {
 			}})
 
 			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
-			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+			fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
 				clustersManager: fakeFactory,

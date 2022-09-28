@@ -6,7 +6,6 @@ import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
@@ -18,6 +17,7 @@ import {
   theme,
   Button,
   Icon,
+  Link,
 } from '@weaveworks/weave-gitops';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
@@ -50,6 +50,14 @@ const FilteringSection = styled.div`
 const Error = styled.span`
   color: ${theme.colors.alert};
 `;
+const CustomEmptyMessage = styled.span`
+  color: ${theme.colors.neutral30};
+`;
+const DocsLink = styled(Link)`
+  color: ${theme.colors.primary};
+  padding-right: ${({ theme }) => theme.spacing.xxs};
+  padding-left: ${({ theme }) => theme.spacing.xxs};
+`;
 
 const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
@@ -77,7 +85,7 @@ const TemplatesDashboard: FC<{
 
   const initialFilterState = {
     ...filterConfig(templates, 'provider'),
-    ...filterConfig(templates, 'templateKind'),
+    ...filterConfig(templates, 'templateType'),
   };
 
   const filteredTemplates = selectedProvider
@@ -98,16 +106,16 @@ const TemplatesDashboard: FC<{
   }, [notification, setNotifications]);
 
   return (
-    <PageTemplate documentTitle="WeGO · Templates">
-      <SectionHeader
-        path={[
-          {
-            label: 'Templates',
-            url: '/templates',
-            count: templatesCount,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="Templates"
+      path={[
+        {
+          label: 'Templates',
+          url: '/templates',
+          count: templatesCount,
+        },
+      ]}
+    >
       <ContentWrapper loading={isLoading}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">
@@ -161,16 +169,14 @@ const TemplatesDashboard: FC<{
                     textSearchable: true,
                   },
                   {
-                    label: 'Kind',
-                    value: 'templateKind',
+                    label: 'Type',
+                    value: 'templateType',
                     sortValue: ({ name }) => name,
-                    textSearchable: true,
                   },
                   {
                     label: 'Provider',
                     value: 'provider',
                     sortValue: ({ name }) => name,
-                    textSearchable: true,
                   },
                   {
                     label: 'Description',
@@ -191,11 +197,28 @@ const TemplatesDashboard: FC<{
                         onClick={event => handleAddCluster(event, t)}
                         disabled={Boolean(t.error)}
                       >
-                        CREATE CLUSTER WITH THIS TEMPLATE
+                        USE THIS TEMPLATE
                       </Button>
                     ),
                   },
                 ]}
+                emptyMessagePlaceholder={
+                  <>
+                    <CustomEmptyMessage>
+                      No templates found or no templates match the selected
+                      filter. See
+                    </CustomEmptyMessage>
+                    <DocsLink
+                      href="https://docs.gitops.weave.works/docs/gitops-templates/templates"
+                      newTab
+                    >
+                      here
+                    </DocsLink>
+                    <CustomEmptyMessage>
+                      How to add templates and how to label them
+                    </CustomEmptyMessage>
+                  </>
+                }
               />
             </TableWrapper>
           )}

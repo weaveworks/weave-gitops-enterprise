@@ -45,12 +45,12 @@ import {
 } from '../../utils/icons';
 import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { getCreateRequestAnnotation } from './Form/utils';
+import { openLinkHandler } from '../../utils/link-checker';
 
 interface Size {
   size?: 'small';
@@ -271,7 +271,8 @@ const MCCP: FC<{
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    history.push('/templates');
+    const filtersValues = encodeURIComponent(`templateType: cluster_`);
+    history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
   const initialFilterState = {
@@ -354,17 +355,16 @@ const MCCP: FC<{
   const rowCount = clusters.length || 0;
 
   return (
-    <PageTemplate documentTitle="WeGo · Clusters">
+    <PageTemplate
+      documentTitle="Clusters"
+      path={[{ label: 'Clusters', url: 'clusters', count }]}
+    >
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
           state: { formData, selectedCapiClusters },
         }}
       >
-        <SectionHeader
-          className="count-header"
-          path={[{ label: 'Clusters', url: 'clusters', count }]}
-        />
         <ContentWrapper>
           <div
             style={{
@@ -422,19 +422,14 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Link
-                target={'_blank'}
-                rel="noopener noreferrer"
-                component={Button}
-                to={{ pathname: repoLink }}
-              >
+              <Button onClick={openLinkHandler(repoLink)}>
                 <Icon
                   className={classes.externalIcon}
                   type={IconType.ExternalTab}
                   size="base"
                 />
                 GO TO OPEN PULL REQUESTS
-              </Link>
+              </Button>
             </ActionsWrapper>
           </div>
           {!isLoading ? (

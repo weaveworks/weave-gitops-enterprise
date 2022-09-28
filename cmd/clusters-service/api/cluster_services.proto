@@ -447,6 +447,7 @@ message Template {
   string error = 6;
   map<string, string> annotations = 7;
   string template_kind = 8;
+  map<string, string> labels = 9;
 }
 
 message Parameter {
@@ -517,6 +518,7 @@ message KustomizationSpec {
   string path = 1;
   SourceRef source_ref = 2;
   string target_namespace = 3;
+  bool create_namespace = 4;
 }
 
 message HelmRelease {

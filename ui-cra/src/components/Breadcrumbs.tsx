@@ -11,7 +11,7 @@ interface Size {
   size?: 'small';
 }
 const Container = styled.div`
-  align-items: flex-end;
+  align-items: center;
   display: flex;
   justify-content: center;
   font-size: ${20}px;

@@ -92,7 +92,8 @@ function setup {
       --owner=${GITHUB_ORG} \
       --repository=${CLUSTER_REPOSITORY} \
       --branch=main \
-      --path=./clusters/my-cluster
+      --path=./clusters/management \
+      --interval=30s
 
   elif [ ${GIT_PROVIDER} == "gitlab" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
@@ -117,9 +118,12 @@ function setup {
       --repository=${CLUSTER_REPOSITORY} \
       --branch=main \
       --hostname=${GIT_PROVIDER_HOSTNAME} \
-      --path=./clusters/my-cluster
+      --path=./clusters/management \
+      --interval=30s
   fi  
 
+  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
+  
   # Create admin cluster user secret
   kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
@@ -148,7 +152,8 @@ function setup {
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
-  helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
+  # using default repository path '"./clusters/management/clusters"' so the application reconciliation always happen out of the box
+  # helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
   helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
@@ -158,8 +163,8 @@ function setup {
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
   helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
   helmArgs+=( --set "policy-agent.enabled=true" )
-  helmArgs+=( --set "policy-agent.accountId=weaveworks" )
-  helmArgs+=( --set "policy-agent.clusterId=${MANAGEMENT_CLUSTER_CNAME}" )
+  helmArgs+=( --set "policy-agent.config.accountId=weaveworks" )
+  helmArgs+=( --set "policy-agent.config.clusterId=${MANAGEMENT_CLUSTER_CNAME}" )
  
   if [ ! -z $WEAVE_GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
@@ -191,8 +196,10 @@ function setup {
       sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
       kubectl apply -f -
 
+  # Create profiles HelmReposiotry 'weaveworks-charts'
+  flux create source helm weaveworks-charts --url="https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages" --interval=30s --namespace flux-system 
   # Install RBAC for user authentication
-   kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
 
   # enable cluster resource sets
   export EXP_CLUSTER_RESOURCE_SET=true
@@ -215,9 +222,6 @@ function setup {
     clusterctl init --infrastructure docker    
   fi
 
-  # Install resources for bootstrapping and CNI
-  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
-  
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A

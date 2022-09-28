@@ -289,6 +289,7 @@ export type Template = {
   error?: string
   annotations?: {[key: string]: string}
   templateKind?: string
+  labels?: {[key: string]: string}
 }
 
 export type Parameter = {
@@ -350,6 +351,7 @@ export type KustomizationSpec = {
   path?: string
   sourceRef?: SourceRef
   targetNamespace?: string
+  createNamespace?: boolean
 }
 
 export type HelmRelease = {
