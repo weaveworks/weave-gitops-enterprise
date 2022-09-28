@@ -91,3 +91,52 @@ metadata:
 	_, err := InjectJSONAnnotation(raw, "example.com/test", testData{Name: "testing", Namespace: "test-ns"})
 	assert.ErrorContains(t, err, "failed to decode the YAML")
 }
+
+func TestInjectJSONAnnotation_annotated_resources(t *testing.T) {
+	sb := func(s string) []byte {
+		return []byte(s)
+	}
+
+	raw := [][]byte{
+		sb(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  annotations:
+    alpha: "true"
+`),
+		sb(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachineTemplate
+metadata:
+  name: testing-md-0
+  annotations:
+    example.com/test: ""
+`),
+	}
+
+	updated, err := InjectJSONAnnotation(raw, "example.com/test", testData{Name: "testing", Namespace: "test-ns"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  annotations:
+    alpha: "true"
+    example.com/test: '{"name":"testing","namespace":"test-ns"}'
+  name: testing
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSMachineTemplate
+metadata:
+  annotations:
+    example.com/test: '{"name":"testing","namespace":"test-ns"}'
+  name: testing-md-0
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}

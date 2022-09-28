@@ -1,8 +1,6 @@
 import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
 import {
   AutomationsTable,
   Button,
@@ -13,9 +11,10 @@ import {
   theme,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { Link, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { useListConfig } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core';
+import { openLinkHandler } from '../../utils/link-checker';
 
 interface Size {
   size?: 'small';
@@ -37,7 +36,6 @@ const useStyles = makeStyles(() =>
 
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
-  const applicationsCount = useApplicationsCount();
   const history = useHistory();
   const { repoLink } = useListConfig();
   const classes = useStyles();
@@ -47,16 +45,16 @@ const WGApplicationsDashboard: FC = () => {
   };
 
   return (
-    <PageTemplate documentTitle="WeGO · Applications">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="Applications"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+          count: automations?.result?.length,
+        },
+      ]}
+    >
       <ContentWrapper errors={automations?.errors}>
         <div
           style={{
@@ -74,20 +72,14 @@ const WGApplicationsDashboard: FC = () => {
             >
               ADD AN APPLICATION
             </Button>
-            <Link
-              target={'_blank'}
-              className="actionButton btn"
-              rel="noopener noreferrer"
-              component={Button}
-              to={{ pathname: repoLink }}
-            >
+            <Button onClick={openLinkHandler(repoLink)}>
               <Icon
                 className={classes.externalIcon}
                 type={IconType.ExternalTab}
                 size="base"
               />
               GO TO OPEN PULL REQUESTS
-            </Link>
+            </Button>
           </ActionsWrapper>
         </div>
         {isLoading ? (

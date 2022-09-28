@@ -1,12 +1,15 @@
-import { HelmReleaseDetail, useGetHelmRelease } from '@weaveworks/weave-gitops';
+import {
+  HelmReleaseDetail,
+  Kind,
+  useGetObject,
+} from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
-import { useApplicationsCount } from './utils';
 
 type Props = {
   name: string;
@@ -15,14 +18,12 @@ type Props = {
 };
 
 const WGApplicationsHelmRelease: FC<Props> = props => {
-  const applicationsCount = useApplicationsCount();
   const { name, namespace, clusterName } = props;
-  const { data, isLoading, error } = useGetHelmRelease(
-    name,
-    namespace,
-    clusterName,
-  );
-  const helmRelease = data?.helmRelease;
+  const {
+    data: helmRelease,
+    isLoading,
+    error,
+  } = useGetObject<HelmRelease>(name, namespace, Kind.HelmRelease, clusterName);
 
   const { path } = useRouteMatch();
   const customTabs: Array<routeTab> = [
@@ -45,19 +46,18 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
   ];
 
   return (
-    <PageTemplate documentTitle="WeGO · Helm Release">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
-            label: `${name}`,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="Helm Release"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        {
+          label: `${name}`,
+        },
+      ]}
+    >
       <ContentWrapper
         loading={isLoading}
         errors={

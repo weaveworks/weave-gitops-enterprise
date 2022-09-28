@@ -2,15 +2,12 @@ import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
-import { useApplicationsCount } from '../Applications/utils';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
 const Pipelines = ({ className }: any) => {
-  const applicationsCount = useApplicationsCount();
   const { error, data, isLoading } = useListPipelines();
 
   const initialFilterState = {
@@ -18,18 +15,16 @@ const Pipelines = ({ className }: any) => {
   };
 
   return (
-    <PageTemplate documentTitle="WeGo · Pipelines">
-      <SectionHeader
-        className="count-header"
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          { label: 'Pipelines', count: data?.pipelines?.length },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="Pipelines"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        { label: 'Pipelines', count: data?.pipelines?.length },
+      ]}
+    >
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
         {data?.pipelines && (
           <TableWrapper className={className} id="pipelines-list">

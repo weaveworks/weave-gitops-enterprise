@@ -42,6 +42,7 @@ import WGApplicationsHelmChart from './Applications/HelmChart';
 import WGApplicationsHelmRelease from './Applications/HelmRelease';
 import WGApplicationsHelmRepository from './Applications/HelmRepository';
 import WGApplicationsKustomization from './Applications/Kustomization';
+import WGNotifications from './Applications/Notifications';
 import WGApplicationsOCIRepository from './Applications/OCIRepository';
 import WGApplicationsSources from './Applications/Sources';
 import MCCP from './Clusters';
@@ -51,7 +52,6 @@ import EditCluster from './Clusters/Edit';
 import ErrorBoundary from './ErrorBoundary';
 import { ContentWrapper } from './Layout/ContentWrapper';
 import { PageTemplate } from './Layout/PageTemplate';
-import { SectionHeader } from './Layout/SectionHeader';
 import { Navigation } from './Navigation';
 import Pipelines from './Pipelines';
 import PipelineDetails from './Pipelines/PipelineDetails';
@@ -171,8 +171,7 @@ const CoreWrapper = styled.div`
 `;
 
 const Page404 = () => (
-  <PageTemplate documentTitle="WeGO · NotFound">
-    <SectionHeader path={[{ label: 'Error' }]} />
+  <PageTemplate documentTitle="NotFound" path={[{ label: 'Error' }]}>
     <ContentWrapper>
       <Lottie
         loop
@@ -281,7 +280,7 @@ const App = () => {
                 path={V2Routes.Automations}
               />
               <Route
-                component={AddApplication}
+                component={withSearchParams(AddApplication)}
                 exact
                 path="/applications/create"
               />
@@ -357,6 +356,14 @@ const App = () => {
                   </CoreWrapper>
                 )}
                 path={V2Routes.FluxRuntime}
+              />
+              <Route
+                component={withSearchParams((props: any) => (
+                  <CoreWrapper>
+                    <WGNotifications {...props} />
+                  </CoreWrapper>
+                ))}
+                path={V2Routes.Notifications}
               />
               <Route exact path={CANARIES} component={ProgressiveDelivery} />
               <Route exact path={PIPELINES} component={Pipelines} />

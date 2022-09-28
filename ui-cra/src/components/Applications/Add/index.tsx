@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
-import { AddApplicationRequest, useApplicationsCount } from '../utils';
+import { AddApplicationRequest } from '../utils';
 import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -27,8 +26,7 @@ import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import { ProfilesIndex } from '../../../types/custom';
 
-const AddApplication = () => {
-  const applicationsCount = useApplicationsCount();
+const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
@@ -213,7 +211,16 @@ const AddApplication = () => {
   return useMemo(() => {
     return (
       <ThemeProvider theme={localEEMuiTheme}>
-        <PageTemplate documentTitle="WeGo · Add new application">
+        <PageTemplate
+          documentTitle="Add new application"
+          path={[
+            {
+              label: 'Applications',
+              url: '/applications',
+            },
+            { label: 'Add new application' },
+          ]}
+        >
           <CallbackStateContextProvider
             callbackState={{
               page: authRedirectPage as PageRoute,
@@ -223,17 +230,6 @@ const AddApplication = () => {
               },
             }}
           >
-            <SectionHeader
-              className="count-header"
-              path={[
-                {
-                  label: 'Applications',
-                  url: '/applications',
-                  count: applicationsCount,
-                },
-                { label: 'Add new application' },
-              ]}
-            />
             <ContentWrapper>
               <Grid container>
                 <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -246,6 +242,7 @@ const AddApplication = () => {
                           formData={formData}
                           setFormData={setFormData}
                           allowSelectCluster
+                          clusterName={clusterName}
                         />
                       );
                     },
@@ -277,7 +274,6 @@ const AddApplication = () => {
       </ThemeProvider>
     );
   }, [
-    applicationsCount,
     authRedirectPage,
     formData,
     handleAddApplication,
@@ -286,11 +282,12 @@ const AddApplication = () => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
+    clusterName,
   ]);
 };
 
-export default () => (
+export default ({ ...rest }) => (
   <ProfilesProvider>
-    <AddApplication />
+    <AddApplication {...rest} />
   </ProfilesProvider>
 );

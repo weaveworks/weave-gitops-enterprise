@@ -1,8 +1,6 @@
 import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
-import { useApplicationsCount, useSourcesCount } from './utils';
 import {
   GitRepositoryDetail,
   Kind,
@@ -18,8 +16,6 @@ type Props = {
 
 const WGApplicationsGitRepository: FC<Props> = props => {
   const { name, namespace, clusterName } = props;
-  const applicationsCount = useApplicationsCount();
-  const sourcesCount = useSourcesCount();
   const {
     data: gitRepository,
     isLoading,
@@ -32,24 +28,22 @@ const WGApplicationsGitRepository: FC<Props> = props => {
   );
 
   return (
-    <PageTemplate documentTitle="WeGO · Git Repository">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
-            label: 'Sources',
-            url: '/sources',
-            count: sourcesCount,
-          },
-          {
-            label: `${props.name}`,
-          },
-        ]}
-      />
+    <PageTemplate
+      documentTitle="Git Repository"
+      path={[
+        {
+          label: 'Applications',
+          url: '/applications',
+        },
+        {
+          label: 'Sources',
+          url: '/sources',
+        },
+        {
+          label: `${props.name}`,
+        },
+      ]}
+    >
       <ContentWrapper
         loading={isLoading}
         errors={

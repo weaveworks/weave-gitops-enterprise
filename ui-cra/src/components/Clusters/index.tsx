@@ -26,7 +26,9 @@ import { Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../hooks/clusters';
-import useNotifications from '../../contexts/Notifications';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
@@ -43,21 +45,16 @@ import {
 } from '../../utils/icons';
 import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { getCreateRequestAnnotation } from './Form/utils';
+import { openLinkHandler } from '../../utils/link-checker';
 
 interface Size {
   size?: 'small';
 }
-
-type Props = {
-  cluster: GitopsClusterEnriched;
-};
-
 const ActionsWrapper = styled.div<Size>`
   display: flex;
 `;
@@ -109,7 +106,9 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const ClusterIcon: FC<Props> = ({ cluster }) => {
+export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
+  cluster,
+}) => {
   const classes = useStyles();
   const clusterKind =
     cluster.labels?.['weave.works/cluster-kind'] ||
@@ -196,8 +195,16 @@ interface FormData {
   pullRequestDescription: string;
 }
 
-const MCCP: FC = () => {
+const ClusterTemplatesKind = {
+  CAPI: 'CAPITemplate',
+  GITOPS: 'GitOpsTemplate',
+};
+
+const MCCP: FC<{
+  location: { state: { notification: NotificationData[] } };
+}> = ({ location }) => {
   const { clusters, isLoading, count } = useClusters();
+  const notification = location.state?.notification;
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
@@ -225,6 +232,12 @@ const MCCP: FC = () => {
     Math.random().toString(36).substring(7),
   );
   const classes = useStyles();
+
+  useEffect(() => {
+    if (notification) {
+      setNotifications(notification);
+    }
+  }, [notification, setNotifications]);
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -263,7 +276,10 @@ const MCCP: FC = () => {
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    history.push('/templates');
+    const filtersValues = encodeURIComponent(
+      `templateKind:${ClusterTemplatesKind.CAPI}_templateKind:${ClusterTemplatesKind.GITOPS}_`,
+    );
+    history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
   const initialFilterState = {
@@ -346,17 +362,16 @@ const MCCP: FC = () => {
   const rowCount = clusters.length || 0;
 
   return (
-    <PageTemplate documentTitle="WeGo · Clusters">
+    <PageTemplate
+      documentTitle="Clusters"
+      path={[{ label: 'Clusters', url: 'clusters', count }]}
+    >
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
           state: { formData, selectedCapiClusters },
         }}
       >
-        <SectionHeader
-          className="count-header"
-          path={[{ label: 'Clusters', url: 'clusters', count }]}
-        />
         <ContentWrapper>
           <div
             style={{
@@ -414,19 +429,14 @@ const MCCP: FC = () => {
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Link
-                target={'_blank'}
-                rel="noopener noreferrer"
-                component={Button}
-                to={{ pathname: repoLink }}
-              >
+              <Button onClick={openLinkHandler(repoLink)}>
                 <Icon
                   className={classes.externalIcon}
                   type={IconType.ExternalTab}
                   size="base"
                 />
                 GO TO OPEN PULL REQUESTS
-              </Link>
+              </Button>
             </ActionsWrapper>
           </div>
           {!isLoading ? (
