@@ -175,7 +175,9 @@ jobs:
       - name: Run Front-end Unit Tests
         run: make ui-unit-tests
       - name: Run selector tests
-        run: make ui-selector-tests
+        uses: cypress-io/github-action@v4.2.0
+        with:
+          start: make ui-selector-tests
 
   ui-integration-tests:
     runs-on: ubuntu-latest
