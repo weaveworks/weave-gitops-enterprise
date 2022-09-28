@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"os"
 	"path"
 	"regexp"
@@ -139,7 +140,7 @@ func CheckClusterService(capiEndpointURL string) {
 
 // Wait until we get a good looking response from /v1/<resource>
 // Ignore all errors (connection refused, 500s etc)
-func waitForGitopsResources(ctx context.Context, resourceName string, timeout time.Duration) error {
+func waitForGitopsResources(ctx context.Context, resourcePath string, timeout time.Duration) error {
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
 	waitCtx, cancel := context.WithTimeout(ctx, ASSERTION_5MINUTE_TIME_OUT)
 	defer cancel()
@@ -164,13 +165,13 @@ func waitForGitopsResources(ctx context.Context, resourceName string, timeout ti
 			return false, nil
 		}
 		// fetch gitops resource
-		resp, err = client.Get(test_ui_url + "/v1/" + resourceName)
+		resp, err = client.Get(test_ui_url + "/v1/" + resourcePath)
 		if err != nil {
-			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", resourceName, err)
+			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", resourcePath, err)
 			return false, nil
 		}
 		if resp.StatusCode != http.StatusOK {
-			logger.Tracef("wrong status from %s (waiting for a ok, retrying): %v", resourceName, resp.StatusCode)
+			logger.Tracef("wrong status from %s (waiting for a ok, retrying): %v", resourcePath, resp.StatusCode)
 			return false, nil
 		}
 
@@ -180,6 +181,13 @@ func waitForGitopsResources(ctx context.Context, resourceName string, timeout ti
 		}
 		bodyString := string(bodyBytes)
 
+		// FIXME: could this be a 200 instead?
+		parseUrl, err := url.Parse(resourcePath)
+		if err != nil {
+			logger.Errorf("failed to parse URL: %v", resourcePath)
+			return false, nil
+		}
+		resourceName := parseUrl.Path
 		return strings.Contains(strings.ToLower(bodyString), strings.ToLower(fmt.Sprintf(`%s":`, resourceName))), nil
 	}, waitCtx.Done())
 }
