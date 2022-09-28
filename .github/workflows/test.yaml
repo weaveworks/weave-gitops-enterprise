@@ -14,6 +14,8 @@ name: run tests
 jobs:
   ui-cypress:
     runs-on: ubuntu-20.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
