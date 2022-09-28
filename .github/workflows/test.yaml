@@ -178,6 +178,7 @@ jobs:
         uses: cypress-io/github-action@v4.2.0
         with:
           install: false
+          working-directory: ui-cra
           command: make ui-selector-tests
 
   ui-integration-tests:
