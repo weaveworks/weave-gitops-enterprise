@@ -1,6 +1,6 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
+import { Link, theme } from '@weaveworks/weave-gitops';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -124,7 +124,17 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                           : target?.namespace}
                       </div>
                       <div>
-                        <div className="workloadName">{workload?.name}</div>
+                        <div className="workloadName">
+                          {target?.clusterRef?.namespace ? (
+                            <>{workload?.name}</>
+                          ) : (
+                            <Link
+                              to={`/helm_release/details?clusterName=${`${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`}&name=${name}&namespace=${namespace}`}
+                            >
+                              {workload?.name}
+                            </Link>
+                          )}
+                        </div>
                         <div
                           className={`${classes.subtitle} ${classes.subtitleColor}`}
                         >
