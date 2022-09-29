@@ -210,7 +210,30 @@ const toPayload = (
   templateName: string,
   updatedProfiles: ProfilesIndex,
 ): CreatePullRequestRequest => {
-  const { parameterValues } = formData;
+  const { clusterAutomations, parameterValues } = formData;
+  // filter out empty kustomization
+  const filteredKustomizations = clusterAutomations.filter(
+    (kustomization: any) => Object.values(kustomization).join('').trim() !== '',
+  );
+  const kustomizations = filteredKustomizations.map(
+    (kustomization: any): Kustomization => {
+      return {
+        metadata: {
+          name: kustomization.name,
+          namespace: kustomization.namespace,
+        },
+        spec: {
+          path: kustomization.path,
+          sourceRef: {
+            name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+            namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+          },
+          targetNamespace: kustomization.target_namespace,
+          createNamespace: kustomization.createNamespace,
+        },
+      };
+    },
+  );
   return {
     headBranch: formData.branchName,
     title: formData.pullRequestTitle,
