@@ -190,6 +190,7 @@ const toPayload = (
             namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
           },
           targetNamespace: kustomization.target_namespace,
+          createNamespace: kustomization.createNamespace,
         },
       };
     },

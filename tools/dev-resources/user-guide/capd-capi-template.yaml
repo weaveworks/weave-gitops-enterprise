@@ -1,46 +1,3 @@
----
-apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  name: profiles-catalog
-  namespace: flux-system
-spec:
-  interval: 1m
-  url: https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: weave-policy-agent
-  namespace: flux-system
-spec:
-  chart:
-    spec:
-      chart: weave-policy-agent
-      sourceRef:
-        kind: HelmRepository
-        name: profiles-catalog
-        namespace: flux-system
-      version: 0.3.x
-  targetNamespace: policy-system
-  releaseName: weave-policy-agent
-  interval: 1m
-  values:
-    accountId: "weaveworks"
-    clusterId: "tilt-cluster"
----
-# Create user - username: wego-admin, password: dev
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cluster-user-auth
-  namespace: flux-system
-type: Opaque
-data:
-  username: d2Vnby1hZG1pbg==
-  password: JDJ5JDEwJHBjeTlGVjBXTVFaVUhGRGN1ZDhKdWVjSXhsVVMvRWg5WC5paXRadEpFWVlIVWhLeXpsSllt
----
-# Create CAPI Template - grabbed straight from manual
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
@@ -54,14 +11,18 @@ spec:
       description: This is used for the cluster naming.
     - name: NAMESPACE
       description: Namespace to create the cluster in
+      default: default
     - name: KUBERNETES_VERSION
       description: Kubernetes version to use for the cluster
       options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
+      default: "1.23.3"
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
       options: ["1", "2", "3"]
+      default: "1"
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
+      default: "1"
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
@@ -80,7 +41,6 @@ spec:
         namespace: "${NAMESPACE}"
         labels:
           cni: calico
-          weave.works/capi: bootstrap
       spec:
         clusterNetwork:
           pods:

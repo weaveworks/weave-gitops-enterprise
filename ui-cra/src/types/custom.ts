@@ -122,7 +122,12 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   updatedAt: string;
 }
 
-export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'>;
+export type TemplateType = {
+  templateType: string;
+};
+
+export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'> &
+  TemplateType;
 
 export type DeleteClustersPRRequestEnriched = WithRequired<
   DeleteClustersPullRequestRequest,

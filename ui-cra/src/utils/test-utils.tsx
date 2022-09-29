@@ -135,16 +135,17 @@ const defaultListObjectsResponse: ListObjectsResponse = {
 export class CoreClientMock {
   constructor() {
     this.ListObjects = this.ListObjects.bind(this);
+    this.GetFeatureFlags = this.GetFeatureFlags.bind(this);
   }
+  GetFeatureFlagsReturns: { flags: { [x: string]: string } } = {
+    flags: {
+      WEAVE_GITOPS_FEATURE_CLUSTER: 'true',
+    },
+  };
   ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
 
   GetFeatureFlags() {
-    // FIXME: this is not working
-    return promisify({
-      flags: {
-        WEAVE_GITOPS_FEATURE_CLUSTER: 'true',
-      },
-    });
+    return promisify(this.GetFeatureFlagsReturns);
   }
 
   ListObjects(req: ListObjectsRequest) {

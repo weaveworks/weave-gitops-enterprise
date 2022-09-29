@@ -39,18 +39,21 @@ type ApplicationDetailPage struct {
 }
 
 type ApplicationDetail struct {
-	Source          *agouti.Selection
-	AppliedRevision *agouti.Selection
-	Cluster         *agouti.Selection
-	Path            *agouti.Selection
-	Interval        *agouti.Selection
-	LastUpdated     *agouti.Selection
-	Metadata        *agouti.Selection
-	Name            *agouti.Selection
-	Type            *agouti.Selection
-	Namespace       *agouti.Selection
-	Status          *agouti.Selection
-	Message         *agouti.Selection
+	Source            *agouti.Selection
+	Chart             *agouti.Selection
+	ChartVersion      *agouti.Selection
+	AppliedRevision   *agouti.Selection
+	AttemptedRevision *agouti.Selection
+	Cluster           *agouti.Selection
+	Path              *agouti.Selection
+	Interval          *agouti.Selection
+	LastUpdated       *agouti.Selection
+	Metadata          *agouti.Selection
+	Name              *agouti.Selection
+	Type              *agouti.Selection
+	Namespace         *agouti.Selection
+	Status            *agouti.Selection
+	Message           *agouti.Selection
 }
 
 type ApplicationEvent struct {
@@ -78,7 +81,7 @@ func (a ApplicationsPage) FindApplicationInList(applicationName string) *Applica
 		Namespace:   application.FindByXPath(`td[4]`),
 		Tenant:      application.FindByXPath(`td[5]`),
 		Cluster:     application.FindByXPath(`td[6]`),
-		Source:      application.FindByXPath(`td[7]`),
+		Source:      application.FindByXPath(`td[7]//a`),
 		Status:      application.FindByXPath(`td[8]`),
 		Message:     application.FindByXPath(`td[9]`),
 		Revision:    application.FindByXPath(`td[10]`),
@@ -120,18 +123,21 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 	reconcileDetails := webDriver.FindByXPath(`//div[contains(@class, "ReconciledObjectsTable")]//table/tbody//td[2][.="Deployment"]/ancestor::tr`)
 
 	return &ApplicationDetail{
-		Source:          autoDetails.FindByXPath(`tr[1]/td[2]`),
-		AppliedRevision: autoDetails.FindByXPath(`tr[2]/td[2]`),
-		Cluster:         autoDetails.FindByXPath(`tr[3]/td[2]`),
-		Path:            autoDetails.FindByXPath(`tr[4]/td[2]`),
-		Interval:        autoDetails.FindByXPath(`tr[contains(.,"Interval")]/td[2]`),
-		LastUpdated:     autoDetails.FindByXPath(`tr[contains(.,"Last Updated")]/td[2]`),
-		Metadata:        webDriver.Find(`div[class*=Metadata] table tbody`),
-		Name:            reconcileDetails.FindByXPath(`td[1]`),
-		Type:            reconcileDetails.FindByXPath(`td[2]`),
-		Namespace:       reconcileDetails.FindByXPath(`td[3]`),
-		Status:          reconcileDetails.FindByXPath(`td[4]`),
-		Message:         reconcileDetails.FindByXPath(`td[5]`),
+		Source:            autoDetails.FindByXPath(`tr[1]/td[2]`),
+		Chart:             autoDetails.FindByXPath(`tr[contains(.,"Chart:")]/td[2]`),
+		ChartVersion:      autoDetails.FindByXPath(`tr[contains(.,"Chart Version")]/td[2]`),
+		AppliedRevision:   autoDetails.FindByXPath(`tr[contains(.,"Applied Revision")]/td[2]`),
+		AttemptedRevision: autoDetails.FindByXPath(`tr[contains(.,"Attempted Revision")]/td[2]`),
+		Cluster:           autoDetails.FindByXPath(`tr[contains(.,"Cluster")]/td[2]`),
+		Path:              autoDetails.FindByXPath(`tr[contains(.,"Path:")]/td[2]`),
+		Interval:          autoDetails.FindByXPath(`tr[contains(.,"Interval")]/td[2]`),
+		LastUpdated:       autoDetails.FindByXPath(`tr[contains(.,"Last Updated")]/td[2]`),
+		Metadata:          webDriver.Find(`div[class*=Metadata] table tbody`),
+		Name:              reconcileDetails.FindByXPath(`td[1]`),
+		Type:              reconcileDetails.FindByXPath(`td[2]`),
+		Namespace:         reconcileDetails.FindByXPath(`td[3]`),
+		Status:            reconcileDetails.FindByXPath(`td[4]`),
+		Message:           reconcileDetails.FindByXPath(`td[5]`),
 	}
 }
 
