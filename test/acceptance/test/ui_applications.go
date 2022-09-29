@@ -14,7 +14,6 @@ import (
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti/matchers"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -1013,13 +1012,10 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 
 			//just apply policies
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+
 			//Just specifiy the Violating policy info to create it
 			policyName := "Containers Running With Privilege Escalation acceptance test"
-			//violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment App-Violations-podinfo \(2 occurrences\)`
-			//voliationClusterName := "management"
-			//violationApplication := "default/multi-container"
-			//violationSeverity := "High"
-			//violationCategory := "weave.categories.pod-security"
+			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment App-Violations-podinfo \(2 occurrences\)`
 
 			//Just specifiy the violated application info to create it
 			appNameSpace := "test-kustomization"
@@ -1031,7 +1027,27 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 				Namespace: "",
 			}
 
-			//deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "multi-container-manifest.yaml")
+			// Podinfo application details
+			podinfo := Application{
+				Type:            "kustomization",
+				Name:            "App-Violations-podinfo",
+				DeploymentName:  "podinfo",
+				Namespace:       appNameSpace,
+				TargetNamespace: appTargetNamespace,
+				Source:          "App-Violations-podinfo",
+				Path:            "./kustomize",
+				SyncInterval:    "30s",
+			}
+
+			// declare application page variable
+			applicationsPage := pages.GetApplicationsPage(webDriver)
+
+			// get apps count
+			existingAppCount := getApplicationCount()
+
+			//specify the github source for the app customization
+			appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
+			defer cleanGitRepository(appKustomization)
 
 			ginkgo.JustBeforeEach(func() {
 				createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -1041,44 +1057,28 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
-				//_ = gitopsTestRunner.KubectlDelete([]string{}, deploymentYaml)
 
 			})
-			ginkgo.It("Verify application violations generation", ginkgo.Label("integration", "violation"), func() {
+			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
 
 				ginkgo.By("Install Policies on Management Cluster", func() {
 					installTestPolicies("management", policiesYaml)
-					//installViolatingDeployment("management", deploymentYaml)
 
 				})
 				ginkgo.By("Install kustomization Application on managment cluster", func() {
-
-					podinfo := Application{
-						Type:            "kustomization",
-						Name:            "App-Violations-podinfo",
-						DeploymentName:  "podinfo",
-						Namespace:       appNameSpace,
-						TargetNamespace: appTargetNamespace,
-						Source:          "App-Violations-podinfo",
-						Path:            "./kustomize",
-						SyncInterval:    "30s",
-					}
-
 					appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 					repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-					existingAppCount := getApplicationCount()
 
 					appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
 					defer cleanGitRepository(appKustomization)
 
 					pages.NavigateToPage(webDriver, "Applications")
-					applicationsPage := pages.GetApplicationsPage(webDriver)
 
 					pullGitRepo(repoAbsolutePath)
 					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
 					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
 
-					//wait for podinfo application to be visibe on the dashboard"
+					//wait for podinfo application to be visibe on the dashboard
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
@@ -1095,48 +1095,54 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 					verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
 
-				})
-
-				ginkgo.By(fmt.Sprintf("Navigate to %s application page", podinfo.Name), func() {
 					applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+
+					//Navigate to the application page
 					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
 
 					verifyAppPage(podinfo)
 					verifyAppDetails(podinfo, mgmtCluster)
 					navigatetoApplicationsPage(applicationsPage)
+
 				})
 
-				ginkgo.By(fmt.Sprintf("Open  %s application Violations tab", app.Name), func() {
-					appDetailPage := pages.GetApplicationsDetailPage(webDriver, app.Type)
-					gomega.Expect(appDetailPage.Violations.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", app.Name))
+				ginkgo.By(fmt.Sprintf("Open  %s application Violations tab", podinfo.Name), func() {
+					appDetailPage := pages.GetApplicationsDetailPage(webDriver, podinfo.Type)
+					gomega.Expect(appDetailPage.Violations.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
 					pages.WaitForPageToLoad(webDriver)
 				})
 
 				ginkgo.By("Check violations are visible in the Application Violations List", func() {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
-					NoDataRow = applicationsPage.GetNoDataRowInApplicationViolationsList
+					NoDataRow := pages.GetNoDataRowInApplicationViolationsList(webDriver)
 					gomega.Expect(NoDataRow).ShouldNot(matchers.BeFound())
-					violationInfo := violationsPage.FindViolationInList(policyName)
 
 				})
 
-				//ginkgo.By(fmt.Sprintf("Verify '%s' Application Violation Details", policyName), func() {
-				//occurenceCount := 2
-				//description := "Containers are running with PrivilegeEscalation configured."
-				//howToSolve := `spec:\s*containers:\s*securityContext:\s*allowPrivilegeEscalation: <value>`
-				//violatingEntity := `"name\\":\\"redis\\",\\"securityContext\\":{\\"allowPrivilegeEscalation\\":true}`
+				ginkgo.By(fmt.Sprintf("Verify '%s' Application Violation Details", policyName), func() {
+					violationsPage := pages.GetViolationsPage(webDriver)
+					appViolationsMsg := violationsPage.FindViolationInList(policyName)
 
-				//gomega.Expect(violationDetailPage.OccurrencesCount.Text()).Should(gomega.MatchRegexp(strconv.Itoa(occurenceCount)), "Failed to verify violation occurrence count on violation page")
-				//gomega.Expect(violationDetailPage.Occurrences.Count()).Should(gomega.BeNumerically("==", occurenceCount), "Failed to verify number of violation occurrence enteries on violation page")
-				//for i := 0; i < occurenceCount; i++ {
-				//gomega.Expect(violationDetailPage.Occurrences.At(i).Text()).Should(gomega.MatchRegexp(fmt.Sprintf(`Container spec.template.spec.containers\[%d\] privilegeEscalation should be set to 'false'; detected 'true'`, i)), "Failed to verify number of violation occurrence enteries on violation page")
-				//}
+					gomega.Eventually(appViolationsMsg.Message.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 
-				//gomega.Expect(violationDetailPage.Description.Text()).Should(gomega.MatchRegexp(description), "Failed to verify violation Description on violation page")
-				//gomega.Expect(violationDetailPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
-				//gomega.Expect(violationDetailPage.ViolatingEntity.Text()).Should(gomega.MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
-				//})
+					appViolationsDetialsPage := pages.GetApplicationViolationsDetailsPage(webDriver)
+
+					occurenceCount := 2
+					description := "Containers are running with PrivilegeEscalation configured."
+					howToSolve := `spec:\s*containers:\s*securityContext:\s*allowPrivilegeEscalation: <value>`
+					violatingEntity := `"name\\":\\"redis\\",\\"securityContext\\":{\\"allowPrivilegeEscalation\\":true}`
+
+					gomega.Expect(appViolationsDetialsPage.OccurrencesCount.Text()).Should(gomega.MatchRegexp(strconv.Itoa(occurenceCount)), "Failed to verify violation occurrence count on violation page")
+					gomega.Expect(appViolationsDetialsPage.Occurrences.Count()).Should(gomega.BeNumerically("==", occurenceCount), "Failed to verify number of violation occurrence enteries on violation page")
+					for i := 0; i < occurenceCount; i++ {
+						gomega.Expect(appViolationsDetialsPage.Occurrences.At(i).Text()).Should(gomega.MatchRegexp(fmt.Sprintf(`Container spec.template.spec.containers\[%d\] privilegeEscalation should be set to 'false'; detected 'true'`, i)), "Failed to verify number of violation occurrence enteries on violation page")
+					}
+
+					gomega.Expect(appViolationsDetialsPage.Description.Text()).Should(gomega.MatchRegexp(description), "Failed to verify violation Description on violation page")
+					gomega.Expect(appViolationsDetialsPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
+					gomega.Expect(appViolationsDetialsPage.ViolatingEntity.Text()).Should(gomega.MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
+				})
 			})
 		})
 	})
