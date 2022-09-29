@@ -3,8 +3,13 @@ import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
 import { Input, Select } from '../../../../../utils/form';
-import { ListSubheader, MenuItem } from '@material-ui/core';
-import { useListSources, theme } from '@weaveworks/weave-gitops';
+import {
+  ListSubheader,
+  MenuItem,
+  Checkbox,
+  FormControlLabel,
+} from '@material-ui/core';
+import { useListSources, theme, Flex } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import {
   GitRepository,
@@ -61,6 +66,7 @@ const AppFields: FC<{
   const { setHelmRepo } = useProfiles();
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
+  const { createNamespace } = automation;
   const history = useHistory();
   const location = useLocation();
 
@@ -179,6 +185,22 @@ const AppFields: FC<{
     currentAutomation[index] = {
       ...automation,
       [fieldName as string]: value,
+    };
+
+    setFormData({
+      ...formData,
+      clusterAutomations: currentAutomation,
+    });
+  };
+
+  const handleCreateNamespace = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    let currentAutomation = [...formData.clusterAutomations];
+
+    currentAutomation[index] = {
+      ...automation,
+      createNamespace: event.target.checked,
     };
 
     setFormData({
@@ -347,7 +369,26 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-    </AppFieldsWrapper>
+      {formData.source_type === 'GitRepository' || !clusters ? (
+        <Flex align={true}>
+          <FormControlLabel
+            value="top"
+            control={
+              <Checkbox
+                // Restore default paddingLeft for checkbox that is removed by the global style
+                // mui.FormControlLabel does some negative margin to align the checkbox with the label
+                style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
+                checked={createNamespace}
+                onChange={handleCreateNamespace}
+                inputProps={{ 'aria-label': 'controlled' }}
+                color="primary"
+              />
+            }
+            label="Create target namespace for kustomization"
+          />
+        </Flex>
+      ) : null}
+      </AppFieldsWrapper>
   );
 };
 

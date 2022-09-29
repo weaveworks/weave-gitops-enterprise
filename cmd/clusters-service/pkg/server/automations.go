@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -72,6 +73,22 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	if len(automations.KustomizationFiles) > 0 {
 		for _, f := range automations.KustomizationFiles {
 			files = append(files, toGitCommitFile(f))
+		if c.Kustomization != nil {
+			if c.Kustomization.Spec.CreateNamespace {
+				namespace, err := generateNamespaceFile(ctx, c.IsControlPlane, cluster, c.Kustomization.Spec.TargetNamespace, c.FilePath)
+				if err != nil {
+					return nil, err
+				}
+
+				files = append(files, namespace)
+			}
+
+			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
+			if err != nil {
+				return nil, err
+			}
+
+			files = append(files, kustomization)
 		}
 	}
 
@@ -349,4 +366,43 @@ func validateHelmRelease(helmRelease *capiv1_proto.HelmRelease) error {
 	}
 
 	return err
+}
+
+func generateNamespaceFile(
+	ctx context.Context,
+	isControlPlane bool,
+	cluster types.NamespacedName,
+	name,
+	filePath string) (gitprovider.CommitFile, error) {
+	namespace := &corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Namespace",
+			APIVersion: corev1.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+
+	b, err := yaml.Marshal(namespace)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s namespace, %w", name, err)
+	}
+
+	k := createNamespacedName(name, "")
+
+	namespacePath := getClusterResourcePath(isControlPlane, "namespace", cluster, k)
+
+	if filePath != "" {
+		namespacePath = filePath
+	}
+
+	namespaceContent := string(b)
+
+	file := &gitprovider.CommitFile{
+		Path:    &namespacePath,
+		Content: &namespaceContent,
+	}
+
+	return *file, nil
 }
