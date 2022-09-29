@@ -126,13 +126,13 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                       <div>
                         <div className="workloadName">
                           {target?.clusterRef?.namespace ? (
-                            <>{workload?.name}</>
-                          ) : (
                             <Link
                               to={`/helm_release/details?clusterName=${`${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`}&name=${name}&namespace=${namespace}`}
                             >
                               {workload?.name}
                             </Link>
+                          ) : (
+                            <>{workload?.name}</>
                           )}
                         </div>
                         <div
