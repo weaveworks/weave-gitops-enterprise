@@ -213,7 +213,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/foo-ns-namespace.yaml",
 					Content: `apiVersion: v1
