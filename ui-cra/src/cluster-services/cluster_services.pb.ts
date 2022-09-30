@@ -73,7 +73,7 @@ export type CommitFile = {
 }
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: string
+  renderedTemplate?: CommitFile[]
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
 }

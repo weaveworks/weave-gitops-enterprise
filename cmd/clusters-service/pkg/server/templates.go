@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -11,10 +12,17 @@ import (
 	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	template "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
+
+type GetFiles struct {
+    RenderedTemplate []gitprovider.CommitFile
+	ProfileFiles []gitprovider.CommitFile
+    KustomizationFiles   []gitprovider.CommitFile
+}
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
 	templates := []*capiv1_proto.Template{}
@@ -121,23 +129,65 @@ func toCommitFile(file gitprovider.CommitFile) *capiv1_proto.CommitFile {
 
 // Similar the others list and get will right now only work with CAPI templates.
 // tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName) -> this get is the key.
-func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
-	// Default to CAPI kind to ease transition
-	if msg.TemplateKind == "" {
-		msg.TemplateKind = capiv1.Kind
-	}
-	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
+func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {	
+
 	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.Values)
+
+	git_files, err := s.getFiles(ctx, tm, msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations)
+	
 	if err != nil {
 		return nil, err
 	}
 
-	if err = templates.ValidateRenderedTemplates(templateBits); err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
+	var profileFiles []*capiv1_proto.CommitFile
+	var kustomizationFiles []*capiv1_proto.CommitFile
+	var renderedTemplate []*capiv1_proto.CommitFile
+
+	if len(git_files.ProfileFiles) > 0 {
+		for _, f := range git_files.ProfileFiles {
+			profileFiles = append(profileFiles, toCommitFile(f))
+		}
+	}
+
+	if len(git_files.KustomizationFiles) > 0 {
+		for _, f := range git_files.KustomizationFiles {
+			kustomizationFiles = append(kustomizationFiles, toCommitFile(f))
+		}
+	}
+
+	if len(git_files.KustomizationFiles) > 0 {
+		for _, f := range git_files.KustomizationFiles {
+			kustomizationFiles = append(kustomizationFiles, toCommitFile(f))
+		}
+	}
+
+	if len(git_files.RenderedTemplate) > 0 {
+		for _, f := range git_files.RenderedTemplate {
+			renderedTemplate = append(renderedTemplate, toCommitFile(f))
+		}
+	}
+
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
+}
+
+
+func (s *server) getFiles(ctx context.Context,tm template.Template, cluster_namespace string, template_name string, template_kind string, parameter_values map[string]string, template_credentials *capiv1_proto.Credential, profiles []*capiv1_proto.ProfileValues, kustomizations []*capiv1_proto.Kustomization) (*GetFiles, error) {	
+	if template_kind == "" {
+		template_kind = capiv1.Kind
+	}	
+
+	s.log.WithValues("request_values", parameter_values, "request_credentials", template_credentials).Info("Received message")
+
+	tmplWithValues, err := renderTemplateWithValues(tm, template_name, getClusterNamespace(cluster_namespace), parameter_values)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = templates.ValidateRenderedTemplates(tmplWithValues); err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", template_name, err)
 	}
 
 	client, err := s.clientGetter.Client(ctx)
@@ -145,19 +195,42 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, err
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, templateBits, msg.Credentials, msg.TemplateName)
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, template_credentials, template_name)
 	if err != nil {
 		return nil, err
 	}
 
-	resultStr := string(tmplWithValuesAndCredentials[:])
 
-	var profileFiles []*capiv1_proto.CommitFile
-	var kustomizationFiles []*capiv1_proto.CommitFile
+	clusterNamespace := getClusterNamespace(parameter_values["NAMESPACE"])
+	clusterName, ok := parameter_values["CLUSTER_NAME"]
+	if !ok {
+		return nil, errors.New("unable to find 'CLUSTER_NAME' parameter in supplied values")
+	}
 
-	cluster := createNamespacedName(msg.Values["CLUSTER_NAME"], msg.Values["NAMESPACE"])
+	cluster := createNamespacedName(clusterName, clusterNamespace)
 
-	if len(msg.Profiles) > 0 {
+	content := string(tmplWithValuesAndCredentials[:])
+	path := getClusterManifestPath(cluster)
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &content,
+		},
+	}
+
+	if viper.GetString("add-bases-kustomization") == "enabled" {
+		commonKustomization, err := getCommonKustomization(cluster)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
+		}
+		files = append(files, *commonKustomization)
+	}
+
+
+	var profileFiles []gitprovider.CommitFile
+	var kustomizationFiles []gitprovider.CommitFile
+
+	if len(profiles) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
 			tm,
@@ -166,28 +239,28 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 			generateProfileFilesParams{
 				helmRepository:         createNamespacedName(s.profileHelmRepositoryName, viper.GetString("runtime-namespace")),
 				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
-				profileValues:          msg.Profiles,
-				parameterValues:        msg.Values,
+				profileValues:          profiles,
+				parameterValues:        parameter_values,
 			},
 		)
 		if err != nil {
 			return nil, err
 		}
-		profileFiles = append(profileFiles, toCommitFile(*profilesFile))
+		profileFiles = append(profileFiles, *profilesFile)
 	}
 
-	if len(msg.Kustomizations) > 0 {
-		for _, k := range msg.Kustomizations {
+	if len(kustomizations) > 0 {
+		for _, k := range kustomizations {
 			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
 			if err != nil {
 				return nil, err
 			}
 
-			kustomizationFiles = append(kustomizationFiles, toCommitFile(kustomization))
+			kustomizationFiles = append(kustomizationFiles, kustomization)
 		}
 	}
 
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
+	return &GetFiles{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
 }
 
 func isProviderRecognised(provider string) bool {
