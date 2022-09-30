@@ -374,7 +374,6 @@ github.com/flowstack/go-jsonschema v0.1.1/go.mod h1:yL7fNggx1o8rm9RlgXv7hTBWxdBM
 github.com/fluxcd/flagger v1.21.0 h1:/h3z1BlGhKZfVCTsS50APjAfRyXvGsq0siIhO2UQO3o=
 github.com/fluxcd/flagger v1.21.0/go.mod h1:v7b10ylvAhTDloWbu6R0WJ/HY+DP5rVH1d9UTMZXtkI=
 github.com/fluxcd/flux2 v0.34.0 h1:EMcLjQBGYyDcN1YCbcGsoC3CaqJwNcvuodO639gQ/30=
-github.com/fluxcd/flux2 v0.34.0/go.mod h1:X69vpRvdCMoLOb+D4R70o8HaF2ExHqH/Rk/4RJEKQd8=
 github.com/fluxcd/go-git-providers v0.9.0 h1:iiiKe3dzRCgVkjEi8rfpvaWTZwuGRfb3RJFhjSNz+Uc=
 github.com/fluxcd/go-git-providers v0.9.0/go.mod h1:GcaDVP9RlamLKJp25Nwi7X5t0MyZV3FY+qy1GiRdbtk=
 github.com/fluxcd/helm-controller/api v0.24.0 h1:JYE34zzPMfd/QTyCaeafFEnCu0mvnG6zayGLIC0W6D0=
@@ -390,13 +389,11 @@ github.com/fluxcd/pkg/apis/kustomize v0.5.0/go.mod h1:N3Rtc5wDm/omHH0YHUbILyUpRN
 github.com/fluxcd/pkg/apis/meta v0.15.0 h1:uDVzbDNdFjp0GSB9qMpcW6r4K7SAjBQlCxQENSkWgkQ=
 github.com/fluxcd/pkg/apis/meta v0.15.0/go.mod h1:7NkgFrlswnx2QxP16+8zVNDBf+VhZ7PsDhkcJY6OSgQ=
 github.com/fluxcd/pkg/kustomize v0.7.0 h1:604rlpRZTWaOfzDZ1W93aHaFh9kn8/UMX/wzsjwIUQY=
-github.com/fluxcd/pkg/kustomize v0.7.0/go.mod h1:zJY3Z0+SX+zs+/A1F6fCT0JvUce265XnrpTtHnujXPo=
 github.com/fluxcd/pkg/runtime v0.18.0 h1:3naATapV1y65ZWlsXEfJt66zSQBkJwJ9o/e6gqAF//E=
 github.com/fluxcd/pkg/runtime v0.18.0/go.mod h1:JKTvOFOCz5Un9KxGcBL7Xjt0fcRa10ZItGB0XFv44AY=
 github.com/fluxcd/pkg/ssa v0.19.0 h1:azciQ/M1L7Nf4zkHJ+A+a58uShcTW3ZMbyY8KiYcqrI=
 github.com/fluxcd/pkg/ssa v0.19.0/go.mod h1:OjHX/qA4xqLi237l0yccsT6FnLmHxDKukpMXnhdXdyk=
 github.com/fluxcd/pkg/untar v0.2.0 h1:sJXU+FbJcNUb2ffLJNjeR3hwt3X2loVpOMlCUjyFw6E=
-github.com/fluxcd/pkg/untar v0.2.0/go.mod h1:33AyoWaPpjX/xXpczcfhQh2AkB63TFwiR2YwROtv23E=
 github.com/fluxcd/source-controller/api v0.29.0 h1:RyuHUCW7NtnHu61RbZUYhNWS+Nl0Z0rWS6a4aGGZZqE=
 github.com/fluxcd/source-controller/api v0.29.0/go.mod h1:pqWB3brXYkacesoKGY96dTJRrafThY1VwDQy6md1W/4=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
