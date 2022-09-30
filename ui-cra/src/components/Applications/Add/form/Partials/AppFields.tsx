@@ -388,7 +388,7 @@ const AppFields: FC<{
           />
         </Flex>
       ) : null}
-      </AppFieldsWrapper>
+    </AppFieldsWrapper>
   );
 };
 
