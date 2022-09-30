@@ -36,8 +36,8 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
@@ -310,7 +310,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
 
-	profileCache, err := cache.NewCache(p.ProfileCacheLocation)
+	profileCache, err := helm.NewChartIndexer()
 	if err != nil {
 		return fmt.Errorf("failed to create cacher: %w", err)
 	}
