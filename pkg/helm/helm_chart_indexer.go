@@ -57,7 +57,6 @@ func (i *HelmChartIndexer) Put(ctx context.Context, helmRepoNamespace, helmRepoN
 	apiVersion := "source.toolkit.fluxcd.io/v1beta1"
 
 	for _, chart := range value.Profiles {
-		fmt.Printf("HelmChartIndexer.Put: %v/%v/%v/%v\n", helmRepoNamespace, helmRepoName, chart.Name, chart.AvailableVersions)
 		for _, version := range chart.AvailableVersions {
 			if err := i.AddChart(
 				ctx,
@@ -111,8 +110,6 @@ func (i *HelmChartIndexer) ListProfiles(ctx context.Context, helmRepoNamespace, 
 		}
 		profiles = append(profiles, &p)
 	}
-
-	fmt.Printf("HelmChartIndexer.ListProfiles: %v/%v/%v\n", helmRepoNamespace, helmRepoName, profiles)
 
 	return profiles, nil
 }
