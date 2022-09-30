@@ -3,7 +3,6 @@ package helm
 import (
 	"context"
 	"database/sql"
-	"os"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -227,9 +226,7 @@ CREATE TABLE IF NOT EXISTS helm_charts (
 func createDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	os.Remove("./memory:")
-
-	db, err := sql.Open("sqlite3", "file:memory:?cache=shared")
+	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
 	if err != nil {
 		t.Fatal(err)
 	}
