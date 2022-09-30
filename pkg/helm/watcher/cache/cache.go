@@ -11,6 +11,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/go-logr/logr"
 	"github.com/gofrs/flock"
+	"k8s.io/apimachinery/pkg/types"
 
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 )
@@ -37,15 +38,16 @@ type ValueMap map[profileName]map[profileVersion][]byte
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Cache
 type Cache interface {
-	Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value Data) error
-	Delete(ctx context.Context, helmRepoNamespace, helmRepoName string) error
+	Put(ctx context.Context, cluster, helmRepoName types.NamespacedName, value Data) error
+	Delete(ctx context.Context, cluster, helmRepoName types.NamespacedName) error
+	DeleteCluster(ctx context.Context, cluster types.NamespacedName) error
 	// ListProfiles specifically retrieve profiles data only to avoid traversing the values structure for no reason.
-	ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error)
+	ListProfiles(ctx context.Context, cluster, helmRepoName types.NamespacedName) ([]*pb.Profile, error)
 	// GetProfileValues will try and find a specific values file for the given profileName and profileVersion. Returns an
 	// error if said version is not found.
-	GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error)
+	GetProfileValues(ctx context.Context, cluster, helmRepoName types.NamespacedName, profileName, profileVersion string) ([]byte, error)
 	// ListAvailableVersionsForProfile returns all stored available versions for a profile.
-	ListAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error)
+	ListAvailableVersionsForProfile(ctx context.Context, cluster, helmRepoName types.NamespacedName, profileName string) ([]string, error)
 }
 
 // Data is explicit data for a specific profile including values.
@@ -74,14 +76,14 @@ func NewCache(cacheLocation string) (*ProfileCache, error) {
 }
 
 // Put adds a new entry or updates an existing entry in the cache for the helmRepository.
-func (c *ProfileCache) Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value Data) error {
+func (c *ProfileCache) Put(ctx context.Context, cluster, helmRepoName types.NamespacedName, value Data) error {
 	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("starting put operation")
 
 	putOperation := func() error {
 		// namespace and name are already sanitized and should not be able to pass in
 		// things like `../` and `../usr/`, etc.
-		cacheLocation := filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName)
+		cacheLocation := filepath.Join(c.cacheLocation, cluster.Namespace, cluster.Name, helmRepoName.Namespace, helmRepoName.Name)
 		if err := os.MkdirAll(cacheLocation, 0700); err != nil {
 			return fmt.Errorf("failed to create cache location: %w", err)
 		}
@@ -121,9 +123,9 @@ func (c *ProfileCache) Put(ctx context.Context, helmRepoNamespace, helmRepoName 
 
 // Delete clears the cache folder for a specific HelmRepository. It will only clear the innermost
 // folder so others in the same namespace may retain their values.
-func (c *ProfileCache) Delete(ctx context.Context, helmRepoNamespace, helmRepoName string) error {
+func (c *ProfileCache) Delete(ctx context.Context, cluster, helmRepoName types.NamespacedName) error {
 	deleteOperation := func() error {
-		location := filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName)
+		location := filepath.Join(c.cacheLocation, cluster.Namespace, cluster.Name, helmRepoName.Namespace, helmRepoName.Name)
 		if err := os.RemoveAll(location); err != nil {
 			return fmt.Errorf("failed to clean up cache for location %s with error: %w", location, err)
 		}
@@ -134,16 +136,29 @@ func (c *ProfileCache) Delete(ctx context.Context, helmRepoNamespace, helmRepoNa
 	return c.tryWithLock(ctx, deleteOperation)
 }
 
+// DeleteCluster clears the cache folder for a specific Cluster.
+func (c *ProfileCache) DeleteCluster(ctx context.Context, cluster types.NamespacedName) error {
+	deleteOperation := func() error {
+		location := filepath.Join(c.cacheLocation, cluster.Namespace, cluster.Name)
+		if err := os.RemoveAll(location); err != nil {
+			return fmt.Errorf("failed to clean up cache for location %s with error: %w", location, err)
+		}
+		return nil
+	}
+
+	return c.tryWithLock(ctx, deleteOperation)
+}
+
 // ListProfiles gathers all profiles for a helmRepo if found. Returns an error otherwise.
-func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
+func (c *ProfileCache) ListProfiles(ctx context.Context, cluster, helmRepoName types.NamespacedName) ([]*pb.Profile, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("retrieving cached profile data")
 
 	var result []*pb.Profile
 
 	listOperation := func() error {
-		if err := c.getProfilesFromFile(helmRepoNamespace, helmRepoName, &result); err != nil {
-			return fmt.Errorf("failed to read profiles data for helm repo (%s/%s): %w", helmRepoNamespace, helmRepoName, err)
+		if err := c.getProfilesFromFile(cluster, helmRepoName, &result); err != nil {
+			return fmt.Errorf("failed to read profiles data in cluster (%s), for helm repo (%s): %w", cluster, helmRepoName, err)
 		}
 
 		return nil
@@ -157,14 +172,14 @@ func (c *ProfileCache) ListProfiles(ctx context.Context, helmRepoNamespace, helm
 }
 
 // ListAvailableVersionsForProfile returns all stored available versions for a profile.
-func (c *ProfileCache) ListAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error) {
+func (c *ProfileCache) ListAvailableVersionsForProfile(ctx context.Context, cluster, helmRepoName types.NamespacedName, profileName string) ([]string, error) {
 	// Because the folders of versions are only stored when there are values for a version
 	// we, instead, look in the profiles.yaml file for available versions.
 	var result []string
 
 	getAllAvailableVersionsOp := func() error {
 		var profiles []*pb.Profile
-		if err := c.getProfilesFromFile(helmRepoNamespace, helmRepoName, &profiles); err != nil {
+		if err := c.getProfilesFromFile(cluster, helmRepoName, &profiles); err != nil {
 			if os.IsNotExist(err) {
 				return nil
 			}
@@ -190,14 +205,16 @@ func (c *ProfileCache) ListAvailableVersionsForProfile(ctx context.Context, helm
 }
 
 // GetProfileValues returns the content of the cached values file if it exists. Errors otherwise.
-func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
+func (c *ProfileCache) GetProfileValues(ctx context.Context, cluster, helmRepoName types.NamespacedName, profileName, profileVersion string) ([]byte, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	logger.Info("retrieving cached profile values data")
 
 	var result []byte
 
 	getValuesOperation := func() error {
-		values, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileName, profileVersion, valuesFilename))
+		cachePath := filepath.Join(
+			c.cacheLocation, cluster.Namespace, cluster.Name, helmRepoName.Namespace, helmRepoName.Name, profileName, profileVersion, valuesFilename)
+		values, err := os.ReadFile(cachePath)
 		if err != nil {
 			return fmt.Errorf("failed to read values file: %w", err)
 		}
@@ -215,8 +232,9 @@ func (c *ProfileCache) GetProfileValues(ctx context.Context, helmRepoNamespace, 
 }
 
 // getProfilesFromFile returns profiles loaded from a file.
-func (c *ProfileCache) getProfilesFromFile(helmRepoNamespace, helmRepoName string, profiles *[]*pb.Profile) error {
-	content, err := os.ReadFile(filepath.Join(c.cacheLocation, helmRepoNamespace, helmRepoName, profileFilename))
+func (c *ProfileCache) getProfilesFromFile(cluster, helmRepoName types.NamespacedName, profiles *[]*pb.Profile) error {
+	content, err := os.ReadFile(filepath.Join(
+		c.cacheLocation, cluster.Namespace, cluster.Name, helmRepoName.Namespace, helmRepoName.Name, profileFilename))
 	if err != nil {
 		return err
 	}
