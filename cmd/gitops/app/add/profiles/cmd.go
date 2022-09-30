@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/internal"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
@@ -17,7 +18,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/names"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
-	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 )
 
 var profileOpts profiles.Options
