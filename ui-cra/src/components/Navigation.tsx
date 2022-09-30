@@ -2,8 +2,8 @@ import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
 import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
-import { NavLink } from 'react-router-dom';
-import styled from 'styled-components';
+import { NavLink, useLocation } from 'react-router-dom';
+import styled, { css } from 'styled-components';
 import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
@@ -11,17 +11,17 @@ import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
-import { Routes } from '../utils/nav';
+import { getParentNavValue, NavRoute } from '../utils/nav';
 
 interface SubNavItem {
   name: string;
-  link: string;
+  link: NavRoute | V2Routes;
   isVisible: boolean;
 }
 interface NavigationItem {
   icon?: any;
   name: string;
-  link: string;
+  link: NavRoute | V2Routes;
   subItems?: Array<SubNavItem>;
   isVisible?: boolean;
 }
@@ -110,7 +110,14 @@ const useStyles = makeStyles({
   },
 });
 
+function appendActiveClass(parent: any, item: NavigationItem) {
+  return parent === item.link ? 'nav-link-active' : '';
+}
+
 const NavItems = (navItems: Array<NavigationItem>) => {
+  const location = useLocation();
+  const navParent = getParentNavValue(location.pathname as NavRoute);
+
   return navItems.map(item => {
     if (item.isVisible === false) {
       return null;
@@ -119,9 +126,8 @@ const NavItems = (navItems: Array<NavigationItem>) => {
     return (
       <NavWrapper key={item.name}>
         <NavItem
-          exact={!!item.subItems ? true : false}
           to={item.link}
-          className="route-nav"
+          className={`route-nav ${appendActiveClass(navParent, item)}`}
         >
           <div className="parent-icon">{item.icon}</div>
           <span className="parent-route">{item.name}</span>
@@ -135,7 +141,10 @@ const NavItems = (navItems: Array<NavigationItem>) => {
                   <NavItem
                     to={subItem.link}
                     key={subItem.name}
-                    className="subroute-nav"
+                    className={`subroute-nav ${appendActiveClass(
+                      navParent,
+                      subItem,
+                    )}`}
                   >
                     {subItem.name}
                   </NavItem>
@@ -155,12 +164,12 @@ export const Navigation: FC = () => {
   const navItems: Array<NavigationItem> = [
     {
       name: 'CLUSTERS',
-      link: '/clusters',
+      link: NavRoute.Clusters,
       icon: <Clusters />,
       subItems: [
         {
           name: 'VIOLATION LOG',
-          link: '/clusters/violations',
+          link: NavRoute.Violations,
           isVisible: true,
         },
       ],
@@ -177,12 +186,12 @@ export const Navigation: FC = () => {
         },
         {
           name: 'PIPELINES',
-          link: '/applications/pipelines',
+          link: NavRoute.Pipelines,
           isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'DELIVERY',
-          link: '/applications/delivery',
+          link: NavRoute.Delivery,
           isVisible:
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
         },
@@ -190,12 +199,12 @@ export const Navigation: FC = () => {
     },
     {
       name: 'TEMPLATES',
-      link: '/templates',
+      link: NavRoute.Templates,
       icon: <Templates />,
     },
     {
       name: 'TERRAFORM',
-      link: Routes.TerraformObjects,
+      link: NavRoute.TerraformObjects,
       icon: <TerraformLogo />,
       isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
@@ -206,7 +215,7 @@ export const Navigation: FC = () => {
     },
     {
       name: 'POLICIES',
-      link: '/policies',
+      link: NavRoute.Policies,
       icon: <Policies />,
     },
   ];

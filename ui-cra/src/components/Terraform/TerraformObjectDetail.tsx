@@ -21,7 +21,7 @@ import {
   useSyncTerraformObject,
   useToggleSuspendTerraformObject,
 } from '../../contexts/Terraform';
-import { Routes } from '../../utils/nav';
+import { NavRoute } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
@@ -99,11 +99,11 @@ function TerraformObjectDetail({ className, ...params }: Props) {
       path={[
         {
           label: 'Terraform Objects',
-          url: Routes.TerraformObjects,
+          url: NavRoute.TerraformObjects,
         },
         {
           label: params?.name,
-          url: formatURL(Routes.TerraformDetail, {
+          url: formatURL(NavRoute.TerraformDetail, {
             name: object?.name,
             namespace: object?.namespace,
             clusterName: object?.clusterName,

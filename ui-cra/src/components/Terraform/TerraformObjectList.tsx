@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import { useListTerraformObjects } from '../../contexts/Terraform';
 import { computeMessage } from '../../utils/conditions';
-import { getKindRoute, Routes } from '../../utils/nav';
+import { getKindRoute, NavRoute } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { TableWrapper } from '../Shared';
@@ -42,7 +42,7 @@ function TerraformObjectList({ className }: Props) {
               {
                 value: ({ name, namespace, clusterName }: TerraformObject) => (
                   <Link
-                    to={formatURL(Routes.TerraformDetail, {
+                    to={formatURL(NavRoute.TerraformDetail, {
                       name,
                       namespace,
                       clusterName,

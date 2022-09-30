@@ -7,7 +7,7 @@ import {
   createStyles,
   makeStyles,
   Theme,
-  useTheme,
+  useTheme
 } from '@material-ui/core/styles';
 import {
   AuthCheck,
@@ -17,7 +17,7 @@ import {
   OAuthCallback,
   SignIn,
   theme as weaveTheme,
-  V2Routes,
+  V2Routes
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import qs from 'query-string';
@@ -32,7 +32,7 @@ import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import { TerraformProvider } from '../contexts/Terraform';
-import { Routes } from '../utils/nav';
+import { NavRoute } from '../utils/nav';
 import WGApplicationsDashboard from './Applications';
 import AddApplication from './Applications/Add';
 import WGApplicationsBucket from './Applications/Bucket';
@@ -67,9 +67,6 @@ import TerraformObjectDetail from './Terraform/TerraformObjectDetail';
 import TerraformObjectList from './Terraform/TerraformObjectList';
 
 const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
-const POLICIES = '/policies';
-const CANARIES = '/applications/delivery';
-const PIPELINES = '/applications/pipelines';
 export const EDIT_CLUSTER = '/clusters/:clusterName/edit';
 
 function withSearchParams(Cmp: any) {
@@ -363,31 +360,39 @@ const App = () => {
                 ))}
                 path={V2Routes.Notifications}
               />
-              <Route exact path={CANARIES} component={ProgressiveDelivery} />
-              <Route exact path={PIPELINES} component={Pipelines} />
               <Route
                 exact
-                path="/applications/pipelines/details"
+                path={NavRoute.Delivery}
+                component={ProgressiveDelivery}
+              />
+              <Route exact path={NavRoute.Pipelines} component={Pipelines} />
+              <Route
+                exact
+                path={NavRoute.PipelinesDetail}
                 component={withSearchParams(PipelineDetails)}
               />
               <Route
                 path="/applications/delivery/:id"
                 component={withSearchParams(CanaryDetails)}
               />
-              <Route exact path={POLICIES} component={Policies} />
+              <Route exact path={NavRoute.Policies} component={Policies} />
               <Route
                 exact
-                path="/policies/details"
+                path={NavRoute.PoliciesDetail}
                 component={withSearchParams(PolicyDetails)}
               />
-              <Route component={TemplatesDashboard} exact path="/templates" />
+              <Route
+                component={TemplatesDashboard}
+                exact
+                path={NavRoute.Templates}
+              />
               <Route
                 exact
-                path={Routes.TerraformObjects}
+                path={NavRoute.TerraformObjects}
                 component={withSearchParams(TerraformObjectList)}
               />
               <Route
-                path={Routes.TerraformDetail}
+                path={NavRoute.TerraformDetail}
                 component={withSearchParams(TerraformObjectDetail)}
               />
               <Route
