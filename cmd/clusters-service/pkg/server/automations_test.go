@@ -174,7 +174,100 @@ status: {}
 				},
 			},
 			expected: "https://github.com/org/repo/pull/1",
-		}, {
+		},
+		{
+			name: "create target namespace resource",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster Kustomization",
+				Description:   "Creates cluster Kustomizations",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:            "./apps/capi",
+								SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+								TargetNamespace: "foo-ns",
+								CreateNamespace: true,
+							},
+						},
+					},
+					{
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:      "./apps/billing",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/foo-ns-namespace.yaml",
+					Content: `apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: foo-ns
+spec: {}
+status: {}
+`,
+				},
+				{
+					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-capi
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/capi
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: foo-ns
+status: {}
+`,
+				},
+				{
+					Path: "clusters/dev/billing/apps-billing-flux-system-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-billing
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/billing
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
 			name: "default values for namespace in kustomizations and helm releases",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
