@@ -26,6 +26,15 @@ interface NavigationItem {
   isVisible?: boolean;
 }
 
+// Doing this calc in CSS because JS can't handling strings like `16px`
+// when doing math operations. CSS calc is able to handle `px`.
+const navPadding = css`
+  calc(
+      ${({ theme }) => theme.spacing.medium} * 2 +
+      ${({ theme }) => theme.spacing.xxs}
+  );
+`;
+
 const NavWrapper = styled.div`
   display: flex;
   align-items: center;
@@ -61,12 +70,10 @@ const NavWrapper = styled.div`
   }
 
   .subroute-nav {
-    padding: ${({ theme }) => theme.spacing.xs}
-      ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.xs}
-      calc(
-        ${({ theme }) => theme.spacing.medium} * 2 +
-          ${({ theme }) => theme.spacing.xxs}
-      );
+    padding-top: ${({ theme }) => theme.spacing.xs};
+    padding-right: ${({ theme }) => theme.spacing.xs};
+    padding-bottom: ${({ theme }) => theme.spacing.xs};
+    padding-left: ${navPadding};
     color: ${({ theme }) => theme.colors.neutral30};
     font-weight: 600;
   }
