@@ -64,31 +64,17 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		baseBranch = msg.BaseBranch
 	}
 
-	automations, _ := getAutomations(ctx, client, msg.ClusterAutomations)
+	automations, err := getAutomations(ctx, client, msg.ClusterAutomations)
+
+	if err != nil {
+		return nil, err
+	}
 
 	var files []gitprovider.CommitFile
-
-	fmt.Sprintf("automations: %s,", automations)
 
 	if len(automations.KustomizationFiles) > 0 {
 		for _, f := range automations.KustomizationFiles {
 			files = append(files, toGitCommitFile(f))
-		if c.Kustomization != nil {
-			if c.Kustomization.Spec.CreateNamespace {
-				namespace, err := generateNamespaceFile(ctx, c.IsControlPlane, cluster, c.Kustomization.Spec.TargetNamespace, c.FilePath)
-				if err != nil {
-					return nil, err
-				}
-
-				files = append(files, namespace)
-			}
-
-			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
-			if err != nil {
-				return nil, err
-			}
-
-			files = append(files, kustomization)
 		}
 	}
 
@@ -150,6 +136,10 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 
 	automations, err := getAutomations(ctx, client, msg.ClusterAutomations)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automations.KustomizationFiles, HelmReleaseFiles: automations.HelmReleaseFiles}, err
 }
 
@@ -165,6 +155,18 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 			cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
 			if c.Kustomization != nil {
+				if c.Kustomization.Spec.CreateNamespace {
+					namespace, err := generateNamespaceFile(ctx, c.IsControlPlane, cluster, c.Kustomization.Spec.TargetNamespace, c.FilePath)
+					if err != nil {
+						return nil, err
+					}
+
+					kustomizationFiles = append(kustomizationFiles, &capiv1_proto.CommitFile{
+						Path:    *namespace.Path,
+						Content: *namespace.Content,
+					})
+				}
+
 				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
 
 				if err != nil {
