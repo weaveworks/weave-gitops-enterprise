@@ -19,9 +19,9 @@ import (
 )
 
 type GetFiles struct {
-    RenderedTemplate []gitprovider.CommitFile
-	ProfileFiles []gitprovider.CommitFile
-    KustomizationFiles   []gitprovider.CommitFile
+	RenderedTemplate   []gitprovider.CommitFile
+	ProfileFiles       []gitprovider.CommitFile
+	KustomizationFiles []gitprovider.CommitFile
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -129,15 +129,13 @@ func toCommitFile(file gitprovider.CommitFile) *capiv1_proto.CommitFile {
 
 // Similar the others list and get will right now only work with CAPI templates.
 // tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName) -> this get is the key.
-func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {	
-
+func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
 	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
 	git_files, err := s.getFiles(ctx, tm, msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations)
-	
 	if err != nil {
 		return nil, err
 	}
@@ -173,15 +171,14 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
 }
 
-
-func (s *server) getFiles(ctx context.Context,tm template.Template, cluster_namespace string, template_name string, template_kind string, parameter_values map[string]string, template_credentials *capiv1_proto.Credential, profiles []*capiv1_proto.ProfileValues, kustomizations []*capiv1_proto.Kustomization) (*GetFiles, error) {	
+func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_namespace string, template_name string, template_kind string, parameter_values map[string]string, template_credentials *capiv1_proto.Credential, profiles []*capiv1_proto.ProfileValues, kustomizations []*capiv1_proto.Kustomization) (*GetFiles, error) {
 	if template_kind == "" {
 		template_kind = capiv1.Kind
-	}	
+	}
 
 	s.log.WithValues("request_values", parameter_values, "request_credentials", template_credentials).Info("Received message")
 
-	tmplWithValues, err := renderTemplateWithValues(tm, template_name, getClusterNamespace(cluster_namespace), parameter_values)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, template_name, getClusterNamespace(cluster_namespace), parameter_values)
 	if err != nil {
 		return nil, err
 	}
@@ -200,15 +197,14 @@ func (s *server) getFiles(ctx context.Context,tm template.Template, cluster_name
 		return nil, err
 	}
 
-
 	clusterNamespace := getClusterNamespace(parameter_values["NAMESPACE"])
+	// FIXME: parse and read from Cluster in yaml template
 	clusterName, ok := parameter_values["CLUSTER_NAME"]
 	if !ok {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' parameter in supplied values")
 	}
 
 	cluster := createNamespacedName(clusterName, clusterNamespace)
-
 	content := string(tmplWithValuesAndCredentials[:])
 	path := getClusterManifestPath(cluster)
 	files := []gitprovider.CommitFile{
@@ -226,14 +222,13 @@ func (s *server) getFiles(ctx context.Context,tm template.Template, cluster_name
 		files = append(files, *commonKustomization)
 	}
 
-
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
 
 	if len(profiles) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
-			tm,
+			tmpl,
 			cluster,
 			client,
 			generateProfileFilesParams{
