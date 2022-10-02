@@ -8,7 +8,7 @@ import (
 	"os"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	wegohelm "github.com/weaveworks/weave-gitops/pkg/helm"
+	wegohelm "github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/getter"
 	"helm.sh/helm/v3/pkg/repo"
