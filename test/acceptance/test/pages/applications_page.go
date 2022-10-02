@@ -212,7 +212,7 @@ func GetNoDataRowInApplicationViolationsList(WebDriver *agouti.Page) *NoDataRowI
 
 func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	return &AppViolationsMsgInList{
-		AppViolationsMsg: webDriver.FindByXPath(``),
+		AppViolationsMsg: webDriver.FirstByXPath(`//a[contains(@class,'Link-sc-hgb28e-0 ieqCYE jss')]`),
 	}
 }
 
