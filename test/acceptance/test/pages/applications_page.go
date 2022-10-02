@@ -79,6 +79,10 @@ type NoDataRowInApplicationViolationsList struct {
 	NoDataRow *agouti.Selection
 }
 
+type AppViolationsMsgInList struct {
+	AppViolationsMsg *agouti.Selection
+}
+
 type ApplicationViolationsDetailsPage struct {
 	ViolationHeader      *agouti.Selection
 	PolicyName           *agouti.Selection
@@ -203,6 +207,12 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 func GetNoDataRowInApplicationViolationsList(WebDriver *agouti.Page) *NoDataRowInApplicationViolationsList {
 	return &NoDataRowInApplicationViolationsList{
 		NoDataRow: WebDriver.FindByXPath(`//td[contains(.,'No data')]`),
+	}
+}
+
+func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
+	return &AppViolationsMsgInList{
+		AppViolationsMsg: webDriver.FindByXPath(``),
 	}
 }
 
