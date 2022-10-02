@@ -1,9 +1,5 @@
-import {
-  act,
-  render,
-  RenderResult,
-  screen,
-} from '@testing-library/react';
+import { act, render, RenderResult, screen } from '@testing-library/react';
+import { formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { PipelinesProvider } from '../../../../contexts/Pipelines';
@@ -31,6 +27,7 @@ const res: GetPipelineResponse = {
             clusterRef: {
               kind: 'GitopsCluster',
               name: 'dev',
+              namespace: 'flux-system',
             },
           },
         ],
@@ -76,6 +73,7 @@ const res: GetPipelineResponse = {
               clusterRef: {
                 kind: 'GitopsCluster',
                 name: 'dev',
+                namespace: 'flux-system',
               },
               namespace: 'podinfo-02-dev',
               workloads: [
@@ -184,7 +182,9 @@ describe('PipelineDetails', () => {
         target: string | undefined;
         kind?: string | undefined;
         name?: string | undefined;
+        namespace?: string | undefined;
         version?: string | undefined;
+        clusterName?: string | undefined;
       }[] = [];
 
       targetsStatuses[env.name!].targetsStatuses?.forEach(ts => {
@@ -194,6 +194,10 @@ describe('PipelineDetails', () => {
             target: ts.clusterRef?.name
               ? `${ts.clusterRef?.name}/${ts.namespace}`
               : ts.namespace,
+            clusterName: ts.clusterRef?.namespace
+              ? `${ts.clusterRef?.namespace}/${ts.clusterRef.name}`
+              : '',
+            namespace: ts.namespace,
           }));
           workloads = [...workloads, ...wrks];
         }
@@ -205,6 +209,20 @@ describe('PipelineDetails', () => {
         const workloadTarget =
           target.querySelector('.workloadTarget')?.textContent;
         expect(workloadTarget).toEqual(workloads![index].target);
+
+        //Target as a link
+        const linkToAutomation = target.querySelector('.workloadName > a');
+
+        if (workloads![index].clusterName) {
+          const href = formatURL('/helm_release/details', {
+            name: workloads![index].name,
+            namespace: workloads![index].namespace,
+            clusterName: workloads![index].clusterName,
+          });
+          linkToExists(linkToAutomation, href);
+        } else {
+          linkToBeNull(linkToAutomation);
+        }
 
         // Workload Name
         const workloadName = target.querySelector('.workloadName')?.textContent;
@@ -235,3 +253,10 @@ describe('PipelineDetails', () => {
     });
   });
 });
+
+const linkToExists = (element: Element | null, href: String) => {
+  return expect(element).toHaveAttribute('href', href);
+};
+const linkToBeNull = (element: Element | null) => {
+  return expect(element).toBeNull();
+};
