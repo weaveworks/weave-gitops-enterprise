@@ -7,6 +7,7 @@ import {
 } from '@material-ui/core';
 import styled from 'styled-components';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
+import { Link } from '@weaveworks/weave-gitops';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiDialog-paper'] {
@@ -34,13 +35,12 @@ export const ConnectClusterDialog: FC<Props> = ({ onFinish }) => {
       <DialogContent>
         For instructions on how to connect and disconnect clusters, have a look
         at the&nbsp;
-        <a
+        <Link
           href=" https://docs.gitops.weave.works/docs/cluster-management/managing-existing-clusters/#how-to-connect-a-cluster"
-          target="_blank"
-          rel="noopener noreferrer"
+          newTab
         >
           documentation.
-        </a>
+        </Link>
       </DialogContent>
     </DialogWrapper>
   );
