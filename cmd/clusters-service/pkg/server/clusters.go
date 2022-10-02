@@ -19,8 +19,8 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -232,6 +232,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	if len(msg.Kustomizations) > 0 {
 		for _, k := range msg.Kustomizations {
+			if k.Spec.CreateNamespace {
+				namespace, err := generateNamespaceFile(ctx, false, cluster, k.Spec.TargetNamespace, "")
+				if err != nil {
+					return nil, err
+				}
+
+				files = append(files, namespace)
+			}
+
 			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
 			if err != nil {
 				return nil, err
@@ -913,11 +922,17 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		clusterNamespace = cluster.Namespace
 	}
 
+	fileName := fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType)
+
+	if resourceType == "namespace" {
+		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
+	}
+
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
 		cluster.Name,
-		fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType),
+		fileName,
 	)
 }
 
