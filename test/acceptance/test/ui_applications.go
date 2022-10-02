@@ -1008,16 +1008,16 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Application Violations Details page", func() {
 
-		ginkgo.Context("[UI] Application Violations Detials for management cluster", func() {
+		ginkgo.Context("[UI] Application Violations Details for management cluster", func() {
 
 			//just apply policies
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
-			//Just specifiy the Violating policy info to create it
+			//Just specify the Violating policy info to create it
 			policyName := "Containers Running With Privilege Escalation acceptance test"
 			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment App-Violations-podinfo \(2 occurrences\)`
 
-			//Just specifiy the violated application info to create it
+			//Just specify the violated application info to create it
 			appNameSpace := "test-kustomization"
 			appTargetNamespace := "test-system"
 
@@ -1065,7 +1065,7 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 					installTestPolicies("management", policiesYaml)
 
 				})
-				ginkgo.By("Install kustomization Application on managment cluster", func() {
+				ginkgo.By("Install kustomization Application on management cluster", func() {
 					appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 					repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
@@ -1121,8 +1121,6 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By(fmt.Sprintf("Verify '%s' Application Violation Details", policyName), func() {
-					//violationsPage := pages.GetViolationsPage(webDriver)
-					//appViolationsMsg := violationsPage.FindViolationInList(policyName)
 
 					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
 
@@ -1141,13 +1139,25 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 
 					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("&id=weave.policies."))
 
-					//back to app violations details page
-					webDriver.Back()
-					pages.GetApplicationsDetailPage(webDriver, podinfo.Name).Violations.Click()
+					//back to app violations List
+					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred())
+					gomega.Eventually(pages.GetApplicationsDetailPage(webDriver, podinfo.Name).Violations.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
+
+					//click the violations msg to open the app violations detials page again
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 
 					gomega.Expect(appViolationsDetialsPage.ClusterName.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get cluster name field on App violations details page")
 					gomega.Expect(appViolationsDetialsPage.ClusterNameValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get cluster name value on App violations details page")
 
+					gomega.Expect(appViolationsDetialsPage.ViolationTime.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violation time field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.ViolationTimeValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violation time value on App violations details page")
+
+					gomega.Expect(appViolationsDetialsPage.Severity.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get severity field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.SeverityIcon).Should(matchers.BeFound())
+					gomega.Expect(appViolationsDetialsPage.SeverityValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get severity value on App violations details page")
+
+					gomega.Expect(appViolationsDetialsPage.Category.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get category field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.CategoryValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get category value on App violations details page")
 				})
 			})
 		})
