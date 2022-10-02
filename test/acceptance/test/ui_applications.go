@@ -1121,10 +1121,12 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By(fmt.Sprintf("Verify '%s' Application Violation Details", policyName), func() {
-					violationsPage := pages.GetViolationsPage(webDriver)
-					appViolationsMsg := violationsPage.FindViolationInList(policyName)
+					//violationsPage := pages.GetViolationsPage(webDriver)
+					//appViolationsMsg := violationsPage.FindViolationInList(policyName)
 
-					gomega.Eventually(appViolationsMsg.Message.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
+
+					gomega.Eventually(appViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 
 					appViolationsDetialsPage := pages.GetApplicationViolationsDetailsPage(webDriver)
 
