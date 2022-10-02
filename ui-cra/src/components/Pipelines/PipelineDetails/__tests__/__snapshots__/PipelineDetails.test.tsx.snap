@@ -15,6 +15,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
+.c15 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
 .c9 svg {
   fill: !important;
   height: 24px;
@@ -31,6 +40,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
+}
+
+.c9 .c14 {
+  margin-left: 4px;
+}
+
+.c13 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
 }
 
 .c7 {
@@ -462,9 +480,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
         <div>
           Need help? Raise a 
           <a
+            class="c13"
             href="https://weavesupport.zendesk.com/"
+            rel="noreferrer"
+            target="_blank"
           >
-            support ticket
+            <span
+              class="c14 c15"
+              color="primary"
+            >
+              support ticket
+            </span>
           </a>
         </div>
         <div
