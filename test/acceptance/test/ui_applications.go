@@ -1167,7 +1167,7 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred())
 					gomega.Eventually(pages.GetApplicationsDetailPage(webDriver, podinfo.Name).Violations.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
 
-					//click the violations msg to open the app violations detials page again
+					//click the violations msg to open the app violations details page again
 					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 
 					gomega.Expect(appViolationsDetialsPage.ClusterName.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get cluster name field on App violations details page")
@@ -1182,6 +1182,19 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 
 					gomega.Expect(appViolationsDetialsPage.Category.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get category field on App violations details page")
 					gomega.Expect(appViolationsDetialsPage.CategoryValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get category value on App violations details page")
+
+					gomega.Expect(appViolationsDetialsPage.Occurrences.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.OccurrencesCount.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences count on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.OccurrencesValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences value on App violations details page")
+
+					gomega.Expect(appViolationsDetialsPage.Description.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get description field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.DescriptionValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get description value on App violations details page")
+
+					gomega.Expect(appViolationsDetialsPage.HowToSolve.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get how to resolve field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.HowToSolveValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get how to resolve value on App violations details page")
+
+					gomega.Expect(appViolationsDetialsPage.ViolatingEntity.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.ViolatingEntityValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity value on App violations details page")
 				})
 			})
 		})
