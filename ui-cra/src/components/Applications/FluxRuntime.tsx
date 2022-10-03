@@ -1,14 +1,16 @@
 import {
   FluxRuntime,
+  useListFluxCrds,
   useListFluxRuntimeObjects,
-} from '@weaveworks/weave-gitops';
+} from '@weaveworks/weave-gitops-main';
 import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading } = useListFluxRuntimeObjects();
-
+  const { data: crds, isLoading: crdsLoading } = useListFluxCrds();
+  
   return (
     <PageTemplate
       documentTitle="Flux Runtime"
