@@ -149,7 +149,7 @@ func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *Applicat
 		Details:    webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/detail"`, appType)),
 		Events:     webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/event"`, appType)),
 		Graph:      webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/graph"`, appType)),
-		Violations: webDriver.FindByXPath(`//span[contains(text(),'Violations')]`),
+		Violations: webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/violations"`, appType)),
 	}
 }
 
