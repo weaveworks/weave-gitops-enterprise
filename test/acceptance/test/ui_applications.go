@@ -156,7 +156,6 @@ func verifyAppPage(app Application) {
 		gomega.Eventually(appDetailPage.Details).Should(matchers.BeEnabled(), fmt.Sprintf("Details tab button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Events).Should(matchers.BeEnabled(), fmt.Sprintf("Events tab button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Graph).Should(matchers.BeEnabled(), fmt.Sprintf("Graph tab button is not visible/enable for %s", app.Name))
-		gomega.Eventually(appDetailPage.Violations).Should(matchers.BeEnabled(), fmt.Sprintf("Violations tab button is not visible/enable for %s", app.Name))
 	})
 }
 
@@ -365,6 +364,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] Applications(s) can be installed", func() {
+
+			var existingAppCount int
 			appNameSpace := "test-kustomization"
 			appTargetNamespace := "test-system"
 
@@ -379,6 +380,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.JustAfterEach(func() {
+				// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
+				gomega.Eventually(func(g gomega.Gomega) int {
+					return getApplicationCount()
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 			})
 
@@ -396,7 +402,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount := getApplicationCount()
+				existingAppCount = getApplicationCount()
 
 				appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
 				defer cleanGitRepository(appKustomization)
@@ -452,9 +458,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					SyncInterval:    "10m",
 					Name:            "metallb",
 					DeploymentName:  "metallb-controller",
-					Namespace:       appNameSpace,
+					Namespace:       GITOPS_DEFAULT_NAMESPACE, // HelmRelease application always get installed in flux-system namespace
 					TargetNamespace: appNameSpace,
-					Source:          appNameSpace + "-metallb",
+					Source:          GITOPS_DEFAULT_NAMESPACE + "-metallb",
 					Version:         "0.0.2",
 					ValuesRegex:     `namespace: ""`,
 					Values:          fmt.Sprintf(`namespace: %s`, appNameSpace),
@@ -476,7 +482,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount := getApplicationCount()
+				existingAppCount = getApplicationCount()
 
 				defer cleanGitRepository(appKustomization)
 
@@ -589,7 +595,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				defer cleanGitRepository(appKustomization)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount := getApplicationCount()
+				existingAppCount = getApplicationCount()
 
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
@@ -825,7 +831,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						count, _ := applicationsPage.ApplicationCount.Text()
 						return count
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
