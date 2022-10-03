@@ -1032,12 +1032,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
 			})
-		})
-	})
-} //Application Violations Details page tests
-func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
-	var _ = ginkgo.Describe("Application Violations Details page", func() {
 
+		})
+
+		//Application Violations Details page tests
 		ginkgo.Context("[UI] Application Violations Details for management cluster", func() {
 
 			//just apply policies
@@ -1069,15 +1067,9 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 				SyncInterval:    "30s",
 			}
 
-			// declare application page variable
-			applicationsPage := pages.GetApplicationsPage(webDriver)
-
-			// get apps count
-			existingAppCount := getApplicationCount()
-
 			//specify the github source for the app customization
 			appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
-			defer cleanGitRepository(appKustomization)
+			//defer cleanGitRepository(appKustomization)
 
 			ginkgo.JustBeforeEach(func() {
 				createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -1085,11 +1077,15 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
-				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 
 			})
-			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.FIt("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+				// declare application page variable
+				applicationsPage := pages.GetApplicationsPage(webDriver)
+
+				// get apps count
+				existingAppCount := getApplicationCount()
 
 				ginkgo.By("Install Policies on Management Cluster", func() {
 					installTestPolicies("management", policiesYaml)
@@ -1201,6 +1197,10 @@ func DescribeApplicationViolationsDetails(gitopsTestRunner GitopsTestRunner) {
 
 					gomega.Expect(appViolationsDetialsPage.ViolatingEntity.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity field on App violations details page")
 					gomega.Expect(appViolationsDetialsPage.ViolatingEntityValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity value on App violations details page")
+				})
+				ginkgo.By("Verify delete the application", func() {
+
+					verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 				})
 			})
 		})
