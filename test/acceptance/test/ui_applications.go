@@ -156,6 +156,7 @@ func verifyAppPage(app Application) {
 		gomega.Eventually(appDetailPage.Details).Should(matchers.BeEnabled(), fmt.Sprintf("Details tab button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Events).Should(matchers.BeEnabled(), fmt.Sprintf("Events tab button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Graph).Should(matchers.BeEnabled(), fmt.Sprintf("Graph tab button is not visible/enable for %s", app.Name))
+		gomega.Eventually(appDetailPage.Violations).Should(matchers.BeEnabled(), fmt.Sprintf("Violations tab button is not visible/enable for %s", app.Name))
 	})
 }
 
@@ -1106,10 +1107,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					//Navigate to the application page
 					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
-
-					verifyAppPage(podinfo)
-					verifyAppDetails(podinfo, mgmtCluster)
-					navigatetoApplicationsPage(applicationsPage)
 
 				})
 
