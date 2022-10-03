@@ -1198,7 +1198,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(appViolationsDetialsPage.ViolatingEntity.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity field on App violations details page")
 					gomega.Expect(appViolationsDetialsPage.ViolatingEntityValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity value on App violations details page")
 				})
-				ginkgo.By("Verify delete the application", func() {
+				ginkgo.By(fmt.Sprintf("Verify delete %s application", podinfo.Name), func() {
 
 					verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 				})
