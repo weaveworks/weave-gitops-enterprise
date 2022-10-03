@@ -1329,6 +1329,8 @@ github.com/weaveworks/weave-gitops v0.9.7-0.20220930180719-de905707d469 h1:daIW9
 github.com/weaveworks/weave-gitops v0.9.7-0.20220930180719-de905707d469/go.mod h1:I7+HSTP8uik9ZwvtcCWEkKsGYZEZbI1aECP/YTZsC9I=
 github.com/weaveworks/weave-gitops v0.9.7-0.20221003162626-796e61d473da h1:4onA7njoc8jUqyD3AnJmZhCjJRh8OaPp/psYMVG9a98=
 github.com/weaveworks/weave-gitops v0.9.7-0.20221003162626-796e61d473da/go.mod h1:I7+HSTP8uik9ZwvtcCWEkKsGYZEZbI1aECP/YTZsC9I=
+github.com/weaveworks/weave-gitops v0.9.7-0.20221003174304-5462499942cd h1:9cCGfbDYPB8Prqb9bjisQPfvNAPDGtnra3YFXdviKCA=
+github.com/weaveworks/weave-gitops v0.9.7-0.20221003174304-5462499942cd/go.mod h1:I7+HSTP8uik9ZwvtcCWEkKsGYZEZbI1aECP/YTZsC9I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.73.1 h1:UMagqUZLJdjss1SovIC+kJCH4k2AZWXl58gJd38Y/hI=
