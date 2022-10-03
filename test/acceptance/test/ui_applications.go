@@ -1039,11 +1039,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			// Podinfo application details
 			podinfo := Application{
 				Type:            "kustomization",
-				Name:            "App-Violations-podinfo",
+				Name:            "app-violations-podinfo",
 				DeploymentName:  "podinfo",
 				Namespace:       appNameSpace,
 				TargetNamespace: appTargetNamespace,
-				Source:          "App-Violations-podinfo",
+				Source:          "app-violations-podinfo",
 				Path:            "./kustomize",
 				SyncInterval:    "30s",
 			}
