@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
+	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 )
 
 // legacy interface
@@ -75,19 +77,32 @@ func TestListProfiles(t *testing.T) {
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", nil,
-		nsn(ManagementClusterName, ManagementClusterNamespace),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
+	data := cache.Data{
+		Profiles: []*pb.Profile{
+			{
+				Name:              "redis",
+				AvailableVersions: []string{"1.0.1"},
+				Layer:             "layer-0",
+			},
+			{
+				Name:              "nginx",
+				AvailableVersions: []string{"1.0.2", "1.0.3"},
+				Layer:             "layer-1",
+			},
+		},
+		Values: cache.ValueMap{
+			"redis": {
+				"1.0.1": []byte("hi: there"),
+			},
+			"nginx": {
+				"1.0.2": []byte("hi: there"),
+				"1.0.3": []byte("hi: there"),
+			},
+		},
 	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", nil,
-		nsn(ManagementClusterName, ManagementClusterNamespace),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.2", nil,
-		nsn(ManagementClusterName, ManagementClusterNamespace),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
+
+	err := indexer.Put(context.TODO(), "team-ns", "bitnami-charts", data)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -101,6 +116,9 @@ func TestListProfiles(t *testing.T) {
 
 	for _, profile := range profiles {
 		if profile.Name == "nginx" {
+			if profile.Layer != "layer-1" {
+				t.Fatalf("got %s, want layer-1", profile.Layer)
+			}
 			if len(profile.AvailableVersions) != 2 {
 				t.Fatalf("got %d, want 2", len(profile.AvailableVersions))
 			}

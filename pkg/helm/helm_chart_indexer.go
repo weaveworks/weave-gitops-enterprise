@@ -58,14 +58,21 @@ func (i *HelmChartIndexer) Put(ctx context.Context, helmRepoNamespace, helmRepoN
 
 	for _, chart := range value.Profiles {
 		for _, version := range chart.AvailableVersions {
-			if err := i.AddChart(
+			sqlStatement := `
+INSERT INTO helm_charts (name, version, valuesYaml, layer,
+	repo_kind, repo_api_version, repo_name, repo_namespace,
+	cluster_name, cluster_namespace)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+
+			_, err := i.CacheDB.ExecContext(
 				ctx,
-				chart.Name,
-				version,
+				sqlStatement, chart.Name, version,
 				value.Values[chart.Name][version],
-				nsn(ManagementClusterName, ManagementClusterNamespace),
-				objref(kind, apiVersion, helmRepoName, helmRepoNamespace),
-			); err != nil {
+				chart.Layer,
+				kind, apiVersion, helmRepoName, helmRepoNamespace,
+				ManagementClusterName, ManagementClusterNamespace)
+
+			if err != nil {
 				return err
 			}
 		}
@@ -85,7 +92,7 @@ WHERE repo_name = $1 AND repo_namespace = $2`
 func (i *HelmChartIndexer) ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
 	// select profiles aggregating available versions into a single row
 	sqlStatement := `
-	select name, group_concat(version) as versions
+	select name, group_concat(version) as versions, layer
 	from helm_charts
 	where repo_name = $1 and repo_namespace = $2 and cluster_name = $3 and cluster_namespace = $4
 	group by name`
@@ -100,7 +107,8 @@ func (i *HelmChartIndexer) ListProfiles(ctx context.Context, helmRepoNamespace, 
 	for rows.Next() {
 		var p pb.Profile
 		var versions string
-		if err := rows.Scan(&p.Name, &versions); err != nil {
+		var layer sql.NullString
+		if err := rows.Scan(&p.Name, &versions, &layer); err != nil {
 			return nil, err
 		}
 		p.AvailableVersions = strings.Split(versions, ",")
@@ -108,6 +116,11 @@ func (i *HelmChartIndexer) ListProfiles(ctx context.Context, helmRepoNamespace, 
 		if err != nil {
 			return nil, fmt.Errorf("parsing template profile %s: %w", p.Name, err)
 		}
+
+		if layer.Valid {
+			p.Layer = layer.String
+		}
+
 		profiles = append(profiles, &p)
 	}
 
@@ -120,13 +133,8 @@ func (i *HelmChartIndexer) GetProfileValues(ctx context.Context, helmRepoNamespa
 	from helm_charts
 	where name = $1 and version = $2 and repo_name = $3 and repo_namespace = $4 and cluster_name = $5 and cluster_namespace = $6`
 
-	// execute the query, if no rows are returned then return nil
 	var valuesYaml []byte
 	err := i.CacheDB.QueryRowContext(ctx, sqlStatement, profileName, profileVersion, helmRepoName, helmRepoNamespace, ManagementClusterName, ManagementClusterNamespace).Scan(&valuesYaml)
-
-	// if err == sql.ErrNoRows {
-	// 	return nil, nil
-	// }
 
 	if err != nil {
 		return nil, err
@@ -267,7 +275,7 @@ func objref(kind, apiVersion, name, namespace string) ObjectReference {
 func applySchema(db *sql.DB) error {
 	_, err := db.Exec(`
 CREATE TABLE IF NOT EXISTS helm_charts (
-	name text, version text, valuesYaml blob,
+	name text, version text, valuesYaml blob, layer text,
 	repo_kind text, repo_api_version text, repo_name text, repo_namespace text,
 	cluster_name text, cluster_namespace text);
 	`)
