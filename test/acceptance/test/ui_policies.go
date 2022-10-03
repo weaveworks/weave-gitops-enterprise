@@ -40,6 +40,14 @@ func installTestPolicies(clusterName string, policiesYaml string) {
 func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", func() {
 
+		ginkgo.BeforeEach(func() {
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+
+			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+				loginUser()
+			}
+		})
+
 		ginkgo.Context("[UI] Policies can be installed", func() {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 

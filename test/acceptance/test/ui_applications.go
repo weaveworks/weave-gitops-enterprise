@@ -142,7 +142,7 @@ func verifyAppInformation(applicationsPage *pages.ApplicationsPage, app Applicat
 		gomega.Eventually(applicationInfo.Namespace).Should(matchers.MatchText(app.Namespace), fmt.Sprintf("Failed to have expected %s application namespace: %s", app.Name, app.Namespace))
 		gomega.Eventually(applicationInfo.Cluster).Should(matchers.MatchText(path.Join(cluster.Namespace, cluster.Name)), fmt.Sprintf("Failed to have expected %s application cluster: %s", app.Name, path.Join(cluster.Namespace, cluster.Name)))
 		gomega.Eventually(applicationInfo.Source).Should(matchers.MatchText(app.Source), fmt.Sprintf("Failed to have expected %s application source: %s", app.Name, app.Source))
-		gomega.Eventually(applicationInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText(status), fmt.Sprintf("Failed to have expected %s application status: %s", app.Name, status))
+		gomega.Eventually(applicationInfo.Status, ASSERTION_2MINUTE_TIME_OUT).Should(matchers.MatchText(status), fmt.Sprintf("Failed to have expected %s application status: %s", app.Name, status))
 	})
 }
 
@@ -172,7 +172,13 @@ func verifyAppDetails(app Application, cluster ClusterConfig) {
 			gomega.Eventually(details.Source.Text).Should(gomega.MatchRegexp("HelmChart/"+app.Namespace+"-"+app.Name), fmt.Sprintf("Failed to verify %s Source", app.Name))
 			gomega.Eventually(details.Chart.Text).Should(gomega.MatchRegexp(app.Name), fmt.Sprintf("Failed to verify %s Chart", app.Name))
 			gomega.Eventually(details.ChartVersion.Text).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Chart Version", app.Name))
-			gomega.Eventually(details.AppliedRevision.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Last Applied Version", app.Name))
+
+			gomega.Eventually(func(g gomega.Gomega) (string, error) {
+				g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+				time.Sleep(POLL_INTERVAL_1SECONDS)
+				return details.AppliedRevision.Text()
+			}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Last Applied Version", app.Name))
+
 			gomega.Eventually(details.AttemptedRevision.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Last Attempted Version", app.Name))
 
 		} else {
@@ -195,9 +201,12 @@ func verifyAppDetails(app Application, cluster ClusterConfig) {
 		gomega.Eventually(details.Type.Text).Should(gomega.MatchRegexp("Deployment"), fmt.Sprintf("Failed to verify %s Type", app.Name))
 		gomega.Eventually(details.Namespace.Text).Should(gomega.MatchRegexp(app.TargetNamespace), fmt.Sprintf("Failed to verify %s Namespace", app.Name))
 
-		gomega.Eventually(details.Status.Text, ASSERTION_5MINUTE_TIME_OUT).Should(gomega.MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", app.Name))
+		gomega.Eventually(func(g gomega.Gomega) (string, error) {
+			g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+			time.Sleep(POLL_INTERVAL_1SECONDS)
+			return details.Status.Text()
+		}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp("Ready"), fmt.Sprintf("Failed to verify %s Status", app.Name))
 		gomega.Eventually(details.Message.Text).Should(gomega.MatchRegexp("Deployment is available"), fmt.Sprintf("Failed to verify %s Message", app.Name))
-
 	})
 }
 
@@ -273,8 +282,10 @@ func verifyDeleteApplication(applicationsPage *pages.ApplicationsPage, existingA
 
 	ginkgo.By(fmt.Sprintf("And wait for %s application to dissappeare from the dashboard", appName), func() {
 		gomega.Eventually(func(g gomega.Gomega) int {
+			g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+			time.Sleep(POLL_INTERVAL_1SECONDS)
 			return applicationsPage.CountApplications()
-		}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries in application table", existingAppCount))
+		}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries in application table", existingAppCount))
 	})
 }
 
@@ -298,6 +309,14 @@ func createGitopsPR(pullRequest PullRequest) {
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
+
+		ginkgo.BeforeEach(func() {
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+
+			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+				loginUser()
+			}
+		})
 
 		ginkgo.Context("[UI] When no applications are installed", func() {
 			ginkgo.It("Verify management cluster dashboard shows bootstrap 'flux-system' application", ginkgo.Label("integration"), func() {

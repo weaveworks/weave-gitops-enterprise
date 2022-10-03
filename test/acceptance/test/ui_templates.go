@@ -74,6 +74,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.BeforeEach(func() {
 			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+
+			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+				loginUser()
+			}
 		})
 
 		ginkgo.AfterEach(func() {

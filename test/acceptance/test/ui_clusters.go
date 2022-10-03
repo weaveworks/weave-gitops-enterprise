@@ -90,6 +90,14 @@ func verifyDashboard(dashboard *agouti.Selection, clusterName string, dashboardN
 func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
 
+		ginkgo.BeforeEach(func() {
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+
+			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+				loginUser()
+			}
+		})
+
 		ginkgo.Context("[UI] When no leaf cluster is connected", func() {
 			ginkgo.It("Verify connected cluster dashboard shows only management cluster", ginkgo.Label("integration"), func() {
 				pages.NavigateToPage(webDriver, "Clusters")
@@ -233,6 +241,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to download %s cluster kubeconfig file", leafClusterName))
 
 					gomega.Eventually(clusterDetailPage.Namespace.Text).Should(gomega.MatchRegexp(leafClusterNamespace), "Failed to verify leaf cluster namespace on cluster page")
+					TakeScreenShot("prior-dashboard-leaf-cluster")
 					verifyDashboard(clusterDetailPage.GetDashboard("prometheus"), leafClusterName, "Prometheus")
 
 					gomega.Expect(clusterDetailPage.GetDashboard("javascript")).ShouldNot(matchers.BeFound(), "XXSVulnerable link shound not be found")
