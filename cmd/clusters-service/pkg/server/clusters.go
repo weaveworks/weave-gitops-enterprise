@@ -63,18 +63,27 @@ type generateProfileFilesParams struct {
 }
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
-	listOptions := client.ListOptions{
-		Limit:    msg.GetPageSize(),
-		Continue: msg.GetPageToken(),
-	}
-	cl, nextPageToken, err := s.clustersLibrary.List(ctx, listOptions)
+	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitopsCluster", func() client.ObjectList {
+		return &gitopsv1alpha1.GitopsClusterList{}
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query clusters: %w", err)
 	}
-	clusters := []*capiv1_proto.GitopsCluster{}
 
-	for _, c := range cl {
-		clusters = append(clusters, ToClusterResponse(c))
+	clusters := []*capiv1_proto.GitopsCluster{}
+	errors := []*capiv1_proto.ListError{}
+
+	for _, namespacedList := range namespacedLists {
+		if namespacedList.Error != nil {
+			errors = append(errors, &capiv1_proto.ListError{
+				Namespace: namespacedList.Namespace,
+				Message:   err.Error(),
+			})
+		}
+		clustersList := namespacedList.List.(*gitopsv1alpha1.GitopsClusterList)
+		for _, c := range clustersList.Items {
+			clusters = append(clusters, ToClusterResponse(&c))
+		}
 	}
 
 	client, err := s.clientGetter.Client(ctx)
@@ -115,8 +124,9 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	sort.Slice(clusters, func(i, j int) bool { return clusters[i].Name < clusters[j].Name })
 	return &capiv1_proto.ListGitopsClustersResponse{
 		GitopsClusters: clusters,
-		NextPageToken:  nextPageToken,
-		Total:          int32(len(clusters))}, err
+		Total:          int32(len(clusters)),
+		Errors:         errors,
+	}, err
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {

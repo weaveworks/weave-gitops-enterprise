@@ -3,7 +3,6 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -13,6 +12,7 @@ import (
 	core_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -22,7 +22,6 @@ type Options struct {
 	Log                          logr.Logger
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
-	ClustersLibrary              clusters.Library
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *core_server.ApplicationsConfig
@@ -46,6 +45,7 @@ type Options struct {
 	NoTLS                        bool
 	DevMode                      bool
 	ClustersManager              clustersmngr.ClustersManager
+	KubernetesClientSet          *kubernetes.Clientset
 }
 
 type Option func(*Options)
@@ -70,14 +70,6 @@ func WithKubernetesClient(client client.Client) Option {
 func WithDiscoveryClient(client discovery.DiscoveryInterface) Option {
 	return func(o *Options) {
 		o.DiscoveryClient = client
-	}
-}
-
-// WithClustersLibrary is used to set the location that contains
-// CAPI templates. Typically this will be a namespace in the cluster.
-func WithClustersLibrary(clustersLibrary clusters.Library) Option {
-	return func(o *Options) {
-		o.ClustersLibrary = clustersLibrary
 	}
 }
 
@@ -231,5 +223,12 @@ func WithDevMode(devMode bool) Option {
 func WithClustersManager(factory clustersmngr.ClustersManager) Option {
 	return func(o *Options) {
 		o.ClustersManager = factory
+	}
+}
+
+// WithKubernetesClientSet defines the kuberntes client set that will be used for
+func WithKubernetesClientSet(kubernetesClientSet *kubernetes.Clientset) Option {
+	return func(o *Options) {
+		o.KubernetesClientSet = kubernetesClientSet
 	}
 }

@@ -110,6 +110,7 @@ export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
   total?: number
   nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type GetPolicyRequest = {

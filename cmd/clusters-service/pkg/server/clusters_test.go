@@ -17,6 +17,7 @@ import (
 	"time"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -319,6 +320,7 @@ func TestListGitopsClusters(t *testing.T) {
 		},
 	}
 
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{ID: "userID"})
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.SetDefault("runtime-namespace", "default")
@@ -333,7 +335,7 @@ func TestListGitopsClusters(t *testing.T) {
 			// request
 			listGitopsClustersRequest := new(capiv1_protos.ListGitopsClustersRequest)
 			listGitopsClustersRequest.RefType = tt.refType
-			listGitopsClustersResponse, err := s.ListGitopsClusters(context.Background(), listGitopsClustersRequest)
+			listGitopsClustersResponse, err := s.ListGitopsClusters(ctx, listGitopsClustersRequest)
 
 			// check response
 			if err != nil {

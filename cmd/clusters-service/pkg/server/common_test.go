@@ -25,13 +25,13 @@ import (
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -75,6 +75,20 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 	c := createClient(t, o.clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*corev1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
+
 	return NewClusterServer(
 		ServerOpts{
 			Logger: logr.Discard(),
@@ -82,11 +96,6 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 				Log:           logr.Discard(),
 				ClientGetter:  kubefakes.NewFakeClientGetter(c),
 				CAPINamespace: o.namespace,
-			},
-			ClustersLibrary: &clusters.CRDLibrary{
-				Log:          logr.Discard(),
-				ClientGetter: kubefakes.NewFakeClientGetter(c),
-				Namespace:    o.namespace,
 			},
 			ClustersManager:           o.clustersManager,
 			GitProvider:               o.provider,
@@ -100,6 +109,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ChartJobs:                 o.chartJobs,
 			ChartsCache:               o.chartsCache,
 			ValuesFetcher:             o.valuesFetcher,
+			ManagementFetcher:         mgmtFetcher,
 		},
 	)
 }
