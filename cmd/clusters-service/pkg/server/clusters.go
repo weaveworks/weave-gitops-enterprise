@@ -135,6 +135,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
+	// •••
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
 	if err != nil {
@@ -145,13 +146,28 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if err != nil {
 		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
 	}
+	// •••
 
 	git_files, err := s.getFiles(ctx, tmpl, clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations)
 	if err != nil {
 		return nil, err
 	}
 
-	var files []gitprovider.CommitFile
+	path := getClusterManifestPath(git_files.Cluster)
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &git_files.RenderedTemplate,
+		},
+	}
+
+	if viper.GetString("add-bases-kustomization") == "enabled" {
+		commonKustomization, err := getCommonKustomization(git_files.Cluster)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues["CLUSTER_NAME"], err)
+		}
+		files = append(files, *commonKustomization)
+	}
 
 	if len(git_files.ProfileFiles) > 0 {
 		for _, f := range git_files.ProfileFiles {

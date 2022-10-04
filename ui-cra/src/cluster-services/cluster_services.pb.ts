@@ -73,15 +73,9 @@ export type CommitFile = {
 }
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: CommitFile[]
+  renderedTemplate?: string
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
-}
-
-export type GetAutomations = {
-  kustomizationFiles?: CommitFile[]
-  helmReleaseFiles?: CommitFile[]
-  clusters?: string[]
 }
 
 export type RenderAutomationRequest = {

@@ -26,6 +26,12 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
+type GetAutomations struct {
+	KustomizationFiles []*capiv1_proto.CommitFile
+	HelmReleaseFiles   []*capiv1_proto.CommitFile
+	Clusters           []string
+}
+
 func toGitCommitFile(file *capiv1_proto.CommitFile) gitprovider.CommitFile {
 	return gitprovider.CommitFile{
 		Path:    &file.Path,
@@ -143,7 +149,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automations.KustomizationFiles, HelmReleaseFiles: automations.HelmReleaseFiles}, err
 }
 
-func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_proto.ClusterAutomation) (*capiv1_proto.GetAutomations, error) {
+func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_proto.ClusterAutomation) (*GetAutomations, error) {
 	applyCreateAutomationDefaults(ca)
 
 	var clusters []string
@@ -196,7 +202,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 		}
 	}
 
-	return &capiv1_proto.GetAutomations{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles, Clusters: clusters}, nil
+	return &GetAutomations{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles, Clusters: clusters}, nil
 }
 
 func generateHelmReleaseFile(

@@ -16,12 +16,14 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type GetFiles struct {
-	RenderedTemplate   []gitprovider.CommitFile
+	RenderedTemplate   string
 	ProfileFiles       []gitprovider.CommitFile
 	KustomizationFiles []gitprovider.CommitFile
+	Cluster            types.NamespacedName
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -135,40 +137,27 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	git_files, err := s.getFiles(ctx, tm, msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations)
+	files, err := s.getFiles(ctx, tm, msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations)
 	if err != nil {
 		return nil, err
 	}
 
 	var profileFiles []*capiv1_proto.CommitFile
 	var kustomizationFiles []*capiv1_proto.CommitFile
-	var renderedTemplate []*capiv1_proto.CommitFile
 
-	if len(git_files.ProfileFiles) > 0 {
-		for _, f := range git_files.ProfileFiles {
+	if len(files.ProfileFiles) > 0 {
+		for _, f := range files.ProfileFiles {
 			profileFiles = append(profileFiles, toCommitFile(f))
 		}
 	}
 
-	if len(git_files.KustomizationFiles) > 0 {
-		for _, f := range git_files.KustomizationFiles {
+	if len(files.KustomizationFiles) > 0 {
+		for _, f := range files.KustomizationFiles {
 			kustomizationFiles = append(kustomizationFiles, toCommitFile(f))
 		}
 	}
 
-	if len(git_files.KustomizationFiles) > 0 {
-		for _, f := range git_files.KustomizationFiles {
-			kustomizationFiles = append(kustomizationFiles, toCommitFile(f))
-		}
-	}
-
-	if len(git_files.RenderedTemplate) > 0 {
-		for _, f := range git_files.RenderedTemplate {
-			renderedTemplate = append(renderedTemplate, toCommitFile(f))
-		}
-	}
-
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
 }
 
 func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_namespace string, template_name string, template_kind string, parameter_values map[string]string, template_credentials *capiv1_proto.Credential, profiles []*capiv1_proto.ProfileValues, kustomizations []*capiv1_proto.Kustomization) (*GetFiles, error) {
@@ -206,21 +195,6 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_n
 
 	cluster := createNamespacedName(clusterName, clusterNamespace)
 	content := string(tmplWithValuesAndCredentials[:])
-	path := getClusterManifestPath(cluster)
-	files := []gitprovider.CommitFile{
-		{
-			Path:    &path,
-			Content: &content,
-		},
-	}
-
-	if viper.GetString("add-bases-kustomization") == "enabled" {
-		commonKustomization, err := getCommonKustomization(cluster)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
-		}
-		files = append(files, *commonKustomization)
-	}
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
@@ -255,7 +229,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_n
 		}
 	}
 
-	return &GetFiles{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
+	return &GetFiles{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster}, err
 }
 
 func isProviderRecognised(provider string) bool {

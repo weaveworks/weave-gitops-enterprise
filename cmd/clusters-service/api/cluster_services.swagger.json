@@ -1843,10 +1843,7 @@
       "type": "object",
       "properties": {
         "renderedTemplate": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1CommitFile"
-          }
+          "type": "string"
         },
         "profileFiles": {
           "type": "array",
