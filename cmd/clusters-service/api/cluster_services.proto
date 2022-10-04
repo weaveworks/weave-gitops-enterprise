@@ -332,6 +332,7 @@ message CreatePullRequestRequest {
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
 }
+
 message CreatePullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;

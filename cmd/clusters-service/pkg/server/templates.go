@@ -19,7 +19,24 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type GetFiles struct {
+type GetFilesRequest struct {
+	Template         template.Template
+	ClusterNamespace string
+	TemplateName     string
+	TemplateKind     string
+	ParameterValues  map[string]string
+	Credentials      *capiv1_proto.Credential
+	Profiles         []*capiv1_proto.ProfileValues
+	Kustomizations   []*capiv1_proto.Kustomization
+	RepositoryUrl    string
+	HeadBranch       string
+	BaseBranch       string
+	Title            string
+	Description      string
+	RepositoryApiUrl string
+}
+
+type GetFilesReturn struct {
 	RenderedTemplate   string
 	ProfileFiles       []gitprovider.CommitFile
 	KustomizationFiles []gitprovider.CommitFile
@@ -137,7 +154,8 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	files, err := s.getFiles(ctx, tm, msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations)
+	files, err := s.getFiles(ctx, GetFilesRequest{tm, msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, "", "", "", "", "", ""})
+
 	if err != nil {
 		return nil, err
 	}
@@ -160,20 +178,26 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
 }
 
-func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_namespace string, template_name string, template_kind string, parameter_values map[string]string, template_credentials *capiv1_proto.Credential, profiles []*capiv1_proto.ProfileValues, kustomizations []*capiv1_proto.Kustomization) (*GetFiles, error) {
-	if template_kind == "" {
-		template_kind = capiv1.Kind
+func (s *server) getFiles(ctx context.Context, msg GetFilesRequest) (*GetFilesReturn, error) {
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
 	}
 
-	s.log.WithValues("request_values", parameter_values, "request_credentials", template_credentials).Info("Received message")
+	s.log.WithValues("request_values", msg.ParameterValues, "request_credentials", msg.Credentials).Info("Received message")
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, template_name, getClusterNamespace(cluster_namespace), parameter_values)
+	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
+	tmplWithValues, err := renderTemplateWithValues(msg.Template, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
 		return nil, err
 	}
 
+	tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+	}
+
 	if err = templates.ValidateRenderedTemplates(tmplWithValues); err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", template_name, err)
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
 	client, err := s.clientGetter.Client(ctx)
@@ -181,14 +205,13 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_n
 		return nil, err
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, template_credentials, template_name)
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
 	}
 
-	clusterNamespace := getClusterNamespace(parameter_values["NAMESPACE"])
 	// FIXME: parse and read from Cluster in yaml template
-	clusterName, ok := parameter_values["CLUSTER_NAME"]
+	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
 	if !ok {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' parameter in supplied values")
 	}
@@ -199,17 +222,17 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_n
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
 
-	if len(profiles) > 0 {
+	if len(msg.Profiles) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
-			tmpl,
+			msg.Template,
 			cluster,
 			client,
 			generateProfileFilesParams{
 				helmRepository:         createNamespacedName(s.profileHelmRepositoryName, viper.GetString("runtime-namespace")),
 				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
-				profileValues:          profiles,
-				parameterValues:        parameter_values,
+				profileValues:          msg.Profiles,
+				parameterValues:        msg.ParameterValues,
 			},
 		)
 		if err != nil {
@@ -218,8 +241,8 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_n
 		profileFiles = append(profileFiles, *profilesFile)
 	}
 
-	if len(kustomizations) > 0 {
-		for _, k := range kustomizations {
+	if len(msg.Kustomizations) > 0 {
+		for _, k := range msg.Kustomizations {
 			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
 			if err != nil {
 				return nil, err
@@ -229,7 +252,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, cluster_n
 		}
 	}
 
-	return &GetFiles{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster}, err
+	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster}, err
 }
 
 func isProviderRecognised(provider string) bool {

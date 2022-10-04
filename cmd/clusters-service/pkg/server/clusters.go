@@ -135,20 +135,9 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	// •••
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
-	if err != nil {
-		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
-	}
 
-	tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
-	}
-	// •••
-
-	git_files, err := s.getFiles(ctx, tmpl, clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations)
+	git_files, err := s.getFiles(ctx, GetFilesRequest{tmpl, clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.RepositoryUrl, msg.HeadBranch, msg.BaseBranch, msg.Title, msg.Description, msg.RepositoryApiUrl})
 	if err != nil {
 		return nil, err
 	}
@@ -169,17 +158,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		files = append(files, *commonKustomization)
 	}
 
-	if len(git_files.ProfileFiles) > 0 {
-		for _, f := range git_files.ProfileFiles {
-			files = append(files, f)
-		}
-	}
-
-	if len(git_files.KustomizationFiles) > 0 {
-		for _, f := range git_files.KustomizationFiles {
-			files = append(files, f)
-		}
-	}
+	files = append(files, git_files.ProfileFiles...)
+	files = append(files, git_files.KustomizationFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
