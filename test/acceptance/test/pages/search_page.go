@@ -26,7 +26,7 @@ func GetSearchPage(webDriver *agouti.Page) *SearchPage {
 }
 
 func (s SearchPage) SelectFilter(filterType string, filterID string) {
-	gomega.Eventually(s.FilterDialog, time.Second*30).Should(matchers.BeVisible(), "Filter dialog can not be found")
+	gomega.Eventually(s.FilterDialog, time.Second*30).Should(matchers.BeFound(), "Filter dialog can not be found")
 	filters := s.FilterDialog.AllByXPath(`//form/ul/li`)
 	fCount, _ := filters.Count()
 
