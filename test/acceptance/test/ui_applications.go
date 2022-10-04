@@ -1061,17 +1061,16 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 
 			})
-			ginkgo.FIt("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
 				// declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
 				// get apps count
 				existingAppCount := getApplicationCount()
 
-				ginkgo.By("Install Policies on Management Cluster", func() {
-					installTestPolicies("management", policiesYaml)
+				// Add/Install test Policies to the management cluster
+				installTestPolicies("management", policiesYaml)
 
-				})
 				ginkgo.By("Install kustomization Application on management cluster", func() {
 					appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 					repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
@@ -1119,7 +1118,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
 					NoDataRow := pages.GetNoDataRowInApplicationViolationsList(webDriver)
-					gomega.Expect(NoDataRow).ShouldNot(matchers.BeFound())
+					gomega.Expect(NoDataRow).ShouldNot(matchers.BeVisible())
 
 				})
 
