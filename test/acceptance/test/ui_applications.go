@@ -1039,7 +1039,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		//Application Violations Details page tests
 		ginkgo.Context("[UI] Application Violations Details for management cluster", func() {
 
-			//just specify the policies yaml path
+			//just specify policies yaml path
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
 			//Just specify the Violating policy info to create it
@@ -1072,7 +1072,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
 
 			ginkgo.JustBeforeEach(func() {
-				//createNamespace([]string{appNameSpace, appTargetNamespace})
+				createNamespace([]string{appNameSpace, appTargetNamespace})
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -1080,7 +1080,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 
 			})
-			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.FIt("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
 				// declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
@@ -1091,7 +1091,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					installTestPolicies("management", policiesYaml)
 
 				})
-
 				ginkgo.By("Install kustomization Application on management cluster", func() {
 					appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 					repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
@@ -1135,11 +1134,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					pages.WaitForPageToLoad(webDriver)
 				})
 
-				ginkgo.By("Verify violations are visible in the Application Violations List", func() {
-					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
+				ginkgo.By("Check violations are visible in the Application Violations List", func() {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-					no_Data_Row := pages.GetNoDataRowInApplicationViolationsList(webDriver)
-					gomega.Expect(no_Data_Row).ShouldNot(matchers.BeVisible())
+					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
+					NoDataRow := pages.GetNoDataRowInApplicationViolationsList(webDriver)
+					gomega.Expect(NoDataRow).ShouldNot(matchers.BeFound())
 
 				})
 
