@@ -170,7 +170,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And templates can be filtered by provider - table view", func() {
 					filterID := "provider: aws"
 					searchPage := pages.GetSearchPage(webDriver)
-					gomega.Eventually(searchPage.FilterBtn.Click).Should(gomega.Succeed(), "Failed to click filter buttton")
 					searchPage.SelectFilter("provider", filterID)
 
 					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
@@ -1160,7 +1159,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					filterID := "clusterName: " + clusterNamespace + `/` + clusterName
 					searchPage := pages.GetSearchPage(webDriver)
-					gomega.Eventually(searchPage.FilterBtn.Click).Should(gomega.Succeed(), "Failed to click filter buttton")
 					searchPage.SelectFilter("cluster", filterID)
 
 					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")

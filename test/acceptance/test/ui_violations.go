@@ -170,7 +170,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			ginkgo.FIt("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
+			ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
 				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
 				installPolicyAgent(leafClusterName)
@@ -222,7 +222,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By(fmt.Sprintf("And filter leaf cluster '%s' violations", leafClusterName), func() {
 					filterID := "clusterName: " + leafClusterNamespace + `/` + leafClusterName
 					searchPage := pages.GetSearchPage(webDriver)
-					gomega.Eventually(searchPage.FilterBtn.Click).Should(gomega.Succeed(), "Failed to click filter buttton")
 					searchPage.SelectFilter("cluster", filterID)
 
 					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")

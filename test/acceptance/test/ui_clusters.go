@@ -78,12 +78,15 @@ func createLeafClusterSecret(leafClusterNamespace string, leafClusterkubeconfig 
 
 func verifyDashboard(dashboard *agouti.Selection, clusterName string, dashboardName string) {
 	ginkgo.By(fmt.Sprintf("And verify %s Cluster dashboard/metada link: %s)", clusterName, dashboardName), func() {
+		currentWindow, err := webDriver.Session().GetWindow()
+		gomega.Expect(err).To(gomega.BeNil(), "Failed to get weave gitops enterprise dashboard window")
+
 		gomega.Eventually(dashboard).Should(matchers.BeFound(), fmt.Sprintf("Failed to have expected '%s' dashboard for GitopsCluster", dashboardName))
 		gomega.Expect(dashboard.Click()).To(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' dashboard", dashboardName)) // opens dashboard in a new tab/window
 		gomega.Expect(webDriver.NextWindow()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to switch to '%s' window", dashboardName))
 		gomega.Eventually(webDriver.Title).Should(gomega.MatchRegexp(dashboardName), fmt.Sprintf("Failed to verify '%s' dashboard title", dashboardName))
 		gomega.Eventually(webDriver.CloseWindow).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' dashboard window", dashboardName))
-		gomega.Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
+		gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
 	})
 }
 
