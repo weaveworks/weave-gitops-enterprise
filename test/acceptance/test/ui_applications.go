@@ -1069,7 +1069,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			}
 
 			//specify the github source for the app customization
-			appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
+			appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/wge-automation-tests/kind-management/apps/podinfo", podinfo.Name, podinfo.TargetNamespace)
 
 			ginkgo.JustBeforeEach(func() {
 				createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -1080,21 +1080,29 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 
 			})
-			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.FIt("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
 				// declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
 				// get apps count
 				existingAppCount := getApplicationCount()
 
-				// Add/Install test Policies to the management cluster
+				//Add/Install test Policies to the management cluster
 				installTestPolicies("management", policiesYaml)
+
+				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
+					repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+					pullGitRepo(repoAbsolutePath)
+					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
+					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
+					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
+				})
 
 				ginkgo.By("Install kustomization Application on management cluster", func() {
 					appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 					repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-					appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
+					appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/wge-automation-tests/kind-management/apps/podinfo", podinfo.Name, podinfo.TargetNamespace)
 					defer cleanGitRepository(appKustomization)
 
 					pages.NavigateToPage(webDriver, "Applications")
@@ -1136,8 +1144,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("Check violations are visible in the Application Violations List", func() {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
-					NoDataRow := pages.GetNoDataRowInApplicationViolationsList(webDriver)
-					gomega.Expect(NoDataRow).ShouldNot(matchers.BeVisible())
+					noDataRow := pages.GetNoDataRowInApplicationViolationsList(webDriver)
+					gomega.Expect(noDataRow.NoDataRow).ShouldNot(matchers.BeVisible())
 
 				})
 
