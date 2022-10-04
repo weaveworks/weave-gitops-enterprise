@@ -395,20 +395,18 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}, nil
 }
 
-// GetKubeconfig returns the Kubeconfig for the given workload cluster
-func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
-	var sec corev1.Secret
-	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
-
+func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.NamespacedName) ([]byte, error) {
+	name := fmt.Sprintf("%s-kubeconfig", cluster.Name)
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	key := client.ObjectKey{
-		Namespace: getClusterNamespace(msg.ClusterNamespace),
+		Namespace: getClusterNamespace(cluster.Namespace),
 		Name:      name,
 	}
+	var sec corev1.Secret
 	err = cl.Get(ctx, key, &sec)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
@@ -417,6 +415,15 @@ func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubecon
 	val, ok := kubeConfigFromSecret(sec)
 	if !ok {
 		return nil, fmt.Errorf("secret %q was found but is missing key %q", key, "value")
+	}
+	return val, nil
+}
+
+// GetKubeconfig returns the Kubeconfig for the given workload cluster
+func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
+	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.ClusterName, Namespace: msg.ClusterNamespace})
+	if err != nil {
+		return nil, err
 	}
 
 	var acceptHeader string
