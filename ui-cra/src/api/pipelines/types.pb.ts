@@ -35,6 +35,7 @@ export type WorkloadStatus = {
   kind?: string
   name?: string
   version?: string
+  lastAppliedRevision?: string
 }
 
 export type PipelineTargetStatus = {
