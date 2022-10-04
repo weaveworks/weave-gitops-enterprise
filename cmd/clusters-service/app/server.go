@@ -36,7 +36,6 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -386,18 +385,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
 
-	// Used by the clusters manager and the helm indexer
-	clientsPool := clustersmngr.NewClustersClientsPool()
-
-	// FIXME: repoManager?
-	indexer.NewClusterHelmIndexerTracker(profileCache, nil, "", clientsPool)
-
 	clustersManager := clustersmngr.NewClustersManager(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clustersManagerScheme,
-		clientsPool,
+		clustersmngr.NewClustersClientsPool,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clustersManager.Start(ctx)

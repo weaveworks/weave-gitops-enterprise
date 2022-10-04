@@ -1,6 +1,8 @@
 package watcher
 
 import (
+	"context"
+	"errors"
 	"os"
 
 	"github.com/fluxcd/pkg/runtime/events"
@@ -42,6 +44,7 @@ type Watcher struct {
 	healthzBindAddress  string
 	watcherPort         int
 	notificationAddress string
+	stopFn              context.CancelFunc
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
@@ -70,6 +73,9 @@ func NewWatcher(opts Options) (*Watcher, error) {
 
 func (w *Watcher) StartWatcher(log logr.Logger) error {
 	ctrl.SetLogger(log.WithName("helm-watcher"))
+
+	ctx, cancel := context.WithCancel(ctrl.SetupSignalHandler())
+	w.stopFn = cancel
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
@@ -116,10 +122,18 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 
 	ctrl.Log.Info("starting manager")
 
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		ctrl.Log.Error(err, "problem running manager")
 		return err
 	}
 
 	return nil
+}
+
+func (w *Watcher) Stop() {
+	if w.stopFn == nil {
+		ctrl.Log.Error(errors.New("Stop function not set yet"), "unable to stop watcher")
+		return
+	}
+	w.stopFn()
 }
