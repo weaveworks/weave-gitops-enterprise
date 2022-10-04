@@ -1039,7 +1039,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		//Application Violations Details page tests
 		ginkgo.Context("[UI] Application Violations Details for management cluster", func() {
 
-			//just apply policies
+			//just specify the policies yaml path
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
 			//Just specify the Violating policy info to create it
@@ -1070,10 +1070,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			//specify the github source for the app customization
 			appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
-			//defer cleanGitRepository(appKustomization)
 
 			ginkgo.JustBeforeEach(func() {
-				createNamespace([]string{appNameSpace, appTargetNamespace})
+				//createNamespace([]string{appNameSpace, appTargetNamespace})
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -1081,7 +1080,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 
 			})
-			ginkgo.FIt("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
 				// declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
@@ -1092,6 +1091,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					installTestPolicies("management", policiesYaml)
 
 				})
+
 				ginkgo.By("Install kustomization Application on management cluster", func() {
 					appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 					repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
@@ -1115,7 +1115,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						count, _ := applicationsPage.ApplicationCount.Text()
 						return count
 
-					}, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
@@ -1135,11 +1135,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					pages.WaitForPageToLoad(webDriver)
 				})
 
-				ginkgo.By("Check violations are visible in the Application Violations List", func() {
-					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+				ginkgo.By("Verify violations are visible in the Application Violations List", func() {
 					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
-					NoDataRow := pages.GetNoDataRowInApplicationViolationsList(webDriver)
-					gomega.Expect(NoDataRow).ShouldNot(matchers.BeFound())
+					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					no_Data_Row := pages.GetNoDataRowInApplicationViolationsList(webDriver)
+					gomega.Expect(no_Data_Row).ShouldNot(matchers.BeVisible())
 
 				})
 
