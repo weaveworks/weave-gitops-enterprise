@@ -618,7 +618,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -275, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -290, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
 				})
 
 				AddKustomizationApp(application, podinfo)
@@ -805,7 +805,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -230, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -235, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
 				})
 
 				AddKustomizationApp(application, podinfo)
