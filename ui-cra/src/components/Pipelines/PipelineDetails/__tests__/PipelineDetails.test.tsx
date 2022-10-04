@@ -1,3 +1,4 @@
+/* eslint-disable testing-library/no-node-access */
 import { act, render, RenderResult, screen } from '@testing-library/react';
 import { formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
@@ -81,6 +82,7 @@ const res: GetPipelineResponse = {
                   kind: 'HelmRelease',
                   name: 'podinfo',
                   version: '6.2.0',
+                  lastAppliedRevision: '6.2.0',
                 },
               ],
             },
@@ -141,6 +143,16 @@ const res: GetPipelineResponse = {
   },
 };
 
+interface MappedWorkload {
+  kind?: string | undefined;
+  name?: string | undefined;
+  namespace?: string | undefined;
+  version?: string | undefined;
+  lastAppliedVersion?: string | undefined;
+  mappedClusterName?: string | undefined;
+  clusterName?: string | undefined;
+}
+
 describe('PipelineDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PipelinesClientMock;
@@ -178,23 +190,14 @@ describe('PipelineDetails', () => {
       );
       expect(targets.length).toEqual(env.targets?.length);
 
-      let workloads: {
-        target: string | undefined;
-        kind?: string | undefined;
-        name?: string | undefined;
-        namespace?: string | undefined;
-        version?: string | undefined;
-        clusterName?: string | undefined;
-      }[] = [];
+      let workloads: MappedWorkload[] = [];
 
       targetsStatuses[env.name!].targetsStatuses?.forEach(ts => {
         if (ts.workloads) {
           const wrks = ts.workloads.map(wrk => ({
             ...wrk,
-            target: ts.clusterRef?.name
-              ? `${ts.clusterRef?.name}/${ts.namespace}`
-              : ts.namespace,
-            clusterName: ts.clusterRef?.namespace
+            clusterName: ts.clusterRef?.name,
+            mappedClusterName: ts.clusterRef?.namespace
               ? `${ts.clusterRef?.namespace}/${ts.clusterRef.name}`
               : '',
             namespace: ts.namespace,
@@ -205,28 +208,55 @@ describe('PipelineDetails', () => {
 
       // Targets
       targets.forEach((target, index) => {
-        // Target
-        const workloadTarget =
-          target.querySelector('.workloadTarget')?.textContent;
-        expect(workloadTarget).toEqual(workloads![index].target);
+        const workloadTarget = target.querySelector('.workloadTarget');
+
+        // Cluster Name
+        const clusterNameEle = workloadTarget?.querySelector('.cluster-name');
+        if (workloads![index].clusterName) {
+          checkTextContentToEqual(
+            clusterNameEle,
+            workloads![index].clusterName || '',
+          );
+        } else {
+          elementToBeNull(clusterNameEle);
+        }
+
+        // Workload Namespace
+        const workloadNamespace = workloadTarget?.querySelector(
+          '.workload-namespace',
+        );
+        expect(workloadNamespace?.textContent).toEqual(
+          workloads![index].namespace,
+        );
 
         //Target as a link
         const linkToAutomation = target.querySelector('.workloadName > a');
-
-        if (workloads![index].clusterName) {
+        if (workloads![index].mappedClusterName) {
           const href = formatURL('/helm_release/details', {
             name: workloads![index].name,
             namespace: workloads![index].namespace,
-            clusterName: workloads![index].clusterName,
+            clusterName: workloads![index].mappedClusterName,
           });
           linkToExists(linkToAutomation, href);
         } else {
-          linkToBeNull(linkToAutomation);
+          elementToBeNull(linkToAutomation);
+          checkTextContentToEqual(
+            target.querySelector('.workload-name'),
+            workloads![index].name || '',
+          );
         }
-
-        // Workload Name
-        const workloadName = target.querySelector('.workloadName')?.textContent;
-        expect(workloadName).toEqual(workloads![index].name);
+        // Workload Last Applied Version
+        const lastAppliedRevision = target.querySelector(
+          'workloadName > .last-applied-version',
+        );
+        if (workloads![index].lastAppliedVersion) {
+          checkTextContentToEqual(
+            lastAppliedRevision,
+            workloads![index].lastAppliedVersion || '',
+          );
+        } else {
+          elementToBeNull(lastAppliedRevision);
+        }
 
         // Workload Version
         const workloadVersion = target.querySelector('.version')?.textContent;
@@ -254,9 +284,16 @@ describe('PipelineDetails', () => {
   });
 });
 
-const linkToExists = (element: Element | null, href: String) => {
-  return expect(element).toHaveAttribute('href', href);
+const linkToExists = (element: Element | null, href: string) => {
+  expect(element).toHaveAttribute('href', href);
 };
-const linkToBeNull = (element: Element | null) => {
-  return expect(element).toBeNull();
+const elementToBeNull = (element: Element | null | undefined) => {
+  expect(element).toBeNull();
+};
+
+const checkTextContentToEqual = (
+  element: Element | null | undefined,
+  clusterName: string,
+) => {
+  expect(element?.textContent).toEqual(clusterName);
 };
