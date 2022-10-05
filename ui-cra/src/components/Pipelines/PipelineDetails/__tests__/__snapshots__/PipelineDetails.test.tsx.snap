@@ -15,7 +15,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
-.c15 {
+.c16 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -42,11 +42,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
   transform: initial;
 }
 
-.c9 .c14 {
+.c9 .c15 {
   margin-left: 4px;
 }
 
-.c13 {
+.c14 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
@@ -81,7 +81,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-radius: 8px 8px 0 0;
 }
 
-.c12 {
+.c18 {
   padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
@@ -97,7 +97,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c12 a {
+.c18 a {
   color: #00b3ec;
 }
 
@@ -177,6 +177,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
   margin-bottom: 8px;
   box-shadow: 0px 0px 1px rgba(26,32,36,0.32);
   border-radius: 10px;
+  font-weight: 600;
+}
+
+.c12 {
+  margin-bottom: 8px;
+}
+
+.c13 {
+  font-size: 12px;
+}
+
+.c17 {
+  color: #737373;
+  margin-left: 8px;
 }
 
 <div>
@@ -330,18 +344,42 @@ exports[`PipelineDetails snapshots renders 1`] = `
               <div
                 class="makeStyles-target-21 workloadTarget"
               >
-                dev/podinfo-02-dev
+                <div
+                  class="c12 cluster-name"
+                >
+                  dev
+                </div>
+                <div
+                  class="c13 workload-namespace"
+                >
+                  podinfo-02-dev
+                </div>
               </div>
               <div>
                 <div
                   class="workloadName"
                 >
-                  podinfo
+                  <a
+                    class="c14"
+                    href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
+                  >
+                    <span
+                      class="c15 c16"
+                      color="primary"
+                    >
+                      podinfo
+                    </span>
+                  </a>
+                  <span
+                    class="c17 last-applied-version"
+                  >
+                    v6.2.0
+                  </span>
                 </div>
                 <div
                   class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
                 >
-                  Version
+                  Spec Version
                 </div>
                 <div
                   class="makeStyles-subtitle-19 version"
@@ -377,18 +415,31 @@ exports[`PipelineDetails snapshots renders 1`] = `
               <div
                 class="makeStyles-target-21 workloadTarget"
               >
-                dev/podinfo-02-qa
+                <div
+                  class="c12 cluster-name"
+                >
+                  dev
+                </div>
+                <div
+                  class="c13 workload-namespace"
+                >
+                  podinfo-02-qa
+                </div>
               </div>
               <div>
                 <div
                   class="workloadName"
                 >
-                  podinfo
+                  <div
+                    class="workload-name"
+                  >
+                    podinfo
+                  </div>
                 </div>
                 <div
                   class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
                 >
-                  Version
+                  Spec Version
                 </div>
                 <div
                   class="makeStyles-subtitle-19 version"
@@ -404,18 +455,31 @@ exports[`PipelineDetails snapshots renders 1`] = `
               <div
                 class="makeStyles-target-21 workloadTarget"
               >
-                dev/podinfo-02-perf
+                <div
+                  class="c12 cluster-name"
+                >
+                  dev
+                </div>
+                <div
+                  class="c13 workload-namespace"
+                >
+                  podinfo-02-perf
+                </div>
               </div>
               <div>
                 <div
                   class="workloadName"
                 >
-                  podinfo
+                  <div
+                    class="workload-name"
+                  >
+                    podinfo
+                  </div>
                 </div>
                 <div
                   class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
                 >
-                  Version
+                  Spec Version
                 </div>
                 <div
                   class="makeStyles-subtitle-19 version"
@@ -451,18 +515,31 @@ exports[`PipelineDetails snapshots renders 1`] = `
               <div
                 class="makeStyles-target-21 workloadTarget"
               >
-                prod/podinfo-02-prod
+                <div
+                  class="c12 cluster-name"
+                >
+                  prod
+                </div>
+                <div
+                  class="c13 workload-namespace"
+                >
+                  podinfo-02-prod
+                </div>
               </div>
               <div>
                 <div
                   class="workloadName"
                 >
-                  podinfo
+                  <div
+                    class="workload-name"
+                  >
+                    podinfo
+                  </div>
                 </div>
                 <div
                   class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
                 >
-                  Version
+                  Spec Version
                 </div>
                 <div
                   class="makeStyles-subtitle-19 version"
@@ -475,7 +552,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c12"
+        class="c18"
       >
         <div>
           Need help? Raise a 

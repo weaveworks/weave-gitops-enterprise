@@ -2,10 +2,12 @@ package pages
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	gomega "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
+	"github.com/sclevine/agouti/api"
 )
 
 func GetWindowName(webDriver *agouti.Page) string {
@@ -52,12 +54,31 @@ func OpenWindowInBg(webDriver *agouti.Page, url string, windowName string) {
 	gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch back to old window")
 }
 
-func CloseWindow(webDriver *agouti.Page, windowName string) {
+func CloseWindow(webDriver *agouti.Page, windowToClose interface{}) {
 	currentWindow, err := webDriver.Session().GetWindow()
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to get current/active window")
-	gomega.Expect(webDriver.SwitchToWindow(windowName)).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to switch to %s window", windowName))
-	gomega.Expect(webDriver.CloseWindow()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to close %s window", windowName))
+
+	vType := reflect.TypeOf(windowToClose)
+	if vType.Elem().Kind() == reflect.String {
+		gomega.Expect(webDriver.SwitchToWindow(windowToClose.(string))).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to switch to %s window", windowToClose.(string)))
+	} else if vType.Elem().Kind() == reflect.Struct {
+		gomega.Expect(webDriver.Session().SetWindow(windowToClose.(*api.Window))).ShouldNot(gomega.HaveOccurred(), "Failed to switch back to old window")
+	}
+
+	gomega.Expect(webDriver.CloseWindow()).ShouldNot(gomega.HaveOccurred(), "Failed to close window")
 	gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch back to old window")
+}
+
+func GetNextWindow(webDriver *agouti.Page) *api.Window {
+	currentWindow, err := webDriver.Session().GetWindow()
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to get current/active window")
+
+	gomega.Expect(webDriver.NextWindow()).ShouldNot(gomega.HaveOccurred(), "Failed to switch to next window")
+	window, err := webDriver.Session().GetWindow()
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to get opened active window")
+
+	gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch back to old window")
+	return window
 }
 
 func ClearFieldValue(field *agouti.Selection) {
