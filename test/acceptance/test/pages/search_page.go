@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
@@ -25,7 +26,16 @@ func GetSearchPage(webDriver *agouti.Page) *SearchPage {
 }
 
 func (s SearchPage) SelectFilter(filterType string, filterID string) {
-	gomega.Eventually(s.FilterDialog).Should(matchers.BeVisible(), "Filter dialog can not be found")
+	gomega.Eventually(func(g gomega.Gomega) {
+		g.Eventually(s.FilterBtn.Click).Should(gomega.Succeed())
+		if ElementExist(s.FilterDialog) {
+			g.Eventually(s.FilterDialog, time.Second*5).Should(matchers.BeVisible())
+		} else {
+			g.Eventually(s.FilterBtn.Click).Should(gomega.Succeed())
+			g.Eventually(s.FilterDialog, time.Second*5).Should(matchers.BeVisible())
+		}
+	}, time.Minute, time.Second*5).Should(gomega.Succeed(), "Failed to select fileter: "+filterType)
+
 	filters := s.FilterDialog.AllByXPath(`//form/ul/li`)
 	fCount, _ := filters.Count()
 
