@@ -357,6 +357,7 @@ func TestCreatePullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
 	viper.SetDefault("capi-repository-clusters-path", "clusters")
 	viper.SetDefault("add-bases-kustomization", "enabled")
+	viper.SetDefault("capi-templates-namespace", "default")
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
@@ -497,6 +498,9 @@ metadata:
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"default"},"commit_message":"Add
       cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}]}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
   name: dev
   namespace: default
 `,
@@ -600,6 +604,9 @@ metadata:
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
       cluster manifest","values":[{"name":"demo-profile","version":"0.0.1","namespace":"test-system"}]}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
   name: dev
   namespace: clusters-namespace
 `,
@@ -714,6 +721,9 @@ metadata:
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
       cluster manifest","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}},{"metadata":{"name":"apps-billing","namespace":"flux-system"},"spec":{"path":"./apps/billing","source_ref":{"name":"flux-system","namespace":"flux-system"}}}]}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
   name: dev
   namespace: clusters-namespace
 `,

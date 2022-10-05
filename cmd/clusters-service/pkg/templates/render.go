@@ -41,6 +41,14 @@ func InNamespace(ns string) RenderOptFunc {
 	}
 }
 
+// InjectLabels is a render option that updates the object metadata with the desired labels
+func InjectLabels(labels map[string]string) RenderOptFunc {
+	return func(uns *unstructured.Unstructured) error {
+		uns.SetLabels(labels)
+		return nil
+	}
+}
+
 func processUnstructured(b []byte, opts ...RenderOptFunc) ([]byte, error) {
 	dec := serializer.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 	uns := &unstructured.Unstructured{}
