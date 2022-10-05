@@ -616,7 +616,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
 			name:             "render template with apps",
@@ -654,7 +654,7 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
 			name:             "render template with default value",
@@ -684,7 +684,7 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterNamefoo\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterNamefoo\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
 			// some client might send empty credentials objects
@@ -701,7 +701,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
 			name:             "render template with credentials",
@@ -730,7 +730,7 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "cred-name",
 				Namespace: "cred-namespace",
 			},
-			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  name: boop\n  namespace: test-ns\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
+			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: boop\n  namespace: test-ns\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
 		},
 		{
 			name:             "enable prune injections",
@@ -739,7 +739,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
 			name:             "render template with renderType: templating",
@@ -769,7 +769,7 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 	}
 
@@ -778,6 +778,7 @@ func TestRenderTemplate(t *testing.T) {
 			viper.Reset()
 			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
+			viper.SetDefault("capi-templates-namespace", "default")
 
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
@@ -1071,7 +1072,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeCAPITemplate(t),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  name: test-cluster\n  namespace: default\n",
+			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: default\n",
 		},
 		{
 			name: "value contains non alphanumeric",
@@ -1102,6 +1103,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.Reset()
+			viper.SetDefault("capi-templates-namespace", "default")
 
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,

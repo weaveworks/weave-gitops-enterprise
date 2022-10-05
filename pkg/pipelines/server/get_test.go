@@ -40,6 +40,7 @@ func TestGetPipeline(t *testing.T) {
 
 		assert.Equal(t, p.Name, res.Pipeline.Name)
 		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].LastAppliedRevision, hr.Status.LastAppliedRevision)
 		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
 	})
 
@@ -108,6 +109,9 @@ func createHelmRelease(ctx context.Context, t *testing.T, k client.Client, name 
 					Version: "0.1.2",
 				},
 			},
+		},
+		Status: helm.HelmReleaseStatus{
+			LastAppliedRevision: "0.1.2",
 		},
 	}
 
