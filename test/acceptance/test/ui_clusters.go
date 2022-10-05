@@ -78,17 +78,28 @@ func createLeafClusterSecret(leafClusterNamespace string, leafClusterkubeconfig 
 
 func verifyDashboard(dashboard *agouti.Selection, clusterName string, dashboardName string) {
 	ginkgo.By(fmt.Sprintf("And verify %s Cluster dashboard/metada link: %s)", clusterName, dashboardName), func() {
+		currentWindow, err := webDriver.Session().GetWindow()
+		gomega.Expect(err).To(gomega.BeNil(), "Failed to get weave gitops enterprise dashboard window")
+
 		gomega.Eventually(dashboard).Should(matchers.BeFound(), fmt.Sprintf("Failed to have expected '%s' dashboard for GitopsCluster", dashboardName))
 		gomega.Expect(dashboard.Click()).To(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' dashboard", dashboardName)) // opens dashboard in a new tab/window
 		gomega.Expect(webDriver.NextWindow()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to switch to '%s' window", dashboardName))
 		gomega.Eventually(webDriver.Title).Should(gomega.MatchRegexp(dashboardName), fmt.Sprintf("Failed to verify '%s' dashboard title", dashboardName))
 		gomega.Eventually(webDriver.CloseWindow).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' dashboard window", dashboardName))
-		gomega.Expect(webDriver.SwitchToWindow(WGE_WINDOW_NAME)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
+		gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
 	})
 }
 
 func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
+
+		ginkgo.BeforeEach(func() {
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+
+			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+				loginUser()
+			}
+		})
 
 		ginkgo.Context("[UI] When no leaf cluster is connected", func() {
 			ginkgo.It("Verify connected cluster dashboard shows only management cluster", ginkgo.Label("integration"), func() {
@@ -233,6 +244,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to download %s cluster kubeconfig file", leafClusterName))
 
 					gomega.Eventually(clusterDetailPage.Namespace.Text).Should(gomega.MatchRegexp(leafClusterNamespace), "Failed to verify leaf cluster namespace on cluster page")
+					TakeScreenShot("prior-dashboard-leaf-cluster")
 					verifyDashboard(clusterDetailPage.GetDashboard("prometheus"), leafClusterName, "Prometheus")
 
 					gomega.Expect(clusterDetailPage.GetDashboard("javascript")).ShouldNot(matchers.BeFound(), "XXSVulnerable link shound not be found")
