@@ -38,6 +38,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/validation"
 )
 
@@ -396,27 +397,52 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 }
 
 func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.NamespacedName) ([]byte, error) {
-	name := fmt.Sprintf("%s-kubeconfig", cluster.Name)
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	key := client.ObjectKey{
+	userSecretName := client.ObjectKey{
 		Namespace: getClusterNamespace(cluster.Namespace),
-		Name:      name,
+		Name:      fmt.Sprintf("%s-user-kubeconfig", cluster.Name),
 	}
-	var sec corev1.Secret
-	err = cl.Get(ctx, key, &sec)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
+	sec, err := secretByName(ctx, cl, userSecretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", userSecretName, "value")
+		}
+		return val, nil
 	}
 
-	val, ok := kubeConfigFromSecret(sec)
-	if !ok {
-		return nil, fmt.Errorf("secret %q was found but is missing key %q", key, "value")
+	clusterSecretName := client.ObjectKey{
+		Namespace: getClusterNamespace(cluster.Namespace),
+		Name:      fmt.Sprintf("%s-kubeconfig", cluster.Name),
 	}
-	return val, nil
+	sec, err = secretByName(ctx, cl, clusterSecretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", clusterSecretName, "value")
+		}
+		return val, nil
+	}
+	return nil, fmt.Errorf("unable to get kubeconfig secret for cluster %s", cluster)
+}
+
+func secretByName(ctx context.Context, cl client.Client, name types.NamespacedName) (*corev1.Secret, error) {
+	sec := &corev1.Secret{}
+	err := cl.Get(ctx, name, sec)
+	if err != nil {
+		return nil, err
+	}
+	return sec, nil
 }
 
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
@@ -969,7 +995,7 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 	return generatedKustomization
 }
 
-func kubeConfigFromSecret(s corev1.Secret) ([]byte, bool) {
+func kubeConfigFromSecret(s *corev1.Secret) ([]byte, bool) {
 	val, ok := s.Data["value.yaml"]
 	if ok {
 		return val, true

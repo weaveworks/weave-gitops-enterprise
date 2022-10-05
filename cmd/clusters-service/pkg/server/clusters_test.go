@@ -959,9 +959,10 @@ func TestGetKubeconfig(t *testing.T) {
 			name:                    "secret not found",
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				ClusterName:      "dev",
+				ClusterNamespace: "testing",
 			},
-			err: errors.New("unable to get secret \"dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
+			err: errors.New("unable to get kubeconfig secret for cluster testing/dev"),
 		},
 		{
 			name: "secret found but is missing key",
@@ -999,6 +1000,19 @@ func TestGetKubeconfig(t *testing.T) {
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
 		},
+		{
+			name: "user kubeconfig exists",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value.yaml", "foo"),
+				makeSecret("dev-user-kubeconfig", "default", "value.yaml", "bar"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("bar")))),
+		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1020,7 +1034,7 @@ func TestGetKubeconfig(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, res.Data, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(string(tt.expected), string(res.Data)); diff != "" {
 					t.Fatalf("kubeconfig didn't match expected:\n%s", diff)
 				}
 			}
@@ -1793,7 +1807,6 @@ func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotatio
 }
 
 func testNewClusterNamespacedName(t *testing.T, name, namespace string) *capiv1_protos.ClusterNamespacedName {
-	t.Helper()
 	return &capiv1_protos.ClusterNamespacedName{
 		Name:      name,
 		Namespace: namespace,
@@ -1801,7 +1814,6 @@ func testNewClusterNamespacedName(t *testing.T, name, namespace string) *capiv1_
 }
 
 func testNewMetadata(t *testing.T, name, namespace string) *capiv1_protos.Metadata {
-	t.Helper()
 	return &capiv1_protos.Metadata{
 		Name:      name,
 		Namespace: namespace,
@@ -1809,7 +1821,6 @@ func testNewMetadata(t *testing.T, name, namespace string) *capiv1_protos.Metada
 }
 
 func testNewSourceRef(t *testing.T, name, namespace string) *capiv1_protos.SourceRef {
-	t.Helper()
 	return &capiv1_protos.SourceRef{
 		Name:      name,
 		Namespace: namespace,
@@ -1817,7 +1828,6 @@ func testNewSourceRef(t *testing.T, name, namespace string) *capiv1_protos.Sourc
 }
 
 func testNewChart(t *testing.T, name string, sourceRef *capiv1_protos.SourceRef) *capiv1_protos.Chart {
-	t.Helper()
 	return &capiv1_protos.Chart{
 		Spec: &capiv1_protos.ChartSpec{
 			Chart:     name,
