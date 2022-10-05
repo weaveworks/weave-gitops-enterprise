@@ -625,7 +625,7 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
 			name:             "render template with optional value",
@@ -867,7 +867,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: dev\n  namespace: test-ns\n",
+				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: dev\n  namespace: test-ns\n",
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
@@ -935,7 +935,7 @@ status: {}
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  name: dev\n  namespace: test-ns\n",
+				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: dev\n  namespace: test-ns\n",
 				KustomizationFiles: []*capiv1_protos.CommitFile{},
 				ProfileFiles: []*capiv1_protos.CommitFile{
 					{
