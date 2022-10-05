@@ -934,6 +934,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "get kubeconfig as JSON",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "value.yaml", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -946,6 +950,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "get kubeconfig as binary",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "value", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -956,7 +964,13 @@ func TestGetKubeconfig(t *testing.T) {
 			expected: []byte("foo"),
 		},
 		{
-			name:                    "secret not found",
+			name: "secret not found",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "testing"
+				}),
+			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName:      "dev",
@@ -967,6 +981,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "secret found but is missing key",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "val", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -978,6 +996,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "use cluster_namespace to get secret",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "kube-system"
+				}),
 				makeSecret("dev-kubeconfig", "kube-system", "value", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -991,6 +1013,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "no namespace and lookup across namespaces, use default namespace",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "value", "foo"),
 			},
 			clusterObjectsNamespace: "",
@@ -1005,6 +1031,10 @@ func TestGetKubeconfig(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeSecret("dev-kubeconfig", "default", "value.yaml", "foo"),
 				makeSecret("dev-user-kubeconfig", "default", "value.yaml", "bar"),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
@@ -1012,6 +1042,43 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("bar")))),
+		},
+		{
+			name: "gitops cluster references secret",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "just-a-test-config",
+					}
+				}),
+				makeSecret("just-a-test-config", "default", "value.yaml", "foo"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "gitops-cluster",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+		},
+		{
+			name: "gitops cluster references non-existent secret",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "just-a-test-config",
+					}
+				}),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "gitops-cluster",
+			},
+			ctx: metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			err: errors.New("failed to load referenced secret default/just-a-test-config for cluster default/gitops-cluster"),
 		},
 	}
 	for _, tt := range testCases {

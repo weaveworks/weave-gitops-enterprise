@@ -19,6 +19,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -402,6 +403,30 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		return nil, err
 	}
 
+	gc := &gitopsv1alpha1.GitopsCluster{}
+	err = cl.Get(ctx, cluster, gc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get GitopsCluster %s: %w", cluster, err)
+	}
+	if gc.Spec.SecretRef != nil {
+		secretRefName := client.ObjectKey{
+			Namespace: cluster.Namespace,
+			Name:      gc.Spec.SecretRef.Name,
+		}
+		sec, err := secretByName(ctx, cl, secretRefName)
+		if err != nil && !apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+		}
+		if sec == nil {
+			return nil, fmt.Errorf("failed to load referenced secret %s for cluster %s", secretRefName, cluster)
+		}
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", secretRefName, "value")
+		}
+		return val, nil
+	}
+
 	userSecretName := client.ObjectKey{
 		Namespace: getClusterNamespace(cluster.Namespace),
 		Name:      fmt.Sprintf("%s-user-kubeconfig", cluster.Name),
@@ -447,7 +472,7 @@ func secretByName(ctx context.Context, cl client.Client, name types.NamespacedNa
 
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
-	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.ClusterName, Namespace: msg.ClusterNamespace})
+	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.ClusterName, Namespace: getClusterNamespace(msg.ClusterNamespace)})
 	if err != nil {
 		return nil, err
 	}
