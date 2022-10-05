@@ -8,7 +8,12 @@ import { useListCredentials } from '../../../../hooks/credentials';
 const Credentials: FC<{
   infraCredential: Credential | null;
   setInfraCredential: Dispatch<React.SetStateAction<Credential | null>>;
-}> = ({ infraCredential, setInfraCredential }) => {
+  isCredentialEnabled?: string;
+}> = ({
+  infraCredential,
+  setInfraCredential,
+  isCredentialEnabled = 'true',
+}) => {
   const { data, isLoading } = useListCredentials();
   const credentials = useMemo(
     () => data?.credentials || [],
@@ -41,7 +46,7 @@ const Credentials: FC<{
     [credentials, setInfraCredential],
   );
 
-  return (
+  return isCredentialEnabled === 'false' ? null : (
     <div className="credentials">
       <span>Infrastructure provider credentials:</span>
       <FormControl>
