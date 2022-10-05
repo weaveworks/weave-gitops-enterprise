@@ -1,21 +1,8 @@
----
-apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: GitRepository
-metadata:
-  name: {{.GitRepoName}}
-  namespace: {{.NameSpace}}
-spec:
-  interval: 30s
-  ref:
-    branch: master
-  url: {{.GitRepoURL}}
-
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
   name: {{.KustomizationName}}
-  namespace: {{.NameSpace}}
+  namespace: {{.KustomizationNameSpace}}
   annotations:
     metadata.weave.works/description: |
       Podinfo is a tiny web application made with Go that showcases best practices of running microservices in Kubernetes.
@@ -24,10 +11,11 @@ metadata:
     metadata.weave.works/javascript-alert: "javascript:alert('hello there');"
 spec:
   interval: 30s
-  path: ./kustomize
+  path: {{.KustomizationPath}}
   prune: true
   sourceRef:
     kind: GitRepository
     name: {{.GitRepoName}}
+    namespace:  {{.SourceNameSpace}}
   targetNamespace: {{.TargetNamespace}}
 
