@@ -258,7 +258,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 			}
 
 			if browserCompatibility {
-				pages.CloseWindow(webDriver, "gitlab")
+				pages.CloseWindow(webDriver, pages.GetNextWindow(webDriver))
 			}
 		}
 	}
