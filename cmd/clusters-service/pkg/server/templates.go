@@ -20,7 +20,6 @@ import (
 )
 
 type GetFilesRequest struct {
-	Template         template.Template
 	ClusterNamespace string
 	TemplateName     string
 	TemplateKind     string
@@ -34,6 +33,19 @@ type GetFilesRequest struct {
 	Title            string
 	Description      string
 	RepositoryApiUrl string
+	CommitMessage    string
+}
+
+type PRAnnotation struct {
+	TemplateName    string
+	ParameterValues map[string]string
+	RepositoryUrl   string
+	HeadBranch      string
+	BaseBranch      string
+	Title           string
+	Description     string
+	CommitMessage   string
+	Values          []*capiv1_proto.ProfileValues
 }
 
 type GetFilesReturn struct {
@@ -154,7 +166,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	files, err := s.getFiles(ctx, GetFilesRequest{tm, msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, "", "", "", "", "", ""})
+	files, err := s.getFiles(ctx, tm, GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, "", "", "", "", "", "", ""})
 
 	if err != nil {
 		return nil, err
@@ -178,7 +190,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
 }
 
-func (s *server) getFiles(ctx context.Context, msg GetFilesRequest) (*GetFilesReturn, error) {
+func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFilesRequest) (*GetFilesReturn, error) {
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
@@ -186,7 +198,7 @@ func (s *server) getFiles(ctx context.Context, msg GetFilesRequest) (*GetFilesRe
 	s.log.WithValues("request_values", msg.ParameterValues, "request_credentials", msg.Credentials).Info("Received message")
 
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
-	tmplWithValues, err := renderTemplateWithValues(msg.Template, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +237,7 @@ func (s *server) getFiles(ctx context.Context, msg GetFilesRequest) (*GetFilesRe
 	if len(msg.Profiles) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
-			msg.Template,
+			tmpl,
 			cluster,
 			client,
 			generateProfileFilesParams{
