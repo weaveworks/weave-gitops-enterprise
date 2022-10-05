@@ -15,6 +15,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
+.c14 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
 .c9 svg {
   fill: !important;
   height: 24px;
@@ -31,6 +40,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
+}
+
+.c9 .c13 {
+  margin-left: 4px;
+}
+
+.c12 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
 }
 
 .c7 {
@@ -63,7 +81,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-radius: 8px 8px 0 0;
 }
 
-.c12 {
+.c15 {
   padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
@@ -79,7 +97,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c12 a {
+.c15 a {
   color: #00b3ec;
 }
 
@@ -318,7 +336,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="workloadName"
                 >
-                  podinfo
+                  <a
+                    class="c12"
+                    href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
+                  >
+                    <span
+                      class="c13 c14"
+                      color="primary"
+                    >
+                      podinfo
+                    </span>
+                  </a>
                 </div>
                 <div
                   class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
@@ -457,7 +485,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c12"
+        class="c15"
       >
         <div>
           Need help? Raise a 

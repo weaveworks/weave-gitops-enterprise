@@ -6,6 +6,7 @@
 export type ClusterRef = {
   kind?: string
   name?: string
+  namespace?: string
 }
 
 export type Target = {
