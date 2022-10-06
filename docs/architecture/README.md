@@ -34,7 +34,7 @@ It aims to represent Weave Gitops Enterprise as a whole system and how it fits i
 
 ![Weave Gitops System Diagram](./imgs/system-context.svg)
 
-```mermaid-source
+```mermaid
 C4Context
       title Weave Gitops Enterprise - System Context Diagram
       Person(platformOperator, "Platform Operator")
