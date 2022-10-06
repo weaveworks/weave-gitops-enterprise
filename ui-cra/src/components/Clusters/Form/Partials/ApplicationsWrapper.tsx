@@ -49,9 +49,9 @@ export const ApplicationsWrapper: FC<{
             <Grid container className="">
               <Grid item xs={12} sm={8} md={8} lg={8}>
                 <AppFields
+                  index={index}
                   formData={formData}
                   setFormData={setFormData}
-                  index={index}
                   allowSelectCluster={false}
                 />
               </Grid>
