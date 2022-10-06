@@ -11,6 +11,7 @@ import {
   Button,
   CallbackStateContextProvider,
   getProviderToken,
+  isAllowedLink,
   LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
@@ -33,6 +34,7 @@ import {
   ProfilesIndex,
   ClusterPRPreview,
 } from '../../../types/custom';
+import { getGitRepoHTTPSURL } from '../../../utils/formatters';
 
 const PRPreviewWrapper = styled.div`
   .preview-cta {
@@ -57,6 +59,51 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+
+  const optionUrl = (url?: string, branch?: string) => {
+    const linkText = branch ? (
+      <>
+        {url}@<strong>{branch}</strong>
+      </>
+    ) : (
+      url
+    );
+    if (branch) {
+      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
+        <a
+          title="Visit repository"
+          style={{
+            color: weaveTheme.colors.primary,
+            fontSize: weaveTheme.fontSizes.medium,
+          }}
+          href={getGitRepoHTTPSURL(url, branch)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {linkText}
+        </a>
+      ) : (
+        <span>{linkText}</span>
+      );
+    } else {
+      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
+        <a
+          title="Visit repository"
+          style={{
+            color: weaveTheme.colors.primary,
+            fontSize: weaveTheme.fontSizes.medium,
+          }}
+          href={getGitRepoHTTPSURL(url)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {linkText}
+        </a>
+      ) : (
+        <span>{linkText}</span>
+      );
+    }
+  };
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -84,6 +131,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         source_namespace: '',
         source: '',
         source_type: '',
+        source_url: '',
+        source_branch: '',
       },
     ],
     ...callbackState?.state?.formData,
@@ -314,6 +363,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       sourceType={formData.source_type}
                     />
                   ) : null}
+                </Grid>
+                <Grid item sm={2} md={2} lg={4}>
+                  {optionUrl(formData.source_url, formData.source_branch)}
                 </Grid>
                 {formData.source_type === 'HelmRepository' ? (
                   <Profiles
