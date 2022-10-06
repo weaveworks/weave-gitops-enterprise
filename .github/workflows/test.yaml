@@ -1,7 +1,9 @@
 on:
   push:
-    branches-ignore:
-      - "main"
+    branches:
+      - main
+    # branches-ignore:
+    #   - "main"
     tags-ignore:
       - "*"
   workflow_dispatch:

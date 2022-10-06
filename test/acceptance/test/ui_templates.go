@@ -321,7 +321,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] When Capi Template is available in the cluster", func() {
-			ginkgo.It("Verify template parameters should be rendered dynamically and can be set for the selected template", ginkgo.Label("integration"), func() {
+			ginkgo.FIt("Verify template parameters should be rendered dynamically and can be set for the selected template", ginkgo.Label("integration"), func() {
 
 				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
