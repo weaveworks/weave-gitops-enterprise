@@ -51,6 +51,11 @@ const PRPreviewWrapper = styled.div`
   }
 `;
 
+const SourceLinkWrapper = styled.div`
+  padding-top: ${({ theme }) => theme.spacing.medium};
+  overflow-x: auto;
+`;
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -365,7 +370,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   ) : null}
                 </Grid>
                 <Grid item sm={2} md={2} lg={4}>
-                  {optionUrl(formData.source_url, formData.source_branch)}
+                  <SourceLinkWrapper>
+                    {optionUrl(formData.source_url, formData.source_branch)}
+                  </SourceLinkWrapper>
                 </Grid>
                 {formData.source_type === 'HelmRepository' ? (
                   <Profiles
