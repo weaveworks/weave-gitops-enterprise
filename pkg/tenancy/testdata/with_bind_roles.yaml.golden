@@ -39,12 +39,12 @@ metadata:
   creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: foo-tenant
-  name: foo-tenant-service-account-deployment
+  name: foo-tenant-service-account
   namespace: foo-ns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: foo-tenant-service-account-deployment
+  name: foo-tenant-service-account
 subjects:
 - kind: ServiceAccount
   name: foo-tenant

@@ -252,6 +252,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
+  const { annotations } = template;
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     cluster,
@@ -410,6 +411,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
               <Credentials
                 infraCredential={infraCredential}
                 setInfraCredential={setInfraCredential}
+                isCredentialEnabled={
+                  annotations?.['templates.weave.works/credentials-enabled']
+                }
               />
             </CredentialsWrapper>
             <Divider
@@ -427,11 +431,17 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             isLoading={profilesIsLoading}
             updatedProfiles={updatedProfiles}
             setUpdatedProfiles={setUpdatedProfiles}
+            isProfilesEnabled={
+              annotations?.['templates.weave.works/profiles-enabled']
+            }
           />
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <ApplicationsWrapper
               formData={formData}
               setFormData={setFormData}
+              isKustomizationsEnabled={
+                annotations?.['templates.weave.works/kustomizations-enabled']
+              }
             />
             {previewLoading ? (
               <LoadingPage className={classes.previewLoading} />
@@ -494,6 +504,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     previewLoading,
     loading,
     enableCreatePR,
+    annotations,
   ]);
 };
 

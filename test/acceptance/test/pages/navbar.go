@@ -21,7 +21,7 @@ type NavbarwebDriver struct {
 // NavbarwebDriver initialises the webDriver object
 func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 	navbar := NavbarwebDriver{
-		Title:        webDriver.Find(`nav a[title="Home"]`),
+		Title:        webDriver.Find(`nav div[title="Home"]`),
 		Clusters:     webDriver.Find(`nav a[href="/clusters"]`),
 		Templates:    webDriver.Find(`nav a[href="/templates"]`),
 		Applications: webDriver.Find(`nav a[href="/applications"]`),

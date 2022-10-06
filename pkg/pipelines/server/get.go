@@ -77,8 +77,9 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 			if t.ClusterRef != nil {
 				clusterRef = pb.ClusterRef{
-					Kind: t.ClusterRef.Kind,
-					Name: t.ClusterRef.Name,
+					Kind:      t.ClusterRef.Kind,
+					Name:      t.ClusterRef.Name,
+					Namespace: t.ClusterRef.Namespace,
 				}
 			}
 			pipelineResp.Status.Environments[e.Name].TargetsStatuses = append(targetsStatuses, &pb.PipelineTargetStatus{
@@ -107,6 +108,7 @@ func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, erro
 		ws.Kind = hr.Kind
 		ws.Name = hr.Name
 		ws.Version = hr.Spec.Chart.Spec.Version
+		ws.LastAppliedRevision = hr.Status.LastAppliedRevision
 	}
 
 	return ws, nil
