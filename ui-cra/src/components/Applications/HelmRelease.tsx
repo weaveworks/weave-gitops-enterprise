@@ -1,6 +1,8 @@
 import {
+  formatURL,
   HelmReleaseDetail,
   Kind,
+  LinkResolverProvider,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
@@ -17,6 +19,16 @@ type Props = {
   clusterName: string;
   namespace: string;
 };
+
+function reconciledObjectsRoute(s: string, params: any) {
+  switch (s) {
+    case 'Deployment':
+      return formatURL('/applications', params);
+
+    default:
+      return '';
+  }
+}
 
 const WGApplicationsHelmRelease: FC<Props> = props => {
   const { name, namespace, clusterName } = props;
@@ -66,11 +78,15 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         }
       >
         {!error && !isLoading && (
-          <HelmReleaseDetail
-            helmRelease={helmRelease}
-            customTabs={customTabs}
-            {...props}
-          />
+          <>
+            <LinkResolverProvider resolver={reconciledObjectsRoute}>
+              <HelmReleaseDetail
+                helmRelease={helmRelease}
+                customTabs={customTabs}
+                {...props}
+              />
+            </LinkResolverProvider>
+          </>
         )}
       </ContentWrapper>
     </PageTemplate>
