@@ -39,7 +39,7 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 		&nsChecker,
 		log,
 		nil,
-		clustersmngr.NewClustersClientsPool,
+		clustersmngr.CachedClientFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 
