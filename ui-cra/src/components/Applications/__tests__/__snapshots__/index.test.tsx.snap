@@ -866,6 +866,10 @@ exports[`Applications index test snapshots success 1`] = `
   text-overflow: ellipsis;
 }
 
+.c15 .filter-options-chip {
+  background-color: #E5F7FD;
+}
+
 .c16 td:nth-child(7) {
   white-space: pre-wrap;
   overflow-wrap: break-word;

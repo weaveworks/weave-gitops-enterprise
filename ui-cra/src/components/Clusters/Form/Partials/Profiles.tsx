@@ -49,7 +49,14 @@ const Profiles: FC<{
   updatedProfiles: ProfilesIndex;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   isLoading: boolean;
-}> = ({ context, updatedProfiles, setUpdatedProfiles, isLoading }) => {
+  isProfilesEnabled?: string;
+}> = ({
+  context,
+  updatedProfiles,
+  setUpdatedProfiles,
+  isLoading,
+  isProfilesEnabled = 'true',
+}) => {
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
@@ -78,7 +85,7 @@ const Profiles: FC<{
   const numSelected = updatedProfilesList.filter(up => up.selected).length;
   const rowCount = updatedProfilesList.length || 0;
 
-  return (
+  return isProfilesEnabled === 'false' ? null : (
     <ProfilesWrapper>
       <>
         <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>

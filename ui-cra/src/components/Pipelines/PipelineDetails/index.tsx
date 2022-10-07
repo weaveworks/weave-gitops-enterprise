@@ -1,6 +1,6 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
+import { formatURL, Link, theme } from '@weaveworks/weave-gitops';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -41,8 +41,8 @@ const useStyles = makeStyles(() =>
       marginBottom: small,
     },
     target: {
-      fontSize: '20px',
-      marginBottom: '12px',
+      fontSize: theme.fontSizes.large,
+      marginBottom: xs,
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
@@ -59,6 +59,17 @@ const CardContainer = styled.div`
   margin-bottom: ${xs};
   box-shadow: 0px 0px 1px rgba(26, 32, 36, 0.32);
   border-radius: 10px;
+  font-weight: 600;
+`;
+const ClusterName = styled.div`
+  margin-bottom: ${xs};
+`;
+const TargetNamespace = styled.div`
+  font-size: ${small};
+`;
+const LastAppliedVersion = styled.span`
+  color: ${neutral30};
+  margin-left: ${xs};
 `;
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
@@ -119,16 +130,38 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                   target?.workloads?.map((workload, wrkIndex) => (
                     <CardContainer key={wrkIndex} role="targeting">
                       <div className={`${classes.target} workloadTarget`}>
-                        {target?.clusterRef?.name
-                          ? `${target?.clusterRef?.name}/${target?.namespace}`
-                          : target?.namespace}
+                        {target?.clusterRef?.name && (
+                          <ClusterName className="cluster-name">
+                            {target?.clusterRef?.name}
+                          </ClusterName>
+                        )}
+                        <TargetNamespace className="workload-namespace">
+                          {target?.namespace}
+                        </TargetNamespace>
                       </div>
                       <div>
-                        <div className="workloadName">{workload?.name}</div>
+                        <div className="workloadName">
+                          {target?.clusterRef?.namespace ? (
+                            <Link
+                              to={formatURL('/helm_release/details', {
+                                name: workload?.name,
+                                namespace: target?.namespace,
+                                clusterName: `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`,
+                              })}
+                            >
+                              {workload?.name}
+                            </Link>
+                          ) : (
+                            <div className='workload-name'>{workload?.name}</div>
+                          )}
+                          {workload?.lastAppliedRevision && (
+                            <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
+                          )}
+                        </div>
                         <div
                           className={`${classes.subtitle} ${classes.subtitleColor}`}
                         >
-                          Version
+                          Spec Version
                         </div>
                         <div
                           className={`${classes.subtitle} version`}
