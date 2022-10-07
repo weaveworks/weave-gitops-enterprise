@@ -15,11 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
-<<<<<<< HEAD
-	github.com/weaveworks/weave-gitops v0.9.7-0.20221003174304-5462499942cd
-=======
-	github.com/weaveworks/weave-gitops v0.9.6
->>>>>>> 2c67f583d5b30f0a241e24b02a1b0905b79379a7
+	github.com/weaveworks/weave-gitops v0.9.7-0.20221007134753-51ccd2e442ef
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect

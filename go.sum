@@ -396,13 +396,8 @@ github.com/fluxcd/pkg/runtime v0.18.0/go.mod h1:JKTvOFOCz5Un9KxGcBL7Xjt0fcRa10ZI
 github.com/fluxcd/pkg/ssa v0.19.0 h1:azciQ/M1L7Nf4zkHJ+A+a58uShcTW3ZMbyY8KiYcqrI=
 github.com/fluxcd/pkg/ssa v0.19.0/go.mod h1:OjHX/qA4xqLi237l0yccsT6FnLmHxDKukpMXnhdXdyk=
 github.com/fluxcd/pkg/untar v0.2.0 h1:sJXU+FbJcNUb2ffLJNjeR3hwt3X2loVpOMlCUjyFw6E=
-<<<<<<< HEAD
-github.com/fluxcd/source-controller/api v0.29.0 h1:RyuHUCW7NtnHu61RbZUYhNWS+Nl0Z0rWS6a4aGGZZqE=
-github.com/fluxcd/source-controller/api v0.29.0/go.mod h1:pqWB3brXYkacesoKGY96dTJRrafThY1VwDQy6md1W/4=
-=======
 github.com/fluxcd/source-controller/api v0.30.0 h1:rPVPpwXcYG2n0DTRcRagfGDiccvCib5S09K5iMjlpRU=
 github.com/fluxcd/source-controller/api v0.30.0/go.mod h1:UkjAqQ6QAXNNesNQDTArTeiTp+UuhOUIA+JyFhGP/+Q=
->>>>>>> 2c67f583d5b30f0a241e24b02a1b0905b79379a7
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/frankban/quicktest v1.14.3 h1:FJKSZTDHjyhriyC81FLQ0LY93eSai0ZyR/ZIkd3ZUKE=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
@@ -1324,6 +1319,8 @@ github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mb
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
 github.com/weaveworks/weave-gitops v0.9.6 h1:awfLXkZQ8yomd7/m7XDCpsr948nLxVddVkxljr+VpYw=
 github.com/weaveworks/weave-gitops v0.9.6/go.mod h1:I7+HSTP8uik9ZwvtcCWEkKsGYZEZbI1aECP/YTZsC9I=
+github.com/weaveworks/weave-gitops v0.9.7-0.20221007134753-51ccd2e442ef h1:Xjy6qECqwTuTybk/pX5CFQrJ3BLT0HpzRbsxVXi0ZLU=
+github.com/weaveworks/weave-gitops v0.9.7-0.20221007134753-51ccd2e442ef/go.mod h1:aN9coD172ZhF7xdRFMSxIE3Zi6+W2b2usDZcqskS5rM=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.73.1 h1:UMagqUZLJdjss1SovIC+kJCH4k2AZWXl58gJd38Y/hI=
