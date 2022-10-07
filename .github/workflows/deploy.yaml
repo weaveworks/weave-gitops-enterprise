@@ -97,13 +97,13 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
 
   smoke-tests-gitlab:
-    needs: [build]
+    needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
-      label-filter: "-ginkgo.label-filter='saeed'"
+      label-filter: "-ginkgo.label-filter='smoke'"
       kubectl-version: "v1.22.0"
       login_user_type: "cluster-user"
       git-provider: gitlab

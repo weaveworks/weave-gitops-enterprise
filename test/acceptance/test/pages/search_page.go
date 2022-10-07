@@ -26,15 +26,8 @@ func GetSearchPage(webDriver *agouti.Page) *SearchPage {
 }
 
 func (s SearchPage) SelectFilter(filterType string, filterID string) {
-	gomega.Eventually(func(g gomega.Gomega) {
-		g.Eventually(s.FilterBtn.Click).Should(gomega.Succeed())
-		if ElementExist(s.FilterDialog) {
-			g.Eventually(s.FilterDialog, time.Second*5).Should(matchers.BeVisible())
-		} else {
-			g.Eventually(s.FilterBtn.Click).Should(gomega.Succeed())
-			g.Eventually(s.FilterDialog, time.Second*5).Should(matchers.BeVisible())
-		}
-	}, time.Minute, time.Second*5).Should(gomega.Succeed(), "Failed to select fileter: "+filterType)
+	gomega.Eventually(s.FilterBtn.Click).Should(gomega.Succeed())
+	gomega.Eventually(s.FilterDialog, time.Second*3).Should(matchers.BeFound())
 
 	filters := s.FilterDialog.AllByXPath(`//form/ul/li`)
 	fCount, _ := filters.Count()
@@ -47,8 +40,9 @@ func (s SearchPage) SelectFilter(filterType string, filterID string) {
 				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]`, filterID)).Check()).Should(gomega.Succeed())
 				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]/ancestor::span[contains(@class, "Mui-checked")]`, filterID))).Should(matchers.BeFound())
 			}).Should(gomega.Succeed(), "Failed to select cluster filter: "+filterID)
-
+			break
 		}
 	}
 
+	gomega.Expect(s.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to close filter dialog")
 }

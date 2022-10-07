@@ -159,9 +159,9 @@ func InstallWeaveGitopsControllers() {
 	// TODO: check flux bin is available too.
 
 	if controllerStatus(CLUSTER_SERVICE_DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE) == nil {
-		// repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-		// initAndCreateEmptyRepo(gitProviderEnv, true)
-		// bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
+		repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+		initAndCreateEmptyRepo(gitProviderEnv, true)
+		bootstrapAndVerifyFlux(gitProviderEnv, GITOPS_DEFAULT_NAMESPACE, getGitRepositoryURL(repoAbsolutePath))
 		logger.Info("No need to install Weave gitops enterprise controllers, managemnt cluster is already configured and setup.")
 
 	} else {
