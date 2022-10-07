@@ -45,6 +45,7 @@ helm_remote('tf-controller',
             namespace='flux-system')
 
 native_build = os.getenv('NATIVE_BUILD', False)
+skip_ui = os.getenv("SKIP_UI_BUILD", False)
 
 if native_build:
    local_resource(
@@ -60,14 +61,15 @@ if native_build:
       dir='cmd/clusters-service',
    )
 
-   local_resource(
-      'ui',
-      'make build',
-      deps=[
-         './ui-cra/src',
-      ],
-      dir='ui-cra',
-   )
+   if not skip_ui:
+      local_resource(
+         'ui',
+         'make build',
+         deps=[
+            './ui-cra/src',
+         ],
+         dir='ui-cra',
+      )
 
    docker_build_with_restart(
       'weaveworks/weave-gitops-enterprise-clusters-service',
