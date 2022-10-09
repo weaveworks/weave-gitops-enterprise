@@ -15,7 +15,6 @@ import {
   LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
