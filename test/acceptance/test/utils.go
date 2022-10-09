@@ -117,6 +117,17 @@ func TakeScreenShot(name string) string {
 	return ""
 }
 
+func SaveDOM(name string) string {
+	if webDriver != nil {
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
+		var htmlDocument interface{}
+		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
+		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+		return filepath
+	}
+	return ""
+}
+
 func RandString(length int) string {
 	return stringWithCharset(length, charset)
 }
