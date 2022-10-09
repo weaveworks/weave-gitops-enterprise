@@ -33,13 +33,28 @@ const FormWrapper = styled.form`
   .input-wrapper {
     padding-bottom: ${({ theme }) => theme.spacing.medium};
   }
+  .preview-cta {
+    display: flex;
+    justify-content: flex-end;
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
+  }
+  .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
 `;
 
 const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
+  onPRPreview?: () => void;
+  previewLoading?: boolean;
   allowSelectCluster: boolean;
+  context?: string;
   clusterName?: string;
 }> = ({
   formData,

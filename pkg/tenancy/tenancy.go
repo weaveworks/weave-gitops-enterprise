@@ -435,7 +435,7 @@ func newServiceAccount(name, namespace string, labels map[string]string) *corev1
 }
 
 func newDeploymentRBACRoleBinding(tenantName, namespace, serviceAccountName string, labels map[string]string) *rbacv1.RoleBinding {
-	name := fmt.Sprintf("%s-service-account-deployment", tenantName)
+	name := fmt.Sprintf("%s-service-account", tenantName)
 	return newRoleBinding(
 		name,
 		namespace,
