@@ -9,7 +9,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@material-ui/core';
-import { useListSources, theme, Flex } from '@weaveworks/weave-gitops';
+import { useListSources, theme, Flex, Link } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import {
   GitRepository,
@@ -219,35 +219,17 @@ const AppFields: FC<{
     );
     if (branch) {
       return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: theme.colors.primary,
-            fontSize: theme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url, branch)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Link href={getGitRepoHTTPSURL(url, branch)} newTab>
           {linkText}
-        </a>
+        </Link>
       ) : (
         <span>{linkText}</span>
       );
     } else {
       return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: theme.colors.primary,
-            fontSize: theme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Link href={getGitRepoHTTPSURL(url)} newTab>
           {linkText}
-        </a>
+        </Link>
       ) : (
         <span>{linkText}</span>
       );

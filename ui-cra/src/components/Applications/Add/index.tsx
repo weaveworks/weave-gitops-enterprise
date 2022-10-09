@@ -11,6 +11,7 @@ import {
   Button,
   CallbackStateContextProvider,
   getProviderToken,
+  Link,
   LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
@@ -240,14 +241,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
           {
             message: {
               component: (
-                <a
-                  style={{ color: weaveTheme.colors.primary }}
-                  href={response.webUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href={response.webUrl} newTab>
                   PR created successfully.
-                </a>
+                </Link>
               ),
             },
             variant: 'success',
