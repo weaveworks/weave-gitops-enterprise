@@ -365,7 +365,7 @@ func TestCreatePullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreatePullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 	}{
 		{
@@ -486,7 +486,7 @@ func TestCreatePullRequest(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/default/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -592,7 +592,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -709,7 +709,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -889,7 +889,7 @@ status: {}
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
-				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
 			}
@@ -897,14 +897,14 @@ status: {}
 	}
 }
 
-func prepCommitedFiles(t *testing.T, serverUrl string, files []CommittedFile) []CommittedFile {
+func prepCommitedFiles(t *testing.T, serverUrl string, files []*capiv1_protos.CommitFile) []*capiv1_protos.CommitFile {
 	parsedURL, err := url.Parse(serverUrl)
 	if err != nil {
 		t.Fatalf("failed to parse URL %s", err)
 	}
-	newFiles := []CommittedFile{}
+	newFiles := []*capiv1_protos.CommitFile{}
 	for _, f := range files {
-		newFiles = append(newFiles, CommittedFile{
+		newFiles = append(newFiles, &capiv1_protos.CommitFile{
 			Path:    f.Path,
 			Content: simpleTemplate(t, f.Content, struct{ Port string }{Port: parsedURL.Port()}),
 		})
@@ -1035,7 +1035,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		name           string
 		provider       git.Provider
 		req            *capiv1_protos.DeleteClustersPullRequestRequest
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		expected       string
 		err            error
 	}{
@@ -1244,10 +1244,10 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 	return nil, nil
 }
 
-func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
-	var committedFiles []CommittedFile
+func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
+	var committedFiles []*capiv1_protos.CommitFile
 	for _, f := range p.committedFiles {
-		committedFiles = append(committedFiles, CommittedFile{
+		committedFiles = append(committedFiles, &capiv1_protos.CommitFile{
 			Path:    *f.Path,
 			Content: *f.Content,
 		})
@@ -1276,11 +1276,6 @@ func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, r
 
 	}
 	return treeEntries, nil
-}
-
-type CommittedFile struct {
-	Path    string
-	Content string
 }
 
 func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {

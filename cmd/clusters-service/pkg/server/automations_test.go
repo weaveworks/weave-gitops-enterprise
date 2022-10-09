@@ -27,7 +27,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreateAutomationsPullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 	}{
 		{
@@ -132,7 +132,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -213,7 +213,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/foo-ns-namespace.yaml",
 					Content: `apiVersion: v1
@@ -302,7 +302,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -384,7 +384,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/first-profile-flux-system-helmrelease.yaml",
 					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -617,7 +617,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/dev/test-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -698,8 +698,137 @@ status: {}
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
-				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+func TestRenderAutomation(t *testing.T) {
+	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
+	viper.SetDefault("capi-repository-clusters-path", "clusters")
+	viper.SetDefault("add-bases-kustomization", "enabled")
+
+	testCases := []struct {
+		name               string
+		clusterState       []runtime.Object
+		pruneEnvVar        string
+		req                *capiv1_protos.RenderAutomationRequest
+		expected           string
+		kustomizationFiles []*capiv1_protos.CommitFile
+		helmreleaseFiles   []*capiv1_protos.CommitFile
+		err                error
+	}{
+		{
+			name: "render automations",
+			req: &capiv1_protos.RenderAutomationRequest{
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						Kustomization: &capiv1_protos.Kustomization{
+							Metadata: testNewMetadata(t, "apps-capi", ""),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:      "./apps/capi",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+							},
+						},
+					},
+					{
+						Cluster: testNewClusterNamespacedName(t, "billing", "dev"),
+						HelmRelease: &capiv1_protos.HelmRelease{
+							Metadata: testNewMetadata(t, "test-profile", ""),
+							Spec: &capiv1_protos.HelmReleaseSpec{
+								Chart: testNewChart(t, "test-chart", testNewSourceRef(t, "weaveworks-charts", "default")),
+							},
+						},
+					},
+				},
+			},
+			kustomizationFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-capi
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/capi
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+				},
+			},
+			helmreleaseFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/dev/billing/test-profile-flux-system-helmrelease.yaml",
+					Content: `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: test-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: test-chart
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+  interval: 10m0s
+  targetNamespace: flux-system
+  values: null
+status: {}
+`,
+				},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.SetDefault("runtime-namespace", "default")
+			// setup
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				hr:           hr,
+			})
+
+			// request
+			renderAutomationResponse, err := s.RenderAutomation(context.Background(), tt.req)
+
+			// Check the response looks good
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to render automations:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.kustomizationFiles, renderAutomationResponse.KustomizationFiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("kustomization files do not match expected committed files:\n%s", diff)
+				}
+				if diff := cmp.Diff(tt.helmreleaseFiles, renderAutomationResponse.HelmReleaseFiles, protocmp.Transform()); diff != "" {
+					t.Fatalf("helmrelease files do not match expected committed files:\n%s", diff)
 				}
 			}
 		})

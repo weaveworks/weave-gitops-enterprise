@@ -19,11 +19,11 @@ require (
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.25.0
-	k8s.io/apimachinery v0.25.0
+	k8s.io/api v0.25.2
+	k8s.io/apimachinery v0.25.2
 	k8s.io/cli-runtime v0.25.0
-	k8s.io/client-go v0.25.0
-	sigs.k8s.io/controller-runtime v0.12.3
+	k8s.io/client-go v0.25.2
+	sigs.k8s.io/controller-runtime v0.13.0
 )
 
 require (
@@ -31,11 +31,11 @@ require (
 	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.9.0
-	github.com/fluxcd/helm-controller/api v0.24.0
-	github.com/fluxcd/kustomize-controller/api v0.28.0
-	github.com/fluxcd/pkg/apis/meta v0.15.0
+	github.com/fluxcd/helm-controller/api v0.25.0
+	github.com/fluxcd/kustomize-controller/api v0.29.0
+	github.com/fluxcd/pkg/apis/meta v0.16.0
 	github.com/fluxcd/pkg/runtime v0.18.0
-	github.com/fluxcd/source-controller/api v0.29.0
+	github.com/fluxcd/source-controller/api v0.30.0
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
@@ -44,7 +44,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/mkmik/multierror v0.3.0
-	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/spf13/viper v1.12.0
 	github.com/weaveworks/cluster-controller v1.3.2
@@ -61,7 +60,7 @@ require (
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
-	k8s.io/apiextensions-apiserver v0.25.0
+	k8s.io/apiextensions-apiserver v0.25.2
 	k8s.io/helm v2.17.0+incompatible
 	sigs.k8s.io/cluster-api v1.1.3
 	sigs.k8s.io/kustomize/kyaml v0.13.9
@@ -77,7 +76,8 @@ require (
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
 	github.com/cloudflare/circl v1.1.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
-	github.com/fluxcd/notification-controller/api v0.26.0 // indirect
+	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
+	github.com/fluxcd/notification-controller/api v0.27.0 // indirect
 	github.com/google/go-github/v47 v47.0.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
@@ -85,10 +85,8 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.11.1-0.20220212125758-44cd13922739 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )
 
 require (
@@ -172,7 +170,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v0.5.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v0.6.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.19.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/ghodss/yaml v1.0.0
@@ -282,8 +280,8 @@ require (
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/apiserver v0.25.0 // indirect
-	k8s.io/component-base v0.25.0 // indirect
+	k8s.io/apiserver v0.25.2 // indirect
+	k8s.io/component-base v0.25.2 // indirect
 	k8s.io/klog/v2 v2.70.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220803162953-67bda5d908f1 // indirect
 	k8s.io/kubectl v0.25.0 // indirect
