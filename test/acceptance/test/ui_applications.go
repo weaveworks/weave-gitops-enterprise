@@ -1041,7 +1041,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		//Application Violations Details page tests
-		ginkgo.Context("[UI] Application violations are avaliable for management cluster", func() {
+		ginkgo.Context("[UI] Application violations are available for management cluster", func() {
 			// count of existibng applications before deploying new application
 			var existingAppCount int
 
