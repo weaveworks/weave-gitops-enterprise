@@ -2,6 +2,7 @@ import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
+import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
@@ -20,7 +21,7 @@ const Pipelines = ({ className }: any) => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         { label: 'Pipelines', count: data?.pipelines?.length },
       ]}

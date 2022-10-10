@@ -4,7 +4,12 @@ import {
   CanaryStatus as Status,
   CanaryTargetDeployment,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { DataTable, filterConfig, theme } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  filterConfig,
+  formatURL,
+  theme,
+} from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
@@ -115,7 +120,14 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
             label: 'Name',
             value: (c: Canary) => (
               <Link
-                to={`/applications/delivery/${c.targetDeployment?.uid}?clusterName=${c.clusterName}&namespace=${c.namespace}&name=${c.name}`}
+                to={formatURL(
+                  `/applications/delivery/${c.targetDeployment?.uid}`,
+                  {
+                    clusterName: c.clusterName,
+                    namespace: c.namespace,
+                    name: c.name,
+                  },
+                )}
                 className={classes.canaryLink}
               >
                 {c.name}

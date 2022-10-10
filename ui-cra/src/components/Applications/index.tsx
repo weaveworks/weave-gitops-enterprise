@@ -15,6 +15,7 @@ import { useHistory } from 'react-router-dom';
 import { useListConfig } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core';
 import { openLinkHandler } from '../../utils/link-checker';
+import { Routes } from '../../utils/nav';
 
 interface Size {
   size?: 'small';
@@ -41,7 +42,7 @@ const WGApplicationsDashboard: FC = () => {
   const classes = useStyles();
 
   const handleAddApplication = () => {
-    history.push('/applications/create');
+    history.push(Routes.AddApplication);
   };
 
   return (
@@ -50,7 +51,7 @@ const WGApplicationsDashboard: FC = () => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
           count: automations?.result?.length,
         },
       ]}

@@ -2,6 +2,7 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { useGetCanaryDetails } from '../../../contexts/ProgressiveDelivery';
 import CanaryDetailsSection from './CanaryDetailsSection';
+import { Routes } from '../../../utils/nav';
 
 type Props = {
   name: string;
@@ -22,11 +23,11 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: 'Delivery',
-          url: '/applications/delivery',
+          url: Routes.Canaries,
         },
         { label: name },
       ]}

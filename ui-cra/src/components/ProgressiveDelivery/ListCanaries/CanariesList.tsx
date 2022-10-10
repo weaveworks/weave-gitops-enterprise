@@ -1,4 +1,5 @@
 import { useListCanaries } from '../../../contexts/ProgressiveDelivery';
+import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import { CanaryTable } from './Table';
@@ -13,7 +14,7 @@ const ProgressiveDelivery = () => {
         path={[
           {
             label: 'Applications',
-            url: '/applications',
+            url:Routes.Applications,
           },
           { label: 'Delivery', count: data?.canaries?.length },
         ]}
