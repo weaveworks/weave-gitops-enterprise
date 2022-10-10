@@ -9,9 +9,11 @@ export const maybeParseJSON = (data: string) => {
   }
 };
 
-export const getCreateRequestAnnotation = (cluster: GitopsClusterEnriched) => {
+export const getCreateRequestAnnotation = (resource: any) => {
   return (
-    cluster?.annotations &&
-    maybeParseJSON(cluster?.annotations['templates.weave.works/create-request'])
+    resource?.annotations &&
+    maybeParseJSON(
+      resource?.annotations['templates.weave.works/create-request'],
+    )
   );
 };

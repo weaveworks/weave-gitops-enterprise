@@ -6,16 +6,14 @@ import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import ClusterForm from '../Form';
+import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 
-const EditCluster: FC<{ cluster?: GitopsClusterEnriched | null }> = ({
-  cluster,
-}) => {
+const EditResource: FC<{ resource?: any | null }> = ({ resource }) => {
   const { getTemplate } = useTemplates();
 
   const templateName =
-    cluster && getCreateRequestAnnotation(cluster)?.template_name;
+    resource && getCreateRequestAnnotation(resource)?.template_name;
 
   if (!templateName) {
     return (
@@ -26,7 +24,7 @@ const EditCluster: FC<{ cluster?: GitopsClusterEnriched | null }> = ({
             notification: [
               {
                 message: {
-                  text: 'No edit information is available for this cluster.',
+                  text: 'No edit information is available for this resource.',
                 },
                 variant: 'danger',
               },
@@ -37,7 +35,9 @@ const EditCluster: FC<{ cluster?: GitopsClusterEnriched | null }> = ({
     );
   }
 
-  return <ClusterForm template={getTemplate(templateName)} cluster={cluster} />;
+  return (
+    <ResourceForm template={getTemplate(templateName)} resource={resource} />
+  );
 };
 
 const EditClusterPage = () => {
@@ -46,15 +46,15 @@ const EditClusterPage = () => {
   const { isLoading: isTemplateLoading } = useTemplates();
   return (
     <PageTemplate
-      documentTitle="Create new cluster"
+      documentTitle="Edit resource"
       path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
     >
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>
           <Grid item xs={12} sm={10} md={10} lg={8}>
-            <Title>Edit cluster</Title>
+            <Title>Edit resource</Title>
           </Grid>
-          <EditCluster cluster={getCluster(clusterName)} />
+          <EditResource resource={getCluster(clusterName)} />
         </Grid>
       </ContentWrapper>
     </PageTemplate>

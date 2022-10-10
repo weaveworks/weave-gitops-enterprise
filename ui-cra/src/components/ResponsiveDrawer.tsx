@@ -48,7 +48,7 @@ import WGApplicationsSources from './Applications/Sources';
 import MCCP from './Clusters';
 import ClusterDashboard from './Clusters/ClusterDashboard';
 import AddClusterWithCredentials from './Clusters/Create';
-import EditCluster from './Clusters/Edit';
+import EditResource from './Clusters/Edit';
 import ErrorBoundary from './ErrorBoundary';
 import { ContentWrapper } from './Layout/ContentWrapper';
 import { PageTemplate } from './Layout/PageTemplate';
@@ -70,7 +70,7 @@ const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
 const PIPELINES = '/applications/pipelines';
-export const EDIT_CLUSTER = '/clusters/:clusterName/edit';
+export const EDIT_RESOURCE = '/resources/:type/:resourceName/edit';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -252,7 +252,7 @@ const App = () => {
                 ))}
                 path="/cluster"
               />
-              <Route component={EditCluster} exact path={EDIT_CLUSTER} />
+              <Route component={EditResource} exact path={EDIT_RESOURCE} />
               <Route
                 component={AddClusterWithCredentials}
                 exact

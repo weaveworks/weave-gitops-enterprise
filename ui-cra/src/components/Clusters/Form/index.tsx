@@ -121,30 +121,31 @@ const useStyles = makeStyles(theme =>
 );
 
 function getInitialData(
-  cluster: GitopsClusterEnriched | undefined,
+  resource: any | undefined,
   callbackState: any,
   random: string,
 ) {
-  const clusterData = cluster && getCreateRequestAnnotation(cluster);
-  const clusterName = clusterData?.parameter_values?.CLUSTER_NAME || '';
+  const resourceData = resource && getCreateRequestAnnotation(resource);
+  // update CLUSTER_NAME below
+  const resourceName = resourceData?.parameter_values?.CLUSTER_NAME || '';
   const defaultFormData = {
     url: '',
     provider: '',
-    branchName: clusterData
-      ? `edit-cluster-${clusterName}-branch-${random}`
-      : `create-clusters-branch-${random}`,
-    pullRequestTitle: clusterData
-      ? `Edits cluster ${clusterName}`
-      : 'Creates cluster',
-    commitMessage: clusterData
-      ? `Edits capi cluster ${clusterName}`
-      : 'Creates capi cluster',
-    pullRequestDescription: clusterData
-      ? 'This PR edits the cluster'
-      : 'This PR creates a new cluster',
-    parameterValues: clusterData?.parameter_values || {},
+    branchName: resourceData
+      ? `edit-resource-${resourceName}-branch-${random}`
+      : `create-resource-branch-${random}`,
+    pullRequestTitle: resourceData
+      ? `Edits resource ${resourceName}`
+      : 'Creates resource',
+    commitMessage: resourceData
+      ? `Edits resource ${resourceName}`
+      : 'Creates resource',
+    pullRequestDescription: resourceData
+      ? 'This PR edits the resource'
+      : 'This PR creates a new resource',
+    parameterValues: resourceData?.parameter_values || {},
     clusterAutomations:
-      clusterData?.kustomizations?.map((k: any) => ({
+      resourceData?.kustomizations?.map((k: any) => ({
         name: k.metadata?.name,
         namespace: k.metadata?.namespace,
         path: k.spec?.path,
@@ -153,7 +154,7 @@ function getInitialData(
   };
 
   const initialInfraCredentials = {
-    ...clusterData?.infraCredential,
+    ...resourceData?.infraCredential,
     ...callbackState?.state?.infraCredential,
   };
 
@@ -225,22 +226,25 @@ const toPayload = (
   };
 };
 
-interface ClusterFormProps {
-  cluster?: GitopsClusterEnriched;
+interface ResourceFormProps {
+  resource?: any;
   template: TemplateEnriched;
 }
 
-const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
+const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
+  // what type of template is it - templateType
+  console.log(template);
+  console.log(resource);
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addCluster } = useTemplates();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
-  const { annotations } = template;
+  const { annotations, templateType } = template;
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
-    cluster,
+    resource,
     callbackState,
     random,
   );
@@ -267,8 +271,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
-  const authRedirectPage = cluster
-    ? `/clusters/${cluster?.name}/edit`
+  const authRedirectPage = resource
+    ? `/resources/${resource?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
@@ -364,15 +368,16 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   }, [repositoryURL]);
 
   useEffect(() => {
-    if (!cluster) {
+    if (!resource) {
       setFormData((prevState: any) => ({
         ...prevState,
-        pullRequestTitle: `Creates cluster ${
+        pullRequestTitle: `Creates resource ${
+          // update CLUSTER_NAME below
           formData.parameterValues.CLUSTER_NAME || ''
         }`,
       }));
     }
-  }, [cluster, formData.parameterValues, setFormData]);
+  }, [resource, formData.parameterValues, setFormData]);
 
   return useMemo(() => {
     return (
@@ -408,15 +413,19 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             setFormData={setFormData}
           />
         </Grid>
-        <Profiles
-          isLoading={profilesIsLoading}
-          updatedProfiles={updatedProfiles}
-          setUpdatedProfiles={setUpdatedProfiles}
-          isProfilesEnabled={
-            annotations?.['templates.weave.works/profiles-enabled']
-          }
-        />
+        {/* Only show if resource kind is cluster? */}
+        {templateType === 'cluster' && (
+          <Profiles
+            isLoading={profilesIsLoading}
+            updatedProfiles={updatedProfiles}
+            setUpdatedProfiles={setUpdatedProfiles}
+            isProfilesEnabled={
+              annotations?.['templates.weave.works/profiles-enabled']
+            }
+          />
+        )}
         <Grid item xs={12} sm={10} md={10} lg={8}>
+          {/* Only show if resource kind is cluster? */}
           <ApplicationsWrapper
             formData={formData}
             setFormData={setFormData}
@@ -474,10 +483,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
 
 interface Props {
   template?: TemplateEnriched | null;
-  cluster?: GitopsClusterEnriched | null;
+  resource?: any | null;
 }
 
-const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
+const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
   if (!template) {
     return (
       <Redirect
@@ -487,7 +496,7 @@ const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
             notification: [
               {
                 message: {
-                  text: 'No template information is available to create a cluster.',
+                  text: 'No template information is available to create a resource.',
                 },
                 variant: 'danger',
               },
@@ -500,11 +509,12 @@ const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <ProfilesProvider cluster={cluster || undefined} template={template}>
-        <ClusterForm template={template} cluster={cluster || undefined} />
+      {/* Only add Profiles Provider if resource kind is cluster? */}
+      <ProfilesProvider cluster={resource || undefined} template={template}>
+        <ResourceForm template={template} resource={resource || undefined} />
       </ProfilesProvider>
     </ThemeProvider>
   );
 };
 
-export default ClusterFormWrapper;
+export default ResourceFormWrapper;
