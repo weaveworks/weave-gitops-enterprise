@@ -18,6 +18,7 @@ type AddApplication struct {
 	Source            *agouti.Selection
 	Cluster           *agouti.Selection
 	RemoveApplication *agouti.Selection
+	SourceHref        *agouti.Selection
 }
 
 type GitOps struct {
@@ -53,6 +54,7 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 		Source:            app.Find(`[id="SELECT SOURCE-input"]`),
 		Cluster:           app.Find(`[id="SELECT CLUSTER-input"]`),
 		RemoveApplication: app.Find(`button#remove-application`),
+		SourceHref:        webDriver.Find(`div a[title="Visit repository"]`),
 	}
 }
 
