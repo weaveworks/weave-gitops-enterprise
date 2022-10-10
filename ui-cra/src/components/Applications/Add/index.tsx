@@ -11,6 +11,7 @@ import {
   Button,
   CallbackStateContextProvider,
   getProviderToken,
+  isAllowedLink,
   Link,
   LoadingPage,
 } from '@weaveworks/weave-gitops';

@@ -10,7 +10,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@material-ui/core';
-import { useListSources, theme, Flex, Kind, Link } from '@weaveworks/weave-gitops';
+import { useListSources, theme, Flex, Kind } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import {
   GitRepository,
