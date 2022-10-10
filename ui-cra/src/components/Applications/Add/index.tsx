@@ -11,7 +11,6 @@ import {
   Button,
   CallbackStateContextProvider,
   getProviderToken,
-  isAllowedLink,
   Link,
   LoadingPage,
 } from '@weaveworks/weave-gitops';
@@ -74,20 +73,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       url
     );
     if (branch) {
-      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
+      return (
         <Link href={getGitRepoHTTPSURL(url, branch)} newTab>
           {linkText}
         </Link>
-      ) : (
-        <span>{linkText}</span>
       );
     } else {
-      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
+      return (
         <Link href={getGitRepoHTTPSURL(url)} newTab>
           {linkText}
         </Link>
-      ) : (
-        <span>{linkText}</span>
       );
     }
   };
