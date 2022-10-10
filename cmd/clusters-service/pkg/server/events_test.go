@@ -29,7 +29,7 @@ func TestListEvents(t *testing.T) {
 
 		evt := &corev1.Event{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      fmt.S("%s.16da7d2e2c5b0930", involvedObjectName),
+				Name:      fmt.Sprintf("%s.16da7d2e2c5b0930", involvedObjectName),
 				Namespace: ns.Name,
 			},
 			InvolvedObject: corev1.ObjectReference{

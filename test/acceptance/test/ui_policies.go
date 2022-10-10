@@ -265,8 +265,6 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					filterID := "clusterName: " + leafClusterNamespace + `/` + leafClusterName
 					searchPage := pages.GetSearchPage(webDriver)
 					searchPage.SelectFilter("cluster", filterID)
-
-					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
 				})
 
 				policyInfo := policiesPage.FindPolicyInList(policyName)

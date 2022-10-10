@@ -11,6 +11,7 @@ import {
   Button,
   CallbackStateContextProvider,
   getProviderToken,
+  isAllowedLink,
   LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
@@ -34,6 +35,7 @@ import {
   ClusterPRPreview,
 } from '../../../types/custom';
 import { validateFormData } from '../../../utils/form';
+import { getGitRepoHTTPSURL } from '../../../utils/formatters';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -61,6 +63,11 @@ const FormWrapper = styled.form`
   }
 `;
 
+const SourceLinkWrapper = styled.div`
+  padding-top: ${({ theme }) => theme.spacing.medium};
+  overflow-x: auto;
+`;
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -69,6 +76,51 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+
+  const optionUrl = (url?: string, branch?: string) => {
+    const linkText = branch ? (
+      <>
+        {url}@<strong>{branch}</strong>
+      </>
+    ) : (
+      url
+    );
+    if (branch) {
+      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
+        <a
+          title="Visit repository"
+          style={{
+            color: weaveTheme.colors.primary,
+            fontSize: weaveTheme.fontSizes.medium,
+          }}
+          href={getGitRepoHTTPSURL(url, branch)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {linkText}
+        </a>
+      ) : (
+        <span>{linkText}</span>
+      );
+    } else {
+      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
+        <a
+          title="Visit repository"
+          style={{
+            color: weaveTheme.colors.primary,
+            fontSize: weaveTheme.fontSizes.medium,
+          }}
+          href={getGitRepoHTTPSURL(url)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {linkText}
+        </a>
+      ) : (
+        <span>{linkText}</span>
+      );
+    }
+  };
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -96,6 +148,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         source_namespace: '',
         source: '',
         source_type: '',
+        source_url: '',
+        source_branch: '',
       },
     ],
     ...callbackState?.state?.formData,
