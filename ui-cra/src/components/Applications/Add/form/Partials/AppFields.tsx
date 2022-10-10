@@ -1,4 +1,5 @@
 import React, { FC, Dispatch, useEffect, useCallback } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
@@ -9,19 +10,15 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@material-ui/core';
-import { useListSources, theme, Flex, Link } from '@weaveworks/weave-gitops';
+import { useListSources, theme, Flex, Kind, Link } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import {
   GitRepository,
   HelmRepository,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Kind } from '@weaveworks/weave-gitops';
-import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
-import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 import { useClustersWithSources } from '../../../utils';
-import { useHistory, useLocation } from 'react-router-dom';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -161,6 +158,8 @@ const AppFields: FC<{
       source_name: obj?.metadata?.name,
       source_namespace: obj?.metadata?.namespace,
       source_type: obj?.kind,
+      source_url: obj?.spec.url,
+      source_branch: obj?.kind === 'GitRepository' ? obj?.spec.ref.branch : '',
       source: value,
       clusterAutomations: currentAutomation,
     });
@@ -209,33 +208,6 @@ const AppFields: FC<{
     });
   };
 
-  const optionUrl = (url?: string, branch?: string) => {
-    const linkText = branch ? (
-      <>
-        {url}@<strong>{branch}</strong>
-      </>
-    ) : (
-      url
-    );
-    if (branch) {
-      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
-        <Link href={getGitRepoHTTPSURL(url, branch)} newTab>
-          {linkText}
-        </Link>
-      ) : (
-        <span>{linkText}</span>
-      );
-    } else {
-      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
-        <Link href={getGitRepoHTTPSURL(url)} newTab>
-          {linkText}
-        </Link>
-      ) : (
-        <span>{linkText}</span>
-      );
-    }
-  };
-
   return (
     <FormWrapper>
       {!!clusters && (
@@ -281,8 +253,7 @@ const AppFields: FC<{
             )}
             {gitRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}&nbsp;&nbsp;
-                {optionUrl(option?.url, option?.reference?.branch)}
+                {option.name}
               </MenuItem>
             ))}
             {helmRepos.length !== 0 && (
@@ -290,8 +261,7 @@ const AppFields: FC<{
             )}
             {helmRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}&nbsp;&nbsp;
-                {optionUrl(option?.url)}
+                {option.name}
               </MenuItem>
             ))}
           </Select>

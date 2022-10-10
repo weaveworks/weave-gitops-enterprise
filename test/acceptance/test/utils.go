@@ -117,6 +117,17 @@ func TakeScreenShot(name string) string {
 	return ""
 }
 
+func SaveDOM(name string) string {
+	if webDriver != nil {
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
+		var htmlDocument interface{}
+		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
+		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+		return filepath
+	}
+	return ""
+}
+
 func RandString(length int) string {
 	return stringWithCharset(length, charset)
 }
@@ -204,7 +215,8 @@ func InitializeWebdriver(wgeURL string) {
 			chromeDriver := agouti.ChromeDriver(
 				agouti.ChromeOptions("w3c", false),
 				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
-				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
+				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}),
+				agouti.ChromeOptions("useAutomationExtension", false))
 			err = chromeDriver.Start()
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			webDriver, err = chromeDriver.NewPage()
@@ -214,9 +226,10 @@ func InitializeWebdriver(wgeURL string) {
 			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
 				"acceptInsecureCerts": true,
 				"chromeOptions": map[string]interface{}{
-					"args":            []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
-					"w3c":             false,
-					"excludeSwitches": []string{"enable-automation"},
+					"args":                   []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
+					"w3c":                    false,
+					"excludeSwitches":        []string{"enable-automation"},
+					"useAutomationExtension": false,
 				}}))
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		}

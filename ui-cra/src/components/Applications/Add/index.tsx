@@ -33,6 +33,7 @@ import {
   ProfilesIndex,
   ClusterPRPreview,
 } from '../../../types/custom';
+import { getGitRepoHTTPSURL } from '../../../utils/formatters';
 
 const PRPreviewWrapper = styled.div`
   .preview-cta {
@@ -49,6 +50,11 @@ const PRPreviewWrapper = styled.div`
   }
 `;
 
+const SourceLinkWrapper = styled.div`
+  padding-top: ${({ theme }) => theme.spacing.medium};
+  overflow-x: auto;
+`;
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -57,6 +63,33 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+
+  const optionUrl = (url?: string, branch?: string) => {
+    const linkText = branch ? (
+      <>
+        {url}@<strong>{branch}</strong>
+      </>
+    ) : (
+      url
+    );
+    if (branch) {
+      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
+        <Link href={getGitRepoHTTPSURL(url, branch)} newTab>
+          {linkText}
+        </Link>
+      ) : (
+        <span>{linkText}</span>
+      );
+    } else {
+      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
+        <Link href={getGitRepoHTTPSURL(url)} newTab>
+          {linkText}
+        </Link>
+      ) : (
+        <span>{linkText}</span>
+      );
+    }
+  };
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -84,6 +117,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         source_namespace: '',
         source: '',
         source_type: '',
+        source_url: '',
+        source_branch: '',
       },
     ],
     ...callbackState?.state?.formData,
@@ -309,6 +344,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       sourceType={formData.source_type}
                     />
                   ) : null}
+                </Grid>
+                <Grid item sm={2} md={2} lg={4}>
+                  <SourceLinkWrapper>
+                    {optionUrl(formData.source_url, formData.source_branch)}
+                  </SourceLinkWrapper>
                 </Grid>
                 {formData.source_type === 'HelmRepository' ? (
                   <Profiles
