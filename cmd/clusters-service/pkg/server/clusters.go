@@ -137,7 +137,12 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
-	git_files, err := s.getFiles(ctx, tmpl, GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.RepositoryUrl, msg.HeadBranch, msg.BaseBranch, msg.Title, msg.Description, msg.RepositoryApiUrl, msg.CommitMessage})
+	git_files, err := s.getFiles(
+		ctx,
+		tmpl,
+		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
+		msg,
+	)
 	if err != nil {
 		return nil, err
 	}

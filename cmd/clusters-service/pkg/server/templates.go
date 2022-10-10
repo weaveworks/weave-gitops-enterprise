@@ -27,13 +27,6 @@ type GetFilesRequest struct {
 	Credentials      *capiv1_proto.Credential
 	Profiles         []*capiv1_proto.ProfileValues
 	Kustomizations   []*capiv1_proto.Kustomization
-	RepositoryUrl    string
-	HeadBranch       string
-	BaseBranch       string
-	Title            string
-	Description      string
-	RepositoryApiUrl string
-	CommitMessage    string
 }
 
 type GetFilesReturn struct {
@@ -154,7 +147,12 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	files, err := s.getFiles(ctx, tm, GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, "", "", "", "", "", "", ""})
+	files, err := s.getFiles(
+		ctx,
+		tm,
+		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
+		nil,
+	)
 
 	if err != nil {
 		return nil, err
@@ -178,7 +176,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
 }
 
-func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFilesRequest) (*GetFilesReturn, error) {
+func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
@@ -191,9 +189,11 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 		return nil, err
 	}
 
-	tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+	if createRequestMessage != nil {
+		tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+		}
 	}
 
 	if err = templates.ValidateRenderedTemplates(tmplWithValues); err != nil {
