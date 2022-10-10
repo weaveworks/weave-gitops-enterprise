@@ -33,6 +33,23 @@ export function getKindRoute(k: Kind | string): string {
 }
 
 export enum Routes {
+  Applications = '/applications',
+  AddApplication="/applications/create",
   TerraformObjects = '/terraform_objects',
   TerraformDetail = '/terraform',
+  Clusters = '/clusters',
+  ClusterDashboard = '/cluster',
+  DeleteCluster = '/clusters/delete',
+  EditCluster = '/clusters/:clusterName/edit',
+  GitlabOauthCallback = '/oauth/gitlab',
+  Policies = '/policies',
+  PolicyDetails="/policies/details",
+  Canaries = '/applications/delivery',
+  CanaryDetails="/applications/delivery/:id",
+  Pipelines = '/applications/pipelines',
+  PipelineDetails="/applications/pipelines/details",
+  AddCluster = '/templates/:templateName/create',
+  PolicyViolations = '/clusters/violations',
+  PolicyViolationDetails = '/clusters/violations/details',
+  Templates="/templates" 
 }
