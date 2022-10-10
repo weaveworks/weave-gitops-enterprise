@@ -35,7 +35,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
 
-	applyCreateAutomationDefaults(msg)
+	applyCreateAutomationDefaults(msg.ClusterAutomations)
 
 	if err := validateCreateAutomationsPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
@@ -133,6 +133,55 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	}, nil
 }
 
+// RenderAutomation receives a list of {kustomization, helmrelease, cluster}
+// generates a kustomization file and/or a helm release file for each provided cluster in the list
+// and returns the generated files
+func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderAutomationRequest) (*capiv1_proto.RenderAutomationResponse, error) {
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	applyCreateAutomationDefaults(msg.ClusterAutomations)
+
+	var kustomizationFiles []*capiv1_proto.CommitFile
+	var helmReleaseFiles []*capiv1_proto.CommitFile
+
+	if len(msg.ClusterAutomations) > 0 {
+		for _, c := range msg.ClusterAutomations {
+			cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
+
+			if c.Kustomization != nil {
+				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
+
+				if err != nil {
+					return nil, err
+				}
+
+				kustomizationFiles = append(kustomizationFiles, &capiv1_proto.CommitFile{
+					Path:    *kustomization.Path,
+					Content: *kustomization.Content,
+				})
+			}
+
+			if c.HelmRelease != nil {
+				helmRelease, err := generateHelmReleaseFile(ctx, c.IsControlPlane, cluster, client, c.HelmRelease, c.FilePath)
+
+				if err != nil {
+					return nil, err
+				}
+
+				helmReleaseFiles = append(helmReleaseFiles, &capiv1_proto.CommitFile{
+					Path:    *helmRelease.Path,
+					Content: *helmRelease.Content,
+				})
+			}
+		}
+	}
+
+	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles}, err
+}
+
 func generateHelmReleaseFile(
 	ctx context.Context,
 	isControlPlane bool,
@@ -213,8 +262,8 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease,
 	return &generatedHelmRelease, nil
 }
 
-func applyCreateAutomationDefaults(msg *capiv1_proto.CreateAutomationsPullRequestRequest) {
-	for _, c := range msg.ClusterAutomations {
+func applyCreateAutomationDefaults(msg []*capiv1_proto.ClusterAutomation) {
+	for _, c := range msg {
 		if c.HelmRelease != nil && c.HelmRelease.Metadata != nil && c.HelmRelease.Metadata.Namespace == "" {
 			c.HelmRelease.Metadata.Namespace = defaultAutomationNamespace
 		}

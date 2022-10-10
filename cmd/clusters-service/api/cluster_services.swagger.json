@@ -241,6 +241,38 @@
         ]
       }
     },
+    "/v1/enterprise/automations/render": {
+      "post": {
+        "operationId": "ClustersService_RenderAutomation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/enterprise/events": {
       "get": {
         "summary": "ListEvents returns the k8s events for a given object",
@@ -654,6 +686,18 @@
                 },
                 "clusterNamespace": {
                   "type": "string"
+                },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ProfileValues"
+                  }
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
                 }
               }
             }
@@ -870,6 +914,17 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CommitFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "content": {
           "type": "string"
         }
       }
@@ -1756,11 +1811,51 @@
         }
       }
     },
+    "v1RenderAutomationRequest": {
+      "type": "object",
+      "properties": {
+        "clusterAutomations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterAutomation"
+          }
+        }
+      }
+    },
+    "v1RenderAutomationResponse": {
+      "type": "object",
+      "properties": {
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "helmReleaseFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        }
+      }
+    },
     "v1RenderTemplateResponse": {
       "type": "object",
       "properties": {
         "renderedTemplate": {
           "type": "string"
+        },
+        "profileFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },

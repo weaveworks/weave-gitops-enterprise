@@ -7,9 +7,11 @@ import {
 } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
+  Button,
   CallbackStateContextProvider,
   clearCallbackState,
   getProviderToken,
+  LoadingPage,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
@@ -33,6 +35,7 @@ import {
   Credential,
   GitopsClusterEnriched,
   ProfilesIndex,
+  ClusterPRPreview,
   TemplateEnriched,
 } from '../../../types/custom';
 import { utf8_to_b64 } from '../../../utils/base64';
@@ -54,6 +57,7 @@ const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
+const small = weaveTheme.spacing.small;
 
 const CredentialsWrapper = styled.div`
   display: flex;
@@ -101,6 +105,17 @@ const useStyles = makeStyles(theme =>
         height: 0,
       },
       paddingRight: xxs,
+    },
+    previewCta: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      padding: small,
+      button: {
+        width: '200px',
+      },
+    },
+    previewLoading: {
+      padding: base,
     },
   }),
 );
@@ -150,6 +165,31 @@ function getInitialData(
   return { initialFormData, initialInfraCredentials };
 }
 
+const getKustomizations = (formData: any) => {
+  const { clusterAutomations } = formData;
+  // filter out empty kustomization
+  const filteredKustomizations = clusterAutomations.filter(
+    (kustomization: any) => Object.values(kustomization).join('').trim() !== '',
+  );
+  return filteredKustomizations.map((kustomization: any): Kustomization => {
+    return {
+      metadata: {
+        name: kustomization.name,
+        namespace: kustomization.namespace,
+      },
+      spec: {
+        path: kustomization.path,
+        sourceRef: {
+          name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+          namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+        },
+        targetNamespace: kustomization.target_namespace,
+        createNamespace: kustomization.createNamespace,
+      },
+    };
+  });
+};
+
 const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
   _.sortBy(Object.values(profiles), 'name')
     .filter(p => p.selected)
@@ -171,30 +211,7 @@ const toPayload = (
   templateName: string,
   updatedProfiles: ProfilesIndex,
 ): CreatePullRequestRequest => {
-  const { clusterAutomations, parameterValues } = formData;
-  // filter out empty kustomization
-  const filteredKustomizations = clusterAutomations.filter(
-    (kustomization: any) => Object.values(kustomization).join('').trim() !== '',
-  );
-  const kustomizations = filteredKustomizations.map(
-    (kustomization: any): Kustomization => {
-      return {
-        metadata: {
-          name: kustomization.name,
-          namespace: kustomization.namespace,
-        },
-        spec: {
-          path: kustomization.path,
-          sourceRef: {
-            name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
-            namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
-          },
-          targetNamespace: kustomization.target_namespace,
-          createNamespace: kustomization.createNamespace,
-        },
-      };
-    },
-  );
+  const { parameterValues } = formData;
   return {
     headBranch: formData.branchName,
     title: formData.pullRequestTitle,
@@ -203,7 +220,7 @@ const toPayload = (
     credentials: infraCredential,
     templateName,
     parameterValues,
-    kustomizations,
+    kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
   };
 };
@@ -220,6 +237,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
+  const { annotations } = template;
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     cluster,
@@ -253,7 +271,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     ? `/clusters/${cluster?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   const handlePRPreview = useCallback(() => {
@@ -262,10 +280,11 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     return renderTemplate(template.name, {
       values: templateFields.parameterValues,
       credentials: infraCredential,
+      kustomizations: getKustomizations(formData),
     })
       .then(data => {
         setOpenPreview(true);
-        setPRPreview(data.renderedTemplate);
+        setPRPreview(data);
       })
       .catch(err =>
         setNotifications([
@@ -375,9 +394,11 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             <Credentials
               infraCredential={infraCredential}
               setInfraCredential={setInfraCredential}
+              isCredentialEnabled={
+                annotations?.['templates.weave.works/credentials-enabled']
+              }
             />
           </CredentialsWrapper>
-
           <Divider
             className={!isLargeScreen ? classes.divider : classes.largeDivider}
           />
@@ -385,17 +406,31 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             template={template}
             formData={formData}
             setFormData={setFormData}
-            onPRPreview={handlePRPreview}
-            previewLoading={previewLoading}
           />
         </Grid>
         <Profiles
           isLoading={profilesIsLoading}
           updatedProfiles={updatedProfiles}
           setUpdatedProfiles={setUpdatedProfiles}
+          isProfilesEnabled={
+            annotations?.['templates.weave.works/profiles-enabled']
+          }
         />
         <Grid item xs={12} sm={10} md={10} lg={8}>
-          <ApplicationsWrapper formData={formData} setFormData={setFormData} />
+          <ApplicationsWrapper
+            formData={formData}
+            setFormData={setFormData}
+            isKustomizationsEnabled={
+              annotations?.['templates.weave.works/kustomizations-enabled']
+            }
+          />
+          {previewLoading ? (
+            <LoadingPage className={classes.previewLoading} />
+          ) : (
+            <div className={classes.previewCta}>
+              <Button onClick={handlePRPreview}>PREVIEW PR</Button>
+            </div>
+          )}
         </Grid>
         {openPreview && PRPreview ? (
           <Preview
@@ -433,6 +468,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     updatedProfiles,
     previewLoading,
     loading,
+    annotations,
   ]);
 };
 
