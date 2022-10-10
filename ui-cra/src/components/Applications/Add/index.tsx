@@ -383,6 +383,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       />
                     ) : null}
                   </Grid>
+                  <Grid item sm={2} md={2} lg={4}>
+                    <SourceLinkWrapper>
+                      {optionUrl(formData.source_url, formData.source_branch)}
+                    </SourceLinkWrapper>
+                  </Grid>
                   {formData.source_type === 'HelmRepository' ? (
                     <Profiles
                       // Temp fix to hide layers when using profiles in Add App until we update the BE
