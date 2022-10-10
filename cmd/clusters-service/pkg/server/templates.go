@@ -153,9 +153,6 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
 		nil,
 	)
-
-	fmt.Println("files")
-	fmt.Println(files)
 	if err != nil {
 		return nil, err
 	}
