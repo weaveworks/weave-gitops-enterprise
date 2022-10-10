@@ -46,8 +46,8 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             value: (p: Policy) => (
               <Link
                 to={formatURL(Routes.PolicyDetails, {
-                  id: p.id,
                   clusterName: p.clusterName,
+                  id: p.id,
                 })}
                 className={classes.link}
                 data-policy-name={p.name}

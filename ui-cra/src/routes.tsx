@@ -38,8 +38,10 @@ import error404 from './assets/img/error404.json';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
-    const params = qs.parse(search);
-
+    // location.search return ? and it breaks params
+    // it appears when using formateUrl
+    // i'd go fo search.slice(1) => removes ? but just in case  this happens only on my machine i went for replace ? by ''
+    const params = qs.parse(search.replace('?', ''));
     return <Cmp {...rest} {...params} />;
   };
 }

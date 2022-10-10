@@ -1,4 +1,4 @@
-import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig, formatURL } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
@@ -37,7 +37,10 @@ const Pipelines = ({ className }: any) => {
                   label: 'Pipeline Name',
                   value: ({ name, namespace }: Pipeline) => (
                     <LinkWrapper
-                      to={`/applications/pipelines/details?namespace=${namespace}&name=${name}`}
+                      to={formatURL(Routes.PipelineDetails, {
+                        name,
+                        namespace,
+                      })}
                     >
                       {name}
                     </LinkWrapper>
