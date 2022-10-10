@@ -154,6 +154,8 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		nil,
 	)
 
+	fmt.Println("files")
+	fmt.Println(files)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +192,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 	}
 
 	if createRequestMessage != nil {
-		tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
+		tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", createRequestMessage)
 		if err != nil {
 			return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
 		}
