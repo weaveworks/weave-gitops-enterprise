@@ -6,6 +6,7 @@
 export type ClusterRef = {
   kind?: string
   name?: string
+  namespace?: string
 }
 
 export type Target = {
@@ -34,6 +35,7 @@ export type WorkloadStatus = {
   kind?: string
   name?: string
   version?: string
+  lastAppliedRevision?: string
 }
 
 export type PipelineTargetStatus = {
