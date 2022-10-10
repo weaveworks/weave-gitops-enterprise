@@ -115,7 +115,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And I install Profile (HelmRepository chart)", func() {
 					sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
-					addSource("helm", "weaveworks-charts", GITOPS_DEFAULT_NAMESPACE, sourceURL, "")
+					addSource("helm", "weaveworks-charts", GITOPS_DEFAULT_NAMESPACE, sourceURL, "", "")
 				})
 
 				ginkgo.By("And I install the entitlement for cluster upgrade", func() {
