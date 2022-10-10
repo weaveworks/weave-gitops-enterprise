@@ -1,4 +1,5 @@
 import { Button } from '@weaveworks/weave-gitops';
+import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import {
@@ -17,7 +18,7 @@ const OnboardingMessage = () => {
         path={[
           {
             label: 'Applications',
-            url: '/applications',
+            url:Routes.Applications,
           },
           { label: 'Delivery' },
         ]}

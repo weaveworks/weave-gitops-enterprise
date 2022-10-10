@@ -5,6 +5,7 @@ import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
+import { Routes } from '../../../utils/nav';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -97,11 +98,11 @@ const PipelineDetails = ({ name, namespace }: Props) => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: 'Pipelines',
-          url: '/applications/pipelines',
+          url: Routes.Pipelines,
         },
         {
           label: name,

@@ -159,12 +159,12 @@ export const Navigation: FC = () => {
   const navItems: Array<NavigationItem> = [
     {
       name: 'CLUSTERS',
-      link: '/clusters',
+      link: Routes.Clusters,
       icon: <Clusters />,
       subItems: [
         {
           name: 'VIOLATION LOG',
-          link: '/clusters/violations',
+          link: Routes.PolicyViolations,
           isVisible: true,
         },
       ],
@@ -178,25 +178,25 @@ export const Navigation: FC = () => {
           name: 'SOURCES',
           link: V2Routes.Sources,
           isVisible: true,
-          relatedRoutes:['/git_repo','/helm_repo']
+          relatedRoutes: [V2Routes.GitRepo, V2Routes.HelmRepo],
         },
         {
           name: 'PIPELINES',
-          link: '/applications/pipelines',
+          link: Routes.Pipelines,
           isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'DELIVERY',
-          link: '/applications/delivery',
+          link: Routes.Canaries,
           isVisible:
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
         },
       ],
-      relatedRoutes: ['/kustomization', '/helm_release'],
+      relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
     },
     {
       name: 'TEMPLATES',
-      link: '/templates',
+      link: Routes.Templates,
       icon: <Templates />,
     },
     {
@@ -212,7 +212,7 @@ export const Navigation: FC = () => {
     },
     {
       name: 'POLICIES',
-      link: '/policies',
+      link: Routes.Policies,
       icon: <Policies />,
     },
   ];

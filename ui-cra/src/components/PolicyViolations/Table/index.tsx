@@ -4,7 +4,12 @@ import {
   PolicyValidation,
 } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
-import { DataTable, filterConfig, Link } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  filterConfig,
+  formatURL,
+  Link,
+} from '@weaveworks/weave-gitops';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';
 import { TableWrapper } from '../../Shared';
@@ -12,6 +17,7 @@ import { useListPolicyValidations } from '../../../contexts/PolicyViolations';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
+import { Routes } from '../../../utils/nav';
 
 export enum FieldsType {
   policy = 'POLICY',
@@ -64,7 +70,10 @@ export const PolicyViolationsTable: FC<Props> = ({
       label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
+          to={formatURL(Routes.PolicyViolationDetails, {
+            id,
+            clusterName,
+          })}
           data-violation-message={message}
         >
           {message}
@@ -91,7 +100,12 @@ export const PolicyViolationsTable: FC<Props> = ({
       label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}&source=applications&sourcePath=${sourcePath}`}
+          to={formatURL(Routes.PolicyViolationDetails, {
+            id,
+            clusterName,
+            sourcePath,
+            source: 'applications',
+          })}
           className={classes.link}
           data-violation-message={message}
         >

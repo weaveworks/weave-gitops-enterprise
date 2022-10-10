@@ -2,6 +2,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { FieldsType, PolicyViolationsTable } from './Table';
 import { useListPolicyValidations } from '../../contexts/PolicyViolations';
+import { Routes } from '../../utils/nav';
 
 const PoliciesViolations = () => {
   const { data, isLoading, error } = useListPolicyValidations({});
@@ -9,7 +10,7 @@ const PoliciesViolations = () => {
     <PageTemplate
       documentTitle="Violation Log"
       path={[
-        { label: 'Clusters', url: '/clusters' },
+        { label: 'Clusters', url: Routes.Clusters },
         {
           label: 'Violation Log',
           count: data?.total,
