@@ -49,20 +49,21 @@ type PullRequest struct {
 	Description string
 }
 
-func createGitKustomization(repoName, nameSpace, repoURL, kustomizationName, targetNamespace string) (kustomization string) {
+func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace string) (kustomization string) {
 	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "git-kustomization.yaml"))
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to read git-kustomization template yaml")
 
 	t := template.Must(template.New("kustomization").Parse(string(contents)))
 
 	type TemplateInput struct {
-		GitRepoName       string
-		NameSpace         string
-		GitRepoURL        string
-		KustomizationName string
-		TargetNamespace   string
+		KustomizationName      string
+		KustomizationNameSpace string
+		KustomizationPath      string
+		GitRepoName            string
+		SourceNameSpace        string
+		TargetNamespace        string
 	}
-	input := TemplateInput{repoName, nameSpace, repoURL, kustomizationName, targetNamespace}
+	input := TemplateInput{kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace}
 
 	kustomization = path.Join("/tmp", kustomizationName+"-kustomization.yaml")
 
@@ -400,11 +401,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					SyncInterval:    "30s",
 				}
 
+				sourceURL := "https://github.com/stefanprodan/podinfo"
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+
 				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				existingAppCount = getApplicationCount()
 
-				appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
+				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)
+				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
 				defer cleanGitRepository(appKustomization)
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -478,7 +483,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Title:   "Management Helm Applications",
 					Message: "Adding management helm applications",
 				}
-
+				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
@@ -512,7 +517,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, metallb.Chart), -275, 0)).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, metallb.Chart).Click).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddHelmReleaseApp(profile, metallb)
@@ -600,7 +606,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "")
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 				ginkgo.By(`And navigate to 'Add Application' page`, func() {
 					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 
@@ -618,7 +624,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -290, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddKustomizationApp(application, podinfo)
@@ -769,7 +776,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Add GitRepository source to leaf cluster
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "")
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 				useClusterContext(mgmtClusterContext)
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -805,7 +812,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -235, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddKustomizationApp(application, podinfo)
@@ -929,7 +937,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Add HelmRepository source to leaf cluster
-				addSource("helm", metallb.Chart, metallb.Namespace, sourceURL, "")
+				addSource("helm", metallb.Chart, metallb.Namespace, sourceURL, "", "")
 				useClusterContext(mgmtClusterContext)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
