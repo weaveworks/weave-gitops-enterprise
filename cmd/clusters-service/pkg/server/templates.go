@@ -36,18 +36,6 @@ type GetFilesRequest struct {
 	CommitMessage    string
 }
 
-type PRAnnotation struct {
-	TemplateName    string
-	ParameterValues map[string]string
-	RepositoryUrl   string
-	HeadBranch      string
-	BaseBranch      string
-	Title           string
-	Description     string
-	CommitMessage   string
-	Values          []*capiv1_proto.ProfileValues
-}
-
 type GetFilesReturn struct {
 	RenderedTemplate   string
 	ProfileFiles       []gitprovider.CommitFile
