@@ -1,7 +1,7 @@
 import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { Flex, theme } from '@weaveworks/weave-gitops';
+import { Flex, Link, theme } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
@@ -147,7 +147,9 @@ export const ContentWrapper: FC<Props> = ({
       <HelpLinkWrapper>
         <div>
           Need help? Raise a&nbsp;
-          <a href="https://weavesupport.zendesk.com/">support ticket</a>
+          <Link newTab href="https://weavesupport.zendesk.com/">
+            support ticket
+          </Link>
         </div>
         <Tooltip
           title={`Server Version ${versions?.capiServer}`}

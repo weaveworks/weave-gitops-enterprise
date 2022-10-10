@@ -4,11 +4,10 @@ import {
   CanaryStatus as Status,
   CanaryTargetDeployment,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { DataTable, filterConfig, theme } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig, Link, theme } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
-import { Link } from 'react-router-dom';
 import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
 import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
 import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
@@ -64,9 +63,9 @@ export function getProgressValue(
 
 function toLink(img: string) {
   return (
-    <a target="_blank" rel="noreferrer" href={`https://${img}`}>
+    <Link newTab href={`https://${img}`}>
       {img}
-    </a>
+    </Link>
   );
 }
 
