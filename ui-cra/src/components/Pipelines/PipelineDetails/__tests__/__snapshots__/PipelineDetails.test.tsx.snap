@@ -557,9 +557,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
         <div>
           Need help? Raise a 
           <a
+            class="c14"
             href="https://weavesupport.zendesk.com/"
+            rel="noreferrer"
+            target="_blank"
           >
-            support ticket
+            <span
+              class="c15 c16"
+              color="primary"
+            >
+              support ticket
+            </span>
           </a>
         </div>
         <div
