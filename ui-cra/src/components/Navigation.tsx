@@ -168,6 +168,7 @@ export const Navigation: FC = () => {
           isVisible: true,
         },
       ],
+      relatedRoutes: ['/cluster'],
     },
     {
       name: 'APPLICATIONS',
