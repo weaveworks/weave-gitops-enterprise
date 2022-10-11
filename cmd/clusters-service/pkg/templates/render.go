@@ -1,7 +1,11 @@
 package templates
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"regexp"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
@@ -74,4 +78,54 @@ func processUnstructured(b []byte, opts ...RenderOptFunc) ([]byte, error) {
 		return nil, fmt.Errorf("failed to marshal the updated object: %w", err)
 	}
 	return updated, nil
+}
+
+func GetEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
+}
+
+func RenderAnnotationValues(annotations map[string]string) (map[string]string, error) {
+	for k, annot := range annotations {
+		if strings.Contains(k, "capi.weave.works/profile-") {
+			var annotJson map[string]string
+			err := json.Unmarshal([]byte(annot), &annotJson)
+			if err != nil {
+				return nil, err
+			}
+			if annotJson["values"] != "" {
+				var annotValues map[string]string
+
+				err := yaml.Unmarshal([]byte(annotJson["values"]), &annotValues)
+				if err != nil {
+					return nil, err
+				}
+				for resultKey, resultValue := range annotValues {
+					regExpMatch, err := regexp.MatchString("[\\$]{\\S+}", resultValue)
+					if err != nil {
+						return nil, err
+					}
+					if regExpMatch {
+						// Remove ${} surrounding env variable, retrieve its value
+						trimmedValue := strings.Trim(resultValue, "${}")
+						envValue := GetEnv(trimmedValue, "")
+
+						if envValue != "" {
+							newValue := resultKey + ": " + envValue
+							annotations[k] = strings.Replace(annot, resultKey+": "+resultValue, newValue, 1)
+						} else {
+							annotations[k] = strings.Replace(annot, resultKey+": "+resultValue, "", 1)
+						}
+					}
+
+				}
+			}
+		}
+
+	}
+	return annotations, nil
+
 }

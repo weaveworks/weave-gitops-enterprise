@@ -19,11 +19,18 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 	case gapiv1.Kind:
 		annotation = templates.GitOpsTemplateNameAnnotation
 	}
+
+	annotations, err := templates.RenderAnnotationValues(t.GetAnnotations())
+	if err != nil {
+		res := &capiv1_proto.Template{}
+		res.Error = fmt.Sprintf("Couldn't render template annotation values: %s", err.Error())
+	}
+
 	res := &capiv1_proto.Template{
 		Name:         t.GetName(),
 		Description:  t.GetSpec().Description,
 		Provider:     getProvider(t, annotation),
-		Annotations:  t.GetAnnotations(),
+		Annotations:  annotations,
 		Labels:       t.GetLabels(),
 		TemplateKind: templateKind,
 	}
