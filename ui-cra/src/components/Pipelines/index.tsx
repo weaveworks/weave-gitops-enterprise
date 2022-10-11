@@ -47,12 +47,16 @@ const Pipelines = ({ className }: any) => {
                 {
                   label: 'Pipeline Namespace',
                   value: 'namespace',
-                  textSearchable: true,
+                },
+                {
+                  label: 'Application',
+                  value: ({ appRef }: Pipeline) => <>{appRef?.name}</>,
+                  sortValue: ({ appRef }: Pipeline) => appRef?.name,
                 },
                 {
                   label: 'Type',
                   value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
-                  sortValue: ({ appRef }: Pipeline) => appRef?.name,
+                  sortValue: ({ appRef }: Pipeline) => appRef?.kind,
                 },
                 {
                   label: 'Environments',

@@ -1,9 +1,10 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import Pipelines from '..';
 import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
   defaultContexts,
   PipelinesClientMock,
+  TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
 
@@ -71,7 +72,6 @@ const pipelines = {
     },
   ],
 };
-
 describe('ListPipelines', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PipelinesClientMock;
@@ -81,7 +81,11 @@ describe('ListPipelines', () => {
     wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
   });
   it('renders a list of pipelines', async () => {
+    const filterTable = new TestFilterableTable('pipelines-list', fireEvent);
+
     api.ListPipelinesReturns = pipelines;
+    const pls = pipelines.pipelines;
+
     await act(async () => {
       const c = wrap(<Pipelines />);
       render(c);
@@ -92,6 +96,47 @@ describe('ListPipelines', () => {
     const tbl = document.querySelector('#pipelines-list table');
     const rows = tbl?.querySelectorAll('tbody tr');
 
-    expect(rows).toHaveLength(pipelines.pipelines.length);
+    expect(rows).toHaveLength(pls.length);
+
+    // Check rendered Column header
+    filterTable.testRenderTable(
+      [
+        'Pipeline Name',
+        'Pipeline Namespace',
+        'Application',
+        'Type',
+        'Environments',
+      ],
+      2,
+    );
+
+    const search = 'test pipline 2';
+    const searchedRows = pls
+      .filter(e => e.name === search)
+      .map(e => [
+        e.name,
+        e.namespace,
+        e.appRef.name,
+        e.appRef.kind,
+        e.environments.reduce((prev, nex) => {
+          return prev + nex.name;
+        }, ''),
+      ]);
+
+    filterTable.testSearchTableByValue(
+      search,
+      searchedRows.length,
+      searchedRows,
+    );
+
+    // Clear search
+    expect(
+      document.querySelector('.filter-options-chip span')?.textContent,
+    ).toEqual(search);
+
+    const deleteIcon = document.querySelector('.MuiChip-deleteIcon');
+    deleteIcon && fireEvent.click(deleteIcon);
+
+    expect(document.querySelector('.filter-options-chip span')).toBeNull();
   });
 });

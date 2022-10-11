@@ -402,13 +402,15 @@ export class TestFilterableTable {
 
   testSearchTableByValue(
     searchValue: string,
-    targetRowIndex: number,
-    rowValues: Array<string>,
+    expectedRowLength: number,
+    rowValues: Array<Array<string>>,
   ) {
     const { rows } = this.searchTableByValue(searchValue);
-    expect(rows).toHaveLength(1);
-    const tds = rows![targetRowIndex].querySelectorAll('td');
-    this.testRowValues(tds, rowValues);
+    expect(rows).toHaveLength(expectedRowLength);
+    rowValues.forEach((row, index) => {
+      const tds = rows![index].querySelectorAll('td');
+      this.testRowValues(tds, row);
+    });
   }
 
   testFilterTableByValue(
