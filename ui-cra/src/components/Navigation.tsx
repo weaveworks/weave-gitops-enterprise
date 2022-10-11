@@ -168,7 +168,6 @@ export const Navigation: FC = () => {
           isVisible: true,
         },
       ],
-      relatedRoutes: ['/cluster'],
     },
     {
       name: 'APPLICATIONS',
@@ -179,7 +178,12 @@ export const Navigation: FC = () => {
           name: 'SOURCES',
           link: V2Routes.Sources,
           isVisible: true,
-          relatedRoutes: [V2Routes.GitRepo, V2Routes.HelmRepo],
+          relatedRoutes: [
+            V2Routes.GitRepo,
+            V2Routes.HelmRepo,
+            V2Routes.OCIRepository,
+            V2Routes.HelmChart,
+          ],
         },
         {
           name: 'PIPELINES',
