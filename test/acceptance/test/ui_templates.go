@@ -518,9 +518,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				gitops := pages.GetGitOps(webDriver)
 				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
 					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-					anchor := gitops.PRLinkBar.Find("a")
-					gomega.Eventually(anchor).Should(matchers.BeFound())
-					prUrl, _ = anchor.Attribute("href")
+					prUrl, _ = gitops.PRLinkBar.Attribute("href")
 				})
 
 				var createPRUrl string

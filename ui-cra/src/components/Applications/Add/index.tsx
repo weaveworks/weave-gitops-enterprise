@@ -11,11 +11,10 @@ import {
   Button,
   CallbackStateContextProvider,
   getProviderToken,
-  isAllowedLink,
+  Link,
   LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
@@ -86,38 +85,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       url
     );
     if (branch) {
-      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: weaveTheme.colors.primary,
-            fontSize: weaveTheme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url, branch)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+      return (
+        <Link href={getGitRepoHTTPSURL(url, branch)} newTab>
           {linkText}
-        </a>
-      ) : (
-        <span>{linkText}</span>
+        </Link>
       );
     } else {
-      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: weaveTheme.colors.primary,
-            fontSize: weaveTheme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+      return (
+        <Link href={getGitRepoHTTPSURL(url)} newTab>
           {linkText}
-        </a>
-      ) : (
-        <span>{linkText}</span>
+        </Link>
       );
     }
   };
@@ -307,14 +284,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
           {
             message: {
               component: (
-                <a
-                  style={{ color: weaveTheme.colors.primary }}
-                  href={response.webUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href={response.webUrl} newTab>
                   PR created successfully.
-                </a>
+                </Link>
               ),
             },
             variant: 'success',
