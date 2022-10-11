@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
@@ -15,6 +14,7 @@ import (
 
 const ManagementClusterName = "management"
 const ManagementClusterNamespace = "default"
+const dbFile string = "charts.db"
 
 // ObjectReference points to a resource.
 type ObjectReference struct {
@@ -24,6 +24,7 @@ type ObjectReference struct {
 	Namespace  string
 }
 
+// Chart holds the name and version of a chart.
 type Chart struct {
 	Name    string
 	Version string
@@ -37,7 +38,7 @@ type HelmChartIndexer struct {
 
 // NewCache initialises the cache and returns it.
 func NewChartIndexer() (*HelmChartIndexer, error) {
-	db, err := createMemoryDB()
+	db, err := createDB()
 	if err != nil {
 		return nil, err
 	}
@@ -172,16 +173,16 @@ func (i *HelmChartIndexer) ListAvailableVersionsForProfile(ctx context.Context, 
 //
 
 // AddChart inserts a new chart into helm_charts table.
-func (i *HelmChartIndexer) AddChart(ctx context.Context, name, version string, values []byte, clusterRef types.NamespacedName, repoRef ObjectReference) error {
+func (i *HelmChartIndexer) AddChart(ctx context.Context, name, version, kind string, values []byte, clusterRef types.NamespacedName, repoRef ObjectReference) error {
 	sqlStatement := `
-INSERT INTO helm_charts (name, version, valuesYaml,
+INSERT INTO helm_charts (name, version, kind, valuesYaml,
 	repo_kind, repo_api_version, repo_name, repo_namespace,
 	cluster_name, cluster_namespace)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	_, err := i.CacheDB.ExecContext(
 		ctx,
-		sqlStatement, name, version, values,
+		sqlStatement, name, version, kind, values,
 		repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace,
 		clusterRef.Name, clusterRef.Namespace)
 
@@ -207,13 +208,14 @@ func (i *HelmChartIndexer) Count(ctx context.Context) (int64, error) {
 	return count, nil
 }
 
-// ListChartsByCluster returns a list of charts filtered by cluster.
-func (i *HelmChartIndexer) ListChartsByCluster(ctx context.Context, clusterRef types.NamespacedName) ([]Chart, error) {
+// ListChartsByCluster returns a list of charts filtered by cluster and kind (chart/profile).
+func (i *HelmChartIndexer) ListChartsByCluster(ctx context.Context, clusterRef types.NamespacedName, kind string) ([]Chart, error) {
 	sqlStatement := `
 SELECT name, version FROM helm_charts 
-WHERE cluster_name = $1 AND cluster_namespace = $2`
+WHERE cluster_name = $1 AND cluster_namespace = $2
+AND kind = $3`
 
-	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, clusterRef.Name, clusterRef.Namespace)
+	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, clusterRef.Name, clusterRef.Namespace, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -232,13 +234,14 @@ WHERE cluster_name = $1 AND cluster_namespace = $2`
 }
 
 // ListChartsByRepositoryAndCluster returns a list of charts filtered by helm repository and cluster.
-func (i *HelmChartIndexer) ListChartsByRepositoryAndCluster(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) ([]Chart, error) {
+func (i *HelmChartIndexer) ListChartsByRepositoryAndCluster(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName, kind string) ([]Chart, error) {
 	sqlStatement := `
 SELECT name, version FROM helm_charts 
 WHERE repo_kind = $1 AND repo_api_version = $2 AND repo_name = $3 AND repo_namespace = $4
-AND cluster_name = $5 AND cluster_namespace = $6`
+AND cluster_name = $5 AND cluster_namespace = $6
+AND kind = $7`
 
-	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -256,34 +259,18 @@ AND cluster_name = $5 AND cluster_namespace = $6`
 	return charts, nil
 }
 
-func nsn(name, namespace string) types.NamespacedName {
-	return types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-}
-
-func objref(kind, apiVersion, name, namespace string) ObjectReference {
-	return ObjectReference{
-		Kind:       kind,
-		APIVersion: apiVersion,
-		Name:       name,
-		Namespace:  namespace,
-	}
-}
-
 func applySchema(db *sql.DB) error {
 	_, err := db.Exec(`
 CREATE TABLE IF NOT EXISTS helm_charts (
-	name text, version text, valuesYaml blob, layer text,
+	name text, version text, kind text, valuesYaml blob, layer text,
 	repo_kind text, repo_api_version text, repo_name text, repo_namespace text,
 	cluster_name text, cluster_namespace text);
 	`)
 	return err
 }
 
-func createMemoryDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
+func createDB() (*sql.DB, error) {
+	db, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
 		return nil, err
 	}
@@ -295,20 +282,4 @@ func createMemoryDB() (*sql.DB, error) {
 	}
 
 	return db, nil
-}
-
-func createDB(t *testing.T) *sql.DB {
-	t.Helper()
-
-	db, err := createMemoryDB()
-	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Fatal(err)
-		}
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return db
 }
