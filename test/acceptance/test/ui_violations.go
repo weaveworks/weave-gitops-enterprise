@@ -219,12 +219,10 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				ginkgo.By(fmt.Sprintf("And filter leaf cluster '%s' violations", leafClusterName), func() {
+				ginkgo.By(fmt.Sprintf("And add filter leaf cluster '%s' violations", leafClusterName), func() {
 					filterID := "clusterName: " + leafClusterNamespace + `/` + leafClusterName
 					searchPage := pages.GetSearchPage(webDriver)
 					searchPage.SelectFilter("cluster", filterID)
-
-					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
 				})
 
 				violationInfo := violationsPage.FindViolationInList(policyName)
