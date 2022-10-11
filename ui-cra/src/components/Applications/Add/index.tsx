@@ -10,6 +10,7 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   Button,
   CallbackStateContextProvider,
+  clearCallbackState,
   getProviderToken,
   Link,
   LoadingPage,
@@ -148,6 +149,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       ...callbackState?.state?.updatedProfiles,
     });
   }, [callbackState?.state?.updatedProfiles, profiles]);
+
+  useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
     setFormData((prevState: any) => ({
