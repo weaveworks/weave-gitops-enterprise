@@ -34,6 +34,15 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: center;
 }
 
+.c17 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
+}
+
 .c8 svg {
   fill: !important;
   height: 24px;
@@ -50,6 +59,10 @@ exports[`Applications index test snapshots loading 1`] = `
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
+}
+
+.c8 .c16 {
+  margin-left: 4px;
 }
 
 .c12 svg {
@@ -70,6 +83,10 @@ exports[`Applications index test snapshots loading 1`] = `
   transform: initial;
 }
 
+.c12 .c16 {
+  margin-left: 4px;
+}
+
 .c11.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -85,6 +102,11 @@ exports[`Applications index test snapshots loading 1`] = `
 .c11.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
+}
+
+.c15 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
 }
 
 .c6 {
@@ -367,9 +389,17 @@ exports[`Applications index test snapshots loading 1`] = `
         <div>
           Need help? Raise a 
           <a
+            class="c15"
             href="https://weavesupport.zendesk.com/"
+            rel="noreferrer"
+            target="_blank"
           >
-            support ticket
+            <span
+              class="c16 c17"
+              color="primary"
+            >
+              support ticket
+            </span>
           </a>
         </div>
         <div
@@ -553,6 +583,15 @@ exports[`Applications index test snapshots success 1`] = `
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
+}
+
+.c45 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #00b3ec;
 }
 
 .c36 {
@@ -868,6 +907,11 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c15 .filter-options-chip {
   background-color: #E5F7FD;
+}
+
+.c44 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
 }
 
 .c16 td:nth-child(7) {
@@ -2032,9 +2076,17 @@ exports[`Applications index test snapshots success 1`] = `
         <div>
           Need help? Raise a 
           <a
+            class="c44"
             href="https://weavesupport.zendesk.com/"
+            rel="noreferrer"
+            target="_blank"
           >
-            support ticket
+            <span
+              class="c35 c45"
+              color="primary"
+            >
+              support ticket
+            </span>
           </a>
         </div>
         <div

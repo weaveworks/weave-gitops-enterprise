@@ -108,6 +108,7 @@ func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, erro
 		ws.Kind = hr.Kind
 		ws.Name = hr.Name
 		ws.Version = hr.Spec.Chart.Spec.Version
+		ws.LastAppliedRevision = hr.Status.LastAppliedRevision
 	}
 
 	return ws, nil

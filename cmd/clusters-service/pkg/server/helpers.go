@@ -13,6 +13,10 @@ import (
 func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([][]byte, error) {
 	opts := []templates.RenderOptFunc{
 		templates.InNamespace(namespace),
+		templates.InjectLabels(map[string]string{
+			"templates.weave.works/template-name":      name,
+			"templates.weave.works/template-namespace": viper.GetString("capi-templates-namespace"),
+		}),
 	}
 	if viper.GetString("inject-prune-annotation") != "disabled" {
 		opts = append(opts, templates.InjectPruneAnnotation)

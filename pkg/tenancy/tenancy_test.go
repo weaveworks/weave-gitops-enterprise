@@ -815,9 +815,9 @@ func Test_newDeploymentRBACRoleBinding(t *testing.T) {
 	}
 
 	rb := newDeploymentRBACRoleBinding("test-tenant", "test-namespace", "test-tenant", labels)
-	assert.Equal(t, rb.Name, "test-tenant-service-account-deployment")
+	assert.Equal(t, rb.Name, "test-tenant-service-account")
 	assert.Equal(t, rb.Namespace, "test-namespace")
-	assert.Equal(t, rb.RoleRef.Name, "test-tenant-service-account-deployment")
+	assert.Equal(t, rb.RoleRef.Name, "test-tenant-service-account")
 	assert.Equal(t, rb.Labels["toolkit.fluxcd.io/tenant"], "test-tenant")
 	assert.Equal(t, rb.Subjects, sub)
 }
