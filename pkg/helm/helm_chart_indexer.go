@@ -12,9 +12,14 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-const ManagementClusterName = "management"
-const ManagementClusterNamespace = "default"
-const dbFile string = "charts.db"
+const (
+	// ManagementClusterName is the name of the management cluster.
+	ManagementClusterName = "management"
+	// ManagementClusterNamespace is the namespace of the management cluster
+	ManagementClusterNamespace = "default"
+	// dbFile is the name of the sqlite3 database file
+	dbFile string = "charts.db"
+)
 
 // ObjectReference points to a resource.
 type ObjectReference struct {
