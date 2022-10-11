@@ -142,6 +142,12 @@ func toCommitFile(file gitprovider.CommitFile) *capiv1_proto.CommitFile {
 // Similar the others list and get will right now only work with CAPI templates.
 // tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName) -> this get is the key.
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
+
+	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
+
 	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
@@ -176,12 +182,6 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
-	if msg.TemplateKind == "" {
-		msg.TemplateKind = capiv1.Kind
-	}
-
-	s.log.WithValues("request_values", msg.ParameterValues, "request_credentials", msg.Credentials).Info("Received message")
-
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
