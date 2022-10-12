@@ -9,6 +9,7 @@ import (
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -165,6 +166,9 @@ func TestToTemplate(t *testing.T) {
 					Annotations: map[string]string{
 						"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}}"}`,
 					},
+				},
+				Spec: templatesv1.TemplateSpec{
+					RenderType: templatesv1.RenderTypeTemplating,
 				},
 			},
 			expected: &capiv1_protos.Template{
