@@ -386,6 +386,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				gomega.Eventually(func(g gomega.Gomega) int {
 					return getApplicationCount()
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 			})
 
@@ -606,11 +607,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
-<<<<<<< HEAD
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "", "")
-=======
 				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
->>>>>>> origin
 				ginkgo.By(`And navigate to 'Add Application' page`, func() {
 					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 
@@ -780,11 +777,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Add GitRepository source to leaf cluster
-<<<<<<< HEAD
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "", "")
-=======
 				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
->>>>>>> origin
 				useClusterContext(mgmtClusterContext)
 
 				pages.NavigateToPage(webDriver, "Applications")
