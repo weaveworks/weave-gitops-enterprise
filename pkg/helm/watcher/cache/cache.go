@@ -94,6 +94,7 @@ func (c *ProfileCache) Put(ctx context.Context, cluster, helmRepoName types.Name
 			return fmt.Errorf("failed to marshal profile data: %w", err)
 		}
 
+		logger.Info("wrriting profiles.yaml", "location", cacheLocation, "profileFile", profileFilename)
 		if err := os.WriteFile(filepath.Join(cacheLocation, profileFilename), profileData, 0700); err != nil {
 			return fmt.Errorf("failed to write profile data: %w", err)
 		}

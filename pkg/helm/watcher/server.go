@@ -9,6 +9,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -35,6 +36,7 @@ type Options struct {
 	HealthzBindAddress            string
 	NotificationControllerAddress string
 	WatcherPort                   int
+	Cluster                       types.NamespacedName
 }
 
 type Watcher struct {
@@ -45,6 +47,7 @@ type Watcher struct {
 	watcherPort         int
 	notificationAddress string
 	stopFn              context.CancelFunc
+	Cluster             types.NamespacedName
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
@@ -68,13 +71,14 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		metricsBindAddress:  opts.MetricsBindAddress,
 		notificationAddress: opts.NotificationControllerAddress,
 		watcherPort:         opts.WatcherPort,
+		Cluster:             opts.Cluster,
 	}, nil
 }
 
 func (w *Watcher) StartWatcher(log logr.Logger) error {
 	ctrl.SetLogger(log.WithName("helm-watcher"))
 
-	ctx, cancel := context.WithCancel(ctrl.SetupSignalHandler())
+	ctx, cancel := context.WithCancel(context.TODO())
 	w.stopFn = cancel
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
@@ -111,6 +115,7 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 
 	if err = (&controller.HelmWatcherReconciler{
 		Client:                mgr.GetClient(),
+		Cluster:               w.Cluster,
 		Cache:                 w.cache,
 		RepoManager:           w.repoManager,
 		Scheme:                scheme,

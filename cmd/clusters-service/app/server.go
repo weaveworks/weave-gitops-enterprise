@@ -36,6 +36,7 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -393,6 +394,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		clustersmngr.NewClustersClientsPool,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
+
+	indexer := indexer.NewClusterHelmIndexerTracker(profileCache)
+	indexer.Start(ctx, clustersManager.Subscribe(), log)
+
 	clustersManager.Start(ctx)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",

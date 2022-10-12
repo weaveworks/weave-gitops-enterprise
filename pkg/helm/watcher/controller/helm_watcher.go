@@ -35,6 +35,7 @@ type eventRecorder interface {
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
 	client.Client
+	Cluster               types.NamespacedName
 	Cache                 cache.Cache
 	RepoManager           helm.HelmRepoManager
 	ExternalEventRecorder eventRecorder
@@ -124,7 +125,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
 	}
-	if err := r.Cache.Put(logr.NewContext(ctx, log), types.NamespacedName{}, repoNamespacedName, data); err != nil {
+	if err := r.Cache.Put(logr.NewContext(ctx, log), r.Cluster, repoNamespacedName, data); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -149,7 +150,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
 	}
-	if err := r.Cache.Delete(ctx, types.NamespacedName{}, repoNamespacedName); err != nil {
+	if err := r.Cache.Delete(ctx, r.Cluster, repoNamespacedName); err != nil {
 		log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
 		return ctrl.Result{}, err
 	}
@@ -191,7 +192,7 @@ func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *p
 		Namespace: chart.GetHelmRepository().GetNamespace(),
 	}
 
-	versions, err := r.Cache.ListAvailableVersionsForProfile(ctx, types.NamespacedName{}, repoNamespacedName, chart.Name)
+	versions, err := r.Cache.ListAvailableVersionsForProfile(ctx, r.Cluster, repoNamespacedName, chart.Name)
 	if err != nil {
 		return "", err
 	}
