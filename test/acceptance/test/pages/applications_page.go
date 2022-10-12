@@ -92,9 +92,9 @@ type ApplicationViolationsDetailsPage struct {
 	SeverityValue        *agouti.Selection
 	Category             *agouti.Selection
 	CategoryValue        *agouti.Selection
-	Occurrences          *agouti.Selection
-	OccurrencesCount     *agouti.Selection
-	OccurrencesValue     *agouti.MultiSelection
+	Occurences           *agouti.Selection
+	OccurencesCount      *agouti.Selection
+	OccurencesValue      *agouti.MultiSelection
 	Description          *agouti.Selection
 	DescriptionValue     *agouti.Selection
 	HowToSolve           *agouti.Selection
@@ -220,9 +220,9 @@ func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationVio
 		SeverityValue:        webDriver.FindByXPath(`//div[text()="Severity"]/following-sibling::*[1]`),
 		Category:             webDriver.FindByXPath(`//div[text()="Category"]`),
 		CategoryValue:        webDriver.FindByXPath(`//div[text()="Category"]/following-sibling::*[1]`),
-		Occurrences:          webDriver.FindByXPath(`//div[text()="Occurences"]`),
-		OccurrencesCount:     webDriver.FindByXPath(`//div[text()="Occurences"]/span`),
-		OccurrencesValue:     webDriver.AllByXPath(`//div[text()="Occurences"]/following-sibling::*[1]/li`),
+		Occurences:           webDriver.FindByXPath(`//div[text()="Occurences"]`),
+		OccurencesCount:      webDriver.FindByXPath(`//div[text()="Occurences"]/span`),
+		OccurencesValue:      webDriver.AllByXPath(`//div[text()="Occurences"]/following-sibling::*[1]/li`),
 		Description:          webDriver.FindByXPath(`//div[text()="Description:"]`),
 		DescriptionValue:     webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
 		HowToSolve:           webDriver.FindByXPath(`//div[text()="How to solve:"]`),
