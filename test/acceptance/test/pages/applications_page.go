@@ -75,10 +75,6 @@ type ApplicationGraph struct {
 }
 
 // Application Violations Details section
-type NoDataRowInApplicationViolationsList struct {
-	NoDataRow *agouti.Selection
-}
-
 type AppViolationsMsgInList struct {
 	AppViolationsMsg *agouti.Selection
 }
@@ -204,12 +200,6 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 }
 
 // Application Violations Details methods
-func GetNoDataRowInApplicationViolationsList(WebDriver *agouti.Page) *NoDataRowInApplicationViolationsList {
-	return &NoDataRowInApplicationViolationsList{
-		NoDataRow: WebDriver.FindByXPath(`//td[contains(.,'No data')]`),
-	}
-}
-
 func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	return &AppViolationsMsgInList{
 		AppViolationsMsg: webDriver.FirstByXPath(`//a[contains(@class,'Link-sc-hgb28e-0 ieqCYE jss')]`),
@@ -218,9 +208,9 @@ func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 
 func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
 	return &ApplicationViolationsDetailsPage{
-		ViolationHeader:      webDriver.FindByXPath(`//span[contains(@class,"sc-iqseJM jDvyAO jss"]`),
+		ViolationHeader:      webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
 		PolicyName:           webDriver.FindByXPath(`//div[text()="Policy Name"]`),
-		PolicyNameValue:      webDriver.FindByXPath(`//div[text()="Policy Name"]/following-sibling::*[1]`),
+		PolicyNameValue:      webDriver.FindByXPath(`//a[contains(@href,"/policies/details?")]`),
 		ClusterName:          webDriver.FindByXPath(`//div[text()="Cluster Name"]`),
 		ClusterNameValue:     webDriver.FindByXPath(`//div[text()="Cluster Name"]/following-sibling::*[1]`),
 		ViolationTime:        webDriver.FindByXPath(`//div/*[text()="Violation Time"]`),

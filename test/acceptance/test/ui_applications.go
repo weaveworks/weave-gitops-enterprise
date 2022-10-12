@@ -1053,8 +1053,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
 			//Just specify the Violating policy info to create it
-			policyName := "Containers Running With Privilege Escalation acceptance test"
-			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment App-Violations-podinfo \(2 occurrences\)`
+			policyName := "Container Running As Root acceptance test"
+			violationMsg := `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`
+			clusterName := "management"
+			violationSeverity := "High"
+			violationCategory := "weave.categories.pod-security"
 
 			//Just specify the violated application info to create it
 			appNameSpace := "test-kustomization"
@@ -1140,21 +1143,26 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
 
 				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+
 				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
 					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
+					time.Sleep(POLL_INTERVAL_1SECONDS)
 				})
 
-				ginkgo.By(fmt.Sprintf("Open  %s application Violations tab", podinfo.Name), func() {
+				ginkgo.By(fmt.Sprintf("And open  %s application Violations tab", podinfo.Name), func() {
+					// declare application details page variable
 					appDetailPage := pages.GetApplicationsDetailPage(webDriver, podinfo.Type)
-					gomega.Expect(appDetailPage.Violations.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
+					gomega.Eventually(appDetailPage.Violations.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
 					pages.WaitForPageToLoad(webDriver)
+					time.Sleep(POLL_INTERVAL_3SECONDS)
+
 				})
 
-				ginkgo.By("Check violations are visible in the Application Violations List", func() {
+				ginkgo.By("And check violations are visible in the Application Violations List", func() {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
-					noDataRow := pages.GetNoDataRowInApplicationViolationsList(webDriver)
-					gomega.Expect(noDataRow.NoDataRow).ShouldNot(matchers.BeVisible())
+					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Text).Should(gomega.MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in '%s' vioilations list", violationMsg, podinfo.Name))
 
 				})
 
@@ -1162,53 +1170,51 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
 
-					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 
 					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/clusters/violations/details?clusterName"))
+					time.Sleep(POLL_INTERVAL_3SECONDS)
 
 					appViolationsDetialsPage := pages.GetApplicationViolationsDetailsPage(webDriver)
 
-					gomega.Expect(appViolationsDetialsPage.ViolationHeader.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violation header on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.PolicyName.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get policy name field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.PolicyNameValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get policy name value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.ViolationHeader.Text).Should(gomega.MatchRegexp(violationMsg), "Failed to get violation header on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.PolicyName.Text).Should(gomega.MatchRegexp("Policy Name :"), "Failed to get policy name field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Text).Should(gomega.MatchRegexp(policyName), "Failed to get policy name value on App violations details page")
 
 					// click policy name from app violations details page to navigate to policy details page
-					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", appViolationsDetialsPage.PolicyNameValue))
-
-					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("&id=weave.policies."))
+					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", appViolationsDetialsPage.PolicyNameValue))
+					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/policies/details?"))
+					time.Sleep(POLL_INTERVAL_3SECONDS)
 
 					//back to app violations List
-					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred())
-					gomega.Eventually(pages.GetApplicationsDetailPage(webDriver, podinfo.Name).Violations.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
+					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to back to %s Violations list", podinfo.Name))
 
-					//click the violations msg to open the app violations details page again
-					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+					gomega.Eventually(appViolationsDetialsPage.ClusterName.Text).Should(gomega.MatchRegexp("Cluster Name :"), "Failed to get cluster name field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.ClusterNameValue.Text).Should(gomega.MatchRegexp(clusterName), "Failed to get cluster name value on App violations details page")
 
-					gomega.Expect(appViolationsDetialsPage.ClusterName.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get cluster name field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.ClusterNameValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get cluster name value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.ViolationTime.Text).Should(gomega.MatchRegexp("Violation Time :"), "Failed to get violation time field on App violations details page")
+					violationsTimeValue := appViolationsDetialsPage.ViolationTimeValue
+					gomega.Eventually(violationsTimeValue).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violation time value on App violations details page")
 
-					gomega.Expect(appViolationsDetialsPage.ViolationTime.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violation time field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.ViolationTimeValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violation time value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.Severity.Text).Should(gomega.MatchRegexp("Severity :"), "Failed to get severity field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.SeverityIcon).Should(matchers.BeFound(), "Failed to get severity icon value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.SeverityValue.Text).Should(gomega.MatchRegexp(violationSeverity), "Failed to get severity value on App violations details page")
 
-					gomega.Expect(appViolationsDetialsPage.Severity.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get severity field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.SeverityIcon).Should(matchers.BeFound())
-					gomega.Expect(appViolationsDetialsPage.SeverityValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get severity value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.Category.Text).Should(gomega.MatchRegexp("Category :"), "Failed to get category field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.CategoryValue.Text).Should(gomega.MatchRegexp(violationCategory), "Failed to get category value on App violations details page")
 
-					gomega.Expect(appViolationsDetialsPage.Category.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get category field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.CategoryValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get category value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.Occurrences.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.OccurrencesCount.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences count on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.OccurrencesValue.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences value on App violations details page")
 
-					gomega.Expect(appViolationsDetialsPage.Occurrences.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.OccurrencesCount.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences count on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.OccurrencesValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get occurrences value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.Description.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get description field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.DescriptionValue.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get description value on App violations details page")
 
-					gomega.Expect(appViolationsDetialsPage.Description.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get description field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.DescriptionValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get description value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.HowToSolve.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get how to resolve field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.HowToSolveValue.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get how to resolve value on App violations details page")
 
-					gomega.Expect(appViolationsDetialsPage.HowToSolve.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get how to resolve field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.HowToSolveValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get how to resolve value on App violations details page")
-
-					gomega.Expect(appViolationsDetialsPage.ViolatingEntity.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity field on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.ViolatingEntityValue.Text()).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.ViolatingEntity.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.ViolatingEntityValue.Text).Should(gomega.HaveValue(matchers.BeFound()), "Failed to get violating entity value on App violations details page")
 				})
 
 				// navigatetoApplicationsPage(applicationsPage)
