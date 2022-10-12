@@ -357,6 +357,7 @@ func TestCreatePullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
 	viper.SetDefault("capi-repository-clusters-path", "clusters")
 	viper.SetDefault("add-bases-kustomization", "enabled")
+	viper.SetDefault("capi-templates-namespace", "default")
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
@@ -364,7 +365,7 @@ func TestCreatePullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreatePullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 	}{
 		{
@@ -485,7 +486,7 @@ func TestCreatePullRequest(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/default/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -497,6 +498,9 @@ metadata:
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"default"},"commit_message":"Add
       cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}]}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
   name: dev
   namespace: default
 `,
@@ -588,7 +592,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -600,6 +604,9 @@ metadata:
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
       cluster manifest","values":[{"name":"demo-profile","version":"0.0.1","namespace":"test-system"}]}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
   name: dev
   namespace: clusters-namespace
 `,
@@ -702,7 +709,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -714,6 +721,9 @@ metadata:
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
       cluster manifest","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}},{"metadata":{"name":"apps-billing","namespace":"flux-system"},"spec":{"path":"./apps/billing","source_ref":{"name":"flux-system","namespace":"flux-system"}}}]}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
   name: dev
   namespace: clusters-namespace
 `,
@@ -879,7 +889,7 @@ status: {}
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
-				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
 			}
@@ -887,14 +897,14 @@ status: {}
 	}
 }
 
-func prepCommitedFiles(t *testing.T, serverUrl string, files []CommittedFile) []CommittedFile {
+func prepCommitedFiles(t *testing.T, serverUrl string, files []*capiv1_protos.CommitFile) []*capiv1_protos.CommitFile {
 	parsedURL, err := url.Parse(serverUrl)
 	if err != nil {
 		t.Fatalf("failed to parse URL %s", err)
 	}
-	newFiles := []CommittedFile{}
+	newFiles := []*capiv1_protos.CommitFile{}
 	for _, f := range files {
-		newFiles = append(newFiles, CommittedFile{
+		newFiles = append(newFiles, &capiv1_protos.CommitFile{
 			Path:    f.Path,
 			Content: simpleTemplate(t, f.Content, struct{ Port string }{Port: parsedURL.Port()}),
 		})
@@ -1025,7 +1035,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		name           string
 		provider       git.Provider
 		req            *capiv1_protos.DeleteClustersPullRequestRequest
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		expected       string
 		err            error
 	}{
@@ -1234,10 +1244,10 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 	return nil, nil
 }
 
-func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
-	var committedFiles []CommittedFile
+func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
+	var committedFiles []*capiv1_protos.CommitFile
 	for _, f := range p.committedFiles {
-		committedFiles = append(committedFiles, CommittedFile{
+		committedFiles = append(committedFiles, &capiv1_protos.CommitFile{
 			Path:    *f.Path,
 			Content: *f.Content,
 		})
@@ -1266,11 +1276,6 @@ func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, r
 
 	}
 	return treeEntries, nil
-}
-
-type CommittedFile struct {
-	Path    string
-	Content string
 }
 
 func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
