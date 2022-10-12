@@ -1202,9 +1202,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(appViolationsDetialsPage.Category.Text).Should(gomega.MatchRegexp("Category :"), "Failed to get category field on App violations details page")
 					gomega.Eventually(appViolationsDetialsPage.CategoryValue.Text).Should(gomega.MatchRegexp(violationCategory), "Failed to get category value on App violations details page")
 
-					gomega.Eventually(appViolationsDetialsPage.Occurences.Text).Should(gomega.MatchRegexp("Occurences"), "Failed to get Occurences field on App violations details page")
-					gomega.Eventually(appViolationsDetialsPage.OccurencesCount.Text).Should(gomega.MatchRegexp("( 1 )"), "Failed to get Occurences count on App violations details page")
-					gomega.Expect(appViolationsDetialsPage.OccurencesValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get Occurences value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.Occurrences.Text).Should(gomega.MatchRegexp("Occurences"), "Failed to get Occurrences field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.OccurrencesCount.Text).Should(gomega.MatchRegexp("( 1 )"), "Failed to get Occurrences count on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.OccurrencesValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get Occurrences value on App violations details page")
 
 					gomega.Eventually(appViolationsDetialsPage.Description.Text).Should(gomega.MatchRegexp("Description:"), "Failed to get description field on App violations details page")
 					gomega.Expect(appViolationsDetialsPage.DescriptionValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get description value on App violations details page")
