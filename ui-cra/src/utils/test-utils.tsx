@@ -370,13 +370,16 @@ export class TestFilterableTable {
     return this.getTableInfo();
   }
   clearSearchByVal(searchVal: string) {
-    const chip = document.querySelector('.filter-options-chip span');
-    expect(chip?.textContent).toEqual(searchVal);
-
-    const deleteIcon = document.querySelector('.MuiChip-deleteIcon');
-    deleteIcon && this.fireEvent.click(deleteIcon);
-
-    expect(chip).toBeNull();
+    document.querySelectorAll('.filter-options-chip').forEach(chip => {
+      if (chip.textContent === searchVal) {
+        const deleteIcon = chip.querySelector('.MuiChip-deleteIcon');
+        this.fireEvent.click(deleteIcon);
+      }
+    });
+    const chip = Array.from(
+      document.querySelectorAll('.filter-options-chip'),
+    ).filter(ele => ele.textContent === searchVal);
+    expect(chip.length).toEqual(0);
   }
   applyFilterByValue(filterIndex: number, value: string) {
     const filterBtn = document.querySelector<HTMLElement>(

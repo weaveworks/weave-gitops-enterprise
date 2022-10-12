@@ -93,11 +93,6 @@ describe('ListPipelines', () => {
 
     expect(await screen.findByText('Pipelines')).toBeTruthy();
 
-    const tbl = document.querySelector('#pipelines-list table');
-    const rows = tbl?.querySelectorAll('tbody tr');
-
-    expect(rows).toHaveLength(pls.length);
-
     // Check rendered Column header
     filterTable.testRenderTable(
       [
@@ -124,7 +119,6 @@ describe('ListPipelines', () => {
       ]);
 
     filterTable.testSearchTableByValue(search, searchedRows);
-
     filterTable.clearSearchByVal(search);
   });
 });
