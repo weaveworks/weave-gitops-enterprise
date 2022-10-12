@@ -5,8 +5,10 @@ import {
   HelmRepositoryDetail,
   Kind,
   useGetObject,
+  V2Routes,
 } from '@weaveworks/weave-gitops';
 import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -33,11 +35,11 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: 'Sources',
-          url: '/sources',
+          url: V2Routes.Sources,
         },
         {
           label: `${props.name}`,
