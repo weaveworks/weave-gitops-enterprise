@@ -107,7 +107,7 @@ describe('ListPipelines', () => {
         'Type',
         'Environments',
       ],
-      2,
+      pls.length,
     );
 
     const search = 'test pipline 2';
@@ -123,19 +123,8 @@ describe('ListPipelines', () => {
         }, ''),
       ]);
 
-    filterTable.testSearchTableByValue(
-      search,
-      searchedRows,
-    );
+    filterTable.testSearchTableByValue(search, searchedRows);
 
-    // Clear search
-    expect(
-      document.querySelector('.filter-options-chip span')?.textContent,
-    ).toEqual(search);
-
-    const deleteIcon = document.querySelector('.MuiChip-deleteIcon');
-    deleteIcon && fireEvent.click(deleteIcon);
-
-    expect(document.querySelector('.filter-options-chip span')).toBeNull();
+    filterTable.clearSearchByVal(search);
   });
 });

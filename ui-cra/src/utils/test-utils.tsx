@@ -369,7 +369,15 @@ export class TestFilterableTable {
     this.fireEvent.submit(searchForm);
     return this.getTableInfo();
   }
+  clearSearchByVal(searchVal: string) {
+    const chip = document.querySelector('.filter-options-chip span');
+    expect(chip?.textContent).toEqual(searchVal);
 
+    const deleteIcon = document.querySelector('.MuiChip-deleteIcon');
+    deleteIcon && this.fireEvent.click(deleteIcon);
+
+    expect(chip).toBeNull();
+  }
   applyFilterByValue(filterIndex: number, value: string) {
     const filterBtn = document.querySelector<HTMLElement>(
       `#${this.tableId} button[class*='FilterableTable']`,
