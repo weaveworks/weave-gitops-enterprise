@@ -33,6 +33,7 @@ import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
 import { useIsClusterWithSources } from '../Applications/utils';
 import { Tooltip } from '../Shared';
+import { Routes } from '../../utils/nav';
 
 interface Size {
   size?: 'small';
@@ -125,7 +126,10 @@ const ClusterDashboard = ({ clusterName }: Props) => {
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate
         documentTitle="Cluster Page"
-        path={[{ label: 'Clusters', url: '/clusters' }, { label: clusterName }]}
+        path={[
+          { label: 'Clusters', url: Routes.Clusters },
+          { label: clusterName },
+        ]}
       >
         <ContentWrapper>
           <ActionsWrapper>
