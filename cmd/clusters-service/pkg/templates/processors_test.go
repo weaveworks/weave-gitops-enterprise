@@ -52,16 +52,18 @@ func TestProcessor_Params(t *testing.T) {
 	}{
 		{
 			filename: "testdata/template1.yaml",
-			want:     []Param{{Name: "CLUSTER_NAME"}},
+			want:     []Param{{Name: "CLUSTER_NAME", Description: "This is used for the cluster naming."}},
 		},
 		{
 			filename: "testdata/template2.yaml",
 			want: []Param{
 				{
-					Name: "AWS_NODE_MACHINE_TYPE",
+					Name:    "AWS_NODE_MACHINE_TYPE",
+					Options: []string{"big", "small"},
 				},
 				{
-					Name: "AWS_SSH_KEY_NAME",
+					Name:        "AWS_SSH_KEY_NAME",
+					Description: "A description",
 				},
 				{
 					Name: "CLUSTER_NAME",
@@ -72,7 +74,10 @@ func TestProcessor_Params(t *testing.T) {
 			filename: "testdata/text-template.yaml",
 			want: []Param{
 				{
-					Name: "CLUSTER_NAME",
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+					Options:     []string{},
 				},
 			},
 		},
@@ -80,13 +85,19 @@ func TestProcessor_Params(t *testing.T) {
 			filename: "testdata/text-template2.yaml",
 			want: []Param{
 				{
-					Name: "CLUSTER_NAME",
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+					Options:     []string{},
 				},
 				{
 					Name: "S3_BUCKET_NAME",
 				},
 				{
-					Name: "TEST_VALUE",
+					Name:        "TEST_VALUE",
+					Description: "boolean string",
+					Required:    false,
+					Options:     []string{"true", "false"},
 				},
 			},
 		},
@@ -94,19 +105,31 @@ func TestProcessor_Params(t *testing.T) {
 			filename: "testdata/text-template3.yaml",
 			want: []Param{
 				{
-					Name: "CLUSTER_NAME",
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
 				},
 				{
-					Name: "CONTROL_PLANE_MACHINE_COUNT",
+					Name:        "CONTROL_PLANE_MACHINE_COUNT",
+					Description: "Number of control planes",
+					Required:    false,
+					Options:     []string{"1", "2", "3"},
 				},
 				{
-					Name: "KUBERNETES_VERSION",
+					Name:        "KUBERNETES_VERSION",
+					Description: "Kubernetes version to use for the cluster",
+					Required:    false,
+					Options:     []string{"1.19.11", "1.21.1", "1.22.0", "1.23.3"},
 				},
 				{
-					Name: "NAMESPACE",
+					Name:        "NAMESPACE",
+					Description: "Namespace to create the cluster in",
+					Required:    false,
 				},
 				{
-					Name: "WORKER_MACHINE_COUNT",
+					Name:        "WORKER_MACHINE_COUNT",
+					Description: "Number of control planes",
+					Required:    false,
 				},
 			},
 		},
