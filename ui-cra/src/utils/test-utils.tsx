@@ -400,13 +400,9 @@ export class TestFilterableTable {
     this.testRowValues(headers!, displayedHeaders);
   }
 
-  testSearchTableByValue(
-    searchValue: string,
-    expectedRowLength: number,
-    rowValues: Array<Array<string>>,
-  ) {
+  testSearchTableByValue(searchValue: string, rowValues: Array<Array<string>>) {
     const { rows } = this.searchTableByValue(searchValue);
-    expect(rows).toHaveLength(expectedRowLength);
+    expect(rows).toHaveLength(rowValues.length);
     rowValues.forEach((row, index) => {
       const tds = rows![index].querySelectorAll('td');
       this.testRowValues(tds, row);
@@ -416,13 +412,13 @@ export class TestFilterableTable {
   testFilterTableByValue(
     filterIndex: number,
     value: string,
-    rowValues: Array<string>,
+    rowValues: Array<Array<string>>,
   ) {
     const { rows } = this.applyFilterByValue(filterIndex, value);
-
-    expect(rows).toHaveLength(1);
-    const tds = rows![0].querySelectorAll('td');
-
-    this.testRowValues(tds, rowValues);
+    expect(rows).toHaveLength(rowValues.length);
+    rowValues.forEach((row, index) => {
+      const tds = rows![index].querySelectorAll('td');
+      this.testRowValues(tds, row);
+    });
   }
 }

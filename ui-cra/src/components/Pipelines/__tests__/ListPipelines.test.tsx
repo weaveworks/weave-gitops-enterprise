@@ -125,7 +125,6 @@ describe('ListPipelines', () => {
 
     filterTable.testSearchTableByValue(
       search,
-      searchedRows.length,
       searchedRows,
     );
 
