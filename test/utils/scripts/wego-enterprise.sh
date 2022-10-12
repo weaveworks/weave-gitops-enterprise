@@ -123,7 +123,7 @@ function setup {
   fi  
 
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
-  
+    
   # Create admin cluster user secret
   kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
@@ -198,6 +198,7 @@ function setup {
 
   # Create profiles HelmReposiotry 'weaveworks-charts'
   flux create source helm weaveworks-charts --url="https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages" --interval=30s --namespace flux-system 
+
   # Install RBAC for user authentication
   kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
 
