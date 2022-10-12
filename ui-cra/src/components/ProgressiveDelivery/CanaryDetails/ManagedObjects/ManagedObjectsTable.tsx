@@ -1,5 +1,5 @@
 import { UnstructuredObject } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { DataTable } from '@weaveworks/weave-gitops';
+import { DataTable, Link } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 export const ManagedObjectsTable = ({
@@ -50,14 +50,9 @@ export const ManagedObjectsTable = ({
                 }}
               >
                 {images?.map((image, indx) => (
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href={`https://${image}`}
-                    key={indx}
-                  >
+                  <Link newTab href={`https://${image}`} key={indx}>
                     {image}
-                  </a>
+                  </Link>
                 ))}
               </div>
             ),

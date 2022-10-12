@@ -1,5 +1,5 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
+import { Link, theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 const { small, xs, medium, base, large, xxl } = theme.spacing;
@@ -124,6 +124,6 @@ export const FlexCenter = styled.div`
   justify-content: center;
 `;
 
-export const LinkTag = styled.a`
+export const LinkTag = styled(Link)`
   color: ${theme.colors.primary};
 `;

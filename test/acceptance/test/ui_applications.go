@@ -483,7 +483,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Title:   "Management Helm Applications",
 					Message: "Adding management helm applications",
 				}
-
+				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
@@ -517,7 +517,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, metallb.Chart), -275, 0)).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, metallb.Chart).Click).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddHelmReleaseApp(profile, metallb)
@@ -605,7 +606,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
+<<<<<<< HEAD
 				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "", "")
+=======
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+>>>>>>> origin
 				ginkgo.By(`And navigate to 'Add Application' page`, func() {
 					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 
@@ -623,7 +628,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -290, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddKustomizationApp(application, podinfo)
@@ -774,7 +780,11 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Add GitRepository source to leaf cluster
+<<<<<<< HEAD
 				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "", "")
+=======
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+>>>>>>> origin
 				useClusterContext(mgmtClusterContext)
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -810,7 +820,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -235, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddKustomizationApp(application, podinfo)

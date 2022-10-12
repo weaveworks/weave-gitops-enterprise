@@ -18,4 +18,3 @@ spec:
     name: {{.GitRepoName}}
     namespace:  {{.SourceNameSpace}}
   targetNamespace: {{.TargetNamespace}}
-
