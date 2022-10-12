@@ -97,17 +97,19 @@ interface Error {
   message: string;
 }
 const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: error => {
-      const err = error as Error;
-      const { pathname, search } = window.location;
-      const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+  defaultOptions: {
+    queries: {
+      onError: error => {
+        const err = error as Error;
+        const { pathname, search } = window.location;
+        const redirectUrl = encodeURIComponent(`${pathname}${search}`);
 
-      if (err.code === 401) {
-        window.location.href = `/sign_in?redirect=${redirectUrl}`;
-      }
+        if (err.code === 401) {
+          window.location.href = `/sign_in?redirect=${redirectUrl}`;
+        }
+      },
     },
-  }),
+  },
 });
 
 const App: FC = () => {
