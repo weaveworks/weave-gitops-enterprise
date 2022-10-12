@@ -54,6 +54,7 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
@@ -317,6 +318,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}
 
 	profileWatcher, err := watcher.NewWatcher(watcher.Options{
+		Cluster: types.NamespacedName{
+			Namespace: "default",
+			Name:      "management",
+		},
 		KubeClient:         kubeClient,
 		Cache:              profileCache,
 		MetricsBindAddress: p.WatcherMetricsBindAddress,
