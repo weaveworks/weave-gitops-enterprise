@@ -35,6 +35,7 @@ import {
   ClusterPRPreview,
 } from '../../../types/custom';
 import { getGitRepoHTTPSURL } from '../../../utils/formatters';
+import { Routes } from '../../../utils/nav';
 
 const PRPreviewWrapper = styled.div`
   .preview-cta {
@@ -269,7 +270,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push('/applications');
+        history.push(Routes.Applications);
         setNotifications([
           {
             message: {
@@ -302,7 +303,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
           path={[
             {
               label: 'Applications',
-              url: '/applications',
+              url: Routes.Applications,
             },
             { label: 'Add new application' },
           ]}

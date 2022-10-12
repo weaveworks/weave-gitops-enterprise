@@ -4,6 +4,7 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import HeaderSection from './HeaderSection';
 import ParametersSection from './ParametersSection';
 import { useGetPolicyDetails } from '../../../contexts/PolicyViolations';
+import { Routes } from '../../../utils/nav';
 
 const PolicyDetails = ({
   clusterName,
@@ -21,7 +22,7 @@ const PolicyDetails = ({
     <PageTemplate
       documentTitle="Policies"
       path={[
-        { label: 'Policies', url: '/policies' },
+        { label: 'Policies', url: Routes.Policies },
         { label: data?.policy?.name || '' },
       ]}
     >
