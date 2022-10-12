@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get/bcrypt"
+	configCmd "github.com/weaveworks/weave-gitops/cmd/gitops/get/config"
 )
 
 func Command(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
@@ -37,6 +38,7 @@ gitops get clusters`,
 	cmd.AddCommand(clusters.GetCommand(opts, client))
 	cmd.AddCommand(profiles.GetCommand(opts, client))
 	cmd.AddCommand(bcrypt.HashCommand(opts))
+	cmd.AddCommand(configCmd.ConfigCommand(opts))
 
 	return cmd
 }
