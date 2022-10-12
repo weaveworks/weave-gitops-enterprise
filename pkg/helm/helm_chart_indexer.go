@@ -3,12 +3,8 @@ package helm
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -51,126 +47,6 @@ func NewChartIndexer() (*HelmChartIndexer, error) {
 	return &HelmChartIndexer{
 		CacheDB: db,
 	}, nil
-}
-
-//
-// Implement "legacy" helm.Cache interface
-//
-
-func (i *HelmChartIndexer) Put(ctx context.Context, helmRepoNamespace, helmRepoName string, value cache.Data) error {
-	// FIXME: dummy values
-	kind := "HelmRepository"
-	apiVersion := "source.toolkit.fluxcd.io/v1beta1"
-
-	for _, chart := range value.Profiles {
-		for _, version := range chart.AvailableVersions {
-			sqlStatement := `
-INSERT INTO helm_charts (name, version, valuesYaml, layer,
-	repo_kind, repo_api_version, repo_name, repo_namespace,
-	cluster_name, cluster_namespace)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
-
-			_, err := i.CacheDB.ExecContext(
-				ctx,
-				sqlStatement, chart.Name, version,
-				value.Values[chart.Name][version],
-				chart.Layer,
-				kind, apiVersion, helmRepoName, helmRepoNamespace,
-				ManagementClusterName, ManagementClusterNamespace)
-
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (i *HelmChartIndexer) Delete(ctx context.Context, helmRepoNamespace, helmRepoName string) error {
-	sqlStatement := `
-DELETE FROM helm_charts
-WHERE repo_name = $1 AND repo_namespace = $2`
-
-	_, err := i.CacheDB.ExecContext(ctx, sqlStatement, helmRepoName, helmRepoNamespace)
-	return err
-}
-
-func (i *HelmChartIndexer) ListProfiles(ctx context.Context, helmRepoNamespace, helmRepoName string) ([]*pb.Profile, error) {
-	// select profiles aggregating available versions into a single row
-	sqlStatement := `
-	select name, group_concat(version) as versions, layer
-	from helm_charts
-	where repo_name = $1 and repo_namespace = $2 and cluster_name = $3 and cluster_namespace = $4
-	group by name`
-
-	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, helmRepoName, helmRepoNamespace, ManagementClusterName, ManagementClusterNamespace)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var profiles []*pb.Profile
-	for rows.Next() {
-		var p pb.Profile
-		var versions string
-		var layer sql.NullString
-		if err := rows.Scan(&p.Name, &versions, &layer); err != nil {
-			return nil, err
-		}
-		p.AvailableVersions = strings.Split(versions, ",")
-		p.AvailableVersions, err = ReverseSemVerSort(p.AvailableVersions)
-		if err != nil {
-			return nil, fmt.Errorf("parsing template profile %s: %w", p.Name, err)
-		}
-
-		if layer.Valid {
-			p.Layer = layer.String
-		}
-
-		profiles = append(profiles, &p)
-	}
-
-	return profiles, nil
-}
-
-func (i *HelmChartIndexer) GetProfileValues(ctx context.Context, helmRepoNamespace, helmRepoName, profileName, profileVersion string) ([]byte, error) {
-	sqlStatement := `
-	select valuesYaml
-	from helm_charts
-	where name = $1 and version = $2 and repo_name = $3 and repo_namespace = $4 and cluster_name = $5 and cluster_namespace = $6`
-
-	var valuesYaml []byte
-	err := i.CacheDB.QueryRowContext(ctx, sqlStatement, profileName, profileVersion, helmRepoName, helmRepoNamespace, ManagementClusterName, ManagementClusterNamespace).Scan(&valuesYaml)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return valuesYaml, nil
-}
-
-func (i *HelmChartIndexer) ListAvailableVersionsForProfile(ctx context.Context, helmRepoNamespace, helmRepoName, profileName string) ([]string, error) {
-	sqlStatement := `
-	select version
-	from helm_charts
-	where name = $1 and repo_name = $2 and repo_namespace = $3 and cluster_name = $4 and cluster_namespace = $5`
-
-	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, profileName, helmRepoName, helmRepoNamespace, ManagementClusterName, ManagementClusterNamespace)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var versions []string
-	for rows.Next() {
-		var version string
-		if err := rows.Scan(&version); err != nil {
-			return nil, err
-		}
-		versions = append(versions, version)
-	}
-
-	return versions, nil
 }
 
 //
@@ -262,6 +138,16 @@ AND kind = $7`
 	}
 
 	return charts, nil
+}
+
+func (i *HelmChartIndexer) Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error {
+	sqlStatement := `
+DELETE FROM helm_charts
+WHERE repo_name = $1 AND repo_namespace = $2
+AND cluster_name = $3 AND cluster_namespace = $4`
+
+	_, err := i.CacheDB.ExecContext(ctx, sqlStatement, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	return err
 }
 
 func applySchema(db *sql.DB) error {
