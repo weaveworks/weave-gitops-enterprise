@@ -4,6 +4,7 @@ import { useParams, Redirect } from 'react-router-dom';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
+import { Routes } from '../../../utils/nav';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import ClusterForm from '../Form';
@@ -21,7 +22,7 @@ const EditCluster: FC<{ cluster?: GitopsClusterEnriched | null }> = ({
     return (
       <Redirect
         to={{
-          pathname: '/clusters',
+          pathname: Routes.Clusters,
           state: {
             notification: [
               {
@@ -47,7 +48,7 @@ const EditClusterPage = () => {
   return (
     <PageTemplate
       documentTitle="Create new cluster"
-      path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
+      path={[{ label: 'Clusters', url: Routes.Clusters }, { label: clusterName }]}
     >
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>

@@ -1,5 +1,6 @@
-import { SourcesTable, useListSources } from '@weaveworks/weave-gitops';
+import { SourcesTable, useListSources, V2Routes } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
+import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
@@ -12,11 +13,11 @@ const WGApplicationsSources: FC = () => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: 'Sources',
-          url: '/sources',
+          url: V2Routes.Sources,
           count: sources?.result?.length,
         },
       ]}
