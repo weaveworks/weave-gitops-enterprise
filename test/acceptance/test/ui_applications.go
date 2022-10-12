@@ -1085,7 +1085,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{appNameSpace, appTargetNamespace}) // don't delete appNamespace as we are using the defaut flux-system namespace for application
 
 			})
-			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.FIt("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
