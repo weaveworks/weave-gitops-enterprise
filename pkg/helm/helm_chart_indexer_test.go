@@ -17,12 +17,12 @@ func TestDelete(t *testing.T) {
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "weave-charts", "team-ns")); err != nil {
 		t.Fatal(err)
 	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
@@ -49,7 +49,7 @@ func TestHelmChartIndex(t *testing.T) {
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
@@ -69,17 +69,17 @@ func TestListChartsByCluster(t *testing.T) {
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
 	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
 	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart",
 		nsn("cluster2", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
@@ -100,17 +100,17 @@ func TestListChartsByRepositoryAndCluster(t *testing.T) {
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
 	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
 	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", nil,
+	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart",
 		nsn("cluster2", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
 		t.Fatal(err)
