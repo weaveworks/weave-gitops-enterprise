@@ -4,12 +4,14 @@ import { usePolicyStyle } from '../PolicyStyles';
 import {
   DataTable,
   filterConfig,
+  formatURL,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import Severity from '../Severity';
 import moment from 'moment';
 import { TableWrapper } from '../../Shared';
+import { Routes } from '../../../utils/nav';
 
 interface Props {
   policies: Policy[];
@@ -43,7 +45,10 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             label: 'Policy Name',
             value: (p: Policy) => (
               <Link
-                to={`/policies/details?clusterName=${p.clusterName}&id=${p.id}`}
+                to={formatURL(Routes.PolicyDetails, {
+                  clusterName: p.clusterName,
+                  id: p.id,
+                })}
                 className={classes.link}
                 data-policy-name={p.name}
               >
