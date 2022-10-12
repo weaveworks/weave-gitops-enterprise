@@ -14,7 +14,7 @@ const (
 	// ManagementClusterNamespace is the namespace of the management cluster
 	ManagementClusterNamespace = "default"
 	// dbFile is the name of the sqlite3 database file
-	dbFile string = "charts.db"
+	dbFile = "charts.db"
 )
 
 // ObjectReference points to a resource.
@@ -38,8 +38,8 @@ type HelmChartIndexer struct {
 }
 
 // NewCache initialises the cache and returns it.
-func NewChartIndexer() (*HelmChartIndexer, error) {
-	db, err := createDB()
+func NewChartIndexer(cacheLocation string) (*HelmChartIndexer, error) {
+	db, err := createDB(cacheLocation)
 	if err != nil {
 		return nil, err
 	}
@@ -160,8 +160,9 @@ CREATE TABLE IF NOT EXISTS helm_charts (
 	return err
 }
 
-func createDB() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dbFile)
+func createDB(cacheLocation string) (*sql.DB, error) {
+	dbFileLocation := cacheLocation + "/" + dbFile
+	db, err := sql.Open("sqlite3", dbFileLocation)
 	if err != nil {
 		return nil, err
 	}
