@@ -1044,21 +1044,21 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 		})
 
-		//Application Violations Details page tests
+		// Application Violations Details page tests
 		ginkgo.Context("[UI] Application violations are available for management cluster", func() {
-			// count of existibng applications before deploying new application
+			// Count of existibng applications before deploying new application
 			var existingAppCount int
 
-			//just specify policies yaml path
+			// Just specify policies yaml path
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
-			//Just specify the Violating policy info to create it
+			// Just specify the Violating policy info to create it
 			policyName := "Container Running As Root acceptance test"
 			violationMsg := `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`
 			violationSeverity := "High"
 			violationCategory := "weave.categories.pod-security"
 
-			//Just specify the violated application info to create it
+			// Just specify the violated application info to create it
 			appNameSpace := "test-kustomization"
 			appTargetNamespace := "test-system"
 
@@ -1071,7 +1071,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.JustBeforeEach(func() {
 				createNamespace([]string{appNameSpace, appTargetNamespace})
 
-				//Add/Install test Policies to the management cluster
+				// Add/Install test Policies to the management cluster
 				installTestPolicies("management", policiesYaml)
 			})
 
@@ -1106,7 +1106,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				defer cleanGitRepository(appDir)
 
 				pages.NavigateToPage(webDriver, "Applications")
-				// declare application page variable
+				// Declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
 				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
@@ -1149,7 +1149,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By(fmt.Sprintf("And open  %s application Violations tab", podinfo.Name), func() {
-					// declare application details page variable
+					// Declare application details page variable
 					appDetailPage := pages.GetApplicationsDetailPage(webDriver, podinfo.Type)
 					gomega.Eventually(appDetailPage.Violations.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
 					pages.WaitForPageToLoad(webDriver)
@@ -1180,12 +1180,12 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(appViolationsDetialsPage.PolicyName.Text).Should(gomega.MatchRegexp("Policy Name :"), "Failed to get policy name field on App violations details page")
 					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Text).Should(gomega.MatchRegexp(policyName), "Failed to get policy name value on App violations details page")
 
-					// click policy name from app violations details page to navigate to policy details page
+					// Click policy name from app violations details page to navigate to policy details page
 					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", appViolationsDetialsPage.PolicyNameValue))
 					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/policies/details?"))
 					time.Sleep(POLL_INTERVAL_3SECONDS)
 
-					//back to app violations List
+					// Back to app violations List
 					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to back to %s Violations list", podinfo.Name))
 					time.Sleep(POLL_INTERVAL_3SECONDS)
 
