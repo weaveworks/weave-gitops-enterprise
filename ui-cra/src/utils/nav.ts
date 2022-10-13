@@ -45,15 +45,15 @@ export enum Routes {
   Clusters = '/clusters',
   ClusterDashboard = '/cluster',
   DeleteCluster = '/clusters/delete',
-  EditCluster = '/clusters/:clusterName/edit',
+  EditResource = '/resources/:resourceName/edit',
   PolicyViolations = '/clusters/violations',
   PolicyViolationDetails = '/clusters/violations/details',
-  
+
   GitlabOauthCallback = '/oauth/gitlab',
   Policies = '/policies',
   PolicyDetails = '/policies/details',
-  
+
   AddCluster = '/templates/:templateName/create',
-  
+
   Templates = '/templates',
 }

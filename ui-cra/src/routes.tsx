@@ -17,7 +17,7 @@ import WGApplicationsOCIRepository from './components/Applications/OCIRepository
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
 import ClusterDashboard from './components/Clusters/ClusterDashboard';
-import EditClusterPage from './components/Clusters/Edit';
+import EditResourcePage from './components/Clusters/Edit';
 import { ContentWrapper } from './components/Layout/ContentWrapper';
 import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
@@ -91,7 +91,7 @@ const AppRoutes = () => {
         ))}
         path={Routes.ClusterDashboard}
       />
-      <Route component={EditClusterPage} exact path={Routes.EditCluster} />
+      <Route component={EditResourcePage} exact path={Routes.EditResource} />
       <Route
         component={AddClusterWithCredentials}
         exact

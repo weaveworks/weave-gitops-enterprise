@@ -240,7 +240,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
-  const { annotations, templateType } = template;
+  const { annotations } = template;
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -407,17 +407,14 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             setFormData={setFormData}
           />
         </Grid>
-        {/* Only show if resource kind is cluster? */}
-        {templateType === 'cluster' && (
-          <Profiles
-            isLoading={profilesIsLoading}
-            updatedProfiles={updatedProfiles}
-            setUpdatedProfiles={setUpdatedProfiles}
-            isProfilesEnabled={
-              annotations?.['templates.weave.works/profiles-enabled']
-            }
-          />
-        )}
+        <Profiles
+          isLoading={profilesIsLoading}
+          updatedProfiles={updatedProfiles}
+          setUpdatedProfiles={setUpdatedProfiles}
+          isProfilesEnabled={
+            annotations?.['templates.weave.works/profiles-enabled']
+          }
+        />
         <Grid item xs={12} sm={10} md={10} lg={8}>
           <ApplicationsWrapper
             formData={formData}

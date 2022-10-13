@@ -3,7 +3,7 @@ import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { TemplateEnriched } from '../../../../types/custom';
 import { Input, Select } from '../../../../utils/form';
-import { EDIT_RESOURCE } from '../../../ResponsiveDrawer';
+import { Routes } from '../../../../utils/nav';
 
 const FormWrapper = styled.form`
   .form-section {
@@ -17,7 +17,7 @@ const TemplateFields: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ template, formData, setFormData }) => {
   const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
-  const { isExact: isEditing } = useRouteMatch(EDIT_RESOURCE) || {};
+  const { isExact: isEditing } = useRouteMatch(Routes.EditResource) || {};
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
     event:

@@ -26,33 +26,10 @@ import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import { TerraformProvider } from '../contexts/Terraform';
-import { Routes } from '../utils/nav';
-import WGApplicationsDashboard from './Applications';
-import AddApplication from './Applications/Add';
-import WGApplicationsBucket from './Applications/Bucket';
-import WGApplicationsFluxRuntime from './Applications/FluxRuntime';
-import WGApplicationsGitRepository from './Applications/GitRepository';
-import WGApplicationsHelmChart from './Applications/HelmChart';
-import WGApplicationsHelmRelease from './Applications/HelmRelease';
-import WGApplicationsHelmRepository from './Applications/HelmRepository';
-import WGApplicationsKustomization from './Applications/Kustomization';
-import WGNotifications from './Applications/Notifications';
-import WGApplicationsOCIRepository from './Applications/OCIRepository';
-import WGApplicationsSources from './Applications/Sources';
-import MCCP from './Clusters';
-import ClusterDashboard from './Clusters/ClusterDashboard';
-import AddClusterWithCredentials from './Clusters/Create';
-import EditResource from './Clusters/Edit';
 import AppRoutes from '../routes';
 import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
-
-const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
-const POLICIES = '/policies';
-const CANARIES = '/applications/delivery';
-const PIPELINES = '/applications/pipelines';
-export const EDIT_RESOURCE = '/resources/:resourceName/edit';
 
 const drawerWidth = 220;
 
