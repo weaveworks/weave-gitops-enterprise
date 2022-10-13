@@ -6,125 +6,130 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// legacy interface
-
-func TestDelete(t *testing.T) {
+func TestHelmChartIndexer_Delete(t *testing.T) {
 	db := testCreateDB(t)
 	indexer := HelmChartIndexer{
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+	err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
 		nsn("cluster1", "clusters"),
-		objref("HelmRepository", "", "weave-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-1",
+		objref("HelmRepository", "", "weave-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-1",
 		nsn("cluster1", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
 
-	if err := indexer.Delete(context.TODO(), objref("", "", "weave-charts", "team-ns"), nsn("cluster1", "clusters")); err != nil {
-		t.Fatal(err)
-	}
+	err = indexer.Delete(context.TODO(), objref("", "", "weave-charts", "team-ns"), nsn("cluster1", "clusters"))
+	assert.NoError(t, err)
 
-	count, err := indexer.Count(context.TODO())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if count != 1 {
-		t.Fatalf("got %d, want 1", count)
-	}
+	chart, err := indexer.ListChartsByCluster(context.TODO(), nsn("cluster1", "clusters"), "chart")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(chart))
+	assert.Equal(t, "nginx", chart[0].Name)
 
 }
 
-func TestHelmChartIndex(t *testing.T) {
+func TestHelmChartIndexer_Count(t *testing.T) {
 	db := testCreateDB(t)
 	indexer := HelmChartIndexer{
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "",
-		nsn("cluster1", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
 	count, err := indexer.Count(context.TODO())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 1 {
-		t.Fatalf("got %d, want 1", count)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), count)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	count, err = indexer.Count(context.TODO())
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), count)
+
+	err = indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	count, err = indexer.Count(context.TODO())
+	assert.NoError(t, err)
+	assert.Equal(t, int64(2), count)
 }
 
-func TestListChartsByCluster(t *testing.T) {
+func TestHelmChartIndexer_ListChartsByCluster(t *testing.T) {
 	db := testCreateDB(t)
 	indexer := HelmChartIndexer{
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+	err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
 		nsn("cluster1", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-1",
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-1",
 		nsn("cluster1", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-1",
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.2", "chart", "layer-1",
 		nsn("cluster2", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
 
 	charts, err := indexer.ListChartsByCluster(context.TODO(), nsn("cluster1", "clusters"), "chart")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(charts) != 2 {
-		t.Fatalf("got %d, want 2", len(charts))
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(charts))
+	assert.Equal(t, "redis", charts[0].Name)
+	assert.Equal(t, "1.0.1", charts[1].Version)
 }
 
-func TestListChartsByRepositoryAndCluster(t *testing.T) {
+func TestHelmChartIndexer_ListChartsByRepositoryAndCluster(t *testing.T) {
 	db := testCreateDB(t)
 	indexer := HelmChartIndexer{
 		CacheDB: db,
 	}
 
-	if err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
 		nsn("cluster1", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "redis", "1.0.2", "chart", "layer-0",
 		nsn("cluster1", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
-	if err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
 		nsn("cluster2", "clusters"),
-		objref("HelmRepository", "", "bitnami-charts", "team-ns")); err != nil {
-		t.Fatal(err)
-	}
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
 
 	charts, err := indexer.ListChartsByRepositoryAndCluster(context.TODO(),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
 		nsn("cluster1", "clusters"), "chart")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(charts) != 2 {
-		t.Fatalf("got %d, want 2", len(charts))
-	}
+
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(charts))
+	assert.Equal(t, "redis", charts[0].Name)
+	assert.Equal(t, "1.0.2", charts[0].Version)
+	assert.Equal(t, "nginx", charts[1].Name)
+	assert.Equal(t, "1.0.1", charts[1].Version)
 }
 
 func objref(kind, apiVersion, name, namespace string) ObjectReference {
@@ -162,9 +167,6 @@ func testCreateDB(t *testing.T) *sql.DB {
 			t.Fatal(err)
 		}
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	return db
 }

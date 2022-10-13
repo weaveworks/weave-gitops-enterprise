@@ -3,6 +3,7 @@ package helm
 import (
 	"context"
 	"database/sql"
+	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 	"k8s.io/apimachinery/pkg/types"
@@ -161,7 +162,7 @@ CREATE TABLE IF NOT EXISTS helm_charts (
 }
 
 func createDB(cacheLocation string) (*sql.DB, error) {
-	dbFileLocation := cacheLocation + "/" + dbFile
+	dbFileLocation := filepath.Join(cacheLocation, dbFile)
 	db, err := sql.Open("sqlite3", dbFileLocation)
 	if err != nil {
 		return nil, err
