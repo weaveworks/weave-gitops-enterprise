@@ -375,7 +375,7 @@ github.com/felixge/httpsnoop v1.0.2 h1:+nS9g82KMXccJ/wp0zyRW9ZBHFETmMGtkk+2CTTrW
 github.com/flowstack/go-jsonschema v0.1.1/go.mod h1:yL7fNggx1o8rm9RlgXv7hTBWxdBM0rVwpMwimd3F3N0=
 github.com/fluxcd/flagger v1.21.0 h1:/h3z1BlGhKZfVCTsS50APjAfRyXvGsq0siIhO2UQO3o=
 github.com/fluxcd/flagger v1.21.0/go.mod h1:v7b10ylvAhTDloWbu6R0WJ/HY+DP5rVH1d9UTMZXtkI=
-github.com/fluxcd/flux2 v0.34.0 h1:EMcLjQBGYyDcN1YCbcGsoC3CaqJwNcvuodO639gQ/30=
+github.com/fluxcd/flux2 v0.35.0 h1:VBtRlzTxxb0+2xMRMV+7Bh/1XlHw9x5JFwNSrTlV60k=
 github.com/fluxcd/go-git-providers v0.9.0 h1:iiiKe3dzRCgVkjEi8rfpvaWTZwuGRfb3RJFhjSNz+Uc=
 github.com/fluxcd/go-git-providers v0.9.0/go.mod h1:GcaDVP9RlamLKJp25Nwi7X5t0MyZV3FY+qy1GiRdbtk=
 github.com/fluxcd/helm-controller/api v0.25.0 h1:mQA1HdxbystbR0V19gH+Wk5KX71XLvnR60nQhfgM4HE=
@@ -1317,8 +1317,8 @@ github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
-github.com/weaveworks/weave-gitops v0.9.6 h1:awfLXkZQ8yomd7/m7XDCpsr948nLxVddVkxljr+VpYw=
-github.com/weaveworks/weave-gitops v0.9.6/go.mod h1:I7+HSTP8uik9ZwvtcCWEkKsGYZEZbI1aECP/YTZsC9I=
+github.com/weaveworks/weave-gitops v0.10.0-rc.1.0.20221013133616-0a966cdf4668 h1:2uYSf1jbuOY4NNzBIClEuprYanwVrDAXl2jWM8/q4YU=
+github.com/weaveworks/weave-gitops v0.10.0-rc.1.0.20221013133616-0a966cdf4668/go.mod h1:aN9coD172ZhF7xdRFMSxIE3Zi6+W2b2usDZcqskS5rM=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.73.1 h1:UMagqUZLJdjss1SovIC+kJCH4k2AZWXl58gJd38Y/hI=
