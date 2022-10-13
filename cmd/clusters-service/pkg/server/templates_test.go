@@ -982,6 +982,35 @@ status: {}
 				},
 			},
 		},
+		{
+			name:             "render template with dummy cost estimate data returned",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			req: &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				Profiles: []*capiv1_protos.ProfileValues{},
+			},
+			expected: &capiv1_protos.RenderTemplateResponse{
+				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				KustomizationFiles: []*capiv1_protos.CommitFile{},
+				ProfileFiles:       []*capiv1_protos.CommitFile{},
+				CostEstimateMonthlyDollars: &capiv1_protos.CostEstimateMonthlyDollars{
+					Currency: "USD",
+					Amount:   0,
+					Range: &capiv1_protos.CostEstimateRange{
+						Low:  0,
+						High: 1000000,
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
