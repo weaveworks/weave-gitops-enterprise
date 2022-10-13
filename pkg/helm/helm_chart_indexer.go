@@ -3,6 +3,7 @@ package helm
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -30,6 +31,7 @@ type ObjectReference struct {
 type Chart struct {
 	Name    string
 	Version string
+	Kind    string
 }
 
 // HelmChartIndexer indexs details of Helm charts that have been seen in Helm
@@ -68,6 +70,73 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 		repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace,
 		clusterRef.Name, clusterRef.Namespace)
 
+	return err
+}
+
+// IsKnownChart returns true if the chart in in a repo is known
+func (i *HelmChartIndexer) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error) {
+	sqlStatement := `
+SELECT COUNT(*) FROM helm_charts 
+WHERE name = $1 AND version = $2
+AND repo_name = $3 AND repo_namespace = $4
+AND cluster_name = $5 AND cluster_namespace = $6`
+
+	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, chart.Name, chart.Version, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	// return the count we get back
+	if rows.Next() {
+		var count int64
+		if err := rows.Scan(&count); err != nil {
+			return false, err
+		}
+		return count > 0, nil
+	}
+
+	// we didn't get any rows back, so something went wrong
+	return false, fmt.Errorf("no rows returned")
+}
+
+// GetValuesYaml returns the values.yaml for a chart in a repo
+func (i *HelmChartIndexer) GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error) {
+	sqlStatement := `
+SELECT valuesYaml FROM helm_charts 
+WHERE name = $1 AND version = $2
+AND repo_name = $3 AND repo_namespace = $4
+AND cluster_name = $5 AND cluster_namespace = $6`
+
+	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, chart.Name, chart.Version, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// If there are no rows, then the chart is not known
+	if !rows.Next() {
+		return nil, nil
+	}
+
+	// FIXME
+	var valuesYaml string
+	if err := rows.Scan(&valuesYaml); err != nil {
+		return nil, err
+	}
+
+	return []byte(valuesYaml), nil
+}
+
+// UpdateValuesYaml updates the values.yaml for a chart in a repo
+func (i *HelmChartIndexer) UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error {
+	sqlStatement := `
+UPDATE helm_charts SET valuesYaml = $1
+WHERE name = $2 AND version = $3
+AND repo_name = $4 AND repo_namespace = $5
+AND cluster_name = $6 AND cluster_namespace = $7`
+
+	_, err := i.CacheDB.ExecContext(ctx, sqlStatement, valuesYaml, chart.Name, chart.Version, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
 	return err
 }
 
@@ -116,7 +185,7 @@ AND kind = $3`
 }
 
 // ListChartsByRepositoryAndCluster returns a list of charts filtered by helm repository and cluster.
-func (i *HelmChartIndexer) ListChartsByRepositoryAndCluster(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName, kind string) ([]Chart, error) {
+func (i *HelmChartIndexer) ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error) {
 	sqlStatement := `
 SELECT name, version FROM helm_charts 
 WHERE repo_kind = $1 AND repo_api_version = $2 AND repo_name = $3 AND repo_namespace = $4

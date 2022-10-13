@@ -2,11 +2,17 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"sort"
 
+	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	wegohelm "github.com/weaveworks/weave-gitops/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 )
 
 // ListChartsForRepository returns a list of charts for a given repository.
@@ -16,13 +22,13 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 		Namespace: request.Repository.Cluster.Namespace,
 	}
 
-	repoRef := ObjectReference{
+	repoRef := helm.ObjectReference{
 		Kind:      request.Repository.Kind,
 		Name:      request.Repository.Name,
 		Namespace: request.Repository.Namespace,
 	}
 
-	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, repoRef, clusterRef)
+	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, clusterRef, repoRef, request.Kind)
 	if err != nil {
 		if err.Error() == "no charts found" {
 			return &protos.ListChartsForRepositoryResponse{}, nil
@@ -32,18 +38,12 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 
 	chartsWithVersions := map[string][]string{}
 	for _, chart := range charts {
-		if request.Kind != "" {
-			if chart.Kind == request.Kind {
-				chartsWithVersions[chart.Name] = append(chartsWithVersions[chart.Name], chart.Version)
-			}
-		} else {
-			chartsWithVersions[chart.Name] = append(chartsWithVersions[chart.Name], chart.Version)
-		}
+		chartsWithVersions[chart.Name] = append(chartsWithVersions[chart.Name], chart.Version)
 	}
 
 	responseCharts := []*protos.RepositoryChart{}
 	for name, versions := range chartsWithVersions {
-		sortedVersions, err := wegohelm.ReverseSemVerSort(versions)
+		sortedVersions, err := helm.ReverseSemVerSort(versions)
 		if err != nil {
 			return nil, fmt.Errorf("parsing chart %s: %w", name, err)
 		}
@@ -53,6 +53,10 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 			Versions: sortedVersions,
 		})
 	}
+
+	sort.Slice(responseCharts, func(i, j int) bool {
+		return responseCharts[i].Name < responseCharts[j].Name
+	})
 
 	return &protos.ListChartsForRepositoryResponse{Charts: responseCharts}, nil
 }
@@ -64,21 +68,96 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 		Namespace: req.Repository.Cluster.Namespace,
 	}
 
-	repoRef := ObjectReference{
+	repoRef := helm.ObjectReference{
 		Kind:      req.Repository.Kind,
 		Name:      req.Repository.Name,
 		Namespace: req.Repository.Namespace,
 	}
 
-	chart := Chart{
+	chart := helm.Chart{
 		Name:    req.Name,
 		Version: req.Version,
 	}
 
-	values, err := s.chartsCache.GetChartValues(ctx, repoRef, clusterRef, chart)
+	found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
 	if err != nil {
 		return nil, err
 	}
+	if !found {
+		return nil, &grpcruntime.HTTPStatusError{
+			Err:        errors.New("chart version not found"),
+			HTTPStatus: http.StatusOK,
+		}
+	}
 
-	return &protos.GetValuesForChartResponse{Values: string(values)}, nil
+	jobId := s.chartJobs.New()
+
+	go func() {
+		res, err := s.GetOrFetchValues(ctx, repoRef, clusterRef, chart)
+		s.chartJobs.Set(jobId, helm.JobResult{Result: res, Error: err})
+	}()
+
+	return &protos.GetValuesForChartResponse{JobId: jobId}, nil
+}
+
+func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobRequest) (*protos.GetChartsJobResponse, error) {
+	result, found := s.chartJobs.Get(req.JobId)
+	if !found {
+		return nil, &grpcruntime.HTTPStatusError{
+			Err:        errors.New("job not found"),
+			HTTPStatus: http.StatusOK,
+		}
+	}
+
+	errString := ""
+	if result.Error != nil {
+		errString = result.Error.Error()
+	}
+
+	return &protos.GetChartsJobResponse{Values: result.Result, Error: errString}, nil
+}
+
+func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectReference, clusterRef types.NamespacedName, chart helm.Chart) (string, error) {
+	values, err := s.chartsCache.GetChartValues(ctx, clusterRef, repoRef, chart)
+	if err != nil {
+		return "", err
+	}
+
+	if values != nil {
+		return string(values), nil
+	}
+
+	config, err := s.GetClientConfigForCluster(ctx, clusterRef)
+	if err != nil {
+		return "", err
+	}
+
+	data, err := s.valuesFetcher.GetValuesFile(ctx, config, clusterRef, chart)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.chartsCache.UpdateValuesYaml(ctx, clusterRef, repoRef, chart, data)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
+// GetClientConfigForCluster returns the client config for a given cluster.
+func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
+	clusterName := cluster.Name
+	if clusterName != "management" {
+		clusterName = fmt.Sprintf("%s/%s", cluster.Namespace, cluster.Name)
+	}
+
+	clusters := s.clustersManager.GetClusters()
+	for _, c := range clusters {
+		if c.Name == clusterName {
+			return clustersmngr.ClientConfigAsServer()(c)
+		}
+	}
+
+	return nil, fmt.Errorf("cluster %s not found", clusterName)
 }

@@ -67,6 +67,9 @@ type ClustersServiceClient interface {
 	// GetValuesForChart gets the default Values.yaml for the provided Chart
 	// reference.
 	GetValuesForChart(ctx context.Context, in *GetValuesForChartRequest, opts ...grpc.CallOption) (*GetValuesForChartResponse, error)
+	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// reference.
+	GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -275,6 +278,15 @@ func (c *clustersServiceClient) GetValuesForChart(ctx context.Context, in *GetVa
 	return out, nil
 }
 
+func (c *clustersServiceClient) GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error) {
+	out := new(GetChartsJobResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetChartsJob", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -327,6 +339,9 @@ type ClustersServiceServer interface {
 	// GetValuesForChart gets the default Values.yaml for the provided Chart
 	// reference.
 	GetValuesForChart(context.Context, *GetValuesForChartRequest) (*GetValuesForChartResponse, error)
+	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// reference.
+	GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -399,6 +414,9 @@ func (UnimplementedClustersServiceServer) ListChartsForRepository(context.Contex
 }
 func (UnimplementedClustersServiceServer) GetValuesForChart(context.Context, *GetValuesForChartRequest) (*GetValuesForChartResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetValuesForChart not implemented")
+}
+func (UnimplementedClustersServiceServer) GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChartsJob not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -809,6 +827,24 @@ func _ClustersService_GetValuesForChart_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_GetChartsJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChartsJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetChartsJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetChartsJob",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetChartsJob(ctx, req.(*GetChartsJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -903,6 +939,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetValuesForChart",
 			Handler:    _ClustersService_GetValuesForChart_Handler,
+		},
+		{
+			MethodName: "GetChartsJob",
+			Handler:    _ClustersService_GetChartsJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

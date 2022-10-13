@@ -16,6 +16,37 @@
     "application/json"
   ],
   "paths": {
+    "/v1/charts/jobs/{jobId}": {
+      "post": {
+        "summary": "GetChartsJob gets the default Values.yaml for the provided Chart\nreference.",
+        "operationId": "ClustersService_GetChartsJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetChartsJobResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/charts/list": {
       "get": {
         "summary": "ListChartsForRepository lists the discovered Helm charts in the provided\nrepository.",
@@ -78,7 +109,7 @@
       }
     },
     "/v1/charts/values": {
-      "get": {
+      "post": {
         "summary": "GetValuesForChart gets the default Values.yaml for the provided Chart\nreference.",
         "operationId": "ClustersService_GetValuesForChart",
         "responses": {
@@ -1387,6 +1418,18 @@
         }
       }
     },
+    "v1GetChartsJobResponse": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "string",
+          "description": "This is the base64 encoded version of the raw values data."
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetConfigResponse": {
       "type": "object",
       "properties": {
@@ -1434,9 +1477,8 @@
     "v1GetValuesForChartResponse": {
       "type": "object",
       "properties": {
-        "values": {
-          "type": "string",
-          "description": "This is the base64 encoded version of the raw values data."
+        "jobId": {
+          "type": "string"
         }
       }
     },

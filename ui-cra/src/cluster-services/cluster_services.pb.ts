@@ -555,7 +555,16 @@ export type GetValuesForChartRequest = {
 }
 
 export type GetValuesForChartResponse = {
+  jobId?: string
+}
+
+export type GetChartsJobRequest = {
+  jobId?: string
+}
+
+export type GetChartsJobResponse = {
   values?: string
+  error?: string
 }
 
 export class ClustersService {
@@ -623,6 +632,9 @@ export class ClustersService {
     return fm.fetchReq<ListChartsForRepositoryRequest, ListChartsForRepositoryResponse>(`/v1/charts/list?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetValuesForChart(req: GetValuesForChartRequest, initReq?: fm.InitReq): Promise<GetValuesForChartResponse> {
-    return fm.fetchReq<GetValuesForChartRequest, GetValuesForChartResponse>(`/v1/charts/values?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetValuesForChartRequest, GetValuesForChartResponse>(`/v1/charts/values`, {...initReq, method: "POST"})
+  }
+  static GetChartsJob(req: GetChartsJobRequest, initReq?: fm.InitReq): Promise<GetChartsJobResponse> {
+    return fm.fetchReq<GetChartsJobRequest, GetChartsJobResponse>(`/v1/charts/jobs/${req["jobId"]}`, {...initReq, method: "POST"})
   }
 }

@@ -174,7 +174,16 @@ service ClustersService {
   rpc GetValuesForChart(GetValuesForChartRequest) returns
     (GetValuesForChartResponse) {
      option (google.api.http) = {
-        get : "/v1/charts/values",
+        post : "/v1/charts/values",
+      };
+    }
+
+  // GetChartsJob gets the default Values.yaml for the provided Chart
+  // reference.
+  rpc GetChartsJob(GetChartsJobRequest) returns
+    (GetChartsJobResponse) {
+     option (google.api.http) = {
+        post : "/v1/charts/jobs/{job_id}",
       };
     }
 }
@@ -752,6 +761,15 @@ message GetValuesForChartRequest {
 }
 
 message GetValuesForChartResponse {
+  string job_id = 1;
+}
+
+message GetChartsJobRequest {
+  string job_id = 1;
+}
+
+message GetChartsJobResponse {
   // This is the base64 encoded version of the raw values data.
   string values = 1;
+  string error = 2;
 }
