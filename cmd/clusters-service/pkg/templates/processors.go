@@ -18,6 +18,14 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
+// TemplateDelimiterAnnotation can be added to a Template to change the Go
+// template delimiter.
+//
+// It's assumed to be a string with "left,right"
+// By default the delimiters are the standard Go templating delimiters:
+// {{ and }}.
+const TemplateDelimiterAnnotation string = "templates.weave.works/delimiters"
+
 var templateFuncs template.FuncMap = makeTemplateFunctions()
 
 // Processor is a generic template parser/renderer.
@@ -40,7 +48,7 @@ func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
 	case "", templates.RenderTypeEnvsubst:
 		return &TemplateProcessor{Processor: NewEnvsubstTemplateProcessor(), Template: t}, nil
 	case templates.RenderTypeTemplating:
-		return &TemplateProcessor{Processor: NewTextTemplateProcessor(), Template: t}, nil
+		return &TemplateProcessor{Processor: NewTextTemplateProcessor(t), Template: t}, nil
 
 	}
 
@@ -177,17 +185,19 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 }
 
 // NewTextTemplateProcessor creates and returns a new TextTemplateProcessor.
-func NewTextTemplateProcessor() *TextTemplateProcessor {
-	return &TextTemplateProcessor{}
+func NewTextTemplateProcessor(t templates.Template) *TextTemplateProcessor {
+	return &TextTemplateProcessor{template: t}
 }
 
 // TextProcessor is an implementation of the Processor interface that uses Go's
 // text/template to render templates.
 type TextTemplateProcessor struct {
+	template templates.Template
 }
 
 func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
-	parsed, err := template.New("capi-template").Funcs(templateFuncs).Parse(string(tmpl))
+	left, right := p.templateDelims()
+	parsed, err := template.New("capi-template").Funcs(templateFuncs).Delims(left, right).Parse(string(tmpl))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -198,6 +208,16 @@ func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([
 	}
 
 	return out.Bytes(), nil
+}
+
+func (p *TextTemplateProcessor) templateDelims() (string, string) {
+	ann, ok := p.template.GetAnnotations()[TemplateDelimiterAnnotation]
+	if ok {
+		if elems := strings.Split(ann, ","); len(elems) == 2 {
+			return elems[0], elems[1]
+		}
+	}
+	return "{{", "}}"
 }
 
 var paramsRE = regexp.MustCompile(`{{.*\.params\.([A-Za-z0-9_]+).*}}`)
