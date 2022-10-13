@@ -5,6 +5,7 @@ import { useParams, Redirect } from 'react-router-dom';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
+import { Routes } from '../../../utils/nav';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import ResourceForm from '../Form';
@@ -32,7 +33,7 @@ const EditResource: FC<{
     return (
       <Redirect
         to={{
-          pathname: '/clusters',
+          pathname: Routes.Clusters,
           state: {
             notification: [
               {
@@ -65,7 +66,7 @@ const EditClusterPage: FC<{
   return (
     <PageTemplate
       documentTitle="Edit resource"
-      path={[{ label: 'Resource', url: '/' }, { label: resource?.name }]}
+      path={[{ label: 'Resource', url: Routes.Clusters }, { label: resource?.name }]}
     >
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>

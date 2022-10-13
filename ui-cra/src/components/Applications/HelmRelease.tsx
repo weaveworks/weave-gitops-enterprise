@@ -7,6 +7,7 @@ import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDe
 import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
+import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
@@ -52,7 +53,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: `${name}`,

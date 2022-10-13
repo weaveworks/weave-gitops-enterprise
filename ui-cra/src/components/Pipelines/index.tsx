@@ -1,7 +1,8 @@
-import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig, formatURL } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
+import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
@@ -20,7 +21,7 @@ const Pipelines = ({ className }: any) => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         { label: 'Pipelines', count: data?.pipelines?.length },
       ]}
@@ -36,7 +37,10 @@ const Pipelines = ({ className }: any) => {
                   label: 'Pipeline Name',
                   value: ({ name, namespace }: Pipeline) => (
                     <LinkWrapper
-                      to={`/applications/pipelines/details?namespace=${namespace}&name=${name}`}
+                      to={formatURL(Routes.PipelineDetails, {
+                        name,
+                        namespace,
+                      })}
                     >
                       {name}
                     </LinkWrapper>
@@ -47,12 +51,16 @@ const Pipelines = ({ className }: any) => {
                 {
                   label: 'Pipeline Namespace',
                   value: 'namespace',
-                  textSearchable: true,
+                },
+                {
+                  label: 'Application',
+                  value: ({ appRef }: Pipeline) => <>{appRef?.name}</>,
+                  sortValue: ({ appRef }: Pipeline) => appRef?.name,
                 },
                 {
                   label: 'Type',
                   value: ({ appRef }: Pipeline) => <>{appRef?.kind}</>,
-                  sortValue: ({ appRef }: Pipeline) => appRef?.name,
+                  sortValue: ({ appRef }: Pipeline) => appRef?.kind,
                 },
                 {
                   label: 'Environments',

@@ -1,9 +1,10 @@
 import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { HelmChartDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
+import { HelmChartDetail, Kind, useGetObject, V2Routes } from '@weaveworks/weave-gitops';
 import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../EditButton';
+import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -25,11 +26,11 @@ const WGApplicationsHelmChart: FC<Props> = props => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: 'Sources',
-          url: '/sources',
+          url: V2Routes.Sources,
         },
         {
           label: `${props.name}`,

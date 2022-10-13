@@ -45,52 +45,104 @@ func TestNewProcessorForTemplate(t *testing.T) {
 	}
 }
 
-func TestProcessor_AllParamNames(t *testing.T) {
+func TestProcessor_Params(t *testing.T) {
 	paramTests := []struct {
 		filename string
-		want     []string
+		want     []Param
 	}{
 		{
 			filename: "testdata/template1.yaml",
-			want:     []string{"CLUSTER_NAME"},
+			want:     []Param{{Name: "CLUSTER_NAME", Description: "This is used for the cluster naming."}},
 		},
 		{
 			filename: "testdata/template2.yaml",
-			want: []string{
-				"AWS_NODE_MACHINE_TYPE",
-				"AWS_SSH_KEY_NAME",
-				"CLUSTER_NAME",
+			want: []Param{
+				{
+					Name:    "AWS_NODE_MACHINE_TYPE",
+					Options: []string{"big", "small"},
+				},
+				{
+					Name:        "AWS_SSH_KEY_NAME",
+					Description: "A description",
+				},
+				{
+					Name: "CLUSTER_NAME",
+				},
 			},
 		},
 		{
 			filename: "testdata/text-template.yaml",
-			want: []string{
-				"CLUSTER_NAME",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+					Options:     []string{},
+				},
 			},
 		},
 		{
 			filename: "testdata/text-template2.yaml",
-			want: []string{
-				"CLUSTER_NAME",
-				"S3_BUCKET_NAME",
-				"TEST_VALUE",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+					Options:     []string{},
+				},
+				{
+					Name: "S3_BUCKET_NAME",
+				},
+				{
+					Name:        "TEST_VALUE",
+					Description: "boolean string",
+					Required:    false,
+					Options:     []string{"true", "false"},
+				},
 			},
 		},
 		{
 			filename: "testdata/text-template3.yaml",
-			want: []string{
-				"CLUSTER_NAME",
-				"CONTROL_PLANE_MACHINE_COUNT",
-				"KUBERNETES_VERSION",
-				"NAMESPACE",
-				"WORKER_MACHINE_COUNT",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+				},
+				{
+					Name:        "CONTROL_PLANE_MACHINE_COUNT",
+					Description: "Number of control planes",
+					Required:    false,
+					Options:     []string{"1", "2", "3"},
+				},
+				{
+					Name:        "KUBERNETES_VERSION",
+					Description: "Kubernetes version to use for the cluster",
+					Required:    false,
+					Options:     []string{"1.19.11", "1.21.1", "1.22.0", "1.23.3"},
+				},
+				{
+					Name:        "NAMESPACE",
+					Description: "Namespace to create the cluster in",
+					Required:    false,
+				},
+				{
+					Name:        "WORKER_MACHINE_COUNT",
+					Description: "Number of control planes",
+					Required:    false,
+				},
 			},
 		},
 		{
 			filename: "testdata/template-with-annotation-params.yaml",
-			want: []string{
-				"CLUSTER_NAME",
-				"TEST_PARAMETER",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+				},
+				{
+					Name: "TEST_PARAMETER",
+				},
 			},
 		},
 	}
@@ -102,7 +154,7 @@ func TestProcessor_AllParamNames(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			params, err := proc.AllParamNames()
+			params, err := proc.Params()
 			if err != nil {
 				t.Fatal(err)
 			}

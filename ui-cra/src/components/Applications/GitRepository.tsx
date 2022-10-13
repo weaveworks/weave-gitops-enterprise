@@ -5,9 +5,11 @@ import {
   GitRepositoryDetail,
   Kind,
   useGetObject,
+  V2Routes,
 } from '@weaveworks/weave-gitops';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../EditButton';
+import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -34,11 +36,11 @@ const WGApplicationsGitRepository: FC<Props> = props => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: 'Sources',
-          url: '/sources',
+          url: V2Routes.Sources,
         },
         {
           label: `${props.name}`,
