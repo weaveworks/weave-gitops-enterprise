@@ -438,6 +438,13 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
           />
         ) : null}
         <Grid item xs={12} sm={10} md={10} lg={8}>
+          <CostEstimation
+            isCostEstimationEnabled={
+              annotations?.['templates.weave.works/cost-estimation-enabled']
+            }
+          />
+        </Grid>
+        <Grid item xs={12} sm={10} md={10} lg={8}>
           <GitOps
             loading={loading}
             formData={formData}
@@ -445,13 +452,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             onSubmit={handleAddCluster}
             showAuthDialog={showAuthDialog}
             setShowAuthDialog={setShowAuthDialog}
-          />
-        </Grid>
-        <Grid item xs={12} sm={10} md={10} lg={8}>
-          <CostEstimation
-            isCostEstimationEnabled={
-              annotations?.['templates.weave.works/cost-estimation-enabled']
-            }
           />
         </Grid>
       </CallbackStateContextProvider>

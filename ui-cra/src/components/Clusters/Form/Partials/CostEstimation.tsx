@@ -4,7 +4,9 @@ const CostEstimation: FC<{
   isCostEstimationEnabled?: string;
 }> = ({ isCostEstimationEnabled = 'false' }) => {
   return isCostEstimationEnabled === 'false' ? null : (
-    <div className="costEstimation">Cost estimation</div>
+    <div className="costEstimation">
+      <h2>Cost Estimation</h2>
+    </div>
   );
 };
 
