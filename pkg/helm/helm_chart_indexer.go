@@ -54,16 +54,16 @@ func NewChartIndexer(cacheLocation string) (*HelmChartIndexer, error) {
 //
 
 // AddChart inserts a new chart into helm_charts table.
-func (i *HelmChartIndexer) AddChart(ctx context.Context, name, version, kind string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
+func (i *HelmChartIndexer) AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
 	sqlStatement := `
-INSERT INTO helm_charts (name, version, kind,
+INSERT INTO helm_charts (name, version, kind, layer,
 	repo_kind, repo_api_version, repo_name, repo_namespace,
 	cluster_name, cluster_namespace)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
 	_, err := i.CacheDB.ExecContext(
 		ctx,
-		sqlStatement, name, version, kind,
+		sqlStatement, name, version, kind, layer,
 		repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace,
 		clusterRef.Name, clusterRef.Namespace)
 
