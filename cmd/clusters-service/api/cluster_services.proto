@@ -217,15 +217,16 @@ message CommitFile {
 	string content = 2;
 }
 
-message CostEstimateRange {
-  float low = 1;
-  float high = 2;
-}
+
 
 message CostEstimate{
+  message Range {
+    float low = 1;
+    float high = 2;
+  };
   string currency = 1;
   float amount = 2;
-  CostEstimateRange range = 3;
+  Range range = 3;
 }
 
 message RenderTemplateResponse { 

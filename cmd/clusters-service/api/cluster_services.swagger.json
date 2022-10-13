@@ -743,6 +743,19 @@
     }
   },
   "definitions": {
+    "CostEstimateRange": {
+      "type": "object",
+      "properties": {
+        "low": {
+          "type": "number",
+          "format": "float"
+        },
+        "high": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
     "apiHttpBody": {
       "type": "object",
       "properties": {
@@ -961,20 +974,7 @@
           "format": "float"
         },
         "range": {
-          "$ref": "#/definitions/v1CostEstimateRange"
-        }
-      }
-    },
-    "v1CostEstimateRange": {
-      "type": "object",
-      "properties": {
-        "low": {
-          "type": "number",
-          "format": "float"
-        },
-        "high": {
-          "type": "number",
-          "format": "float"
+          "$ref": "#/definitions/CostEstimateRange"
         }
       }
     },

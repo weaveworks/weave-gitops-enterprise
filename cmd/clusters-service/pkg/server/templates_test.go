@@ -1004,7 +1004,7 @@ status: {}
 				CostEstimate: &capiv1_protos.CostEstimate{
 					Currency: "USD",
 					Amount:   0,
-					Range: &capiv1_protos.CostEstimateRange{
+					Range: &capiv1_protos.CostEstimate_Range{
 						Low:  0,
 						High: 1000000,
 					},

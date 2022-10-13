@@ -189,7 +189,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	// Temporary mock data of cost estimate
 	costEstimate := &capiv1_proto.CostEstimate{
 		Currency: "USD",
-		Range: &capiv1_proto.CostEstimateRange{
+		Range: &capiv1_proto.CostEstimate_Range{
 			Low:  0,
 			High: 1000000,
 		},
