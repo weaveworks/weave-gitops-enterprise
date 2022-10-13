@@ -48,6 +48,7 @@ import {
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
+import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
 import GitOps from './Partials/GitOps';
 import Preview from './Partials/Preview';
@@ -444,6 +445,13 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             onSubmit={handleAddCluster}
             showAuthDialog={showAuthDialog}
             setShowAuthDialog={setShowAuthDialog}
+          />
+        </Grid>
+        <Grid item xs={12} sm={10} md={10} lg={8}>
+          <CostEstimation
+            isCostEstimationEnabled={
+              annotations?.['templates.weave.works/cost-estimation-enabled']
+            }
           />
         </Grid>
       </CallbackStateContextProvider>
