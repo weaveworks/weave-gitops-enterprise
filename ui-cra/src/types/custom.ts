@@ -105,7 +105,7 @@ export type ListProfileValuesResponse = {
   success: boolean;
 };
 
-export type ChildrenOccurences = {
+export type ChildrenOccurrences = {
   name: string;
   groupVisible: boolean;
   count: number;
