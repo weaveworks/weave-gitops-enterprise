@@ -55,7 +55,8 @@ const NavWrapper = styled.div`
   }
 
   span.parent-route {
-    margin-left: ${xs};
+    margin-left: ${({ theme }) => theme.spacing.xs};
+    letter-spacing: 1px;
   }
 
   a:not(a.nav-link-active):hover {
