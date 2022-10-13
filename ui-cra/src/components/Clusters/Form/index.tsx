@@ -11,6 +11,7 @@ import {
   CallbackStateContextProvider,
   clearCallbackState,
   getProviderToken,
+  Link,
   LoadingPage,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -322,14 +323,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           {
             message: {
               component: (
-                <a
-                  style={{ color: weaveTheme.colors.primary }}
-                  href={response.webUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href={response.webUrl} newTab>
                   PR created successfully.
-                </a>
+                </Link>
               ),
             },
             variant: 'success',
