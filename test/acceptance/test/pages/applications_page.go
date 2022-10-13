@@ -202,7 +202,7 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 // Application Violations Details methods
 func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	return &AppViolationsMsgInList{
-		AppViolationsMsg: webDriver.FirstByXPath(`//a[contains(@class,'Link-sc-hgb28e-0 ieqCYE jss')]`),
+		AppViolationsMsg: webDriver.FirstByXPath(`//td[1]//a`),
 	}
 }
 
