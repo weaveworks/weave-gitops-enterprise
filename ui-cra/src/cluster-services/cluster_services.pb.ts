@@ -77,9 +77,9 @@ export type CostEstimateRange = {
   high?: number
 }
 
-export type CostEstimateMonthlyDollars = {
+export type CostEstimate = {
   currency?: string
-  amount?: string
+  amount?: number
   range?: CostEstimateRange
 }
 
@@ -87,7 +87,7 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
-  costEstimateMonthlyDollars?: CostEstimateMonthlyDollars
+  costEstimate?: CostEstimate
 }
 
 export type RenderAutomationRequest = {

@@ -187,7 +187,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		}
 	}
 	// Temporary mock data of cost estimate
-	costEstimate := &capiv1_proto.CostEstimateMonthlyDollars{
+	costEstimate := &capiv1_proto.CostEstimate{
 		Currency: "USD",
 		Range: &capiv1_proto.CostEstimateRange{
 			Low:  0,
@@ -195,7 +195,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		},
 	}
 
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimateMonthlyDollars: costEstimate}, err
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate}, err
 }
 
 func isProviderRecognised(provider string) bool {
