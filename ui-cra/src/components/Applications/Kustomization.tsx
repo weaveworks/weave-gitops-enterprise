@@ -10,6 +10,7 @@ import { useRouteMatch } from 'react-router-dom';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
+import { EditButton } from '../EditButton';
 
 type Props = {
   name: string;
@@ -74,6 +75,7 @@ const WGApplicationsKustomization: FC<Props> = ({
       >
         <KustomizationDetail
           kustomization={kustomization}
+          customActions={[<EditButton resource={kustomization} />]}
           customTabs={customTabs}
         />
       </ContentWrapper>

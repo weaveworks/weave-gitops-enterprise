@@ -9,11 +9,5 @@ export const maybeParseJSON = (data: string) => {
   }
 };
 
-export const getCreateRequestAnnotation = (resource: any) => {
-  return (
-    resource?.annotations &&
-    maybeParseJSON(
-      resource?.annotations['templates.weave.works/create-request'],
-    )
-  );
-};
+export const getCreateRequestAnnotation = (annotation: any) =>
+  maybeParseJSON(annotation);

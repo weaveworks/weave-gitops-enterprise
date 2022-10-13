@@ -80,6 +80,11 @@ const ClustersTableWrapper = styled(TableWrapper)`
     color: ${({ theme }) => theme.colors.primary};
   }
   max-width: calc(100vw - 220px);
+  #edit-cluster {
+    span[class*='MuiButton-startIcon'] {
+      margin-right: 0px;
+    }
+  }
 `;
 
 const LoadingWrapper = styled.div`
@@ -282,7 +287,7 @@ const MCCP: FC<{
 
   const handleEditCluster = useCallback(
     (event, c) => {
-      history.push(`/clusters/${c.name}/edit`);
+      history.push(`/resources/Cluster/${c.name}/edit`);
     },
     [history],
   );
@@ -525,9 +530,7 @@ const MCCP: FC<{
                         startIcon={<EditIcon fontSize="small" />}
                         onClick={event => handleEditCluster(event, c)}
                         disabled={!Boolean(getCreateRequestAnnotation(c))}
-                      >
-                        EDIT CLUSTER
-                      </Button>
+                      />
                     ),
                   },
                 ]}

@@ -3,6 +3,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { HelmChartDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../EditButton';
 
 type Props = {
   name: string;
@@ -41,7 +42,11 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <HelmChartDetail helmChart={helmChart} {...props} />
+        <HelmChartDetail
+          helmChart={helmChart}
+          customActions={[<EditButton resource={helmChart} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

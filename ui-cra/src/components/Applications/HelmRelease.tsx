@@ -10,6 +10,7 @@ import { useRouteMatch } from 'react-router-dom';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
+import { EditButton } from '../EditButton';
 
 type Props = {
   name: string;
@@ -67,6 +68,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         {!error && !isLoading && (
           <HelmReleaseDetail
             helmRelease={helmRelease}
+            customActions={[<EditButton resource={helmRelease} />]}
             customTabs={customTabs}
             {...props}
           />

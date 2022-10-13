@@ -232,9 +232,6 @@ interface ResourceFormProps {
 }
 
 const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
-  // what type of template is it - templateType
-  console.log(template);
-  console.log(resource);
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addCluster } = useTemplates();
@@ -425,7 +422,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           />
         )}
         <Grid item xs={12} sm={10} md={10} lg={8}>
-          {/* Only show if resource kind is cluster? */}
           <ApplicationsWrapper
             formData={formData}
             setFormData={setFormData}
@@ -509,7 +505,6 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      {/* Only add Profiles Provider if resource kind is cluster? */}
       <ProfilesProvider cluster={resource || undefined} template={template}>
         <ResourceForm template={template} resource={resource || undefined} />
       </ProfilesProvider>

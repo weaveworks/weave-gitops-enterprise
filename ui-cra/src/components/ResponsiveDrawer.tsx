@@ -70,7 +70,7 @@ const GITLAB_OAUTH_CALLBACK = '/oauth/gitlab';
 const POLICIES = '/policies';
 const CANARIES = '/applications/delivery';
 const PIPELINES = '/applications/pipelines';
-export const EDIT_RESOURCE = '/resources/:type/:resourceName/edit';
+export const EDIT_RESOURCE = '/resources/:resourceName/edit';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {

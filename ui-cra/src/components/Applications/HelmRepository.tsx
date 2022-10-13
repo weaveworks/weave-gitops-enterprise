@@ -7,6 +7,7 @@ import {
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../EditButton';
 
 type Props = {
   name: string;
@@ -50,7 +51,11 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <HelmRepositoryDetail helmRepository={helmRepository} {...props} />
+        <HelmRepositoryDetail
+          helmRepository={helmRepository}
+          customActions={[<EditButton resource={helmRepository} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

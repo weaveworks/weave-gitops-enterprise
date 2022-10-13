@@ -7,6 +7,7 @@ import {
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../EditButton';
 
 type Props = {
   name: string;
@@ -50,7 +51,11 @@ const WGApplicationsOCIRepository: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <OCIRepositoryDetail ociRepository={ociRepository} {...props} />
+        <OCIRepositoryDetail
+          ociRepository={ociRepository}
+          customActions={[<EditButton resource={ociRepository} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

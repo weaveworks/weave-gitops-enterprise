@@ -1,5 +1,6 @@
 import Grid from '@material-ui/core/Grid';
-import { FC } from 'react';
+import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { FC, useEffect } from 'react';
 import { useParams, Redirect } from 'react-router-dom';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
@@ -9,11 +10,23 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 
-const EditResource: FC<{ resource?: any | null }> = ({ resource }) => {
+const EditResource: FC<{
+  resource?: any;
+}> = ({ resource }) => {
   const { getTemplate } = useTemplates();
 
   const templateName =
-    resource && getCreateRequestAnnotation(resource)?.template_name;
+    resource.type === 'Cluster'
+      ? resource &&
+        getCreateRequestAnnotation(
+          resource?.annotations['templates.weave.works/create-request'],
+        )?.template_name
+      : resource &&
+        getCreateRequestAnnotation(
+          resource?.obj.metadata.annotations?.[
+            'templates.weave.works/create-request'
+          ],
+        )?.template_name;
 
   if (!templateName) {
     return (
@@ -40,21 +53,26 @@ const EditResource: FC<{ resource?: any | null }> = ({ resource }) => {
   );
 };
 
-const EditClusterPage = () => {
-  const { isLoading, getCluster } = useClusters();
-  const { clusterName } = useParams<{ clusterName: string }>();
+const EditClusterPage: FC<{
+  location: {
+    state: { resource: GitopsClusterEnriched | Automation | Source };
+  };
+}> = ({ location }) => {
+  const resource = location.state?.resource;
+  const { isLoading } = useClusters();
   const { isLoading: isTemplateLoading } = useTemplates();
+
   return (
     <PageTemplate
       documentTitle="Edit resource"
-      path={[{ label: 'Clusters', url: '/' }, { label: clusterName }]}
+      path={[{ label: 'Resource', url: '/' }, { label: resource?.name }]}
     >
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <Title>Edit resource</Title>
           </Grid>
-          <EditResource resource={getCluster(clusterName)} />
+          <EditResource resource={resource} />
         </Grid>
       </ContentWrapper>
     </PageTemplate>
