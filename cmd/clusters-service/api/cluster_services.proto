@@ -217,10 +217,22 @@ message CommitFile {
 	string content = 2;
 }
 
+message CostEstimateRange {
+  float low = 1;
+  float high = 2;
+}
+
+message CostEstimateMonthlyDollars {
+  string currency = 1;
+  int64 amount = 2;
+  CostEstimateRange range = 3;
+}
+
 message RenderTemplateResponse { 
   string rendered_template = 1; 
   repeated CommitFile profile_files = 2; 
   repeated CommitFile kustomization_files = 3;
+  CostEstimateMonthlyDollars costEstimateMonthlyDollars = 4;
 }
 
 message RenderAutomationRequest {

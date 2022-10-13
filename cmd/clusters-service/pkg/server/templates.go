@@ -186,8 +186,16 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 			kustomizationFiles = append(kustomizationFiles, toCommitFile(kustomization))
 		}
 	}
+	// Temporary mock data of cost estimate
+	costEstimate := &capiv1_proto.CostEstimateMonthlyDollars{
+		Currency: "USD",
+		Range: &capiv1_proto.CostEstimateRange{
+			Low:  0,
+			High: 1000000,
+		},
+	}
 
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimateMonthlyDollars: costEstimate}, err
 }
 
 func isProviderRecognised(provider string) bool {
