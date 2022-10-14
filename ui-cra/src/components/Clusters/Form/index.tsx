@@ -1,11 +1,12 @@
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { useHistory, Redirect } from 'react-router-dom';
+import styled from 'styled-components';
+import { Divider, Grid, useMediaQuery } from '@material-ui/core';
 import {
   createStyles,
   makeStyles,
   ThemeProvider,
 } from '@material-ui/core/styles';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
   Button,
   CallbackStateContextProvider,
@@ -15,12 +16,10 @@ import {
   LoadingPage,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
+import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, Redirect } from 'react-router-dom';
-import styled from 'styled-components';
 import {
   CreatePullRequestRequest,
   Kustomization,
@@ -123,7 +122,7 @@ const useStyles = makeStyles(theme =>
 );
 
 function getInitialData(
-  resource: any | undefined,
+  resource: GitopsClusterEnriched | Automation | Source | undefined,
   callbackState: any,
   random: string,
 ) {

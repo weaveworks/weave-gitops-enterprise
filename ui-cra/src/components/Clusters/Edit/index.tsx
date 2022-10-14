@@ -12,22 +12,12 @@ import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 
 const EditResource: FC<{
-  resource?: any;
+  resource?: GitopsClusterEnriched | Automation | Source;
 }> = ({ resource }) => {
   const { getTemplate } = useTemplates();
 
   const templateName =
-    resource.type === 'Cluster'
-      ? resource &&
-        getCreateRequestAnnotation(
-          resource?.annotations['templates.weave.works/create-request'],
-        )?.template_name
-      : resource &&
-        getCreateRequestAnnotation(
-          resource?.obj.metadata.annotations?.[
-            'templates.weave.works/create-request'
-          ],
-        )?.template_name;
+    resource && getCreateRequestAnnotation(resource)?.template_name;
 
   if (!templateName) {
     return (

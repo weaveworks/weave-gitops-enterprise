@@ -5,6 +5,8 @@ import { Button } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import EditIcon from '@material-ui/icons/Edit';
 import { Tooltip } from './Shared';
+import { getCreateRequestAnnotation } from './Clusters/Form/utils';
+import { GitopsClusterEnriched } from '../types/custom';
 
 const EditWrapper = styled(Button)`
   span {
@@ -13,12 +15,9 @@ const EditWrapper = styled(Button)`
 `;
 
 export const EditButton: React.FC<{
-  resource: Automation | Source;
+  resource: GitopsClusterEnriched | Automation | Source;
 }> = ({ resource }) => {
-  const hasCreateRequestAnnotation =
-    resource.obj.metadata.annotations?.['templates.weave.works/create-request'];
-
-  return hasCreateRequestAnnotation ? (
+  return (
     <Link
       to={{
         pathname: `/resources/${resource.name}/edit`,
@@ -27,10 +26,13 @@ export const EditButton: React.FC<{
     >
       <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div>
-          <EditWrapper startIcon={<EditIcon fontSize="small" />} />
+          <EditWrapper
+            disabled={!Boolean(getCreateRequestAnnotation(resource))}
+            startIcon={<EditIcon fontSize="small" />}
+          />
         </div>
       </Tooltip>
       ;
     </Link>
-  ) : null;
+  );
 };
