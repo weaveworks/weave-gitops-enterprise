@@ -513,7 +513,7 @@ const MCCP: FC<{
                   {
                     label: '',
                     value: (c: GitopsClusterEnriched) => (
-                      <EditButton resource={c} />
+                      <EditButton resource={c} type="Cluster"/>
                     ),
                   },
                 ]}
