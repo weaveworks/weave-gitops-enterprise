@@ -19,6 +19,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -38,6 +39,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/validation"
 )
 
@@ -395,28 +397,84 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}, nil
 }
 
-// GetKubeconfig returns the Kubeconfig for the given workload cluster
-func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
-	var sec corev1.Secret
-	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
-
+func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.NamespacedName) ([]byte, error) {
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	key := client.ObjectKey{
-		Namespace: getClusterNamespace(msg.ClusterNamespace),
-		Name:      name,
-	}
-	err = cl.Get(ctx, key, &sec)
+	gc := &gitopsv1alpha1.GitopsCluster{}
+	err = cl.Get(ctx, cluster, gc)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
+		return nil, fmt.Errorf("failed to get GitopsCluster %s: %w", cluster, err)
+	}
+	if gc.Spec.SecretRef != nil {
+		secretRefName := client.ObjectKey{
+			Namespace: cluster.Namespace,
+			Name:      gc.Spec.SecretRef.Name,
+		}
+		sec, err := secretByName(ctx, cl, secretRefName)
+		if err != nil && !apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+		}
+		if sec == nil {
+			return nil, fmt.Errorf("failed to load referenced secret %s for cluster %s", secretRefName, cluster)
+		}
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", secretRefName, "value")
+		}
+		return val, nil
 	}
 
-	val, ok := kubeConfigFromSecret(sec)
-	if !ok {
-		return nil, fmt.Errorf("secret %q was found but is missing key %q", key, "value")
+	userSecretName := client.ObjectKey{
+		Namespace: getClusterNamespace(cluster.Namespace),
+		Name:      fmt.Sprintf("%s-user-kubeconfig", cluster.Name),
+	}
+	sec, err := secretByName(ctx, cl, userSecretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", userSecretName, "value")
+		}
+		return val, nil
+	}
+
+	clusterSecretName := client.ObjectKey{
+		Namespace: getClusterNamespace(cluster.Namespace),
+		Name:      fmt.Sprintf("%s-kubeconfig", cluster.Name),
+	}
+	sec, err = secretByName(ctx, cl, clusterSecretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", clusterSecretName, "value")
+		}
+		return val, nil
+	}
+	return nil, fmt.Errorf("unable to get kubeconfig secret for cluster %s", cluster)
+}
+
+func secretByName(ctx context.Context, cl client.Client, name types.NamespacedName) (*corev1.Secret, error) {
+	sec := &corev1.Secret{}
+	err := cl.Get(ctx, name, sec)
+	if err != nil {
+		return nil, err
+	}
+	return sec, nil
+}
+
+// GetKubeconfig returns the Kubeconfig for the given workload cluster
+func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
+	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.ClusterName, Namespace: getClusterNamespace(msg.ClusterNamespace)})
+	if err != nil {
+		return nil, err
 	}
 
 	var acceptHeader string
@@ -962,7 +1020,7 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 	return generatedKustomization
 }
 
-func kubeConfigFromSecret(s corev1.Secret) ([]byte, bool) {
+func kubeConfigFromSecret(s *corev1.Secret) ([]byte, bool) {
 	val, ok := s.Data["value.yaml"]
 	if ok {
 		return val, true
