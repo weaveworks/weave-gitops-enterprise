@@ -17,7 +17,7 @@ const TemplateFields: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ template, formData, setFormData }) => {
   const UNEDITABLE_FIELDS = template.parameters
-    ?.filter(param => !param.editable)
+    ?.filter(param => Boolean(param.editable))
     .map(param => param.name);
   const { isExact: isEditing } = useRouteMatch(Routes.EditResource) || {};
   const parameterValues = formData.parameterValues || {};

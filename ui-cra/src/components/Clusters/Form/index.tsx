@@ -130,7 +130,7 @@ function getInitialData(
   const resourceData =
     resource && getCreateRequestAnnotation(resource, resourceType);
 
-  const resourceName = resourceData?.parameter_values?.CLUSTER_NAME || '';
+  const resourceName = resource?.name || resourceData?.objects?.[0].name;
   const defaultFormData = {
     url: '',
     provider: '',
@@ -275,7 +275,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource, type }) => {
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
   const authRedirectPage = resource
-    ? `/resources/${resource?.name}/edit`
+    ? `/resources/${resourceType}/${resource?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
@@ -370,8 +370,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource, type }) => {
       setFormData((prevState: any) => ({
         ...prevState,
         pullRequestTitle: `Creates resource ${
-          // update CLUSTER_NAME below
-          formData.parameterValues.CLUSTER_NAME || ''
+          Object.values(formData.parameterValues)?.[0] || ''
         }`,
       }));
     }
