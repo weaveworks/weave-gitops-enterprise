@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, Redirect } from 'react-router-dom';
+import { useHistory, Redirect, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Divider, Grid, useMediaQuery } from '@material-ui/core';
 import {
@@ -125,9 +125,11 @@ function getInitialData(
   resource: GitopsClusterEnriched | Automation | Source | undefined,
   callbackState: any,
   random: string,
+  resourceType?: string,
 ) {
-  const resourceData = resource && getCreateRequestAnnotation(resource);
-  // update CLUSTER_NAME below
+  const resourceData =
+    resource && getCreateRequestAnnotation(resource, resourceType);
+
   const resourceName = resourceData?.parameter_values?.CLUSTER_NAME || '';
   const defaultFormData = {
     url: '',
@@ -230,9 +232,10 @@ const toPayload = (
 interface ResourceFormProps {
   resource?: any;
   template: TemplateEnriched;
+  type?: string;
 }
 
-const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
+const ResourceForm: FC<ResourceFormProps> = ({ template, resource, type }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addCluster } = useTemplates();
@@ -240,11 +243,13 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
+  const { resourceType } = useParams<{ resourceType: string }>();
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
     callbackState,
     random,
+    resourceType,
   );
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
@@ -473,6 +478,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 interface Props {
   template?: TemplateEnriched | null;
   resource?: any | null;
+  type?: string;
 }
 
 const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {

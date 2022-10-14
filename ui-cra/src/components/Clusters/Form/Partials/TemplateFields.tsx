@@ -16,7 +16,9 @@ const TemplateFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ template, formData, setFormData }) => {
-  const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
+  const UNEDITABLE_FIELDS = template.parameters
+    ?.filter(param => !param.editable)
+    .map(param => param.name);
   const { isExact: isEditing } = useRouteMatch(Routes.EditResource) || {};
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
@@ -67,7 +69,7 @@ const TemplateFields: FC<{
               placeholder={param.default}
               onChange={handleFormData}
               description={param.description}
-              disabled={isEditing && UNEDITABLE_FIELDS.includes(name)}
+              disabled={isEditing && UNEDITABLE_FIELDS?.includes(name)}
             />
           );
       })}

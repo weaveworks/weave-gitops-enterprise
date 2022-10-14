@@ -16,19 +16,26 @@ const EditWrapper = styled(Button)`
 
 export const EditButton: React.FC<{
   resource: GitopsClusterEnriched | Automation | Source;
-  type?: string;
-}> = ({ resource, type }) => {
+}> = ({ resource }) => {
   return (
     <Link
       to={{
-        pathname: `/resources/${resource.name}/edit`,
+        pathname: `/resources/${resource.type || 'Cluster'}/${
+          resource.name
+        }/edit`,
         state: { resource },
       }}
     >
-      <Tooltip title={`Edit ${resource.type}`} placement="top">
+      <Tooltip title={`Edit ${resource.type || 'Cluster'}`} placement="top">
         <div>
           <EditWrapper
-            disabled={!Boolean(getCreateRequestAnnotation(resource, type))}
+            disabled={
+              !Boolean(
+                resource.type
+                  ? getCreateRequestAnnotation(resource)
+                  : getCreateRequestAnnotation(resource, 'Cluster'),
+              )
+            }
             startIcon={<EditIcon fontSize="small" />}
           />
         </div>

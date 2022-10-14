@@ -1,591 +1,747 @@
 /* eslint-disable */
 // @ts-nocheck
 /*
-* This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
-*/
+ * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
+ */
 
-import * as fm from "./fetch.pb"
-import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
-import * as GoogleProtobufAny from "./google/protobuf/any.pb"
+import * as fm from './fetch.pb';
+import * as GoogleApiHttpbody from './google/api/httpbody.pb';
+import * as GoogleProtobufAny from './google/protobuf/any.pb';
 export type ListTemplatesRequest = {
-  provider?: string
-  templateKind?: string
-}
+  provider?: string;
+  templateKind?: string;
+};
 
 export type Pagination = {
-  pageSize?: number
-  pageToken?: string
-}
+  pageSize?: number;
+  pageToken?: string;
+};
 
 export type ListError = {
-  clusterName?: string
-  namespace?: string
-  message?: string
-}
+  clusterName?: string;
+  namespace?: string;
+  message?: string;
+};
 
 export type ListTemplatesResponse = {
-  templates?: Template[]
-  total?: number
-}
+  templates?: Template[];
+  total?: number;
+};
 
 export type GetTemplateRequest = {
-  templateName?: string
-  templateKind?: string
-}
+  templateName?: string;
+  templateKind?: string;
+};
 
 export type GetTemplateResponse = {
-  template?: Template
-}
+  template?: Template;
+};
 
 export type ListTemplateParamsRequest = {
-  templateName?: string
-  templateKind?: string
-}
+  templateName?: string;
+  templateKind?: string;
+};
 
 export type ListTemplateParamsResponse = {
-  parameters?: Parameter[]
-  objects?: TemplateObject[]
-}
+  parameters?: Parameter[];
+  objects?: TemplateObject[];
+};
 
 export type ListTemplateProfilesRequest = {
-  templateName?: string
-  templateKind?: string
-}
+  templateName?: string;
+  templateKind?: string;
+};
 
 export type ListTemplateProfilesResponse = {
-  profiles?: TemplateProfile[]
-  objects?: TemplateObject[]
-}
+  profiles?: TemplateProfile[];
+  objects?: TemplateObject[];
+};
 
 export type RenderTemplateRequest = {
-  templateName?: string
-  values?: {[key: string]: string}
-  credentials?: Credential
-  templateKind?: string
-  clusterNamespace?: string
-  profiles?: ProfileValues[]
-  kustomizations?: Kustomization[]
-}
+  templateName?: string;
+  values?: { [key: string]: string };
+  credentials?: Credential;
+  templateKind?: string;
+  clusterNamespace?: string;
+  profiles?: ProfileValues[];
+  kustomizations?: Kustomization[];
+};
 
 export type CommitFile = {
-  path?: string
-  content?: string
-}
+  path?: string;
+  content?: string;
+};
 
 export type CostEstimateRange = {
-  low?: number
-  high?: number
-}
+  low?: number;
+  high?: number;
+};
 
 export type CostEstimate = {
-  currency?: string
-  amount?: number
-  range?: CostEstimateRange
-}
+  currency?: string;
+  amount?: number;
+  range?: CostEstimateRange;
+};
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: string
-  profileFiles?: CommitFile[]
-  kustomizationFiles?: CommitFile[]
-  costEstimate?: CostEstimate
-}
+  renderedTemplate?: string;
+  profileFiles?: CommitFile[];
+  kustomizationFiles?: CommitFile[];
+  costEstimate?: CostEstimate;
+};
 
 export type RenderAutomationRequest = {
-  clusterAutomations?: ClusterAutomation[]
-}
+  clusterAutomations?: ClusterAutomation[];
+};
 
 export type RenderAutomationResponse = {
-  kustomizationFiles?: CommitFile[]
-  helmReleaseFiles?: CommitFile[]
-}
+  kustomizationFiles?: CommitFile[];
+  helmReleaseFiles?: CommitFile[];
+};
 
 export type ListGitopsClustersRequest = {
-  label?: string
-  pageSize?: string
-  pageToken?: string
-  refType?: string
-}
+  label?: string;
+  pageSize?: string;
+  pageToken?: string;
+  refType?: string;
+};
 
 export type ListGitopsClustersResponse = {
-  gitopsClusters?: GitopsCluster[]
-  total?: number
-  nextPageToken?: string
-}
+  gitopsClusters?: GitopsCluster[];
+  total?: number;
+  nextPageToken?: string;
+};
 
 export type GetPolicyRequest = {
-  policyName?: string
-  clusterName?: string
-}
+  policyName?: string;
+  clusterName?: string;
+};
 
 export type ListPoliciesRequest = {
-  clusterName?: string
-  pagination?: Pagination
-}
+  clusterName?: string;
+  pagination?: Pagination;
+};
 
 export type GetPolicyResponse = {
-  policy?: Policy
-  clusterName?: string
-}
+  policy?: Policy;
+  clusterName?: string;
+};
 
 export type ListPoliciesResponse = {
-  policies?: Policy[]
-  total?: number
-  nextPageToken?: string
-  errors?: ListError[]
-}
+  policies?: Policy[];
+  total?: number;
+  nextPageToken?: string;
+  errors?: ListError[];
+};
 
 export type ListPolicyValidationsRequest = {
-  clusterName?: string
-  pagination?: Pagination
-  application?: string
-  namespace?: string
-}
+  clusterName?: string;
+  pagination?: Pagination;
+  application?: string;
+  namespace?: string;
+};
 
 export type ListPolicyValidationsResponse = {
-  violations?: PolicyValidation[]
-  total?: number
-  nextPageToken?: string
-  errors?: ListError[]
-}
+  violations?: PolicyValidation[];
+  total?: number;
+  nextPageToken?: string;
+  errors?: ListError[];
+};
 
 export type GetPolicyValidationRequest = {
-  violationId?: string
-  clusterName?: string
-}
+  violationId?: string;
+  clusterName?: string;
+};
 
 export type GetPolicyValidationResponse = {
-  violation?: PolicyValidation
-}
+  violation?: PolicyValidation;
+};
 
 export type PolicyValidationOccurrence = {
-  message?: string
-}
+  message?: string;
+};
 
 export type PolicyValidation = {
-  id?: string
-  message?: string
-  clusterId?: string
-  category?: string
-  severity?: string
-  createdAt?: string
-  entity?: string
-  namespace?: string
-  violatingEntity?: string
-  description?: string
-  howToSolve?: string
-  name?: string
-  clusterName?: string
-  occurrences?: PolicyValidationOccurrence[]
-  policyId?: string
-}
+  id?: string;
+  message?: string;
+  clusterId?: string;
+  category?: string;
+  severity?: string;
+  createdAt?: string;
+  entity?: string;
+  namespace?: string;
+  violatingEntity?: string;
+  description?: string;
+  howToSolve?: string;
+  name?: string;
+  clusterName?: string;
+  occurrences?: PolicyValidationOccurrence[];
+  policyId?: string;
+};
 
 export type CreatePullRequestRequest = {
-  repositoryUrl?: string
-  headBranch?: string
-  baseBranch?: string
-  title?: string
-  description?: string
-  templateName?: string
-  parameterValues?: {[key: string]: string}
-  commitMessage?: string
-  credentials?: Credential
-  values?: ProfileValues[]
-  repositoryApiUrl?: string
-  clusterNamespace?: string
-  kustomizations?: Kustomization[]
-}
+  repositoryUrl?: string;
+  headBranch?: string;
+  baseBranch?: string;
+  title?: string;
+  description?: string;
+  templateName?: string;
+  parameterValues?: { [key: string]: string };
+  commitMessage?: string;
+  credentials?: Credential;
+  values?: ProfileValues[];
+  repositoryApiUrl?: string;
+  clusterNamespace?: string;
+  kustomizations?: Kustomization[];
+};
 
 export type CreatePullRequestResponse = {
-  webUrl?: string
-}
+  webUrl?: string;
+};
 
 export type CreateTfControllerPullRequestRequest = {
-  repositoryUrl?: string
-  headBranch?: string
-  baseBranch?: string
-  title?: string
-  description?: string
-  templateName?: string
-  parameterValues?: {[key: string]: string}
-  commitMessage?: string
-  repositoryApiUrl?: string
-}
+  repositoryUrl?: string;
+  headBranch?: string;
+  baseBranch?: string;
+  title?: string;
+  description?: string;
+  templateName?: string;
+  parameterValues?: { [key: string]: string };
+  commitMessage?: string;
+  repositoryApiUrl?: string;
+};
 
 export type CreateTfControllerPullRequestResponse = {
-  webUrl?: string
-}
+  webUrl?: string;
+};
 
 export type ClusterNamespacedName = {
-  namespace?: string
-  name?: string
-}
+  namespace?: string;
+  name?: string;
+};
 
 export type DeleteClustersPullRequestRequest = {
-  repositoryUrl?: string
-  headBranch?: string
-  baseBranch?: string
-  title?: string
-  description?: string
-  clusterNames?: string[]
-  commitMessage?: string
-  credentials?: Credential
-  repositoryApiUrl?: string
-  clusterNamespacedNames?: ClusterNamespacedName[]
-}
+  repositoryUrl?: string;
+  headBranch?: string;
+  baseBranch?: string;
+  title?: string;
+  description?: string;
+  clusterNames?: string[];
+  commitMessage?: string;
+  credentials?: Credential;
+  repositoryApiUrl?: string;
+  clusterNamespacedNames?: ClusterNamespacedName[];
+};
 
 export type DeleteClustersPullRequestResponse = {
-  webUrl?: string
-}
+  webUrl?: string;
+};
 
-export type ListCredentialsRequest = {
-}
+export type ListCredentialsRequest = {};
 
 export type ListCredentialsResponse = {
-  credentials?: Credential[]
-  total?: number
-}
+  credentials?: Credential[];
+  total?: number;
+};
 
 export type GetKubeconfigRequest = {
-  clusterName?: string
-  clusterNamespace?: string
-}
+  clusterName?: string;
+  clusterNamespace?: string;
+};
 
 export type GetKubeconfigResponse = {
-  kubeconfig?: string
-}
+  kubeconfig?: string;
+};
 
 export type Condition = {
-  type?: string
-  status?: string
-  reason?: string
-  message?: string
-  timestamp?: string
-}
+  type?: string;
+  status?: string;
+  reason?: string;
+  message?: string;
+  timestamp?: string;
+};
 
 export type GitopsCluster = {
-  name?: string
-  namespace?: string
-  annotations?: {[key: string]: string}
-  labels?: {[key: string]: string}
-  conditions?: Condition[]
-  capiClusterRef?: GitopsClusterRef
-  secretRef?: GitopsClusterRef
-  capiCluster?: CapiCluster
-  controlPlane?: boolean
-}
+  name?: string;
+  namespace?: string;
+  annotations?: { [key: string]: string };
+  labels?: { [key: string]: string };
+  conditions?: Condition[];
+  capiClusterRef?: GitopsClusterRef;
+  secretRef?: GitopsClusterRef;
+  capiCluster?: CapiCluster;
+  controlPlane?: boolean;
+};
 
 export type CapiCluster = {
-  name?: string
-  namespace?: string
-  annotations?: {[key: string]: string}
-  labels?: {[key: string]: string}
-  status?: CapiClusterStatus
-  infrastructureRef?: CapiClusterInfrastructureRef
-}
+  name?: string;
+  namespace?: string;
+  annotations?: { [key: string]: string };
+  labels?: { [key: string]: string };
+  status?: CapiClusterStatus;
+  infrastructureRef?: CapiClusterInfrastructureRef;
+};
 
 export type CapiClusterStatus = {
-  phase?: string
-  infrastructureReady?: boolean
-  controlPlaneInitialized?: boolean
-  controlPlaneReady?: boolean
-  conditions?: Condition[]
-  observedGeneration?: string
-}
+  phase?: string;
+  infrastructureReady?: boolean;
+  controlPlaneInitialized?: boolean;
+  controlPlaneReady?: boolean;
+  conditions?: Condition[];
+  observedGeneration?: string;
+};
 
 export type CapiClusterInfrastructureRef = {
-  apiVersion?: string
-  kind?: string
-  name?: string
-}
+  apiVersion?: string;
+  kind?: string;
+  name?: string;
+};
 
 export type GitopsClusterRef = {
-  name?: string
-}
+  name?: string;
+};
 
 export type Credential = {
-  group?: string
-  version?: string
-  kind?: string
-  name?: string
-  namespace?: string
-}
+  group?: string;
+  version?: string;
+  kind?: string;
+  name?: string;
+  namespace?: string;
+};
 
 export type Template = {
-  name?: string
-  description?: string
-  provider?: string
-  parameters?: Parameter[]
-  objects?: TemplateObject[]
-  error?: string
-  annotations?: {[key: string]: string}
-  templateKind?: string
-  labels?: {[key: string]: string}
-}
+  name?: string;
+  description?: string;
+  provider?: string;
+  parameters?: Parameter[];
+  objects?: TemplateObject[];
+  error?: string;
+  annotations?: { [key: string]: string };
+  templateKind?: string;
+  labels?: { [key: string]: string };
+};
 
 export type Parameter = {
-  name?: string
-  description?: string
-  required?: boolean
-  options?: string[]
-  default?: string
-}
+  name?: string;
+  description?: string;
+  required?: boolean;
+  options?: string[];
+  default?: string;
+  editable?: boolean;
+};
 
 export type TemplateProfile = {
-  name?: string
-  version?: string
-  editable?: boolean
-  values?: string
-  namespace?: string
-}
+  name?: string;
+  version?: string;
+  editable?: boolean;
+  values?: string;
+  namespace?: string;
+};
 
 export type TemplateObject = {
-  kind?: string
-  apiVersion?: string
-  parameters?: string[]
-  name?: string
-  displayName?: string
-}
+  kind?: string;
+  apiVersion?: string;
+  parameters?: string[];
+  name?: string;
+  displayName?: string;
+};
 
-export type GetEnterpriseVersionRequest = {
-}
+export type GetEnterpriseVersionRequest = {};
 
 export type GetEnterpriseVersionResponse = {
-  version?: string
-}
+  version?: string;
+};
 
 export type CreateAutomationsPullRequestRequest = {
-  repositoryUrl?: string
-  headBranch?: string
-  baseBranch?: string
-  title?: string
-  description?: string
-  commitMessage?: string
-  repositoryApiUrl?: string
-  clusterAutomations?: ClusterAutomation[]
-}
+  repositoryUrl?: string;
+  headBranch?: string;
+  baseBranch?: string;
+  title?: string;
+  description?: string;
+  commitMessage?: string;
+  repositoryApiUrl?: string;
+  clusterAutomations?: ClusterAutomation[];
+};
 
 export type ClusterAutomation = {
-  cluster?: ClusterNamespacedName
-  isControlPlane?: boolean
-  kustomization?: Kustomization
-  helmRelease?: HelmRelease
-  filePath?: string
-}
+  cluster?: ClusterNamespacedName;
+  isControlPlane?: boolean;
+  kustomization?: Kustomization;
+  helmRelease?: HelmRelease;
+  filePath?: string;
+};
 
 export type Kustomization = {
-  metadata?: Metadata
-  spec?: KustomizationSpec
-}
+  metadata?: Metadata;
+  spec?: KustomizationSpec;
+};
 
 export type KustomizationSpec = {
-  path?: string
-  sourceRef?: SourceRef
-  targetNamespace?: string
-  createNamespace?: boolean
-}
+  path?: string;
+  sourceRef?: SourceRef;
+  targetNamespace?: string;
+  createNamespace?: boolean;
+};
 
 export type HelmRelease = {
-  metadata?: Metadata
-  spec?: HelmReleaseSpec
-}
+  metadata?: Metadata;
+  spec?: HelmReleaseSpec;
+};
 
 export type HelmReleaseSpec = {
-  chart?: Chart
-  values?: string
-}
+  chart?: Chart;
+  values?: string;
+};
 
 export type Chart = {
-  spec?: ChartSpec
-}
+  spec?: ChartSpec;
+};
 
 export type ChartSpec = {
-  chart?: string
-  sourceRef?: SourceRef
-  version?: string
-}
+  chart?: string;
+  sourceRef?: SourceRef;
+  version?: string;
+};
 
 export type Metadata = {
-  name?: string
-  namespace?: string
-}
+  name?: string;
+  namespace?: string;
+};
 
 export type SourceRef = {
-  name?: string
-  namespace?: string
-}
+  name?: string;
+  namespace?: string;
+};
 
 export type CreateAutomationsPullRequestResponse = {
-  webUrl?: string
-}
+  webUrl?: string;
+};
 
 export type Maintainer = {
-  name?: string
-  email?: string
-  url?: string
-}
+  name?: string;
+  email?: string;
+  url?: string;
+};
 
 export type HelmRepository = {
-  name?: string
-  namespace?: string
-}
+  name?: string;
+  namespace?: string;
+};
 
 export type Profile = {
-  name?: string
-  home?: string
-  sources?: string[]
-  description?: string
-  keywords?: string[]
-  maintainers?: Maintainer[]
-  icon?: string
-  annotations?: {[key: string]: string}
-  kubeVersion?: string
-  helmRepository?: HelmRepository
-  availableVersions?: string[]
-}
+  name?: string;
+  home?: string;
+  sources?: string[];
+  description?: string;
+  keywords?: string[];
+  maintainers?: Maintainer[];
+  icon?: string;
+  annotations?: { [key: string]: string };
+  kubeVersion?: string;
+  helmRepository?: HelmRepository;
+  availableVersions?: string[];
+};
 
 export type ProfileValues = {
-  name?: string
-  version?: string
-  values?: string
-  layer?: string
-  namespace?: string
-}
+  name?: string;
+  version?: string;
+  values?: string;
+  layer?: string;
+  namespace?: string;
+};
 
-export type GetConfigRequest = {
-}
+export type GetConfigRequest = {};
 
 export type GetConfigResponse = {
-  repositoryURL?: string
-}
+  repositoryURL?: string;
+};
 
 export type PolicyParamRepeatedString = {
-  value?: string[]
-}
+  value?: string[];
+};
 
 export type PolicyParam = {
-  name?: string
-  type?: string
-  value?: GoogleProtobufAny.Any
-  required?: boolean
-}
+  name?: string;
+  type?: string;
+  value?: GoogleProtobufAny.Any;
+  required?: boolean;
+};
 
 export type PolicyTargetLabel = {
-  values?: {[key: string]: string}
-}
+  values?: { [key: string]: string };
+};
 
 export type PolicyTargets = {
-  kinds?: string[]
-  labels?: PolicyTargetLabel[]
-  namespaces?: string[]
-}
+  kinds?: string[];
+  labels?: PolicyTargetLabel[];
+  namespaces?: string[];
+};
 
 export type PolicyStandard = {
-  id?: string
-  controls?: string[]
-}
+  id?: string;
+  controls?: string[];
+};
 
 export type Policy = {
-  name?: string
-  id?: string
-  code?: string
-  description?: string
-  howToSolve?: string
-  category?: string
-  tags?: string[]
-  severity?: string
-  standards?: PolicyStandard[]
-  gitCommit?: string
-  parameters?: PolicyParam[]
-  targets?: PolicyTargets
-  createdAt?: string
-  clusterName?: string
-  tenant?: string
-}
+  name?: string;
+  id?: string;
+  code?: string;
+  description?: string;
+  howToSolve?: string;
+  category?: string;
+  tags?: string[];
+  severity?: string;
+  standards?: PolicyStandard[];
+  gitCommit?: string;
+  parameters?: PolicyParam[];
+  targets?: PolicyTargets;
+  createdAt?: string;
+  clusterName?: string;
+  tenant?: string;
+};
 
 export type ObjectRef = {
-  kind?: string
-  name?: string
-  namespace?: string
-}
+  kind?: string;
+  name?: string;
+  namespace?: string;
+};
 
 export type Event = {
-  type?: string
-  reason?: string
-  message?: string
-  timestamp?: string
-  component?: string
-  host?: string
-  name?: string
-}
+  type?: string;
+  reason?: string;
+  message?: string;
+  timestamp?: string;
+  component?: string;
+  host?: string;
+  name?: string;
+};
 
 export type ListEventsRequest = {
-  involvedObject?: ObjectRef
-  clusterName?: string
-}
+  involvedObject?: ObjectRef;
+  clusterName?: string;
+};
 
 export type ListEventsResponse = {
-  events?: Event[]
-}
+  events?: Event[];
+};
 
 export class ClustersService {
-  static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
-    return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListTemplates(
+    req: ListTemplatesRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListTemplatesResponse> {
+    return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(
+      `/v1/templates?${fm.renderURLSearchParams(req, [])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
-    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/templates/${req["templateName"]}?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
+  static GetTemplate(
+    req: GetTemplateRequest,
+    initReq?: fm.InitReq,
+  ): Promise<GetTemplateResponse> {
+    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(
+      `/v1/templates/${req['templateName']}?${fm.renderURLSearchParams(req, [
+        'templateName',
+      ])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
-    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/templates/${req["templateName"]}/params?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
+  static ListTemplateParams(
+    req: ListTemplateParamsRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListTemplateParamsResponse> {
+    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(
+      `/v1/templates/${req['templateName']}/params?${fm.renderURLSearchParams(
+        req,
+        ['templateName'],
+      )}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static ListTemplateProfiles(req: ListTemplateProfilesRequest, initReq?: fm.InitReq): Promise<ListTemplateProfilesResponse> {
-    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/templates/${req["templateName"]}/profiles?${fm.renderURLSearchParams(req, ["templateName"])}`, {...initReq, method: "GET"})
+  static ListTemplateProfiles(
+    req: ListTemplateProfilesRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListTemplateProfilesResponse> {
+    return fm.fetchReq<
+      ListTemplateProfilesRequest,
+      ListTemplateProfilesResponse
+    >(
+      `/v1/templates/${req['templateName']}/profiles?${fm.renderURLSearchParams(
+        req,
+        ['templateName'],
+      )}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
-    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static RenderTemplate(
+    req: RenderTemplateRequest,
+    initReq?: fm.InitReq,
+  ): Promise<RenderTemplateResponse> {
+    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(
+      `/v1/templates/${req['templateName']}/render`,
+      { ...initReq, method: 'POST', body: JSON.stringify(req) },
+    );
   }
-  static RenderAutomation(req: RenderAutomationRequest, initReq?: fm.InitReq): Promise<RenderAutomationResponse> {
-    return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(`/v1/enterprise/automations/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static RenderAutomation(
+    req: RenderAutomationRequest,
+    initReq?: fm.InitReq,
+  ): Promise<RenderAutomationResponse> {
+    return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(
+      `/v1/enterprise/automations/render`,
+      { ...initReq, method: 'POST', body: JSON.stringify(req) },
+    );
   }
-  static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
-    return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListGitopsClusters(
+    req: ListGitopsClustersRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListGitopsClustersResponse> {
+    return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(
+      `/v1/clusters?${fm.renderURLSearchParams(req, [])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
-    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/clusters`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static CreatePullRequest(
+    req: CreatePullRequestRequest,
+    initReq?: fm.InitReq,
+  ): Promise<CreatePullRequestResponse> {
+    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(
+      `/v1/clusters`,
+      { ...initReq, method: 'POST', body: JSON.stringify(req) },
+    );
   }
-  static CreateTfControllerPullRequest(req: CreateTfControllerPullRequestRequest, initReq?: fm.InitReq): Promise<CreateTfControllerPullRequestResponse> {
-    return fm.fetchReq<CreateTfControllerPullRequestRequest, CreateTfControllerPullRequestResponse>(`/v1/tfcontrollers`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static CreateTfControllerPullRequest(
+    req: CreateTfControllerPullRequestRequest,
+    initReq?: fm.InitReq,
+  ): Promise<CreateTfControllerPullRequestResponse> {
+    return fm.fetchReq<
+      CreateTfControllerPullRequestRequest,
+      CreateTfControllerPullRequestResponse
+    >(`/v1/tfcontrollers`, {
+      ...initReq,
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
   }
-  static DeleteClustersPullRequest(req: DeleteClustersPullRequestRequest, initReq?: fm.InitReq): Promise<DeleteClustersPullRequestResponse> {
-    return fm.fetchReq<DeleteClustersPullRequestRequest, DeleteClustersPullRequestResponse>(`/v1/clusters`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
+  static DeleteClustersPullRequest(
+    req: DeleteClustersPullRequestRequest,
+    initReq?: fm.InitReq,
+  ): Promise<DeleteClustersPullRequestResponse> {
+    return fm.fetchReq<
+      DeleteClustersPullRequestRequest,
+      DeleteClustersPullRequestResponse
+    >(`/v1/clusters`, {
+      ...initReq,
+      method: 'DELETE',
+      body: JSON.stringify(req),
+    });
   }
-  static ListCredentials(req: ListCredentialsRequest, initReq?: fm.InitReq): Promise<ListCredentialsResponse> {
-    return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/credentials?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListCredentials(
+    req: ListCredentialsRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListCredentialsResponse> {
+    return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(
+      `/v1/credentials?${fm.renderURLSearchParams(req, [])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static GetKubeconfig(req: GetKubeconfigRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
-    return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/clusters/${req["clusterName"]}/kubeconfig?${fm.renderURLSearchParams(req, ["clusterName"])}`, {...initReq, method: "GET"})
+  static GetKubeconfig(
+    req: GetKubeconfigRequest,
+    initReq?: fm.InitReq,
+  ): Promise<GoogleApiHttpbody.HttpBody> {
+    return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(
+      `/v1/clusters/${req['clusterName']}/kubeconfig?${fm.renderURLSearchParams(
+        req,
+        ['clusterName'],
+      )}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
-    return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static GetEnterpriseVersion(
+    req: GetEnterpriseVersionRequest,
+    initReq?: fm.InitReq,
+  ): Promise<GetEnterpriseVersionResponse> {
+    return fm.fetchReq<
+      GetEnterpriseVersionRequest,
+      GetEnterpriseVersionResponse
+    >(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {
+      ...initReq,
+      method: 'GET',
+    });
   }
-  static CreateAutomationsPullRequest(req: CreateAutomationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateAutomationsPullRequestResponse> {
-    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/enterprise/automations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static CreateAutomationsPullRequest(
+    req: CreateAutomationsPullRequestRequest,
+    initReq?: fm.InitReq,
+  ): Promise<CreateAutomationsPullRequestResponse> {
+    return fm.fetchReq<
+      CreateAutomationsPullRequestRequest,
+      CreateAutomationsPullRequestResponse
+    >(`/v1/enterprise/automations`, {
+      ...initReq,
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
   }
-  static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
-    return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static GetConfig(
+    req: GetConfigRequest,
+    initReq?: fm.InitReq,
+  ): Promise<GetConfigResponse> {
+    return fm.fetchReq<GetConfigRequest, GetConfigResponse>(
+      `/v1/config?${fm.renderURLSearchParams(req, [])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static ListPolicies(req: ListPoliciesRequest, initReq?: fm.InitReq): Promise<ListPoliciesResponse> {
-    return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListPolicies(
+    req: ListPoliciesRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListPoliciesResponse> {
+    return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(
+      `/v1/policies?${fm.renderURLSearchParams(req, [])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static GetPolicy(req: GetPolicyRequest, initReq?: fm.InitReq): Promise<GetPolicyResponse> {
-    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["policyName"]}?${fm.renderURLSearchParams(req, ["policyName"])}`, {...initReq, method: "GET"})
+  static GetPolicy(
+    req: GetPolicyRequest,
+    initReq?: fm.InitReq,
+  ): Promise<GetPolicyResponse> {
+    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(
+      `/v1/policies/${req['policyName']}?${fm.renderURLSearchParams(req, [
+        'policyName',
+      ])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static ListPolicyValidations(req: ListPolicyValidationsRequest, initReq?: fm.InitReq): Promise<ListPolicyValidationsResponse> {
-    return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policyviolations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static ListPolicyValidations(
+    req: ListPolicyValidationsRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListPolicyValidationsResponse> {
+    return fm.fetchReq<
+      ListPolicyValidationsRequest,
+      ListPolicyValidationsResponse
+    >(`/v1/policyviolations`, {
+      ...initReq,
+      method: 'POST',
+      body: JSON.stringify(req),
+    });
   }
-  static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
-    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyviolations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
+  static GetPolicyValidation(
+    req: GetPolicyValidationRequest,
+    initReq?: fm.InitReq,
+  ): Promise<GetPolicyValidationResponse> {
+    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(
+      `/v1/policyviolations/${req['violationId']}?${fm.renderURLSearchParams(
+        req,
+        ['violationId'],
+      )}`,
+      { ...initReq, method: 'GET' },
+    );
   }
-  static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
-    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  static ListEvents(
+    req: ListEventsRequest,
+    initReq?: fm.InitReq,
+  ): Promise<ListEventsResponse> {
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(
+      `/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`,
+      { ...initReq, method: 'GET' },
+    );
   }
 }
