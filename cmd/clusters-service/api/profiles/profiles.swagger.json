@@ -38,14 +38,14 @@
         "parameters": [
           {
             "name": "helmRepoName",
-            "description": "The name of the HelmRepository.",
+            "description": "The name of the HelmRepository",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "helmRepoNamespace",
-            "description": "The namespace of the HelmRepository.",
+            "description": "The namespace of the HelmRepository",
             "in": "query",
             "required": false,
             "type": "string"
@@ -91,14 +91,14 @@
           },
           {
             "name": "helmRepoName",
-            "description": "The name of the HelmRepository.",
+            "description": "The name of the HelmRepository",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "helmRepoNamespace",
-            "description": "The namespace of the HelmRepository.",
+            "description": "The namespace of the HelmRepository",
             "in": "query",
             "required": false,
             "type": "string"
