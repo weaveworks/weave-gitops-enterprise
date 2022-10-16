@@ -126,6 +126,7 @@ type Params struct {
 	TLSCert                           string                    `mapstructure:"tls-cert"`
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
+	ChartsCacheURI                    string                    `mapstructure:"charts-cache-uri"`
 	DevMode                           bool                      `mapstructure:"dev-mode"`
 }
 
@@ -190,6 +191,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
+	cmd.Flags().String("charts-cache-uri", "/tmp/charts-cache.db", "URI of the charts cache database")
 
 	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -380,6 +382,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
+	chartsCache, err := helm.NewChartIndexer(p.ChartsCacheURI)
+	if err != nil {
+		return fmt.Errorf("could not create charts cache: %w", err)
+	}
+
 	runtimeUtil.Must(pacv1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
@@ -441,6 +448,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithRuntimeNamespace(p.RuntimeNamespace),
 		WithDevMode(p.DevMode),
 		WithClustersManager(clustersManager),
+		WithChartsCache(*chartsCache),
 	)
 }
 
@@ -478,13 +486,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
-	chartsCache, err := helm.NewChartIndexer("file::memory:?cache=shared")
-	if err != nil {
-		return fmt.Errorf("could not create charts cache: %w", err)
-	}
-
-	valuesFetcher := helm.NewValuesFetcher()
-
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		server.ServerOpts{
@@ -499,8 +500,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
 			CAPIEnabled:               args.CAPIEnabled,
-			ChartsCache:               chartsCache,
-			ValuesFetcher:             valuesFetcher,
+			ChartJobs:                 helm.NewJobs(),
+			ChartsCache:               &args.ChartsCache,
+			ValuesFetcher:             helm.NewValuesFetcher(),
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
