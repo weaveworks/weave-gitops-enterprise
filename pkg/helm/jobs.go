@@ -20,9 +20,9 @@ type Jobs struct {
 }
 
 // constructor
-func NewJobs() Jobs {
+func NewJobs() *Jobs {
 	var ids int64
-	return Jobs{
+	return &Jobs{
 		ids:     &ids,
 		results: *ttlcache.New(time.Hour),
 	}

@@ -53,7 +53,7 @@ type server struct {
 	helmRepositoryCacheDir    string
 	capiEnabled               bool
 
-	chartJobs     helm.Jobs
+	chartJobs     *helm.Jobs
 	valuesFetcher helm.ValuesFetcher
 	chartsCache   chartsCache
 }
@@ -71,7 +71,7 @@ type ServerOpts struct {
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
 
-	ChartJobs     helm.Jobs
+	ChartJobs     *helm.Jobs
 	ChartsCache   chartsCache
 	ValuesFetcher helm.ValuesFetcher
 }

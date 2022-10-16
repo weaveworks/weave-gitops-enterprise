@@ -45,7 +45,7 @@ type fakeResponseWrapper struct {
 	raw []byte
 }
 
-// MakeTar creates a tar achive containing a single file chart-name/values.yaml
+// MakeTar creates a tar archive containing a single file chart-name/values.yaml
 // with the given content.
 func MakeTar(t *testing.T, chartName, content string) []byte {
 	t.Helper()

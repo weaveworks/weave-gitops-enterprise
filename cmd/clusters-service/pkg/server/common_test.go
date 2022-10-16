@@ -66,7 +66,7 @@ type serverOptions struct {
 	clustersManager clustersmngr.ClustersManager
 	capiEnabled     bool
 	chartsCache     chartsCache
-	chartJobs       helm.Jobs
+	chartJobs       *helm.Jobs
 	valuesFetcher   helm.ValuesFetcher
 }
 
