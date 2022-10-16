@@ -46,7 +46,7 @@ export const ApplicationsWrapper: FC<{
         return (
           <div key={index} className={classes.applicationWrapper}>
             <h3>Application No.{index + 1}</h3>
-            <Grid container className="">
+            <Grid container>
               <Grid item xs={12} sm={8} md={8} lg={8}>
                 <AppFields
                   index={index}

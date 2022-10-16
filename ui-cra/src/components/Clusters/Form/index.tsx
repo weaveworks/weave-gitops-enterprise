@@ -113,9 +113,6 @@ const useStyles = makeStyles(theme =>
       display: 'flex',
       justifyContent: 'flex-end',
       padding: small,
-      button: {
-        width: '200px',
-      },
     },
     previewLoading: {
       padding: base,
@@ -274,8 +271,12 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     ? `/clusters/${cluster?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+
   const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [costEstimationLoading, setCostEstimationLoading] =
+    useState<boolean>(false);
+  const [costEstimation, setCostEstimation] = useState<String>('00.00');
 
   const handlePRPreview = useCallback(() => {
     const { url, provider, clusterAutomations, ...templateFields } = formData;
@@ -298,6 +299,39 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   }, [
     formData,
     setOpenPreview,
+    renderTemplate,
+    infraCredential,
+    setNotifications,
+    template.name,
+  ]);
+  const handleCostEstimation = useCallback(() => {
+    const { url, provider, clusterAutomations, ...templateFields } = formData;
+    setCostEstimationLoading(true);
+    return renderTemplate(template.name, {
+      values: templateFields.parameterValues,
+      credentials: infraCredential,
+      kustomizations: getKustomizations(formData),
+    })
+      .then(data => {
+        const { costEstimate } = data;
+        const estimate =
+          costEstimate?.amount !== undefined
+            ? `${Math.round(costEstimate.amount * 100) / 100} ${
+                costEstimate.currency
+              }`
+            : `${Math.round(costEstimate.range.low * 100) / 100} - ${
+                Math.round(costEstimate.range.high * 100) / 100
+              } ${costEstimate.currency}`;
+        setCostEstimation(estimate);
+      })
+      .catch(err =>
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
+      )
+      .finally(() => setCostEstimationLoading(false));
+  }, [
+    formData,
     renderTemplate,
     infraCredential,
     setNotifications,
@@ -438,11 +472,17 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
           />
         ) : null}
         <Grid item xs={12} sm={10} md={10} lg={8}>
-          <CostEstimation
-            isCostEstimationEnabled={
-              annotations?.['templates.weave.works/cost-estimation-enabled']
-            }
-          />
+          {costEstimationLoading ? (
+            <LoadingPage className={classes.previewLoading} />
+          ) : (
+            <CostEstimation
+              handleCostEstimation={handleCostEstimation}
+              costEstimation={costEstimation}
+              isCostEstimationEnabled={
+                annotations?.['templates.weave.works/cost-estimation-enabled']
+              }
+            />
+          )}
         </Grid>
         <Grid item xs={12} sm={10} md={10} lg={8}>
           <GitOps
@@ -474,6 +514,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     previewLoading,
     loading,
     annotations,
+    costEstimation,
+    costEstimationLoading,
+    handleCostEstimation,
   ]);
 };
 
