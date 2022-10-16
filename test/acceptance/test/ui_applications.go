@@ -1046,7 +1046,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 		// Application Violations Details page tests
 		ginkgo.Context("[UI] Application violations are available for management cluster", func() {
-			// Count of existibng applications before deploying new application
+			// Count of existing applications before deploying new application
 			var existingAppCount int
 
 			// Just specify policies yaml path
@@ -1082,8 +1082,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
-				deleteNamespace([]string{appNameSpace, appTargetNamespace}) // don't delete appNamespace as we are using the defaut flux-system namespace for application
-
+				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 			})
 			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
@@ -1136,22 +1135,22 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be '%d' application enteries in application table", totalAppCount))
 				})
 
 				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
 
 				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
 
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
+				ginkgo.By(fmt.Sprintf("And navigate to '%s' application page", podinfo.Name), func() {
+					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' application detail page", podinfo.Name))
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 				})
 
-				ginkgo.By(fmt.Sprintf("And open  %s application Violations tab", podinfo.Name), func() {
+				ginkgo.By(fmt.Sprintf("And open  '%s' application Violations tab", podinfo.Name), func() {
 					// Declare application details page variable
 					appDetailPage := pages.GetApplicationsDetailPage(webDriver, podinfo.Type)
-					gomega.Eventually(appDetailPage.Violations.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", podinfo.Name))
+					gomega.Eventually(appDetailPage.Violations.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to click '%s' Violations tab button", podinfo.Name))
 					pages.WaitForPageToLoad(webDriver)
 					time.Sleep(POLL_INTERVAL_3SECONDS)
 
@@ -1169,7 +1168,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
 
-					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation detail page of violation '%s'", violationMsg))
 
 					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/clusters/violations/details?clusterName"))
 					time.Sleep(POLL_INTERVAL_3SECONDS)
@@ -1181,12 +1180,12 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Text).Should(gomega.MatchRegexp(policyName), "Failed to get policy name value on App violations details page")
 
 					// Click policy name from app violations details page to navigate to policy details page
-					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", appViolationsDetialsPage.PolicyNameValue))
+					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' policy detail page", appViolationsDetialsPage.PolicyNameValue))
 					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/policies/details?"))
 					time.Sleep(POLL_INTERVAL_3SECONDS)
 
-					// Back to app violations List
-					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to back to %s Violations list", podinfo.Name))
+					// Navigate back to the app violations list
+					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to navigate back to the '%s' app violations list", podinfo.Name))
 					time.Sleep(POLL_INTERVAL_3SECONDS)
 
 					gomega.Eventually(appViolationsDetialsPage.ClusterName.Text).Should(gomega.MatchRegexp("Cluster Name :"), "Failed to get cluster name field on App violations details page")
