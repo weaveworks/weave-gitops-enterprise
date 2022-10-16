@@ -21,7 +21,7 @@ type Service struct {
 func ParseArtifactURL(artifactURL string) (*Service, error) {
 	u, err := url.Parse(artifactURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse artifact URL: %w", err)
 	}
 
 	// Split hostname to get namespace and name.

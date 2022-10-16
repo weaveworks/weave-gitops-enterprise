@@ -480,7 +480,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	chartsCache, err := helm.NewChartIndexer("file::memory:?cache=shared")
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create charts cache: %w", err)
 	}
 
 	valuesFetcher := helm.NewValuesFetcher()

@@ -44,7 +44,7 @@ type HelmChartIndexer struct {
 func NewChartIndexer(cacheLocation string) (*HelmChartIndexer, error) {
 	db, err := createDB(cacheLocation)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create cache database: %w", err)
 	}
 
 	return &HelmChartIndexer{
@@ -83,7 +83,7 @@ AND cluster_name = $5 AND cluster_namespace = $6`
 
 	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, chart.Name, chart.Version, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to query database: %w", err)
 	}
 	defer rows.Close()
 
@@ -91,7 +91,7 @@ AND cluster_name = $5 AND cluster_namespace = $6`
 	if rows.Next() {
 		var count int64
 		if err := rows.Scan(&count); err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to scan database: %w", err)
 		}
 		return count > 0, nil
 	}
@@ -110,7 +110,7 @@ AND cluster_name = $5 AND cluster_namespace = $6`
 
 	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, chart.Name, chart.Version, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query database: %w", err)
 	}
 	defer rows.Close()
 
@@ -122,7 +122,7 @@ AND cluster_name = $5 AND cluster_namespace = $6`
 	// FIXME
 	var valuesYaml string
 	if err := rows.Scan(&valuesYaml); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to scan database: %w", err)
 	}
 
 	return []byte(valuesYaml), nil
@@ -143,7 +143,7 @@ AND cluster_name = $6 AND cluster_namespace = $7`
 func (i *HelmChartIndexer) Count(ctx context.Context) (int64, error) {
 	rows, err := i.CacheDB.QueryContext(ctx, "SELECT COUNT(*) FROM helm_charts")
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to query database: %w", err)
 	}
 	defer rows.Close()
 
@@ -151,7 +151,7 @@ func (i *HelmChartIndexer) Count(ctx context.Context) (int64, error) {
 	for rows.Next() {
 		var n int64
 		if err := rows.Scan(&n); err != nil {
-			return 0, err
+			return 0, fmt.Errorf("failed to scan database: %w", err)
 		}
 		count += n
 	}
@@ -168,7 +168,7 @@ AND kind = $3`
 
 	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, clusterRef.Name, clusterRef.Namespace, kind)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query database: %w", err)
 	}
 	defer rows.Close()
 
@@ -176,7 +176,7 @@ AND kind = $3`
 	for rows.Next() {
 		var chart Chart
 		if err := rows.Scan(&chart.Name, &chart.Version); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan database: %w", err)
 		}
 		charts = append(charts, chart)
 	}
@@ -194,7 +194,7 @@ AND kind = $7`
 
 	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace, kind)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to query database: %w", err)
 	}
 	defer rows.Close()
 
@@ -202,7 +202,7 @@ AND kind = $7`
 	for rows.Next() {
 		var chart Chart
 		if err := rows.Scan(&chart.Name, &chart.Version); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan database: %w", err)
 		}
 		charts = append(charts, chart)
 	}
@@ -234,7 +234,7 @@ func createDB(cacheLocation string) (*sql.DB, error) {
 	dbFileLocation := filepath.Join(cacheLocation, dbFile)
 	db, err := sql.Open("sqlite3", dbFileLocation)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 	// From the readme: https://github.com/mattn/go-sqlite3
 	db.SetMaxOpenConns(1)

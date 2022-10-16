@@ -29,17 +29,16 @@ type ValuesFetcher interface {
 }
 
 type MakeClientsFn func(config *rest.Config) (client.Client, kubernetes.Interface, error)
-type WaitForReadyFn func(ctx context.Context, cl client.Client, helmChart *sourcev1.HelmChart) error
 
 func MakeClients(config *rest.Config) (client.Client, kubernetes.Interface, error) {
 	cl, err := getClient(config)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to create controller-runtime client: %w", err)
 	}
 
 	kcl, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to create kubernetes client: %w", err)
 	}
 
 	return cl, kcl, nil
@@ -48,7 +47,7 @@ func MakeClients(config *rest.Config) (client.Client, kubernetes.Interface, erro
 func getClient(config *rest.Config) (client.Client, error) {
 	schema := runtime.NewScheme()
 	if err := sourcev1.AddToScheme(schema); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to add sourcev1 to scheme: %w", err)
 	}
 
 	return client.New(config, client.Options{Scheme: schema})
@@ -60,7 +59,7 @@ func waitForReady(ctx context.Context, cl client.Client, helmChart *sourcev1.Hel
 	return util.PollImmediate(1*time.Second, 10*time.Second, func() (bool, error) {
 		err := cl.Get(ctx, types.NamespacedName{Namespace: helmChart.Namespace, Name: helmChart.Name}, helmChart)
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to get HelmChart: %w", err)
 		}
 		return conditions.IsReady(helmChart), nil
 	})
@@ -81,11 +80,11 @@ func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, h
 	helmRepoObj := &sourcev1.HelmRepository{}
 	cl, kcl, err := v.makeClients(config)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create clients: %w", err)
 	}
 
 	if err := cl.Get(ctx, helmRepo, helmRepoObj); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get HelmRepository: %w", err)
 	}
 
 	// Get the artifact URL
@@ -96,7 +95,7 @@ func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, h
 
 	data, err := httpGetFromSourceController(kcl, artifactURL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get index file: %w", err)
 	}
 
 	i := &repo.IndexFile{}
@@ -117,7 +116,7 @@ func (v *valuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, 
 	// clients
 	cl, kcl, err := v.makeClients(config)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create clients: %w", err)
 	}
 
 	// Generate a random name for the HelmChart with a prefix of the chart name
@@ -141,24 +140,25 @@ func (v *valuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, 
 
 	err = cl.Create(context.Background(), helmChart)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create HelmChart: %w", err)
 	}
 	defer func() {
 		err := cl.Delete(context.Background(), helmChart)
 		if err != nil {
-			fmt.Println(err)
+			// FIXME: log this error
+			fmt.Println(fmt.Errorf("failed to delete HelmChart: %w", err))
 		}
 	}()
 
 	err = waitForReady(ctx, cl, helmChart)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to wait for HelmChart to be ready: %w", err)
 	}
 
 	data, err := httpGetFromSourceController(kcl, helmChart.Status.URL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get values file: %w", err)
 	}
 
 	return getValuesYamlFromArchive(data, chartRef.Name)
@@ -176,7 +176,7 @@ func randString(n int) string {
 func getValuesYamlFromArchive(data []byte, chartName string) ([]byte, error) {
 	dname, err := os.MkdirTemp("", "helm-chart")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create temp dir: %w", err)
 	}
 	defer os.RemoveAll(dname)
 
@@ -190,7 +190,7 @@ func getValuesYamlFromArchive(data []byte, chartName string) ([]byte, error) {
 func httpGetFromSourceController(kcl kubernetes.Interface, url string) ([]byte, error) {
 	parsed, err := ParseArtifactURL(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse artifact URL: %w", err)
 	}
 
 	fmt.Printf("Getting artifact from %s\n", kcl)
@@ -201,7 +201,7 @@ func httpGetFromSourceController(kcl kubernetes.Interface, url string) ([]byte, 
 
 	data, err := res.DoRaw(context.TODO())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get artifact: %w", err)
 	}
 
 	return data, nil

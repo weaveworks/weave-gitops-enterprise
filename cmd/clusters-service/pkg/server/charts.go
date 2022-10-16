@@ -30,10 +30,11 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 
 	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, clusterRef, repoRef, request.Kind)
 	if err != nil {
+		// FIXME: does this work?
 		if err.Error() == "no charts found" {
 			return &protos.ListChartsForRepositoryResponse{}, nil
 		}
-		return nil, err
+		return nil, fmt.Errorf("error listing charts: %w", err)
 	}
 
 	chartsWithVersions := map[string][]string{}
@@ -81,7 +82,7 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 
 	found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error checking if chart is known: %w", err)
 	}
 	if !found {
 		return nil, &grpcruntime.HTTPStatusError{
@@ -120,7 +121,7 @@ func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobReque
 func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectReference, clusterRef types.NamespacedName, chart helm.Chart) (string, error) {
 	values, err := s.chartsCache.GetChartValues(ctx, clusterRef, repoRef, chart)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting chart values: %w", err)
 	}
 
 	if values != nil {
@@ -129,17 +130,17 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 
 	config, err := s.GetClientConfigForCluster(ctx, clusterRef)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting client config for cluster: %w", err)
 	}
 
 	data, err := s.valuesFetcher.GetValuesFile(ctx, config, clusterRef, chart)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error fetching values file: %w", err)
 	}
 
 	err = s.chartsCache.UpdateValuesYaml(ctx, clusterRef, repoRef, chart, data)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error updating values yaml: %w", err)
 	}
 
 	return string(data), nil
