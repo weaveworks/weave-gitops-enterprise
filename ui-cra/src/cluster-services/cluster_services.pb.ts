@@ -72,10 +72,22 @@ export type CommitFile = {
   content?: string
 }
 
+export type CostEstimateRange = {
+  low?: number
+  high?: number
+}
+
+export type CostEstimate = {
+  currency?: string
+  amount?: number
+  range?: CostEstimateRange
+}
+
 export type RenderTemplateResponse = {
   renderedTemplate?: string
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
+  costEstimate?: CostEstimate
 }
 
 export type RenderAutomationRequest = {
