@@ -1111,13 +1111,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
 					pullGitRepo(repoAbsolutePath)
 					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
+					err := runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
+					gomega.Expect(err).Should(gomega.BeNil(), "Failed to create dir %[2]v and copy file %[1]v to %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo"))
 					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
 				})
 
 				ginkgo.By("Install kustomization Application on management cluster", func() {
 					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
+					err := runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
+					gomega.Expect(err).Should(gomega.BeNil(), "Failed to create dir %[2]v and copy file %[1]v to %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir))
 					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
 				})
 
