@@ -37,6 +37,9 @@ export const useGetPipeline = (req: GetPipelineRequest) => {
   return useQuery<GetPipelineResponse, Error>(
     [PIPELINES_KEY, req.namespace, req.name],
     () => pipelinsService.GetPipeline(req),
-    { retry: false },
+    {
+      refetchInterval: 30000,
+      retry: false,
+    },
   );
 };
