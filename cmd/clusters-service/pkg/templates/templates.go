@@ -9,8 +9,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 

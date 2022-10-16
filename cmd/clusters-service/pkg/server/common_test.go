@@ -20,8 +20,8 @@ import (
 
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -151,7 +151,9 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					RawExtension: rawExtension(basicRaw),
+					Content: []runtime.RawExtension{
+						rawExtension(basicRaw),
+					},
 				},
 			},
 		},
@@ -194,7 +196,9 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					RawExtension: rawExtension(basicRaw),
+					Content: []runtime.RawExtension{
+						rawExtension(basicRaw),
+					},
 				},
 			},
 		},

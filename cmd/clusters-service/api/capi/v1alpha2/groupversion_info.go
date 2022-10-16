@@ -16,8 +16,8 @@ limitations under the License.
 
 // Package v1alpha1 contains API Schema definitions for the capi v1alpha1 API group
 // +kubebuilder:object:generate=true
-// +groupName=clustertemplates.weave.works
-package v1alpha1
+// +groupName=capi.weave.works
+package v1alpha2
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -26,7 +26,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "clustertemplates.weave.works", Version: "v1alpha2"}
+	GroupVersion = schema.GroupVersion{Group: "capi.weave.works", Version: "v1alpha2"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

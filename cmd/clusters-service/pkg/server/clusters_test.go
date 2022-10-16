@@ -16,7 +16,7 @@ import (
 	"text/template"
 	"time"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -37,7 +37,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -559,6 +559,67 @@ spec:
     crds: CreateReplace
   values:
     favoriteDrink: coffee
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "create pull request with path configured in template",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+					c.Spec.ResourceTemplates[0].Path = "clusters/foo.yml"
+				}),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster",
+				Description:   "Creates a cluster through a CAPI template",
+				CommitMessage: "Add cluster manifest",
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/foo.yml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
+      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"foo","NAMESPACE":"default"},"commit_message":"Add
+      cluster manifest"}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: foo
+  namespace: default
+`,
+				},
+				{
+					Path: "clusters/default/foo/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
 status: {}
 `,
 				},

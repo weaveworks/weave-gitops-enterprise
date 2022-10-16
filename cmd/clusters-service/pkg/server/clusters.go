@@ -138,32 +138,12 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
 	}
 
-	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
-	if err != nil {
-		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
-	}
-
-	tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
-	}
-
-	err = templates.ValidateRenderedTemplates(tmplWithValues)
-	if err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
-	}
-
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
-	if err != nil {
-		return nil, err
-	}
-
+	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 	// FIXME: parse and read from Cluster in yaml template
 	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
 	if !ok {
@@ -171,13 +151,42 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 	cluster := createNamespacedName(clusterName, clusterNamespace)
 
-	content := string(tmplWithValuesAndCredentials[:])
-	path := getClusterManifestPath(cluster)
-	files := []gitprovider.CommitFile{
-		{
+	defaultPath := getClusterManifestPath(cluster)
+	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
+	}
+
+	var files []gitprovider.CommitFile
+	for _, renderedTemplate := range renderedTemplates {
+		tmplWithValues := renderedTemplate.Data
+		tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+		}
+
+		err = templates.ValidateRenderedTemplates(tmplWithValues)
+		if err != nil {
+			return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
+		}
+
+		tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
+		if err != nil {
+			return nil, err
+		}
+
+		path := renderedTemplate.Path
+		if path == "" {
+			path = defaultPath
+		}
+
+		content := string(tmplWithValuesAndCredentials[:])
+		files = append(files, gitprovider.CommitFile{
+
 			Path:    &path,
 			Content: &content,
-		},
+		})
+
 	}
 
 	if viper.GetString("add-bases-kustomization") == "enabled" {

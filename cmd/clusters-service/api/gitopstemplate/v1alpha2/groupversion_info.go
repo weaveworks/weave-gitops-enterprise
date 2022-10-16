@@ -17,7 +17,7 @@ limitations under the License.
 // Package v1alpha1 contains API Schema definitions for the capi v1alpha1 API group
 // +kubebuilder:object:generate=true
 // +groupName=clustertemplates.weave.works
-package v1alpha1
+package v1alpha2
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"

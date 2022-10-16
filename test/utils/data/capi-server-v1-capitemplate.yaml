@@ -1,4 +1,4 @@
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template-{{.Count}}
@@ -11,29 +11,30 @@ spec:
       options: []
       required: true
   resourcetemplates:
-    - apiVersion: gitops.weave.works/v1alpha1
-      kind: GitopsCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
-        labels:
-          weave.works/capi: bootstrap
-      spec:
-        capiClusterRef:
+    - content:
+      - apiVersion: gitops.weave.works/v1alpha1
+        kind: GitopsCluster
+        metadata:
           name: "${CLUSTER_NAME}"
-    - apiVersion: cluster.x-k8s.io/v1alpha3
-      kind: Cluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-      spec:
-        clusterNetwork:
-          pods:
-            cidrBlocks: ["192.168.0.0/16"]
-        infrastructureRef:
-          apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-          kind: AWSCluster
+          namespace: "${NAMESPACE}"
+          labels:
+            weave.works/capi: bootstrap
+        spec:
+          capiClusterRef:
+            name: "${CLUSTER_NAME}"
+      - apiVersion: cluster.x-k8s.io/v1alpha3
+        kind: Cluster
+        metadata:
           name: "${CLUSTER_NAME}"
-        controlPlaneRef:
-          kind: KubeadmControlPlane
-          apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-          name: "${CLUSTER_NAME}-control-plane"
+        spec:
+          clusterNetwork:
+            pods:
+              cidrBlocks: ["192.168.0.0/16"]
+          infrastructureRef:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+            kind: AWSCluster
+            name: "${CLUSTER_NAME}"
+          controlPlaneRef:
+            kind: KubeadmControlPlane
+            apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+            name: "${CLUSTER_NAME}-control-plane"

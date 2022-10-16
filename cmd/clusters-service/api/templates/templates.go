@@ -70,5 +70,6 @@ type TemplateParam struct {
 // +kubebuilder:pruning:PreserveUnknownFields
 // +kubebuilder:object:generate=true
 type ResourceTemplate struct {
-	runtime.RawExtension `json:",inline"`
+	Path    string                 `json:"path"`
+	Content []runtime.RawExtension `json:"content"`
 }

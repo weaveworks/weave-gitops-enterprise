@@ -20,6 +20,11 @@ import (
 
 var templateFuncs template.FuncMap = makeTemplateFunctions()
 
+type RenderedTemplate struct {
+	Data [][]byte
+	Path string
+}
+
 // Processor is a generic template parser/renderer.
 type Processor interface {
 	// Render implementations accept a template and a key/value map of params to
@@ -27,7 +32,7 @@ type Processor interface {
 	Render([]byte, map[string]string) ([]byte, error)
 	// ParamNames implementations parse a resource template and extract the
 	// parameters.
-	ParamNames(templates.ResourceTemplate) ([]string, error)
+	ParamNames(runtime.RawExtension) ([]string, error)
 }
 
 // RenderOptFunc is a functional option for Rendering templates.
@@ -61,20 +66,21 @@ type TemplateProcessor struct {
 // The returned slice is sorted by Name.
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
-	for _, v := range p.GetSpec().ResourceTemplates {
-		names, err := p.Processor.ParamNames(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get params from template: %w", err)
+	for _, resourcetemplateDefinition := range p.GetSpec().ResourceTemplates {
+		for _, v := range resourcetemplateDefinition.Content {
+			names, err := p.Processor.ParamNames(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from template: %w", err)
+			}
+			paramNames.Insert(names...)
 		}
-		paramNames.Insert(names...)
 	}
 
 	for k, v := range p.GetAnnotations() {
 		if strings.HasPrefix(k, "capi.weave.works/profile-") {
-			names, err := p.Processor.ParamNames(templates.ResourceTemplate{
-				RawExtension: runtime.RawExtension{
-					Raw: []byte(v),
-				}})
+			names, err := p.Processor.ParamNames(runtime.RawExtension{
+				Raw: []byte(v),
+			})
 			if err != nil {
 				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
 			}
@@ -107,7 +113,7 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 }
 
 // RenderTemplates renders all the resourceTemplates in the template.
-func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
+func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([]RenderedTemplate, error) {
 	params, err := p.Params()
 	if err != nil {
 		return nil, err
@@ -132,26 +138,41 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 		}
 	}
 
-	var processed [][]byte
-	for _, v := range p.GetSpec().ResourceTemplates {
-		b, err := yaml.JSONToYAML(v.RawExtension.Raw)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+	var renderedTemplates []RenderedTemplate
+	for _, resourceTemplatesDefintion := range p.GetSpec().ResourceTemplates {
+		var renderedPath string
+		if resourceTemplatesDefintion.Path != "" {
+			p, err := p.Processor.Render([]byte(resourceTemplatesDefintion.Path), vars)
+			if err != nil {
+				return nil, fmt.Errorf("failed to render resource template definition path: %w", err)
+			}
+			renderedPath = string(p)
 		}
+		var processed [][]byte
+		for _, v := range resourceTemplatesDefintion.Content {
+			b, err := yaml.JSONToYAML(v.Raw)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+			}
 
-		data, err := p.Processor.Render(b, vars)
-		if err != nil {
-			return nil, fmt.Errorf("processing template: %w", err)
-		}
+			data, err := p.Processor.Render(b, vars)
+			if err != nil {
+				return nil, fmt.Errorf("processing template: %w", err)
+			}
 
-		data, err = processUnstructured(data, opts...)
-		if err != nil {
-			return nil, fmt.Errorf("modifying template: %w", err)
+			data, err = processUnstructured(data, opts...)
+			if err != nil {
+				return nil, fmt.Errorf("modifying template: %w", err)
+			}
+			processed = append(processed, data)
 		}
-		processed = append(processed, data)
+		renderedTemplates = append(renderedTemplates, RenderedTemplate{
+			Data: processed,
+			Path: renderedPath,
+		})
 	}
 
-	return processed, nil
+	return renderedTemplates, nil
 }
 
 // NewTextTemplateProcessor creates and returns a new TextTemplateProcessor.
@@ -180,8 +201,8 @@ func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([
 
 var paramsRE = regexp.MustCompile(`{{.*\.params\.([A-Za-z0-9_]+).*}}`)
 
-func (p *TextTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]string, error) {
-	b, err := yaml.JSONToYAML(rt.RawExtension.Raw)
+func (p *TextTemplateProcessor) ParamNames(rt runtime.RawExtension) ([]string, error) {
+	b, err := yaml.JSONToYAML(rt.Raw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
 	}
@@ -220,10 +241,10 @@ func (p *EnvsubstTemplateProcessor) Render(tmpl []byte, values map[string]string
 	return rendered, nil
 }
 
-func (p *EnvsubstTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]string, error) {
+func (p *EnvsubstTemplateProcessor) ParamNames(rt runtime.RawExtension) ([]string, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := sets.NewString()
-	tv, err := proc.GetVariables(rt.RawExtension.Raw)
+	tv, err := proc.GetVariables(rt.Raw)
 	if err != nil {
 		return nil, fmt.Errorf("processing template: %w", err)
 	}

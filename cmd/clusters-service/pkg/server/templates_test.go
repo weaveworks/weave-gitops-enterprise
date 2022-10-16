@@ -17,8 +17,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
@@ -639,7 +639,7 @@ func TestRenderTemplate(t *testing.T) {
 					})
 					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
@@ -650,6 +650,7 @@ func TestRenderTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							},
 						},
 					}
 				}),
@@ -669,7 +670,7 @@ func TestRenderTemplate(t *testing.T) {
 					})
 					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
@@ -680,6 +681,7 @@ func TestRenderTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							},
 						},
 					}
 				}),
@@ -714,11 +716,12 @@ func TestRenderTemplate(t *testing.T) {
 					ct.Spec.Description = "this is test template 1"
 					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 							"kind": "AWSCluster",
 							"metadata": { "name": "boop" }
 						}`),
+							},
 						},
 					}
 				}),
@@ -754,7 +757,7 @@ func TestRenderTemplate(t *testing.T) {
 					})
 					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
@@ -765,6 +768,7 @@ func TestRenderTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							},
 						},
 					}
 				}),
@@ -1197,7 +1201,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 	return makeCAPITemplate(t, append(opts, func(c *capiv1.CAPITemplate) {
 		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
 			{
-				RawExtension: rawExtension(basicRaw),
+				Content: []runtime.RawExtension{rawExtension(basicRaw)},
 			},
 		}
 	})...)
@@ -1216,7 +1220,7 @@ func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...f
 	return makeClusterTemplates(t, append(opts, func(c *gapiv1.GitOpsTemplate) {
 		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
 			{
-				RawExtension: rawExtension(basicRaw),
+				Content: []runtime.RawExtension{rawExtension(basicRaw)},
 			},
 		}
 	})...)

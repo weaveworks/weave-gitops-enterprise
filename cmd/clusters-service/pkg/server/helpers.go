@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
-func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([][]byte, error) {
+func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([]templates.RenderedTemplate, error) {
 	opts := []templates.RenderOptFunc{
 		templates.InNamespace(namespace),
 		templates.InjectLabels(map[string]string{

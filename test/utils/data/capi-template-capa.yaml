@@ -32,130 +32,131 @@ spec:
       description: Number of control planes
       options: ["1", "2", "3", "4", "5", "6", "7"]
   resourcetemplates:
-    - apiVersion: gitops.weave.works/v1alpha1
-      kind: GitopsCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
-        labels:
-          weave.works/flux: bootstrap
-      spec:
-        capiClusterRef:
+    - content:
+      - apiVersion: gitops.weave.works/v1alpha1
+        kind: GitopsCluster
+        metadata:
           name: "${CLUSTER_NAME}"
-    - apiVersion: cluster.x-k8s.io/v1beta1
-      kind: Cluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
-        labels:
-          cni: calico
-      spec:
-        clusterNetwork:
-          pods:
-            cidrBlocks:
-            - 192.168.0.0/16
-        controlPlaneRef:
-          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-          kind: KubeadmControlPlane
-          name: "${CLUSTER_NAME}-control-plane"
-        infrastructureRef:
-          apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-          kind: AWSCluster
+          namespace: "${NAMESPACE}"
+          labels:
+            weave.works/flux: bootstrap
+        spec:
+          capiClusterRef:
+            name: "${CLUSTER_NAME}"
+      - apiVersion: cluster.x-k8s.io/v1beta1
+        kind: Cluster
+        metadata:
           name: "${CLUSTER_NAME}"
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: AWSCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
-      spec:
-        region: "${AWS_REGION}"
-        sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-      kind: KubeadmControlPlane
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-        namespace: "${NAMESPACE}"
-      spec:
-        kubeadmConfigSpec:
-          clusterConfiguration:
-            apiServer:
-              extraArgs:
-                cloud-provider: aws
-            controllerManager:
-              extraArgs:
-                cloud-provider: aws
-          initConfiguration:
-            nodeRegistration:
-              kubeletExtraArgs:
-                cloud-provider: aws
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
-          joinConfiguration:
-            nodeRegistration:
-              kubeletExtraArgs:
-                cloud-provider: aws
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
-        machineTemplate:
+          namespace: "${NAMESPACE}"
+          labels:
+            cni: calico
+        spec:
+          clusterNetwork:
+            pods:
+              cidrBlocks:
+              - 192.168.0.0/16
+          controlPlaneRef:
+            apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+            kind: KubeadmControlPlane
+            name: "${CLUSTER_NAME}-control-plane"
           infrastructureRef:
             apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-            kind: AWSMachineTemplate
-            name: "${CLUSTER_NAME}-control-plane"
-        replicas: ${CONTROL_PLANE_MACHINE_COUNT}
-        version: "${KUBERNETES_VERSION}"
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: AWSMachineTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-        namespace: "${NAMESPACE}"
-      spec:
-        template:
-          spec:
-            iamInstanceProfile: control-plane.cluster-api-provider-aws.sigs.k8s.io
-            instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
-            sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - apiVersion: cluster.x-k8s.io/v1beta1
-      kind: MachineDeployment
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
-      spec:
-        clusterName: "${CLUSTER_NAME}"
-        replicas: ${WORKER_MACHINE_COUNT}
-        selector:
-          matchLabels: null
-        template:
-          spec:
-            bootstrap:
-              configRef:
-                apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-                kind: KubeadmConfigTemplate
-                name: "${CLUSTER_NAME}-md-0"
-            clusterName: "${CLUSTER_NAME}"
-            infrastructureRef:
-              apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-              kind: AWSMachineTemplate
-              name: "${CLUSTER_NAME}-md-0"
-            version: "${KUBERNETES_VERSION}"
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: AWSMachineTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
-      spec:
-        template:
-          spec:
-            iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
-            instanceType: "${AWS_NODE_MACHINE_TYPE}"
-            sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-      kind: KubeadmConfigTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
-      spec:
-        template:
-          spec:
+            kind: AWSCluster
+            name: "${CLUSTER_NAME}"
+      - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: AWSCluster
+        metadata:
+          name: "${CLUSTER_NAME}"
+          namespace: "${NAMESPACE}"
+        spec:
+          region: "${AWS_REGION}"
+          sshKeyName: "${AWS_SSH_KEY_NAME}"
+      - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+        kind: KubeadmControlPlane
+        metadata:
+          name: "${CLUSTER_NAME}-control-plane"
+          namespace: "${NAMESPACE}"
+        spec:
+          kubeadmConfigSpec:
+            clusterConfiguration:
+              apiServer:
+                extraArgs:
+                  cloud-provider: aws
+              controllerManager:
+                extraArgs:
+                  cloud-provider: aws
+            initConfiguration:
+              nodeRegistration:
+                kubeletExtraArgs:
+                  cloud-provider: aws
+                name: '{{`{{ ds.meta_data.local_hostname }}`}}'
             joinConfiguration:
               nodeRegistration:
                 kubeletExtraArgs:
                   cloud-provider: aws
                 name: '{{`{{ ds.meta_data.local_hostname }}`}}'
+          machineTemplate:
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+              kind: AWSMachineTemplate
+              name: "${CLUSTER_NAME}-control-plane"
+          replicas: ${CONTROL_PLANE_MACHINE_COUNT}
+          version: "${KUBERNETES_VERSION}"
+      - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: AWSMachineTemplate
+        metadata:
+          name: "${CLUSTER_NAME}-control-plane"
+          namespace: "${NAMESPACE}"
+        spec:
+          template:
+            spec:
+              iamInstanceProfile: control-plane.cluster-api-provider-aws.sigs.k8s.io
+              instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
+              sshKeyName: "${AWS_SSH_KEY_NAME}"
+      - apiVersion: cluster.x-k8s.io/v1beta1
+        kind: MachineDeployment
+        metadata:
+          name: "${CLUSTER_NAME}-md-0"
+          namespace: "${NAMESPACE}"
+        spec:
+          clusterName: "${CLUSTER_NAME}"
+          replicas: ${WORKER_MACHINE_COUNT}
+          selector:
+            matchLabels: null
+          template:
+            spec:
+              bootstrap:
+                configRef:
+                  apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+                  kind: KubeadmConfigTemplate
+                  name: "${CLUSTER_NAME}-md-0"
+              clusterName: "${CLUSTER_NAME}"
+              infrastructureRef:
+                apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+                kind: AWSMachineTemplate
+                name: "${CLUSTER_NAME}-md-0"
+              version: "${KUBERNETES_VERSION}"
+      - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: AWSMachineTemplate
+        metadata:
+          name: "${CLUSTER_NAME}-md-0"
+          namespace: "${NAMESPACE}"
+        spec:
+          template:
+            spec:
+              iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
+              instanceType: "${AWS_NODE_MACHINE_TYPE}"
+              sshKeyName: "${AWS_SSH_KEY_NAME}"
+      - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+        kind: KubeadmConfigTemplate
+        metadata:
+          name: "${CLUSTER_NAME}-md-0"
+          namespace: "${NAMESPACE}"
+        spec:
+          template:
+            spec:
+              joinConfiguration:
+                nodeRegistration:
+                  kubeletExtraArgs:
+                    cloud-provider: aws
+                  name: '{{`{{ ds.meta_data.local_hostname }}`}}'

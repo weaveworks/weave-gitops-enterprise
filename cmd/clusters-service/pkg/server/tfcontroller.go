@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -34,24 +34,9 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		return nil, grpcStatus.Errorf(codes.Internal, "unable to get template %q: %s", msg.TemplateName, err)
 	}
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-templates-namespace"), msg.ParameterValues)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to render template with parameter values: %s", err)
-	}
-
-	err = templates.ValidateRenderedTemplates(tmplWithValues)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "validation error rendering template %v, %s", msg.TemplateName, err)
-	}
-
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Internal, "failed to construct kubernetes client: %s", err)
-	}
-
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, nil, msg.TemplateName)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to gather credentials for template: %s", err)
 	}
 
 	templateName, ok := msg.ParameterValues["RESOURCE_NAME"]
@@ -59,13 +44,37 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		return nil, grpcStatus.Errorf(codes.Internal, "unable to find required 'RESOURCE_NAME' parameter in supplied values")
 	}
 
-	path := getTfControllerManifestPath(templateName)
-	content := string(tmplWithValuesAndCredentials[:])
-	files := []gitprovider.CommitFile{
-		{
+	defaultPath := getTfControllerManifestPath(templateName)
+
+	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-templates-namespace"), msg.ParameterValues)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to render template with parameter values: %s", err)
+	}
+
+	var files []gitprovider.CommitFile
+	for _, renderedTemplate := range renderedTemplates {
+
+		err = templates.ValidateRenderedTemplates(renderedTemplate.Data)
+		if err != nil {
+			return nil, grpcStatus.Errorf(codes.Internal, "validation error rendering template %v, %s", msg.TemplateName, err)
+		}
+
+		tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, renderedTemplate.Data, nil, msg.TemplateName)
+		if err != nil {
+			return nil, grpcStatus.Errorf(codes.Internal, "failed to gather credentials for template: %s", err)
+		}
+
+		path := renderedTemplate.Path
+		if path == "" {
+			path = defaultPath
+		}
+
+		content := string(tmplWithValuesAndCredentials[:])
+		files = append(files, gitprovider.CommitFile{
+
 			Path:    &path,
 			Content: &content,
-		},
+		})
 	}
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")

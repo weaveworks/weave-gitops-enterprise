@@ -1,4 +1,4 @@
-package v1alpha1
+package v1alpha2
 
 import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
@@ -9,14 +9,15 @@ const Kind = "CAPITemplate"
 
 // CAPITemplate is the Schema for the capitemplates API
 // +kubebuilder:object:root=true
+//+kubebuilder:storageversion
 type CAPITemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec templates.TemplateSpecV1 `json:"spec,omitempty"`
+	Spec templates.TemplateSpec `json:"spec,omitempty"`
 }
 
-func (t CAPITemplate) GetSpec() templates.TemplateSpecV1 {
+func (t CAPITemplate) GetSpec() templates.TemplateSpec {
 	return t.Spec
 }
 

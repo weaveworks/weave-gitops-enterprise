@@ -1,4 +1,4 @@
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template2
@@ -12,21 +12,24 @@ spec:
       description: How many machine replicas to setup.
       required: true
   resourcetemplates:
-    - apiVersion: cluster.x-k8s.io/v1alpha3
-      kind: Cluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-    - apiVersion: gitops.weave.works/v1alpha1
-      kind: GitopsCluster
-      metadata:
-        name: "${CLUSTER_NAME}-gitops"
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-      kind: AWSMachineTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-    - kind: KubeadmControlPlane
-      apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-      spec:
-        replicas: ${CONTROL_PLANE_MACHINE_COUNT}
+    - content:
+      - apiVersion: cluster.x-k8s.io/v1alpha3
+        kind: Cluster
+        metadata:
+          name: "${CLUSTER_NAME}"
+      - apiVersion: gitops.weave.works/v1alpha1
+        kind: GitopsCluster
+        metadata:
+          name: "${CLUSTER_NAME}-gitops"
+      path: "./clusters/${CLUSTER_NAME}/capi-clusters.yaml"
+    - content:
+      - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+        kind: AWSMachineTemplate
+        metadata:
+          name: "${CLUSTER_NAME}-md-0"
+      - kind: KubeadmControlPlane
+        apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+        metadata:
+          name: "${CLUSTER_NAME}-control-plane"
+        spec:
+          replicas: ${CONTROL_PLANE_MACHINE_COUNT}

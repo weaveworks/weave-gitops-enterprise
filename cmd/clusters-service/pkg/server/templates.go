@@ -9,8 +9,8 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/spf13/viper"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -131,18 +131,24 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.Values)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = templates.ValidateRenderedTemplates(templateBits); err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
-	}
 
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	renderedTemplates, err := renderTemplateWithValues(tm, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.Values)
+	if err != nil {
+		return nil, err
+	}
+
+	var templateBits [][]byte
+	for _, renderedTemplate := range renderedTemplates {
+		templateBits = append(templateBits, renderedTemplate.Data...)
+	}
+
+	if err = templates.ValidateRenderedTemplates(templateBits); err != nil {
+		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, templateBits, msg.Credentials, msg.TemplateName)

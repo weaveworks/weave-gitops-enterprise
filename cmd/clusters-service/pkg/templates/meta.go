@@ -24,22 +24,24 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 	}
 
 	var objects []Object
-	for _, v := range s.GetSpec().ResourceTemplates {
-		params, err := processor.ParamNames(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse params in template: %w", err)
+	for _, resourcetemplateDefinition := range s.GetSpec().ResourceTemplates {
+		for _, v := range resourcetemplateDefinition.Content {
+			params, err := processor.ParamNames(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse params in template: %w", err)
+			}
+			var uv unstructured.Unstructured
+			if err := uv.UnmarshalJSON(v.Raw); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
+			}
+			objects = append(objects, Object{
+				Kind:        uv.GetKind(),
+				APIVersion:  uv.GetAPIVersion(),
+				Params:      params,
+				Name:        uv.GetName(),
+				DisplayName: uv.GetAnnotations()[annotation],
+			})
 		}
-		var uv unstructured.Unstructured
-		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
-		}
-		objects = append(objects, Object{
-			Kind:        uv.GetKind(),
-			APIVersion:  uv.GetAPIVersion(),
-			Params:      params,
-			Name:        uv.GetName(),
-			DisplayName: uv.GetAnnotations()[annotation],
-		})
 	}
 
 	enriched, err := processor.Params()
