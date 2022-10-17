@@ -2,6 +2,11 @@ import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Button, theme } from '@weaveworks/weave-gitops';
 import React, { FC, useEffect } from 'react';
 
+const costFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
+
 const CostEstimation: FC<{
   isCostEstimationEnabled?: string;
   costEstimation?: any;
@@ -11,17 +16,19 @@ const CostEstimation: FC<{
   handleCostEstimation,
   costEstimation,
 }) => {
-  const [estimate, setEstimate] = React.useState('00.00');
+  const [estimate, setEstimate] = React.useState('$0.00 USD');
   useEffect(() => {
     if (costEstimation) {
       const estimate =
         costEstimation?.amount !== undefined
-          ? `${Math.round(costEstimation.amount * 100) / 100} ${
+          ? `${costFormatter.format(costEstimation.amount)} ${
               costEstimation.currency
             }`
-          : `${Math.round(costEstimation.range.low * 100) / 100} - ${
-              Math.round(costEstimation.range.high * 100) / 100
-            } ${costEstimation.currency}`;
+          : `${costFormatter.format(
+              costEstimation.range.low,
+            )} - ${costFormatter.format(costEstimation.range.high)} ${
+              costEstimation.currency
+            }`;
       setEstimate(estimate);
     }
   }, [costEstimation]);
