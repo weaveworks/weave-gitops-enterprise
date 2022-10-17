@@ -31,6 +31,8 @@ const CostEstimation: FC<{
               high,
             )} ${currency}`;
       setEstimate(estimate);
+    } else {
+      setEstimate('$0.00 USD');
     }
   }, [costEstimation]);
 
