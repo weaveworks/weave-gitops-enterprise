@@ -401,7 +401,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
 
   useEffect(() => {
     setCostEstimation(undefined);
-  }, [formData]);
+  }, [formData.parameterValues]);
 
   return useMemo(() => {
     return (
