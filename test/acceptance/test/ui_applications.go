@@ -1107,8 +1107,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
 					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
-					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Text).Should(gomega.MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in '%s' vioilations list", violationMsg, podinfo.Name))
-
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in '%s' vioilations list", violationMsg, podinfo.Name))
 				})
 
 				// Application violation tab test
@@ -1210,117 +1209,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By(fmt.Sprintf("And finally delete the '%s' application", podinfo.Name), func() {
 					verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 				})
-			})
-		})
-
-		//Application Violations Details page tests
-		ginkgo.Context("[UI] Application violations are available for management cluster", func() {
-			// count of existibng applications before deploying new application
-			var existingAppCount int
-
-			//just specify policies yaml path
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
-
-			//Just specify the Violating policy info to create it
-			// policyName := "Containers Running With Privilege Escalation acceptance test"
-			// violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment App-Violations-podinfo \(2 occurrences\)`
-
-			//Just specify the violated application info to create it
-			appNameSpace := "test-kustomization"
-			appTargetNamespace := "test-system"
-
-			mgmtCluster := ClusterConfig{
-				Type:      "management",
-				Name:      "management",
-				Namespace: "",
-			}
-
-			ginkgo.JustBeforeEach(func() {
-				createNamespace([]string{appNameSpace, appTargetNamespace})
-
-				//Add/Install test Policies to the management cluster
-				installTestPolicies("management", policiesYaml)
-			})
-
-			ginkgo.JustAfterEach(func() {
-				// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
-				gomega.Eventually(func(g gomega.Gomega) int {
-					return getApplicationCount()
-				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
-
-				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
-				deleteNamespace([]string{appNameSpace, appTargetNamespace}) // don't delete appNamespace as we are using the defaut flux-system namespace for application
-
-			})
-
-			ginkgo.FIt("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
-				// Podinfo application details
-				podinfo := Application{
-					Type:            "kustomization",
-					Name:            "app-violations-podinfo",
-					DeploymentName:  "podinfo",
-					Namespace:       appNameSpace,
-					TargetNamespace: appTargetNamespace,
-					Source:          "flux-system",
-					Path:            "./apps/podinfo",
-					SyncInterval:    "30s",
-				}
-
-				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount = getApplicationCount()
-
-				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
-				defer cleanGitRepository(appDir)
-
-				pages.NavigateToPage(webDriver, "Applications")
-				// declare application page variable
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
-					pullGitRepo(repoAbsolutePath)
-					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
-					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-				})
-
-				ginkgo.By("Install kustomization Application on management cluster", func() {
-					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
-					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-				})
-
-				ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := applicationsPage.ApplicationCount.Text()
-						return count
-
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
-
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-				})
-
-				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
-				})
-
-				/////////////////////////////////////////////////////////////////////////////
-				//  Add your application violation test code here
-				/////////////////////////////////////////////////////////////////////////////
-
-				// navigatetoApplicationsPage(applicationsPage)
-				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
-
 			})
 		})
 	})
