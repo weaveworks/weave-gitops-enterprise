@@ -1,6 +1,8 @@
 package convert
 
 import (
+	"fmt"
+
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/terraform"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,6 +18,20 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 				Name:       r.Name,
 				Type:       r.Type,
 				Identifier: r.Identifier,
+			})
+		}
+	}
+
+	conditions := []*pb.Condition{}
+
+	if tf.Status.Conditions != nil {
+		for _, r := range tf.Status.Conditions {
+			conditions = append(conditions, &pb.Condition{
+				Type:      r.Type,
+				Status:    fmt.Sprint(r.Status),
+				Reason:    r.Reason,
+				Message:   r.Message,
+				Timestamp: r.LastTransitionTime.String(),
 			})
 		}
 	}
@@ -37,6 +53,7 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 		Interval:             durationToInterval(tf.Spec.Interval),
 		DriftDetectionResult: tf.HasDrift(),
 		Inventory:            inv,
+		Conditions:           conditions,
 		Suspended:            tf.Spec.Suspend,
 	}
 }

@@ -1,6 +1,6 @@
 import { V2Routes, OAuthCallback } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import qs from 'qs';
+import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
@@ -38,10 +38,7 @@ import error404 from './assets/img/error404.json';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
-    // location.search return ? and it breaks params
-    // it happens when i moved routes to this file
-    // i'd go fo search.slice(1) => removes ? but just in case  this happens only on my machine, i went for replace ? by ''
-    const params = qs.parse(search.replace('?', ''));
+    const params = qs.parse(search);
     return <Cmp {...rest} {...params} />;
   };
 }
