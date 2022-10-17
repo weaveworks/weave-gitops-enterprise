@@ -271,12 +271,13 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     ? `/clusters/${cluster?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-
   const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [costEstimationLoading, setCostEstimationLoading] =
     useState<boolean>(false);
-  const [costEstimation, setCostEstimation] = useState<String>('00.00');
+  const [costEstimation, setCostEstimation] = useState<any | undefined>(
+    undefined,
+  );
 
   const handlePRPreview = useCallback(() => {
     const { url, provider, clusterAutomations, ...templateFields } = formData;
@@ -314,15 +315,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     })
       .then(data => {
         const { costEstimate } = data;
-        const estimate =
-          costEstimate?.amount !== undefined
-            ? `${Math.round(costEstimate.amount * 100) / 100} ${
-                costEstimate.currency
-              }`
-            : `${Math.round(costEstimate.range.low * 100) / 100} - ${
-                Math.round(costEstimate.range.high * 100) / 100
-              } ${costEstimate.currency}`;
-        setCostEstimation(estimate);
+        setCostEstimation(costEstimate);
       })
       .catch(err =>
         setNotifications([

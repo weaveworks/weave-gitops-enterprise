@@ -1,16 +1,31 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Button, theme } from '@weaveworks/weave-gitops';
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 
 const CostEstimation: FC<{
   isCostEstimationEnabled?: string;
-  costEstimation?: String;
+  costEstimation?: any;
   handleCostEstimation: () => Promise<void>;
 }> = ({
   isCostEstimationEnabled = 'false',
   handleCostEstimation,
-  costEstimation = '00.00',
+  costEstimation,
 }) => {
+  const [estimate, setEstimate] = React.useState('00.00');
+  useEffect(() => {
+    if (costEstimation) {
+      const estimate =
+        costEstimation?.amount !== undefined
+          ? `${Math.round(costEstimation.amount * 100) / 100} ${
+              costEstimation.currency
+            }`
+          : `${Math.round(costEstimation.range.low * 100) / 100} - ${
+              Math.round(costEstimation.range.high * 100) / 100
+            } ${costEstimation.currency}`;
+      setEstimate(estimate);
+    }
+  }, [costEstimation]);
+
   const useStyles = makeStyles(() =>
     createStyles({
       getEstimationButton: {
@@ -52,7 +67,7 @@ const CostEstimation: FC<{
                 alignItems="center"
                 container
               >
-                <div className={classes.costWrapper}>{costEstimation}</div>
+                <div className={classes.costWrapper}>{estimate}</div>
               </Grid>
             </Grid>
           </div>
