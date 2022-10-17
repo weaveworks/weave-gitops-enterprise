@@ -1,36 +1,21 @@
-import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { TemplateEnriched } from '../../../../types/custom';
-import { Input, Select, validateFormData } from '../../../../utils/form';
+import { Input, Select } from '../../../../utils/form';
 import { EDIT_CLUSTER } from '../../../ResponsiveDrawer';
 
 const FormWrapper = styled.form`
   .form-section {
     width: 50%;
   }
-  .preview-cta {
-    display: flex;
-    justify-content: flex-end;
-    padding: ${({ theme }) => theme.spacing.small}
-      ${({ theme }) => theme.spacing.base};
-    button {
-      width: 200px;
-    }
-  }
-  .preview-loading {
-    padding: ${({ theme }) => theme.spacing.base};
-  }
 `;
 
 const TemplateFields: FC<{
   template: TemplateEnriched;
-  onPRPreview: () => void;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  previewLoading: boolean;
-}> = ({ template, onPRPreview, formData, setFormData, previewLoading }) => {
+}> = ({ template, formData, setFormData }) => {
   const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
   const { isExact: isEditing } = useRouteMatch(EDIT_CLUSTER) || {};
   const parameterValues = formData.parameterValues || {};
@@ -86,15 +71,6 @@ const TemplateFields: FC<{
             />
           );
       })}
-      {previewLoading ? (
-        <LoadingPage className="preview-loading" />
-      ) : (
-        <div className="preview-cta">
-          <Button onClick={event => validateFormData(event, onPRPreview)}>
-            PREVIEW PR
-          </Button>
-        </div>
-      )}
     </FormWrapper>
   );
 };

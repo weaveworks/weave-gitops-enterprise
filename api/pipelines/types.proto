@@ -37,6 +37,7 @@ message WorkloadStatus {
     string kind    = 1;
     string name    = 2;
     string version = 3;
+    string lastAppliedRevision = 4;
 }
 
 message PipelineTargetStatus {

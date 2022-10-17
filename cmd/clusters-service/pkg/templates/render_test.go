@@ -587,3 +587,43 @@ func writeMultiDoc(t *testing.T, objs [][]byte) string {
 	}
 	return out.String()
 }
+
+func TestInjectLabels(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: new-namespace
+  labels:
+    com.example/testing: tested
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+  labels:
+    com.example/other: tested
+spec:
+  replicas: 5`)
+	updated, err := processUnstructured(raw, InjectLabels(map[string]string{
+		"new-label": "test-label",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  labels:
+    com.example/testing: tested
+    new-label: test-label
+  name: testing
+  namespace: new-namespace
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}

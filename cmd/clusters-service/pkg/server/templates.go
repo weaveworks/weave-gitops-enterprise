@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
@@ -110,6 +112,13 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
+func toCommitFile(file gitprovider.CommitFile) *capiv1_proto.CommitFile {
+	return &capiv1_proto.CommitFile{
+		Path:    *file.Path,
+		Content: *file.Content,
+	}
+}
+
 // Similar the others list and get will right now only work with CAPI templates.
 // tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName) -> this get is the key.
 func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTemplateRequest) (*capiv1_proto.RenderTemplateResponse, error) {
@@ -143,7 +152,50 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 
 	resultStr := string(tmplWithValuesAndCredentials[:])
 
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr}, err
+	var profileFiles []*capiv1_proto.CommitFile
+	var kustomizationFiles []*capiv1_proto.CommitFile
+
+	cluster := createNamespacedName(msg.Values["CLUSTER_NAME"], msg.Values["NAMESPACE"])
+
+	if len(msg.Profiles) > 0 {
+		profilesFile, err := generateProfileFiles(
+			ctx,
+			tm,
+			cluster,
+			client,
+			generateProfileFilesParams{
+				helmRepository:         createNamespacedName(s.profileHelmRepositoryName, viper.GetString("runtime-namespace")),
+				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
+				profileValues:          msg.Profiles,
+				parameterValues:        msg.Values,
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+		profileFiles = append(profileFiles, toCommitFile(*profilesFile))
+	}
+
+	if len(msg.Kustomizations) > 0 {
+		for _, k := range msg.Kustomizations {
+			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
+			if err != nil {
+				return nil, err
+			}
+
+			kustomizationFiles = append(kustomizationFiles, toCommitFile(kustomization))
+		}
+	}
+	// Temporary mock data of cost estimate
+	costEstimate := &capiv1_proto.CostEstimate{
+		Currency: "USD",
+		Range: &capiv1_proto.CostEstimate_Range{
+			Low:  0,
+			High: 1000000,
+		},
+	}
+
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: resultStr, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate}, err
 }
 
 func isProviderRecognised(provider string) bool {

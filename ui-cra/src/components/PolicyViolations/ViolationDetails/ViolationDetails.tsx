@@ -79,7 +79,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
 
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>
-          Occurences{' '}
+          Occurrences{' '}
           <span className={classes.titleNotification}>
             ( {occurrences?.length} )
           </span>

@@ -230,7 +230,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 			browserCompatibility := false
 			if !pages.ElementExist(authenticate.Username) {
 				if pages.ElementExist(authenticate.CheckBrowser) {
-					// opening the gitlab in a separate window not controlled by webdriver does not redirect gitlab to login
+					// Opening the gitlab in a separate window not controlled by webdriver redirects gitlab to login page (DDOS workaround for gitlab)
 					pages.OpenWindowInBg(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
 					gomega.Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(matchers.BeFound())
 					browserCompatibility = true
@@ -258,7 +258,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 			}
 
 			if browserCompatibility {
-				pages.CloseWindow(webDriver, "gitlab")
+				pages.CloseWindow(webDriver, pages.GetNextWindow(webDriver))
 			}
 		}
 	}

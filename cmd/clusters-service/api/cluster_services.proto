@@ -41,6 +41,12 @@ service ClustersService {
       body : "*"
     };
   }
+  rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
+    option (google.api.http) = {
+      post : "/v1/enterprise/automations/render"
+      body : "*"
+    };
+  }
   rpc ListGitopsClusters(ListGitopsClustersRequest)
       returns (ListGitopsClustersResponse) {
     option (google.api.http) = {
@@ -202,8 +208,42 @@ message RenderTemplateRequest {
   Credential credentials = 3;
   string template_kind = 4;
   string cluster_namespace = 5;
+  repeated ProfileValues profiles = 6;
+  repeated Kustomization kustomizations = 7;
 }
-message RenderTemplateResponse { string rendered_template = 1; }
+
+message CommitFile {
+	string path = 1; 
+	string content = 2;
+}
+
+
+
+message CostEstimate{
+  message Range {
+    float low = 1;
+    float high = 2;
+  };
+  string currency = 1;
+  float amount = 2;
+  Range range = 3;
+}
+
+message RenderTemplateResponse { 
+  string rendered_template = 1; 
+  repeated CommitFile profile_files = 2; 
+  repeated CommitFile kustomization_files = 3;
+  CostEstimate costEstimate = 4;
+}
+
+message RenderAutomationRequest {
+  repeated ClusterAutomation cluster_automations = 1;
+}
+
+message RenderAutomationResponse { 
+  repeated CommitFile kustomization_files = 1;
+  repeated CommitFile helm_release_files = 2;
+}
 
 message ListGitopsClustersRequest {
   string label = 1; 

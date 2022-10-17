@@ -18,6 +18,7 @@ type AddApplication struct {
 	Source            *agouti.Selection
 	Cluster           *agouti.Selection
 	RemoveApplication *agouti.Selection
+	SourceHref        *agouti.Selection
 }
 
 type GitOps struct {
@@ -53,6 +54,7 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 		Source:            app.Find(`[id="SELECT SOURCE-input"]`),
 		Cluster:           app.Find(`[id="SELECT CLUSTER-input"]`),
 		RemoveApplication: app.Find(`button#remove-application`),
+		SourceHref:        webDriver.First(`div a[class*="Link"]`),
 	}
 }
 
@@ -69,8 +71,8 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		PullRequestDesc: webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
 		GitCredentials:  webDriver.Find(`div.auth-message`),
 		CreatePR:        webDriver.FindByButton(`CREATE PULL REQUEST`),
-		SuccessBar:      webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::div`),
-		PRLinkBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "PR created")]/parent::div`),
-		ErrorBar:        webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::div`),
+		SuccessBar:      webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::node()`),
+		PRLinkBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "PR created")]/parent::node()`),
+		ErrorBar:        webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::node()`),
 	}
 }

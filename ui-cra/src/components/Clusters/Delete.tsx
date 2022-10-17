@@ -18,7 +18,7 @@ import {
   getProviderToken,
   Icon,
   IconType,
-  theme,
+  Link,
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
@@ -114,14 +114,9 @@ export const DeleteClusterDialog: FC<Props> = ({
           {
             message: {
               component: (
-                <a
-                  style={{ color: theme.colors.primary }}
-                  href={response.webUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href={response.webUrl} newTab>
                   PR created successfully.
-                </a>
+                </Link>
               ),
             },
             variant: 'success',
