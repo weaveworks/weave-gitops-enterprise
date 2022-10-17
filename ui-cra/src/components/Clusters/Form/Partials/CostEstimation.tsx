@@ -19,16 +19,17 @@ const CostEstimation: FC<{
   const [estimate, setEstimate] = React.useState('$0.00 USD');
   useEffect(() => {
     if (costEstimation) {
+      const {
+        currency,
+        amount,
+        range: { low, high },
+      } = costEstimation;
       const estimate =
-        costEstimation?.amount !== undefined
-          ? `${costFormatter.format(costEstimation.amount)} ${
-              costEstimation.currency
-            }`
-          : `${costFormatter.format(
-              costEstimation.range.low,
-            )} - ${costFormatter.format(costEstimation.range.high)} ${
-              costEstimation.currency
-            }`;
+        amount !== undefined
+          ? `${costFormatter.format(amount)} ${currency}`
+          : `${costFormatter.format(low)} - ${costFormatter.format(
+              high,
+            )} ${currency}`;
       setEstimate(estimate);
     }
   }, [costEstimation]);
