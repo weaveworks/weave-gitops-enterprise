@@ -12,15 +12,11 @@ import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 
 const EditResource: FC<{
-  resource?: GitopsClusterEnriched | Automation | Source;
+  resource: GitopsClusterEnriched | Automation | Source;
 }> = ({ resource }) => {
   const { getTemplate } = useTemplates();
-  const { resourceType } = useParams<{ resourceType: string }>();
 
-  const templateName = getCreateRequestAnnotation(
-    resource,
-    resourceType,
-  )?.template_name;
+  const templateName = getCreateRequestAnnotation(resource)?.template_name;
 
   if (!templateName) {
     return (

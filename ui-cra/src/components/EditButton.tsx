@@ -20,22 +20,14 @@ export const EditButton: React.FC<{
   return (
     <Link
       to={{
-        pathname: `/resources/${resource.type || 'Cluster'}/${
-          resource.name
-        }/edit`,
+        pathname: `/resources/${resource.type}/${resource.name}/edit`,
         state: { resource },
       }}
     >
-      <Tooltip title={`Edit ${resource.type || 'Cluster'}`} placement="top">
+      <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div>
           <EditWrapper
-            disabled={
-              !Boolean(
-                resource.type
-                  ? getCreateRequestAnnotation(resource)
-                  : getCreateRequestAnnotation(resource, 'Cluster'),
-              )
-            }
+            disabled={!Boolean(getCreateRequestAnnotation(resource))}
             startIcon={<EditIcon fontSize="small" />}
           />
         </div>

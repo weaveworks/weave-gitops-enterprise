@@ -36,6 +36,8 @@ const WGApplicationsKustomization: FC<Props> = ({
   );
   const { path } = useRouteMatch();
 
+  console.log(kustomization);
+
   const customTabs: Array<routeTab> = [
     {
       name: 'Violations',
@@ -61,7 +63,7 @@ const WGApplicationsKustomization: FC<Props> = ({
       path={[
         {
           label: 'Applications',
-          url:Routes.Applications,
+          url: Routes.Applications,
         },
         {
           label: `${name}`,

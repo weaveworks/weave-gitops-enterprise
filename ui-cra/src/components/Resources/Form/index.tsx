@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, Redirect, useParams } from 'react-router-dom';
+import { useHistory, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import { Divider, Grid, useMediaQuery } from '@material-ui/core';
 import {
@@ -125,12 +125,8 @@ function getInitialData(
   resource: GitopsClusterEnriched | Automation | Source | undefined,
   callbackState: any,
   random: string,
-  resourceType?: string,
 ) {
-  const resourceData =
-    resource && getCreateRequestAnnotation(resource, resourceType);
-
-  // console.log(resource, resourceData);
+  const resourceData = resource && getCreateRequestAnnotation(resource);
 
   const resourceName = resource?.name || resourceData?.objects?.[0].name;
   const defaultFormData = {
@@ -245,13 +241,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
-  const { resourceType } = useParams<{ resourceType: string }>();
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
     callbackState,
     random,
-    resourceType,
   );
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
@@ -277,7 +271,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
   const authRedirectPage = resource
-    ? `/resources/${resourceType}/${resource?.name}/edit`
+    ? `/resources/${resource?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
