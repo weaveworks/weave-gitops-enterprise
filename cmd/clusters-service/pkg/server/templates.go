@@ -250,8 +250,16 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 			kustomizationFiles = append(kustomizationFiles, kustomization)
 		}
 	}
+	// Temporary mock data of cost estimate
+	costEstimate := &capiv1_proto.CostEstimate{
+		Currency: "USD",
+		Range: &capiv1_proto.CostEstimate_Range{
+			Low:  0,
+			High: 1000000,
+		},
+	}
 
-	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster}, err
+	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate }, err
 }
 
 func isProviderRecognised(provider string) bool {

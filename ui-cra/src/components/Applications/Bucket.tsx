@@ -1,8 +1,9 @@
 import { FC } from 'react';
-import { BucketDetail, Kind, useGetObject } from '@weaveworks/weave-gitops';
+import { BucketDetail, Kind, useGetObject, V2Routes } from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -24,11 +25,11 @@ const WGApplicationsBucket: FC<Props> = props => {
       path={[
         {
           label: 'Applications',
-          url: '/applications',
+          url: Routes.Applications,
         },
         {
           label: 'Sources',
-          url: '/sources',
+          url: V2Routes.Sources,
         },
         {
           label: `${props.name}`,

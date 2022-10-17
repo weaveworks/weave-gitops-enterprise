@@ -46,6 +46,7 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
+import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import Credentials from './Partials/Credentials';
@@ -333,7 +334,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push('/clusters');
+        history.push(Routes.Clusters);
         setNotifications([
           {
             message: {
