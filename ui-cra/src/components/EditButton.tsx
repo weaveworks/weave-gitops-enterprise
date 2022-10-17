@@ -18,17 +18,19 @@ export const EditButton: React.FC<{
   resource: GitopsClusterEnriched | Automation | Source;
   isLoading: boolean;
 }> = ({ resource, isLoading }) => {
+  const disabled = !Boolean(getCreateRequestAnnotation(resource));
   return (
     <Link
       to={{
-        pathname: `/resources/${resource.type}/${resource.name}/edit`,
+        pathname: `/resources/${resource.name}/edit`,
         state: { resource, isLoading },
       }}
+      style={{ pointerEvents: disabled ? 'none' : 'all' }}
     >
       <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div>
           <EditWrapper
-            disabled={!Boolean(getCreateRequestAnnotation(resource))}
+            disabled={disabled}
             startIcon={<EditIcon fontSize="small" />}
           />
         </div>
