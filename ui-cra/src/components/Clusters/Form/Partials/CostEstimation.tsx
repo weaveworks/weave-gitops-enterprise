@@ -56,9 +56,6 @@ const CostEstimation: FC<{
               <Grid
                 item
                 xs={6}
-                sm={6}
-                md={6}
-                lg={6}
                 justifyContent="flex-start"
                 alignItems="center"
                 container
@@ -68,9 +65,6 @@ const CostEstimation: FC<{
               <Grid
                 item
                 xs={6}
-                sm={6}
-                md={6}
-                lg={6}
                 justifyContent="flex-end"
                 alignItems="center"
                 container
@@ -83,9 +77,6 @@ const CostEstimation: FC<{
         <Grid
           item
           xs={6}
-          sm={6}
-          md={6}
-          lg={6}
           justifyContent="flex-end"
           alignItems="center"
           container
