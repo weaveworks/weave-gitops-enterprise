@@ -58,7 +58,7 @@ describe('ListPolicViolations', () => {
     expect(await screen.findByText('Violation Logs')).toBeTruthy();
 
     // Details
-   
+
     expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
       'default/tw-cluster-2',
     );
@@ -73,7 +73,7 @@ describe('ListPolicViolations', () => {
       'flux-system/helm-controller',
     );
 
-    // Occurences
+    // Occurrences
     const occurrences = document.querySelectorAll('#occurrences li');
     expect(occurrences).toHaveLength(1);
 
@@ -129,14 +129,9 @@ describe('ListPolicViolations', () => {
       render(c);
     });
 
-    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
-      '--',
-    );
+    expect(screen.getByTestId('Cluster Name')).toHaveTextContent('--');
     expect(screen.getByTestId('Severity')).toHaveTextContent('test');
-    expect(screen.getByTestId('Category')).toHaveTextContent(
-      '--',
-    );
-   
+    expect(screen.getByTestId('Category')).toHaveTextContent('--');
   });
 
   it('renders application violation details', async () => {
@@ -170,8 +165,8 @@ describe('ListPolicViolations', () => {
         <PolicyViolationDetails
           clusterName="default/tw-cluster-2"
           id="2c1d87a4-525c-4c54-a587-c6f6a904ca31"
-          source='APPLICATION'
-          sourcePath='kustomization'
+          source="APPLICATION"
+          sourcePath="kustomization"
         />,
       );
       render(c);
@@ -187,7 +182,7 @@ describe('ListPolicViolations', () => {
     expect(screen.getByTestId('Policy Name')).toHaveTextContent(
       'Controller ServiceAccount Tokens Automount',
     );
-    
+
     expect(screen.getByTestId('Violation Time')).toHaveTextContent(
       moment('2022-08-24T19:39:11Z').fromNow(),
     );
@@ -195,6 +190,6 @@ describe('ListPolicViolations', () => {
     expect(screen.getByTestId('Category')).toHaveTextContent(
       'weave.categories.access-control',
     );
-    expect(screen.queryByTestId('Application')).toBeNull()
+    expect(screen.queryByTestId('Application')).toBeNull();
   });
 });
