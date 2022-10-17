@@ -36,8 +36,6 @@ const WGApplicationsKustomization: FC<Props> = ({
   );
   const { path } = useRouteMatch();
 
-  console.log(kustomization);
-
   const customTabs: Array<routeTab> = [
     {
       name: 'Violations',
@@ -78,7 +76,9 @@ const WGApplicationsKustomization: FC<Props> = ({
       >
         <KustomizationDetail
           kustomization={kustomization}
-          customActions={[<EditButton resource={kustomization} />]}
+          customActions={[
+            <EditButton resource={kustomization} isLoading={isLoading} />,
+          ]}
           customTabs={customTabs}
         />
       </ContentWrapper>

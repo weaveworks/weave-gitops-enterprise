@@ -1,5 +1,10 @@
 import { FC } from 'react';
-import { BucketDetail, Kind, useGetObject, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  BucketDetail,
+  Kind,
+  useGetObject,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
@@ -45,7 +50,9 @@ const WGApplicationsBucket: FC<Props> = props => {
       >
         <BucketDetail
           bucket={bucket}
-          customActions={[<EditButton resource={bucket} />]}
+          customActions={[
+            <EditButton resource={bucket} isLoading={isLoading} />,
+          ]}
           {...props}
         />
       </ContentWrapper>

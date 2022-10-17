@@ -1,7 +1,12 @@
 import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { HelmChartDetail, Kind, useGetObject, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  HelmChartDetail,
+  Kind,
+  useGetObject,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../EditButton';
 import { Routes } from '../../utils/nav';
@@ -45,7 +50,9 @@ const WGApplicationsHelmChart: FC<Props> = props => {
       >
         <HelmChartDetail
           helmChart={helmChart}
-          customActions={[<EditButton resource={helmChart} />]}
+          customActions={[
+            <EditButton resource={helmChart} isLoading={isLoading} />,
+          ]}
           {...props}
         />
       </ContentWrapper>

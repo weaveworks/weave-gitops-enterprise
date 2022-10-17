@@ -55,7 +55,9 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
       >
         <HelmRepositoryDetail
           helmRepository={helmRepository}
-          customActions={[<EditButton resource={helmRepository} />]}
+          customActions={[
+            <EditButton resource={helmRepository} isLoading={isLoading} />,
+          ]}
           {...props}
         />
       </ContentWrapper>

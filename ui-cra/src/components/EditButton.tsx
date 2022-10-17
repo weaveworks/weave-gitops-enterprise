@@ -16,12 +16,13 @@ const EditWrapper = styled(Button)`
 
 export const EditButton: React.FC<{
   resource: GitopsClusterEnriched | Automation | Source;
-}> = ({ resource }) => {
+  isLoading: boolean;
+}> = ({ resource, isLoading }) => {
   return (
     <Link
       to={{
         pathname: `/resources/${resource.type}/${resource.name}/edit`,
-        state: { resource },
+        state: { resource, isLoading },
       }}
     >
       <Tooltip title={`Edit ${resource.type}`} placement="top">

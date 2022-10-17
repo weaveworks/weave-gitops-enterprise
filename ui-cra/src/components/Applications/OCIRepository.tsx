@@ -55,7 +55,9 @@ const WGApplicationsOCIRepository: FC<Props> = props => {
       >
         <OCIRepositoryDetail
           ociRepository={ociRepository}
-          customActions={[<EditButton resource={ociRepository} />]}
+          customActions={[
+            <EditButton resource={ociRepository} isLoading={isLoading} />,
+          ]}
           {...props}
         />
       </ContentWrapper>

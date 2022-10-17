@@ -1,8 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
-import { Redirect, useParams } from 'react-router-dom';
-import useClusters from '../../../hooks/clusters';
+import { Redirect } from 'react-router-dom';
 import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Routes } from '../../../utils/nav';
@@ -45,20 +44,19 @@ const EditResource: FC<{
 
 const EditResourcePage: FC<{
   location: {
-    state: { resource: GitopsClusterEnriched | Automation | Source };
+    state: {
+      resource: GitopsClusterEnriched | Automation | Source;
+      isLoading: boolean;
+    };
   };
 }> = ({ location }) => {
-  const resource = location.state?.resource;
-
-  const { isLoading } = useClusters();
+  const { resource, isLoading } = location.state;
   const { isLoading: isTemplateLoading } = useTemplates();
-  const { resourceName } =
-    useParams<{ resourceName: string; resourceType: string }>();
 
   return (
     <PageTemplate
       documentTitle="Edit resource"
-      path={[{ label: 'Resource' }, { label: resourceName }]}
+      path={[{ label: 'Resource' }, { label: resource.name }]}
     >
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>
