@@ -117,7 +117,7 @@ const setVersionAndValuesFromCluster = (
   profiles: UpdatedProfile[],
   cluster: GitopsClusterEnriched,
 ) => {
-  const clusterData = getCreateRequestAnnotation(cluster);
+  const clusterData = getCreateRequestAnnotation(cluster, 'Cluster');
 
   const profilesIndex = _.keyBy(profiles, 'name');
 
@@ -222,6 +222,8 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
     () => mergeClusterAndTemplate(data, template, cluster),
     [data, template, cluster],
   );
+
+  console.log(profiles);
 
   return (
     <Profiles.Provider

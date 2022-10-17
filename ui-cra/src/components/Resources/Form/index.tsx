@@ -130,7 +130,7 @@ function getInitialData(
   const resourceData =
     resource && getCreateRequestAnnotation(resource, resourceType);
 
-  console.log(resourceData);
+  // console.log(resource, resourceData);
 
   const resourceName = resource?.name || resourceData?.objects?.[0].name;
   const defaultFormData = {

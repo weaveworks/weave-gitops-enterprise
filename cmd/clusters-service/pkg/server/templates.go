@@ -132,8 +132,6 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	// fmt.Printf(getClusterNamespace(msg.ClusterNamespace))
-	
 	templateBits, err := renderTemplateWithValues(tm, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.Values)
 	if err != nil {
 		return nil, err
