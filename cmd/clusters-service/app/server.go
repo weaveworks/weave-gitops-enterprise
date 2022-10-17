@@ -96,6 +96,8 @@ func EnterprisePublicRoutes() []string {
 	return core.PublicRoutes
 }
 
+// bump
+
 // Options contains all the options for the `ui run` command.
 type Params struct {
 	EntitlementSecretName             string                    `mapstructure:"entitlement-secret-name"`
@@ -126,7 +128,6 @@ type Params struct {
 	TLSCert                           string                    `mapstructure:"tls-cert"`
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
-	ChartsCacheURI                    string                    `mapstructure:"charts-cache-uri"`
 	DevMode                           bool                      `mapstructure:"dev-mode"`
 }
 
@@ -191,7 +192,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
-	cmd.Flags().String("charts-cache-uri", "/tmp/charts-cache.db", "URI of the charts cache database")
 
 	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -382,7 +382,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
-	chartsCache, err := helm.NewChartIndexer(p.ChartsCacheURI)
+	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation)
 	if err != nil {
 		return fmt.Errorf("could not create charts cache: %w", err)
 	}
@@ -448,7 +448,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithRuntimeNamespace(p.RuntimeNamespace),
 		WithDevMode(p.DevMode),
 		WithClustersManager(clustersManager),
-		WithChartsCache(*chartsCache),
+		WithChartsCache(chartsCache),
 	)
 }
 
@@ -501,7 +501,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
 			CAPIEnabled:               args.CAPIEnabled,
 			ChartJobs:                 helm.NewJobs(),
-			ChartsCache:               &args.ChartsCache,
+			ChartsCache:               args.ChartsCache,
 			ValuesFetcher:             helm.NewValuesFetcher(),
 		},
 	)

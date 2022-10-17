@@ -64,6 +64,10 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 
 // GetValuesForChart returns the values for a given chart.
 func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesForChartRequest) (*protos.GetValuesForChartResponse, error) {
+	if req.Repository == nil || req.Repository.Cluster == nil {
+		return nil, fmt.Errorf("repository or cluster is nil")
+	}
+
 	clusterRef := types.NamespacedName{
 		Name:      req.Repository.Cluster.Name,
 		Namespace: req.Repository.Cluster.Namespace,
@@ -80,21 +84,21 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 		Version: req.Version,
 	}
 
-	found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
-	if err != nil {
-		return nil, fmt.Errorf("error checking if chart is known: %w", err)
-	}
-	if !found {
-		return nil, &grpcruntime.HTTPStatusError{
-			Err:        errors.New("chart version not found"),
-			HTTPStatus: http.StatusOK,
-		}
-	}
+	// found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error checking if chart is known: %w", err)
+	// }
+	// if !found {
+	// 	return nil, &grpcruntime.HTTPStatusError{
+	// 		Err:        errors.New("chart version not found"),
+	// 		HTTPStatus: http.StatusNotFound,
+	// 	}
+	// }
 
 	jobId := s.chartJobs.New()
 
 	go func() {
-		res, err := s.GetOrFetchValues(ctx, repoRef, clusterRef, chart)
+		res, err := s.GetOrFetchValues(context.Background(), repoRef, clusterRef, chart)
 		s.chartJobs.Set(jobId, helm.JobResult{Result: res, Error: err})
 	}()
 
@@ -133,15 +137,15 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 		return "", fmt.Errorf("error getting client config for cluster: %w", err)
 	}
 
-	data, err := s.valuesFetcher.GetValuesFile(ctx, config, clusterRef, chart)
+	data, err := s.valuesFetcher.GetValuesFile(ctx, config, types.NamespacedName{Namespace: repoRef.Namespace, Name: repoRef.Name}, chart, clusterRef.Name != helm.ManagementClusterName)
 	if err != nil {
 		return "", fmt.Errorf("error fetching values file: %w", err)
 	}
 
-	err = s.chartsCache.UpdateValuesYaml(ctx, clusterRef, repoRef, chart, data)
-	if err != nil {
-		return "", fmt.Errorf("error updating values yaml: %w", err)
-	}
+	// err = s.chartsCache.UpdateValuesYaml(ctx, clusterRef, repoRef, chart, data)
+	// if err != nil {
+	// 	return "", fmt.Errorf("error updating values yaml: %w", err)
+	// }
 
 	return string(data), nil
 }
@@ -149,7 +153,7 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 // GetClientConfigForCluster returns the client config for a given cluster.
 func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
 	clusterName := cluster.Name
-	if clusterName != "management" {
+	if clusterName != helm.ManagementClusterName {
 		clusterName = fmt.Sprintf("%s/%s", cluster.Namespace, cluster.Name)
 	}
 

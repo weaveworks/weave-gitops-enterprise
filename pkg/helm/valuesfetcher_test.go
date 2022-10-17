@@ -143,7 +143,7 @@ func TestGetIndexFile(t *testing.T) {
 	indexFile, err := v.GetIndexFile(context.Background(), nil, types.NamespacedName{
 		Namespace: "flux-system",
 		Name:      "weaveworks-charts",
-	})
+	}, true)
 
 	if err != nil {
 		t.Fatal(err)
@@ -189,6 +189,7 @@ func TestGetValues(t *testing.T) {
 		&rest.Config{},
 		types.NamespacedName{Namespace: "flux-system", Name: "weaveworks-charts"},
 		Chart{Name: "cert-manager", Version: "0.0.8"},
+		true,
 	)
 
 	if err != nil {
@@ -226,7 +227,7 @@ func TestValuesFetching(t *testing.T) {
 	config := ctrl.GetConfigOrDie()
 
 	f := NewValuesFetcher()
-	index, err := f.GetIndexFile(context.Background(), config, types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"})
+	index, err := f.GetIndexFile(context.Background(), config, types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,6 +245,7 @@ func TestValuesFetching(t *testing.T) {
 			Name:    "cert-manager",
 			Version: "0.0.8",
 		},
+		true,
 	)
 
 	if err != nil {

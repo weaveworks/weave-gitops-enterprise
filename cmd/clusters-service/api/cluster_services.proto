@@ -174,7 +174,8 @@ service ClustersService {
   rpc GetValuesForChart(GetValuesForChartRequest) returns
     (GetValuesForChartResponse) {
      option (google.api.http) = {
-        post : "/v1/charts/values",
+        post : "/v1/charts/values"
+        body : "*"
       };
     }
 
@@ -183,7 +184,7 @@ service ClustersService {
   rpc GetChartsJob(GetChartsJobRequest) returns
     (GetChartsJobResponse) {
      option (google.api.http) = {
-        post : "/v1/charts/jobs/{job_id}",
+        get : "/v1/charts/jobs/{job_id}",
       };
     }
 }

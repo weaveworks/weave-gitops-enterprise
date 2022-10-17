@@ -11,7 +11,6 @@ import (
 type JobResult struct {
 	Result string
 	Error  error
-	Done   bool
 }
 
 type Jobs struct {
@@ -36,6 +35,10 @@ func (j *Jobs) New() string {
 
 func (j *Jobs) Get(id string) (JobResult, bool) {
 	res, found := j.results.Get(ttlcache.StringKey(id))
+	if !found {
+		return JobResult{}, false
+	}
+
 	return res.(JobResult), found
 }
 

@@ -234,7 +234,7 @@ func createDB(cacheLocation string) (*sql.DB, error) {
 	dbFileLocation := filepath.Join(cacheLocation, dbFile)
 	db, err := sql.Open("sqlite3", dbFileLocation)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		return nil, fmt.Errorf("failed to open database: %q, %w", cacheLocation, err)
 	}
 	// From the readme: https://github.com/mattn/go-sqlite3
 	db.SetMaxOpenConns(1)

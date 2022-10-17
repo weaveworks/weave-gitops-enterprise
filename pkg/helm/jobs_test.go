@@ -36,4 +36,9 @@ func TestJobs(t *testing.T) {
 	if bData.Result != "" {
 		t.Errorf("expected empty result, got %s", bData.Result)
 	}
+
+	cData, found := j.Get("3")
+	if found != false {
+		t.Errorf("expected not to find id 3, got %s", cData.Result)
+	}
 }

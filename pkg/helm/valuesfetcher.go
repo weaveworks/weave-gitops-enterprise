@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/fluxcd/pkg/untar"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -24,8 +27,8 @@ import (
 )
 
 type ValuesFetcher interface {
-	GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName) (*repo.IndexFile, error)
-	GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, c Chart) ([]byte, error)
+	GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error)
+	GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, c Chart, useProxy bool) ([]byte, error)
 }
 
 type MakeClientsFn func(config *rest.Config) (client.Client, kubernetes.Interface, error)
@@ -53,16 +56,21 @@ func getClient(config *rest.Config) (client.Client, error) {
 	return client.New(config, client.Options{Scheme: schema})
 }
 
+// use apimachinery wait package to wait for the HelmChart to be ready
 func waitForReady(ctx context.Context, cl client.Client, helmChart *sourcev1.HelmChart) error {
-	// use apimachinery wait package to wait for the HelmChart to be ready
-	// then get the values file from the HelmChart
-	return util.PollImmediate(1*time.Second, 10*time.Second, func() (bool, error) {
+	err := util.PollImmediate(1*time.Second, 30*time.Second, func() (bool, error) {
 		err := cl.Get(ctx, types.NamespacedName{Namespace: helmChart.Namespace, Name: helmChart.Name}, helmChart)
 		if err != nil {
 			return false, fmt.Errorf("failed to get HelmChart: %w", err)
 		}
 		return conditions.IsReady(helmChart), nil
 	})
+
+	if err != nil {
+		return fmt.Errorf("%w: HelmChart %s/%s is not ready: %s", err, helmChart.Namespace, helmChart.Name, conditions.GetMessage(helmChart, meta.ReadyCondition))
+	}
+
+	return nil
 }
 
 type valuesFetcher struct {
@@ -75,7 +83,7 @@ func NewValuesFetcher() ValuesFetcher {
 	}
 }
 
-func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName) (*repo.IndexFile, error) {
+func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
 	// Get the HelmRepository
 	helmRepoObj := &sourcev1.HelmRepository{}
 	cl, kcl, err := v.makeClients(config)
@@ -93,7 +101,7 @@ func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, h
 		return nil, fmt.Errorf("no artifact URL found for HelmRepository %s", helmRepo)
 	}
 
-	data, err := httpGetFromSourceController(kcl, artifactURL)
+	data, err := httpGetFromSourceController(kcl, artifactURL, useProxy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get index file: %w", err)
 	}
@@ -112,7 +120,7 @@ func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, h
 	return i, nil
 }
 
-func (v *valuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, chartRef Chart) ([]byte, error) {
+func (v *valuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, chartRef Chart, useProxy bool) ([]byte, error) {
 	// clients
 	cl, kcl, err := v.makeClients(config)
 	if err != nil {
@@ -156,7 +164,7 @@ func (v *valuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, 
 		return nil, fmt.Errorf("failed to wait for HelmChart to be ready: %w", err)
 	}
 
-	data, err := httpGetFromSourceController(kcl, helmChart.Status.URL)
+	data, err := httpGetFromSourceController(kcl, helmChart.Status.URL, useProxy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get values file: %w", err)
 	}
@@ -187,13 +195,20 @@ func getValuesYamlFromArchive(data []byte, chartName string) ([]byte, error) {
 	return os.ReadFile(filepath.Join(dname, chartName, "values.yaml"))
 }
 
-func httpGetFromSourceController(kcl kubernetes.Interface, url string) ([]byte, error) {
+func httpGetFromSourceController(kcl kubernetes.Interface, url string, useProxy bool) ([]byte, error) {
+	if !useProxy {
+		data, err := httpGetFromSourceControllerLocal(url)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get values file from local cluster: %w", err)
+		}
+		return data, nil
+	}
+
 	parsed, err := ParseArtifactURL(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse artifact URL: %w", err)
 	}
 
-	fmt.Printf("Getting artifact from %s\n", kcl)
 	res := kcl.
 		CoreV1().
 		Services(parsed.Namespace).
@@ -201,8 +216,20 @@ func httpGetFromSourceController(kcl kubernetes.Interface, url string) ([]byte, 
 
 	data, err := res.DoRaw(context.TODO())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get artifact: %w", err)
+		return nil, fmt.Errorf("failed to get artifact from %+v: %w", parsed, err)
 	}
 
 	return data, nil
+}
+
+func httpGetFromSourceControllerLocal(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get URL: %w", err)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	return body, nil
 }

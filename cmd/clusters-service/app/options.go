@@ -47,7 +47,7 @@ type Options struct {
 	NoTLS                        bool
 	DevMode                      bool
 	ClustersManager              clustersmngr.ClustersManager
-	ChartsCache                  helm.HelmChartIndexer
+	ChartsCache                  *helm.HelmChartIndexer
 }
 
 type Option func(*Options)
@@ -237,7 +237,7 @@ func WithClustersManager(factory clustersmngr.ClustersManager) Option {
 }
 
 // WithClustersCache defines the clusters cache that will be use for cross-cluster queries.
-func WithChartsCache(chartCache helm.HelmChartIndexer) Option {
+func WithChartsCache(chartCache *helm.HelmChartIndexer) Option {
 	return func(o *Options) {
 		o.ChartsCache = chartCache
 	}

@@ -400,10 +400,10 @@ func chartRefToString(or helm.ObjectReference, cr types.NamespacedName, c helm.C
 type fakeValuesFetcher struct {
 }
 
-func (f *fakeValuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName) (*repo.IndexFile, error) {
+func (f *fakeValuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
 	return nil, nil
 }
 
-func (f *fakeValuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, c helm.Chart) ([]byte, error) {
+func (f *fakeValuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, c helm.Chart, useProxy bool) ([]byte, error) {
 	return []byte("this:\n  is:\n    a: value"), nil
 }

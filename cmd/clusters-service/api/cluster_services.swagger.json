@@ -17,7 +17,7 @@
   ],
   "paths": {
     "/v1/charts/jobs/{jobId}": {
-      "post": {
+      "get": {
         "summary": "GetChartsJob gets the default Values.yaml for the provided Chart\nreference.",
         "operationId": "ClustersService_GetChartsJob",
         "responses": {
@@ -128,46 +128,12 @@
         },
         "parameters": [
           {
-            "name": "repository.cluster.namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "repository.cluster.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "repository.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "repository.namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "repository.kind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartRequest"
+            }
           }
         ],
         "tags": [
@@ -1471,6 +1437,20 @@
       "properties": {
         "template": {
           "$ref": "#/definitions/v1Template"
+        }
+      }
+    },
+    "v1GetValuesForChartRequest": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "$ref": "#/definitions/v1RepositoryRef"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
         }
       }
     },
