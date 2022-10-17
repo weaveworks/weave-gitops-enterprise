@@ -83,7 +83,7 @@ If this is a final (non-rc) release, de-select the `This is a pre-release` check
 
 > **Note**
 > If there are PRs listed here that you are not familiar with, ask in `#weave-gitops-dev` on slack.
-> You can ping another team to ask them to update release notes too.
+> You can ping another team to ask them to update with highlights from their perspective.
 
 You can use a [previous release](https://github.com/weaveworks/weave-gitops-enterprise/releases) as a template here.
 
@@ -113,3 +113,8 @@ Sample:
 > Hi! There is a new release of Weave Gitops Enterprise v0.9.6!
 > - https://github.com/weaveworks/weave-gitops-enterprise/releases/tag/v0.9.6
 > - https://docs.gitops.weave.works/docs/enterprise/releases/
+
+
+### Update this document with any thing that unclear!
+
+Always be improving this document. If you find something that is unclear, or something that could be improved, please update this document and send a PR.
