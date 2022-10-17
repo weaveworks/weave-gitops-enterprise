@@ -130,6 +130,8 @@ function getInitialData(
   const resourceData =
     resource && getCreateRequestAnnotation(resource, resourceType);
 
+  console.log(resourceData);
+
   const resourceName = resource?.name || resourceData?.objects?.[0].name;
   const defaultFormData = {
     url: '',
@@ -235,7 +237,7 @@ interface ResourceFormProps {
   type?: string;
 }
 
-const ResourceForm: FC<ResourceFormProps> = ({ template, resource, type }) => {
+const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addCluster } = useTemplates();

@@ -5,8 +5,8 @@ import { Button } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import EditIcon from '@material-ui/icons/Edit';
 import { Tooltip } from './Shared';
-import { getCreateRequestAnnotation } from './Clusters/Form/utils';
 import { GitopsClusterEnriched } from '../types/custom';
+import { getCreateRequestAnnotation } from './Resources/Form/utils';
 
 const EditWrapper = styled(Button)`
   span {

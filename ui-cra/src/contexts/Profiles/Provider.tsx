@@ -17,7 +17,7 @@ import { maybeFromBase64 } from '../../utils/base64';
 import {
   getCreateRequestAnnotation,
   maybeParseJSON,
-} from '../../components/Clusters/Form/utils';
+} from '../../components/Resources/Form/utils';
 
 const profilesUrl = '/v1/profiles';
 

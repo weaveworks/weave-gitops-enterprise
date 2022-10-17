@@ -19,6 +19,7 @@ const TemplateFields: FC<{
   const UNEDITABLE_FIELDS = template.parameters
     ?.filter(param => Boolean(param.editable))
     .map(param => param.name);
+  console.log(formData.parameterValues);
   const { isExact: isEditing } = useRouteMatch(Routes.EditResource) || {};
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
