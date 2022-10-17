@@ -68,6 +68,7 @@ const (
 	ASSERTION_15MINUTE_TIME_OUT  time.Duration = 15 * time.Minute
 
 	POLL_INTERVAL_1SECONDS        time.Duration = 1 * time.Second
+	POLL_INTERVAL_3SECONDS        time.Duration = 3 * time.Second
 	POLL_INTERVAL_5SECONDS        time.Duration = 5 * time.Second
 	POLL_INTERVAL_15SECONDS       time.Duration = 15 * time.Second
 	POLL_INTERVAL_100MILLISECONDS time.Duration = 100 * time.Millisecond
