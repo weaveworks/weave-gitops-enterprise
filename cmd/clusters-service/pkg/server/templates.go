@@ -34,6 +34,7 @@ type GetFilesReturn struct {
 	ProfileFiles       []gitprovider.CommitFile
 	KustomizationFiles []gitprovider.CommitFile
 	Cluster            types.NamespacedName
+	CostEstimate       *capiv1_proto.CostEstimate
 }
 
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
@@ -259,7 +260,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 		},
 	}
 
-	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate }, err
+	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
 }
 
 func isProviderRecognised(provider string) bool {
