@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/sclevine/agouti"
 )
@@ -46,6 +47,7 @@ type ApplicationDetail struct {
 	AppliedRevision   *agouti.Selection
 	AttemptedRevision *agouti.Selection
 	Cluster           *agouti.Selection
+	Tenant            *agouti.Selection
 	Path              *agouti.Selection
 	Interval          *agouti.Selection
 	LastUpdated       *agouti.Selection
@@ -120,8 +122,14 @@ func (a ApplicationsPage) FindApplicationInList(applicationName string) *Applica
 }
 
 func (a ApplicationsPage) CountApplications() int {
-	applications := a.ApplicationsList.All("tr")
+	applications := a.ApplicationsList.AllByXPath(`tr[.!="No data"]`)
 	count, _ := applications.Count()
+	return count
+}
+
+func (a ApplicationsPage) ApplicationsHeaderCount() int {
+	cnt, _ := a.ApplicationCount.Text()
+	count, _ := strconv.Atoi(cnt)
 	return count
 }
 
@@ -160,6 +168,7 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 		AppliedRevision:   autoDetails.FindByXPath(`tr[contains(.,"Applied Revision")]/td[2]`),
 		AttemptedRevision: autoDetails.FindByXPath(`tr[contains(.,"Attempted Revision")]/td[2]`),
 		Cluster:           autoDetails.FindByXPath(`tr[contains(.,"Cluster")]/td[2]`),
+		Tenant:            autoDetails.FindByXPath(`tr[contains(.,"Tenant")]/td[2]`),
 		Path:              autoDetails.FindByXPath(`tr[contains(.,"Path:")]/td[2]`),
 		Interval:          autoDetails.FindByXPath(`tr[contains(.,"Interval")]/td[2]`),
 		LastUpdated:       autoDetails.FindByXPath(`tr[contains(.,"Last Updated")]/td[2]`),
