@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -97,7 +96,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Templates page to be rendered", func() {
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`0`))
+					// gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`0`))
 
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 					gomega.Expect(tileCount).To(gomega.Equal(0), "There should not be any template tile rendered")
@@ -144,13 +143,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Templates page to be fully rendered", func() {
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`[0-9]+`))
+					// gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`[0-9]+`))
 
-					count, _ := templatesPage.TemplateCount.Text()
-					templateCount, _ := strconv.Atoi(count)
+					// count, _ := templatesPage.TemplateCount.Text()
+					// templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 
-					gomega.Eventually(templateCount).Should(gomega.Equal(totalTemplateCount), "The template header count should be equal to templates created")
+					// gomega.Eventually(templateCount).Should(gomega.Equal(totalTemplateCount), "The template header count should be equal to templates created")
 					gomega.Eventually(tileCount).Should(gomega.Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
@@ -301,11 +300,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
 
-					count, _ := templatesPage.TemplateCount.Text()
-					templateCount, _ := strconv.Atoi(count)
+					// count, _ := templatesPage.TemplateCount.Text()
+					// templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 
-					gomega.Eventually(templateCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The template header count should be equal to templates created")
+					// gomega.Eventually(templateCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The template header count should be equal to templates created")
 					gomega.Eventually(tileCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
