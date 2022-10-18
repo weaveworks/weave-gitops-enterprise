@@ -743,6 +743,19 @@
     }
   },
   "definitions": {
+    "CostEstimateRange": {
+      "type": "object",
+      "properties": {
+        "low": {
+          "type": "number",
+          "format": "float"
+        },
+        "high": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
     "apiHttpBody": {
       "type": "object",
       "properties": {
@@ -949,6 +962,21 @@
         }
       },
       "title": "kubernetes status condition field\nXXX: is dup'd in core, can we share?"
+    },
+    "v1CostEstimate": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "float"
+        },
+        "range": {
+          "$ref": "#/definitions/CostEstimateRange"
+        }
+      }
     },
     "v1CreateAutomationsPullRequestRequest": {
       "type": "object",
@@ -1856,6 +1884,9 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "costEstimate": {
+          "$ref": "#/definitions/v1CostEstimate"
         }
       }
     },
