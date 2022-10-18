@@ -25,6 +25,7 @@ import {
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
+  RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
@@ -36,7 +37,6 @@ import {
   Credential,
   GitopsClusterEnriched,
   ProfilesIndex,
-  ClusterPRPreview,
   TemplateEnriched,
 } from '../../../types/custom';
 import { utf8_to_b64 } from '../../../utils/base64';
@@ -268,6 +268,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
+  console.log({ updatedProfiles });
+
   useEffect(() => {
     clearCallbackState();
   }, []);
@@ -288,17 +290,23 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     ? `/clusters/${cluster?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
+  const [PRPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
+    null,
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const handlePRPreview = useCallback(() => {
-    const { url, provider, clusterAutomations, ...templateFields } = formData;
+    const { parameterValues } = formData;
     setPreviewLoading(true);
-    return renderTemplate(template.name, {
-      values: templateFields.parameterValues,
-      credentials: infraCredential,
+    const enc = encodedProfiles(updatedProfiles);
+    return renderTemplate({
+      templateName: template.name,
+      values: parameterValues,
+      profiles: enc,
+      credentials: infraCredential || undefined,
       kustomizations: getKustomizations(formData),
+      templateKind: template.templateKind,
     })
       .then(data => {
         setOpenPreview(true);
@@ -317,6 +325,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     infraCredential,
     setNotifications,
     template.name,
+    template.templateKind,
+    updatedProfiles,
   ]);
 
   const handleAddCluster = useCallback(() => {
