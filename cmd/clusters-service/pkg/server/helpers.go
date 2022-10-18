@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/viper"
 
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
@@ -18,7 +19,7 @@ func renderTemplateWithValues(t apitemplates.Template, name, namespace string, v
 			"templates.weave.works/template-namespace": viper.GetString("capi-templates-namespace"),
 		}),
 	}
-	if viper.GetString("inject-prune-annotation") != "disabled" {
+	if viper.GetString("inject-prune-annotation") != "disabled" && isCAPITemplate(t) {
 		opts = append(opts, templates.InjectPruneAnnotation)
 	}
 
@@ -77,4 +78,8 @@ func getClusterNamespace(clusterNamespace string) string {
 		namespace = clusterNamespace
 	}
 	return namespace
+}
+
+func isCAPITemplate(t apitemplates.Template) bool {
+	return t.GetObjectKind().GroupVersionKind().Kind == capiv1.Kind
 }
