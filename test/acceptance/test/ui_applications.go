@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -318,11 +317,6 @@ func createGitopsPR(pullRequest PullRequest) {
 	})
 }
 
-func getAppHeaderCount(applicationsPage *pages.ApplicationsPage) int {
-	gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-	time.Sleep(POLL_INTERVAL_1SECONDS)
-	return applicationsPage.ApplicationsHeaderCount()
-}
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
 
@@ -336,7 +330,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.Context("[UI] When no applications are installed", func() {
 			ginkgo.It("Verify management cluster dashboard shows bootstrap 'flux-system' application", ginkgo.Label("integration"), func() {
-				existingAppCount := getApplicationCount()
+				// existingAppCount := getApplicationCount()
 
 				fluxSystem := Application{
 					Type:      "Kustomization",
@@ -364,9 +358,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And wait for Applications page to be rendered", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", existingAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", existingAppCount))
 
 					gomega.Expect(applicationsPage.CountApplications()).To(gomega.Equal(1), "There should not be any cluster in cluster table")
 				})
@@ -438,9 +432,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
@@ -546,9 +540,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
@@ -649,9 +643,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
@@ -786,9 +780,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("Dashboard failed to update with existing applications count: %d", existingAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("Dashboard failed to update with existing applications count: %d", existingAppCount))
 				})
 
 				ginkgo.By(`And navigate to 'Add Application' page`, func() {
@@ -829,9 +823,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
@@ -943,9 +937,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("Dashboard failed to update with existing applications count: %d", existingAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("Dashboard failed to update with existing applications count: %d", existingAppCount))
 				})
 
 				ginkgo.By(`And navigate to 'Add Application' page`, func() {
@@ -987,9 +981,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1 // metallb (leaf cluster)
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					// gomega.Eventually(func(g gomega.Gomega) int {
+					// 	return getAppHeaderCount(applicationsPage)
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
@@ -1112,13 +1106,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := applicationsPage.ApplicationCount.Text()
-						return count
+					// gomega.Eventually(func(g gomega.Gomega) string {
+					// 	g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					// 	time.Sleep(POLL_INTERVAL_1SECONDS)
+					// 	count, _ := applicationsPage.ApplicationCount.Text()
+					// 	return count
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()

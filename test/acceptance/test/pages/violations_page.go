@@ -8,8 +8,8 @@ import (
 
 type ViolationsPage struct {
 	ViolationHeader *agouti.Selection
-	ViolationCount  *agouti.Selection
-	ViolationList   *agouti.Selection
+	// ViolationCount  *agouti.Selection
+	ViolationList *agouti.Selection
 }
 
 type ViolationInformation struct {
@@ -56,8 +56,8 @@ func (v ViolationsPage) CountViolations() int {
 func GetViolationsPage(webDriver *agouti.Page) *ViolationsPage {
 	return &ViolationsPage{
 		ViolationHeader: webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
-		ViolationCount:  webDriver.First(`.section-header-count`),
-		ViolationList:   webDriver.First(`table tbody`),
+		// ViolationCount:  webDriver.First(`.section-header-count`),
+		ViolationList: webDriver.First(`table tbody`),
 	}
 }
 

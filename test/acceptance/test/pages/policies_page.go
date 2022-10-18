@@ -8,7 +8,7 @@ import (
 
 type PoliciesPage struct {
 	PolicyHeader *agouti.Selection
-	PolicyCount  *agouti.Selection
+	// PolicyCount  *agouti.Selection
 	PoliciesList *agouti.Selection
 	AlertError   *agouti.Selection
 }
@@ -71,7 +71,7 @@ func (p PoliciesPage) CountPolicies() int {
 func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 	policyPage := PoliciesPage{
 		PolicyHeader: webDriver.Find(`div[role="heading"] a[href="/policies"]`),
-		PolicyCount:  webDriver.Find(`.section-header-count`),
+		// PolicyCount:  webDriver.Find(`.section-header-count`),
 		PoliciesList: webDriver.First(`table tbody`),
 		AlertError:   webDriver.Find(`#alert-list-errors`),
 	}

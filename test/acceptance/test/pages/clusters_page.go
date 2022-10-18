@@ -39,8 +39,8 @@ type DeletePullRequestPopup struct {
 
 // ClustersPage elements
 type ClustersPage struct {
-	ClusterHeader         *agouti.Selection
-	ClusterCount          *agouti.Selection
+	ClusterHeader *agouti.Selection
+	// ClusterCount          *agouti.Selection
 	ConnectClusterButton  *agouti.Selection
 	PRDeleteClusterButton *agouti.Selection
 	ClustersList          *agouti.Selection
@@ -125,8 +125,8 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 // GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
-		ClusterHeader:         webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
-		ClusterCount:          webDriver.Find(`.count-header .section-header-count`),
+		ClusterHeader: webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
+		// ClusterCount:          webDriver.Find(`.count-header .section-header-count`),
 		ConnectClusterButton:  webDriver.Find(`#connect-cluster`),
 		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
 		ClustersList:          webDriver.First(`#clusters-list table tbody`),

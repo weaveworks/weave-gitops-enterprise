@@ -16,7 +16,6 @@ const WGApplicationsFluxRuntime: FC = () => {
         {
           label: 'Flux Runtime',
           url: '/flux_runtime',
-          count: data?.deployments?.length,
         },
       ]}
     >
