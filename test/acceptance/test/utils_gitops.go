@@ -491,7 +491,7 @@ func connectGitopsCuster(clusterName string, nameSpace string, bootstrapLabel st
 	return gitopsCluster
 }
 
-func addSource(sourceType, sourceName, namespace, url, kubeconfig string) {
+func addSource(sourceType, sourceName, namespace, url, branchName, kubeconfig string) {
 	ginkgo.By(fmt.Sprintf("Adding %s %s Source", sourceType, sourceName), func() {
 		if kubeconfig != "" {
 			kubeconfig = "--kubeconfig=" + kubeconfig
@@ -500,7 +500,7 @@ func addSource(sourceType, sourceName, namespace, url, kubeconfig string) {
 		var err error
 		switch sourceType {
 		case "git":
-			err = runCommandPassThrough("sh", "-c", fmt.Sprintf("flux create source git %s --url=%s --branch=master --interval=30s --namespace %s %s", sourceName, url, namespace, kubeconfig))
+			err = runCommandPassThrough("sh", "-c", fmt.Sprintf("flux create source git %s --url=%s --branch=%s --interval=30s --namespace %s %s", sourceName, url, branchName, namespace, kubeconfig))
 		case "helm":
 			err = runCommandPassThrough("sh", "-c", fmt.Sprintf("flux create source helm %s --url=%s --interval=30s --namespace %s %s", sourceName, url, namespace, kubeconfig))
 		}

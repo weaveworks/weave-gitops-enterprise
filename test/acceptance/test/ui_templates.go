@@ -171,8 +171,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					filterID := "provider: aws"
 					searchPage := pages.GetSearchPage(webDriver)
 					searchPage.SelectFilter("provider", filterID)
-
-					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
 					gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
 				})
 
@@ -358,9 +356,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				ginkgo.By("Then missing required parameters should get focus when previewing PR", func() {
+				ginkgo.By("Then I should see toast with missing required parameters", func() {
+					errorBar := pages.GetGitOps(webDriver).ErrorBar
 					gomega.Eventually(createPage.PreviewPR.Click).Should(gomega.Succeed())
-					gomega.Eventually(createPage.GetTemplateParameter(webDriver, "AWS_REGION").Focused).Should(matchers.BeFound(), "Missing required parameter 'AWS_REGION' failed to get focus")
+					gomega.Eventually(errorBar.Text).Should(gomega.MatchRegexp(`error rendering template eks-fargate-template-0, missing required parameter: AWS_REGION`))
+					gomega.Eventually(errorBar.Click).Should(gomega.HaveOccurred(), "Failed dissmiss error toast")
 				})
 
 				parameters = []TemplateField{
@@ -518,9 +518,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				gitops := pages.GetGitOps(webDriver)
 				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
 					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-					anchor := gitops.PRLinkBar.Find("a")
-					gomega.Eventually(anchor).Should(matchers.BeFound())
-					prUrl, _ = anchor.Attribute("href")
+					prUrl, _ = gitops.PRLinkBar.Attribute("href")
 				})
 
 				var createPRUrl string
@@ -1160,9 +1158,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					filterID := "clusterName: " + clusterNamespace + `/` + clusterName
 					searchPage := pages.GetSearchPage(webDriver)
 					searchPage.SelectFilter("cluster", filterID)
-
-					gomega.Expect(searchPage.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to click filter buttton")
-
 					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(8), "There should be 7 application enteries in application table")
 				})
 

@@ -102,7 +102,7 @@ jobs:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      GITHUB_ORG: wge-org-test
+      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
       GIT_PROVIDER_HOSTNAME: gitlab.git.dev.weave.works

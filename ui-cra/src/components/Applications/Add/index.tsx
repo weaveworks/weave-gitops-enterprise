@@ -10,11 +10,12 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   Button,
   CallbackStateContextProvider,
+  clearCallbackState,
   getProviderToken,
+  Link,
   LoadingPage,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
@@ -33,8 +34,11 @@ import {
   ProfilesIndex,
   ClusterPRPreview,
 } from '../../../types/custom';
+import { validateFormData } from '../../../utils/form';
+import { getGitRepoHTTPSURL } from '../../../utils/formatters';
+import { Routes } from '../../../utils/nav';
 
-const PRPreviewWrapper = styled.div`
+const FormWrapper = styled.form`
   .preview-cta {
     display: flex;
     justify-content: flex-end;
@@ -47,6 +51,22 @@ const PRPreviewWrapper = styled.div`
   .preview-loading {
     padding: ${({ theme }) => theme.spacing.base};
   }
+  .create-cta {
+    display: flex;
+    justify-content: end;
+    padding: ${({ theme }) => theme.spacing.small};
+    button {
+      width: 200px;
+    }
+  }
+  .create-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+`;
+
+const SourceLinkWrapper = styled.div`
+  padding-top: ${({ theme }) => theme.spacing.medium};
+  overflow-x: auto;
 `;
 
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
@@ -57,6 +77,29 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+
+  const optionUrl = (url?: string, branch?: string) => {
+    const linkText = branch ? (
+      <>
+        {url}@<strong>{branch}</strong>
+      </>
+    ) : (
+      url
+    );
+    if (branch) {
+      return (
+        <Link href={getGitRepoHTTPSURL(url, branch)} newTab>
+          {linkText}
+        </Link>
+      );
+    } else {
+      return (
+        <Link href={getGitRepoHTTPSURL(url)} newTab>
+          {linkText}
+        </Link>
+      );
+    }
+  };
 
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
 
@@ -84,6 +127,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         source_namespace: '',
         source: '',
         source_type: '',
+        source_url: '',
+        source_branch: '',
       },
     ],
     ...callbackState?.state?.formData,
@@ -97,6 +142,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [PRPreview, setPRPreview] = useState<
     ClusterPRPreview | AppPRPreview | null
   >(null);
+  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -104,6 +150,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       ...callbackState?.state?.updatedProfiles,
     });
   }, [callbackState?.state?.updatedProfiles, profiles]);
+
+  useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
     setFormData((prevState: any) => ({
@@ -235,19 +283,14 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push('/applications');
+        history.push(Routes.Applications);
         setNotifications([
           {
             message: {
               component: (
-                <a
-                  style={{ color: weaveTheme.colors.primary }}
-                  href={response.webUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href={response.webUrl} newTab>
                   PR created successfully.
-                </a>
+                </Link>
               ),
             },
             variant: 'success',
@@ -273,7 +316,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
           path={[
             {
               label: 'Applications',
-              url: '/applications',
+              url: Routes.Applications,
             },
             { label: 'Add new application' },
           ]}
@@ -288,64 +331,88 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper>
-              <Grid container>
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  {formData.clusterAutomations.map(
-                    (automation: ClusterAutomation, index: number) => {
-                      return (
-                        <AppFields
-                          context="app"
-                          key={index}
-                          index={index}
-                          formData={formData}
-                          setFormData={setFormData}
-                          allowSelectCluster
-                          clusterName={clusterName}
-                        />
-                      );
-                    },
-                  )}
-                  {openPreview && PRPreview ? (
-                    <Preview
+              <FormWrapper>
+                <Grid container>
+                  <Grid item xs={12} sm={10} md={10} lg={8}>
+                    {formData.clusterAutomations.map(
+                      (automation: ClusterAutomation, index: number) => {
+                        return (
+                          <AppFields
+                            context="app"
+                            key={index}
+                            index={index}
+                            formData={formData}
+                            setFormData={setFormData}
+                            allowSelectCluster
+                            clusterName={clusterName}
+                          />
+                        );
+                      },
+                    )}
+                    {openPreview && PRPreview ? (
+                      <Preview
+                        context="app"
+                        openPreview={openPreview}
+                        setOpenPreview={setOpenPreview}
+                        PRPreview={PRPreview}
+                        sourceType={formData.source_type}
+                      />
+                    ) : null}
+                  </Grid>
+                  <Grid item sm={2} md={2} lg={4}>
+                    <SourceLinkWrapper>
+                      {optionUrl(formData.source_url, formData.source_branch)}
+                    </SourceLinkWrapper>
+                  </Grid>
+                  {formData.source_type === 'HelmRepository' ? (
+                    <Profiles
+                      // Temp fix to hide layers when using profiles in Add App until we update the BE
                       context="app"
-                      openPreview={openPreview}
-                      setOpenPreview={setOpenPreview}
-                      PRPreview={PRPreview}
-                      sourceType={formData.source_type}
+                      isLoading={profilesIsLoading}
+                      updatedProfiles={updatedProfiles}
+                      setUpdatedProfiles={setUpdatedProfiles}
                     />
                   ) : null}
-                </Grid>
-                {formData.source_type === 'HelmRepository' ? (
-                  <Profiles
-                    // Temp fix to hide layers when using profiles in Add App until we update the BE
-                    context="app"
-                    isLoading={profilesIsLoading}
-                    updatedProfiles={updatedProfiles}
-                    setUpdatedProfiles={setUpdatedProfiles}
-                  />
-                ) : null}
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  <PRPreviewWrapper>
+                  <Grid item xs={12} sm={10} md={10} lg={8}>
                     {previewLoading ? (
                       <LoadingPage className="preview-loading" />
                     ) : (
                       <div className="preview-cta">
-                        <Button onClick={handlePRPreview}>PREVIEW PR</Button>
+                        <Button
+                          onClick={event =>
+                            validateFormData(event, handlePRPreview)
+                          }
+                        >
+                          PREVIEW PR
+                        </Button>
                       </div>
                     )}
-                  </PRPreviewWrapper>
+                  </Grid>
+                  <Grid item xs={12} sm={10} md={10} lg={8}>
+                    <GitOps
+                      formData={formData}
+                      setFormData={setFormData}
+                      showAuthDialog={showAuthDialog}
+                      setShowAuthDialog={setShowAuthDialog}
+                      setEnableCreatePR={setEnableCreatePR}
+                    />
+                    {loading ? (
+                      <LoadingPage className="create-loading" />
+                    ) : (
+                      <div className="create-cta">
+                        <Button
+                          onClick={event =>
+                            validateFormData(event, handleAddApplication)
+                          }
+                          disabled={!enableCreatePR}
+                        >
+                          CREATE PULL REQUEST
+                        </Button>
+                      </div>
+                    )}
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  <GitOps
-                    loading={loading}
-                    formData={formData}
-                    setFormData={setFormData}
-                    onSubmit={handleAddApplication}
-                    showAuthDialog={showAuthDialog}
-                    setShowAuthDialog={setShowAuthDialog}
-                  />
-                </Grid>
-              </Grid>
+              </FormWrapper>
             </ContentWrapper>
           </CallbackStateContextProvider>
         </PageTemplate>
@@ -365,6 +432,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     handlePRPreview,
     previewLoading,
     clusterName,
+    enableCreatePR,
   ]);
 };
 

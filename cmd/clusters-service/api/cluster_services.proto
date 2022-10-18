@@ -217,10 +217,23 @@ message CommitFile {
 	string content = 2;
 }
 
+
+
+message CostEstimate{
+  message Range {
+    float low = 1;
+    float high = 2;
+  };
+  string currency = 1;
+  float amount = 2;
+  Range range = 3;
+}
+
 message RenderTemplateResponse { 
   string rendered_template = 1; 
   repeated CommitFile profile_files = 2; 
   repeated CommitFile kustomization_files = 3;
+  CostEstimate costEstimate = 4;
 }
 
 message RenderAutomationRequest {
@@ -332,6 +345,7 @@ message CreatePullRequestRequest {
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
 }
+
 message CreatePullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;

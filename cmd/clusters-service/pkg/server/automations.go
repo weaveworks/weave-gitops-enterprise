@@ -26,23 +26,30 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
+type GetAutomations struct {
+	KustomizationFiles []*capiv1_proto.CommitFile
+	HelmReleaseFiles   []*capiv1_proto.CommitFile
+	Clusters           []string
+}
+
+func toGitCommitFile(file *capiv1_proto.CommitFile) gitprovider.CommitFile {
+	return gitprovider.CommitFile{
+		Path:    &file.Path,
+		Content: &file.Content,
+	}
+}
+
 // CreateAutomationsPullRequest receives a list of {kustomization, helmrelease, cluster}
 // generates a kustomization file and/or a helm release file for each provided cluster in the list
 // and creates a pull request for the generated files
 func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_proto.CreateAutomationsPullRequestRequest) (*capiv1_proto.CreateAutomationsPullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
+	client, err := s.clientGetter.Client(ctx)
+
 	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
-	}
-
-	applyCreateAutomationDefaults(msg.ClusterAutomations)
-
-	if err := validateCreateAutomationsPR(msg); err != nil {
-		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
 
-	client, err := s.clientGetter.Client(ctx)
+	automations, err := getAutomations(ctx, client, msg.ClusterAutomations)
 	if err != nil {
 		return nil, err
 	}
@@ -56,46 +63,22 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		baseBranch = msg.BaseBranch
 	}
 
-	var clusters []string
-
 	var files []gitprovider.CommitFile
 
-	for _, c := range msg.ClusterAutomations {
-		cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
-
-		if c.Kustomization != nil {
-			if c.Kustomization.Spec.CreateNamespace {
-				namespace, err := generateNamespaceFile(ctx, c.IsControlPlane, cluster, c.Kustomization.Spec.TargetNamespace, c.FilePath)
-				if err != nil {
-					return nil, err
-				}
-
-				files = append(files, namespace)
-			}
-
-			kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
-			if err != nil {
-				return nil, err
-			}
-
-			files = append(files, kustomization)
+	if len(automations.KustomizationFiles) > 0 {
+		for _, f := range automations.KustomizationFiles {
+			files = append(files, toGitCommitFile(f))
 		}
+	}
 
-		if c.HelmRelease != nil {
-			helmRelease, err := generateHelmReleaseFile(ctx, c.IsControlPlane, cluster, client, c.HelmRelease, c.FilePath)
-
-			if err != nil {
-				return nil, err
-			}
-
-			files = append(files, helmRelease)
+	if len(automations.HelmReleaseFiles) > 0 {
+		for _, f := range automations.HelmReleaseFiles {
+			files = append(files, toGitCommitFile(f))
 		}
-
-		clusters = append(clusters, c.Cluster.Name)
 	}
 
 	if msg.HeadBranch == "" {
-		clusters := strings.Join(clusters, "")
+		clusters := strings.Join(automations.Clusters, "")
 		msg.HeadBranch = getHash(msg.RepositoryUrl, clusters, msg.BaseBranch)
 	}
 	if msg.Title == "" {
@@ -107,6 +90,12 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	if msg.CommitMessage == "" {
 		msg.CommitMessage = "Add Kustomization Manifests"
 	}
+
+	gp, err := getGitProvider(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
+	}
+
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
@@ -142,16 +131,43 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		return nil, err
 	}
 
-	applyCreateAutomationDefaults(msg.ClusterAutomations)
+	automations, err := getAutomations(ctx, client, msg.ClusterAutomations)
 
+	if err != nil {
+		return nil, err
+	}
+
+	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automations.KustomizationFiles, HelmReleaseFiles: automations.HelmReleaseFiles}, err
+}
+
+func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_proto.ClusterAutomation) (*GetAutomations, error) {
+	applyCreateAutomationDefaults(ca)
+
+	if err := validateAutomations(ca); err != nil {
+		return nil, err
+	}
+
+	var clusters []string
 	var kustomizationFiles []*capiv1_proto.CommitFile
 	var helmReleaseFiles []*capiv1_proto.CommitFile
 
-	if len(msg.ClusterAutomations) > 0 {
-		for _, c := range msg.ClusterAutomations {
+	if len(ca) > 0 {
+		for _, c := range ca {
 			cluster := createNamespacedName(c.Cluster.Name, c.Cluster.Namespace)
 
 			if c.Kustomization != nil {
+				if c.Kustomization.Spec.CreateNamespace {
+					namespace, err := generateNamespaceFile(ctx, c.IsControlPlane, cluster, c.Kustomization.Spec.TargetNamespace, c.FilePath)
+					if err != nil {
+						return nil, err
+					}
+
+					kustomizationFiles = append(kustomizationFiles, &capiv1_proto.CommitFile{
+						Path:    *namespace.Path,
+						Content: *namespace.Content,
+					})
+				}
+
 				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
 
 				if err != nil {
@@ -176,10 +192,12 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 					Content: *helmRelease.Content,
 				})
 			}
+
+			clusters = append(clusters, c.Cluster.Name)
 		}
 	}
 
-	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles}, err
+	return &GetAutomations{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles, Clusters: clusters}, nil
 }
 
 func generateHelmReleaseFile(
@@ -273,14 +291,14 @@ func applyCreateAutomationDefaults(msg []*capiv1_proto.ClusterAutomation) {
 	}
 }
 
-func validateCreateAutomationsPR(msg *capiv1_proto.CreateAutomationsPullRequestRequest) error {
+func validateAutomations(ca []*capiv1_proto.ClusterAutomation) error {
 	var err error
 
-	if len(msg.ClusterAutomations) == 0 {
+	if len(ca) == 0 {
 		err = multierror.Append(err, fmt.Errorf(createClusterAutomationsRequiredErr))
 	}
 
-	for _, c := range msg.ClusterAutomations {
+	for _, c := range ca {
 		if c.Cluster == nil {
 			err = multierror.Append(err, fmt.Errorf("cluster object must be specified"))
 		} else {
