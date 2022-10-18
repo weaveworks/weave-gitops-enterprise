@@ -243,6 +243,18 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 
 	if len(msg.Kustomizations) > 0 {
 		for _, k := range msg.Kustomizations {
+			// FIXME: dedup this with the automations
+			if k.Spec.CreateNamespace {
+				namespace, err := generateNamespaceFile(ctx, false, cluster, k.Spec.TargetNamespace, "")
+				if err != nil {
+					return nil, err
+				}
+				kustomizationFiles = append(kustomizationFiles, gitprovider.CommitFile{
+					Path:    namespace.Path,
+					Content: namespace.Content,
+				})
+			}
+
 			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
 			if err != nil {
 				return nil, err
@@ -251,6 +263,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 			kustomizationFiles = append(kustomizationFiles, kustomization)
 		}
 	}
+
 	// Temporary mock data of cost estimate
 	costEstimate := &capiv1_proto.CostEstimate{
 		Currency: "USD",

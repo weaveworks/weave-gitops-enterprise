@@ -43,20 +43,13 @@ func toGitCommitFile(file *capiv1_proto.CommitFile) gitprovider.CommitFile {
 // generates a kustomization file and/or a helm release file for each provided cluster in the list
 // and creates a pull request for the generated files
 func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_proto.CreateAutomationsPullRequestRequest) (*capiv1_proto.CreateAutomationsPullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
+	client, err := s.clientGetter.Client(ctx)
+
 	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
-	}
-
-	applyCreateAutomationDefaults(msg.ClusterAutomations)
-
-	if err := validateCreateAutomationsPR(msg); err != nil {
-		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
 
-	client, err := s.clientGetter.Client(ctx)
-
+	automations, err := getAutomations(ctx, client, msg.ClusterAutomations)
 	if err != nil {
 		return nil, err
 	}
@@ -68,12 +61,6 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	baseBranch := viper.GetString("capi-templates-repository-base-branch")
 	if msg.BaseBranch != "" {
 		baseBranch = msg.BaseBranch
-	}
-
-	automations, err := getAutomations(ctx, client, msg.ClusterAutomations)
-
-	if err != nil {
-		return nil, err
 	}
 
 	var files []gitprovider.CommitFile
@@ -103,6 +90,12 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	if msg.CommitMessage == "" {
 		msg.CommitMessage = "Add Kustomization Manifests"
 	}
+
+	gp, err := getGitProvider(ctx)
+	if err != nil {
+		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
+	}
+
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
@@ -133,8 +126,6 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 // generates a kustomization file and/or a helm release file for each provided cluster in the list
 // and returns the generated files
 func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderAutomationRequest) (*capiv1_proto.RenderAutomationResponse, error) {
-	applyCreateAutomationDefaults(msg.ClusterAutomations)
-
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
@@ -151,6 +142,10 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 
 func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_proto.ClusterAutomation) (*GetAutomations, error) {
 	applyCreateAutomationDefaults(ca)
+
+	if err := validateAutomations(ca); err != nil {
+		return nil, err
+	}
 
 	var clusters []string
 	var kustomizationFiles []*capiv1_proto.CommitFile
@@ -296,14 +291,14 @@ func applyCreateAutomationDefaults(msg []*capiv1_proto.ClusterAutomation) {
 	}
 }
 
-func validateCreateAutomationsPR(msg *capiv1_proto.CreateAutomationsPullRequestRequest) error {
+func validateAutomations(ca []*capiv1_proto.ClusterAutomation) error {
 	var err error
 
-	if len(msg.ClusterAutomations) == 0 {
+	if len(ca) == 0 {
 		err = multierror.Append(err, fmt.Errorf(createClusterAutomationsRequiredErr))
 	}
 
-	for _, c := range msg.ClusterAutomations {
+	for _, c := range ca {
 		if c.Cluster == nil {
 			err = multierror.Append(err, fmt.Errorf("cluster object must be specified"))
 		} else {
