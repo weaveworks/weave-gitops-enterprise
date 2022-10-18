@@ -57,8 +57,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c6.MuiIconButton-root {
-  background-color: #F6F7F9;
-  color: #737373;
+  background-color: #fff;
 }
 
 .c6.MuiIconButton-root:hover {
