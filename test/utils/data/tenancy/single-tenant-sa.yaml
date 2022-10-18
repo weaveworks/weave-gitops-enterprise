@@ -1,0 +1,22 @@
+tenants:
+  - name: dev-team
+    namespaces:
+    - dev-system
+    teamRBAC:
+      groupNames: 
+      - weaveworks:Pesto
+      - developers
+      rules:       
+        - apiGroups: ["apps"]
+          resources: [ "deployments", "replicasets"]
+          verbs: [ "get", "list" ]
+        - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+          resources: [ "kustomizations" ]
+          verbs: [ "get", "list", "patch" ]
+        - apiGroups: ["helm.toolkit.fluxcd.io"]
+          resources: [ "helmreleases" ]
+          verbs: [ "get", "list", "patch" ]    
+serviceAccount:
+  name: "reconcilerServiceAccount"
+
+              
