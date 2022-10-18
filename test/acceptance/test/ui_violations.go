@@ -62,13 +62,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
 
 					totalViolationCount := existingViolationCount + 2 // Container Running As Root + Containers Running With Privilege Escalation
-					// gomega.Eventually(func(g gomega.Gomega) string {
-					// 	g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-					// 	time.Sleep(POLL_INTERVAL_1SECONDS)
-					// 	count, _ := violationsPage.ViolationCount.Text()
-					// 	return count
-
-					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return violationsPage.CountViolations()
@@ -204,13 +197,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
 
 					totalViolationCount := existingViolationCount + 1 + 1 // 1 management and 1 leaf violation
-					// gomega.Eventually(func(g gomega.Gomega) string {
-					// 	g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-					// 	time.Sleep(POLL_INTERVAL_1SECONDS)
-					// 	count, _ := violationsPage.ViolationCount.Text()
-					// 	return count
-
-					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return violationsPage.CountViolations()
