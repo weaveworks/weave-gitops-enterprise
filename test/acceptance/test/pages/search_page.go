@@ -18,9 +18,9 @@ type SearchPage struct {
 
 func GetSearchPage(webDriver *agouti.Page) *SearchPage {
 	return &SearchPage{
-		SearchBtn:    webDriver.FindByXPath(`(//input[@placeholder="Search"]/ancestor::div[contains(@class, "TopBar")]//button)[1]`),
+		SearchBtn:    webDriver.FindByXPath(`(//input[@placeholder="Search"]/ancestor::div[contains(@class, "TopBar")]/div[last()]//button)[1]`),
 		Search:       webDriver.FindByID(`table-search`),
-		FilterBtn:    webDriver.FindByXPath(`(//input[@placeholder="Search"]/ancestor::div[contains(@class, "TopBar")]//button)[2]`),
+		FilterBtn:    webDriver.FindByXPath(`(//input[@placeholder="Search"]/ancestor::div[contains(@class, "TopBar")]/div[last()]//button)[2]`),
 		FilterDialog: webDriver.Find(`div[class*="FilterDialog"].open`),
 	}
 }
