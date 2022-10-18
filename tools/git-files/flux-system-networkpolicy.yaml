@@ -4,12 +4,8 @@ metadata:
   name: allow-all-ingress-egress
   namespace: flux-system
 spec:
-  podSelector: {}
   ingress:
-  - {}
-  egress:
-  - {}
+    - {}
+  podSelector: {}
   policyTypes:
-  - Ingress
-  - Egress
-
+    - Ingress
