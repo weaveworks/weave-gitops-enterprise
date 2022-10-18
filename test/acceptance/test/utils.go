@@ -87,6 +87,7 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeApplications(gitopsTestRunner)
 	DescribePolicies(gitopsTestRunner)
 	DescribeViolations(gitopsTestRunner)
+	DescribeTenants(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -94,6 +95,7 @@ func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
 	DescribeCliHelp()
 	DescribeCliGet(gitopsTestRunner)
 	DescribeCliAddDelete(gitopsTestRunner)
+	DescribeCliTenant(gitopsTestRunner)
 	DescribeCliUpgrade(gitopsTestRunner)
 }
 
