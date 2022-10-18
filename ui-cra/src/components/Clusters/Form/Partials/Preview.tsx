@@ -12,6 +12,7 @@ import {
   Box,
 } from '@material-ui/core';
 import { AppPRPreview, ClusterPRPreview } from '../../../../types/custom';
+import { RenderTemplateResponse } from '../../../../cluster-services/cluster_services.pb';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiPaper-root']{
@@ -38,7 +39,7 @@ const DialogWrapper = styled(Dialog)`
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
-  PRPreview: ClusterPRPreview | AppPRPreview;
+  PRPreview: RenderTemplateResponse;
   sourceType?: string;
   context?: string;
 }> = ({ PRPreview, openPreview, setOpenPreview, sourceType, context }) => {
