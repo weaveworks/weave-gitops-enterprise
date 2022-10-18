@@ -268,8 +268,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
-  console.log({ updatedProfiles });
-
   useEffect(() => {
     clearCallbackState();
   }, []);
@@ -299,11 +297,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
     setPreviewLoading(true);
-    const enc = encodedProfiles(updatedProfiles);
     return renderTemplate({
       templateName: template.name,
       values: parameterValues,
-      profiles: enc,
+      profiles: encodedProfiles(updatedProfiles),
       credentials: infraCredential || undefined,
       kustomizations: getKustomizations(formData),
       templateKind: template.templateKind,
