@@ -324,4 +324,3 @@ replace (
 	// Fix for CVE-2022-1996
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
 )
-

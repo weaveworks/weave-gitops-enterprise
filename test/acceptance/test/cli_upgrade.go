@@ -244,7 +244,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				// Parameter values

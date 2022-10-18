@@ -227,7 +227,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Create cluster page to be fully rendered - grid view", func() {
 					createPage := pages.GetCreateClusterPage(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				ginkgo.By("And I should wait for the table to be fully loaded - table view by default", func() {
@@ -245,7 +245,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Create cluster page to be fully rendered - table view", func() {
 					createPage := pages.GetCreateClusterPage(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 			})
 		})
@@ -340,7 +340,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				clusterName := "my-eks-cluster"
@@ -415,7 +415,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				// Parameter values
@@ -563,7 +563,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				// Parameter values
@@ -652,7 +652,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				ginkgo.By("Then no infrastructure provider identity can be selected", func() {
@@ -690,7 +690,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				ginkgo.By("Then AWS test-role-identity credential can be selected", func() {
@@ -798,7 +798,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				ginkgo.By("Then AWS aws-test-identity credential can be selected", func() {
@@ -944,7 +944,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				// Parameter values
