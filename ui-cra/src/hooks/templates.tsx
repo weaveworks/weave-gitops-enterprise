@@ -34,12 +34,7 @@ const useTemplates = () => {
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;
 
-  const renderTemplate = useCallback((templateName, data) => {
-    const templatesUrl = '/v1/templates';
-    return request('POST', `${templatesUrl}/${templateName}/render`, {
-      body: JSON.stringify(data),
-    });
-  }, []);
+  const renderTemplate = api.RenderTemplate;
 
   const addCluster = useCallback(
     ({ ...data }, token: string, templateKind: string) => {
