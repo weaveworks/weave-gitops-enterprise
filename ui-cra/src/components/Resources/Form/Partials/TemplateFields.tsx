@@ -5,7 +5,7 @@ import { TemplateEnriched } from '../../../../types/custom';
 import { Input, Select } from '../../../../utils/form';
 import { Routes } from '../../../../utils/nav';
 
-const FormWrapper = styled.form`
+const TemplateFieldsWrapper = styled.div`
   .form-section {
     width: 50%;
   }
@@ -38,7 +38,7 @@ const TemplateFields: FC<{
   };
 
   return (
-    <FormWrapper>
+    <TemplateFieldsWrapper>
       {template.parameters?.map((param, index) => {
         const name = param.name || '';
         const options = param?.options || [];
@@ -73,7 +73,7 @@ const TemplateFields: FC<{
             />
           );
       })}
-    </FormWrapper>
+    </TemplateFieldsWrapper>
   );
 };
 
