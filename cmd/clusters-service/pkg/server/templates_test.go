@@ -604,6 +604,7 @@ func TestRenderTemplate(t *testing.T) {
 		pruneEnvVar      string
 		clusterNamespace string
 		clusterState     []runtime.Object
+		templateKind     string
 		expected         string
 		err              error
 		expectedErrorStr string
@@ -742,6 +743,28 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
+			name:             "enable prune injections with non-CAPI template",
+			pruneEnvVar:      "enabled",
+			clusterNamespace: "test-ns",
+			templateKind:     gapiv1.Kind,
+			clusterState: []runtime.Object{
+				makeClusterTemplateWithProvider(t, "AWSCluster", func(gt *gapiv1.GitOpsTemplate) {
+					gt.Spec.ResourceTemplates = []templates.ResourceTemplate{
+						{
+							RawExtension: rawExtension(`{
+							"apiVersion":"fooversion",
+							"kind":"fookind",
+							"metadata":{
+								"name": "${CLUSTER_NAME}"
+							}
+						}`),
+						},
+					}
+				}),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
 			name:             "render template with renderType: templating",
 			pruneEnvVar:      "disabled",
 			clusterNamespace: "test-ns",
@@ -790,7 +813,8 @@ func TestRenderTemplate(t *testing.T) {
 				Values: map[string]string{
 					"CLUSTER_NAME": "test-cluster",
 				},
-				Credentials: tt.credentials,
+				Credentials:  tt.credentials,
+				TemplateKind: tt.templateKind,
 			}
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
@@ -1213,11 +1237,14 @@ func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...f
 		  "name": "${RESOURCE_NAME}"
 		}
 	  }`
-	return makeClusterTemplates(t, append(opts, func(c *gapiv1.GitOpsTemplate) {
-		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
-			{
-				RawExtension: rawExtension(basicRaw),
-			},
-		}
-	})...)
+	defaultOpts := []func(template *gapiv1.GitOpsTemplate){
+		func(c *gapiv1.GitOpsTemplate) {
+			c.Spec.ResourceTemplates = []templates.ResourceTemplate{
+				{
+					RawExtension: rawExtension(basicRaw),
+				},
+			}
+		},
+	}
+	return makeClusterTemplates(t, append(defaultOpts, opts...)...)
 }
