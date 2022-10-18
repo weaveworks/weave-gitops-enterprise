@@ -49,20 +49,21 @@ type PullRequest struct {
 	Description string
 }
 
-func createGitKustomization(repoName, nameSpace, repoURL, kustomizationName, targetNamespace string) (kustomization string) {
+func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace string) (kustomization string) {
 	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "git-kustomization.yaml"))
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to read git-kustomization template yaml")
 
 	t := template.Must(template.New("kustomization").Parse(string(contents)))
 
 	type TemplateInput struct {
-		GitRepoName       string
-		NameSpace         string
-		GitRepoURL        string
-		KustomizationName string
-		TargetNamespace   string
+		KustomizationName      string
+		KustomizationNameSpace string
+		KustomizationPath      string
+		GitRepoName            string
+		SourceNameSpace        string
+		TargetNamespace        string
 	}
-	input := TemplateInput{repoName, nameSpace, repoURL, kustomizationName, targetNamespace}
+	input := TemplateInput{kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace}
 
 	kustomization = path.Join("/tmp", kustomizationName+"-kustomization.yaml")
 
@@ -156,6 +157,7 @@ func verifyAppPage(app Application) {
 		gomega.Eventually(appDetailPage.Details).Should(matchers.BeEnabled(), fmt.Sprintf("Details tab button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Events).Should(matchers.BeEnabled(), fmt.Sprintf("Events tab button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Graph).Should(matchers.BeEnabled(), fmt.Sprintf("Graph tab button is not visible/enable for %s", app.Name))
+		gomega.Eventually(appDetailPage.Violations).Should(matchers.BeEnabled(), fmt.Sprintf("Violations tab button is not visible/enable for %s", app.Name))
 	})
 }
 
@@ -400,11 +402,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					SyncInterval:    "30s",
 				}
 
+				sourceURL := "https://github.com/stefanprodan/podinfo"
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+
 				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				existingAppCount = getApplicationCount()
 
-				appKustomization := createGitKustomization(podinfo.Source, podinfo.Namespace, "https://github.com/stefanprodan/podinfo", podinfo.Name, podinfo.TargetNamespace)
+				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)
+				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
 				defer cleanGitRepository(appKustomization)
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -478,7 +484,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Title:   "Management Helm Applications",
 					Message: "Adding management helm applications",
 				}
-
+				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
@@ -512,7 +518,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, metallb.Chart), -275, 0)).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, metallb.Chart).Click).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddHelmReleaseApp(profile, metallb)
@@ -600,7 +607,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "")
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 				ginkgo.By(`And navigate to 'Add Application' page`, func() {
 					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 
@@ -618,7 +625,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -290, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddKustomizationApp(application, podinfo)
@@ -769,7 +777,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Add GitRepository source to leaf cluster
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "")
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 				useClusterContext(mgmtClusterContext)
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -805,7 +813,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
 
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, podinfo.Source), -235, 0)).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 				})
 
 				AddKustomizationApp(application, podinfo)
@@ -929,7 +938,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Add HelmRepository source to leaf cluster
-				addSource("helm", metallb.Chart, metallb.Namespace, sourceURL, "")
+				addSource("helm", metallb.Chart, metallb.Namespace, sourceURL, "", "")
 				useClusterContext(mgmtClusterContext)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
@@ -1031,6 +1040,191 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				verifyAppSourcePage(applicationInfo, metallb)
 
 				verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
+			})
+
+		})
+
+		// Application Violations Details page tests
+		ginkgo.Context("[UI] Application violations are available for management cluster", func() {
+			// Count of existing applications before deploying new application
+			var existingAppCount int
+
+			// Just specify policies yaml path
+			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+
+			// Just specify the Violating policy info to create it
+			policyName := "Container Running As Root acceptance test"
+			violationMsg := `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`
+			violationSeverity := "High"
+			violationCategory := "weave.categories.pod-security"
+
+			// Just specify the violated application info to create it
+			appNameSpace := "test-kustomization"
+			appTargetNamespace := "test-system"
+
+			mgmtCluster := ClusterConfig{
+				Type:      "management",
+				Name:      "management",
+				Namespace: "",
+			}
+
+			ginkgo.JustBeforeEach(func() {
+				createNamespace([]string{appNameSpace, appTargetNamespace})
+
+				// Add/Install test Policies to the management cluster
+				installTestPolicies("management", policiesYaml)
+			})
+
+			ginkgo.JustAfterEach(func() {
+				// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
+				gomega.Eventually(func(g gomega.Gomega) int {
+					return getApplicationCount()
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+
+				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+				deleteNamespace([]string{appNameSpace, appTargetNamespace})
+			})
+			ginkgo.It("Verify application violations Details page", ginkgo.Label("integration", "application", "violation"), func() {
+				// Podinfo application details
+				podinfo := Application{
+					Type:            "kustomization",
+					Name:            "app-violations-podinfo",
+					DeploymentName:  "podinfo",
+					Namespace:       appNameSpace,
+					TargetNamespace: appTargetNamespace,
+					Source:          "flux-system",
+					Path:            "./apps/podinfo",
+					SyncInterval:    "30s",
+				}
+
+				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
+				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+				existingAppCount = getApplicationCount()
+
+				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
+				defer cleanGitRepository(appDir)
+
+				pages.NavigateToPage(webDriver, "Applications")
+				// Declare application page variable
+				applicationsPage := pages.GetApplicationsPage(webDriver)
+
+				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
+					pullGitRepo(repoAbsolutePath)
+					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
+					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo"))
+					err := runCommandPassThrough("sh", "-c", createCommand)
+					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
+					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
+				})
+
+				ginkgo.By("Install kustomization Application on management cluster", func() {
+					pullGitRepo(repoAbsolutePath)
+					command := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir))
+					err := runCommandPassThrough("sh", "-c", command)
+					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", command)
+					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
+				})
+
+				ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
+					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+					totalAppCount := existingAppCount + 1
+					gomega.Eventually(func(g gomega.Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						count, _ := applicationsPage.ApplicationCount.Text()
+						return count
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+
+					gomega.Eventually(func(g gomega.Gomega) int {
+						return applicationsPage.CountApplications()
+					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be '%d' application enteries in application table", totalAppCount))
+				})
+
+				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
+
+				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+
+				ginkgo.By(fmt.Sprintf("And navigate to '%s' application page", podinfo.Name), func() {
+					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' application detail page", podinfo.Name))
+					time.Sleep(POLL_INTERVAL_1SECONDS)
+				})
+
+				ginkgo.By(fmt.Sprintf("And open  '%s' application Violations tab", podinfo.Name), func() {
+					// Declare application details page variable
+					appDetailPage := pages.GetApplicationsDetailPage(webDriver, podinfo.Type)
+					gomega.Eventually(appDetailPage.Violations.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to click '%s' Violations tab button", podinfo.Name))
+					pages.WaitForPageToLoad(webDriver)
+					time.Sleep(POLL_INTERVAL_3SECONDS)
+
+				})
+
+				ginkgo.By("And check violations are visible in the Application Violations List", func() {
+					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
+					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Text).Should(gomega.MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in '%s' vioilations list", violationMsg, podinfo.Name))
+
+				})
+
+				ginkgo.By(fmt.Sprintf("Verify '%s' Application Violation Details", policyName), func() {
+
+					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
+
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation detail page of violation '%s'", violationMsg))
+
+					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/clusters/violations/details?clusterName"))
+					time.Sleep(POLL_INTERVAL_3SECONDS)
+
+					appViolationsDetialsPage := pages.GetApplicationViolationsDetailsPage(webDriver)
+
+					gomega.Eventually(appViolationsDetialsPage.ViolationHeader.Text).Should(gomega.MatchRegexp(violationMsg), "Failed to get violation header on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.PolicyName.Text).Should(gomega.MatchRegexp("Policy Name :"), "Failed to get policy name field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Text).Should(gomega.MatchRegexp(policyName), "Failed to get policy name value on App violations details page")
+
+					// Click policy name from app violations details page to navigate to policy details page
+					gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' policy detail page", appViolationsDetialsPage.PolicyNameValue))
+					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/policies/details?"))
+					time.Sleep(POLL_INTERVAL_3SECONDS)
+
+					// Navigate back to the app violations list
+					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to navigate back to the '%s' app violations list", podinfo.Name))
+					time.Sleep(POLL_INTERVAL_3SECONDS)
+
+					gomega.Eventually(appViolationsDetialsPage.ClusterName.Text).Should(gomega.MatchRegexp("Cluster Name :"), "Failed to get cluster name field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.ClusterNameValue.Text).Should(gomega.MatchRegexp(mgmtCluster.Name), "Failed to get cluster name value on App violations details page")
+
+					gomega.Eventually(appViolationsDetialsPage.ViolationTime.Text).Should(gomega.MatchRegexp("Violation Time :"), "Failed to get violation time field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.ViolationTimeValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get violation time value on App violations details page")
+
+					gomega.Eventually(appViolationsDetialsPage.Severity.Text).Should(gomega.MatchRegexp("Severity :"), "Failed to get severity field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.SeverityIcon).NotTo(gomega.BeNil(), "Failed to get severity icon value on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.SeverityValue.Text).Should(gomega.MatchRegexp(violationSeverity), "Failed to get severity value on App violations details page")
+
+					gomega.Eventually(appViolationsDetialsPage.Category.Text).Should(gomega.MatchRegexp("Category :"), "Failed to get category field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.CategoryValue.Text).Should(gomega.MatchRegexp(violationCategory), "Failed to get category value on App violations details page")
+
+					gomega.Eventually(appViolationsDetialsPage.Occurrences.Text).Should(gomega.MatchRegexp("Occurrences"), "Failed to get Occurrences field on App violations details page")
+					gomega.Eventually(appViolationsDetialsPage.OccurrencesCount.Text).Should(gomega.MatchRegexp("( 1 )"), "Failed to get Occurrences count on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.OccurrencesValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get Occurrences value on App violations details page")
+
+					gomega.Eventually(appViolationsDetialsPage.Description.Text).Should(gomega.MatchRegexp("Description:"), "Failed to get description field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.DescriptionValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get description value on App violations details page")
+
+					gomega.Eventually(appViolationsDetialsPage.HowToSolve.Text).Should(gomega.MatchRegexp("How to solve:"), "Failed to get how to resolve field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.HowToSolveValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get how to resolve value on App violations details page")
+
+					gomega.Eventually(appViolationsDetialsPage.ViolatingEntity.Text).Should(gomega.MatchRegexp("Violating Entity:"), "Failed to get violating entity field on App violations details page")
+					gomega.Expect(appViolationsDetialsPage.ViolatingEntityValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get violating entity value on App violations details page")
+				})
+
+				ginkgo.By(fmt.Sprintf("And finally delete the '%s' application", podinfo.Name), func() {
+
+					verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
+
+				})
+
 			})
 		})
 	})

@@ -365,7 +365,7 @@ func TestCreatePullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreatePullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 	}{
 		{
@@ -486,7 +486,7 @@ func TestCreatePullRequest(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/default/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -592,7 +592,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -709,7 +709,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []CommittedFile{
+			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -889,7 +889,7 @@ status: {}
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
-				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
 			}
@@ -897,14 +897,14 @@ status: {}
 	}
 }
 
-func prepCommitedFiles(t *testing.T, serverUrl string, files []CommittedFile) []CommittedFile {
+func prepCommitedFiles(t *testing.T, serverUrl string, files []*capiv1_protos.CommitFile) []*capiv1_protos.CommitFile {
 	parsedURL, err := url.Parse(serverUrl)
 	if err != nil {
 		t.Fatalf("failed to parse URL %s", err)
 	}
-	newFiles := []CommittedFile{}
+	newFiles := []*capiv1_protos.CommitFile{}
 	for _, f := range files {
-		newFiles = append(newFiles, CommittedFile{
+		newFiles = append(newFiles, &capiv1_protos.CommitFile{
 			Path:    f.Path,
 			Content: simpleTemplate(t, f.Content, struct{ Port string }{Port: parsedURL.Port()}),
 		})
@@ -934,6 +934,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "get kubeconfig as JSON",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "value.yaml", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -946,6 +950,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "get kubeconfig as binary",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "value", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -956,16 +964,27 @@ func TestGetKubeconfig(t *testing.T) {
 			expected: []byte("foo"),
 		},
 		{
-			name:                    "secret not found",
+			name: "secret not found",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "testing"
+				}),
+			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				ClusterName:      "dev",
+				ClusterNamespace: "testing",
 			},
-			err: errors.New("unable to get secret \"dev-kubeconfig\" for Kubeconfig: secrets \"dev-kubeconfig\" not found"),
+			err: errors.New("unable to get kubeconfig secret for cluster testing/dev"),
 		},
 		{
 			name: "secret found but is missing key",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "val", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -977,6 +996,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "use cluster_namespace to get secret",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "kube-system"
+				}),
 				makeSecret("dev-kubeconfig", "kube-system", "value", "foo"),
 			},
 			clusterObjectsNamespace: "default",
@@ -990,6 +1013,10 @@ func TestGetKubeconfig(t *testing.T) {
 		{
 			name: "no namespace and lookup across namespaces, use default namespace",
 			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
 				makeSecret("dev-kubeconfig", "default", "value", "foo"),
 			},
 			clusterObjectsNamespace: "",
@@ -998,6 +1025,60 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+		},
+		{
+			name: "user kubeconfig exists",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value.yaml", "foo"),
+				makeSecret("dev-user-kubeconfig", "default", "value.yaml", "bar"),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("bar")))),
+		},
+		{
+			name: "gitops cluster references secret",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "just-a-test-config",
+					}
+				}),
+				makeSecret("just-a-test-config", "default", "value.yaml", "foo"),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "gitops-cluster",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+		},
+		{
+			name: "gitops cluster references non-existent secret",
+			clusterState: []runtime.Object{
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "gitops-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.Spec.SecretRef = &meta.LocalObjectReference{
+						Name: "just-a-test-config",
+					}
+				}),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "gitops-cluster",
+			},
+			ctx: metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			err: errors.New("failed to load referenced secret default/just-a-test-config for cluster default/gitops-cluster"),
 		},
 	}
 	for _, tt := range testCases {
@@ -1020,7 +1101,7 @@ func TestGetKubeconfig(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, res.Data, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(string(tt.expected), string(res.Data)); diff != "" {
 					t.Fatalf("kubeconfig didn't match expected:\n%s", diff)
 				}
 			}
@@ -1035,7 +1116,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		name           string
 		provider       git.Provider
 		req            *capiv1_protos.DeleteClustersPullRequestRequest
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		expected       string
 		err            error
 	}{
@@ -1244,10 +1325,10 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 	return nil, nil
 }
 
-func (p *FakeGitProvider) GetCommittedFiles() []CommittedFile {
-	var committedFiles []CommittedFile
+func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
+	var committedFiles []*capiv1_protos.CommitFile
 	for _, f := range p.committedFiles {
-		committedFiles = append(committedFiles, CommittedFile{
+		committedFiles = append(committedFiles, &capiv1_protos.CommitFile{
 			Path:    *f.Path,
 			Content: *f.Content,
 		})
@@ -1276,11 +1357,6 @@ func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, r
 
 	}
 	return treeEntries, nil
-}
-
-type CommittedFile struct {
-	Path    string
-	Content string
 }
 
 func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
@@ -1798,7 +1874,6 @@ func makeTestTemplateWithProfileAnnotation(renderType, annotationName, annotatio
 }
 
 func testNewClusterNamespacedName(t *testing.T, name, namespace string) *capiv1_protos.ClusterNamespacedName {
-	t.Helper()
 	return &capiv1_protos.ClusterNamespacedName{
 		Name:      name,
 		Namespace: namespace,
@@ -1806,7 +1881,6 @@ func testNewClusterNamespacedName(t *testing.T, name, namespace string) *capiv1_
 }
 
 func testNewMetadata(t *testing.T, name, namespace string) *capiv1_protos.Metadata {
-	t.Helper()
 	return &capiv1_protos.Metadata{
 		Name:      name,
 		Namespace: namespace,
@@ -1814,7 +1888,6 @@ func testNewMetadata(t *testing.T, name, namespace string) *capiv1_protos.Metada
 }
 
 func testNewSourceRef(t *testing.T, name, namespace string) *capiv1_protos.SourceRef {
-	t.Helper()
 	return &capiv1_protos.SourceRef{
 		Name:      name,
 		Namespace: namespace,
@@ -1822,7 +1895,6 @@ func testNewSourceRef(t *testing.T, name, namespace string) *capiv1_protos.Sourc
 }
 
 func testNewChart(t *testing.T, name string, sourceRef *capiv1_protos.SourceRef) *capiv1_protos.Chart {
-	t.Helper()
 	return &capiv1_protos.Chart{
 		Spec: &capiv1_protos.ChartSpec{
 			Chart:     name,

@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"net/http/httptest"
 	"testing"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -616,6 +619,15 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
+			name:             "render template with apps",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
 			name:             "render template with optional value",
 			pruneEnvVar:      "disabled",
 			clusterNamespace: "test-ns",
@@ -792,6 +804,255 @@ func TestRenderTemplate(t *testing.T) {
 			} else {
 				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
+	u := &unstructured.Unstructured{}
+	u.Object = map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"name":      "cred-name",
+			"namespace": "cred-namespace",
+		},
+	}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "infrastructure.cluster.x-k8s.io",
+		Kind:    "AWSClusterStaticIdentity",
+		Version: "v1alpha4",
+	})
+
+	testCases := []struct {
+		name             string
+		pruneEnvVar      string
+		clusterNamespace string
+		clusterState     []runtime.Object
+		expected         *capiv1_protos.RenderTemplateResponse
+		err              error
+		expectedErrorStr string
+		credentials      *capiv1_protos.Credential
+		req              *capiv1_protos.RenderTemplateRequest
+	}{
+		{
+			name:             "render template with apps",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			req: &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				Kustomizations: []*capiv1_protos.Kustomization{
+					{
+						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
+						Spec: &capiv1_protos.KustomizationSpec{
+							Path:            "./apps/capi",
+							SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+							TargetNamespace: "foo-ns",
+						},
+					},
+					{
+						Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
+						Spec: &capiv1_protos.KustomizationSpec{
+							Path:      "./apps/billing",
+							SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+						},
+					},
+				},
+			},
+			expected: &capiv1_protos.RenderTemplateResponse{
+				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				KustomizationFiles: []*capiv1_protos.CommitFile{
+					{
+						Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-capi
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/capi
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: foo-ns
+status: {}
+`,
+					},
+					{
+						Path: "clusters/clusters-namespace/dev/apps-billing-flux-system-kustomization.yaml",
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: apps-billing
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./apps/billing
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+status: {}
+`,
+					},
+				},
+				ProfileFiles: []*capiv1_protos.CommitFile{},
+			},
+		},
+		{
+			name:             "render template with profiles",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			req: &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				Profiles: []*capiv1_protos.ProfileValues{
+					{
+						Name:      "demo-profile",
+						Version:   "0.0.1",
+						Values:    base64.StdEncoding.EncodeToString([]byte(``)),
+						Namespace: "test-system",
+					},
+				},
+			},
+			expected: &capiv1_protos.RenderTemplateResponse{
+				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				KustomizationFiles: []*capiv1_protos.CommitFile{},
+				ProfileFiles: []*capiv1_protos.CommitFile{
+					{
+						Path: "clusters/clusters-namespace/dev/profiles.yaml",
+						Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: default
+spec:
+  interval: 10m0s
+  url: http://127.0.0.1:{{ .Port }}/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: demo-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+    createNamespace: true
+  interval: 1m0s
+  targetNamespace: test-system
+  upgrade:
+    crds: CreateReplace
+  values:
+    favoriteDrink: coffee
+status: {}
+`,
+					},
+				},
+			},
+		},
+		{
+			name:             "render template with dummy cost estimate data returned",
+			pruneEnvVar:      "disabled",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			req: &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				Profiles: []*capiv1_protos.ProfileValues{},
+			},
+			expected: &capiv1_protos.RenderTemplateResponse{
+				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				KustomizationFiles: []*capiv1_protos.CommitFile{},
+				ProfileFiles:       []*capiv1_protos.CommitFile{},
+				CostEstimate: &capiv1_protos.CostEstimate{
+					Currency: "USD",
+					Amount:   0,
+					Range: &capiv1_protos.CostEstimate_Range{
+						Low:  0,
+						High: 1000000,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.Reset()
+			viper.SetDefault("runtime-namespace", "default")
+			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
+			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
+			viper.SetDefault("capi-repository-clusters-path", "clusters")
+
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				hr:           hr,
+			})
+
+			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
+
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to read the templates:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected.RenderedTemplate, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+					t.Fatalf("templates didn't match expected:\n%s", diff)
+				}
+
+				if diff := cmp.Diff(tt.expected.KustomizationFiles, renderTemplateResponse.KustomizationFiles, protocmp.Transform()); len(renderTemplateResponse.KustomizationFiles) > 0 && diff != "" {
+					t.Fatalf("template kustomizations didn't match expected:\n%s", diff)
+				}
+
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.expected.ProfileFiles), renderTemplateResponse.ProfileFiles, protocmp.Transform()); len(tt.expected.ProfileFiles) > 0 && diff != "" {
+					t.Fatalf("templates profiles didn't match expected:\n%s", diff)
 				}
 			}
 		})

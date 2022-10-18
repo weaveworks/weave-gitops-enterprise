@@ -43,6 +43,7 @@ func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
 		return &TemplateProcessor{Processor: NewTextTemplateProcessor(), Template: t}, nil
 
 	}
+
 	return nil, fmt.Errorf("unknown template renderType: %s", t.GetSpec().RenderType)
 }
 
@@ -66,6 +67,19 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 			return nil, fmt.Errorf("failed to get params from template: %w", err)
 		}
 		paramNames.Insert(names...)
+	}
+
+	for k, v := range p.GetAnnotations() {
+		if strings.HasPrefix(k, "capi.weave.works/profile-") {
+			names, err := p.Processor.ParamNames(templates.ResourceTemplate{
+				RawExtension: runtime.RawExtension{
+					Raw: []byte(v),
+				}})
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
+			}
+			paramNames.Insert(names...)
+		}
 	}
 
 	paramsMeta := map[string]Param{}
@@ -178,34 +192,6 @@ func (p *TextTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]str
 	}
 
 	return variables.List(), nil
-}
-
-func (p TemplateProcessor) AllParamNames() ([]string, error) {
-	paramNames := sets.NewString()
-	for _, v := range p.GetSpec().ResourceTemplates {
-		names, err := p.Processor.ParamNames(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get params from template: %w", err)
-		}
-		paramNames.Insert(names...)
-	}
-
-	for k, v := range p.GetAnnotations() {
-		if strings.HasPrefix(k, "capi.weave.works/profile-") {
-			names, err := p.Processor.ParamNames(templates.ResourceTemplate{RawExtension: runtime.RawExtension{
-				Raw: []byte(v),
-			}})
-			if err != nil {
-				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
-			}
-			paramNames.Insert(names...)
-		}
-	}
-
-	params := paramNames.List()
-	sort.Strings(params)
-
-	return params, nil
 }
 
 // NewEnvsubstTemplateProcessor creates and returns a new

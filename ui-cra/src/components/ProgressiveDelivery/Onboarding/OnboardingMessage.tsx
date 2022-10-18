@@ -1,4 +1,5 @@
 import { Button } from '@weaveworks/weave-gitops';
+import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import {
@@ -17,7 +18,7 @@ const OnboardingMessage = () => {
         path={[
           {
             label: 'Applications',
-            url: '/applications',
+            url:Routes.Applications,
           },
           { label: 'Delivery' },
         ]}
@@ -42,15 +43,12 @@ const OnboardingMessage = () => {
             Blue/Green.
           </TextWrapper>
           <FlexCenter>
-            <Button id="navigate-to-flagger">
-              <LinkTag
-                href="https://docs.gitops.weave.works/docs/next/guides/delivery/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                FLAGGER GUIDE
-              </LinkTag>
-            </Button>
+            <LinkTag
+              href="https://docs.gitops.weave.works/docs/next/guides/delivery/"
+              newTab
+            >
+              <Button id="navigate-to-flagger"> FLAGGER GUIDE</Button>
+            </LinkTag>
           </FlexCenter>
         </OnBoardingMessageWrapper>
       </ContentWrapper>

@@ -7,9 +7,12 @@ import {
 } from '@material-ui/core/styles';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
+  Button,
   CallbackStateContextProvider,
   clearCallbackState,
   getProviderToken,
+  Link,
+  LoadingPage,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
@@ -22,6 +25,7 @@ import {
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
+  RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
@@ -41,6 +45,8 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
+import { validateFormData } from '../../../utils/form';
+import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import Credentials from './Partials/Credentials';
@@ -54,6 +60,21 @@ const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
+const small = weaveTheme.spacing.small;
+
+const FormWrapper = styled.form`
+  .create-cta {
+    display: flex;
+    justify-content: end;
+    padding: ${({ theme }) => theme.spacing.small};
+    button {
+      width: 200px;
+    }
+  }
+  .create-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+`;
 
 const CredentialsWrapper = styled.div`
   display: flex;
@@ -101,6 +122,17 @@ const useStyles = makeStyles(theme =>
         height: 0,
       },
       paddingRight: xxs,
+    },
+    previewCta: {
+      display: 'flex',
+      justifyContent: 'flex-end',
+      padding: small,
+      button: {
+        width: '200px',
+      },
+    },
+    previewLoading: {
+      padding: base,
     },
   }),
 );
@@ -150,6 +182,31 @@ function getInitialData(
   return { initialFormData, initialInfraCredentials };
 }
 
+const getKustomizations = (formData: any) => {
+  const { clusterAutomations } = formData;
+  // filter out empty kustomization
+  const filteredKustomizations = clusterAutomations.filter(
+    (kustomization: any) => Object.values(kustomization).join('').trim() !== '',
+  );
+  return filteredKustomizations.map((kustomization: any): Kustomization => {
+    return {
+      metadata: {
+        name: kustomization.name,
+        namespace: kustomization.namespace,
+      },
+      spec: {
+        path: kustomization.path,
+        sourceRef: {
+          name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
+          namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
+        },
+        targetNamespace: kustomization.target_namespace,
+        createNamespace: kustomization.createNamespace,
+      },
+    };
+  });
+};
+
 const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
   _.sortBy(Object.values(profiles), 'name')
     .filter(p => p.selected)
@@ -171,30 +228,7 @@ const toPayload = (
   templateName: string,
   updatedProfiles: ProfilesIndex,
 ): CreatePullRequestRequest => {
-  const { clusterAutomations, parameterValues } = formData;
-  // filter out empty kustomization
-  const filteredKustomizations = clusterAutomations.filter(
-    (kustomization: any) => Object.values(kustomization).join('').trim() !== '',
-  );
-  const kustomizations = filteredKustomizations.map(
-    (kustomization: any): Kustomization => {
-      return {
-        metadata: {
-          name: kustomization.name,
-          namespace: kustomization.namespace,
-        },
-        spec: {
-          path: kustomization.path,
-          sourceRef: {
-            name: FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
-            namespace: FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
-          },
-          targetNamespace: kustomization.target_namespace,
-          createNamespace: kustomization.createNamespace,
-        },
-      };
-    },
-  );
+  const { parameterValues } = formData;
   return {
     headBranch: formData.branchName,
     title: formData.pullRequestTitle,
@@ -203,7 +237,7 @@ const toPayload = (
     credentials: infraCredential,
     templateName,
     parameterValues,
-    kustomizations,
+    kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
   };
 };
@@ -254,19 +288,26 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     ? `/clusters/${cluster?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<string | null>(null);
+  const [PRPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
+    null,
+  );
   const [loading, setLoading] = useState<boolean>(false);
+  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const handlePRPreview = useCallback(() => {
-    const { url, provider, clusterAutomations, ...templateFields } = formData;
+    const { parameterValues } = formData;
     setPreviewLoading(true);
-    return renderTemplate(template.name, {
-      values: templateFields.parameterValues,
-      credentials: infraCredential,
+    return renderTemplate({
+      templateName: template.name,
+      values: parameterValues,
+      profiles: encodedProfiles(updatedProfiles),
+      credentials: infraCredential || undefined,
+      kustomizations: getKustomizations(formData),
+      templateKind: template.templateKind,
     })
       .then(data => {
         setOpenPreview(true);
-        setPRPreview(data.renderedTemplate);
+        setPRPreview(data);
       })
       .catch(err =>
         setNotifications([
@@ -281,6 +322,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     infraCredential,
     setNotifications,
     template.name,
+    template.templateKind,
+    updatedProfiles,
   ]);
 
   const handleAddCluster = useCallback(() => {
@@ -298,19 +341,14 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push('/clusters');
+        history.push(Routes.Clusters);
         setNotifications([
           {
             message: {
               component: (
-                <a
-                  style={{ color: weaveTheme.colors.primary }}
-                  href={response.webUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href={response.webUrl} newTab>
                   PR created successfully.
-                </a>
+                </Link>
               ),
             },
             variant: 'success',
@@ -368,65 +406,88 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
           },
         }}
       >
-        <Grid item xs={12} sm={10} md={10} lg={8}>
-          <CredentialsWrapper>
-            <div className="template-title">
-              Template: <span>{template.name}</span>
-            </div>
-            <Credentials
-              infraCredential={infraCredential}
-              setInfraCredential={setInfraCredential}
-              isCredentialEnabled={
-                annotations?.['templates.weave.works/credentials-enabled']
+        <FormWrapper>
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            <CredentialsWrapper>
+              <div className="template-title">
+                Template: <span>{template.name}</span>
+              </div>
+              <Credentials
+                infraCredential={infraCredential}
+                setInfraCredential={setInfraCredential}
+                isCredentialEnabled={
+                  annotations?.['templates.weave.works/credentials-enabled']
+                }
+              />
+            </CredentialsWrapper>
+            <Divider
+              className={
+                !isLargeScreen ? classes.divider : classes.largeDivider
               }
             />
-          </CredentialsWrapper>
-
-          <Divider
-            className={!isLargeScreen ? classes.divider : classes.largeDivider}
-          />
-          <TemplateFields
-            template={template}
-            formData={formData}
-            setFormData={setFormData}
-            onPRPreview={handlePRPreview}
-            previewLoading={previewLoading}
-          />
-        </Grid>
-        <Profiles
-          isLoading={profilesIsLoading}
-          updatedProfiles={updatedProfiles}
-          setUpdatedProfiles={setUpdatedProfiles}
-          isProfilesEnabled={
-            annotations?.['templates.weave.works/profiles-enabled']
-          }
-        />
-        <Grid item xs={12} sm={10} md={10} lg={8}>
-          <ApplicationsWrapper
-            formData={formData}
-            setFormData={setFormData}
-            isKustomizationsEnabled={
-              annotations?.['templates.weave.works/kustomizations-enabled']
+            <TemplateFields
+              template={template}
+              formData={formData}
+              setFormData={setFormData}
+            />
+          </Grid>
+          <Profiles
+            isLoading={profilesIsLoading}
+            updatedProfiles={updatedProfiles}
+            setUpdatedProfiles={setUpdatedProfiles}
+            isProfilesEnabled={
+              annotations?.['templates.weave.works/profiles-enabled']
             }
           />
-        </Grid>
-        {openPreview && PRPreview ? (
-          <Preview
-            openPreview={openPreview}
-            setOpenPreview={setOpenPreview}
-            PRPreview={PRPreview}
-          />
-        ) : null}
-        <Grid item xs={12} sm={10} md={10} lg={8}>
-          <GitOps
-            loading={loading}
-            formData={formData}
-            setFormData={setFormData}
-            onSubmit={handleAddCluster}
-            showAuthDialog={showAuthDialog}
-            setShowAuthDialog={setShowAuthDialog}
-          />
-        </Grid>
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            <ApplicationsWrapper
+              formData={formData}
+              setFormData={setFormData}
+              isKustomizationsEnabled={
+                annotations?.['templates.weave.works/kustomizations-enabled']
+              }
+            />
+            {previewLoading ? (
+              <LoadingPage className={classes.previewLoading} />
+            ) : (
+              <div className={classes.previewCta}>
+                <Button
+                  onClick={event => validateFormData(event, handlePRPreview)}
+                >
+                  PREVIEW PR
+                </Button>
+              </div>
+            )}
+          </Grid>
+          {openPreview && PRPreview ? (
+            <Preview
+              openPreview={openPreview}
+              setOpenPreview={setOpenPreview}
+              PRPreview={PRPreview}
+            />
+          ) : null}
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            <GitOps
+              formData={formData}
+              setFormData={setFormData}
+              showAuthDialog={showAuthDialog}
+              setShowAuthDialog={setShowAuthDialog}
+              setEnableCreatePR={setEnableCreatePR}
+            />
+            {loading ? (
+              <LoadingPage className="create-loading" />
+            ) : (
+              <div className="create-cta">
+                <Button
+                  onClick={event => validateFormData(event, handleAddCluster)}
+                  disabled={!enableCreatePR}
+                >
+                  CREATE PULL REQUEST
+                </Button>
+              </div>
+            )}
+          </Grid>
+        </FormWrapper>
       </CallbackStateContextProvider>
     );
   }, [
@@ -446,6 +507,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     updatedProfiles,
     previewLoading,
     loading,
+    enableCreatePR,
     annotations,
   ]);
 };

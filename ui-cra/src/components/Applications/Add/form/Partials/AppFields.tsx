@@ -1,4 +1,5 @@
 import React, { FC, Dispatch, useEffect, useCallback } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import _ from 'lodash';
 import useProfiles from '../../../../../contexts/Profiles';
@@ -9,21 +10,17 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@material-ui/core';
-import { useListSources, theme, Flex } from '@weaveworks/weave-gitops';
+import { useListSources, theme, Flex, Kind } from '@weaveworks/weave-gitops';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import {
   GitRepository,
   HelmRepository,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Kind } from '@weaveworks/weave-gitops';
-import { getGitRepoHTTPSURL } from '../../../../../utils/formatters';
-import { isAllowedLink } from '@weaveworks/weave-gitops';
 import { Tooltip } from '../../../../Shared';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 import { useClustersWithSources } from '../../../utils';
-import { useHistory, useLocation } from 'react-router-dom';
 
-const FormWrapper = styled.form`
+const AppFieldsWrapper = styled.div`
   .form-section {
     width: 50%;
   }
@@ -33,13 +30,28 @@ const FormWrapper = styled.form`
   .input-wrapper {
     padding-bottom: ${({ theme }) => theme.spacing.medium};
   }
+  .preview-cta {
+    display: flex;
+    justify-content: flex-end;
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
+  }
+  .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
 `;
 
 const AppFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>> | any;
   index?: number;
+  onPRPreview?: () => void;
+  previewLoading?: boolean;
   allowSelectCluster: boolean;
+  context?: string;
   clusterName?: string;
 }> = ({
   formData,
@@ -146,6 +158,8 @@ const AppFields: FC<{
       source_name: obj?.metadata?.name,
       source_namespace: obj?.metadata?.namespace,
       source_type: obj?.kind,
+      source_url: obj?.spec.url,
+      source_branch: obj?.kind === 'GitRepository' ? obj?.spec.ref.branch : '',
       source: value,
       clusterAutomations: currentAutomation,
     });
@@ -194,53 +208,8 @@ const AppFields: FC<{
     });
   };
 
-  const optionUrl = (url?: string, branch?: string) => {
-    const linkText = branch ? (
-      <>
-        {url}@<strong>{branch}</strong>
-      </>
-    ) : (
-      url
-    );
-    if (branch) {
-      return isAllowedLink(getGitRepoHTTPSURL(url, branch)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: theme.colors.primary,
-            fontSize: theme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url, branch)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {linkText}
-        </a>
-      ) : (
-        <span>{linkText}</span>
-      );
-    } else {
-      return isAllowedLink(getGitRepoHTTPSURL(url)) ? (
-        <a
-          title="Visit repository"
-          style={{
-            color: theme.colors.primary,
-            fontSize: theme.fontSizes.medium,
-          }}
-          href={getGitRepoHTTPSURL(url)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {linkText}
-        </a>
-      ) : (
-        <span>{linkText}</span>
-      );
-    }
-  };
-
   return (
-    <FormWrapper>
+    <AppFieldsWrapper>
       {!!clusters && (
         <>
           <Select
@@ -284,8 +253,7 @@ const AppFields: FC<{
             )}
             {gitRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}&nbsp;&nbsp;
-                {optionUrl(option?.url, option?.reference?.branch)}
+                {option.name}
               </MenuItem>
             ))}
             {helmRepos.length !== 0 && (
@@ -293,8 +261,7 @@ const AppFields: FC<{
             )}
             {helmRepos?.map((option, index: number) => (
               <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}&nbsp;&nbsp;
-                {optionUrl(option?.url)}
+                {option.name}
               </MenuItem>
             ))}
           </Select>
@@ -373,7 +340,7 @@ const AppFields: FC<{
           />
         </Flex>
       ) : null}
-    </FormWrapper>
+    </AppFieldsWrapper>
   );
 };
 

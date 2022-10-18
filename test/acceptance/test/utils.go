@@ -68,6 +68,7 @@ const (
 	ASSERTION_15MINUTE_TIME_OUT  time.Duration = 15 * time.Minute
 
 	POLL_INTERVAL_1SECONDS        time.Duration = 1 * time.Second
+	POLL_INTERVAL_3SECONDS        time.Duration = 3 * time.Second
 	POLL_INTERVAL_5SECONDS        time.Duration = 5 * time.Second
 	POLL_INTERVAL_15SECONDS       time.Duration = 15 * time.Second
 	POLL_INTERVAL_100MILLISECONDS time.Duration = 100 * time.Millisecond
@@ -112,6 +113,17 @@ func TakeScreenShot(name string) string {
 	if webDriver != nil {
 		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
 		_ = webDriver.Screenshot(filepath)
+		return filepath
+	}
+	return ""
+}
+
+func SaveDOM(name string) string {
+	if webDriver != nil {
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
+		var htmlDocument interface{}
+		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
+		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
 		return filepath
 	}
 	return ""
@@ -204,7 +216,8 @@ func InitializeWebdriver(wgeURL string) {
 			chromeDriver := agouti.ChromeDriver(
 				agouti.ChromeOptions("w3c", false),
 				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
-				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}))
+				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}),
+				agouti.ChromeOptions("useAutomationExtension", false))
 			err = chromeDriver.Start()
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 			webDriver, err = chromeDriver.NewPage()
@@ -214,9 +227,10 @@ func InitializeWebdriver(wgeURL string) {
 			webDriver, err = agouti.NewPage(selenium_service_url, agouti.Debug, agouti.Desired(agouti.Capabilities{
 				"acceptInsecureCerts": true,
 				"chromeOptions": map[string]interface{}{
-					"args":            []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
-					"w3c":             false,
-					"excludeSwitches": []string{"enable-automation"},
+					"args":                   []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled"},
+					"w3c":                    false,
+					"excludeSwitches":        []string{"enable-automation"},
+					"useAutomationExtension": false,
 				}}))
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
 		}

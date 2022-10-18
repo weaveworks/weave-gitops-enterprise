@@ -44,7 +44,14 @@ func InNamespace(ns string) RenderOptFunc {
 // InjectLabels is a render option that updates the object metadata with the desired labels
 func InjectLabels(labels map[string]string) RenderOptFunc {
 	return func(uns *unstructured.Unstructured) error {
-		uns.SetLabels(labels)
+		existing := uns.GetLabels()
+		if existing == nil {
+			existing = map[string]string{}
+		}
+		for k, v := range labels {
+			existing[k] = v
+		}
+		uns.SetLabels(existing)
 		return nil
 	}
 }
