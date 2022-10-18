@@ -1,14 +1,17 @@
 package templates
 
 import (
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	"sigs.k8s.io/yaml"
 )
 
 func TestParseTemplateTerraformMeta(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/cluster-template-multiple.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template-multiple.yaml")
 	meta, err := ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
 	if err != nil {
 		t.Fatal(err)
@@ -45,7 +48,7 @@ func TestParseTemplateTerraformMeta(t *testing.T) {
 }
 
 func TestParseTemplateCAPIMeta(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
 	meta, err := ParseTemplateMeta(parsed, CAPIDisplayNameAnnotation)
 	if err != nil {
 		t.Fatal(err)
@@ -99,10 +102,25 @@ func TestParseTemplateCAPIMeta(t *testing.T) {
 }
 
 func TestParseTemplateMeta_bad_parameter(t *testing.T) {
-	parsed, err := ParseBytes([]byte("spec:\n  resourcetemplates:\n   - apiVersion: ${CLUSTER_NAME"), "testing.yaml")
+	parsed := parseCAPITemplateFromBytes(t, []byte("apiVersion: capi.weave.works/v1alpha1\nkind: CAPITemplate\nspec:\n  resourcetemplates:\n   - apiVersion: ${CLUSTER_NAME"))
+
+	_, err := ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
+	assert.EqualError(t, err, "failed to parse params in template: processing template: missing closing brace")
+}
+
+func parseCAPITemplateFromBytes(t *testing.T, b []byte) *capiv1.CAPITemplate {
+	var c capiv1.CAPITemplate
+	err := yaml.Unmarshal(b, &c)
+	if err != nil {
+		t.Fatalf("failed to unmarshal: %s", err)
+	}
+	return &c
+}
+
+func parseCAPITemplateFromFile(t *testing.T, filename string) *capiv1.CAPITemplate {
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
-	assert.EqualError(t, err, "failed to parse params in template: processing template: missing closing brace")
+	return parseCAPITemplateFromBytes(t, b)
 }

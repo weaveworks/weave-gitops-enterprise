@@ -1,60 +1,46 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../../muiTheme';
-
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
-
-import { LoadingPage } from '@weaveworks/weave-gitops';
-import { Alert } from '@material-ui/lab';
+import { useGetCanaryDetails } from '../../../contexts/ProgressiveDelivery';
 import CanaryDetailsSection from './CanaryDetailsSection';
-import { useApplicationsCount } from '../../Applications/utils';
-import {
-  CanaryParams,
-  useCanaryDetails,
-  useListCanariesCount,
-} from '../../../hooks/progressiveDelivery';
+import { Routes } from '../../../utils/nav';
 
-function CanaryDetails({ name, namespace, clusterName }: CanaryParams) {
-  const applicationsCount = useApplicationsCount();
-  const canariesCount = useListCanariesCount();
-  const { error, data, isLoading } = useCanaryDetails({
+type Props = {
+  name: string;
+  namespace: string;
+  clusterName: string;
+};
+
+function CanaryDetails({ name, namespace, clusterName }: Props) {
+  const { error, data, isLoading } = useGetCanaryDetails({
     name,
     namespace,
     clusterName,
   });
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Policies">
-        <SectionHeader
-          className="count-header"
-          path={[
-            {
-              label: 'Applications',
-              url: '/applications',
-              count: applicationsCount,
-            },
-            {
-              label: 'Delivery',
-              url: '/applications/delivery',
-              count: canariesCount,
-            },
-            { label: name },
-          ]}
-        />
-        <ContentWrapper>
-          {isLoading && <LoadingPage />}
-          {error && <Alert severity="error">{error.message}</Alert>}
-          {data?.canary && data?.automation && (
-            <CanaryDetailsSection
-              canary={data.canary}
-              automation={data.automation}
-            />
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate
+      documentTitle="Delivery"
+      path={[
+        {
+          label: 'Applications',
+          url: Routes.Applications,
+        },
+        {
+          label: 'Delivery',
+          url: Routes.Canaries,
+        },
+        { label: name },
+      ]}
+    >
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        {data?.canary && (
+          <CanaryDetailsSection
+            canary={data.canary}
+            automation={data.automation}
+          />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 }
 

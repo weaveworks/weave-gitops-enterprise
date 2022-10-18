@@ -10,11 +10,13 @@ type PoliciesPage struct {
 	PolicyHeader *agouti.Selection
 	PolicyCount  *agouti.Selection
 	PoliciesList *agouti.Selection
+	AlertError   *agouti.Selection
 }
 
 type PolicyInformation struct {
 	Name     *agouti.Selection
 	Category *agouti.Selection
+	Tenant   *agouti.Selection
 	Severity *agouti.Selection
 	Cluster  *agouti.Selection
 	Age      *agouti.Selection
@@ -22,7 +24,6 @@ type PolicyInformation struct {
 
 type PolicyDetailPage struct {
 	Header          *agouti.Selection
-	Title           *agouti.Selection
 	ID              *agouti.Selection
 	ClusterName     *agouti.Selection
 	Tags            *agouti.MultiSelection
@@ -45,11 +46,12 @@ type PolicyParametersDetail struct {
 func (p PoliciesPage) FindPolicyInList(policyName string) *PolicyInformation {
 	policy := p.PoliciesList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, policyName))
 	return &PolicyInformation{
-		Name:     policy.FindByXPath(`td[1]`),
+		Name:     policy.FindByXPath(`td[1]//a`),
 		Category: policy.FindByXPath(`td[2]`),
-		Severity: policy.FindByXPath(`td[3]`),
-		Cluster:  policy.FindByXPath(`td[4]`),
-		Age:      policy.FindByXPath(`td[5]`),
+		Tenant:   policy.FindByXPath(`td[3]`),
+		Severity: policy.FindByXPath(`td[4]`),
+		Cluster:  policy.FindByXPath(`td[5]`),
+		Age:      policy.FindByXPath(`td[6]`),
 	}
 }
 
@@ -71,6 +73,7 @@ func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 		PolicyHeader: webDriver.Find(`div[role="heading"] a[href="/policies"]`),
 		PolicyCount:  webDriver.Find(`.section-header-count`),
 		PoliciesList: webDriver.First(`table tbody`),
+		AlertError:   webDriver.Find(`#alert-list-errors`),
 	}
 	return &policyPage
 }
@@ -78,17 +81,16 @@ func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 func GetPolicyDetailPage(webDriver *agouti.Page) *PolicyDetailPage {
 	return &PolicyDetailPage{
 		Header:          webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/policies"]/parent::node()/parent::node()/following-sibling::div`),
-		Title:           webDriver.First(`h2`),
-		ID:              webDriver.FindByXPath(`//div[text()="Policy ID:"]/following-sibling::*[1]`),
-		ClusterName:     webDriver.FindByXPath(`//div[text()="Cluster Name:"]/following-sibling::*[1]`),
-		Tags:            webDriver.AllByXPath(`//div/*[text()="Tags:"]/following-sibling::*`),
-		Severity:        webDriver.FindByXPath(`//div[text()="Severity:"]/following-sibling::*[1]`),
-		Category:        webDriver.FindByXPath(`//div[text()="Category:"]/following-sibling::*[1]`),
-		TargetedK8sKind: webDriver.AllByXPath(`//div[text()="Targeted K8s Kind:"]/following-sibling::*`),
+		ID:              webDriver.Find(`div[data-testid="Policy ID"]`),
+		ClusterName:     webDriver.Find(`div[data-testid="Cluster Name"]`),
+		Tags:            webDriver.All(`div[data-testid="Tags"] span`),
+		Severity:        webDriver.Find(`div[data-testid="Severity"]`),
+		Category:        webDriver.Find(`div[data-testid="Category"]`),
+		TargetedK8sKind: webDriver.All(`div[data-testid="Targeted K8s Kind"] span`),
 		Description:     webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
 		HowToSolve:      webDriver.FindByXPath(`//div[text()="How to solve:"]/following-sibling::*[1]`),
 		Code:            webDriver.FindByXPath(`//div[text()="Policy Code:"]/following-sibling::*[1]`),
-		Parameters:      webDriver.AllByXPath(`//div/*[text()="Parameters Definition"]/following-sibling::*`),
+		Parameters:      webDriver.AllByXPath(`//div/*[text()="Parameters Definition:"]/following-sibling::*`),
 	}
 }
 

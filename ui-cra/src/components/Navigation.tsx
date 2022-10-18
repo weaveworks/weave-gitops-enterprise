@@ -1,123 +1,234 @@
-import React, { FC } from 'react';
-import styled, { css } from 'styled-components';
-import { theme, V2Routes } from '@weaveworks/weave-gitops';
-import { NavLink } from 'react-router-dom';
-import WeaveGitOps from '../assets/img/weave-logo.svg';
-import TitleLogo from '../assets/img/title.svg';
-import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
-import Divider from '@material-ui/core/Divider';
+import { makeStyles } from '@material-ui/core/styles';
+import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import styled from 'styled-components';
+import { ReactComponent as Applications } from '../assets/img/applications.svg';
+import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
+import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
+import { ReactComponent as Policies } from '../assets/img/policies.svg';
+import { ReactComponent as Templates } from '../assets/img/templates.svg';
+import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
+import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { Routes } from '../utils/nav';
 
-const itemCss = css`
-  /* breaking from std. spacing as */
+const { xxs, xs, small, medium } = theme.spacing;
+const { neutral10, neutral30, neutral40, primary } = theme.colors;
+
+interface SubNavItem {
+  name: string;
+  link: string;
+  isVisible: boolean;
+  relatedRoutes?: Array<string>;
+}
+interface NavigationItem {
+  icon?: any;
+  name: string;
+  link: string;
+  subItems?: Array<SubNavItem>;
+  isVisible?: boolean;
+  relatedRoutes?: Array<string>;
+}
+
+const NavWrapper = styled.div`
   display: flex;
-  font-size: ${20}px;
-  line-height: ${theme.spacing.large};
-  height: ${theme.spacing.large};
-  box-sizing: border-box;
-  color: ${theme.colors.neutral40};
-  font-weight: 600;
-  padding: 0 ${theme.spacing.small} ${theme.spacing.small} 0;
-  margin: 0 0 ${theme.spacing.small} 0;
-`;
-
-const itemActiveCss = css`
-  border-right: 4px solid ${theme.colors.primary};
-`;
-
-const Title = styled.div`
   align-items: center;
-  display: flex;
-  color: ${theme.colors.white};
-  font-size: ${20}px;
-  background: ${theme.colors.primary};
-  height: ${80}px;
-  position: sticky;
-  top: 0;
-`;
+  justify-content: start;
+  flex-direction: column;
+  margin-bottom: ${small};
 
-const Logo = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
+  a.route-nav {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding-top: ${xs};
+    padding-bottom: ${xs};
+    padding-left: ${medium};
+    padding-right: ${medium};
+  }
 
-//  How to mix NavLink and SC? Like so:
-//  https://github.com/styled-components/styled-components/issues/184
+  .parent-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  span.parent-route {
+    margin-left: ${({ theme }) => theme.spacing.xs};
+    letter-spacing: 1px;
+  }
+
+  a:not(a.nav-link-active):hover {
+    background: ${neutral10};
+  }
+  .subroute-container {
+    width: 100%;
+  }
+
+  .subroute-nav {
+    padding: ${xs} ${xs} ${xs} calc(${medium} * 2 + ${xxs});
+    color: ${neutral30};
+    font-weight: 600;
+  }
+`;
 
 export const NavItem = styled(NavLink).attrs({
   activeClassName: 'nav-link-active',
 })`
-  ${itemCss}
-
+  display: flex;
+  font-size: ${12}px;
+  box-sizing: border-box;
+  color: ${neutral40};
+  font-weight: bold;
   &.${props => props.activeClassName} {
-    ${itemActiveCss}
+    border-right: 3px solid ${primary};
+    background: rgba(0, 179, 236, 0.1);
+    color: ${primary};
+
+    svg {
+      fill: ${primary};
+    }
   }
 `;
 
 const useStyles = makeStyles({
   root: {
-    paddingTop: theme.spacing.large,
-    paddingLeft: theme.spacing.medium,
+    paddingTop: medium,
     alignItems: 'center',
-    marginTop: theme.spacing.medium,
     height: '100vh',
-    borderTopRightRadius: theme.spacing.xs,
+    borderTopRightRadius: '10px',
   },
-  subItem: {
-    opacity: 0.7,
-    fontWeight: 400,
-  },
-  section: {
-    paddingBottom: theme.spacing.small,
+  logo: {
+    padding: `calc(${medium} - ${xxs})`,
   },
 });
 
-export const Navigation: FC = () => {
-  const classes = useStyles();
+const NavItems = (navItems: Array<NavigationItem>) => {
+  const location = useLocation();
+  return navItems.map(item => {
+    if (item.isVisible === false) {
+      return null;
+    }
 
+    return (
+      <NavWrapper key={item.name}>
+        <NavItem
+          exact={!!item.subItems ? true : false}
+          to={item.link}
+          className={`route-nav ${
+            item.relatedRoutes?.some(link => location.pathname.includes(link))
+              ? 'nav-link-active'
+              : ''
+          }`}
+        >
+          <div className="parent-icon">{item.icon}</div>
+          <span className="parent-route">{item.name}</span>
+        </NavItem>
+
+        {item.subItems && (
+          <div className="subroute-container">
+            {item.subItems?.map(subItem => {
+              return (
+                subItem.isVisible && (
+                  <NavItem
+                    to={subItem.link}
+                    key={subItem.name}
+                    className={`subroute-nav ${
+                      subItem.relatedRoutes?.some(link =>
+                        location.pathname.includes(link),
+                      )
+                        ? 'nav-link-active'
+                        : ''
+                    }`}
+                  >
+                    {subItem.name}
+                  </NavItem>
+                )
+              );
+            })}
+          </div>
+        )}
+      </NavWrapper>
+    );
+  });
+};
+
+export const Navigation: FC = () => {
+  const { data: flagsRes } = useFeatureFlags();
+  const classes = useStyles();
+  const navItems: Array<NavigationItem> = [
+    {
+      name: 'CLUSTERS',
+      link: Routes.Clusters,
+      icon: <Clusters />,
+      subItems: [
+        {
+          name: 'VIOLATION LOG',
+          link: Routes.PolicyViolations,
+          isVisible: true,
+        },
+      ],
+    },
+    {
+      name: 'APPLICATIONS',
+      link: V2Routes.Automations,
+      icon: <Applications />,
+      subItems: [
+        {
+          name: 'SOURCES',
+          link: V2Routes.Sources,
+          isVisible: true,
+          relatedRoutes: [
+            V2Routes.GitRepo,
+            V2Routes.HelmRepo,
+            V2Routes.OCIRepository,
+            V2Routes.HelmChart,
+          ],
+        },
+        {
+          name: 'PIPELINES',
+          link: Routes.Pipelines,
+          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
+        },
+        {
+          name: 'DELIVERY',
+          link: Routes.Canaries,
+          isVisible:
+            process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
+        },
+      ],
+      relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
+    },
+    {
+      name: 'TEMPLATES',
+      link: Routes.Templates,
+      icon: <Templates />,
+    },
+    {
+      name: 'TERRAFORM',
+      link: Routes.TerraformObjects,
+      icon: <TerraformLogo />,
+      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
+    },
+    {
+      name: 'FLUX RUNTIME',
+      link: V2Routes.FluxRuntime,
+      icon: <FluxIcon />,
+    },
+    {
+      name: 'POLICIES',
+      link: Routes.Policies,
+      icon: <Policies />,
+    },
+  ];
   return (
     <>
-      <Title title="Home">
-        <Logo>
-          <img
-            src={WeaveGitOps}
-            alt="WG-logo"
-            style={{ height: 56, paddingLeft: theme.spacing.medium }}
-          />
-          <Divider style={{ margin: theme.spacing.xxs }} />
-          <img src={TitleLogo} alt="WG-text" />
-        </Logo>
-      </Title>
+      <div title="Home" className={classes.logo}>
+        <img src={WeaveGitOps} alt="Home" />
+      </div>
       <Box className={classes.root} bgcolor={theme.colors.white}>
-        <Box className={classes.section}>
-          <NavItem to="/clusters" exact>
-            Clusters
-          </NavItem>
-          <NavItem className={classes.subItem} to="/clusters/templates">
-            Templates
-          </NavItem>
-          <NavItem className={classes.subItem} to="/clusters/violations">
-            Violation Log
-          </NavItem>
-        </Box>
-        <Box className={classes.section}>
-          <NavItem to={V2Routes.Automations} exact>
-            Applications
-          </NavItem>
-          <NavItem className={classes.subItem} to={V2Routes.Sources}>
-            Sources
-          </NavItem>
-          {process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true' && (
-            <NavItem className={classes.subItem} to="/applications/delivery">
-              Delivery
-            </NavItem>
-          )}
-          <NavItem to={V2Routes.FluxRuntime}>Flux Runtime</NavItem>
-        </Box>
-        <Box className={classes.section}>
-          <NavItem to="/policies">Policies</NavItem>
-        </Box>
+        {NavItems(navItems)}
       </Box>
     </>
   );

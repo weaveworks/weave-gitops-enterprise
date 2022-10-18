@@ -1,9 +1,14 @@
-import React, { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
+import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
-import { GitRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
+import { PageTemplate } from '../Layout/PageTemplate';
+import {
+  GitRepositoryDetail,
+  Kind,
+  useGetObject,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
+import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -12,30 +17,42 @@ type Props = {
 };
 
 const WGApplicationsGitRepository: FC<Props> = props => {
-  const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const { name, namespace, clusterName } = props;
+  const {
+    data: gitRepository,
+    isLoading,
+    error,
+  } = useGetObject<GitRepository>(
+    name,
+    namespace,
+    Kind.GitRepository,
+    clusterName,
+  );
 
   return (
-    <PageTemplate documentTitle="WeGO · Git Repository">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
-            label: 'Sources',
-            url: '/sources',
-            count: sources?.length,
-          },
-          {
-            label: `${props.name}`,
-          },
-        ]}
-      />
-      <ContentWrapper>
-        <GitRepositoryDetail {...props} />
+    <PageTemplate
+      documentTitle="Git Repository"
+      path={[
+        {
+          label: 'Applications',
+          url: Routes.Applications,
+        },
+        {
+          label: 'Sources',
+          url: V2Routes.Sources,
+        },
+        {
+          label: `${props.name}`,
+        },
+      ]}
+    >
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <GitRepositoryDetail gitRepository={gitRepository} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

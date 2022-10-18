@@ -1,8 +1,10 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { useRequest } from '../contexts/Request';
+import GitUrlParse from 'git-url-parse';
+import { applicationsClient } from '@weaveworks/weave-gitops';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();
@@ -14,5 +16,27 @@ export function useListVersion() {
 
 export function useListConfig() {
   const { api } = useContext(EnterpriseClientContext);
-  return useQuery<GetConfigResponse, Error>('config', () => api.GetConfig({}));
+  const [repoLink, setRepoLink] = useState<string>('');
+  const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
+    api.GetConfig({}),
+  );
+  const repositoryURL = queryResponse?.data?.repositoryURL || '';
+  useEffect(() => {
+    repositoryURL &&
+      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+        const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
+        if (res.provider === 'GitHub') {
+          setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
+        } else if (res.provider === 'GitLab') {
+          setRepoLink(
+            `${protocol}://${resource}/${full_name}/-/merge_requests`,
+          );
+        }
+      });
+  }, [repositoryURL]);
+
+  return {
+    ...queryResponse,
+    repoLink,
+  };
 }

@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -18,9 +21,11 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -34,10 +39,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	pipectrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
+	pipepb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 )
 
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -45,15 +53,91 @@ var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGl
 func TestWeaveGitOpsHandlers(t *testing.T) {
 	ctx := context.Background()
 	defer ctx.Done()
+	password := "my-secret-password"
+	runtimeNamespace := "flux-system"
+	c := createK8sClient(t, password, runtimeNamespace)
+
+	port := "8001"
+
+	client := runServer(t, ctx, c, runtimeNamespace, "0.0.0.0:"+port)
+
+	// login
+	res1, err := client.Post(fmt.Sprintf("https://localhost:%s/oauth2/sign_in", port), "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res1.StatusCode)
+
+	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/objects?kind=Kustomization", port))
+	if err != nil {
+		t.Fatalf("expected no errors but got: %v", err)
+	}
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
+	}
+	res, err = client.Get(fmt.Sprintf("https://localhost:%s/v1/pineapples", port))
+	if err != nil {
+		t.Fatalf("expected no errors but got: %v", err)
+	}
+	if res.StatusCode != http.StatusNotFound {
+		t.Fatalf("expected status code to be %d but got %d instead", http.StatusNotFound, res.StatusCode)
+	}
+
+}
+
+func TestPipelinesServer(t *testing.T) {
+	ctx := context.Background()
+	defer ctx.Done()
 
 	password := "my-secret-password"
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	runtimeNamespace := "flux-system"
+	c := createK8sClient(t, password, runtimeNamespace)
+
+	port := "8002"
+
+	ff := featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES")
+	t.Cleanup(func() {
+		featureflags.Set("WEAVE_GITOPS_FEATURE_PIPELINES", ff)
+	})
+	featureflags.Set("WEAVE_GITOPS_FEATURE_PIPELINES", "true")
+
+	client := runServer(t, ctx, c, runtimeNamespace, "0.0.0.0:"+port)
+
+	p := &pipectrl.Pipeline{}
+	p.Name = "my-pipeline"
+	p.Namespace = "flux-system"
+
+	assert.NoError(t, c.Create(ctx, p))
+
+	res1, err := client.Post(fmt.Sprintf("https://localhost:%s/oauth2/sign_in", port), "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
 	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res1.StatusCode)
+
+	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/pipelines", port))
+	assert.NoError(t, err)
+
+	body, err := ioutil.ReadAll(res.Body)
+	assert.NoError(t, err)
+
+	assert.Equal(t, res.StatusCode, http.StatusOK, string(body))
+
+	msg := pipepb.ListPipelinesResponse{}
+
+	assert.NoError(t, json.Unmarshal(body, &msg))
+
+	assert.Len(t, msg.Pipelines, 1)
+	assert.Equal(t, msg.Pipelines[0].Name, "my-pipeline")
+
+}
+
+func createK8sClient(t *testing.T, pw string, ns string, objects ...runtime.Object) client.Client {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+	assert.NoError(t, err)
+
+	runtimeNamespace := ns
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-user-auth",
-			Namespace: "flux-system",
+			Namespace: runtimeNamespace,
 		},
 		Data: map[string][]byte{
 			"username": []byte("testsuite"),
@@ -61,14 +145,22 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 		},
 	}
 
-	c := createFakeClient(t, createSecret(validEntitlement), hashedSecret)
+	objs := []runtime.Object{createSecret(validEntitlement), hashedSecret}
+	objs = append(objs, objects...)
+
+	return createFakeClient(t, objs...)
+}
+
+func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, addr string) *http.Client {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1.AddToScheme,
+		pipectrl.AddToScheme,
 	}
-	err = schemeBuilder.AddToScheme(scheme)
+
+	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
 		t.Fatalf("expected no errors but got %v", err)
 	}
@@ -85,23 +177,29 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 
 	go func(ctx context.Context) {
 		coreConfig := fakeCoreConfig(t, log)
-		appsConfig := fakeAppsConfig(c, log)
-		err := app.RunInProcessGateway(ctx, "0.0.0.0:8001",
+		appsConfig := fakeAppsConfig(k, log)
+
+		err = app.RunInProcessGateway(ctx, addr,
 			app.WithCAPIClustersNamespace("default"),
 			app.WithEntitlementSecretKey(client.ObjectKey{Name: "name", Namespace: "namespace"}),
-			app.WithKubernetesClient(c),
+			app.WithKubernetesClient(k),
 			app.WithDiscoveryClient(dc),
 			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
-			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(c))),
+			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
 			app.WithTemplateLibrary(&templates.CRDLibrary{
 				Log:           log,
-				ClientGetter:  kubefakes.NewFakeClientGetter(c),
+				ClientGetter:  kubefakes.NewFakeClientGetter(k),
 				CAPINamespace: "default",
 			}),
+			app.WithRuntimeNamespace(ns),
 			app.WithGitProvider(git.NewGitProviderService(log)),
-			app.WithClientGetter(kubefakes.NewFakeClientGetter(c)),
-			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
+			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
+			app.WithAuthConfig(
+				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
+				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
+			),
+			app.WithClustersManager(grpctesting.MakeClustersManager(k)),
 		)
 		t.Logf("%v", err)
 	}(ctx)
@@ -116,41 +214,22 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	}
 	time.Sleep(1 * time.Second)
 
-	// login
-	res1, err := client.Post("https://localhost:8001/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"username":"testsuite","password":"my-secret-password"}`)))
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, res1.StatusCode)
-
-	res, err := client.Get("https://localhost:8001/v1/kustomizations?namespace=foo")
-	if err != nil {
-		t.Fatalf("expected no errors but got: %v", err)
-	}
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
-	}
-	res, err = client.Get("https://localhost:8001/v1/pineapples")
-	if err != nil {
-		t.Fatalf("expected no errors but got: %v", err)
-	}
-	if res.StatusCode != http.StatusNotFound {
-		t.Fatalf("expected status code to be %d but got %d instead", http.StatusNotFound, res.StatusCode)
-	}
-
+	return client
 }
 
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 
-	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
 
 	// A fake to support kustomizations, sorry, this is pretty frgaile and will likely break.
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(map[string]client.Client{})
 
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
-	clientsFactory.GetImpersonatedClientReturns(client, nil)
-	clientsFactory.GetServerClientReturns(client, nil)
+	clustersManager.GetImpersonatedClientReturns(client, nil)
+	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
+	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
 	return coreConfig
 }
 
@@ -175,6 +254,7 @@ func createFakeClient(t *testing.T, clusterState ...runtime.Object) client.Clien
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
+		pipectrl.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {

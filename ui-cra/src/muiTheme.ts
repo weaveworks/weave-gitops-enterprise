@@ -28,7 +28,6 @@ export const muiTheme = createTheme({
       },
       paper: {
         padding: 0,
-        backgroundColor: weaveTheme.colors.white,
       },
     },
     MuiDialogActions: {
@@ -96,7 +95,7 @@ export const localEEMuiTheme = createTheme({
       ...muiTheme.overrides?.MuiInputBase,
       root: {
         ...muiTheme.overrides?.MuiInputBase?.root,
-        marginRight: `${weaveTheme.spacing.xs}`,
+        marginRight: `${weaveTheme.spacing.medium}`,
       },
       input: {
         ...muiTheme.overrides?.MuiInputBase?.input,
@@ -107,7 +106,6 @@ export const localEEMuiTheme = createTheme({
         width: '100%',
         padding: '8px 12px',
         '&:focus': {
-          borderColor: weaveTheme.colors.primaryDark,
           borderRadius: 2,
         },
       },

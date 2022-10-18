@@ -1,36 +1,33 @@
-import React, { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
+import { SourcesTable, useListSources, V2Routes } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import {
-  LoadingPage,
-  SourcesTable,
-  useListSources,
-} from '@weaveworks/weave-gitops';
-import { useApplicationsCount } from './utils';
+import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsSources: FC = () => {
-  const { data: sources, isLoading } = useListSources();
-  const applicationsCount = useApplicationsCount();
+  const { data: sources, isLoading, error } = useListSources();
 
   return (
-    <PageTemplate documentTitle="WeGO · Application Sources">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
-            label: 'Sources',
-            url: '/sources',
-            count: sources?.length,
-          },
-        ]}
-      />
-      <ContentWrapper>
-        {isLoading ? <LoadingPage /> : <SourcesTable sources={sources} />}
+    <PageTemplate
+      documentTitle="Application Sources"
+      path={[
+        {
+          label: 'Applications',
+          url: Routes.Applications,
+        },
+        {
+          label: 'Sources',
+          url: V2Routes.Sources,
+          count: sources?.result?.length,
+        },
+      ]}
+    >
+      <ContentWrapper
+        errors={sources?.errors}
+        loading={isLoading}
+        errorMessage={error?.message}
+      >
+        {sources && <SourcesTable sources={sources?.result} />}
       </ContentWrapper>
     </PageTemplate>
   );

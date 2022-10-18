@@ -28,6 +28,7 @@ type ClustersServiceClient interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
+	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -46,6 +47,8 @@ type ClustersServiceClient interface {
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
+	// Creates a pull request for the given list of Kustomizations.
+	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// ListPolicies list policies available on the management cluster
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
@@ -112,6 +115,15 @@ func (c *clustersServiceClient) RenderTemplate(ctx context.Context, in *RenderTe
 	return out, nil
 }
 
+func (c *clustersServiceClient) RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error) {
+	out := new(RenderAutomationResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/RenderAutomation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error) {
 	out := new(ListGitopsClustersResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListGitopsClusters", in, out, opts...)
@@ -169,6 +181,15 @@ func (c *clustersServiceClient) GetKubeconfig(ctx context.Context, in *GetKubeco
 func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error) {
 	out := new(GetEnterpriseVersionResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetEnterpriseVersion", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error) {
+	out := new(CreateAutomationsPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -242,6 +263,7 @@ type ClustersServiceServer interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
+	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -260,6 +282,8 @@ type ClustersServiceServer interface {
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
 	// GetEnterpriseVersion returns the WeGO Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
+	// Creates a pull request for the given list of Kustomizations.
+	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// ListPolicies list policies available on the management cluster
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
@@ -293,6 +317,9 @@ func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, 
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
 }
+func (UnimplementedClustersServiceServer) RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenderAutomation not implemented")
+}
 func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
 }
@@ -313,6 +340,9 @@ func (UnimplementedClustersServiceServer) GetKubeconfig(context.Context, *GetKub
 }
 func (UnimplementedClustersServiceServer) GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEnterpriseVersion not implemented")
+}
+func (UnimplementedClustersServiceServer) CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAutomationsPullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
@@ -431,6 +461,24 @@ func _ClustersService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).RenderTemplate(ctx, req.(*RenderTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_RenderAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenderAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).RenderAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/RenderAutomation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).RenderAutomation(ctx, req.(*RenderAutomationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -557,6 +605,24 @@ func _ClustersService_GetEnterpriseVersion_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).GetEnterpriseVersion(ctx, req.(*GetEnterpriseVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_CreateAutomationsPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAutomationsPullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, req.(*CreateAutomationsPullRequestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -697,6 +763,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_RenderTemplate_Handler,
 		},
 		{
+			MethodName: "RenderAutomation",
+			Handler:    _ClustersService_RenderAutomation_Handler,
+		},
+		{
 			MethodName: "ListGitopsClusters",
 			Handler:    _ClustersService_ListGitopsClusters_Handler,
 		},
@@ -723,6 +793,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetEnterpriseVersion",
 			Handler:    _ClustersService_GetEnterpriseVersion_Handler,
+		},
+		{
+			MethodName: "CreateAutomationsPullRequest",
+			Handler:    _ClustersService_CreateAutomationsPullRequest_Handler,
 		},
 		{
 			MethodName: "GetConfig",

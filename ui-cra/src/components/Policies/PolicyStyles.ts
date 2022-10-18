@@ -1,50 +1,52 @@
 import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
+const { xxs, xs, small, medium, base, none } = theme.spacing;
+const { neutral10, neutral20, neutral30, black, primary } = theme.colors;
 
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
-      margin: `${theme.spacing.small} 0`,
+      margin: `${small} 0`,
     },
     sectionSeperator: {
-      margin: `${theme.spacing.medium} 0`,
+      margin: `calc(${medium}*2) 0`,
     },
     cardTitle: {
       fontWeight: 700,
-      fontSize: theme.fontSizes.small,
-      color: theme.colors.neutral30,
+      fontSize: theme.fontSizes.medium,
+      color: neutral30,
     },
     body1: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.small,
-      color: theme.colors.black,
-      marginLeft: theme.spacing.xs,
+      fontSize: theme.fontSizes.medium,
+      color: black,
+      marginLeft: xs,
     },
     chip: {
-      background: theme.colors.neutral10,
-      borderRadius: theme.spacing.xxs,
-      padding: `${theme.spacing.xxs} ${theme.spacing.xs}`,
-      marginLeft: theme.spacing.xs,
-      fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
+      background: neutral10,
+      borderRadius: xxs,
+      padding: `${xxs} ${xs}`,
+      marginLeft: xs,
     },
     codeWrapper: {
-      background: theme.colors.neutral10,
-      borderRadius: theme.spacing.xxs,
-      padding: `${theme.spacing.small} ${theme.spacing.base}`,
-      marginLeft: theme.spacing.none,
+      background: neutral10,
+      borderRadius: xxs,
+      padding: `${small} ${base}`,
+      marginLeft: none,
     },
 
     marginrightSmall: {
-      marginRight: theme.spacing.xs,
+      marginRight: xs,
     },
     marginTopSmall: {
-      marginTop: theme.spacing.xs,
+      marginTop: xs,
     },
     editor: {
       '& a': {
-        color: theme.colors.primary,
+        color: primary,
       },
       '& > *:first-child': {
         marginTop: 0,
@@ -52,15 +54,15 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       '& > *:last-child': {
         marginBottom: 0,
       },
-      marginTop: theme.spacing.xs,
-      background: theme.colors.neutral10,
-      padding: theme.spacing.small,
+      marginTop: xs,
+      background: neutral10,
+      padding: small,
       maxHeight: '300px',
       overflow: 'scroll',
     },
     severityIcon: {
       fontSize: theme.fontSizes.small,
-      marginRight: theme.spacing.xxs,
+      marginRight: xxs,
     },
     severityLow: {
       color: '#006B8E',
@@ -83,7 +85,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       textTransform: 'capitalize',
     },
     headerCell: {
-      color: theme.colors.neutral30,
+      color: neutral30,
       fontWeight: 700,
     },
     paper: {
@@ -99,31 +101,76 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       whiteSpace: 'nowrap',
     },
     tableHead: {
-      borderBottom: `1px solid ${theme.colors.neutral20}`,
+      borderBottom: `1px solid ${neutral20}`,
     },
 
     normalRow: {
-      borderBottom: `1px solid ${theme.colors.neutral20}`,
+      borderBottom: `1px solid ${neutral20}`,
     },
     normalCell: {
       padding: wtheme.spacing(2),
     },
     link: {
-      color: theme.colors.primary,
+      color: primary,
       fontWeight: 600,
       whiteSpace: 'pre-line',
+    },
+    canaryLink: {
+      color: primary,
+      fontWeight: 600,
+      display: 'flex',
+      justifyContent: 'start',
+      alignItems: 'center',
     },
     code: {
       wordBreak: 'break-word',
     },
     titleNotification: {
-      color: theme.colors.primary,
+      color: primary,
     },
     occurrencesList: {
       paddingLeft: wtheme.spacing(1),
     },
     messageWrape: {
-      whiteSpace:'normal'
-    }
+      whiteSpace: 'normal',
+    },
+    labelText: {
+      fontWeight: 400,
+      fontSize: theme.fontSizes.tiny,
+      color: neutral30,
+    },
+    parameterWrapper: {
+      border: `1px solid ${neutral20}`,
+      boxSizing: 'border-box',
+      borderRadius: xxs,
+      padding: base,
+      display: 'flex',
+      marginBottom: base,
+      marginTop: base,
+    },
+    parameterInfo: {
+      display: 'flex',
+      alignItems: 'start',
+      flexDirection: 'column',
+      width: '100%',
+    },
   }),
 );
+
+export const LinkWrapper = styled(Link)`
+  color: ${primary};
+  font-weight: 600;
+`;
+
+export const ChipWrapper = styled.span`
+  background: ${neutral10};
+  border-radius: ${xs};
+  padding: ${xxs} ${xs};
+  margin-right: ${xs};
+`;
+
+export const SpaceBetween = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;

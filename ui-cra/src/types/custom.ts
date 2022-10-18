@@ -1,6 +1,7 @@
 import {
   DeleteClustersPullRequestRequest,
   GitopsCluster,
+  Template,
 } from '../cluster-services/cluster_services.pb';
 
 //
@@ -36,9 +37,37 @@ export type Maintainer = {
   url?: string;
 };
 
+export enum HelmRepositoryType {
+  Default = 'Default',
+  OCI = 'OCI',
+}
+
+export type Interval = {
+  hours?: string;
+  minutes?: string;
+  seconds?: string;
+};
+
+export type Condition = {
+  type?: string;
+  status?: string;
+  reason?: string;
+  message?: string;
+  timestamp?: string;
+};
+
 export type HelmRepository = {
-  name?: string;
   namespace?: string;
+  name?: string;
+  url?: string;
+  interval?: Interval;
+  conditions?: Condition[];
+  suspended?: boolean;
+  lastUpdatedAt?: string;
+  clusterName?: string;
+  apiVersion?: string;
+  repositoryType?: HelmRepositoryType;
+  tenant?: string;
 };
 
 export type Profile = {
@@ -63,10 +92,12 @@ export type ListProfilesResponse = {
 
 export type UpdatedProfile = {
   name: Profile['name'];
+  editable?: boolean;
   values: { version: string; yaml: string; selected?: boolean }[];
   required: boolean;
   layer?: string;
   namespace?: string;
+  selected?: boolean;
 };
 
 export type ListProfileValuesResponse = {
@@ -74,7 +105,7 @@ export type ListProfileValuesResponse = {
   success: boolean;
 };
 
-export type ChildrenOccurences = {
+export type ChildrenOccurrences = {
   name: string;
   groupVisible: boolean;
   count: number;
@@ -91,6 +122,13 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   updatedAt: string;
 }
 
+export type TemplateType = {
+  templateType: string;
+};
+
+export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'> &
+  TemplateType;
+
 export type DeleteClustersPRRequestEnriched = WithRequired<
   DeleteClustersPullRequestRequest,
   'headBranch' | 'title' | 'commitMessage' | 'description'
@@ -100,3 +138,28 @@ export type ListGitopsClustersResponseEnriched = {
   gitopsClusters: GitopsClusterEnriched[];
   total: number;
 };
+
+export type PRDefaults = {
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+};
+
+export type ClusterAutomation = {
+  name?: string;
+  namespace?: string;
+  path?: string;
+};
+
+export type ProfilesIndex = { [name: string]: UpdatedProfile };
+
+export interface ClusterPRPreview {
+  renderedTemplate: string;
+  kustomizationFiles: { path: string; content: string }[];
+  profileFiles: { path: string; content: string }[];
+}
+
+export interface AppPRPreview {
+  kustomizationFiles: { path: string; content: string }[];
+  helmReleaseFiles: { path: string; content: string }[];
+}

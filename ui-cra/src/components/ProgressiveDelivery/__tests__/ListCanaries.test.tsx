@@ -5,6 +5,7 @@ import {
   defaultContexts,
   ProgressiveDeliveryMock,
   withContext,
+  findCellInCol,
 } from '../../../utils/test-utils';
 
 describe('ListCanaries', () => {
@@ -73,7 +74,7 @@ describe('ListCanaries', () => {
 
     expect(await screen.findByText('my-canary')).toBeTruthy();
 
-    const promotedCell = findPromoted();
+    const promotedCell = findCellInCol('Promoted', '#canaries-list table');
     const text = promotedCell?.textContent;
     expect(text).toContain('ghrc.io/myorg/nginx');
     expect(text).not.toContain('some-app');
@@ -106,42 +107,111 @@ describe('ListCanaries', () => {
 
     expect(await screen.findByText('my-canary')).toBeTruthy();
 
-    const promotedCell = findPromoted();
+    const promotedCell = findCellInCol('Promoted', '#canaries-list table');
     const text = promotedCell?.textContent;
     expect(text).toEqual(
       'some-app: ghrc.io/myorg/nginx other-app: ghrc.io/myorg/helloworld ',
     );
   });
-});
+  describe('Canary progress status', () => {
+    it('shows correct canary progress when status is below analysis count', async () => {
+      api.ListCanariesReturns = {
+        canaries: [
+          {
+            name: 'my-canary',
+            namespace: 'some-namespace',
+            clusterName: 'my-cluster',
+            targetReference: {
+              kind: 'Deployment',
+              name: 'cool-dep',
+            },
+            status: {
+              phase: 'Progressing',
+              iterations: 9,
+            },
+            analysis: {
+              iterations: 10,
+            },
+          },
+        ],
+      };
 
-function findPromoted() {
-  const tbl = document.querySelector('#canaries-list table');
+      await act(async () => {
+        const c = wrap(<ListCanaries />);
+        render(c);
+      });
 
-  const cols = tbl?.querySelectorAll('thead th');
-  const idx = findColByHeading(cols, 'Promoted') as number;
+      expect(await screen.findByText('my-canary')).toBeTruthy();
 
-  const rows = tbl?.querySelectorAll('tbody tr');
+      const statusCell = findCellInCol('Status', '#canaries-list table');
+      const text = statusCell?.textContent;
+      expect(text).toEqual('9 / 10');
+    });
+    it('shows correct canary progress when status is equal to analysis count', async () => {
+      api.ListCanariesReturns = {
+        canaries: [
+          {
+            name: 'my-canary',
+            namespace: 'some-namespace',
+            clusterName: 'my-cluster',
+            targetReference: {
+              kind: 'Deployment',
+              name: 'cool-dep',
+            },
+            status: {
+              phase: 'Progressing',
+              iterations: 10,
+            },
+            analysis: {
+              iterations: 10,
+            },
+          },
+        ],
+      };
 
-  const promotedCell = rows?.item(0).childNodes.item(idx);
+      await act(async () => {
+        const c = wrap(<ListCanaries />);
+        render(c);
+      });
 
-  return promotedCell;
-}
+      expect(await screen.findByText('my-canary')).toBeTruthy();
 
-// Helper to ensure that tests still pass if columns get re-ordered
-function findColByHeading(
-  cols: NodeListOf<Element> | undefined,
-  heading: string,
-): null | number {
-  if (!cols) {
-    return null;
-  }
+      const statusCell = findCellInCol('Status', '#canaries-list table');
+      const text = statusCell?.textContent;
+      expect(text).toEqual('10 / 10');
+    });
+    it('shows correct canary progress when status is over analysis count', async () => {
+      api.ListCanariesReturns = {
+        canaries: [
+          {
+            name: 'my-canary',
+            namespace: 'some-namespace',
+            clusterName: 'my-cluster',
+            targetReference: {
+              kind: 'Deployment',
+              name: 'cool-dep',
+            },
+            status: {
+              phase: 'Progressing',
+              iterations: 11,
+            },
+            analysis: {
+              iterations: 10,
+            },
+          },
+        ],
+      };
 
-  let idx = null;
-  cols?.forEach((e, i) => {
-    if (e.innerHTML.includes(heading)) {
-      idx = i;
-    }
+      await act(async () => {
+        const c = wrap(<ListCanaries />);
+        render(c);
+      });
+
+      expect(await screen.findByText('my-canary')).toBeTruthy();
+
+      const statusCell = findCellInCol('Status', '#canaries-list table');
+      const text = statusCell?.textContent;
+      expect(text).toEqual('10 / 10');
+    });
   });
-
-  return idx;
-}
+});

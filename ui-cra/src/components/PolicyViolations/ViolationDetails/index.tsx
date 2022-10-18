@@ -1,63 +1,55 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
-import { useCallback, useState } from 'react';
-import LoadingError from '../../LoadingError';
-import { GetPolicyValidationResponse } from '../../../cluster-services/cluster_services.pb';
-import { PolicyService } from '../../Policies/PolicyService';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 import ViolationDetails from './ViolationDetails';
-import useClusters from '../../../contexts/Clusters';
+import { useGetPolicyValidationDetails } from '../../../contexts/PolicyViolations';
+import { Breadcrumb } from '../../Breadcrumbs';
+import { Routes } from '../../../utils/nav';
+import { formatURL } from '@weaveworks/weave-gitops';
 
 const PolicyViolationDetails = ({
   id,
   clusterName,
+  source,
+  sourcePath,
 }: {
   id: string;
   clusterName: string;
+  source?: string;
+  sourcePath?: string;
 }) => {
-  const { count } = useClusters();
-  const [name, setName] = useState('');
-
-  const fetchPolicyViolationById = useCallback(
-    () =>
-      PolicyService.getPolicyViolationById(id, clusterName).then(
-        (res: GetPolicyValidationResponse) => {
-          res.violation?.name && setName(res.violation.name);
-          return res;
+  const { data, error, isLoading } = useGetPolicyValidationDetails({
+    clusterName,
+    violationId: id,
+  });
+  const headerPath: Breadcrumb[] = !!source
+    ? [
+        { label: 'Applications', url: Routes.Applications },
+        {
+          label: data?.violation?.entity || '',
+          url: formatURL(`/${sourcePath}/violations`, {
+            name: data?.violation?.entity,
+            namespace: data?.violation?.namespace,
+            clusterName: clusterName,
+          }),
         },
-      ),
-    [id, clusterName],
-  );
-
+        { label: data?.violation?.message || '' },
+      ]
+    : [
+        { label: 'Clusters', url: Routes.Clusters },
+        {
+          label: 'Violation Logs',
+          url: Routes.PolicyViolations,
+        },
+        { label: data?.violation?.name || '' },
+      ];
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Violation Logs">
-        <SectionHeader
-          className="count-header"
-          path={[
-            { label: 'Clusters', url: '/clusters', count },
-            { label: 'Violation Logs', url: '/clusters/violations' },
-            { label: name, url: 'policy-violation-details' },
-          ]}
-        />
-        <ContentWrapper>
-          <Title>{name}</Title>
-          <LoadingError fetchFn={fetchPolicyViolationById}>
-            {({
-              value: { violation },
-            }: {
-              value: GetPolicyValidationResponse;
-            }) => (
-              <>
-                <ViolationDetails violation={violation}></ViolationDetails>
-              </>
-            )}
-          </LoadingError>
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate documentTitle="Violation Logs" path={headerPath}>
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        {data?.violation && (
+          <ViolationDetails violation={data.violation} source={source} />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 

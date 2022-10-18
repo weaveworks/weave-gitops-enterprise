@@ -6,103 +6,266 @@ import (
 	"strconv"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
+	"github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
+func installViolatingDeployment(clusterName string, deploymentYaml string) {
+	ginkgo.By(fmt.Sprintf("Install violating deployment to the %s cluster", clusterName), func() {
+		gomega.Eventually(func(g gomega.Gomega) {
+			_ = runCommandPassThrough("kubectl", "delete", "-f", deploymentYaml)
+			g.Expect(runCommandPassThrough("kubectl", "apply", "-f", deploymentYaml)).ShouldNot(gomega.Succeed())
+		}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), fmt.Sprintf("Test Postgres deployment should not be installed in the %s cluster", clusterName))
+	})
+}
+
 func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
-	var _ = Describe("Multi-Cluster Control Plane Violations", func() {
+	var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", func() {
 
-		Context("[UI] Violations can be seen in management cluster dashboard", func() {
+		ginkgo.BeforeEach(func() {
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+
+			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+				loginUser()
+			}
+		})
+
+		ginkgo.Context("[UI] Violations can be seen in management cluster dashboard", func() {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
-			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
+			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "multi-container-manifest.yaml")
 
-			policyName := "Container Image Pull Policy acceptance-test"
-			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
-			violationMsg := "Container Image Pull Policy acceptance-test in deployment postgres"
+			policyName := "Containers Running With Privilege Escalation acceptance test"
+			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment multi-container \(2 occurrences\)`
 			voliationClusterName := "management"
-			violationApplication := "default/postgres"
-			violationSeverity := "Medium"
-			violationCategory := "weave.categories.software-supply-chain"
+			violationApplication := "default/multi-container"
+			violationSeverity := "High"
+			violationCategory := "weave.categories.pod-security"
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, deploymentYaml)
+
 			})
 
-			It("Verify Violations can be monitored for violating resource", Label("integration", "violation"), func() {
+			ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
 				existingViolationCount := getViolationsCount()
 
 				installTestPolicies("management", policiesYaml)
+				installViolatingDeployment("management", deploymentYaml)
 
 				pages.NavigateToPage(webDriver, "Violations")
 				violationsPage := pages.GetViolationsPage(webDriver)
 
-				By("Install violating Postgres deployment to the management cluster", func() {
-					Expect(waitForResource("policy", policyID, "default", "", ASSERTION_1MINUTE_TIME_OUT))
-					Expect(gitopsTestRunner.KubectlApply([]string{}, deploymentYaml)).ShouldNot(Succeed(), "Failed to install test Postgres deployment to management cluster")
-				})
+				ginkgo.By("And wait for violations to be visibe on the dashboard", func() {
+					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
 
-				By("And wait for violations to be visibe on the dashboard", func() {
-					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
-					Eventually(violationsPage.ViolationHeader).Should(BeVisible())
-
-					totalViolationCount := existingViolationCount + 1
-					Eventually(violationsPage.ViolationCount, ASSERTION_2MINUTE_TIME_OUT).Should(MatchText(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
-					Eventually(func(g Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					totalViolationCount := existingViolationCount + 2 // Container Running As Root + Containers Running With Privilege Escalation
+					gomega.Eventually(func(g gomega.Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
 						count, _ := violationsPage.ViolationCount.Text()
 						return count
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
 
-					Eventually(func(g Gomega) int {
+					gomega.Eventually(func(g gomega.Gomega) int {
 						return violationsPage.CountViolations()
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalViolationCount))
+					}, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalViolationCount))
 
 				})
 
 				violationInfo := violationsPage.FindViolationInList(policyName)
-				By(fmt.Sprintf("And verify '%s' violation Message", policyName), func() {
-					Eventually(violationInfo.Message.Text).Should(MatchRegexp(violationMsg), fmt.Sprintf("Failed to list %s violation in vioilations table", violationMsg))
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Message", policyName), func() {
+					gomega.Eventually(violationInfo.Message.Text).Should(gomega.MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in vioilations table", violationMsg))
 				})
 
-				By(fmt.Sprintf("And verify '%s' violation Severity", policyName), func() {
-					Eventually(violationInfo.Severity).Should(MatchText(violationSeverity), fmt.Sprintf("Failed to have expected vioilation Severity: %s", violationSeverity))
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation cluster", policyName), func() {
+					gomega.Eventually(violationInfo.Cluster).Should(matchers.MatchText(voliationClusterName), fmt.Sprintf("Failed to have expected violation cluster name: %s", voliationClusterName))
 				})
 
-				By(fmt.Sprintf("And verify '%s' violation cluster", policyName), func() {
-					Eventually(violationInfo.Cluster).Should(MatchText(voliationClusterName), fmt.Sprintf("Failed to have expected violation cluster name: %s", voliationClusterName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation application", policyName), func() {
+					gomega.Eventually(violationInfo.Application).Should(matchers.MatchText(violationApplication), fmt.Sprintf("Failed to have expected violation Application: %s", violationApplication))
 				})
 
-				By(fmt.Sprintf("And verify '%s' violation application", policyName), func() {
-					Eventually(violationInfo.Application).Should(MatchText(violationApplication), fmt.Sprintf("Failed to have expected violation Application: %s", violationApplication))
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Severity", policyName), func() {
+					gomega.Eventually(violationInfo.Severity).Should(matchers.MatchText(violationSeverity), fmt.Sprintf("Failed to have expected vioilation Severity: %s", violationSeverity))
 				})
 
-				By(fmt.Sprintf("And navigate to '%s' Violation page", policyName), func() {
-					Eventually(violationInfo.Message.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Validated Policy", policyName), func() {
+					gomega.Eventually(violationInfo.ValidatedPolicy).Should(matchers.MatchText(policyName), fmt.Sprintf("Failed to have expected vioilation Valodate Policy: %s", policyName))
+				})
+
+				ginkgo.By(fmt.Sprintf("And navigate to '%s' Violation page", policyName), func() {
+					gomega.Eventually(violationInfo.Message.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
 				})
 
 				violationDetailPage := pages.GetViolationDetailPage(webDriver)
-				By(fmt.Sprintf("And verify '%s' violation page", policyName), func() {
-					Eventually(violationDetailPage.Header.Text).Should(MatchRegexp(policyName), "Failed to verify dashboard violation name ")
-					Eventually(violationDetailPage.Title.Text).Should(MatchRegexp(policyName), "Failed to verify violation title on violation page")
-					Eventually(violationDetailPage.Message.Text).Should(MatchRegexp(violationMsg), "Failed to verify violation Message on violation page")
-					Eventually(violationDetailPage.ClusterName.Text).Should(MatchRegexp(voliationClusterName), "Failed to verify violation Cluster name on violation page")
-					Eventually(violationDetailPage.Severity.Text).Should(MatchRegexp(violationSeverity), "Failed to verify violation Severity on violation page")
-					Eventually(violationDetailPage.Category.Text).Should(MatchRegexp(violationCategory), "Failed to verify violation category on violation page")
-					Eventually(violationDetailPage.Application.Text).Should(MatchRegexp(violationApplication), "Failed to verify violation application on violation page")
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation page", policyName), func() {
+					gomega.Eventually(violationDetailPage.Header.Text).Should(gomega.MatchRegexp(policyName), "Failed to verify dashboard violation name ")
+					gomega.Eventually(violationDetailPage.ClusterName.Text).Should(gomega.MatchRegexp(voliationClusterName), "Failed to verify violation Cluster name on violation page")
+					gomega.Eventually(violationDetailPage.Severity.Text).Should(gomega.MatchRegexp(violationSeverity), "Failed to verify violation Severity on violation page")
+					gomega.Eventually(violationDetailPage.Category.Text).Should(gomega.MatchRegexp(violationCategory), "Failed to verify violation category on violation page")
+					gomega.Eventually(violationDetailPage.Application.Text).Should(gomega.MatchRegexp(violationApplication), "Failed to verify violation application on violation page")
 				})
 
-				By(fmt.Sprintf("And verify '%s' violation Details", policyName), func() {
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Details", policyName), func() {
+					occurenceCount := 2
+					description := "Containers are running with PrivilegeEscalation configured."
+					howToSolve := `spec:\s*containers:\s*securityContext:\s*allowPrivilegeEscalation: <value>`
+					violatingEntity := `"name\\":\\"redis\\",\\"securityContext\\":{\\"allowPrivilegeEscalation\\":true}`
+
+					gomega.Expect(violationDetailPage.OccurrencesCount.Text()).Should(gomega.MatchRegexp(strconv.Itoa(occurenceCount)), "Failed to verify violation occurrence count on violation page")
+					gomega.Expect(violationDetailPage.Occurrences.Count()).Should(gomega.BeNumerically("==", occurenceCount), "Failed to verify number of violation occurrence enteries on violation page")
+					for i := 0; i < occurenceCount; i++ {
+						gomega.Expect(violationDetailPage.Occurrences.At(i).Text()).Should(gomega.MatchRegexp(fmt.Sprintf(`Container spec.template.spec.containers\[%d\] privilegeEscalation should be set to 'false'; detected 'true'`, i)), "Failed to verify number of violation occurrence enteries on violation page")
+					}
+
+					gomega.Expect(violationDetailPage.Description.Text()).Should(gomega.MatchRegexp(description), "Failed to verify violation Description on violation page")
+					gomega.Expect(violationDetailPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
+					gomega.Expect(violationDetailPage.ViolatingEntity.Text()).Should(gomega.MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
+				})
+			})
+		})
+
+		ginkgo.Context("[UI] Leaf cluster violations can be seen in management cluster", func() {
+			var existingViolationCount int
+			var mgmtClusterContext string
+			var leafClusterContext string
+			var leafClusterkubeconfig string
+			var clusterBootstrapCopnfig string
+			var gitopsCluster string
+			patSecret := "violation-pat"
+			bootstrapLabel := "bootstrap"
+			leafClusterName := "wge-leaf-violation-kind"
+			leafClusterNamespace := "default"
+
+			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
+			policyName := "Container Image Pull Policy acceptance test"
+			violationMsg := "Container Image Pull Policy acceptance test in deployment postgres"
+			violationApplication := "default/postgres"
+			violationSeverity := "Medium"
+			violationCategory := "weave.categories.software-supply-chain"
+
+			ginkgo.JustBeforeEach(func() {
+				existingViolationCount = getViolationsCount()
+				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+				createCluster("kind", leafClusterName, "")
+				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			})
+
+			ginkgo.JustAfterEach(func() {
+				useClusterContext(mgmtClusterContext)
+
+				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+
+				deleteCluster("kind", leafClusterName, "")
+				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+
+			})
+
+			ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
+				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
+
+				installPolicyAgent(leafClusterName)
+				installTestPolicies(leafClusterName, policiesYaml)
+				installViolatingDeployment(leafClusterName, deploymentYaml)
+
+				useClusterContext(mgmtClusterContext)
+				createPATSecret(leafClusterNamespace, patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
+				gitopsCluster = connectGitopsCuster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
+				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
+
+				ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
+					pages.NavigateToPage(webDriver, "Clusters")
+					clustersPage := pages.GetClustersPage(webDriver)
+					pages.WaitForPageToLoad(webDriver)
+					clusterInfo := clustersPage.FindClusterInList(leafClusterName)
+
+					gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
+				})
+
+				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
+
+				installTestPolicies("management", policiesYaml)
+				installViolatingDeployment("management", deploymentYaml)
+
+				pages.NavigateToPage(webDriver, "Violations")
+				violationsPage := pages.GetViolationsPage(webDriver)
+
+				ginkgo.By("And wait for violations to be visibe on the dashboard", func() {
+					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
+
+					totalViolationCount := existingViolationCount + 1 + 1 // 1 management and 1 leaf violation
+					gomega.Eventually(func(g gomega.Gomega) string {
+						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						count, _ := violationsPage.ViolationCount.Text()
+						return count
+
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalViolationCount)), fmt.Sprintf("Dashboard failed to update with expected violations count: %d", totalViolationCount))
+
+					gomega.Eventually(func(g gomega.Gomega) int {
+						return violationsPage.CountViolations()
+					}, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalViolationCount))
+
+				})
+
+				ginkgo.By(fmt.Sprintf("And add filter leaf cluster '%s' violations", leafClusterName), func() {
+					filterID := "clusterName: " + leafClusterNamespace + `/` + leafClusterName
+					searchPage := pages.GetSearchPage(webDriver)
+					searchPage.SelectFilter("cluster", filterID)
+				})
+
+				violationInfo := violationsPage.FindViolationInList(policyName)
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Message", policyName), func() {
+					gomega.Eventually(violationInfo.Message.Text).Should(gomega.MatchRegexp(violationMsg), fmt.Sprintf("Failed to list '%s' violation in vioilations table", violationMsg))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation cluster", policyName), func() {
+					gomega.Eventually(violationInfo.Cluster).Should(matchers.MatchText(leafClusterNamespace+`/`+leafClusterName), fmt.Sprintf("Failed to have expected violation cluster name: %s", leafClusterNamespace+`/`+leafClusterName))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation application", policyName), func() {
+					gomega.Eventually(violationInfo.Application).Should(matchers.MatchText(violationApplication), fmt.Sprintf("Failed to have expected violation Application: %s", violationApplication))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Severity", policyName), func() {
+					gomega.Eventually(violationInfo.Severity).Should(matchers.MatchText(violationSeverity), fmt.Sprintf("Failed to have expected vioilation Severity: %s", violationSeverity))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Validated Policy", policyName), func() {
+					gomega.Eventually(violationInfo.ValidatedPolicy).Should(matchers.MatchText(policyName), fmt.Sprintf("Failed to have expected vioilation Valodate Policy: %s", policyName))
+				})
+
+				ginkgo.By(fmt.Sprintf("And navigate to '%s' Violation page", policyName), func() {
+					gomega.Eventually(violationInfo.Message.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s violation detail page", violationMsg))
+				})
+
+				violationDetailPage := pages.GetViolationDetailPage(webDriver)
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation page", policyName), func() {
+					gomega.Eventually(violationDetailPage.Header.Text).Should(gomega.MatchRegexp(policyName), "Failed to verify dashboard violation name ")
+					gomega.Eventually(violationDetailPage.ClusterName.Text).Should(gomega.MatchRegexp(leafClusterNamespace+`/`+leafClusterName), "Failed to verify violation Cluster name on violation page")
+					gomega.Eventually(violationDetailPage.Severity.Text).Should(gomega.MatchRegexp(violationSeverity), "Failed to verify violation Severity on violation page")
+					gomega.Eventually(violationDetailPage.Category.Text).Should(gomega.MatchRegexp(violationCategory), "Failed to verify violation category on violation page")
+					gomega.Eventually(violationDetailPage.Application.Text).Should(gomega.MatchRegexp(violationApplication), "Failed to verify violation application on violation page")
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' violation Details", policyName), func() {
 					description := "This Policy is to ensure you are setting a value for your imagePullPolicy."
 					howToSolve := `spec:\s*containers:\s*- imagePullPolicy: <policy>`
 					violatingEntity := `"name\\":\\"postgres\\",\\"namespace\\":\\"default\\"`
-					Expect(violationDetailPage.Description.Text()).Should(MatchRegexp(description), "Failed to verify violation Description on violation page")
-					Expect(violationDetailPage.HowToSolve.Text()).Should(MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
-					Expect(violationDetailPage.ViolatingEntity.Text()).Should(MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
+					gomega.Expect(violationDetailPage.Description.Text()).Should(gomega.MatchRegexp(description), "Failed to verify violation Description on violation page")
+					gomega.Expect(violationDetailPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
+					gomega.Expect(violationDetailPage.ViolatingEntity.Text()).Should(gomega.MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
 				})
 			})
 		})

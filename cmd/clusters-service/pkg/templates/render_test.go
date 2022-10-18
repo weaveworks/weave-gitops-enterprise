@@ -10,9 +10,13 @@ import (
 )
 
 func TestCAPIRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	})
@@ -48,10 +52,82 @@ spec:
 	}
 }
 
-func TestGitopsRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/cluster-template.yaml")
+func TestTextTemplateStringReplace(t *testing.T) {
+	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-1
+spec:
+  description: this is test template 1
+  renderType: templating
+  params:
+  - name: CLUSTER_NAME
+    description: This is used for the cluster naming.
+  resourcetemplates:
+  - apiVersion: cluster.x-k8s.io/v1alpha3
+    kind: Cluster
+    metadata:
+      name: '{{ .params.CLUSTER_NAME | replace "." "-" }}'
+`)))
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing.name",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing-name
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestTextTemplateMissingFunction(t *testing.T) {
+	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-1
+spec:
+  description: this is test template 1
+  renderType: templating
+  params:
+  - name: CLUSTER_NAME
+    description: This is used for the cluster naming.
+  resourcetemplates:
+  - apiVersion: cluster.x-k8s.io/v1alpha3
+    kind: Cluster
+    metadata:
+      name: '{{ env "TESTING" }}'
+`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing.name",
+	})
+	assert.ErrorContains(t, err, `template: capi-template:4: function "env" not defined`)
+}
+
+func TestGitopsRender(t *testing.T) {
+	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":       "testing",
 		"GIT_REPO_NAME":      "git-repo",
 		"GIT_REPO_NAMESPACE": "git-namespace",
@@ -126,9 +202,13 @@ metadata:
 }
 
 func TestRender_InjectPruneAnnotation(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
@@ -200,9 +280,13 @@ metadata:
 }
 
 func TestInNamespaceGitOps(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/cluster-template-2.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template-2.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME": "testing",
 	}, InNamespace("new-namespace"))
 	if err != nil {
@@ -258,9 +342,13 @@ metadata:
 }
 
 func TestRender_in_namespace(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
@@ -302,9 +390,13 @@ spec:
 }
 
 func TestRender_with_options(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "2",
 	},
@@ -354,9 +446,14 @@ spec:
 }
 
 func TestRenderWithCRD(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template0.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template0.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{"CLUSTER_NAME": "testing"})
+	b, err := processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -386,9 +483,13 @@ spec:
 }
 
 func TestTextTemplateRender(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/text-template.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/text-template.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME": "testing-templating",
 	})
 	if err != nil {
@@ -420,9 +521,13 @@ spec:
 }
 
 func TestTextTemplateRenderConditional(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/text-template2.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/text-template2.yaml")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	b, err := Render(parsed.Spec, map[string]string{
+	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":   "testing-templating",
 		"TEST_VALUE":     "false",
 		"S3_BUCKET_NAME": "test-bucket",
@@ -458,10 +563,15 @@ spec:
 }
 
 func TestRender_unknown_parameter(t *testing.T) {
-	parsed := mustParseFile(t, "testdata/template3.yaml")
+	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
 
-	_, err := Render(parsed.Spec, map[string]string{})
-	assert.ErrorContains(t, err, "value for variables [CLUSTER_NAME] is not set")
+	processor, err := NewProcessorForTemplate(parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = processor.RenderTemplates(map[string]string{})
+	assert.ErrorContains(t, err, "missing required parameter: CLUSTER_NAME")
 }
 
 func writeMultiDoc(t *testing.T, objs [][]byte) string {
@@ -476,4 +586,44 @@ func writeMultiDoc(t *testing.T, objs [][]byte) string {
 		}
 	}
 	return out.String()
+}
+
+func TestInjectLabels(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: new-namespace
+  labels:
+    com.example/testing: tested
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+  labels:
+    com.example/other: tested
+spec:
+  replicas: 5`)
+	updated, err := processUnstructured(raw, InjectLabels(map[string]string{
+		"new-label": "test-label",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  labels:
+    com.example/testing: tested
+    new-label: test-label
+  name: testing
+  namespace: new-namespace
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
 }

@@ -1,9 +1,19 @@
 package templates
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
+// Template implementations provide access to key fields for different
+// templates.
+type Template interface {
+	GetName() string
+	GetSpec() TemplateSpec
+	GetAnnotations() map[string]string
+	GetLabels() map[string]string
+	GetObjectKind() schema.ObjectKind
+}
 
 // These are the options for rendering templates using different "languages"
 // e.g. envsubst or Go templating.
@@ -13,15 +23,6 @@ const (
 	// RenderTypeTemplating use text/templating for rendering
 	RenderTypeTemplating = "templating"
 )
-
-// Template defines a template which can be either a CAPI or a Terraform Template.
-// +kubebuilder:object:generate=true
-type Template struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec TemplateSpec `json:"spec,omitempty"`
-}
 
 // TemplateSpec defines the base template spec needs for CAPI or Terraform Templates.
 // +kubebuilder:object:generate=true
@@ -50,10 +51,18 @@ type TemplateSpec struct {
 // TemplateParam is a parameter that can be templated into a struct.
 // +kubebuilder:object:generate=true
 type TemplateParam struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Required    bool     `json:"required,omitempty"`
-	Options     []string `json:"options,omitempty"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+
+	// Required indicates whether the param must contain a non-empty value
+	// +kubebuilder:default:=true
+	// +optional
+	Required bool     `json:"required,omitempty"`
+	Options  []string `json:"options,omitempty"`
+
+	// Default specifies the default value for the parameter
+	// +optional
+	Default string `json:"default,omitempty"`
 }
 
 // ResourceTemplate describes a resource to create.

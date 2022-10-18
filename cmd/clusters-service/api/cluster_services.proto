@@ -41,6 +41,12 @@ service ClustersService {
       body : "*"
     };
   }
+  rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
+    option (google.api.http) = {
+      post : "/v1/enterprise/automations/render"
+      body : "*"
+    };
+  }
   rpc ListGitopsClusters(ListGitopsClustersRequest)
       returns (ListGitopsClustersResponse) {
     option (google.api.http) = {
@@ -96,6 +102,15 @@ service ClustersService {
       returns (GetEnterpriseVersionResponse) {
     option (google.api.http) = {
       get : "/v1/enterprise/version"
+    };
+  }
+
+  // Creates a pull request for the given list of Kustomizations.
+  rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest)
+      returns (CreateAutomationsPullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/enterprise/automations"
+      body : "*"
     };
   }
 
@@ -193,8 +208,42 @@ message RenderTemplateRequest {
   Credential credentials = 3;
   string template_kind = 4;
   string cluster_namespace = 5;
+  repeated ProfileValues profiles = 6;
+  repeated Kustomization kustomizations = 7;
 }
-message RenderTemplateResponse { string rendered_template = 1; }
+
+message CommitFile {
+	string path = 1; 
+	string content = 2;
+}
+
+
+
+message CostEstimate{
+  message Range {
+    float low = 1;
+    float high = 2;
+  };
+  string currency = 1;
+  float amount = 2;
+  Range range = 3;
+}
+
+message RenderTemplateResponse { 
+  string rendered_template = 1; 
+  repeated CommitFile profile_files = 2; 
+  repeated CommitFile kustomization_files = 3;
+  CostEstimate costEstimate = 4;
+}
+
+message RenderAutomationRequest {
+  repeated ClusterAutomation cluster_automations = 1;
+}
+
+message RenderAutomationResponse { 
+  repeated CommitFile kustomization_files = 1;
+  repeated CommitFile helm_release_files = 2;
+}
 
 message ListGitopsClustersRequest {
   string label = 1; 
@@ -232,6 +281,8 @@ message ListPoliciesResponse {
 message ListPolicyValidationsRequest{
   string clusterName = 1;
   Pagination pagination = 2;
+  string application = 3;
+  string namespace = 4;
 }
 message ListPolicyValidationsResponse {
   repeated PolicyValidation violations = 1;
@@ -265,6 +316,7 @@ message PolicyValidation{
   string name=12;
   string clusterName = 13;
   repeated PolicyValidationOccurrence occurrences = 14;
+  string policy_id = 15;
 }
 
 message CreatePullRequestRequest {
@@ -291,7 +343,9 @@ message CreatePullRequestRequest {
   // The repo api url.
   string repository_api_url = 11;
   string cluster_namespace = 12;
+  repeated Kustomization kustomizations = 13;
 }
+
 message CreatePullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
@@ -397,6 +451,7 @@ message CapiCluster {
   map<string, string> annotations = 3;
   map<string, string> labels = 4;
   CapiClusterStatus status = 5;
+  CapiClusterInfrastructureRef infrastructureRef = 6;
 }
 
 message CapiClusterStatus {
@@ -406,6 +461,12 @@ message CapiClusterStatus {
   bool controlPlaneReady = 4;
   repeated Condition conditions = 5;
   int64 observedGeneration = 6;
+}
+
+message CapiClusterInfrastructureRef {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
 }
 
 message GitopsClusterRef { string name = 1; }
@@ -427,6 +488,7 @@ message Template {
   string error = 6;
   map<string, string> annotations = 7;
   string template_kind = 8;
+  map<string, string> labels = 9;
 }
 
 message Parameter {
@@ -434,11 +496,15 @@ message Parameter {
   string description = 2;
   bool required = 3;
   repeated string options = 4;
+  string default = 5;
 }
 
 message TemplateProfile {
   string name = 1;
   string version = 2;
+  bool editable = 3;
+  string values = 4;
+  string namespace = 5;
 }
 
 message TemplateObject {
@@ -454,6 +520,81 @@ message GetEnterpriseVersionRequest {}
 message GetEnterpriseVersionResponse {
   // The version of WeGO Enterprise
   string version = 1;
+}
+
+message CreateAutomationsPullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The commit message
+  string commit_message = 6;
+  // The repo api url.
+  string repository_api_url = 7;
+  // A list of cluster and kustomization
+  repeated ClusterAutomation cluster_automations = 8;
+}
+
+message ClusterAutomation {
+  ClusterNamespacedName cluster = 1;
+  bool is_control_plane = 2;
+  Kustomization kustomization = 3;
+  HelmRelease helm_release = 4;
+  // A path to write the resource to in the management git repo
+  string file_path = 5;
+}
+
+message Kustomization {
+  Metadata metadata = 1;
+  KustomizationSpec spec = 2;
+}
+
+message KustomizationSpec {
+  string path = 1;
+  SourceRef source_ref = 2;
+  string target_namespace = 3;
+  bool create_namespace = 4;
+}
+
+message HelmRelease {
+  Metadata metadata = 1;
+  HelmReleaseSpec spec = 2;
+}
+
+message HelmReleaseSpec {
+  Chart chart = 1;
+  string values = 2;
+}
+
+message Chart {
+  ChartSpec spec = 1;
+}
+
+message ChartSpec {
+  string chart = 1;
+  SourceRef source_ref = 2;
+  string version = 3; 
+}
+
+message Metadata {
+  string name = 1;
+  string namespace = 2;
+}
+
+message SourceRef {
+  string name = 1;
+  string namespace = 2;
+}
+
+message CreateAutomationsPullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
 }
 
 message Maintainer {
@@ -532,6 +673,7 @@ message Policy {
   PolicyTargets targets = 12;
   string created_at = 13;
   string clusterName = 14;
+  string tenant = 15;
 }
 
 message ObjectRef {

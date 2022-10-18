@@ -7,9 +7,14 @@ spec:
   description: This is eks fargate template-{{.Count}}
   params:
     - name: CLUSTER_NAME
-      description: This is used for the cluster naming.
+      description: This is used for the cluster naming
       options: []
       required: true
+    - name: AWS_REGION
+      description: AWS Region to create cluster
+    - name: AWS_SSH_KEY_NAME
+      description: AWS ssh key name
+      required: false
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster

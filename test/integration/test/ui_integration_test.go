@@ -29,6 +29,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -57,7 +58,7 @@ import (
 //
 
 const capiServerPort = "8000"
-const uiURL = "http://localhost:5000"
+const uiURL = "http://localhost:5001"
 const seleniumURL = "http://localhost:4444/wd/hub"
 
 const entitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -104,12 +105,12 @@ func ListenAndServe(ctx context.Context, srv *http.Server) error {
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	t.Helper()
 
-	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
-	clientsFactory.GetServerClientReturns(client, nil)
+	clustersManager.GetServerClientReturns(client, nil)
 
-	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
+	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
 }
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {
@@ -156,11 +157,11 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
 		app.WithCoreConfig(fakeCoreConfig),
-		app.WithOIDCConfig(
-			app.OIDCAuthenticationOptions{
-				TokenDuration: time.Hour,
-			},
+		app.WithAuthConfig(
+			map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
+			app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 		),
+		app.WithRuntimeNamespace("flux-system"),
 	)
 }
 

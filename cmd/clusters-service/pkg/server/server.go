@@ -12,6 +12,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
+const defaultAutomationNamespace = "flux-system"
+
 var providers = map[string]string{
 	"AWSCluster":             "aws",
 	"AWSManagedCluster":      "aws",
@@ -30,7 +32,7 @@ type server struct {
 	log              logr.Logger
 	templatesLibrary templates.Library
 	clustersLibrary  clusters.Library
-	clientsFactory   clustersmngr.ClientsFactory
+	clustersManager  clustersmngr.ClustersManager
 	provider         git.Provider
 	clientGetter     kube.ClientGetter
 	discoveryClient  discovery.DiscoveryInterface
@@ -38,19 +40,21 @@ type server struct {
 	ns                        string // The namespace where cluster objects reside
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
+	capiEnabled               bool
 }
 
 type ServerOpts struct {
 	Logger                    logr.Logger
 	TemplatesLibrary          templates.Library
 	ClustersLibrary           clusters.Library
-	ClientsFactory            clustersmngr.ClientsFactory
+	ClustersManager           clustersmngr.ClustersManager
 	GitProvider               git.Provider
 	ClientGetter              kube.ClientGetter
 	DiscoveryClient           discovery.DiscoveryInterface
 	ClustersNamespace         string
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
+	CAPIEnabled               bool
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
@@ -58,12 +62,13 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		log:                       opts.Logger,
 		clustersLibrary:           opts.ClustersLibrary,
 		templatesLibrary:          opts.TemplatesLibrary,
-		clientsFactory:            opts.ClientsFactory,
+		clustersManager:           opts.ClustersManager,
 		provider:                  opts.GitProvider,
 		clientGetter:              opts.ClientGetter,
 		discoveryClient:           opts.DiscoveryClient,
 		ns:                        opts.ClustersNamespace,
 		profileHelmRepositoryName: opts.ProfileHelmRepositoryName,
 		helmRepositoryCacheDir:    opts.HelmRepositoryCacheDir,
+		capiEnabled:               opts.CAPIEnabled,
 	}
 }

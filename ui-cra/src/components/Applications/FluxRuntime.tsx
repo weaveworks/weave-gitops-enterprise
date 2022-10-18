@@ -1,33 +1,27 @@
-import React, { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
-  LoadingPage,
-  useListFluxRuntimeObjects,
   FluxRuntime,
+  useListFluxRuntimeObjects,
 } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading } = useListFluxRuntimeObjects();
 
   return (
-    <PageTemplate documentTitle="WeGO · Flux Runtime">
-      <SectionHeader
-        path={[
-          {
-            label: 'Flux Runtime',
-            url: '/flux_runtime',
-            count: data?.deployments?.length,
-          },
-        ]}
-      />
-      <ContentWrapper>
-        {isLoading ? (
-          <LoadingPage />
-        ) : (
-          <FluxRuntime deployments={data?.deployments} />
-        )}
+    <PageTemplate
+      documentTitle="Flux Runtime"
+      path={[
+        {
+          label: 'Flux Runtime',
+          url: '/flux_runtime',
+          count: data?.deployments?.length,
+        },
+      ]}
+    >
+      <ContentWrapper errors={data?.errors} loading={isLoading}>
+        <FluxRuntime deployments={data?.deployments} />
       </ContentWrapper>
     </PageTemplate>
   );

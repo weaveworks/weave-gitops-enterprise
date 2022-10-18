@@ -1,0 +1,516 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-ns
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant
+  namespace: foo-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant-service-account
+  namespace: foo-ns
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - list
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: foo-tenant-service-account
+  namespace: foo-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: foo-tenant-service-account
+subjects:
+- kind: ServiceAccount
+  name: foo-tenant
+  namespace: foo-ns
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: foo-tenant
+  name: weave.policies.tenancy.foo-tenant-allowed-application-deploy
+spec:
+  category: weave.categories.tenancy
+  code: |
+    package weave.tenancy.allowed_application_deploy
+
+    controller_input := input.review.object
+    violation[result] {
+        namespaces := input.parameters.namespaces
+        targetNamespace := controller_input.spec.targetNamespace
+        not contains_array(targetNamespace, namespaces)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using target namespace %v is not allowed", [targetNamespace]),
+        }
+    }
+    violation[result] {
+        serviceAccountName := controller_input.spec.serviceAccountName
+        serviceAccountName != input.parameters.service_account_name
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using service account name %v is not allowed", [serviceAccountName]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
+  description: Determines which helm release and kustomization can be used in a tenant
+  how_to_solve: ""
+  id: weave.policies.tenancy.foo-tenant-allowed-application-deploy
+  name: foo-tenant allowed application deploy
+  parameters:
+  - name: namespaces
+    required: false
+    type: array
+    value:
+    - foo-ns
+  - name: service_account_name
+    required: false
+    type: string
+    value: foo-tenant
+  severity: high
+  standards: []
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - HelmRelease
+    - Kustomization
+    labels: []
+    namespaces:
+    - foo-ns
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-ns
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: bar-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-service-account
+  namespace: bar-ns
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - list
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-service-account
+  namespace: bar-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: bar-tenant-service-account
+subjects:
+- kind: ServiceAccount
+  name: bar-tenant
+  namespace: bar-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-team
+  namespace: bar-ns
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - list
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-team
+  namespace: bar-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: bar-tenant-team
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: foo-group
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: bar-group
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: foobar-ns
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant
+  namespace: foobar-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-service-account
+  namespace: foobar-ns
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - list
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-service-account
+  namespace: foobar-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: bar-tenant-service-account
+subjects:
+- kind: ServiceAccount
+  name: bar-tenant
+  namespace: foobar-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-team
+  namespace: foobar-ns
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - list
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: bar-tenant-team
+  namespace: foobar-ns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: bar-tenant-team
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: foo-group
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: bar-group
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: weave.policies.tenancy.bar-tenant-allowed-application-deploy
+spec:
+  category: weave.categories.tenancy
+  code: |
+    package weave.tenancy.allowed_application_deploy
+
+    controller_input := input.review.object
+    violation[result] {
+        namespaces := input.parameters.namespaces
+        targetNamespace := controller_input.spec.targetNamespace
+        not contains_array(targetNamespace, namespaces)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using target namespace %v is not allowed", [targetNamespace]),
+        }
+    }
+    violation[result] {
+        serviceAccountName := controller_input.spec.serviceAccountName
+        serviceAccountName != input.parameters.service_account_name
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using service account name %v is not allowed", [serviceAccountName]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
+  description: Determines which helm release and kustomization can be used in a tenant
+  how_to_solve: ""
+  id: weave.policies.tenancy.bar-tenant-allowed-application-deploy
+  name: bar-tenant allowed application deploy
+  parameters:
+  - name: namespaces
+    required: false
+    type: array
+    value:
+    - bar-ns
+    - foobar-ns
+  - name: service_account_name
+    required: false
+    type: string
+    value: bar-tenant
+  severity: high
+  standards: []
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - HelmRelease
+    - Kustomization
+    labels: []
+    namespaces:
+    - bar-ns
+    - foobar-ns
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: weave.policies.tenancy.bar-tenant-allowed-repositories
+spec:
+  category: weave.categories.tenancy
+  code: |
+    package weave.tenancy.allowed_repositories
+
+    controller_input := input.review.object
+    namespace := controller_input.metadata.namespace
+    violation[result] {
+        controller_input.kind == "GitRepository"
+        urls := input.parameters.git_urls
+        url := controller_input.spec.url
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("Git repository url %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
+    violation[result] {
+        controller_input.kind == "Bucket"
+        urls := input.parameters.bucket_endpoints
+        url := controller_input.spec.endpoint
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("Bucket endpoint %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
+    violation[result] {
+        controller_input.kind == "HelmRepository"
+        urls := input.parameters.helm_urls
+        url := controller_input.spec.url
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("Helm repository url %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
+    violation[result] {
+        controller_input.kind == "OCIRepository"
+        urls := input.parameters.oci_urls
+        url := controller_input.spec.url
+        not contains_array(url, urls)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("OCI repository url %v is not allowed for namespace %v", [url, namespace]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
+  description: Controls the allowed repositories to be used as sources
+  how_to_solve: ""
+  id: weave.policies.tenancy.bar-tenant-allowed-repositories
+  name: bar-tenant allowed repositories
+  parameters:
+  - name: git_urls
+    required: false
+    type: array
+    value:
+    - https://github.com/testorg/testrepo
+    - https://github.com/testorg/testinfo
+  - name: bucket_endpoints
+    required: false
+    type: array
+    value:
+    - minio.example.com
+  - name: helm_urls
+    required: false
+    type: array
+    value:
+    - https://testorg.github.io/testrepo
+  - name: oci_urls
+    required: false
+    type: array
+    value:
+    - oci://ghcr.io/testreg/testrepo
+  severity: high
+  standards: []
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - GitRepository
+    - Bucket
+    - HelmRepository
+    - OCIRepository
+    labels: []
+    namespaces:
+    - bar-ns
+    - foobar-ns
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: bar-tenant
+  name: weave.policies.tenancy.bar-tenant-allowed-clusters
+spec:
+  category: weave.categories.tenancy
+  code: |
+    package weave.tenancy.allowed_clusters
+
+    controller_input := input.review.object
+    namespace := controller_input.metadata.namespace
+    secrets := input.parameters.cluster_secrets
+    violation[result] {
+        controller_input.kind == "GitopsCluster"
+        secret := controller_input.spec.secretRef.name
+        not contains_array(secret, secrets)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("cluster secretRef %v is not allowed for namespace %v", [secret, namespace]),
+        }
+    }
+    violation[result] {
+        controller_input.kind == "Kustomization"
+        secret := controller_input.spec.kubeConfig.secretRef.name
+        not contains_array(secret, secrets)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("kustomization kubeconfig secretRef %v is not allowed for namespace %v", [secret, namespace]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
+  description: Controls the allowed clusters to be added
+  how_to_solve: ""
+  id: weave.policies.tenancy.bar-tenant-allowed-clusters
+  name: bar-tenant allowed clusters
+  parameters:
+  - name: cluster_secrets
+    required: false
+    type: array
+    value:
+    - cluster-1-kubeconfig
+    - cluster-2-kubeconfig
+  severity: high
+  standards: []
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - GitopsCluster
+    - Kustomization
+    labels: []
+    namespaces:
+    - bar-ns
+    - foobar-ns
+---

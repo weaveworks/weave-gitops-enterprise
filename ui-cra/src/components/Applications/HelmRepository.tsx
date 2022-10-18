@@ -1,9 +1,14 @@
-import React, { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
+import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { useApplicationsCount } from './utils';
-import { HelmRepositoryDetail, useListSources } from '@weaveworks/weave-gitops';
+import { PageTemplate } from '../Layout/PageTemplate';
+import {
+  HelmRepositoryDetail,
+  Kind,
+  useGetObject,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
+import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -12,30 +17,42 @@ type Props = {
 };
 
 const WGApplicationsHelmRepository: FC<Props> = props => {
-  const applicationsCount = useApplicationsCount();
-  const { data: sources } = useListSources();
+  const { name, namespace, clusterName } = props;
+  const {
+    data: helmRepository,
+    isLoading,
+    error,
+  } = useGetObject<HelmRepository>(
+    name,
+    namespace,
+    Kind.HelmRepository,
+    clusterName,
+  );
 
   return (
-    <PageTemplate documentTitle="WeGO · Helm Repository">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
-            label: 'Sources',
-            url: '/sources',
-            count: sources?.length,
-          },
-          {
-            label: `${props.name}`,
-          },
-        ]}
-      />
-      <ContentWrapper>
-        <HelmRepositoryDetail {...props} />
+    <PageTemplate
+      documentTitle="Helm Repository"
+      path={[
+        {
+          label: 'Applications',
+          url: Routes.Applications,
+        },
+        {
+          label: 'Sources',
+          url: V2Routes.Sources,
+        },
+        {
+          label: `${props.name}`,
+        },
+      ]}
+    >
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <HelmRepositoryDetail helmRepository={helmRepository} {...props} />
       </ContentWrapper>
     </PageTemplate>
   );

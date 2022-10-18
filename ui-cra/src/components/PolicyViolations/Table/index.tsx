@@ -1,92 +1,165 @@
 import { FC } from 'react';
-import { muiTheme } from '../../../muiTheme';
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
-import { Shadows } from '@material-ui/core/styles/shadows';
-import { PolicyValidation } from '../../../cluster-services/cluster_services.pb';
+import {
+  ListPolicyValidationsRequest,
+  PolicyValidation,
+} from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
-import { FilterableTable, filterConfig, theme } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import {
+  DataTable,
+  filterConfig,
+  formatURL,
+  Link,
+} from '@weaveworks/weave-gitops';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';
+import { TableWrapper } from '../../Shared';
+import { useListPolicyValidations } from '../../../contexts/PolicyViolations';
+import { Alert } from '@material-ui/lab';
+import { LoadingPage } from '@weaveworks/weave-gitops';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
+import { Routes } from '../../../utils/nav';
 
-const localMuiTheme = createTheme({
-  ...muiTheme,
-  shadows: Array(25).fill('none') as Shadows,
-});
-
-const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
-  tr {
-    vertical-align:'center')};
-  }
-  max-width: calc(100vw - 220px);
-`;
+export enum FieldsType {
+  policy = 'POLICY',
+  application = 'APPLICATION',
+}
 interface Props {
   violations: PolicyValidation[];
+  tableType?: FieldsType;
+  sourcePath?: string;
 }
 
-export const PolicyViolationsTable: FC<Props> = ({ violations }) => {
-  const initialFilterState = {
+export const PolicyViolationsTable: FC<Props> = ({
+  violations,
+  tableType = FieldsType.policy,
+  sourcePath,
+}) => {
+  const initialPolicyFilter = {
+    ...filterConfig(violations, 'severity'),
     ...filterConfig(violations, 'clusterName'),
+  };
+  const initialApplicationFilter = {
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
+  const defaultFields: Field[] = [
+    {
+      label: 'Severity',
+      value: ({ severity }) => <Severity severity={severity || ''} />,
+      sortValue: ({ severity }) => severity,
+    },
+    {
+      label: 'Violated Policy',
+      value: 'name',
+      textSearchable: true,
+      sortValue: ({ name }) => name,
+    },
+
+    {
+      label: 'Violation Time',
+      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
+      defaultSort: true,
+      sortValue: ({ createdAt }) => {
+        const t = createdAt && new Date(createdAt).getTime();
+        return t * -1;
+      },
+    },
+  ];
+  const policyFields: Field[] = [
+    {
+      label: 'Message',
+      value: ({ message, clusterName, id }: PolicyValidation) => (
+        <Link
+          to={formatURL(Routes.PolicyViolationDetails, {
+            id,
+            clusterName,
+          })}
+          data-violation-message={message}
+        >
+          {message}
+        </Link>
+      ),
+      textSearchable: true,
+      sortValue: ({ message }) => message,
+      maxWidth: 650,
+    },
+    {
+      label: 'Cluster',
+      value: 'clusterName',
+      sortValue: ({ clusterName }) => clusterName,
+    },
+    {
+      label: 'Application',
+      value: (v: PolicyValidation) => `${v.namespace}/${v.entity}`,
+    },
+    ...defaultFields,
+  ];
+
+  const applicationFields: Field[] = [
+    {
+      label: 'Message',
+      value: ({ message, clusterName, id }: PolicyValidation) => (
+        <Link
+          to={formatURL(Routes.PolicyViolationDetails, {
+            id,
+            clusterName,
+            sourcePath,
+            source: 'applications',
+          })}
+          className={classes.link}
+          data-violation-message={message}
+        >
+          {message}
+        </Link>
+      ),
+      textSearchable: true,
+      sortValue: ({ message }) => message,
+      maxWidth: 650,
+    },
+    ...defaultFields,
+  ];
+
+  const fields =
+    tableType === FieldsType.policy ? policyFields : applicationFields;
+  const initialFilterState =
+    tableType === FieldsType.policy
+      ? initialPolicyFilter
+      : initialApplicationFilter;
   return (
-    <div className={`${classes.root}`} id="policies-violations-list">
-      <ThemeProvider theme={localMuiTheme}>
-        <TableWrapper>
-          <FilterableTable
-            key={violations?.length}
-            filters={initialFilterState}
-            rows={violations}
-            fields={[
-              {
-                label: 'Name configured in management UI',
-                value: (v: PolicyValidation) => (
-                  <Link
-                    to={`/clusters/violations/details?clusterName=${v.clusterName}&id=${v.id}`}
-                    className={classes.link}
-                    data-violation-message={v.message}
-                  >
-                    {v.message}
-                  </Link>
-                ),
-                textSearchable: true,
-                sortValue: ({ message }) => message,
-                maxWidth: 650,
-              },
-              {
-                label: 'Severity',
-                value: (v: PolicyValidation) => (
-                  <Severity severity={v.severity || ''} />
-                ),
-              },
-              {
-                label: 'Cluster',
-                value: 'clusterName',
-              },
-              {
-                label: 'Violation Time',
-                value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
-              },
-              {
-                label: 'Application',
-                value: (v: PolicyValidation) => `${v.namespace}/${v.entity}`,
-              },
-            ]}
-          ></FilterableTable>
-        </TableWrapper>
-      </ThemeProvider>
-    </div>
+    <TableWrapper id="violations-list">
+      <DataTable
+        filters={initialFilterState}
+        rows={violations}
+        fields={fields}
+      ></DataTable>
+    </TableWrapper>
+  );
+};
+
+interface PolicyViolationsListProp {
+  req: ListPolicyValidationsRequest;
+  tableType?: FieldsType;
+  sourcePath?: string;
+}
+
+export const PolicyViolationsList = ({
+  req,
+  tableType,
+  sourcePath,
+}: PolicyViolationsListProp) => {
+  const { data, error, isLoading } = useListPolicyValidations(req);
+
+  return (
+    <>
+      {isLoading && <LoadingPage />}
+      {error && <Alert severity="error">{error.message}</Alert>}
+      {data?.violations && (
+        <PolicyViolationsTable
+          violations={data?.violations || []}
+          tableType={tableType}
+          sourcePath={sourcePath}
+        />
+      )}
+    </>
   );
 };

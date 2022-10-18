@@ -25,7 +25,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreateTfControllerPullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 		dbRows         int
 	}{
@@ -38,7 +38,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		{
 			name: "name validation errors",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template1", makeClusterTemplates(t)),
+				makeClusterTemplates(t),
 			},
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
@@ -59,9 +59,9 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		{
 			name: "pull request failed",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template1", makeClusterTemplates(t)),
+				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("", nil, errors.New("oops")),
+			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -81,9 +81,9 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		{
 			name: "create pull request",
 			clusterState: []runtime.Object{
-				makeTemplateConfigMap("terraform-templates", "template1", makeClusterTemplates(t)),
+				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -113,11 +113,10 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			s := createServer(t, serverOptions{
-				clusterState:  tt.clusterState,
-				configMapName: "terraform-templates",
-				namespace:     "default",
-				provider:      tt.provider,
-				hr:            hr,
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+				hr:           hr,
 			})
 
 			// request

@@ -1,24 +1,26 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
+import { Link, theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+
+const { small, xs, medium, base, large, xxl } = theme.spacing;
 
 export const useCanaryStyle = makeStyles(() =>
   createStyles({
     rowHeaderWrapper: {
-      margin: `${theme.spacing.small} 0`,
+      margin: `${small} 0`,
       display: 'flex',
       justifyContent: 'start',
       alignItems: 'center',
     },
     cardTitle: {
       fontWeight: 600,
-      fontSize: theme.fontSizes.normal,
+      fontSize: theme.fontSizes.medium,
     },
     body1: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.normal,
+      fontSize: theme.fontSizes.medium,
       color: theme.colors.black,
-      marginLeft: theme.spacing.xs,
+      marginLeft: xs,
       display: 'flex',
       justifyContent: 'start',
       alignItems: 'center',
@@ -28,7 +30,7 @@ export const useCanaryStyle = makeStyles(() =>
     },
     statusWrapper: {
       display: 'flex',
-      gap: theme.spacing.xs,
+      gap: xs,
       justifyContent: 'start',
       alignItems: 'center',
     },
@@ -46,21 +48,24 @@ export const useCanaryStyle = makeStyles(() =>
     },
     sectionHeaderWrapper: {
       background: '#F6F7F9', // add Neutral/Grey Blue to core
-      padding: `${theme.spacing.base} ${theme.spacing.xs}`,
-      margin: `${theme.spacing.base} 0`,
+      padding: `${base} ${xs}`,
+      margin: `${base} 0`,
     },
     straegyIcon: {
-      marginLeft: theme.spacing.small,
+      marginLeft: small,
     },
     barroot: {
       backgroundColor: theme.colors.success,
     },
-    root: {
+    statusProcessing: {
       backgroundColor: theme.colors.neutral20,
       width: '100%',
       height: 8,
-      marginRight: '4px',
       borderRadius: 5,
+      minWidth: '75px',
+    },
+    statusProcessingText: {
+      minWidth: 'fit-content',
     },
     code: {
       wordBreak: 'break-word',
@@ -69,12 +74,12 @@ export const useCanaryStyle = makeStyles(() =>
       display: 'flex',
       justifyContent: 'start',
       alignItems: 'center',
-      padding: theme.spacing.small,
-      marginTop: theme.spacing.xs,
+      padding: small,
+      marginTop: medium,
       cursor: 'pointer',
     },
     expandableSpacing: {
-      marginLeft: theme.spacing.xs,
+      marginLeft: xs,
     },
     fadeIn: {
       transform: 'scaleY(0)',
@@ -91,28 +96,11 @@ export const useCanaryStyle = makeStyles(() =>
   }),
 );
 
-export const TableWrapper = styled.div`
-  margin-top: ${theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
-  div[class*='FilterDialog'] {
-    .Mui-checked {
-      color: ${theme.colors.primary};
-    }
-  }
-  tr {
-    vertical-align: 'center';
-  }
-  max-width: calc(100vw - 220px);
-`;
-
 export const OnBoardingMessageWrapper = styled.div`
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 5px 10px 50px 3px rgb(0 0 0 / 10%);
   border-radius: 10px;
-  padding: ${theme.spacing.large} ${theme.spacing.xxl};
+  padding: ${large} ${xxl};
   max-width: 560px;
   margin: auto;
 `;
@@ -121,21 +109,21 @@ export const Header4 = styled.div`
   font-size: ${theme.fontSizes.large};
   font-weight: 600;
   color: ${theme.colors.neutral30};
-  margin-bottom: ${theme.spacing.small};
+  margin-bottom: ${small};
 `;
 
 export const TextWrapper = styled.p`
-  font-size: ${theme.fontSizes.normal};
+  font-size: ${theme.fontSizes.medium};
   color: ${theme.colors.neutral30};
   font-weight: 400;
 `;
 
 export const FlexCenter = styled.div`
   display: flex;
-  lign-items: center;
+  align-items: center;
   justify-content: center;
 `;
 
-export const LinkTag = styled.a`
+export const LinkTag = styled(Link)`
   color: ${theme.colors.primary};
 `;

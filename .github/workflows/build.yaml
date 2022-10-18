@@ -11,7 +11,6 @@ on:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: { required: true }
       WGE_DOCKER_IO_USER: { required: true }
       WGE_DOCKER_IO_PASSWORD: { required: true }
-      WGE_NPM_GITHUB_TOKEN: { required: true }
       WGE_S3_AWS_ACCESS_KEY_ID: { required: true }
       WGE_S3_AWS_SECRET_ACCESS_KEY: { required: true }
       WGE_HELM_REPO_USERNAME: { required: false }
@@ -26,7 +25,7 @@ env:
   NODE_MODULES_CACHE_NAME: cache-node-modules
   NODE_VERSION: "14"
   HELM_REPO: ${{ inputs.helmrepo }}
-  REACT_APP_DISABLE_PROGRESSIVE_DELIVERY: "true"
+  REACT_APP_DISABLE_PROGRESSIVE_DELIVERY: "false"
   HAS_GCP_CREDS: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER != '' && secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT != '' }}
 
 jobs:
@@ -48,8 +47,10 @@ jobs:
         run: |
           TAG=$(git describe --always --match "v*" --abbrev=7)
           # Zero fill out the number of commits since the last tag. This allows helm to do a proper sorting of semver rc tags which are sorted alphanumerically.
-          ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-%05d-g$REF" $N)
-          SEMVER_TAG=$(awk -F'v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
+          # Also the `v` is important as helm's and some other semver parsers do not allow the "rc" bit of the tag to start with a zero.
+          # It is also important to use 'v' to help with semver sorting. Any character after 'r' (for 'rc' tags) will work. 'v' just makes sense.
+          ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-v%05d-g$REF" $N)
+          SEMVER_TAG=$(awk -F'^v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
           echo "::set-output name=tag::$TAG"
           echo "::set-output name=zero_filled_tag::$ZERO_FILLED_TAG"
           echo "::set-output name=semver_tag::$SEMVER_TAG"
@@ -164,3 +165,49 @@ jobs:
       - name: Push images to docker registry
         run: |
           docker push docker.io/weaveworks/weave-gitops-enterprise-ui-server:$(./tools/image-tag)
+
+  gitops-binary:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]    
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18.X
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Configure git for private modules
+      run: |
+        git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Install dependencies
+      run: |
+        go mod download
+    - name: Clean
+      run: make clean
+    - id: gitsha
+      run: |
+        gitsha=$(git rev-parse --short ${{ github.sha }})
+        echo "::set-output name=sha::$gitsha"
+    - name: build
+      run: |
+        make cmd/gitops/gitops
+        mv cmd/gitops/gitops cmd/gitops/gitops-${{matrix.os}}
+    - uses: actions/upload-artifact@v2
+      with:
+        name: gitops
+        path: cmd/gitops/gitops-${{matrix.os}}
+        retention-days: 7
+    - name: Configure AWS Credentials
+      if: ${{ (github.ref_name == 'main') && (github.event_name == 'push') }}
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-central-1
+    - name: Publish gitops binary to s3 
+      if: ${{ (github.ref_name == 'main') && (github.event_name == 'push') }}
+      run: |
+        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}
+        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}

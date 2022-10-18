@@ -63,10 +63,40 @@ export type RenderTemplateRequest = {
   credentials?: Credential
   templateKind?: string
   clusterNamespace?: string
+  profiles?: ProfileValues[]
+  kustomizations?: Kustomization[]
+}
+
+export type CommitFile = {
+  path?: string
+  content?: string
+}
+
+export type CostEstimateRange = {
+  low?: number
+  high?: number
+}
+
+export type CostEstimate = {
+  currency?: string
+  amount?: number
+  range?: CostEstimateRange
 }
 
 export type RenderTemplateResponse = {
   renderedTemplate?: string
+  profileFiles?: CommitFile[]
+  kustomizationFiles?: CommitFile[]
+  costEstimate?: CostEstimate
+}
+
+export type RenderAutomationRequest = {
+  clusterAutomations?: ClusterAutomation[]
+}
+
+export type RenderAutomationResponse = {
+  kustomizationFiles?: CommitFile[]
+  helmReleaseFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -107,6 +137,8 @@ export type ListPoliciesResponse = {
 export type ListPolicyValidationsRequest = {
   clusterName?: string
   pagination?: Pagination
+  application?: string
+  namespace?: string
 }
 
 export type ListPolicyValidationsResponse = {
@@ -144,6 +176,7 @@ export type PolicyValidation = {
   name?: string
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
+  policyId?: string
 }
 
 export type CreatePullRequestRequest = {
@@ -159,6 +192,7 @@ export type CreatePullRequestRequest = {
   values?: ProfileValues[]
   repositoryApiUrl?: string
   clusterNamespace?: string
+  kustomizations?: Kustomization[]
 }
 
 export type CreatePullRequestResponse = {
@@ -246,6 +280,7 @@ export type CapiCluster = {
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
   status?: CapiClusterStatus
+  infrastructureRef?: CapiClusterInfrastructureRef
 }
 
 export type CapiClusterStatus = {
@@ -255,6 +290,12 @@ export type CapiClusterStatus = {
   controlPlaneReady?: boolean
   conditions?: Condition[]
   observedGeneration?: string
+}
+
+export type CapiClusterInfrastructureRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
 }
 
 export type GitopsClusterRef = {
@@ -278,6 +319,7 @@ export type Template = {
   error?: string
   annotations?: {[key: string]: string}
   templateKind?: string
+  labels?: {[key: string]: string}
 }
 
 export type Parameter = {
@@ -285,11 +327,15 @@ export type Parameter = {
   description?: string
   required?: boolean
   options?: string[]
+  default?: string
 }
 
 export type TemplateProfile = {
   name?: string
   version?: string
+  editable?: boolean
+  values?: string
+  namespace?: string
 }
 
 export type TemplateObject = {
@@ -305,6 +351,71 @@ export type GetEnterpriseVersionRequest = {
 
 export type GetEnterpriseVersionResponse = {
   version?: string
+}
+
+export type CreateAutomationsPullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  commitMessage?: string
+  repositoryApiUrl?: string
+  clusterAutomations?: ClusterAutomation[]
+}
+
+export type ClusterAutomation = {
+  cluster?: ClusterNamespacedName
+  isControlPlane?: boolean
+  kustomization?: Kustomization
+  helmRelease?: HelmRelease
+  filePath?: string
+}
+
+export type Kustomization = {
+  metadata?: Metadata
+  spec?: KustomizationSpec
+}
+
+export type KustomizationSpec = {
+  path?: string
+  sourceRef?: SourceRef
+  targetNamespace?: string
+  createNamespace?: boolean
+}
+
+export type HelmRelease = {
+  metadata?: Metadata
+  spec?: HelmReleaseSpec
+}
+
+export type HelmReleaseSpec = {
+  chart?: Chart
+  values?: string
+}
+
+export type Chart = {
+  spec?: ChartSpec
+}
+
+export type ChartSpec = {
+  chart?: string
+  sourceRef?: SourceRef
+  version?: string
+}
+
+export type Metadata = {
+  name?: string
+  namespace?: string
+}
+
+export type SourceRef = {
+  name?: string
+  namespace?: string
+}
+
+export type CreateAutomationsPullRequestResponse = {
+  webUrl?: string
 }
 
 export type Maintainer = {
@@ -388,6 +499,7 @@ export type Policy = {
   targets?: PolicyTargets
   createdAt?: string
   clusterName?: string
+  tenant?: string
 }
 
 export type ObjectRef = {
@@ -431,6 +543,9 @@ export class ClustersService {
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
+  static RenderAutomation(req: RenderAutomationRequest, initReq?: fm.InitReq): Promise<RenderAutomationResponse> {
+    return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(`/v1/enterprise/automations/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
     return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
@@ -451,6 +566,9 @@ export class ClustersService {
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static CreateAutomationsPullRequest(req: CreateAutomationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateAutomationsPullRequestResponse> {
+    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/enterprise/automations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

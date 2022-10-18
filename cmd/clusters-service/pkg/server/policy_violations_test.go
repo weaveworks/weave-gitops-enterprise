@@ -6,9 +6,11 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/protobuf/testing/protocmp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,6 +37,7 @@ func TestGetPolicyViolation(t *testing.T) {
 				Violation: &capiv1_proto.PolicyValidation{
 					Id:              "66101548-12c1-4f79-a09a-a12979903fba",
 					Name:            "Missing app Label",
+					PolicyId:        "weave.policies.missing-app-label",
 					ClusterId:       "cluster-1",
 					Category:        "Access Control",
 					Severity:        "high",
@@ -85,11 +88,11 @@ func TestGetPolicyViolation(t *testing.T) {
 				corev1.Namespace{},
 			}})
 
-			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
-			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+			fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
-				clientsFactory: fakeFactory,
+				clustersManager: fakeFactory,
 			})
 
 			policyViolation, err := s.GetPolicyValidation(context.Background(), &capiv1_proto.GetPolicyValidationRequest{
@@ -130,6 +133,7 @@ func TestListPolicyValidations(t *testing.T) {
 					e.InvolvedObject.Namespace = "weave-system"
 					e.ObjectMeta.Namespace = "weave-system"
 					e.Annotations["policy_name"] = "Missing Owner Label"
+					e.Annotations["policy_id"] = "weave.policies.missing-app-label"
 					e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979903"
 				}),
 			},
@@ -138,6 +142,7 @@ func TestListPolicyValidations(t *testing.T) {
 					{
 						Id:          "66101548-12c1-4f79-a09a-a12979903fba",
 						Name:        "Missing app Label",
+						PolicyId:    "weave.policies.missing-app-label",
 						ClusterId:   "cluster-1",
 						Category:    "Access Control",
 						Severity:    "high",
@@ -150,6 +155,7 @@ func TestListPolicyValidations(t *testing.T) {
 					{
 						Id:          "56701548-12c1-4f79-a09a-a12979903",
 						Name:        "Missing Owner Label",
+						PolicyId:    "weave.policies.missing-app-label",
 						ClusterId:   "cluster-1",
 						Category:    "Access Control",
 						Severity:    "high",
@@ -183,11 +189,11 @@ func TestListPolicyValidations(t *testing.T) {
 				corev1.Namespace{},
 			}})
 
-			fakeFactory := &clustersmngrfakes.FakeClientsFactory{}
+			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 
 			s := createServer(t, serverOptions{
-				clientsFactory: fakeFactory,
+				clustersManager: fakeFactory,
 			})
 			policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{
 				ClusterName: tt.clusterName,
@@ -208,5 +214,59 @@ func TestListPolicyValidations(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestPartialPolicyValidationsConnectionErrors(t *testing.T) {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	fakeCl := createClient(t, makeEvent(t))
+	clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
+	clientsPool.ClientReturns(fakeCl, nil)
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
+		corev1.Namespace{},
+	}})
+
+	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientStub = func(ctx context.Context, user *auth.UserPrincipal) (clustersmngr.Client, error) {
+		var multi *multierror.Error
+		multi = multierror.Append(multi, &clusterErr)
+		return clustersClient, multi
+	}
+
+	s := createServer(t, serverOptions{
+		clustersManager: fakeFactory,
+	})
+
+	policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectValidation := &capiv1_proto.ListPolicyValidationsResponse{
+		Violations: []*capiv1_proto.PolicyValidation{
+			{
+				Id:          "66101548-12c1-4f79-a09a-a12979903fba",
+				Name:        "Missing app Label",
+				PolicyId:    "weave.policies.missing-app-label",
+				ClusterId:   "cluster-1",
+				Category:    "Access Control",
+				Severity:    "high",
+				CreatedAt:   "0001-01-01T00:00:00Z",
+				Message:     "Policy event",
+				Entity:      "my-deployment",
+				Namespace:   "default",
+				ClusterName: "Default",
+			},
+		},
+		Total:  int32(1),
+		Errors: []*capiv1_proto.ListError{{Message: clusterErr.Error(), ClusterName: clusterErr.ClusterName}},
+	}
+	if diff := cmp.Diff(expectValidation.Violations, policyViolation.Violations, protocmp.Transform()); diff != "" {
+		t.Fatalf("policy violation didn't match expected:\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expectValidation.Errors, policyViolation.Errors, protocmp.Transform()); diff != "" {
+		t.Fatalf("policy violation errors didn't match expected:\n%s", diff)
 	}
 }

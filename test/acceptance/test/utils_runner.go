@@ -12,12 +12,12 @@ import (
 	"text/template"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 // Interface that can be implemented either with:
@@ -86,16 +86,13 @@ func (b DatabaseGitopsTestRunner) FireAlert(name, severity, message string, fire
 
 func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
-	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files by database test runner")
-	By("Apply/Install CAPITemplate templates", func() {
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to generate CAPITemplate template test files by database test runner")
+	ginkgo.By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := templates.ParseFile(fileName)
-			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			capiTemplate := &capiv1.CAPITemplate{
-				Template: *template,
-			}
+			capiTemplate, err := parseCAPITemplateFromFile(fileName)
+			gomega.Expect(err).To(gomega.BeNil(), "Failed to parse CAPITemplate template files")
 			err = b.Client.Create(context.Background(), capiTemplate)
-			Expect(err).To(BeNil(), "Failed to create CAPITemplate template files")
+			gomega.Expect(err).To(gomega.BeNil(), "Failed to create CAPITemplate template files")
 		}
 	})
 
@@ -103,15 +100,12 @@ func (b DatabaseGitopsTestRunner) CreateApplyCapitemplates(templateCount int, te
 }
 
 func (b DatabaseGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
-	By("Delete CAPITemplate templates", func() {
+	ginkgo.By("Delete CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
-			template, err := templates.ParseFile(fileName)
-			Expect(err).To(BeNil(), "Failed to parse CAPITemplate template files")
-			capiTemplate := &capiv1.CAPITemplate{
-				Template: *template,
-			}
+			capiTemplate, err := parseCAPITemplateFromFile(fileName)
+			gomega.Expect(err).To(gomega.BeNil(), "Failed to parse CAPITemplate template files")
 			err = b.Client.Delete(context.Background(), capiTemplate)
-			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template files")
+			gomega.Expect(err).To(gomega.BeNil(), "Failed to delete CAPITemplate template files")
 		}
 	})
 }
@@ -243,12 +237,12 @@ func (b RealGitopsTestRunner) FireAlert(name, severity, message string, fireFor 
 // This function will crete the test capiTemplate files and do the kubectl apply for capiserver availability
 func (b RealGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templateFile string) []string {
 	templateFiles, err := generateTestCapiTemplates(templateCount, templateFile)
-	Expect(err).To(BeNil(), "Failed to generate CAPITemplate template test files by real test runner")
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to generate CAPITemplate template test files by real test runner")
 
-	By("Apply/Install CAPITemplate templates", func() {
+	ginkgo.By("Apply/Install CAPITemplate templates", func() {
 		for _, fileName := range templateFiles {
 			err = runCommandPassThrough("kubectl", "apply", "-f", fileName)
-			Expect(err).To(BeNil(), "Failed to apply/install CAPITemplate template files")
+			gomega.Expect(err).To(gomega.BeNil(), "Failed to apply/install CAPITemplate template files")
 		}
 	})
 
@@ -257,29 +251,29 @@ func (b RealGitopsTestRunner) CreateApplyCapitemplates(templateCount int, templa
 
 // This function deletes the test capiTemplate files and do the kubectl delete to clean the cluster
 func (b RealGitopsTestRunner) DeleteApplyCapiTemplates(templateFiles []string) {
-	By("Delete CAPITemplate templates", func() {
+	ginkgo.By("Delete CAPITemplate templates", func() {
 
 		for _, fileName := range templateFiles {
 			err := b.KubectlDelete([]string{}, fileName)
-			Expect(err).To(BeNil(), "Failed to delete CAPITemplate template")
+			gomega.Expect(err).To(gomega.BeNil(), "Failed to delete CAPITemplate template")
 		}
 	})
 
 	err := deleteFile(templateFiles)
-	Expect(err).To(BeNil(), "Failed to delete CAPITemplate template test files")
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to delete CAPITemplate template test files")
 }
 
 func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace string) error {
 	// Restart the deployment pods
 	var err error
 	for i := 1; i < 5; i++ {
+		time.Sleep(POLL_INTERVAL_1SECONDS)
 		err = runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
 		if err == nil {
 			// Wait for all the deployments replicas to rolled out successfully
 			err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
 			break
 		}
-		time.Sleep(POLL_INTERVAL_1SECONDS)
 	}
 
 	return err
@@ -290,29 +284,29 @@ func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string)
 	if infrastructureProvider == "AWS" {
 		// CAPA installs the AWS identity crds
 		if capi_provider != "capa" {
-			By("Install AWSClusterStaticIdentity CRD", func() {
+			ginkgo.By("Install AWSClusterStaticIdentity CRD", func() {
 				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
 				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 			})
 
-			By("Install AWSClusterRoleIdentity CRD", func() {
+			ginkgo.By("Install AWSClusterRoleIdentity CRD", func() {
 				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
 				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 			})
 		}
 
-		By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
+		ginkgo.By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
 			_, _ = runCommandAndReturnStringOutput("kubectl create namespace capa-system")
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 
 	} else if infrastructureProvider == "AZURE" {
-		By("Install AzureClusterIdentity CRD", func() {
+		ginkgo.By("Install AzureClusterIdentity CRD", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
 			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
-		By("Create Azure Secret and AzureClusterIdentity)", func() {
+		ginkgo.By("Create Azure Secret and AzureClusterIdentity)", func() {
 			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 	}
@@ -322,7 +316,7 @@ func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string)
 func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string) {
 	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
-		By("Delete AWS identities and CRD", func() {
+		ginkgo.By("Delete AWS identities and CRD", func() {
 			// Identity crds are installed as part of CAPA installation
 			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/aws_cluster_credentials.yaml", testDataPath))
 			if capi_provider != "capa" {
@@ -333,7 +327,7 @@ func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string)
 		})
 
 	} else if infrastructureProvider == "AZURE" {
-		By("Delete Azure identities and CRD", func() {
+		ginkgo.By("Delete Azure identities and CRD", func() {
 			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/azure_cluster_credentials.yaml", testDataPath))
 			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
 		})
@@ -377,4 +371,22 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 	}
 
 	return templateFiles, nil
+}
+
+func parseCAPITemplateFromBytes(b []byte) (*capiv1.CAPITemplate, error) {
+	var c capiv1.CAPITemplate
+	err := yaml.Unmarshal(b, &c)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+
+}
+
+func parseCAPITemplateFromFile(filename string) (*capiv1.CAPITemplate, error) {
+	b, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return parseCAPITemplateFromBytes(b)
 }

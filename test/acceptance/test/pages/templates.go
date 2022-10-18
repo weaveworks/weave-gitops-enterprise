@@ -3,37 +3,30 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
 )
 
-//Header webDriver elements
+// Header webDriver elements
 type TemplatesPage struct {
 	TemplateHeader        *agouti.Selection
 	TemplateCount         *agouti.Selection
 	TemplateTiles         *agouti.MultiSelection
-	TemplatesTable        *agouti.MultiSelection
+	TemplatesList         *agouti.MultiSelection
 	TemplateProvider      *agouti.Selection
 	TemplateProviderPopup *agouti.MultiSelection
 	TemplateView          *agouti.MultiSelection
 }
 
-// This function waits for any template tile to appear (become visible)
-func (t TemplatesPage) WaitForPageToLoad(webDriver *agouti.Page) {
-	Eventually(webDriver.All(`[data-template-name]`)).Should(BeVisible())
-}
-
-//TemplatesPage webdriver initialises the webDriver object
+// TemplatesPage webdriver initialises the webDriver object
 func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
-		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/clusters/templates"]`),
-		TemplateCount:         webDriver.FindByXPath(`//*[@href="/clusters/templates"]/parent::div[@role="heading"]/following-sibling::div`),
+		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/templates"]`),
+		TemplateCount:         webDriver.FindByXPath(`//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div`),
 		TemplateTiles:         webDriver.All(`[data-template-name]`),
-		TemplatesTable:        webDriver.All(`#templates-list tbody tr`),
+		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
 		TemplateProviderPopup: webDriver.All(`ul#filter-by-provider-popup li`),
-		TemplateView:          webDriver.All(`main > div > div > div > svg`),
+		TemplateView:          webDriver.All(`#display-action > svg`),
 	}
 
 	return &templatesPage
@@ -69,24 +62,35 @@ func (t TemplatesPage) GetTemplateTileList() []string {
 	return titles
 }
 
-func GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
-	tileRow := webDriver.FindByXPath(fmt.Sprintf(`//tr//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
-	return &TemplateRecord{
-		Name:             templateName,
-		Provider:         tileRow.FindByXPath(`td[3]`),
-		Description:      tileRow.FindByXPath(`td[4]`),
-		CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
-		ErrorHeader:      tileRow.Find(`.template-error-header`),
-		ErrorDescription: tileRow.Find(`.template-error-description`),
+func (t TemplatesPage) CountTemplateRows() int {
+	count, _ := t.TemplatesList.Count()
+	return count
+}
+
+func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
+	rowCount, _ := t.TemplatesList.Count()
+	for i := 0; i < rowCount; i++ {
+		tileRow := t.TemplatesList.At(i).FindByXPath(fmt.Sprintf(`//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
+		if count, _ := tileRow.Count(); count == 1 {
+			return &TemplateRecord{
+				Name:             templateName,
+				Provider:         tileRow.FindByXPath(`td[3]`),
+				Description:      tileRow.FindByXPath(`td[4]`),
+				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
+				ErrorHeader:      tileRow.Find(`.template-error-header`),
+				ErrorDescription: tileRow.Find(`.template-error-description`),
+			}
+		}
 	}
+	return nil
 }
 
 func (t TemplatesPage) GetTemplateTableList() []string {
-	rowCount, _ := t.TemplatesTable.Count()
+	rowCount, _ := t.TemplatesList.Count()
 	rows := make([]string, rowCount)
 
 	for i := 0; i < rowCount; i++ {
-		rows[i], _ = t.TemplatesTable.At(i).Text()
+		rows[i], _ = t.TemplatesList.At(i).Text()
 	}
 	return rows
 }
@@ -105,9 +109,9 @@ func (t TemplatesPage) SelectProvider(providerName string) *agouti.Selection {
 
 func (t TemplatesPage) SelectView(viewName string) *agouti.Selection {
 	switch viewName {
-	case "grid":
-		return t.TemplateView.At(0)
 	case "table":
+		return t.TemplateView.At(0)
+	case "grid":
 		return t.TemplateView.At(1)
 	}
 	return nil

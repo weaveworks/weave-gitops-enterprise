@@ -81,6 +81,14 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				Status:      clusterStatus,
 			}
 
+			if capiCluster.Spec.InfrastructureRef != nil {
+				capiClusterRes.InfrastructureRef = &capiv1_proto.CapiClusterInfrastructureRef{
+					ApiVersion: capiCluster.Spec.InfrastructureRef.APIVersion,
+					Kind:       capiCluster.Spec.InfrastructureRef.Kind,
+					Name:       capiCluster.Spec.InfrastructureRef.Name,
+				}
+			}
+
 			cluster.CapiCluster = capiClusterRes
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -18,8 +19,9 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/services/profiles"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -31,19 +33,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/validation"
 )
 
 const (
-	capiClusterRef            string = "CAPICluster"
-	secretRef                 string = "Secret"
-	HelmReleaseNamespace             = "flux-system"
-	deleteClustersRequiredErr        = "at least one cluster must be specified"
+	capiClusterRef                      string = "CAPICluster"
+	secretRef                           string = "Secret"
+	HelmReleaseNamespace                       = "flux-system"
+	deleteClustersRequiredErr                  = "at least one cluster must be specified"
+	createClusterAutomationsRequiredErr        = "at least one cluster automation must be specified"
+	kustomizationKind                          = "GitRepository"
 )
 
 var (
@@ -77,9 +82,11 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		return nil, err
 	}
 
-	clusters, err = AddCAPIClusters(ctx, client, clusters)
-	if err != nil {
-		return nil, err
+	if s.capiEnabled {
+		clusters, err = AddCAPIClusters(ctx, client, clusters)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if msg.Label != "" {
@@ -118,6 +125,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
 
+	applyCreateClusterDefaults(msg)
+
 	if err := validateCreateClusterPR(msg); err != nil {
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
@@ -125,56 +134,39 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, "CAPITemplate")
 	if err != nil {
-		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
-	if err != nil {
-		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
-	}
 
-	err = templates.ValidateRenderedTemplates(tmplWithValues)
-	if err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
-	}
-
-	client, err := s.clientGetter.Client(ctx)
+	git_files, err := s.getFiles(
+		ctx,
+		tmpl,
+		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
+		msg,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
-	if err != nil {
-		return nil, err
-	}
-
-	// FIXME: parse and read from Cluster in yaml template
-	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
-	if !ok {
-		return nil, fmt.Errorf("unable to find 'CLUSTER_NAME' parameter in supplied values")
-	}
-	cluster := types.NamespacedName{
-		Name:      clusterName,
-		Namespace: clusterNamespace,
-	}
-
-	content := string(tmplWithValuesAndCredentials[:])
-	path := getClusterManifestPath(cluster)
+	path := getClusterManifestPath(git_files.Cluster)
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &path,
-			Content: &content,
+			Content: &git_files.RenderedTemplate,
 		},
 	}
 
 	if viper.GetString("add-bases-kustomization") == "enabled" {
-		commonKustomization, err := getCommonKustomization(cluster)
+		commonKustomization, err := getCommonKustomization(git_files.Cluster)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues["CLUSTER_NAME"], err)
 		}
 		files = append(files, *commonKustomization)
 	}
+
+	files = append(files, git_files.ProfileFiles...)
+	files = append(files, git_files.KustomizationFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
@@ -199,27 +191,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
-	}
-
-	if len(msg.Values) > 0 {
-		profilesFile, err := generateProfileFiles(
-			ctx,
-			cluster,
-			client,
-			generateProfileFilesParams{
-				helmRepository: types.NamespacedName{
-					Name:      s.profileHelmRepositoryName,
-					Namespace: viper.GetString("runtime-namespace"),
-				},
-				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
-				profileValues:          msg.Values,
-				parameterValues:        msg.ParameterValues,
-			},
-		)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, *profilesFile)
 	}
 
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
@@ -266,30 +237,66 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	var filesList []gitprovider.CommitFile
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
+			// Files in manifest path
 			path := getClusterManifestPath(
-				types.NamespacedName{
-					Name:      clusterNamespacedName.Name,
-					Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
-				},
+				createNamespacedName(
+					clusterNamespacedName.Name,
+					getClusterNamespace(clusterNamespacedName.Namespace)),
 			)
 			filesList = append(filesList, gitprovider.CommitFile{
 				Path:    &path,
 				Content: nil,
 			})
+
+			// Files in cluster path
+			clusterDirPath := getClusterDirPath(types.NamespacedName{
+				Name:      clusterNamespacedName.Name,
+				Namespace: getClusterNamespace(clusterNamespacedName.Namespace),
+			})
+
+			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, clusterDirPath, true)
+			if err != nil {
+				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
+			}
+
+			for _, treeEntry := range treeEntries {
+				filesList = append(filesList, gitprovider.CommitFile{
+					Path:    &treeEntry.Path,
+					Content: nil,
+				})
+			}
+
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {
+			//Files in manifest path
 			path := getClusterManifestPath(
-				types.NamespacedName{
-					Name:      clusterName,
-					Namespace: getClusterNamespace(""),
-				},
+				createNamespacedName(clusterName, getClusterNamespace("")),
 			)
 			filesList = append(filesList, gitprovider.CommitFile{
 				Path:    &path,
 				Content: nil,
 			})
+
+			// Files in cluster path
+			clusterDirPath := getClusterDirPath(types.NamespacedName{
+				Name:      clusterName,
+				Namespace: getClusterNamespace(""),
+			})
+
+			treeEntries, err := s.provider.GetTreeList(ctx, *gp, repositoryURL, baseBranch, clusterDirPath, true)
+			if err != nil {
+				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repositoryURL, baseBranch, err)
+			}
+
+			for _, treeEntry := range treeEntries {
+				filesList = append(filesList, gitprovider.CommitFile{
+					Path:    &treeEntry.Path,
+					Content: nil,
+				})
+			}
 		}
+
 	}
 
 	if msg.HeadBranch == "" {
@@ -331,28 +338,84 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 	}, nil
 }
 
-// GetKubeconfig returns the Kubeconfig for the given workload cluster
-func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
-	var sec corev1.Secret
-	name := fmt.Sprintf("%s-kubeconfig", msg.ClusterName)
-
+func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.NamespacedName) ([]byte, error) {
 	cl, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	key := client.ObjectKey{
-		Namespace: getClusterNamespace(msg.ClusterNamespace),
-		Name:      name,
-	}
-	err = cl.Get(ctx, key, &sec)
+	gc := &gitopsv1alpha1.GitopsCluster{}
+	err = cl.Get(ctx, cluster, gc)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get secret %q for Kubeconfig: %w", name, err)
+		return nil, fmt.Errorf("failed to get GitopsCluster %s: %w", cluster, err)
+	}
+	if gc.Spec.SecretRef != nil {
+		secretRefName := client.ObjectKey{
+			Namespace: cluster.Namespace,
+			Name:      gc.Spec.SecretRef.Name,
+		}
+		sec, err := secretByName(ctx, cl, secretRefName)
+		if err != nil && !apierrors.IsNotFound(err) {
+			return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+		}
+		if sec == nil {
+			return nil, fmt.Errorf("failed to load referenced secret %s for cluster %s", secretRefName, cluster)
+		}
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", secretRefName, "value")
+		}
+		return val, nil
 	}
 
-	val, ok := sec.Data["value"]
-	if !ok {
-		return nil, fmt.Errorf("secret %q was found but is missing key %q", key, "value")
+	userSecretName := client.ObjectKey{
+		Namespace: getClusterNamespace(cluster.Namespace),
+		Name:      fmt.Sprintf("%s-user-kubeconfig", cluster.Name),
+	}
+	sec, err := secretByName(ctx, cl, userSecretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", userSecretName, "value")
+		}
+		return val, nil
+	}
+
+	clusterSecretName := client.ObjectKey{
+		Namespace: getClusterNamespace(cluster.Namespace),
+		Name:      fmt.Sprintf("%s-kubeconfig", cluster.Name),
+	}
+	sec, err = secretByName(ctx, cl, clusterSecretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", clusterSecretName, "value")
+		}
+		return val, nil
+	}
+	return nil, fmt.Errorf("unable to get kubeconfig secret for cluster %s", cluster)
+}
+
+func secretByName(ctx context.Context, cl client.Client, name types.NamespacedName) (*corev1.Secret, error) {
+	sec := &corev1.Secret{}
+	err := cl.Get(ctx, name, sec)
+	if err != nil {
+		return nil, err
+	}
+	return sec, nil
+}
+
+// GetKubeconfig returns the Kubeconfig for the given workload cluster
+func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
+	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.ClusterName, Namespace: getClusterNamespace(msg.ClusterNamespace)})
+	if err != nil {
+		return nil, err
 	}
 
 	var acceptHeader string
@@ -400,30 +463,23 @@ func getToken(ctx context.Context) (string, string, error) {
 }
 
 func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFile, error) {
-
 	commonKustomizationPath := getCommonKustomizationPath(cluster)
-	commonKustomization := &kustomizev1.Kustomization{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       kustomizev1.KustomizationKind,
-			APIVersion: kustomizev1.GroupVersion.Identifier(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
+	commonKustomization := createKustomizationObject(&capiv1_proto.Kustomization{
+		Metadata: &capiv1_proto.Metadata{
 			Name:      "clusters-bases-kustomization",
 			Namespace: "flux-system",
 		},
-		Spec: kustomizev1.KustomizationSpec{
-			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: "GitRepository",
-				Name: "flux-system",
-			},
-			Interval: metav1.Duration{Duration: time.Minute * 10},
-			Prune:    true,
+		Spec: &capiv1_proto.KustomizationSpec{
 			Path: filepath.Join(
 				viper.GetString("capi-repository-clusters-path"),
 				"bases",
 			),
+			SourceRef: &capiv1_proto.SourceRef{
+				Name: "flux-system",
+			},
 		},
-	}
+	})
+
 	b, err := yaml.Marshal(commonKustomization)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
@@ -433,6 +489,7 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 		Path:    &commonKustomizationPath,
 		Content: &commonKustomizationString,
 	}
+
 	return file, nil
 }
 
@@ -474,11 +531,11 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository: %w", err)
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", args.helmRepository.Namespace, args.helmRepository.Name, err)
 	}
 	helmRepoTemplate := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
@@ -499,13 +556,39 @@ func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kub
 		Namespace:  helmRepo.ObjectMeta.Namespace,
 	}
 
+	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
+	if err != nil {
+		return nil, err
+	}
+
 	var installs []charts.ChartInstall
+
+	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
+	}
+
 	for _, v := range args.profileValues {
-		// Check the values and if empty use profile defaults. This should happen before parsing.
-		if v.Values == "" {
-			v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
-			if err != nil {
-				return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
+		var requiredProfile *capiv1_proto.TemplateProfile
+		for _, rp := range requiredProfiles {
+			if rp.Name == v.Name && rp.Version == v.Version {
+				requiredProfile = rp
+			} else if rp.Name == v.Name && rp.Version == "" {
+				requiredProfile = rp
+				requiredProfile.Version = v.Version
+			}
+		}
+
+		editable := (requiredProfile == nil || requiredProfile.Editable)
+		// Check the values and if not editable in the Template Profiles or empty, replace with default values. This should happen before parsing.
+		if !editable || v.Values == "" {
+			if requiredProfile != nil && requiredProfile.Values != "" {
+				v.Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
+			} else {
+				v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
+				if err != nil {
+					return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
+				}
 			}
 		}
 
@@ -517,17 +600,24 @@ func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kub
 			}
 		}
 
+		// Check the namespace and if empty, use the profile default
+		if v.Namespace == "" {
+			if requiredProfile != nil && requiredProfile.Namespace != "" {
+				v.Namespace = requiredProfile.Namespace
+			}
+		}
+
 		decoded, err := base64.StdEncoding.DecodeString(v.Values)
 		if err != nil {
 			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 		}
 
-		data, err := templates.ProcessTemplate(decoded, args.parameterValues)
+		data, err := tmplProcessor.Render(decoded, args.parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
 
-		parsed, err := parseValues(data)
+		parsed, err := ParseValues(data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 		}
@@ -545,7 +635,6 @@ func generateProfileFiles(ctx context.Context, cluster types.NamespacedName, kub
 			Values:    parsed,
 			Namespace: v.Namespace,
 		})
-
 	}
 
 	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
@@ -579,15 +668,23 @@ func validateNamespace(namespace string) error {
 	return nil
 }
 
+func applyCreateClusterDefaults(msg *capiv1_proto.CreatePullRequestRequest) {
+	for _, k := range msg.Kustomizations {
+		if k != nil && k.Metadata != nil && k.Metadata.Namespace == "" {
+			k.Metadata.Namespace = defaultAutomationNamespace
+		}
+	}
+}
+
 func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	var err error
 
 	if msg.TemplateName == "" {
-		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
+		err = multierror.Append(err, errors.New("template name must be specified"))
 	}
 
 	if msg.ParameterValues == nil {
-		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
+		err = multierror.Append(err, errors.New("parameter values must be specified"))
 	}
 
 	invalidNamespaceErr := validateNamespace(msg.ParameterValues["NAMESPACE"])
@@ -600,6 +697,10 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 		if invalidNamespaceErr != nil {
 			err = multierror.Append(err, invalidNamespaceErr)
 		}
+	}
+
+	for _, k := range msg.Kustomizations {
+		err = multierror.Append(err, validateKustomization(k))
 	}
 
 	return err
@@ -615,6 +716,39 @@ func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest
 	return err
 }
 
+func validateKustomization(kustomization *capiv1_proto.Kustomization) error {
+	var err error
+
+	if kustomization.Metadata == nil {
+		err = multierror.Append(err, errors.New("kustomization metadata must be specified"))
+	} else {
+		if kustomization.Metadata.Name == "" {
+			err = multierror.Append(err, fmt.Errorf("kustomization name must be specified"))
+		}
+
+		invalidNamespaceErr := validateNamespace(kustomization.Metadata.Namespace)
+		if invalidNamespaceErr != nil {
+			err = multierror.Append(err, invalidNamespaceErr)
+		}
+	}
+
+	if kustomization.Spec.SourceRef != nil {
+		if kustomization.Spec.SourceRef.Name == "" {
+			err = multierror.Append(
+				err,
+				fmt.Errorf("sourceRef name must be specified in Kustomization %s",
+					kustomization.Metadata.Name))
+		}
+
+		invalidNamespaceErr := validateNamespace(kustomization.Spec.SourceRef.Namespace)
+		if invalidNamespaceErr != nil {
+			err = multierror.Append(err, invalidNamespaceErr)
+		}
+	}
+
+	return err
+}
+
 func getClusterManifestPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-path"),
@@ -623,20 +757,24 @@ func getClusterManifestPath(cluster types.NamespacedName) string {
 	)
 }
 
-func getCommonKustomizationPath(cluster types.NamespacedName) string {
+func getClusterDirPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		cluster.Namespace,
 		cluster.Name,
+	)
+}
+
+func getCommonKustomizationPath(cluster types.NamespacedName) string {
+	return filepath.Join(
+		getClusterDirPath(cluster),
 		"clusters-bases-kustomization.yaml",
 	)
 }
 
 func getClusterProfilesPath(cluster types.NamespacedName) string {
 	return filepath.Join(
-		viper.GetString("capi-repository-clusters-path"),
-		cluster.Namespace,
-		cluster.Name,
+		getClusterDirPath(cluster),
 		profiles.ManifestFileName,
 	)
 }
@@ -675,7 +813,8 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	return version, nil
 }
 
-func parseValues(v []byte) (map[string]interface{}, error) {
+// ParseValues takes a YAML encoded values string and returns a struct
+func ParseValues(v []byte) (map[string]interface{}, error) {
 	vals := map[string]interface{}{}
 	if err := yaml.Unmarshal(v, &vals); err != nil {
 		return nil, fmt.Errorf("failed to parse values from JSON: %w", err)
@@ -743,4 +882,100 @@ func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
 	}
 
 	return cluster, nil
+}
+
+func generateKustomizationFile(
+	ctx context.Context,
+	isControlPlane bool,
+	cluster types.NamespacedName,
+	kubeClient client.Client,
+	kustomization *capiv1_proto.Kustomization,
+	filePath string) (gitprovider.CommitFile, error) {
+	kustomizationYAML := createKustomizationObject(kustomization)
+
+	b, err := yaml.Marshal(kustomizationYAML)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s kustomization, %w", kustomization.Metadata.Name, err)
+	}
+
+	k := createNamespacedName(kustomization.Metadata.Name, kustomization.Metadata.Namespace)
+
+	kustomizationPath := getClusterResourcePath(isControlPlane, "kustomization", cluster, k)
+	if filePath != "" {
+		kustomizationPath = filePath
+	}
+
+	kustomizationContent := string(b)
+
+	file := &gitprovider.CommitFile{
+		Path:    &kustomizationPath,
+		Content: &kustomizationContent,
+	}
+
+	return *file, nil
+}
+
+func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, resource types.NamespacedName) string {
+	var clusterNamespace string
+	if !isControlPlane {
+		clusterNamespace = cluster.Namespace
+	}
+
+	fileName := fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType)
+
+	if resourceType == "namespace" {
+		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
+	}
+
+	return filepath.Join(
+		viper.GetString("capi-repository-clusters-path"),
+		clusterNamespace,
+		cluster.Name,
+		fileName,
+	)
+}
+
+func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kustomizev1.Kustomization {
+	generatedKustomization := &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kustomization.Metadata.Name,
+			Namespace: kustomization.Metadata.Namespace,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind:      kustomizationKind,
+				Name:      kustomization.Spec.SourceRef.Name,
+				Namespace: kustomization.Spec.SourceRef.Namespace,
+			},
+			Interval:        metav1.Duration{Duration: time.Minute * 10},
+			Prune:           true,
+			Path:            kustomization.Spec.Path,
+			TargetNamespace: kustomization.Spec.TargetNamespace,
+		},
+	}
+
+	return generatedKustomization
+}
+
+func kubeConfigFromSecret(s *corev1.Secret) ([]byte, bool) {
+	val, ok := s.Data["value.yaml"]
+	if ok {
+		return val, true
+	}
+	val, ok = s.Data["value"]
+	if ok {
+		return val, true
+	}
+	return nil, false
+}
+
+func createNamespacedName(name, namespace string) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
 }

@@ -5,11 +5,13 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server"
+	core_server "github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -23,22 +25,27 @@ type Options struct {
 	ClustersLibrary              clusters.Library
 	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
-	ApplicationsConfig           *server.ApplicationsConfig
+	ApplicationsConfig           *core_server.ApplicationsConfig
 	CoreServerConfig             core.CoreServerConfig
-	ApplicationsOptions          []server.ApplicationsOption
+	ApplicationsOptions          []core_server.ApplicationsOption
 	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
+	RuntimeNamespace             string
 	ProfileHelmRepository        string
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
+	CAPIEnabled                  bool
 	EntitlementSecretKey         client.ObjectKey
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
+	AuthMethods                  map[auth.AuthMethod]bool
 	OIDC                         OIDCAuthenticationOptions
 	TLSCert                      string
 	TLSKey                       string
 	NoTLS                        bool
+	DevMode                      bool
+	ClustersManager              clustersmngr.ClustersManager
 }
 
 type Option func(*Options)
@@ -92,7 +99,7 @@ func WithGitProvider(gitProvider git.Provider) Option {
 
 // WithApplicationsConfig is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
+func WithApplicationsConfig(appConfig *core_server.ApplicationsConfig) Option {
 	return func(o *Options) {
 		o.ApplicationsConfig = appConfig
 	}
@@ -100,7 +107,7 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 
 // WithApplicationsOptions is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
+func WithApplicationsOptions(appOptions ...core_server.ApplicationsOption) Option {
 	return func(o *Options) {
 		o.ApplicationsOptions = appOptions
 	}
@@ -119,6 +126,14 @@ func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
 func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
 	return func(o *Options) {
 		o.ProfilesConfig = profilesConfig
+	}
+}
+
+// WithRuntimeNamespace set the namespace that holds any authentication
+// secrets (e.g. cluster-user-auth or oidc-auth).
+func WithRuntimeNamespace(RuntimeNamespace string) Option {
+	return func(o *Options) {
+		o.RuntimeNamespace = RuntimeNamespace
 	}
 }
 
@@ -179,17 +194,42 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 	}
 }
 
-// WithOIDCConfig is used to set the OIDC configuration.
-func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
+// WithAuthConfig is used to set the auth configuration including OIDC
+func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions) Option {
 	return func(o *Options) {
+		o.AuthMethods = authMethods
 		o.OIDC = oidc
 	}
 }
 
+// WithTLSConfig is used to set the TLS configuration.
 func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 	return func(o *Options) {
 		o.TLSCert = tlsCert
 		o.TLSKey = tlsKey
 		o.NoTLS = noTLS
+	}
+}
+
+// WithCAPIEnabled is enabled/disable CAPI support
+// If the CAPI CRDS are not installed in the cluster and CAPI is
+// enabled, the system will error on certain routes
+func WithCAPIEnabled(capiEnabled bool) Option {
+	return func(o *Options) {
+		o.CAPIEnabled = capiEnabled
+	}
+}
+
+// WithDevMode starts the server in development mode
+func WithDevMode(devMode bool) Option {
+	return func(o *Options) {
+		o.DevMode = devMode
+	}
+}
+
+// WithClustersManager defines the clusters manager that will be use for cross-cluster queries.
+func WithClustersManager(factory clustersmngr.ClustersManager) Option {
+	return func(o *Options) {
+		o.ClustersManager = factory
 	}
 }

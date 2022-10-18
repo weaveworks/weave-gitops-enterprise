@@ -12,12 +12,10 @@
     "@material-ui/lab": "^4.0.0-alpha.58",
     "@material-ui/styles": "^4.11.4",
     "@primer/octicons-react": "9.6.0",
-    "@rjsf/core": "^2.5.1",
-    "@rjsf/material-ui": "^2.5.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@types/classnames": "^2.3.1",
     "@types/d3-scale": "^3.2.2",
-    "@types/git-url-parse": "9.0.0",
+    "@types/git-url-parse": "^9.0.1",
     "@types/lodash": "^4.14.169",
     "@types/query-string": "^6.3.0",
     "@types/react": "^17.0.0",
@@ -25,12 +23,12 @@
     "@types/react-router-dom": "^5.1.7",
     "@types/react-syntax-highlighter": "^13.5.2",
     "@types/styled-components": "^5.1.9",
-    "@weaveworks/progressive-delivery": "0.0.0-rc9",
-    "@weaveworks/weave-gitops": "0.9.0",
+    "@weaveworks/progressive-delivery": "0.0.0-rc13",
+    "@weaveworks/weave-gitops": "0.10.0",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
     "d3-time": "^3.0.0",
-    "git-url-parse": "11.1.2",
+    "git-url-parse": "^13.0.0",
     "http-proxy-middleware": "^2.0.0",
     "js-file-download": "^0.4.12",
     "json-schema": "0.4.0",
@@ -58,7 +56,9 @@
     "**/react-dom": "^17.0.2",
     "**/react-query": "^3.34.7",
     "@weaveworks/weave-gitops/react-router-dom": "^5.2.0",
-    "mini-css-extract-plugin": "~2.4.5"
+    "mini-css-extract-plugin": "~2.4.5",
+    "parse-path": "~5.0.0",
+    "parse-url": "~8.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -101,5 +101,10 @@
     "http-proxy-middleware": "^2.0.0",
     "jest-styled-components": "^7.0.8",
     "prettier": "^2.3.0"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!coy)/"
+    ]
   }
 }
