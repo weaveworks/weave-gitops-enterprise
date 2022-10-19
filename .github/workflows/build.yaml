@@ -77,6 +77,8 @@ jobs:
           make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
 
           # Publish the MCCP Helm v3 chart
+          BRANCH_NAME=${GITHUB_REF##*/}
+          HELM_REPO="dev/branches/${BRANCH_NAME}"
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
       - name: Publish Helm chart for main only
         if: github.ref_name == 'main'
