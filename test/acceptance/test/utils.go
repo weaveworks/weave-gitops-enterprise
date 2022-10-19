@@ -367,6 +367,8 @@ func DumpClusterInfo(testName string) {
 }
 
 func DumpConfigRepo(testName string) {
+	logger.Info("Dumping git-repo...")
+
 	repoPath := "/tmp/config-repo"
 	archiveRepoPath := path.Join(artifacts_base_dir, "config-repo")
 	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")

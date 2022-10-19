@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strconv"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -116,7 +115,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Clusters page to be rendered", func() {
 					gomega.Eventually(clustersPage.ClusterHeader).Should(matchers.BeVisible())
-					gomega.Eventually(clustersPage.ClusterCount).Should(matchers.MatchText(`1`))
 					gomega.Expect(clustersPage.CountClusters()).To(gomega.Equal(1), "There should be a single cluster in cluster table")
 				})
 
@@ -188,7 +186,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(clustersPage.ClusterHeader).Should(matchers.BeVisible())
 
 					totalClusterCount := existingClustersCount + 1
-					gomega.Eventually(clustersPage.ClusterCount, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText(strconv.Itoa(totalClusterCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", totalClusterCount))
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return clustersPage.CountClusters()
 					}, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
@@ -290,7 +287,6 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And wait for GitopsCluster to disappear from Clusters page", func() {
-					gomega.Eventually(clustersPage.ClusterCount, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText(strconv.Itoa(existingClustersCount)), fmt.Sprintf("Dashboard failed to update with expected gitopscluster count: %d", existingClustersCount))
 					gomega.Expect(clustersPage.CountClusters()).To(gomega.Equal(existingClustersCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", existingClustersCount))
 				})
 			})
