@@ -2,12 +2,14 @@ package pages
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/sclevine/agouti"
 )
 
 type ApplicationsPage struct {
 	ApplicationHeader *agouti.Selection
+	ApplicationCount  *agouti.Selection
 	AddApplication    *agouti.Selection
 	ApplicationsList  *agouti.Selection
 	SupportEmailLink  *agouti.Selection
@@ -147,9 +149,16 @@ func (a ApplicationViolationsList) CountViolations() int {
 	return count
 }
 
+func (a ApplicationsPage) ApplicationsHeaderCount() int {
+	cnt, _ := a.ApplicationCount.Text()
+	count, _ := strconv.Atoi(cnt)
+	return count
+}
+
 func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	return &ApplicationsPage{
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		ApplicationCount:  webDriver.Find(`.section-header-count`),
 		AddApplication:    webDriver.FindByButton("ADD AN APPLICATION"),
 		ApplicationsList:  webDriver.First(`table tbody`),
 		SupportEmailLink:  webDriver.FindByLink(`support ticket`),
@@ -225,6 +234,7 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 	}
 }
 
+// GetApplicationViolationsList will have all the locators for App Violations List page.
 func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolationsList {
 	applicationViolationsList := ApplicationViolationsList{
 		ViolationList:             webDriver.First(`table tbody`),
@@ -252,6 +262,7 @@ func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	}
 }
 
+// GetApplicationViolationsDetailsPage will have all the locators for App Violations Details page.
 func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
 	return &ApplicationViolationsDetailsPage{
 		ViolationHeader:      webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
