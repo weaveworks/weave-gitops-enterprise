@@ -23,7 +23,7 @@ const Pipelines = ({ className }: any) => {
           label: 'Applications',
           url: Routes.Applications,
         },
-        { label: 'Pipelines', count: data?.pipelines?.length },
+        { label: 'Pipelines' },
       ]}
     >
       <ContentWrapper loading={isLoading} errorMessage={error?.message}>
