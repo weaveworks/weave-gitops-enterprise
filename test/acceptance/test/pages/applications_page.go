@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/sclevine/agouti"
 )
@@ -30,12 +31,13 @@ type ApplicationInformation struct {
 }
 
 type ApplicationDetailPage struct {
-	Header  *agouti.Selection
-	Title   *agouti.Selection
-	Sync    *agouti.Selection
-	Details *agouti.Selection
-	Events  *agouti.Selection
-	Graph   *agouti.Selection
+	Header     *agouti.Selection
+	Title      *agouti.Selection
+	Sync       *agouti.Selection
+	Details    *agouti.Selection
+	Events     *agouti.Selection
+	Graph      *agouti.Selection
+	Violations *agouti.Selection
 }
 
 type ApplicationDetail struct {
@@ -45,6 +47,7 @@ type ApplicationDetail struct {
 	AppliedRevision   *agouti.Selection
 	AttemptedRevision *agouti.Selection
 	Cluster           *agouti.Selection
+	Tenant            *agouti.Selection
 	Path              *agouti.Selection
 	Interval          *agouti.Selection
 	LastUpdated       *agouti.Selection
@@ -73,6 +76,35 @@ type ApplicationGraph struct {
 	Pod            *agouti.Selection
 }
 
+// Application Violations Details section
+type AppViolationsMsgInList struct {
+	AppViolationsMsg *agouti.Selection
+}
+
+type ApplicationViolationsDetailsPage struct {
+	ViolationHeader      *agouti.Selection
+	PolicyName           *agouti.Selection
+	PolicyNameValue      *agouti.Selection
+	ClusterName          *agouti.Selection
+	ClusterNameValue     *agouti.Selection
+	ViolationTime        *agouti.Selection
+	ViolationTimeValue   *agouti.Selection
+	Severity             *agouti.Selection
+	SeverityIcon         *agouti.Selection
+	SeverityValue        *agouti.Selection
+	Category             *agouti.Selection
+	CategoryValue        *agouti.Selection
+	Occurrences          *agouti.Selection
+	OccurrencesCount     *agouti.Selection
+	OccurrencesValue     *agouti.MultiSelection
+	Description          *agouti.Selection
+	DescriptionValue     *agouti.Selection
+	HowToSolve           *agouti.Selection
+	HowToSolveValue      *agouti.Selection
+	ViolatingEntity      *agouti.Selection
+	ViolatingEntityValue *agouti.Selection
+}
+
 func (a ApplicationsPage) FindApplicationInList(applicationName string) *ApplicationInformation {
 	application := a.ApplicationsList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, applicationName))
 	return &ApplicationInformation{
@@ -90,8 +122,14 @@ func (a ApplicationsPage) FindApplicationInList(applicationName string) *Applica
 }
 
 func (a ApplicationsPage) CountApplications() int {
-	applications := a.ApplicationsList.All("tr")
+	applications := a.ApplicationsList.AllByXPath(`tr[.!="No data"]`)
 	count, _ := applications.Count()
+	return count
+}
+
+func (a ApplicationsPage) ApplicationsHeaderCount() int {
+	cnt, _ := a.ApplicationCount.Text()
+	count, _ := strconv.Atoi(cnt)
 	return count
 }
 
@@ -109,12 +147,13 @@ func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 
 func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *ApplicationDetailPage {
 	return &ApplicationDetailPage{
-		Header:  webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div`),
-		Title:   webDriver.First(`div[class*="AutomationDetail"]`),
-		Sync:    webDriver.FindByButton(`Sync`),
-		Details: webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/detail"`, appType)),
-		Events:  webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/event"`, appType)),
-		Graph:   webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/graph"`, appType)),
+		Header:     webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div`),
+		Title:      webDriver.First(`div[class*="AutomationDetail"]`),
+		Sync:       webDriver.FindByButton(`Sync`),
+		Details:    webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/detail"`, appType)),
+		Events:     webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/event"`, appType)),
+		Graph:      webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/graph"`, appType)),
+		Violations: webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/violations"`, appType)),
 	}
 }
 
@@ -129,6 +168,7 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 		AppliedRevision:   autoDetails.FindByXPath(`tr[contains(.,"Applied Revision")]/td[2]`),
 		AttemptedRevision: autoDetails.FindByXPath(`tr[contains(.,"Attempted Revision")]/td[2]`),
 		Cluster:           autoDetails.FindByXPath(`tr[contains(.,"Cluster")]/td[2]`),
+		Tenant:            autoDetails.FindByXPath(`tr[contains(.,"Tenant")]/td[2]`),
 		Path:              autoDetails.FindByXPath(`tr[contains(.,"Path:")]/td[2]`),
 		Interval:          autoDetails.FindByXPath(`tr[contains(.,"Interval")]/td[2]`),
 		LastUpdated:       autoDetails.FindByXPath(`tr[contains(.,"Last Updated")]/td[2]`),
@@ -165,5 +205,38 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 		Deployment:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Deployment"]/parent::node()`),
 		ReplicaSet:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="ReplicaSet"]/parent::node()`),
 		Pod:            webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Pod"]/parent::node()`),
+	}
+}
+
+// Application Violations Details methods
+func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
+	return &AppViolationsMsgInList{
+		AppViolationsMsg: webDriver.FirstByXPath(`//td[1]//a`),
+	}
+}
+
+func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
+	return &ApplicationViolationsDetailsPage{
+		ViolationHeader:      webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
+		PolicyName:           webDriver.FindByXPath(`//div[text()="Policy Name"]`),
+		PolicyNameValue:      webDriver.FindByXPath(`//a[contains(@href,"/policies/details?")]`),
+		ClusterName:          webDriver.FindByXPath(`//div[text()="Cluster Name"]`),
+		ClusterNameValue:     webDriver.FindByXPath(`//div[text()="Cluster Name"]/following-sibling::*[1]`),
+		ViolationTime:        webDriver.FindByXPath(`//div/*[text()="Violation Time"]`),
+		ViolationTimeValue:   webDriver.FindByXPath(`//div/*[text()="Violation Time"]/following-sibling::*[1]`),
+		Severity:             webDriver.FindByXPath(`//div[text()="Severity"]`),
+		SeverityIcon:         webDriver.AllByXPath(`//*[name()='svg' and contains(@class,'MuiSvgIcon')]`).At(3),
+		SeverityValue:        webDriver.FindByXPath(`//div[text()="Severity"]/following-sibling::*[1]`),
+		Category:             webDriver.FindByXPath(`//div[text()="Category"]`),
+		CategoryValue:        webDriver.FindByXPath(`//div[text()="Category"]/following-sibling::*[1]`),
+		Occurrences:          webDriver.FindByXPath(`//div[text()="Occurrences"]`),
+		OccurrencesCount:     webDriver.FindByXPath(`//div[text()="Occurrences"]/span`),
+		OccurrencesValue:     webDriver.AllByXPath(`//div[text()="Occurrences"]/following-sibling::*[1]/li`),
+		Description:          webDriver.FindByXPath(`//div[text()="Description:"]`),
+		DescriptionValue:     webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
+		HowToSolve:           webDriver.FindByXPath(`//div[text()="How to solve:"]`),
+		HowToSolveValue:      webDriver.FindByXPath(`//div[text()="How to solve:"]/following-sibling::*[1]`),
+		ViolatingEntity:      webDriver.FindByXPath(`//div[text()="Violating Entity:"]`),
+		ViolatingEntityValue: webDriver.FindByXPath(`//div[text()="Violating Entity:"]/following-sibling::*[1]`),
 	}
 }

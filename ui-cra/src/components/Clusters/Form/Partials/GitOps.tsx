@@ -1,44 +1,28 @@
-import React, { FC, useCallback, useState, Dispatch, ChangeEvent } from 'react';
+import React, { FC, useCallback, Dispatch, ChangeEvent } from 'react';
 import styled from 'styled-components';
-import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import GitAuth from './GitAuth';
-import { Input, validateFormData } from '../../../../utils/form';
+import { Input } from '../../../../utils/form';
 
-const GitOpsWrapper = styled.form`
+const GitOpsWrapper = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
   .form-section {
     width: 50%;
   }
-  .create-cta {
-    display: flex;
-    justify-content: end;
-    padding: ${({ theme }) => theme.spacing.small};
-    button {
-      width: 200px;
-    }
-  }
-  .create-loading {
-    padding: ${({ theme }) => theme.spacing.base};
-  }
 `;
 
 const GitOps: FC<{
-  loading: boolean;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  onSubmit: () => Promise<void>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
+  setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
-  loading,
   formData,
   setFormData,
-  onSubmit,
   showAuthDialog,
   setShowAuthDialog,
+  setEnableCreatePR,
 }) => {
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setFormData((prevState: any) => ({
@@ -117,19 +101,6 @@ const GitOps: FC<{
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
       />
-
-      {loading ? (
-        <LoadingPage className="create-loading" />
-      ) : (
-        <div className="create-cta">
-          <Button
-            onClick={event => validateFormData(event, onSubmit)}
-            disabled={!enableCreatePR}
-          >
-            CREATE PULL REQUEST
-          </Button>
-        </div>
-      )}
     </GitOpsWrapper>
   );
 };
