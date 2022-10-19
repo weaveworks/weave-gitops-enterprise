@@ -99,7 +99,7 @@ type AppViolationsMsgInList struct {
 	AppViolationsMsg *agouti.Selection
 }
 
-// ApplicationViolationsDetailsPage contains all the elements in the app violations details page
+// ApplicationViolationsDetailsPage contains all the fields in the app violations details page
 type ApplicationViolationsDetailsPage struct {
 	ViolationHeader      *agouti.Selection
 	PolicyName           *agouti.Selection
@@ -265,7 +265,7 @@ func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	}
 }
 
-// GetApplicationViolationsDetailsPage returns all the fields exist in the app violations details page
+// GetApplicationViolationsDetailsPage returns all the locators for the app violations details page
 func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
 	return &ApplicationViolationsDetailsPage{
 		ViolationHeader:      webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
