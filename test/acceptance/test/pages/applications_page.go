@@ -92,7 +92,6 @@ type ApplicationViolationsList struct {
 	SearchResult              *agouti.Selection
 }
 
-// Application Violations Details section
 type AppViolationsMsgInList struct {
 	AppViolationsMsg *agouti.Selection
 }
@@ -226,7 +225,6 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 	}
 }
 
-// Add Application Violations List
 func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolationsList {
 	applicationViolationsList := ApplicationViolationsList{
 		ViolationList:             webDriver.First(`table tbody`),
@@ -248,7 +246,6 @@ func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolations
 	return &applicationViolationsList
 }
 
-// Application Violations Details methods
 func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	return &AppViolationsMsgInList{
 		AppViolationsMsg: webDriver.FirstByXPath(`//td[1]//a`),
