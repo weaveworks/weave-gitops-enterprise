@@ -53,6 +53,8 @@ func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (temp
 			lib.Log.Error(err, "Failed to get capitemplate", "template", name)
 			return nil, fmt.Errorf("error getting capitemplate %s/%s: %w", lib.CAPINamespace, name, err)
 		}
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+		t.SetGroupVersionKind(capiv1.GroupVersion.WithKind(capiv1.Kind))
 		lib.Log.V(logger.LogLevelDebug).Info("Got capitemplate", "template", name)
 		return &t, nil
 
@@ -67,6 +69,8 @@ func (lib *CRDLibrary) Get(ctx context.Context, name, templateKind string) (temp
 			lib.Log.Error(err, "Failed to get gitops template", "template", name)
 			return nil, fmt.Errorf("error getting gitops template %s/%s: %w", lib.CAPINamespace, name, err)
 		}
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+		t.SetGroupVersionKind(gapiv1.GroupVersion.WithKind(gapiv1.Kind))
 		lib.Log.V(logger.LogLevelDebug).Info("Got gitops template", "template", name)
 		return &t, nil
 	}

@@ -9,7 +9,6 @@ import (
 // Header webDriver elements
 type TemplatesPage struct {
 	TemplateHeader        *agouti.Selection
-	TemplateCount         *agouti.Selection
 	TemplateTiles         *agouti.MultiSelection
 	TemplatesList         *agouti.MultiSelection
 	TemplateProvider      *agouti.Selection
@@ -21,7 +20,6 @@ type TemplatesPage struct {
 func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
 		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/templates"]`),
-		TemplateCount:         webDriver.FindByXPath(`//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div`),
 		TemplateTiles:         webDriver.All(`[data-template-name]`),
 		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
