@@ -198,7 +198,7 @@ interface FormData {
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { clusters, isLoading, count } = useClusters();
+  const { clusters, isLoading } = useClusters();
   const notification = location.state?.notification;
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
@@ -356,7 +356,7 @@ const MCCP: FC<{
   return (
     <PageTemplate
       documentTitle="Clusters"
-      path={[{ label: 'Clusters', url: 'clusters', count }]}
+      path={[{ label: 'Clusters', url: 'clusters' }]}
     >
       <CallbackStateContextProvider
         callbackState={{

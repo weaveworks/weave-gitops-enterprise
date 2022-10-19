@@ -18,7 +18,6 @@ const WGApplicationsSources: FC = () => {
         {
           label: 'Sources',
           url: V2Routes.Sources,
-          count: sources?.result?.length,
         },
       ]}
     >
