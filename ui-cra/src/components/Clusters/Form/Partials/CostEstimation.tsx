@@ -54,28 +54,26 @@ const CostEstimation: FC<{
       <h2>Cost Estimation</h2>
       <Grid container>
         <Grid item xs={6} sm={6} md={6} lg={6}>
-          <div>
-            <Grid container>
-              <Grid
-                item
-                xs={6}
-                justifyContent="flex-start"
-                alignItems="center"
-                container
-              >
-                <div>Monthly Cost:</div>
-              </Grid>
-              <Grid
-                item
-                xs={6}
-                justifyContent="flex-end"
-                alignItems="center"
-                container
-              >
-                <div className={classes.costWrapper}>{estimate}</div>
-              </Grid>
+          <Grid container>
+            <Grid
+              item
+              xs={6}
+              justifyContent="flex-start"
+              alignItems="center"
+              container
+            >
+              <div>Monthly Cost:</div>
             </Grid>
-          </div>
+            <Grid
+              item
+              xs={6}
+              justifyContent="flex-end"
+              alignItems="center"
+              container
+            >
+              <div className={classes.costWrapper}>{estimate}</div>
+            </Grid>
+          </Grid>
         </Grid>
         <Grid
           item

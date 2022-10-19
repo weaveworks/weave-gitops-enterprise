@@ -22,6 +22,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import {
+  CostEstimate,
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
@@ -292,8 +293,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [costEstimationLoading, setCostEstimationLoading] =
     useState<boolean>(false);
-  const [costEstimation, setCostEstimation] = useState<any | undefined>(
-    undefined,
+  const [costEstimation, setCostEstimation] = useState<CostEstimate | null>(
+    null,
   );
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
@@ -428,7 +429,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   }, [cluster, formData.parameterValues, setFormData]);
 
   useEffect(() => {
-    setCostEstimation(undefined);
+    setCostEstimation(null);
   }, [formData.parameterValues]);
 
   return useMemo(() => {
