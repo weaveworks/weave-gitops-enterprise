@@ -179,7 +179,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		}
 	}
 
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles}, err
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
 }
 
 func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
@@ -268,7 +268,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 	costEstimate := &capiv1_proto.CostEstimate{
 		Currency: "USD",
 		Range: &capiv1_proto.CostEstimate_Range{
-			Low:  0,
+			Low:  50,
 			High: 1000000,
 		},
 	}
