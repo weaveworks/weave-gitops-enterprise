@@ -342,7 +342,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     })
       .then(data => {
         const { costEstimate } = data;
-        setCostEstimation(costEstimate);
+        setCostEstimation(costEstimate || null);
       })
       .catch(err =>
         setNotifications([
