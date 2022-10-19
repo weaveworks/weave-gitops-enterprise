@@ -45,11 +45,7 @@ jobs:
       - name: Generate release tags
         id: release_tags
         run: |
-          SHORT_HASH=$(git rev-parse --short HEAD)
-          TIMESTAMP=$(date +%s)
-          TAG=$(git describe --always --match "v*" --abbrev=0)
-          TAG=${TAG}-${TIMESTAMP}-g${SHORT_HASH}  #Helm tag
-
+          TAG=$(git describe --always --match "v*" --abbrev=7)
           # Zero fill out the number of commits since the last tag. This allows helm to do a proper sorting of semver rc tags which are sorted alphanumerically.
           # Also the `v` is important as helm's and some other semver parsers do not allow the "rc" bit of the tag to start with a zero.
           # It is also important to use 'v' to help with semver sorting. Any character after 'r' (for 'rc' tags) will work. 'v' just makes sense.
@@ -77,9 +73,22 @@ jobs:
           make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
 
           # Publish the MCCP Helm v3 chart
-          BRANCH_NAME=${GITHUB_REF##*/}
-          HELM_REPO="dev/branches/${BRANCH_NAME}"
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
+      - name: Publish helm chart to s3 branch repo
+        run: |
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%s)
+          TAG=$(git describe --always --match "v*" --abbrev=0)
+          HELM_TAG=${TAG}-${TIMESTAMP}-g${SHORT_HASH}
+          
+          # Publish the MCCP Helm v3 chart to branch helm repo
+          BRANCH_NAME=${GITHUB_REF##*/}
+          BRANCH_HELM_REPO="dev/branches/${BRANCH_NAME}"
+          ./bin/publish-chart-to-s3.sh $HELM_TAG $BRANCH_HELM_REPO ./charts/mccp
       - name: Publish Helm chart for main only
         if: github.ref_name == 'main'
         env:
