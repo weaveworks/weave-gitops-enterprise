@@ -87,6 +87,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	values := make(cache.ValueMap)
 
 	for _, chart := range charts {
+		log.Info("Checking for new version...", "name", chart.Name)
 		if v, err := r.checkForNewVersion(ctx, chart); err != nil {
 			log.Error(err, "checking for new versions failed")
 		} else if v != "" {
@@ -95,10 +96,12 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 
 		for _, v := range chart.AvailableVersions {
+			log.Info("Getting values for chart", "name", chart.Name, "version", v)
 			valueBytes, err := r.RepoManager.GetValuesFile(context.Background(), &repository, &helm.ChartReference{
 				Chart:   chart.Name,
 				Version: v,
 			}, chartutil.ValuesfileName)
+			log.Info("Got values for chart", "name", chart.Name, "version", v)
 
 			if err != nil {
 				log.Error(err, "failed to get values for chart and version, skipping...", "chart", chart.Name, "version", v)

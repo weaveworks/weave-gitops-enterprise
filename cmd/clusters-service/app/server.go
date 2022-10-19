@@ -331,6 +331,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}
+		log.Info("profile watcher finished")
 	}()
 
 	// trap Ctrl+C and call cancel on the context

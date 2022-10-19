@@ -121,5 +121,7 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 		return err
 	}
 
+	ctrl.Log.Info("manager finished")
+
 	return nil
 }
