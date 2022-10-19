@@ -11,6 +11,7 @@ import (
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
@@ -152,12 +153,26 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 
 // GetClientConfigForCluster returns the client config for a given cluster.
 func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
+	cfg, _, err := kube.RestConfig()
+	if err != nil {
+		return nil, fmt.Errorf("error getting rest config: %w", err)
+	}
+	managementCluster := clustersmngr.Cluster{
+		Name:        helm.ManagementClusterName,
+		Server:      cfg.Host,
+		BearerToken: cfg.BearerToken,
+		TLSConfig:   cfg.TLSClientConfig,
+	}
+
+	clusters := []clustersmngr.Cluster{managementCluster}
+
+	// clusters := s.clustersManager.GetClusters()
+
 	clusterName := cluster.Name
 	if clusterName != helm.ManagementClusterName {
 		clusterName = fmt.Sprintf("%s/%s", cluster.Namespace, cluster.Name)
 	}
 
-	clusters := s.clustersManager.GetClusters()
 	for _, c := range clusters {
 		if c.Name == clusterName {
 			return clustersmngr.ClientConfigAsServer()(c)
