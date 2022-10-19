@@ -3,8 +3,6 @@ package acceptance
 import (
 	"fmt"
 	"path"
-	"strconv"
-	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -75,13 +73,6 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 4
-					gomega.Eventually(func(g gomega.Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := policiesPage.PolicyCount.Text()
-						return count
-
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return policiesPage.CountPolicies()
@@ -238,14 +229,6 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 8 // 4 management and 4 leaf policies
-
-					gomega.Eventually(func(g gomega.Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := policiesPage.PolicyCount.Text()
-						return count
-
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return policiesPage.CountPolicies()

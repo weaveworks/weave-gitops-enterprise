@@ -27,7 +27,6 @@ function TerraformObjectList({ className }: Props) {
         {
           label: 'Terraform Objects',
           url: '/terraform',
-          count: data?.objects?.length,
         },
       ]}
     >

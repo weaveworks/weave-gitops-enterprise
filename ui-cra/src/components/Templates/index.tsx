@@ -69,7 +69,6 @@ const TemplatesDashboard: FC<{
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
   ];
-  const templatesCount = templates?.length;
   const [view, setView] = useState<string>('table');
   const [selectedProvider, setSelectedProvider] = useState<
     string | null | undefined
@@ -112,7 +111,6 @@ const TemplatesDashboard: FC<{
         {
           label: 'Templates',
           url: '/templates',
-          count: templatesCount,
         },
       ]}
     >
