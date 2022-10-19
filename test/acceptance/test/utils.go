@@ -65,6 +65,7 @@ const (
 	ASSERTION_3MINUTE_TIME_OUT   time.Duration = 3 * time.Minute
 	ASSERTION_5MINUTE_TIME_OUT   time.Duration = 5 * time.Minute
 	ASSERTION_6MINUTE_TIME_OUT   time.Duration = 6 * time.Minute
+	ASSERTION_10MINUTE_TIME_OUT  time.Duration = 10 * time.Minute
 	ASSERTION_15MINUTE_TIME_OUT  time.Duration = 15 * time.Minute
 
 	POLL_INTERVAL_1SECONDS        time.Duration = 1 * time.Second
@@ -367,6 +368,8 @@ func DumpClusterInfo(testName string) {
 }
 
 func DumpConfigRepo(testName string) {
+	logger.Info("Dumping git-repo...")
+
 	repoPath := "/tmp/config-repo"
 	archiveRepoPath := path.Join(artifacts_base_dir, "config-repo")
 	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")
