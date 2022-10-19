@@ -221,7 +221,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				defer cleanGitRepository(appKustomization)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
 				})
 
 				pages.NavigateToPage(webDriver, "Applications")
