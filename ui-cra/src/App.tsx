@@ -1,7 +1,7 @@
 import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { FC } from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { muiTheme } from './muiTheme';
@@ -97,19 +97,17 @@ interface Error {
   message: string;
 }
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      onError: error => {
-        const err = error as Error;
-        const { pathname, search } = window.location;
-        const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+  queryCache: new QueryCache({
+    onError: error => {
+      const err = error as Error;
+      const { pathname, search } = window.location;
+      const redirectUrl = encodeURIComponent(`${pathname}${search}`);
 
-        if (err.code === 401) {
-          window.location.href = `/sign_in?redirect=${redirectUrl}`;
-        }
-      },
+      if (err.code === 401) {
+        window.location.href = `/sign_in?redirect=${redirectUrl}`;
+      }
     },
-  },
+  }),
 });
 
 const App: FC = () => {
