@@ -1149,8 +1149,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					ApplicationViolationsList := pages.GetApplicationViolationsList(webDriver)
 					searchPage := pages.GetSearchPage(webDriver)
 					gomega.Eventually(searchPage.SearchBtn.Click).Should(gomega.Succeed(), "Failed to click search buttton")
-					gomega.Expect(searchPage.Search.SendKeys(policyName)).Should(gomega.Succeed(), "Failed type violated policy name in search field")
-					gomega.Expect(searchPage.Search.SendKeys("\uE007")).Should(gomega.Succeed()) // Send enter key code to do application search in table
+					gomega.Expect(searchPage.Search.SendKeys(policyName)).Should(gomega.Succeed(), "Failed to type violated policy name in search field")
+					gomega.Expect(searchPage.Search.SendKeys("\uE007")).Should(gomega.Succeed()) // Send enter key code to do violations search in table
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return ApplicationViolationsList.CountViolations()
 					}).Should(gomega.Equal(1), "There should be '1' Violation Message in the list after search")
