@@ -82,15 +82,13 @@ const CostEstimation: FC<{
           alignItems="center"
           container
         >
-          <div>
-            <Button
-              id="get-estimation"
-              className={classes.getEstimationButton}
-              onClick={event => validateFormData(event, handleCostEstimation)}
-            >
-              GET ESTIMATION
-            </Button>
-          </div>
+          <Button
+            id="get-estimation"
+            className={classes.getEstimationButton}
+            onClick={event => validateFormData(event, handleCostEstimation)}
+          >
+            GET ESTIMATION
+          </Button>
         </Grid>
       </Grid>
     </div>
