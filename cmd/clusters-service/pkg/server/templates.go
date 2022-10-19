@@ -268,7 +268,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 	costEstimate := &capiv1_proto.CostEstimate{
 		Currency: "USD",
 		Range: &capiv1_proto.CostEstimate_Range{
-			Low:  50,
+			Low:  0,
 			High: 1000000,
 		},
 	}
