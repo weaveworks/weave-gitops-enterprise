@@ -7,9 +7,9 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 )
 
@@ -47,6 +47,7 @@ type server struct {
 	valuesFetcher     helm.ValuesFetcher
 	chartsCache       helm.ChartsCacheReader
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
+	estimator         estimation.Estimator
 }
 
 type ServerOpts struct {
@@ -60,15 +61,25 @@ type ServerOpts struct {
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
 	Cluster                   string
-
-	RestConfig        *rest.Config
-	ChartJobs         *helm.Jobs
-	ChartsCache       helm.ChartsCacheReader
-	ValuesFetcher     helm.ValuesFetcher
-	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
+	RestConfig                *rest.Config
+	ChartJobs                 *helm.Jobs
+	ChartsCache               helm.ChartsCacheReader
+	ValuesFetcher             helm.ValuesFetcher
+	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
+	RestConfig                *rest.Config
+	ChartJobs                 *helm.Jobs
+	ChartsCache               chartsCache
+	ValuesFetcher             helm.ValuesFetcher
+	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Estimator                 estimation.Estimator
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
+	estimator := estimation.NilEstimator()
+	if opts.Estimator != nil {
+		estimator = opts.Estimator
+	}
+
 	return &server{
 		log:                       opts.Logger,
 		clustersManager:           opts.ClustersManager,
@@ -85,5 +96,6 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		valuesFetcher:             opts.ValuesFetcher,
 		managementFetcher:         opts.ManagementFetcher,
 		cluster:                   opts.Cluster,
+		estimator:                 estimator,
 	}
 }
