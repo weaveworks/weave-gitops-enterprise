@@ -85,16 +85,7 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 		Version: req.Version,
 	}
 
-	// found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error checking if chart is known: %w", err)
-	// }
-	// if !found {
-	// 	return nil, &grpcruntime.HTTPStatusError{
-	// 		Err:        errors.New("chart version not found"),
-	// 		HTTPStatus: http.StatusNotFound,
-	// 	}
-	// }
+	// FIXME: should be looking up the actual helm repository here to check RBAC
 
 	jobId := s.chartJobs.New()
 
@@ -143,10 +134,10 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 		return "", fmt.Errorf("error fetching values file: %w", err)
 	}
 
-	// err = s.chartsCache.UpdateValuesYaml(ctx, clusterRef, repoRef, chart, data)
-	// if err != nil {
-	// 	return "", fmt.Errorf("error updating values yaml: %w", err)
-	// }
+	err = s.chartsCache.UpdateValuesYaml(ctx, clusterRef, repoRef, chart, data)
+	if err != nil {
+		return "", fmt.Errorf("error updating values yaml: %w", err)
+	}
 
 	return string(data), nil
 }

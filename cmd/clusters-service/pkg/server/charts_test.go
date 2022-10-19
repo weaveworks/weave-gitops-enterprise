@@ -11,7 +11,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/repo"
@@ -167,8 +166,8 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			request: &protos.GetValuesForChartRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "clusters",
-						Name:      "demo-cluster",
+						Namespace: "default",
+						Name:      "management",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -181,7 +180,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management", Namespace: "default"},
 					),
 					[]helm.Chart{{Name: "redis", Version: "1.0.1"}},
 				),
@@ -196,9 +195,10 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			fakeClustersManager := &clustersmngrfakes.FakeClustersManager{}
-			fakeClustersManager.GetClustersReturns([]clustersmngr.Cluster{
-				{Name: "clusters/demo-cluster"},
-			})
+			// FIXME: re-enable this when core gets this api
+			// fakeClustersManager.GetClustersReturns([]clustersmngr.Cluster{
+			// 	{Name: "clusters/demo-cluster"},
+			// })
 			s := createServer(t, serverOptions{
 				chartsCache:     tt.fc,
 				chartJobs:       helm.NewJobs(),
@@ -223,7 +223,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("error on JobPoll: %s: %v", err, jobResponse)
 			}
 
 			if diff := cmp.Diff(tt.want, jobResponse, protocmp.Transform()); diff != "" {
@@ -231,7 +231,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			}
 
 			cachedValue, err := tt.fc.GetChartValues(context.TODO(),
-				types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+				types.NamespacedName{Name: "management", Namespace: "default"},
 				helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 				helm.Chart{Name: "redis", Version: "1.0.1"})
 			if err != nil {

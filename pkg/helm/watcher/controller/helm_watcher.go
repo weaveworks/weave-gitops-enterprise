@@ -7,6 +7,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	"helm.sh/helm/v3/pkg/chartutil"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -91,6 +92,25 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		} else if v != "" {
 			log.Info("sending notification event for new version", "version", v)
 			r.sendEvent(log, &repository, "info", chart.Name, v)
+		}
+
+		for _, v := range chart.AvailableVersions {
+			valueBytes, err := r.RepoManager.GetValuesFile(context.Background(), &repository, &helm.ChartReference{
+				Chart:   chart.Name,
+				Version: v,
+			}, chartutil.ValuesfileName)
+
+			if err != nil {
+				log.Error(err, "failed to get values for chart and version, skipping...", "chart", chart.Name, "version", v)
+				// log error and skip version
+				continue
+			}
+
+			if _, ok := values[chart.Name]; !ok {
+				values[chart.Name] = make(map[string][]byte)
+			}
+
+			values[chart.Name][v] = valueBytes
 		}
 	}
 
