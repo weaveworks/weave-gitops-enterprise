@@ -17,17 +17,10 @@ import {
 } from '../../../../cluster-services/cluster_services.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Button } from '@weaveworks/weave-gitops';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiPaper-root']{
     height: 700px;
-  }
-  .textarea {
-    width: 100%;
-      padding:  ${({ theme }) => theme.spacing.xs};
-      border: 1px solid ${({ theme }) => theme.colors.neutral20};
-    }
   }
   .info {
     padding:  ${({ theme }) => theme.spacing.medium};
@@ -82,6 +75,7 @@ const Preview: FC<{
 
   const getContetn = (files: CommitFile[] | undefined) =>
     files?.map(file => file.content).join('\n---\n');
+  
   const tabsContent =
     context === 'app'
       ? [
