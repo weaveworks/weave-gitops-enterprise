@@ -35,7 +35,6 @@ import (
 
 	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -135,58 +134,39 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, "CAPITemplate")
 	if err != nil {
-		return nil, fmt.Errorf("unable to get template %q: %w", msg.TemplateName, err)
+		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
-	if err != nil {
-		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
-	}
 
-	tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
-	}
-
-	err = templates.ValidateRenderedTemplates(tmplWithValues)
-	if err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
-	}
-
-	client, err := s.clientGetter.Client(ctx)
+	git_files, err := s.getFiles(
+		ctx,
+		tmpl,
+		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
+		msg,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
-	if err != nil {
-		return nil, err
-	}
-
-	// FIXME: parse and read from Cluster in yaml template
-	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
-	if !ok {
-		return nil, errors.New("unable to find 'CLUSTER_NAME' parameter in supplied values")
-	}
-	cluster := createNamespacedName(clusterName, clusterNamespace)
-
-	content := string(tmplWithValuesAndCredentials[:])
-	path := getClusterManifestPath(cluster)
+	path := getClusterManifestPath(git_files.Cluster)
 	files := []gitprovider.CommitFile{
 		{
 			Path:    &path,
-			Content: &content,
+			Content: &git_files.RenderedTemplate,
 		},
 	}
 
 	if viper.GetString("add-bases-kustomization") == "enabled" {
-		commonKustomization, err := getCommonKustomization(cluster)
+		commonKustomization, err := getCommonKustomization(git_files.Cluster)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", clusterName, err)
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues["CLUSTER_NAME"], err)
 		}
 		files = append(files, *commonKustomization)
 	}
+
+	files = append(files, git_files.ProfileFiles...)
+	files = append(files, git_files.KustomizationFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
@@ -211,45 +191,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
-	}
-
-	if len(msg.Values) > 0 {
-		profilesFile, err := generateProfileFiles(
-			ctx,
-			tmpl,
-			cluster,
-			client,
-			generateProfileFilesParams{
-				helmRepository:         createNamespacedName(s.profileHelmRepositoryName, viper.GetString("runtime-namespace")),
-				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
-				profileValues:          msg.Values,
-				parameterValues:        msg.ParameterValues,
-			},
-		)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, *profilesFile)
-	}
-
-	if len(msg.Kustomizations) > 0 {
-		for _, k := range msg.Kustomizations {
-			if k.Spec.CreateNamespace {
-				namespace, err := generateNamespaceFile(ctx, false, cluster, k.Spec.TargetNamespace, "")
-				if err != nil {
-					return nil, err
-				}
-
-				files = append(files, namespace)
-			}
-
-			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
-			if err != nil {
-				return nil, err
-			}
-
-			files = append(files, kustomization)
-		}
 	}
 
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{

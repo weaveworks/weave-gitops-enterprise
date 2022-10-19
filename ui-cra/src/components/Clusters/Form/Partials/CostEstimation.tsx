@@ -1,6 +1,7 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Button, theme } from '@weaveworks/weave-gitops';
 import React, { FC, useEffect } from 'react';
+import { validateFormData } from '../../../../utils/form';
 
 const costFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -87,7 +88,7 @@ const CostEstimation: FC<{
             <Button
               id="get-estimation"
               className={classes.getEstimationButton}
-              onClick={() => handleCostEstimation()}
+              onClick={event => validateFormData(event, handleCostEstimation)}
             >
               GET ESTIMATION
             </Button>
