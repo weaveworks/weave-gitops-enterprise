@@ -20,8 +20,8 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/estimation"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
@@ -1286,6 +1286,6 @@ type testEstimator struct {
 	currency string
 }
 
-func (t testEstimator) Estimate([]*unstructured.Unstructured) (*estimation.CostEstimate, error) {
+func (t testEstimator) Estimate(context.Context, []*unstructured.Unstructured) (*estimation.CostEstimate, error) {
 	return &estimation.CostEstimate{Low: t.low, High: t.high, Currency: t.currency}, nil
 }

@@ -272,7 +272,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 		return nil, fmt.Errorf("failed to parse rendered templates: %w", err)
 	}
 	var costEstimate *capiv1_proto.CostEstimate
-	estimate, err := s.estimator.Estimate(unstructureds)
+	estimate, err := s.estimator.Estimate(ctx, unstructureds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate estimate for cluster costs: %w", err)
 	}
