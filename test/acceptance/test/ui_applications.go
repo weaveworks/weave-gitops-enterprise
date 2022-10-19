@@ -1193,7 +1193,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 		// Just specify the leaf cluster info to create it
 		leafCluster := ClusterConfig{
 			Type:      "other",
-			Name:      "wge-leaf-test-cluster",
+			Name:      "wge-leaf-cluster-test",
 			Namespace: "test-system",
 		}
 
@@ -1204,20 +1204,18 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 			mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 			createCluster("kind", leafCluster.Name, "")
+			// Create App namespace
 			createNamespace([]string{appNameSpace, appTargetNamespace})
 			leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 
-			// Add/Install test Policies to the management cluster
+			// Install the policy agent on leaf clauster
+			installPolicyAgent(leafCluster.Name)
+
+			// Add/Install test Policies to the leaf cluster
 			installTestPolicies(leafCluster.Name, policiesYaml)
 		})
 
 		ginkgo.JustAfterEach(func() {
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
-
-			// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
-			gomega.Eventually(func(g gomega.Gomega) int {
-				return getApplicationCount()
-			}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 
 			useClusterContext(mgmtClusterContext)
 
@@ -1226,7 +1224,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 			deleteCluster("kind", leafCluster.Name, "")
+
 			cleanGitRepository(appDir)
+
 			deleteNamespace([]string{leafCluster.Namespace})
 
 		})
@@ -1246,30 +1246,32 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			appDir := fmt.Sprintf("./clusters/%s/podinfo", leafCluster.Name)
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-			//existingAppCount = getApplicationCount()
+			existingAppCount = getApplicationCount()
 
 			appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
+
 			defer cleanGitRepository(appDir)
 
-			// appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
-
-			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
-
 			useClusterContext(mgmtClusterContext)
+			// Create leaf cluster namespace
 			createNamespace([]string{leafCluster.Namespace})
+
+			// Create leaf cluster kubeconfig
+			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
 
 			createPATSecret(leafCluster.Namespace, patSecret)
 			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			gitopsCluster = connectGitopsCuster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 			createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
-			pages.NavigateToPage(webDriver, "Applications")
+			// Declare clusters page variable
+			clustersPage := pages.GetClustersPage(webDriver)
+
 			// Declare application page variable
 			applicationsPage := pages.GetApplicationsPage(webDriver)
 
-			ginkgo.By("Verify that leaf clsuter created successfully", func() {
+			ginkgo.By("Verify GitopsCluster/leafCluster status after creating kubeconfig secret", func() {
 				pages.NavigateToPage(webDriver, "Clusters")
-				clustersPage := pages.GetClustersPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 				clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
 
@@ -1283,6 +1285,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
 				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
+
+			// Add GitRepository source to leaf cluster
+			addSource("git", podinfo.Source, podinfo.Namespace, path.Join(repoAbsolutePath, appDir), "main", "")
+			useClusterContext(mgmtClusterContext)
 
 			ginkgo.By("Add Application/Kustomization manifests to leaf cluster's repository main branch)", func() {
 				pullGitRepo(repoAbsolutePath)
@@ -1302,6 +1308,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.By(fmt.Sprintf("And wait for '%s' application to be visibe on the dashboard", podinfo.Name), func() {
+				pages.NavigateToPage(webDriver, "Applications")
 				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 				totalAppCount := existingAppCount + 1
