@@ -10,7 +10,7 @@ import {
   storeProviderToken,
 } from '../../contexts/GithubAuth/provider';
 import Modal from '../Modal';
-import ModalContent from './modalContent';
+import ModalContent from './ModalContent';
 
 type Props = {
   className?: string;

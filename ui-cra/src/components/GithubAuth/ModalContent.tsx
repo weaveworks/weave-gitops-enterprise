@@ -39,7 +39,7 @@ const CopyToClipboard = ({ value }: { value: string }) => {
     </Text>
   );
 };
-const ModalContent = ({ codeRes, onSuccess, className }: any) => {
+const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   const { isLoading, data, error } = useGetGithubAuthStatus(codeRes);
   if (!!data) {
     onSuccess(data.accessToken);
@@ -73,5 +73,9 @@ const ModalContent = ({ codeRes, onSuccess, className }: any) => {
       </Pad>
     </div>
   );
-};
+})`
+  ${Icon} {
+    margin-left: 8px;
+  }
+`;
 export default ModalContent;
