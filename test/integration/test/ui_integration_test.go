@@ -48,7 +48,6 @@ import (
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 )
 
@@ -113,11 +112,6 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 }
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {
-	templatesLibrary := &templates.CRDLibrary{
-		Log:           logr.Discard(),
-		ClientGetter:  kubefakes.NewFakeClientGetter(cl),
-		CAPINamespace: "default",
-	}
 
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
@@ -141,7 +135,6 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
 		app.WithCAPIClustersNamespace("default"),
 		app.WithEntitlementSecretKey(client.ObjectKey{Name: "entitlement", Namespace: "default"}),
-		app.WithTemplateLibrary(templatesLibrary),
 		app.WithKubernetesClient(cl),
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithApplicationsConfig(fakeAppsConfig),

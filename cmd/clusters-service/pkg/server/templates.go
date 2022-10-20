@@ -57,6 +57,8 @@ func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind 
 		if err != nil {
 			return nil, fmt.Errorf("error getting capitemplate %s/%s: %w", namespace, name, err)
 		}
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+		t.SetGroupVersionKind(capiv1.GroupVersion.WithKind(capiv1.Kind))
 		return &t, nil
 
 	case gapiv1.Kind:
@@ -68,6 +70,8 @@ func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind 
 		if err != nil {
 			return nil, fmt.Errorf("error getting gitops template %s/%s: %w", namespace, name, err)
 		}
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+		t.SetGroupVersionKind(gapiv1.GroupVersion.WithKind(gapiv1.Kind))
 		return &t, nil
 	}
 
