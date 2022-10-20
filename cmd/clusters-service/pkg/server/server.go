@@ -1,15 +1,20 @@
 package server
 
 import (
+	"context"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 )
 
 const defaultAutomationNamespace = "flux-system"
@@ -28,6 +33,13 @@ var providers = map[string]string{
 	"VSphereCluster":         "vsphere",
 }
 
+type chartsCache interface {
+	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, kind string) ([]helm.Chart, error)
+	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (bool, error)
+	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) ([]byte, error)
+	UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart, valuesYaml []byte) error
+}
+
 type server struct {
 	log              logr.Logger
 	templatesLibrary templates.Library
@@ -41,6 +53,11 @@ type server struct {
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
 	capiEnabled               bool
+
+	restConfig    *rest.Config
+	chartJobs     *helm.Jobs
+	valuesFetcher helm.ValuesFetcher
+	chartsCache   chartsCache
 }
 
 type ServerOpts struct {
@@ -55,6 +72,11 @@ type ServerOpts struct {
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
+
+	RestConfig    *rest.Config
+	ChartJobs     *helm.Jobs
+	ChartsCache   chartsCache
+	ValuesFetcher helm.ValuesFetcher
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
@@ -70,5 +92,9 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		profileHelmRepositoryName: opts.ProfileHelmRepositoryName,
 		helmRepositoryCacheDir:    opts.HelmRepositoryCacheDir,
 		capiEnabled:               opts.CAPIEnabled,
+		restConfig:                opts.RestConfig,
+		chartJobs:                 helm.NewJobs(),
+		chartsCache:               opts.ChartsCache,
+		valuesFetcher:             opts.ValuesFetcher,
 	}
 }

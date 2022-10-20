@@ -245,7 +245,7 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease,
 
 		jsonValues, err = json.Marshal(valuesData)
 		if err != nil {
-			return nil, fmt.Errorf("failed to json-marshal values %w", err)
+			return nil, fmt.Errorf("failed to json-marshal values: %w", err)
 		}
 	}
 
