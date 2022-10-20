@@ -28,7 +28,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
@@ -86,17 +85,21 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 					Kind:       "Namespace",
 				},
 			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-ns",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
 		},
 	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
 
 	return NewClusterServer(
 		ServerOpts{
-			Logger: logr.Discard(),
-			TemplatesLibrary: &templates.CRDLibrary{
-				Log:           logr.Discard(),
-				ClientGetter:  kubefakes.NewFakeClientGetter(c),
-				CAPINamespace: o.namespace,
-			},
+			Logger:                    logr.Discard(),
 			ClustersManager:           o.clustersManager,
 			GitProvider:               o.provider,
 			ClientGetter:              kubefakes.NewFakeClientGetter(c),

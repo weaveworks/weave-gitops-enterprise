@@ -71,7 +71,6 @@ import (
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
@@ -367,6 +366,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
+		pipelinev1alpha1.AddToScheme,
 	)
 
 	rest, clusterName, err := kube.RestConfig()
@@ -415,11 +415,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
-		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:           log,
-			ClientGetter:  clientGetter,
-			CAPINamespace: p.CAPITemplatesNamespace,
-		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(core_core.NewCoreConfig(
 			log, rest, clusterName, clustersManager,
@@ -461,9 +456,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.DiscoveryClient == nil {
 		return errors.New("kubernetes discovery client is not set")
 	}
-	if args.TemplateLibrary == nil {
-		return errors.New("template library is not set")
-	}
 	if args.GitProvider == nil {
 		return errors.New("git provider is not set")
 	}
@@ -486,14 +478,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
 	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
 	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg)
-
-	managementFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
+	if args.ManagementFetcher == nil {
+		args.ManagementFetcher = mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
+	}
 
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		server.ServerOpts{
 			Logger:                    args.Log,
-			TemplatesLibrary:          args.TemplateLibrary,
 			ClustersManager:           args.CoreServerConfig.ClustersManager,
 			GitProvider:               args.GitProvider,
 			ClientGetter:              args.ClientGetter,
@@ -502,7 +494,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
 			CAPIEnabled:               args.CAPIEnabled,
-			ManagementFetcher:         managementFetcher,
+			ManagementFetcher:         args.ManagementFetcher,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
@@ -542,7 +534,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
-			ClustersManager: args.ClustersManager,
+			ClustersManager:   args.ClustersManager,
+			ManagementFetcher: args.ManagementFetcher,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}

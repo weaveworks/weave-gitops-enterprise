@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 )
 
@@ -41,12 +40,11 @@ type chartsCache interface {
 }
 
 type server struct {
-	log              logr.Logger
-	templatesLibrary templates.Library
-	clustersManager  clustersmngr.ClustersManager
-	provider         git.Provider
-	clientGetter     kube.ClientGetter
-	discoveryClient  discovery.DiscoveryInterface
+	log             logr.Logger
+	clustersManager clustersmngr.ClustersManager
+	provider        git.Provider
+	clientGetter    kube.ClientGetter
+	discoveryClient discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
 	ns                        string // The namespace where cluster objects reside
 	profileHelmRepositoryName string
@@ -62,7 +60,6 @@ type server struct {
 
 type ServerOpts struct {
 	Logger                    logr.Logger
-	TemplatesLibrary          templates.Library
 	ClustersManager           clustersmngr.ClustersManager
 	GitProvider               git.Provider
 	ClientGetter              kube.ClientGetter
@@ -82,7 +79,6 @@ type ServerOpts struct {
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 	return &server{
 		log:                       opts.Logger,
-		templatesLibrary:          opts.TemplatesLibrary,
 		clustersManager:           opts.ClustersManager,
 		provider:                  opts.GitProvider,
 		clientGetter:              opts.ClientGetter,

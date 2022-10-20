@@ -686,6 +686,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "templateNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -723,6 +729,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "templateNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -757,6 +769,12 @@
           },
           {
             "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "templateNamespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -824,6 +842,9 @@
                   "items": {
                     "$ref": "#/definitions/v1Kustomization"
                   }
+                },
+                "templateNamespace": {
+                  "type": "string"
                 }
               }
             }
@@ -1214,6 +1235,9 @@
           "items": {
             "$ref": "#/definitions/v1Kustomization"
           }
+        },
+        "templateNamespace": {
+          "type": "string"
         }
       }
     },
@@ -1267,6 +1291,9 @@
         "repositoryApiUrl": {
           "type": "string",
           "description": "The repo api url."
+        },
+        "templateNamespace": {
+          "type": "string"
         }
       }
     },
@@ -1747,6 +1774,12 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -2151,6 +2184,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },

@@ -141,8 +141,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
-
-	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, "CAPITemplate")
+	tmpl, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, "CAPITemplate")
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}

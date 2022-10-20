@@ -2,6 +2,8 @@ package mgmtfetcher
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"sync"
 
@@ -37,6 +39,12 @@ type NamespacedList struct {
 	Error     error
 }
 
+// @TODO use p.Hash when merged in core
+func hash(p *auth.UserPrincipal) string {
+	hash := md5.Sum([]byte(fmt.Sprintf("%s/%s/%v", p.ID, p.Token(), p.Groups)))
+	return hex.EncodeToString(hash[:])
+}
+
 // NewManagementCrossNamespacesFetcher returns a fetcher that lists resources across namespeaces on management cluster
 // based on the current user's permissions
 func NewManagementCrossNamespacesFetcher(namespacesCache NamespacesCache, ClientGetter kube.ClientGetter, authClientGetter UserAuthClientGetter) *ManagementCrossNamespacesFetcher {
@@ -49,7 +57,7 @@ func NewManagementCrossNamespacesFetcher(namespacesCache NamespacesCache, Client
 }
 
 func (m *ManagementCrossNamespacesFetcher) lockUserCache(user *auth.UserPrincipal) *sync.Mutex {
-	actual, _ := m.usersCacheLock.LoadOrStore(user.Hash(), &sync.Mutex{})
+	actual, _ := m.usersCacheLock.LoadOrStore(hash(user), &sync.Mutex{})
 	lock := actual.(*sync.Mutex)
 	lock.Lock()
 	return lock
@@ -63,7 +71,7 @@ func (m *ManagementCrossNamespacesFetcher) getUserNamespaces(ctx context.Context
 		return nil, err
 	}
 	var userNamespaces []string
-	userNamespaces, found := m.UsersResourcesNamespaces.Get(user.Hash(), resourceKind)
+	userNamespaces, found := m.UsersResourcesNamespaces.Get(hash(user), resourceKind)
 
 	authClientSet, err := m.authClientGetter.Get(user)
 	if err != nil {
@@ -71,11 +79,11 @@ func (m *ManagementCrossNamespacesFetcher) getUserNamespaces(ctx context.Context
 	}
 
 	if !found {
-		err := m.UsersResourcesNamespaces.Build(ctx, user.Hash(), authClientSet, namespaces)
+		err := m.UsersResourcesNamespaces.Build(ctx, hash(user), authClientSet, namespaces)
 		if err != nil {
 			return nil, err
 		}
-		userNamespaces, found = m.UsersResourcesNamespaces.Get(user.Hash(), resourceKind)
+		userNamespaces, found = m.UsersResourcesNamespaces.Get(hash(user), resourceKind)
 		if !found {
 			return nil, fmt.Errorf("unsupported resource kind: %s", resourceKind)
 		}

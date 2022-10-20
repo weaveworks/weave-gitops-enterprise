@@ -386,12 +386,13 @@ func TestCreatePullRequest(t *testing.T) {
 					"CLUSTER_NAME": "foo bar bad name",
 					"NAMESPACE":    "default",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 			},
 			err: errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 		},
@@ -406,12 +407,13 @@ func TestCreatePullRequest(t *testing.T) {
 					"CLUSTER_NAME": "foo bar bad name",
 					"NAMESPACE":    "default-",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 				Values: []*capiv1_protos.ProfileValues{
 					{
 						Namespace: "bad_namespace",
@@ -432,12 +434,13 @@ func TestCreatePullRequest(t *testing.T) {
 					"CLUSTER_NAME": "foo",
 					"NAMESPACE":    "default",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 			},
 			err: errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
 		},
@@ -453,12 +456,13 @@ func TestCreatePullRequest(t *testing.T) {
 					"CLUSTER_NAME": "foo",
 					"NAMESPACE":    "default",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 			},
 			expected: "https://github.com/org/repo/pull/1",
 		},
@@ -474,12 +478,13 @@ func TestCreatePullRequest(t *testing.T) {
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "default",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 				Values: []*capiv1_protos.ProfileValues{
 					{
 						Name:    "demo-profile",
@@ -499,7 +504,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"default"},"commit_message":"Add
-      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}]}'
+      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}],"template_namespace":"default"}'
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -579,12 +584,13 @@ status: {}
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 				Values: []*capiv1_protos.ProfileValues{
 					{
 						Name:      "demo-profile",
@@ -605,7 +611,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
-      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1","namespace":"test-system"}]}'
+      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1","namespace":"test-system"}],"template_namespace":"default"}'
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -687,12 +693,13 @@ status: {}
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
@@ -722,7 +729,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
-      cluster manifest","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}},{"metadata":{"name":"apps-billing","namespace":"flux-system"},"spec":{"path":"./apps/billing","source_ref":{"name":"flux-system","namespace":"flux-system"}}}]}'
+      cluster manifest","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}},{"metadata":{"name":"apps-billing","namespace":"flux-system"},"spec":{"path":"./apps/billing","source_ref":{"name":"flux-system","namespace":"flux-system"}}}],"template_namespace":"default"}'
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -802,12 +809,13 @@ status: {}
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Metadata: testNewMetadata(t, "", "@kustomization"),
@@ -839,12 +847,13 @@ status: {}
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Spec: &capiv1_protos.KustomizationSpec{

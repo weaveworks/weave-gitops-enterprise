@@ -4,8 +4,8 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -22,7 +22,6 @@ type Options struct {
 	Log                          logr.Logger
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
-	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *core_server.ApplicationsConfig
 	CoreServerConfig             core.CoreServerConfig
@@ -45,7 +44,8 @@ type Options struct {
 	NoTLS                        bool
 	DevMode                      bool
 	ClustersManager              clustersmngr.ClustersManager
-	KubernetesClientSet          *kubernetes.Clientset
+	KubernetesClientSet          kubernetes.Interface
+	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
 }
 
 type Option func(*Options)
@@ -70,14 +70,6 @@ func WithKubernetesClient(client client.Client) Option {
 func WithDiscoveryClient(client discovery.DiscoveryInterface) Option {
 	return func(o *Options) {
 		o.DiscoveryClient = client
-	}
-}
-
-// WithTemplateLibrary is used to set the location that contains
-// CAPI templates. Typically this will be a namespace in the cluster.
-func WithTemplateLibrary(templateLibrary templates.Library) Option {
-	return func(o *Options) {
-		o.TemplateLibrary = templateLibrary
 	}
 }
 
@@ -227,8 +219,15 @@ func WithClustersManager(factory clustersmngr.ClustersManager) Option {
 }
 
 // WithKubernetesClientSet defines the kuberntes client set that will be used for
-func WithKubernetesClientSet(kubernetesClientSet *kubernetes.Clientset) Option {
+func WithKubernetesClientSet(kubernetesClientSet kubernetes.Interface) Option {
 	return func(o *Options) {
 		o.KubernetesClientSet = kubernetesClientSet
+	}
+}
+
+// WithManagemetFetcher defines the mangement fetcher to be used
+func WithManagemetFetcher(fetcher *mgmtfetcher.ManagementCrossNamespacesFetcher) Option {
+	return func(o *Options) {
+		o.ManagementFetcher = fetcher
 	}
 }
