@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/rest"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -26,6 +27,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 
@@ -64,6 +66,9 @@ type serverOptions struct {
 	hr              *sourcev1.HelmRepository
 	clustersManager clustersmngr.ClustersManager
 	capiEnabled     bool
+	chartsCache     chartsCache
+	chartJobs       *helm.Jobs
+	valuesFetcher   helm.ValuesFetcher
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -91,6 +96,10 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ProfileHelmRepositoryName: "weaveworks-charts",
 			HelmRepositoryCacheDir:    t.TempDir(),
 			CAPIEnabled:               o.capiEnabled,
+			RestConfig:                &rest.Config{},
+			ChartJobs:                 o.chartJobs,
+			ChartsCache:               o.chartsCache,
+			ValuesFetcher:             o.valuesFetcher,
 		},
 	)
 }

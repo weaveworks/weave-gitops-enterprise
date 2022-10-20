@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
@@ -48,7 +47,7 @@ func TestToTemplate(t *testing.T) {
 			value: makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 				ct.ObjectMeta.Name = "cluster-template-1"
 				ct.Spec.Description = "this is test template 1"
-				ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{
+				ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 					{
 						RawExtension: rawExtension(`{
 							"apiVersion": "fooversion",
@@ -202,7 +201,7 @@ func makeErrorTemplate(t *testing.T, rawData string) *capiv1.CAPITemplate {
 	return makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 		ct.ObjectMeta.Name = "cluster-template-1"
 		ct.Spec.Description = ""
-		ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{
+		ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
 				RawExtension: rawExtension(rawData),
 			},

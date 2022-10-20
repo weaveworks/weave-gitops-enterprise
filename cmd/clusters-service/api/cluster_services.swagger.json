@@ -16,6 +16,131 @@
     "application/json"
   ],
   "paths": {
+    "/v1/charts/jobs/{jobId}": {
+      "get": {
+        "summary": "GetChartsJob gets the default Values.yaml for the provided Chart\nreference.",
+        "operationId": "ClustersService_GetChartsJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetChartsJobResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/charts/list": {
+      "get": {
+        "summary": "ListChartsForRepository lists the discovered Helm charts in the provided\nrepository.",
+        "operationId": "ClustersService_ListChartsForRepository",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListChartsForRepositoryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "repository.cluster.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.cluster.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/charts/values": {
+      "post": {
+        "summary": "GetValuesForChart gets the default Values.yaml for the provided Chart\nreference.",
+        "operationId": "ClustersService_GetValuesForChart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/clusters": {
       "get": {
         "operationId": "ClustersService_ListGitopsClusters",
@@ -570,6 +695,7 @@
     },
     "/v1/templates/{templateName}/params": {
       "get": {
+        "summary": "Get the Values.yaml for a template if one exists.",
         "operationId": "ClustersService_ListTemplateParams",
         "responses": {
           "200": {
@@ -1258,6 +1384,18 @@
         }
       }
     },
+    "v1GetChartsJobResponse": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "string",
+          "description": "This is the base64 encoded version of the raw values data."
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetConfigResponse": {
       "type": "object",
       "properties": {
@@ -1299,6 +1437,28 @@
       "properties": {
         "template": {
           "$ref": "#/definitions/v1Template"
+        }
+      }
+    },
+    "v1GetValuesForChartRequest": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "$ref": "#/definitions/v1RepositoryRef"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetValuesForChartResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string"
         }
       }
     },
@@ -1398,6 +1558,17 @@
         },
         "createNamespace": {
           "type": "boolean"
+        }
+      }
+    },
+    "v1ListChartsForRepositoryResponse": {
+      "type": "object",
+      "properties": {
+        "charts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1RepositoryChart"
+          }
         }
       }
     },
@@ -1887,6 +2058,38 @@
         },
         "costEstimate": {
           "$ref": "#/definitions/v1CostEstimate"
+        }
+      }
+    },
+    "v1RepositoryChart": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "This is the available versions in reverse semver order."
+        }
+      }
+    },
+    "v1RepositoryRef": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
         }
       }
     },
