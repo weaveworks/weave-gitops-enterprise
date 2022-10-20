@@ -47,6 +47,7 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
+import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
@@ -293,9 +294,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [costEstimationLoading, setCostEstimationLoading] =
     useState<boolean>(false);
-  const [costEstimation, setCostEstimation] = useState<CostEstimate | null>(
-    null,
-  );
+  const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const handlePRPreview = useCallback(() => {
@@ -342,7 +341,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     })
       .then(data => {
         const { costEstimate } = data;
-        setCostEstimation(costEstimate || null);
+        setCostEstimate(getFormattedCostEstimate(costEstimate));
       })
       .catch(err =>
         setNotifications([
@@ -429,7 +428,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   }, [cluster, formData.parameterValues, setFormData]);
 
   useEffect(() => {
-    setCostEstimation(null);
+    setCostEstimate('00.00 USD');
   }, [formData.parameterValues]);
 
   return useMemo(() => {
@@ -510,7 +509,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             ) : (
               <CostEstimation
                 handleCostEstimation={handleCostEstimation}
-                costEstimation={costEstimation}
+                costEstimate={costEstimate}
                 isCostEstimationEnabled={
                   annotations?.['templates.weave.works/cost-estimation-enabled']
                 }
@@ -560,9 +559,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     loading,
     enableCreatePR,
     annotations,
-    costEstimation,
     costEstimationLoading,
     handleCostEstimation,
+    costEstimate,
   ]);
 };
 

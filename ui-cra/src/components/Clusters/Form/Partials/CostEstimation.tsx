@@ -1,42 +1,17 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Button, theme } from '@weaveworks/weave-gitops';
-import React, { FC, useEffect } from 'react';
+import React, { FC } from 'react';
 import { validateFormData } from '../../../../utils/form';
-
-const costFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-});
 
 const CostEstimation: FC<{
   isCostEstimationEnabled?: string;
-  costEstimation?: any;
+  costEstimate: string;
   handleCostEstimation: () => Promise<void>;
 }> = ({
   isCostEstimationEnabled = 'false',
   handleCostEstimation,
-  costEstimation,
+  costEstimate,
 }) => {
-  const [estimate, setEstimate] = React.useState('$0.00 USD');
-  useEffect(() => {
-    if (costEstimation) {
-      const {
-        currency,
-        amount,
-        range: { low, high },
-      } = costEstimation;
-      const estimate =
-        amount !== undefined
-          ? `${costFormatter.format(amount)} ${currency}`
-          : `${costFormatter.format(low)} - ${costFormatter.format(
-              high,
-            )} ${currency}`;
-      setEstimate(estimate);
-    } else {
-      setEstimate('$0.00 USD');
-    }
-  }, [costEstimation]);
-
   const useStyles = makeStyles(() =>
     createStyles({
       getEstimationButton: {
@@ -71,7 +46,7 @@ const CostEstimation: FC<{
               alignItems="center"
               container
             >
-              <div className={classes.costWrapper}>{estimate}</div>
+              <div className={classes.costWrapper}>{costEstimate}</div>
             </Grid>
           </Grid>
         </Grid>
