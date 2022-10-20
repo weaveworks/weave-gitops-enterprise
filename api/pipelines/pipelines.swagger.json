@@ -173,6 +173,17 @@
         }
       }
     },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1ListPipelinesResponse": {
       "type": "object",
       "properties": {
@@ -180,6 +191,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Pipeline"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }

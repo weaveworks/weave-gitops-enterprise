@@ -19,14 +19,14 @@ func (s *server) ListPipelines(ctx context.Context, msg *pb.ListPipelinesRequest
 	}
 
 	pipelines := []*pb.Pipeline{}
-	// errors := []*pb.ListError{}
+	errors := []*pb.ListError{}
 	for _, namespacedList := range namespacedLists {
-		// if namespacedList.Error != nil {
-		// 	errors = append(errors, &pb.ListError{
-		// 		Namespace: namespacedList.Namespace,
-		// 		Message:   err.Error(),
-		// 	})
-		// }
+		if namespacedList.Error != nil {
+			errors = append(errors, &pb.ListError{
+				Namespace: namespacedList.Namespace,
+				Message:   err.Error(),
+			})
+		}
 		pipelinesList := namespacedList.List.(*ctrl.PipelineList)
 		for _, p := range pipelinesList.Items {
 			pipelines = append(pipelines, convert.PipelineToProto(p))
@@ -35,5 +35,6 @@ func (s *server) ListPipelines(ctx context.Context, msg *pb.ListPipelinesRequest
 
 	return &pb.ListPipelinesResponse{
 		Pipelines: pipelines,
+		Errors:    errors,
 	}, nil
 }

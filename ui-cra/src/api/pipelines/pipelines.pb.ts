@@ -12,6 +12,7 @@ export type ListPipelinesRequest = {
 
 export type ListPipelinesResponse = {
   pipelines?: PipelinesV1Types.Pipeline[]
+  errors?: ListError[]
 }
 
 export type GetPipelineRequest = {
@@ -21,6 +22,11 @@ export type GetPipelineRequest = {
 
 export type GetPipelineResponse = {
   pipeline?: PipelinesV1Types.Pipeline
+}
+
+export type ListError = {
+  namespace?: string
+  message?: string
 }
 
 export class Pipelines {

@@ -86,6 +86,7 @@ const (
 	// Allowed login requests per second
 	loginRequestRateLimit = 20
 
+	// resync for informers to guarantee that no event was missed
 	sharedFactoryResync = 20 * time.Minute
 )
 
