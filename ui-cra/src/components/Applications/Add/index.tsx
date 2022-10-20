@@ -34,9 +34,9 @@ import {
 import { validateFormData } from '../../../utils/form';
 import { getGitRepoHTTPSURL } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
-import Preview from '../../Resources/Form/Partials/Preview';
-import Profiles from '../../Resources/Form/Partials/Profiles';
-import GitOps from '../../Resources/Form/Partials/GitOps';
+import Preview from '../../Templates/Form/Partials/Preview';
+import Profiles from '../../Templates/Form/Partials/Profiles';
+import GitOps from '../../Templates/Form/Partials/GitOps';
 
 const FormWrapper = styled.form`
   .preview-cta {

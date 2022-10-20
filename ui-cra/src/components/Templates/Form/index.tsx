@@ -140,6 +140,7 @@ function getInitialData(
   resource: GitopsClusterEnriched | Automation | Source | undefined,
   callbackState: any,
   random: string,
+  templateName: string,
 ) {
   const resourceData = resource && getCreateRequestAnnotation(resource);
 
@@ -148,17 +149,17 @@ function getInitialData(
     url: '',
     provider: '',
     branchName: resourceData
-      ? `edit-resource-${resourceName}-branch-${random}`
-      : `create-resource-branch-${random}`,
+      ? `edit-${resourceName}-branch-${random}`
+      : `wge-create-branch-${random}`,
     pullRequestTitle: resourceData
-      ? `Edits resource ${resourceName}`
-      : 'Creates resource',
+      ? `Edits ${resourceName}`
+      : `Creates ${templateName} instance`,
     commitMessage: resourceData
-      ? `Edits resource ${resourceName}`
-      : 'Creates resource',
+      ? `Edits ${resourceName}`
+      : `Creates ${templateName} instance`,
     pullRequestDescription: resourceData
-      ? 'This PR edits the resource'
-      : 'This PR creates a new resource',
+      ? `This PR edits the resource ${resourceName}`
+      : `This PR creates a ${templateName} instance`,
     parameterValues: resourceData?.parameter_values || {},
     clusterAutomations:
       resourceData?.kustomizations?.map((k: any) => ({
@@ -261,6 +262,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     resource,
     callbackState,
     random,
+    template.name,
   );
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
