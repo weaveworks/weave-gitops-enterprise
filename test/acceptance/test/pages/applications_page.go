@@ -2,12 +2,14 @@ package pages
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/sclevine/agouti"
 )
 
 type ApplicationsPage struct {
 	ApplicationHeader *agouti.Selection
+	ApplicationCount  *agouti.Selection
 	AddApplication    *agouti.Selection
 	ApplicationsList  *agouti.Selection
 	SupportEmailLink  *agouti.Selection
@@ -74,7 +76,24 @@ type ApplicationGraph struct {
 	Pod            *agouti.Selection
 }
 
-// Application Violations Details section
+type ApplicationViolationsList struct {
+	ViolationList             *agouti.Selection
+	ViolationMessage          *agouti.Selection
+	ViolationMessageValue     *agouti.Selection
+	Severity                  *agouti.Selection
+	SeverityValue             *agouti.Selection
+	SeverityIcon              *agouti.Selection
+	ViolatedPolicy            *agouti.Selection
+	ViolatedPolicyValue       *agouti.Selection
+	ViolationTime             *agouti.Selection
+	ViolationTimeValue        *agouti.Selection
+	ViolationTimeValueSorting *agouti.Selection
+	Filter                    *agouti.Selection
+	FilterValue               *agouti.Selection
+	Search                    *agouti.Selection
+	SearchResult              *agouti.Selection
+}
+
 type AppViolationsMsgInList struct {
 	AppViolationsMsg *agouti.Selection
 }
@@ -124,16 +143,32 @@ func (a ApplicationsPage) CountApplications() int {
 	count, _ := applications.Count()
 	return count
 }
+func (a ApplicationViolationsList) CountViolations() int {
+	violations := a.ViolationList.All("tr")
+	count, _ := violations.Count()
+	return count
+}
+
+func (a ApplicationsPage) ApplicationsHeaderCount() int {
+	cnt, _ := a.ApplicationCount.Text()
+	count, _ := strconv.Atoi(cnt)
+	return count
+}
 
 func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	return &ApplicationsPage{
 		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		ApplicationCount:  webDriver.Find(`.section-header-count`),
 		AddApplication:    webDriver.FindByButton("ADD AN APPLICATION"),
 		ApplicationsList:  webDriver.First(`table tbody`),
 		SupportEmailLink:  webDriver.FindByLink(`support ticket`),
 		MessageBar:        webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
 		Version:           webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
+}
+
+type ViolationsList struct {
+	ViolationsList *agouti.Selection
 }
 
 func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *ApplicationDetailPage {
@@ -199,13 +234,35 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 	}
 }
 
-// Application Violations Details methods
+// GetApplicationViolationsList will have all the locators for App Violations List page.
+func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolationsList {
+	applicationViolationsList := ApplicationViolationsList{
+		ViolationList:             webDriver.First(`table tbody`),
+		ViolationMessage:          webDriver.FindByXPath(`//h2[normalize-space()='Message']`),
+		ViolationMessageValue:     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		Severity:                  webDriver.FindByXPath(`(//h2[normalize-space()='Severity'])[1]`),
+		SeverityValue:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
+		SeverityIcon:              webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root jss55 jss58'])[1]`),
+		ViolatedPolicy:            webDriver.FindByXPath(`(//h2[normalize-space()='Violated Policy'])[1]`),
+		ViolatedPolicyValue:       webDriver.FindByXPath(`//tbody/tr[1]/td[1]/span[1]`),
+		ViolationTime:             webDriver.FindByXPath(`(//h2[normalize-space()='Violation Time'])[1]`),
+		ViolationTimeValue:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
+		ViolationTimeValueSorting: webDriver.FindByXPath(`(//*[name()='path'])[25]`),
+		Filter:                    webDriver.FindByXPath(`//*[name()='path' and contains(@d,'M10 18h4v-')]`),
+		FilterValue:               webDriver.FindByXPath(`//input[@id='severity']`),
+		Search:                    webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[4]`),
+		SearchResult:              webDriver.FindByXPath(`//input[@id='table-search']`),
+	}
+	return &applicationViolationsList
+}
+
 func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	return &AppViolationsMsgInList{
 		AppViolationsMsg: webDriver.FirstByXPath(`//td[1]//a`),
 	}
 }
 
+// GetApplicationViolationsDetailsPage will have all the locators for App Violations Details page.
 func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
 	return &ApplicationViolationsDetailsPage{
 		ViolationHeader:      webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
