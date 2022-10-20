@@ -74,6 +74,21 @@ jobs:
 
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
+      - name: Publish helm chart to s3 branch repo
+        run: |
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%s)
+          TAG=$(git describe --always --match "v*" --abbrev=0)
+          HELM_TAG=${TAG}-${TIMESTAMP}-g${SHORT_HASH}
+          
+          # Publish the MCCP Helm v3 chart to branch helm repo
+          BRANCH_NAME=${GITHUB_REF##*/}
+          BRANCH_HELM_REPO="dev/branches/${BRANCH_NAME}"
+          ./bin/publish-chart-to-s3.sh $HELM_TAG $BRANCH_HELM_REPO ./charts/mccp
       - name: Publish Helm chart for main only
         if: github.ref_name == 'main'
         env:
