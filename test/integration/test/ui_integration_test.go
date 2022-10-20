@@ -48,6 +48,8 @@ import (
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 )
 
@@ -128,7 +130,31 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		ClusterConfig: kube.ClusterConfig{},
 	}
 
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*corev1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "flux-system",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(cl), &mgmtfetcherfake.FakeAuthClientGetter{})
+
 	fakeCoreConfig := fakeCoreConfig(t, logr.Discard())
+	clientSet := fakeclientset.NewSimpleClientset()
 
 	viper.SetDefault("capi-clusters-namespace", "default")
 
@@ -147,6 +173,8 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 			app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 		),
 		app.WithRuntimeNamespace("flux-system"),
+		app.WithKubernetesClientSet(clientSet),
+		app.WithManagemetFetcher(mgmtFetcher),
 	)
 }
 

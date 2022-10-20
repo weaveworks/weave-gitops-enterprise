@@ -453,6 +453,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.KubernetesClient == nil {
 		return errors.New("kubernetes client is not set")
 	}
+	if args.KubernetesClientSet == nil {
+		return errors.New("kubernetes client set is not set")
+	}
 	if args.DiscoveryClient == nil {
 		return errors.New("kubernetes discovery client is not set")
 	}
