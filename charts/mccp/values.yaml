@@ -141,4 +141,4 @@ networkPolicy:
 
 global:
   capiEnabled: true
-  useK8sCachedClients: true
+  useK8sCachedClients: false
