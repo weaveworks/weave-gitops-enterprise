@@ -500,6 +500,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
 			CAPIEnabled:               args.CAPIEnabled,
+			RestConfig:                args.CoreServerConfig.RestCfg,
 			ChartJobs:                 helm.NewJobs(),
 			ChartsCache:               args.ChartsCache,
 			ValuesFetcher:             helm.NewValuesFetcher(),
