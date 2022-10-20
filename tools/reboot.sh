@@ -79,7 +79,9 @@ add_files_to_git(){
   rm -rf "/tmp/wge-dev"
   gh repo clone "$GITHUB_USER/$GITHUB_REPO" "/tmp/$GITHUB_REPO"
   mkdir -p "/tmp/$GITHUB_REPO/clusters/bases/rbac"
+  mkdir -p "/tmp/$GITHUB_REPO/clusters/bases/networkpolicy"
   cp "$(dirname "$0")/git-files/wego-admin.yaml" "/tmp/$GITHUB_REPO/clusters/bases/rbac/wego-admin.yaml"
+  cp "$(dirname "$0")/git-files/flux-system-networkpolicy.yaml" "/tmp/$GITHUB_REPO/clusters/bases/networkpolicy/flux-system-networkpolicy.yaml"
   cd "/tmp/$GITHUB_REPO"
   git add clusters/bases
   git commit -m "Add wego-admin role"
