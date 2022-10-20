@@ -72,9 +72,9 @@ func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName strin
 		if count, _ := tileRow.Count(); count == 1 {
 			return &TemplateRecord{
 				Name:             templateName,
-				Provider:         tileRow.FindByXPath(`td[3]`),
-				Description:      tileRow.FindByXPath(`td[4]`),
-				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
+				Provider:         tileRow.FindByXPath(`td[4]`),
+				Description:      tileRow.FindByXPath(`td[5]`),
+				CreateTemplate:   tileRow.FindByXPath(`td[6]//button[@id="create-cluster"]`),
 				ErrorHeader:      tileRow.Find(`.template-error-header`),
 				ErrorDescription: tileRow.Find(`.template-error-description`),
 			}
