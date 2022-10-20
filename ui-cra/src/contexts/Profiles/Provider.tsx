@@ -1,11 +1,4 @@
-import _ from 'lodash';
-import { FC, useMemo, useState } from 'react';
-import { useQuery } from 'react-query';
-import { Template } from '../../cluster-services/cluster_services.pb';
-import {
-  getCreateRequestAnnotation,
-  maybeParseJSON,
-} from '../../components/Clusters/Form/utils';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 import {
   GitopsClusterEnriched,
   ListProfilesResponse,
@@ -14,10 +7,17 @@ import {
   TemplateEnriched,
   UpdatedProfile,
 } from '../../types/custom';
-import { maybeFromBase64 } from '../../utils/base64';
 import { request } from '../../utils/request';
-import useNotifications from './../Notifications';
 import { Profiles } from './index';
+import useNotifications from './../Notifications';
+import { useQuery } from 'react-query';
+import { Template } from '../../cluster-services/cluster_services.pb';
+import _ from 'lodash';
+import { maybeFromBase64 } from '../../utils/base64';
+import {
+  getCreateRequestAnnotation,
+  maybeParseJSON,
+} from '../../components/Clusters/Form/utils';
 
 const profilesUrl = '/v1/profiles';
 
@@ -173,11 +173,32 @@ const mergeClusterAndTemplate = (
 };
 
 const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
+  const [loading, setLoading] = useState<boolean>(true);
   const { setNotifications } = useNotifications();
   const [helmRepo, setHelmRepo] = useState<{
     name: string;
     namespace: string;
   }>({ name: '', namespace: '' });
+
+  const getProfileYaml = useCallback(
+    (name: string, version: string) => {
+      const profilesYamlUrl = `${profilesUrl}/${name}/${version}/values`;
+      setLoading(true);
+      return request(
+        'GET',
+        helmRepo?.name !== '' && helmRepo?.name !== ''
+          ? profilesYamlUrl +
+              `?helmRepoName=${helmRepo?.name}&helmRepoNamespace=${helmRepo?.namespace}`
+          : profilesYamlUrl,
+        {
+          headers: {
+            Accept: 'application/octet-stream',
+          },
+        },
+      ).finally(() => setLoading(false));
+    },
+    [helmRepo.name, helmRepo.namespace],
+  );
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
@@ -205,10 +226,12 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
   return (
     <Profiles.Provider
       value={{
+        loading,
         isLoading,
         helmRepo,
         setHelmRepo,
         profiles,
+        getProfileYaml,
       }}
     >
       {children}

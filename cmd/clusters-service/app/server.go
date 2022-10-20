@@ -36,7 +36,6 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -95,8 +94,6 @@ var (
 func EnterprisePublicRoutes() []string {
 	return core.PublicRoutes
 }
-
-// bump
 
 // Options contains all the options for the `ui run` command.
 type Params struct {
@@ -382,11 +379,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
-	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation)
-	if err != nil {
-		return fmt.Errorf("could not create charts cache: %w", err)
-	}
-
 	runtimeUtil.Must(pacv1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
@@ -448,7 +440,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithRuntimeNamespace(p.RuntimeNamespace),
 		WithDevMode(p.DevMode),
 		WithClustersManager(clustersManager),
-		WithChartsCache(chartsCache),
 	)
 }
 
@@ -500,10 +491,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
 			CAPIEnabled:               args.CAPIEnabled,
-			RestConfig:                args.CoreServerConfig.RestCfg,
-			ChartJobs:                 helm.NewJobs(),
-			ChartsCache:               args.ChartsCache,
-			ValuesFetcher:             helm.NewValuesFetcher(),
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {

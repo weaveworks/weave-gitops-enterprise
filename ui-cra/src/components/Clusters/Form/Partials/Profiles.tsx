@@ -7,7 +7,6 @@ import { Checkbox } from '@material-ui/core';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import ProfilesListItem from './ProfileListItem';
 import _ from 'lodash';
-import { ClusterNamespacedName } from '../../../../cluster-services/cluster_services.pb';
 
 const ProfilesWrapper = styled.div`
   width: 85%;
@@ -46,7 +45,6 @@ const ProfileDetailsLabelRenderer = () => (
 );
 
 const Profiles: FC<{
-  cluster?: ClusterNamespacedName;
   context?: string;
   updatedProfiles: ProfilesIndex;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
@@ -54,7 +52,6 @@ const Profiles: FC<{
   isProfilesEnabled?: string;
 }> = ({
   context,
-  cluster,
   updatedProfiles,
   setUpdatedProfiles,
   isLoading,
@@ -153,7 +150,6 @@ const Profiles: FC<{
                 labelRenderer: () => <ProfileDetailsLabelRenderer />,
                 value: (p: UpdatedProfile) => (
                   <ProfilesListItem
-                    cluster={cluster}
                     context={context}
                     profile={p}
                     setUpdatedProfiles={setUpdatedProfiles}
