@@ -22,7 +22,6 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory, Redirect } from 'react-router-dom';
 import styled from 'styled-components';
 import {
-  CostEstimate,
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
