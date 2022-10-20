@@ -1,5 +1,13 @@
 CONTROLLER_TOOLS_VERSION ?= v0.9.2
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
+GOOS := $(shell go env GOOS)
+ifeq ($(GOOS),linux)
+	cgo_ldflags=-linkmode external -w -extldflags "-static"
+else
+	# darwin doesn't like -static
+	cgo_ldflags=-linkmode external -w
+endif
+
 
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin
@@ -22,7 +30,7 @@ install:
 .PHONY: build
 build:
 # Alpine needs these extra CGO and -a flags to "see" the binary
-	CGO_ENABLED=0 go build -a -installsuffix cgo -o bin/clusters-service main.go
+	CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ GOARCH=amd64 GOOS=linux CGO_ENABLED=1 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
 
 
 .PHONY: crd-manifests

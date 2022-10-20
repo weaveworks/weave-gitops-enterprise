@@ -357,7 +357,6 @@ func TestReconcileKubernetesGetFails(t *testing.T) {
 	fakeRepoManager := &helmfakes.FakeHelmRepoManager{}
 	reconciler := &HelmWatcherReconciler{
 		Client:      &mockClient{getErr: errors.New("nope")},
-		Cache:       fakeCache,
 		RepoManager: fakeRepoManager,
 	}
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
@@ -450,7 +449,6 @@ func setupReconcileAndFakes(objects ...client.Object) (*HelmWatcherReconciler, *
 
 	return &HelmWatcherReconciler{
 		Client:                fakeClient.Build(),
-		Cache:                 fakeCache,
 		RepoManager:           fakeRepoManager,
 		ExternalEventRecorder: fakeEventRecorder,
 	}, fakeCache, fakeRepoManager, fakeEventRecorder

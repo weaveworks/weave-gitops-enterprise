@@ -11,6 +11,7 @@ import (
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
@@ -38,8 +39,10 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 	}
 
 	chartsWithVersions := map[string][]string{}
+	chartsLayers := map[string]string{}
 	for _, chart := range charts {
 		chartsWithVersions[chart.Name] = append(chartsWithVersions[chart.Name], chart.Version)
+		chartsLayers[chart.Name] = chart.Layer
 	}
 
 	responseCharts := []*protos.RepositoryChart{}
@@ -51,6 +54,7 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 
 		responseCharts = append(responseCharts, &protos.RepositoryChart{
 			Name:     name,
+			Layer:    chartsLayers[name],
 			Versions: sortedVersions,
 		})
 	}
@@ -84,8 +88,17 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 		Version: req.Version,
 	}
 
-	// FIXME: should be looking up the actual helm repository here to check RBAC
-
+	found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
+	if err != nil {
+		return nil, fmt.Errorf("error checking if chart is known: %w", err)
+	}
+	if !found {
+		return nil, &grpcruntime.HTTPStatusError{
+			Err:        errors.New("chart version not found"),
+			HTTPStatus: http.StatusNotFound,
+		}
+	}
+	//
 	jobId := s.chartJobs.New()
 
 	go func() {
@@ -143,16 +156,19 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 
 // GetClientConfigForCluster returns the client config for a given cluster.
 func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
-	// FIXME: temporary until we can get the client config from the clusterManager
-	// Then we can uncomment this and remove this `managementCluster`
-	//
-	// clusters := s.clustersManager.GetClusters()
+	cfg, _, err := kube.RestConfig()
+	if err != nil {
+		return nil, fmt.Errorf("error getting rest config: %w", err)
+	}
 	managementCluster := clustersmngr.Cluster{
 		Name:        helm.ManagementClusterName,
-		Server:      s.restConfig.Host,
-		BearerToken: s.restConfig.BearerToken,
-		TLSConfig:   s.restConfig.TLSClientConfig,
+		Server:      cfg.Host,
+		BearerToken: cfg.BearerToken,
+		TLSConfig:   cfg.TLSClientConfig,
 	}
+
+	// FIXME: when this API lands in core we can use it.
+	// clusters := s.clustersManager.GetClusters()
 	clusters := []clustersmngr.Cluster{managementCluster}
 
 	clusterName := cluster.Name

@@ -7,8 +7,10 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -16,7 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 
 	//+kubebuilder:scaffold:imports
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
 )
 
@@ -28,15 +30,21 @@ var (
 
 type Options struct {
 	KubeClient                    client.Client
-	Cache                         cache.Cache
 	MetricsBindAddress            string
 	HealthzBindAddress            string
 	NotificationControllerAddress string
 	WatcherPort                   int
+	ClusterRef                    types.NamespacedName
+	ClientConfig                  *rest.Config
+	NewCache                      helm.HelmChartIndexer
+	ValuesFetcher                 helm.ValuesFetcher
 }
 
 type Watcher struct {
-	cache               cache.Cache
+	clusterRef          types.NamespacedName
+	clientConfig        *rest.Config
+	newCache            helm.HelmChartIndexer
+	valuesFetcher       helm.ValuesFetcher
 	repoManager         helm.HelmRepoManager
 	metricsBindAddress  string
 	healthzBindAddress  string
@@ -59,7 +67,10 @@ func NewWatcher(opts Options) (*Watcher, error) {
 	}
 
 	return &Watcher{
-		cache:               opts.Cache,
+		clusterRef:          opts.ClusterRef,
+		clientConfig:        opts.ClientConfig,
+		newCache:            opts.NewCache,
+		valuesFetcher:       opts.ValuesFetcher,
 		repoManager:         helm.NewRepoManager(opts.KubeClient, tempDir),
 		healthzBindAddress:  opts.HealthzBindAddress,
 		metricsBindAddress:  opts.MetricsBindAddress,
@@ -104,8 +115,11 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 	}
 
 	if err = (&controller.HelmWatcherReconciler{
+		ClusterRef:            w.clusterRef,
+		ClientConfig:          w.clientConfig,
+		NewCache:              w.newCache,
+		ValuesFetcher:         w.valuesFetcher,
 		Client:                mgr.GetClient(),
-		Cache:                 w.cache,
 		RepoManager:           w.repoManager,
 		Scheme:                scheme,
 		ExternalEventRecorder: eventRecorder,

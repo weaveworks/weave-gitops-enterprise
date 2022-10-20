@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/rest"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
@@ -87,7 +86,6 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		profileHelmRepositoryName: opts.ProfileHelmRepositoryName,
 		helmRepositoryCacheDir:    opts.HelmRepositoryCacheDir,
 		capiEnabled:               opts.CAPIEnabled,
-		restConfig:                opts.RestConfig,
 		chartJobs:                 helm.NewJobs(),
 		chartsCache:               opts.ChartsCache,
 		valuesFetcher:             opts.ValuesFetcher,

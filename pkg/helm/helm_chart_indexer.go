@@ -32,6 +32,7 @@ type Chart struct {
 	Name    string
 	Version string
 	Kind    string
+	Layer   string
 }
 
 // HelmChartIndexer indexs details of Helm charts that have been seen in Helm
@@ -119,13 +120,13 @@ AND cluster_name = $5 AND cluster_namespace = $6`
 		return nil, nil
 	}
 
-	// FIXME
-	var valuesYaml string
+	// valuesYaml might be null
+	var valuesYaml []byte
 	if err := rows.Scan(&valuesYaml); err != nil {
 		return nil, fmt.Errorf("failed to scan database: %w", err)
 	}
 
-	return []byte(valuesYaml), nil
+	return valuesYaml, nil
 }
 
 // UpdateValuesYaml updates the values.yaml for a chart in a repo
@@ -163,8 +164,11 @@ func (i *HelmChartIndexer) Count(ctx context.Context) (int64, error) {
 func (i *HelmChartIndexer) ListChartsByCluster(ctx context.Context, clusterRef types.NamespacedName, kind string) ([]Chart, error) {
 	sqlStatement := `
 SELECT name, version FROM helm_charts 
-WHERE cluster_name = $1 AND cluster_namespace = $2
-AND kind = $3`
+WHERE cluster_name = $1 AND cluster_namespace = $2`
+
+	if kind != "" {
+		sqlStatement += " AND kind = $3"
+	}
 
 	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, clusterRef.Name, clusterRef.Namespace, kind)
 	if err != nil {
@@ -186,13 +190,18 @@ AND kind = $3`
 
 // ListChartsByRepositoryAndCluster returns a list of charts filtered by helm repository and cluster.
 func (i *HelmChartIndexer) ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error) {
+	// select name, version and layer from the charts
+	// if a kind is provided also filter by kind
 	sqlStatement := `
-SELECT name, version FROM helm_charts 
-WHERE repo_kind = $1 AND repo_api_version = $2 AND repo_name = $3 AND repo_namespace = $4
-AND cluster_name = $5 AND cluster_namespace = $6
-AND kind = $7`
+SELECT name, version, layer FROM helm_charts
+WHERE repo_name = $1 AND repo_namespace = $2
+AND cluster_name = $3 AND cluster_namespace = $4`
 
-	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace, kind)
+	if kind != "" {
+		sqlStatement += " AND kind = $5"
+	}
+
+	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace, kind)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query database: %w", err)
 	}
@@ -201,8 +210,13 @@ AND kind = $7`
 	var charts []Chart
 	for rows.Next() {
 		var chart Chart
-		if err := rows.Scan(&chart.Name, &chart.Version); err != nil {
+		// layer can be null
+		var layer sql.NullString
+		if err := rows.Scan(&chart.Name, &chart.Version, &layer); err != nil {
 			return nil, fmt.Errorf("failed to scan database: %w", err)
+		}
+		if layer.Valid {
+			chart.Layer = layer.String
 		}
 		charts = append(charts, chart)
 	}

@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -116,7 +116,7 @@ func TestPipelinesServer(t *testing.T) {
 	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/pipelines", port))
 	assert.NoError(t, err)
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
 	assert.Equal(t, res.StatusCode, http.StatusOK, string(body))

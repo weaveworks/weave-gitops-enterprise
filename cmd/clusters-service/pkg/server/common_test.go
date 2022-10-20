@@ -11,7 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/rest"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -108,7 +107,6 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ProfileHelmRepositoryName: "weaveworks-charts",
 			HelmRepositoryCacheDir:    t.TempDir(),
 			CAPIEnabled:               o.capiEnabled,
-			RestConfig:                &rest.Config{},
 			ChartJobs:                 o.chartJobs,
 			ChartsCache:               o.chartsCache,
 			ValuesFetcher:             o.valuesFetcher,

@@ -166,8 +166,8 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			request: &protos.GetValuesForChartRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "default",
-						Name:      "management",
+						Namespace: "clusters",
+						Name:      "demo-cluster",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -180,7 +180,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "management", Namespace: "default"},
+						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
 					),
 					[]helm.Chart{{Name: "redis", Version: "1.0.1"}},
 				),
@@ -195,7 +195,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			fakeClustersManager := &clustersmngrfakes.FakeClustersManager{}
-			// FIXME: re-enable this when core gets this api
+			// FIXME: enable when core has this api
 			// fakeClustersManager.GetClustersReturns([]clustersmngr.Cluster{
 			// 	{Name: "clusters/demo-cluster"},
 			// })
@@ -223,7 +223,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatalf("error on JobPoll: %s: %v", err, jobResponse)
+				t.Fatal(err)
 			}
 
 			if diff := cmp.Diff(tt.want, jobResponse, protocmp.Transform()); diff != "" {
@@ -231,7 +231,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			}
 
 			cachedValue, err := tt.fc.GetChartValues(context.TODO(),
-				types.NamespacedName{Name: "management", Namespace: "default"},
+				types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
 				helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 				helm.Chart{Name: "redis", Version: "1.0.1"})
 			if err != nil {

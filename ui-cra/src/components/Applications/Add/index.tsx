@@ -144,6 +144,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   >(null);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
+  console.log({ formData });
+
   useEffect(() => {
     setUpdatedProfiles({
       ..._.keyBy(profiles, 'name'),
@@ -366,6 +368,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   </Grid>
                   {formData.source_type === 'HelmRepository' ? (
                     <Profiles
+                      cluster={{
+                        name: formData.clusterAutomations[0].cluster_name,
+                        namespace:
+                          formData.clusterAutomations[0].cluster_namespace,
+                      }}
                       // Temp fix to hide layers when using profiles in Add App until we update the BE
                       context="app"
                       isLoading={profilesIsLoading}

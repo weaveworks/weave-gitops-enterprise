@@ -37,12 +37,57 @@ func TestUpdateValuesYaml(t *testing.T) {
 	values, err := indexer.GetChartValues(context.TODO(),
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
-		Chart{"redis", "1.0.1", "chart"},
+		Chart{"redis", "1.0.1", "chart", "layer-0"},
 	)
 	assert.NoError(t, err)
 
 	// check the values
 	assert.Equal(t, []byte("test"), values)
+}
+
+func TestGetValuesFromDB(t *testing.T) {
+	// create a test db
+	db := testCreateDB(t)
+
+	// create a test indexer
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	// test getting values from a non-existent chart
+	values, err := indexer.GetChartValues(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{"redis", "1.0.1", "chart", "layer-0"},
+	)
+	assert.NoError(t, err)
+	assert.Nil(t, values)
+
+	// add a chart
+	err = indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	// update the values.yaml
+	err = indexer.UpdateValuesYaml(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{Name: "redis", Version: "1.0.1"},
+		[]byte("test"))
+	assert.NoError(t, err)
+
+	// get the values
+	values, err = indexer.GetChartValues(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{"redis", "1.0.1", "chart", "layer-0"},
+	)
+	assert.NoError(t, err)
+
+	// check the values
+	assert.Equal(t, []byte("test"), values)
+
 }
 
 func TestIsKnownChart(t *testing.T) {
@@ -58,7 +103,7 @@ func TestIsKnownChart(t *testing.T) {
 	known, err := indexer.IsKnownChart(context.TODO(),
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
-		Chart{"redis", "1.0.1", "chart"})
+		Chart{"redis", "1.0.1", "chart", ""})
 	assert.NoError(t, err)
 
 	// should not be known
@@ -74,7 +119,7 @@ func TestIsKnownChart(t *testing.T) {
 	known, err = indexer.IsKnownChart(context.TODO(),
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
-		Chart{"redis", "1.0.1", "chart"})
+		Chart{"redis", "1.0.1", "chart", ""})
 	assert.NoError(t, err)
 
 	// should be known
