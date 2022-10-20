@@ -20,6 +20,7 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { Pipelines } from './api/pipelines/pipelines.pb';
+import { GithubAuthProvider } from './contexts/GithubAuth';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -92,7 +93,13 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App: FC = () => {
   return (
@@ -104,9 +111,11 @@ const App: FC = () => {
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
                 <PipelinesProvider api={Pipelines}>
-                  <AppContextProvider applicationsClient={applicationsClient}>
-                    <ResponsiveDrawer />
-                  </AppContextProvider>
+                  <GithubAuthProvider api={applicationsClient}>
+                    <AppContextProvider applicationsClient={applicationsClient}>
+                      <ResponsiveDrawer />
+                    </AppContextProvider>
+                  </GithubAuthProvider>
                 </PipelinesProvider>
               </ProgressiveDeliveryProvider>
             </BrowserRouter>
