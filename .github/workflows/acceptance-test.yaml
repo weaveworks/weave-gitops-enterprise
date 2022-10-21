@@ -179,10 +179,10 @@ jobs:
     steps:
       - id: go-cache-paths
         run: |
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.18.x
       - name: Checkout code
@@ -192,7 +192,7 @@ jobs:
       - name: Go Build Cache
         env:
           GO_CACHE_NAME: cache-go-modules
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -202,7 +202,7 @@ jobs:
             ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
       - name: setup aws credentials
         if: ${{ inputs.management-cluster-kind == 'eks' }}
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
@@ -264,11 +264,11 @@ jobs:
         if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
         uses: docker-practice/actions-setup-docker@master
       - name: Install helm
-        uses: azure/setup-helm@v2.0
+        uses: azure/setup-helm@v3.3
         with:
           version: v3.8.2
       - name: Install kubectl
-        uses: Azure/setup-kubectl@v2.0
+        uses: Azure/setup-kubectl@v3.0
         with:
           version: ${{ inputs.kubectl-version }}
       - name: Install kind
@@ -312,7 +312,7 @@ jobs:
           tar -xf totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
           mv ./totp-cli /usr/local/bin
       - name: Download gitops binary
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: gitops
           path: /tmp
@@ -372,11 +372,11 @@ jobs:
           go test ${{ inputs.label-filter }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=99999s
       - name: Store test results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.TEST_ARTIFACT_NAME }}
           path: ${{ env.ARTIFACTS_BASE_DIR }}
-          retention-days: 7
+          retention-days: 3
       - name: Reset management cluster
         if: ${{ always() }}
         continue-on-error: true
