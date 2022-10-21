@@ -88,6 +88,10 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustAfterEach(func() {
 				deleteTenants([]string{tenantYaml})
+
+				// Namespaces used in tenant definition files, waiting form there termination
+				namespaces := []string{"test-kustomization", "test-system", "dev-system"}
+				waitForNamespaceDeletion(namespaces)
 			})
 
 			ginkgo.It("Verify a single tenant resources can be exported", ginkgo.Label("tenant"), func() {
