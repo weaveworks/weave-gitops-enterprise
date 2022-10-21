@@ -15,6 +15,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
+type ClusterConfig struct {
+	Type      string
+	Name      string
+	Namespace string
+}
+
 func useClusterContext(clusterContext string) {
 	gomega.Expect(runCommandPassThrough("kubectl", "config", "use-context", clusterContext)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to cluster context: "+clusterContext)
 }
@@ -89,6 +95,15 @@ func verifyDashboard(dashboard *agouti.Selection, clusterName string, dashboardN
 	})
 }
 
+func verifyClusterInformation(clusterInfo *pages.ClusterInformation, cluster ClusterConfig, status string) {
+	ginkgo.By(fmt.Sprintf("And verify %s cluster information in cluster table", cluster.Name), func() {
+		gomega.Eventually(clusterInfo.Name).Should(matchers.MatchText(cluster.Name), fmt.Sprintf("Failed to list GitopsCluster in the cluster table: %s", cluster.Name))
+		gomega.Eventually(clusterInfo.Type).Should(matchers.BeVisible(), "Failed to have expected GitopsCluster type image/icon")
+		gomega.Eventually(clusterInfo.Namespace).Should(matchers.MatchText(cluster.Namespace), fmt.Sprintf("Failed to have expected GitopsCluster namespace: %s", cluster.Namespace))
+		gomega.Eventually(clusterInfo.Status).Should(matchers.MatchText(status), "Failed to have expected GitopsCluster status: Not Ready")
+	})
+}
+
 func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
 
@@ -102,7 +117,11 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.Context("[UI] When no leaf cluster is connected", func() {
 			ginkgo.It("Verify connected cluster dashboard shows only management cluster", ginkgo.Label("integration"), func() {
-				pages.NavigateToPage(webDriver, "Clusters")
+				mgmtCluster := ClusterConfig{
+					Type:      "kubernetes",
+					Name:      "management",
+					Namespace: "-",
+				}
 
 				pages.NavigateToPage(webDriver, "Clusters")
 
@@ -115,25 +134,11 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Clusters page to be rendered", func() {
 					gomega.Eventually(clustersPage.ClusterHeader).Should(matchers.BeVisible())
-					gomega.Expect(clustersPage.CountClusters()).To(gomega.Equal(1), "There should be a single cluster in cluster table")
+					gomega.Eventually(clustersPage.CountClusters, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Equal(1), "There should not be any cluster in cluster's table except management")
 				})
 
-				clusterInfo := clustersPage.FindClusterInList("management")
-				ginkgo.By("And verify GitopsCluster Name", func() {
-					gomega.Eventually(clusterInfo.Name).Should(matchers.MatchText("management"), "Failed to list management cluster in the cluster table")
-				})
-
-				ginkgo.By("And verify GitopsCluster Type", func() {
-					gomega.Eventually(clusterInfo.Type).Should(matchers.BeVisible(), "Failed to have expected management cluster type image/icon")
-				})
-
-				// ginkgo.By("And verify GitopsCluster Namespace", func() {
-				// 	gomega.Eventually(clusterInfo.Namespace).Should(matchers.MatchText(GITOPS_DEFAULT_NAMESPACE), fmt.Sprintf("Failed to have expected management cluster namespace: %s", GITOPS_DEFAULT_NAMESPACE))
-				// })
-
-				ginkgo.By("And verify GitopsCluster status", func() {
-					gomega.Eventually(clusterInfo.Status).Should(matchers.MatchText("Ready"), "Failed to have expected management cluster status: Ready")
-				})
+				clusterInfo := clustersPage.FindClusterInList(mgmtCluster.Name)
+				verifyClusterInformation(clusterInfo, mgmtCluster, "Ready")
 			})
 		})
 
@@ -144,28 +149,34 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
 
+			leafCluster := ClusterConfig{
+				Type:      "other",
+				Name:      "wge-leaf-kind",
+				Namespace: "test-system",
+			}
+
 			bootstrapLabel := "bootstrap"
 			patSecret := "leaf-pat"
-			leafClusterName := "wge-leaf-kind"
-			leafClusterNamespace := "test-system"
+			// leafClusterName := "wge-leaf-kind"
+			// leafClusterNamespace := "test-system"
 			ClusterLables := []string{"weave.works/flux: bootstrap", "weave.works/apps: backup"}
-			downloadedKubeconfigPath := getDownloadedKubeconfigPath(leafClusterName)
+			downloadedKubeconfigPath := getDownloadedKubeconfigPath(leafCluster.Name)
 
 			ginkgo.JustBeforeEach(func() {
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				// Create vanilla kind leaf cluster
-				createCluster("kind", leafClusterName, "")
+				createCluster("kind", leafCluster.Name, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 			})
 
 			ginkgo.JustAfterEach(func() {
 				useClusterContext(mgmtClusterContext)
 
-				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
+				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteCluster("kind", leafClusterName, "")
+				deleteCluster("kind", leafCluster.Name, "")
 			})
 
 			ginkgo.It("Verify a cluster can be connected and dashboard is updated accordingly", ginkgo.Label("kind-gitops-cluster", "integration", "browser-logs"), func() {
@@ -175,74 +186,58 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				clustersPage := pages.GetClustersPage(webDriver)
 				pages.WaitForPageToLoad(webDriver)
 
-				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
+				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
 				useClusterContext(mgmtClusterContext)
-				createNamespace([]string{leafClusterNamespace})
-				createPATSecret(leafClusterNamespace, patSecret)
-				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCuster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
+				createNamespace([]string{leafCluster.Namespace})
+				createPATSecret(leafCluster.Namespace, patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
+				gitopsCluster = connectGitopsCuster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 
 				ginkgo.By("And wait for GitopsCluster to be visibe on the dashboard", func() {
 					gomega.Eventually(clustersPage.ClusterHeader).Should(matchers.BeVisible())
 
 					totalClusterCount := existingClustersCount + 1
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return clustersPage.CountClusters()
-					}, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
+					gomega.Eventually(clustersPage.CountClusters, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
 				})
 
-				clusterInfo := clustersPage.FindClusterInList(leafClusterName)
-				ginkgo.By("And verify GitopsCluster Name", func() {
-					gomega.Eventually(clusterInfo.Name).Should(matchers.MatchText(leafClusterName), fmt.Sprintf("Failed to list GitopsCluster in the cluster table: %s", leafClusterName))
-				})
+				clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
+				verifyClusterInformation(clusterInfo, leafCluster, "Not Ready")
 
-				ginkgo.By("And verify GitopsCluster Type", func() {
-					gomega.Eventually(clusterInfo.Type).Should(matchers.BeVisible(), "Failed to have expected GitopsCluster type image/icon")
-				})
-
-				ginkgo.By("And verify GitopsCluster Namespace", func() {
-					gomega.Eventually(clusterInfo.Namespace).Should(matchers.MatchText(leafClusterNamespace), fmt.Sprintf("Failed to have expected GitopsCluster namespace: %s", leafClusterNamespace))
-				})
-
-				ginkgo.By("And verify GitopsCluster status", func() {
-					gomega.Eventually(clusterInfo.Status).Should(matchers.MatchText("Not Ready"), "Failed to have expected GitopsCluster status: Not Ready")
-				})
-
-				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
+				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
 				ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
 					gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
 				})
 
-				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
+				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
 
-				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster is bootstraped)", leafClusterName), func() {
+				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster is bootstraped)", leafCluster.Name), func() {
 					useClusterContext(leafClusterContext)
 					verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 					useClusterContext(mgmtClusterContext)
 				})
 
-				verifyDashboard(clusterInfo.GetDashboard("grafana"), leafClusterName, "Grafana")
+				verifyDashboard(clusterInfo.GetDashboard("grafana"), leafCluster.Name, "Grafana")
 
-				ginkgo.By(fmt.Sprintf("And navigate to '%s' GitopsCluster page", leafClusterName), func() {
+				ginkgo.By(fmt.Sprintf("And navigate to '%s' GitopsCluster page", leafCluster.Name), func() {
 					logger.Info(clusterInfo.Name.Text())
-					gomega.Eventually(clusterInfo.Name.Find("a").Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s GitopsCluster detail page", leafClusterName))
+					gomega.Eventually(clusterInfo.Name.Find("a").Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s GitopsCluster detail page", leafCluster.Name))
 				})
 
 				clusterDetailPage := pages.GetClusterDetailPage(webDriver)
-				ginkgo.By(fmt.Sprintf("And verify '%s' cluster page", leafClusterName), func() {
-					gomega.Eventually(clusterDetailPage.Header.Text).Should(gomega.MatchRegexp(leafClusterName), "Failed to verify leaf cluster name")
+				ginkgo.By(fmt.Sprintf("And verify '%s' cluster page", leafCluster.Name), func() {
+					gomega.Eventually(clusterDetailPage.Header.Text).Should(gomega.MatchRegexp(leafCluster.Name), "Failed to verify leaf cluster name")
 
 					gomega.Eventually(func(g gomega.Gomega) error {
 						g.Expect(clusterDetailPage.Kubeconfig.Click()).To(gomega.Succeed())
 						_, err := os.Stat(downloadedKubeconfigPath)
 						return err
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to download %s cluster kubeconfig file", leafClusterName))
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to download %s cluster kubeconfig file", leafCluster.Name))
 
-					gomega.Eventually(clusterDetailPage.Namespace.Text).Should(gomega.MatchRegexp(leafClusterNamespace), "Failed to verify leaf cluster namespace on cluster page")
+					gomega.Eventually(clusterDetailPage.Namespace.Text).Should(gomega.MatchRegexp(leafCluster.Namespace), "Failed to verify leaf cluster namespace on cluster page")
 					TakeScreenShot("prior-dashboard-leaf-cluster")
-					verifyDashboard(clusterDetailPage.GetDashboard("prometheus"), leafClusterName, "Prometheus")
+					verifyDashboard(clusterDetailPage.GetDashboard("prometheus"), leafCluster.Name, "Prometheus")
 
 					gomega.Expect(clusterDetailPage.GetDashboard("javascript")).ShouldNot(matchers.BeFound(), "XXSVulnerable link shound not be found")
 					gomega.Expect(clusterDetailPage.Dashboards.FindByXPath(fmt.Sprintf(`//li[.="%s"]`, "javascript"))).Should(matchers.BeFound(), "Failed to find static Vulnerable label")
@@ -250,28 +245,25 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(clusterDetailPage.GetLabels()).Should(gomega.ConsistOf(ClusterLables), "Failed to verify cluster labels on cluster page")
 				})
 
-				ginkgo.By(fmt.Sprintf("And verify '%s' cluster applications", leafClusterName), func() {
-					gomega.Eventually(clusterDetailPage.Applications.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s cluster's applications page", leafClusterName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' cluster applications", leafCluster.Name), func() {
+					gomega.Eventually(clusterDetailPage.Applications.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s cluster's applications page", leafCluster.Name))
 
 					applicationsPage := pages.GetApplicationsPage(webDriver)
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					expAppCount := 2
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(expAppCount), fmt.Sprintf("There should be %d application enteries in application table", expAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(expAppCount), fmt.Sprintf("There should be %d application enteries in application table", expAppCount))
 
-					appName := "clusters-bases-kustomization"
-					appSource := "flux-system"
-					applicationInfo := applicationsPage.FindApplicationInList(appName)
+					app := Application{
+						Type:      "Kustomization",
+						Name:      "clusters-bases-kustomization",
+						Namespace: GITOPS_DEFAULT_NAMESPACE,
+						Source:    "flux-system",
+					}
 
-					gomega.Eventually(applicationInfo.Name).Should(matchers.MatchText(appName), fmt.Sprintf("Failed to list %s application in  application table", appName))
-					gomega.Eventually(applicationInfo.Type).Should(matchers.MatchText("Kustomization"), fmt.Sprintf("Failed to have expected %s application type: Kustomization", appName))
-					gomega.Eventually(applicationInfo.Namespace).Should(matchers.MatchText(GITOPS_DEFAULT_NAMESPACE), fmt.Sprintf("Failed to have expected %s application namespace: %s", appName, GITOPS_DEFAULT_NAMESPACE))
-					gomega.Eventually(applicationInfo.Cluster).Should(matchers.MatchText(leafClusterNamespace+`/`+leafClusterName), fmt.Sprintf("Failed to have expected violation cluster name: %s", leafClusterNamespace+`/`+leafClusterName))
-					gomega.Eventually(applicationInfo.Source).Should(matchers.MatchText("flux-system"), fmt.Sprintf("Failed to have expected %s application source: %s", appName, appSource))
-					gomega.Eventually(applicationInfo.Status).Should(matchers.MatchText("Ready"), fmt.Sprintf("Failed to have expected %s application status: Ready", appName))
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", appName))
+					verifyAppInformation(applicationsPage, app, leafCluster, "Ready")
+					applicationInfo := applicationsPage.FindApplicationInList(app.Name)
+					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", app.Name))
 
 					// Navigate back to clusters page
 					pages.NavigateToPage(webDriver, "Clusters")
@@ -280,14 +272,13 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("Verify deleting GitopsCluster resource from the management cluster", func() {
 					// Clean up kubeconfig secret, gitopscluster finalizer will wait for it now
-					deleteSecret([]string{leafClusterkubeconfig}, leafClusterNamespace)
+					deleteSecret([]string{leafClusterkubeconfig}, leafCluster.Namespace)
 					gomega.Eventually(clusterInfo.Status).Should(matchers.MatchText("Not Ready"), "Failed to have expected GitopsCluster status: Not Ready")
-
 					_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 				})
 
 				ginkgo.By("And wait for GitopsCluster to disappear from Clusters page", func() {
-					gomega.Expect(clustersPage.CountClusters()).To(gomega.Equal(existingClustersCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", existingClustersCount))
+					gomega.Eventually(clustersPage.CountClusters, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Equal(existingClustersCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", existingClustersCount))
 				})
 			})
 		})
