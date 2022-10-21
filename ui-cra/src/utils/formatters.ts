@@ -49,5 +49,5 @@ export const getFormattedCostEstimate = (
             range?.high || 0,
           )} ${currency}`;
     return estimate;
-  } else return '00.00 USD';
+  } else return 'N/A';
 };

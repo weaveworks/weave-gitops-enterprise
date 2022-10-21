@@ -296,6 +296,15 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
+  const isCredentialEnabled =
+    annotations?.['templates.weave.works/credentials-enabled'] || 'true';
+  const isProfilesEnabled =
+    annotations?.['templates.weave.works/profiles-enabled'] || 'true';
+  const isKustomizationsEnabled =
+    annotations?.['templates.weave.works/kustomizations-enabled'] || 'true';
+  const isCostEstimationEnabled =
+    annotations?.['templates.weave.works/cost-estimation-enabled'] || 'false';
+
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
     setPreviewLoading(true);
@@ -448,13 +457,12 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
               <div className="template-title">
                 Template: <span>{template.name}</span>
               </div>
-              <Credentials
-                infraCredential={infraCredential}
-                setInfraCredential={setInfraCredential}
-                isCredentialEnabled={
-                  annotations?.['templates.weave.works/credentials-enabled']
-                }
-              />
+              {isCredentialEnabled === 'true' ? (
+                <Credentials
+                  infraCredential={infraCredential}
+                  setInfraCredential={setInfraCredential}
+                />
+              ) : null}
             </CredentialsWrapper>
             <Divider
               className={
@@ -467,22 +475,20 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
               setFormData={setFormData}
             />
           </Grid>
-          <Profiles
-            isLoading={profilesIsLoading}
-            updatedProfiles={updatedProfiles}
-            setUpdatedProfiles={setUpdatedProfiles}
-            isProfilesEnabled={
-              annotations?.['templates.weave.works/profiles-enabled']
-            }
-          />
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            <ApplicationsWrapper
-              formData={formData}
-              setFormData={setFormData}
-              isKustomizationsEnabled={
-                annotations?.['templates.weave.works/kustomizations-enabled']
-              }
+          {isProfilesEnabled === 'true' ? (
+            <Profiles
+              isLoading={profilesIsLoading}
+              updatedProfiles={updatedProfiles}
+              setUpdatedProfiles={setUpdatedProfiles}
             />
+          ) : null}
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            {isKustomizationsEnabled === 'true' ? (
+              <ApplicationsWrapper
+                formData={formData}
+                setFormData={setFormData}
+              />
+            ) : null}
             {previewLoading ? (
               <LoadingPage className={classes.previewLoading} />
             ) : (
@@ -503,17 +509,16 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
             />
           ) : null}
           <Grid item xs={12} sm={10} md={10} lg={8}>
-            {costEstimationLoading ? (
-              <LoadingPage className={classes.previewLoading} />
-            ) : (
+            {isCostEstimationEnabled === 'true' ? (
               <CostEstimation
                 handleCostEstimation={handleCostEstimation}
                 costEstimate={costEstimate}
+                isCostEstimationLoading={costEstimationLoading}
                 isCostEstimationEnabled={
                   annotations?.['templates.weave.works/cost-estimation-enabled']
                 }
               />
-            )}
+            ) : null}
           </Grid>
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <GitOps
@@ -561,6 +566,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     costEstimationLoading,
     handleCostEstimation,
     costEstimate,
+    isCredentialEnabled,
+    isCostEstimationEnabled,
+    isKustomizationsEnabled,
+    isProfilesEnabled,
   ]);
 };
 

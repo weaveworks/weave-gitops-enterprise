@@ -1,17 +1,14 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
-import { Button, theme } from '@weaveworks/weave-gitops';
+import { Button, LoadingPage, theme } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import { validateFormData } from '../../../../utils/form';
 
 const CostEstimation: FC<{
   isCostEstimationEnabled?: string;
   costEstimate: string;
+  isCostEstimationLoading: boolean;
   handleCostEstimation: () => Promise<void>;
-}> = ({
-  isCostEstimationEnabled = 'false',
-  handleCostEstimation,
-  costEstimate,
-}) => {
+}> = ({ handleCostEstimation, costEstimate, isCostEstimationLoading }) => {
   const useStyles = makeStyles(() =>
     createStyles({
       getEstimationButton: {
@@ -21,10 +18,15 @@ const CostEstimation: FC<{
         marginRight: theme.spacing.medium,
         fontWeight: 'bold',
       },
+      previewLoading: {
+        padding: theme.spacing.base,
+      },
     }),
   );
   const classes = useStyles();
-  return isCostEstimationEnabled === 'false' ? null : (
+  return isCostEstimationLoading ? (
+    <LoadingPage className={classes.previewLoading} />
+  ) : (
     <div>
       <h2>Cost Estimation</h2>
       <Grid container>
