@@ -566,6 +566,15 @@ func deleteNamespace(namespaces []string) {
 	}
 }
 
+func waitForNamespaceDeletion(namespaces []string) {
+	for _, namespace := range namespaces {
+		checkOutput := func() error {
+			return runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get namespace %s`, namespace))
+		}
+		gomega.Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.HaveOccurred(), fmt.Sprintf("'%s' namespace is expected not to be available", namespace))
+	}
+}
+
 func getApplicationCount() int {
 	stdOut, _ := runCommandAndReturnStringOutput("kubectl get Kustomization -A --output name | wc -l")
 	kCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))

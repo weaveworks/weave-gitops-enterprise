@@ -637,10 +637,10 @@ rules:
     verbs: ["impersonate"]
   - apiGroups: [""]
     resources: ["namespaces"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["apiextensions.k8s.io"] # required for canary support
     resources: ["customresourcedefinitions"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
 ```
 
 **CAPI NAME COLLISION WARNING**

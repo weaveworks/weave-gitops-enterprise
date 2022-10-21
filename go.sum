@@ -404,6 +404,7 @@ github.com/fluxcd/pkg/runtime v0.18.0/go.mod h1:JKTvOFOCz5Un9KxGcBL7Xjt0fcRa10ZI
 github.com/fluxcd/pkg/ssa v0.19.0 h1:azciQ/M1L7Nf4zkHJ+A+a58uShcTW3ZMbyY8KiYcqrI=
 github.com/fluxcd/pkg/ssa v0.19.0/go.mod h1:OjHX/qA4xqLi237l0yccsT6FnLmHxDKukpMXnhdXdyk=
 github.com/fluxcd/pkg/untar v0.2.0 h1:sJXU+FbJcNUb2ffLJNjeR3hwt3X2loVpOMlCUjyFw6E=
+github.com/fluxcd/pkg/untar v0.2.0/go.mod h1:33AyoWaPpjX/xXpczcfhQh2AkB63TFwiR2YwROtv23E=
 github.com/fluxcd/source-controller/api v0.30.0 h1:rPVPpwXcYG2n0DTRcRagfGDiccvCib5S09K5iMjlpRU=
 github.com/fluxcd/source-controller/api v0.30.0/go.mod h1:UkjAqQ6QAXNNesNQDTArTeiTp+UuhOUIA+JyFhGP/+Q=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
@@ -528,6 +529,7 @@ github.com/go-toolsmith/typep v1.0.0/go.mod h1:JSQCQMUPdRlMZFswiq3TGpNp1GMktqkR2
 github.com/go-toolsmith/typep v1.0.2/go.mod h1:JSQCQMUPdRlMZFswiq3TGpNp1GMktqkR2Ns5AIQkATU=
 github.com/go-xmlfmt/xmlfmt v0.0.0-20191208150333-d5b6f63a941b/go.mod h1:aUCEOzzezBEjDBbFBoSiya/gduyIiWYRP6CnSFIV8AM=
 github.com/gobuffalo/flect v0.2.4 h1:BSYA8+T60cdyq+vynaSUjqSVI9mDEg9ZfQUXKmfjo4I=
+github.com/gobuffalo/flect v0.2.4/go.mod h1:1ZyCLIbg0YD7sDkzvFdPoOydPtD8y9JQnrOROolUcM8=
 github.com/gobuffalo/logger v1.0.6 h1:nnZNpxYo0zx+Aj9RfMPBm+x9zAU2OayFh/xrAWi34HU=
 github.com/gobuffalo/logger v1.0.6/go.mod h1:J31TBEHR1QLV2683OXTAItYIg8pv2JMHnF/quuAbMjs=
 github.com/gobuffalo/packd v1.0.1 h1:U2wXfRr4E9DH8IdsDLlRFwTZTK7hLfq9qT/QHXGVe/0=
@@ -1345,8 +1347,10 @@ github.com/valyala/fasthttp v1.30.0/go.mod h1:2rsYD01CKFrjjsvFxx75KlEUNpWNBY9JWD
 github.com/valyala/quicktemplate v1.7.0/go.mod h1:sqKJnoaOF88V07vkO+9FL8fb9uZg/VPSJnLYn+LmLk8=
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
 github.com/viki-org/dnscache v0.0.0-20130720023526-c70c1f23c5d8/go.mod h1:dniwbG03GafCjFohMDmz6Zc6oCuiqgH6tGNyXTkHzXE=
-github.com/weaveworks/cluster-controller v1.3.2 h1:MBM2u5KDHhizXyx0oEByPXejgvg9e1qTQZuYtXgRVrI=
-github.com/weaveworks/cluster-controller v1.3.2/go.mod h1:e0Bka2iXVITQG+cG7/u8ZOB5QTaguMmgg+n5nrYaqxQ=
+github.com/weaveworks/cluster-controller v1.3.3-0.20221011162507-f8e726094d4b h1:STpHllhYZPyrnJT2bH7d/nRpZ7bh5dWu1s3MZTZH98k=
+github.com/weaveworks/cluster-controller v1.3.3-0.20221011162507-f8e726094d4b/go.mod h1:NrgkuiyejE2nizsiXNeqaNWfVhpvG2SlAiWHnxKIS4U=
+github.com/weaveworks/cluster-controller v1.4.0 h1:AFvWGm3Lpad6zcbx4IMOvsv1vzUIXnevNScv9pI/D00=
+github.com/weaveworks/cluster-controller v1.4.0/go.mod h1:NrgkuiyejE2nizsiXNeqaNWfVhpvG2SlAiWHnxKIS4U=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20220916165727-cb8504f08c22 h1:Nn0uFFztrATEyTIwYd0yLXKk7Ee9Ndx6P3DFZsU4TxU=
@@ -1357,8 +1361,8 @@ github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
-github.com/weaveworks/weave-gitops v0.10.0 h1:2P6kpzlaJ5Tig2KoUdoQ10yacrzMz4YFQpyGNOeOkb4=
-github.com/weaveworks/weave-gitops v0.10.0/go.mod h1:aN9coD172ZhF7xdRFMSxIE3Zi6+W2b2usDZcqskS5rM=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221017171530-29971f9a3686 h1:T4YL+fhheLpkW9shiktIiBVCgj5fcAlDFxcjHrCr1OQ=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221017171530-29971f9a3686/go.mod h1:p6+/3shchN5kCMRZ6L47cd59PEPijQ8wehhFFDKV3fs=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.73.1 h1:UMagqUZLJdjss1SovIC+kJCH4k2AZWXl58gJd38Y/hI=

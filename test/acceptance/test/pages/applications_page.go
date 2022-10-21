@@ -224,13 +224,13 @@ func GetApplicationEvent(webDriver *agouti.Page, reason string) *ApplicationEven
 
 func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 	return &ApplicationGraph{
-		GitRepository:  webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="GitRepository"]/parent::node()`),
-		Kustomization:  webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Kustomization"]/parent::node()`),
-		HelmRepository: webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="HelmRepository"]/parent::node()`),
-		HelmRelease:    webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="HelmRelease"]/parent::node()`),
-		Deployment:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Deployment"]/parent::node()`),
-		ReplicaSet:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="ReplicaSet"]/parent::node()`),
-		Pod:            webDriver.FirstByXPath(`//div[contains(@class, "GraphNode")]/following-sibling::div[contains(@class, "GraphNode")][.="Pod"]/parent::node()`),
+		GitRepository:  webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="GitRepository"]/parent::node()`),
+		Kustomization:  webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="Kustomization"]/parent::node()`),
+		HelmRepository: webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="HelmRepository"]/parent::node()`),
+		HelmRelease:    webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="HelmRelease"]/parent::node()`),
+		Deployment:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="Deployment"]/parent::node()`),
+		ReplicaSet:     webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="ReplicaSet"]/parent::node()`),
+		Pod:            webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="Pod"]/parent::node()`),
 	}
 }
 
