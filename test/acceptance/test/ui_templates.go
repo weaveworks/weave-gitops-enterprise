@@ -16,12 +16,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-type ClusterConfig struct {
-	Type      string
-	Name      string
-	Namespace string
-}
-
 type TemplateField struct {
 	Name   string
 	Value  string
@@ -341,11 +335,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				ginkgo.By("Then I should see toast with missing required parameters", func() {
-					errorBar := pages.GetGitOps(webDriver).ErrorBar
+				ginkgo.By("Then missing required parameters should get focus when previewing PR", func() {
 					gomega.Eventually(createPage.PreviewPR.Click).Should(gomega.Succeed())
-					gomega.Eventually(errorBar.Text).Should(gomega.MatchRegexp(`error rendering template eks-fargate-template-0, missing required parameter: AWS_REGION`))
-					gomega.Eventually(errorBar.Click).Should(gomega.HaveOccurred(), "Failed dissmiss error toast")
+					gomega.Eventually(createPage.GetTemplateParameter(webDriver, "AWS_REGION").Focused).Should(matchers.BeFound(), "Missing required parameter 'AWS_REGION' failed to get focus")
 				})
 
 				parameters = []TemplateField{
@@ -1136,9 +1128,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
 					totalAppCount := existingAppCount + 8 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library, postgres, podinfo
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 
 					filterID := "clusterName: " + clusterNamespace + `/` + clusterName
 					searchPage := pages.GetSearchPage(webDriver)

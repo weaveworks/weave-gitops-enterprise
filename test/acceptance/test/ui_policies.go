@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"path"
+	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -69,14 +70,14 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				policiesPage := pages.GetPoliciesPage(webDriver)
 
 				ginkgo.By("And wait for policies to be visibe on the dashboard", func() {
-					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 4
-
 					gomega.Eventually(func(g gomega.Gomega) int {
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return policiesPage.CountPolicies()
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
 
 				})
 
@@ -225,14 +226,14 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for policies to be visibe on the dashboard", func() {
 					pages.NavigateToPage(webDriver, "Policies")
-					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 8 // 4 management and 4 leaf policies
-
 					gomega.Eventually(func(g gomega.Gomega) int {
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return policiesPage.CountPolicies()
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
 
 					// Wait for policy page to completely render policy information. Sometimes error appears momentarily due to RBAC reconciliation
 					gomega.Eventually(func(g gomega.Gomega) bool {
