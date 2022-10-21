@@ -6,14 +6,14 @@ import (
 	"io"
 	"strings"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
+	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 type ProfilesRetriever interface {
 	Source() string
-	RetrieveProfiles() (*pb.GetProfilesResponse, error)
+	RetrieveProfiles() (*pb.ListChartsForRepositoryResponse, error)
 }
 
 type GetOptions struct {
@@ -41,7 +41,7 @@ func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer)
 }
 
 // GetProfile returns a single available profile.
-func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts GetOptions) (*pb.Profile, string, error) {
+func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts GetOptions) (*pb.RepositoryChart, string, error) {
 	s.Logger.Actionf("getting available profiles from %s", r.Source())
 
 	profilesList, err := r.RetrieveProfiles()
@@ -51,15 +51,15 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts 
 
 	var version string
 
-	for _, p := range profilesList.Profiles {
+	for _, p := range profilesList.Charts {
 		if p.Name == opts.Name {
-			if len(p.AvailableVersions) == 0 {
+			if len(p.Versions) == 0 {
 				return nil, "", fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
 			}
 
 			switch {
 			case opts.Version == "latest":
-				versions, err := controller.ConvertStringListToSemanticVersionList(p.AvailableVersions)
+				versions, err := controller.ConvertStringListToSemanticVersionList(p.Versions)
 				if err != nil {
 					return nil, "", err
 				}
@@ -67,15 +67,11 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts 
 				controller.SortVersions(versions)
 				version = versions[0].String()
 			default:
-				if !foundVersion(p.AvailableVersions, opts.Version) {
+				if !foundVersion(p.Versions, opts.Version) {
 					return nil, "", fmt.Errorf("version '%s' not found for profile '%s' in %s/%s", opts.Version, opts.Name, opts.Cluster, opts.Namespace)
 				}
 
 				version = opts.Version
-			}
-
-			if p.GetHelmRepository().GetName() == "" || p.GetHelmRepository().GetNamespace() == "" {
-				return nil, "", fmt.Errorf("HelmRepository's name or namespace is empty")
 			}
 
 			return p, version, nil
@@ -95,12 +91,12 @@ func foundVersion(availableVersions []string, version string) bool {
 	return false
 }
 
-func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {
+func printProfiles(profiles *pb.ListChartsForRepositoryResponse, w io.Writer) {
 	fmt.Fprintf(w, "NAME\tDESCRIPTION\tAVAILABLE_VERSIONS\n")
 
-	if profiles.Profiles != nil && len(profiles.Profiles) > 0 {
-		for _, p := range profiles.Profiles {
-			fmt.Fprintf(w, "%s\t%s\t%v", p.Name, p.Description, strings.Join(p.AvailableVersions, ","))
+	if profiles.Charts != nil && len(profiles.Charts) > 0 {
+		for _, p := range profiles.Charts {
+			fmt.Fprintf(w, "%s\t%s\t%v", p.Name, "", strings.Join(p.Versions, ","))
 			fmt.Fprintln(w, "")
 		}
 	}

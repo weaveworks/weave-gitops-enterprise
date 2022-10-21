@@ -23,25 +23,14 @@ const (
 	watcherFinalizer = "finalizers.helm.watcher"
 )
 
-// EventRecorder defines an external event recorder's function for creating events for the notification controller.
-//
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate . eventRecorder
-type eventRecorder interface {
-	AnnotatedEventf(object runtime.Object, annotations map[string]string, eventtype, reason string, messageFmt string, args ...interface{})
-}
-
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
 	client.Client
-	RepoManager           helm.HelmRepoManager
-	ExternalEventRecorder eventRecorder
-	Scheme                *runtime.Scheme
+	Scheme *runtime.Scheme
 
-	// new stuff
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
-	NewCache      helm.HelmChartIndexer
+	Cache         helm.ChartsCacherWriter
 	ValuesFetcher helm.ValuesFetcher
 }
 
@@ -99,7 +88,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			if isProfile {
 				chartKind = "profile"
 			}
-			r.NewCache.AddChart(
+			r.Cache.AddChart(
 				ctx, name, version.Version, chartKind,
 				version.Annotations[helm.LayerAnnotation],
 				r.ClusterRef,
@@ -108,12 +97,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	charts, err := r.RepoManager.ListCharts(context.Background(), &repository, helm.Profiles)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
-	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "number of profiles", len(charts))
+	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "number of profiles", len(indexFile.Entries))
 
 	return ctrl.Result{}, nil
 }
@@ -130,7 +114,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 
 	log.Info("deleting repository cache", "namespace", repository.Namespace, "name", repository.Name)
 
-	if err := r.NewCache.Delete(ctx, helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace}, r.ClusterRef); err != nil {
+	if err := r.Cache.Delete(ctx, helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace}, r.ClusterRef); err != nil {
 		log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
 		return ctrl.Result{}, err
 	}

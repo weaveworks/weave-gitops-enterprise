@@ -1,9 +1,6 @@
 package watcher
 
 import (
-	"os"
-
-	"github.com/fluxcd/pkg/runtime/events"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -22,8 +19,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
 )
 
-const controllerName = "helm-watcher"
-
 var (
 	scheme = runtime.NewScheme()
 )
@@ -36,16 +31,15 @@ type Options struct {
 	WatcherPort                   int
 	ClusterRef                    types.NamespacedName
 	ClientConfig                  *rest.Config
-	NewCache                      helm.HelmChartIndexer
+	Cache                         helm.ChartsCacherWriter
 	ValuesFetcher                 helm.ValuesFetcher
 }
 
 type Watcher struct {
 	clusterRef          types.NamespacedName
 	clientConfig        *rest.Config
-	newCache            helm.HelmChartIndexer
+	cache               helm.ChartsCacherWriter
 	valuesFetcher       helm.ValuesFetcher
-	repoManager         helm.HelmRepoManager
 	metricsBindAddress  string
 	healthzBindAddress  string
 	watcherPort         int
@@ -53,11 +47,6 @@ type Watcher struct {
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
-	tempDir, err := os.MkdirTemp("", "profile_cache")
-	if err != nil {
-		return nil, err
-	}
-
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
@@ -69,9 +58,8 @@ func NewWatcher(opts Options) (*Watcher, error) {
 	return &Watcher{
 		clusterRef:          opts.ClusterRef,
 		clientConfig:        opts.ClientConfig,
-		newCache:            opts.NewCache,
+		cache:               opts.Cache,
 		valuesFetcher:       opts.ValuesFetcher,
-		repoManager:         helm.NewRepoManager(opts.KubeClient, tempDir),
 		healthzBindAddress:  opts.HealthzBindAddress,
 		metricsBindAddress:  opts.MetricsBindAddress,
 		notificationAddress: opts.NotificationControllerAddress,
@@ -104,25 +92,13 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 		return err
 	}
 
-	var eventRecorder *events.Recorder
-
-	if w.notificationAddress != "" {
-		var err error
-		if eventRecorder, err = events.NewRecorder(mgr, ctrl.Log, w.notificationAddress, controllerName); err != nil {
-			ctrl.Log.Error(err, "unable to create event recorder")
-			return err
-		}
-	}
-
 	if err = (&controller.HelmWatcherReconciler{
-		ClusterRef:            w.clusterRef,
-		ClientConfig:          w.clientConfig,
-		NewCache:              w.newCache,
-		ValuesFetcher:         w.valuesFetcher,
-		Client:                mgr.GetClient(),
-		RepoManager:           w.repoManager,
-		Scheme:                scheme,
-		ExternalEventRecorder: eventRecorder,
+		ClusterRef:    w.clusterRef,
+		ClientConfig:  w.clientConfig,
+		Cache:         w.cache,
+		ValuesFetcher: w.valuesFetcher,
+		Client:        mgr.GetClient(),
+		Scheme:        scheme,
 	}).SetupWithManager(mgr); err != nil {
 		ctrl.Log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err

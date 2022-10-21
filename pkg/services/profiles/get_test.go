@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
+	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
@@ -122,7 +122,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 
 			profile, version, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(len(profile.AvailableVersions)).NotTo(BeZero())
+			Expect(len(profile.Versions)).NotTo(BeZero())
 			Expect(version).To(Equal("6.0.1"))
 		})
 
@@ -205,12 +205,12 @@ func (c *FakeHTTPClient) Source() string {
 	return "Fake Client"
 }
 
-func (c *FakeHTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
+func (c *FakeHTTPClient) RetrieveProfiles() (*pb.ListChartsForRepositoryResponse, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
 
-	result := &pb.GetProfilesResponse{}
+	result := &pb.ListChartsForRepositoryResponse{}
 	data := []byte(c.data)
 
 	err := json.Unmarshal(data, &result)

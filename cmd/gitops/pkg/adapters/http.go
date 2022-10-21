@@ -13,9 +13,10 @@ import (
 	"github.com/go-resty/resty/v2"
 	"k8s.io/client-go/rest"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
+	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -601,14 +602,19 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	return string(b), nil
 }
 
-func (c *HTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
-	endpoint := "/v1/profiles"
+func (c *HTTPClient) RetrieveProfiles() (*pb.ListChartsForRepositoryResponse, error) {
+	endpoint := "/v1/charts/list"
 
-	result := &pb.GetProfilesResponse{}
+	result := &pb.ListChartsForRepositoryResponse{}
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetResult(result).
+		SetQueryParams(map[string]string{
+			"repository.name":         "weaveworks-charts",
+			"repository.namespace":    "flux-system",
+			"repository.cluster.name": fetcher.ManagementClusterName,
+		}).
 		Get(endpoint)
 
 	if err != nil {

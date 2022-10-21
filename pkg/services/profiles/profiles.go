@@ -53,14 +53,14 @@ func NewService(log logger.Logger) *ProfilesSvc {
 }
 
 func (s *ProfilesSvc) discoverHelmRepository(ctx context.Context, r ProfilesRetriever, opts GetOptions) (types.NamespacedName, string, error) {
-	availableProfile, version, err := s.GetProfile(ctx, r, opts)
+	_, version, err := s.GetProfile(ctx, r, opts)
 	if err != nil {
 		return types.NamespacedName{}, "", fmt.Errorf("failed to get profiles from cluster: %w", err)
 	}
 
 	return types.NamespacedName{
-		Name:      availableProfile.HelmRepository.Name,
-		Namespace: availableProfile.HelmRepository.Namespace,
+		Name:      "weaveworks-charts",
+		Namespace: "flux-system",
 	}, version, nil
 }
 

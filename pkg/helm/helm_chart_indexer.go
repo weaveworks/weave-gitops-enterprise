@@ -19,6 +19,23 @@ const (
 	dbFile = "charts.db"
 )
 
+type ChartsCacherWriter interface {
+	AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error
+	Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error
+}
+
+type ChartsCacheReader interface {
+	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error)
+	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error)
+	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error)
+	UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error
+}
+
+type ChartsCache interface {
+	ChartsCacheReader
+	ChartsCacherWriter
+}
+
 // ObjectReference points to a resource.
 type ObjectReference struct {
 	Kind       string

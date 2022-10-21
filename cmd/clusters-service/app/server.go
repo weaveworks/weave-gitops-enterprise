@@ -330,7 +330,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	profileWatcher, err := watcher.NewWatcher(watcher.Options{
 		ClientConfig:       kubeClientConfig,
 		ClusterRef:         types.NamespacedName{Name: "management"},
-		NewCache:           *chartsCache,
+		Cache:              chartsCache,
 		ValuesFetcher:      helm.NewValuesFetcher(),
 		KubeClient:         kubeClient,
 		MetricsBindAddress: p.WatcherMetricsBindAddress,
