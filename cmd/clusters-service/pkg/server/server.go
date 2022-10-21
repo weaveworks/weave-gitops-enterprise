@@ -50,6 +50,7 @@ type server struct {
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
 	capiEnabled               bool
+	cluster                   types.NamespacedName
 
 	restConfig        *rest.Config
 	chartJobs         *helm.Jobs
@@ -68,6 +69,7 @@ type ServerOpts struct {
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
+	Cluster                   types.NamespacedName
 
 	RestConfig        *rest.Config
 	ChartJobs         *helm.Jobs

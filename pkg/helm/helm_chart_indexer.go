@@ -11,8 +11,6 @@ import (
 )
 
 const (
-	// ManagementClusterName is the name of the management cluster.
-	ManagementClusterName = "management"
 	// ManagementClusterNamespace is the namespace of the management cluster
 	ManagementClusterNamespace = "default"
 	// dbFile is the name of the sqlite3 database file
@@ -38,10 +36,11 @@ type Chart struct {
 // repositories.
 type HelmChartIndexer struct {
 	CacheDB *sql.DB
+	Cluster types.NamespacedName
 }
 
 // NewCache initialises the cache and returns it.
-func NewChartIndexer(cacheLocation string) (*HelmChartIndexer, error) {
+func NewChartIndexer(cacheLocation string, mgmtCluster types.NamespacedName) (*HelmChartIndexer, error) {
 	db, err := createDB(cacheLocation)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cache database: %w", err)
@@ -49,6 +48,7 @@ func NewChartIndexer(cacheLocation string) (*HelmChartIndexer, error) {
 
 	return &HelmChartIndexer{
 		CacheDB: db,
+		Cluster: mgmtCluster,
 	}, nil
 }
 

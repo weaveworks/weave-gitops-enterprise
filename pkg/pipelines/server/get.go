@@ -7,7 +7,6 @@ import (
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/internal/convert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,8 +30,8 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 		},
 	}
 
-	if err := c.Get(ctx, fetcher.ManagementClusterName, client.ObjectKeyFromObject(&p), &p); err != nil {
-		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, fetcher.ManagementClusterName, err)
+	if err := c.Get(ctx, s.cluster.Name, client.ObjectKeyFromObject(&p), &p); err != nil {
+		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster.Name, err)
 	}
 
 	pipelineResp := convert.PipelineToProto(p)
@@ -48,7 +47,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(t.Namespace)
 
-			clusterName := fetcher.ManagementClusterName
+			clusterName := s.cluster.Name
 			if t.ClusterRef != nil {
 				clusterName = types.NamespacedName{
 					Name:      t.ClusterRef.Name,

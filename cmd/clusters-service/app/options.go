@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,6 +47,7 @@ type Options struct {
 	ClustersManager              clustersmngr.ClustersManager
 	KubernetesClientSet          kubernetes.Interface
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Cluster                      types.NamespacedName
 }
 
 type Option func(*Options)
@@ -229,5 +231,12 @@ func WithKubernetesClientSet(kubernetesClientSet kubernetes.Interface) Option {
 func WithManagemetFetcher(fetcher *mgmtfetcher.ManagementCrossNamespacesFetcher) Option {
 	return func(o *Options) {
 		o.ManagementFetcher = fetcher
+	}
+}
+
+// WithManagementCluster is used to set the management cluster name and namespace
+func WithManagementCluster(cluster types.NamespacedName) Option {
+	return func(o *Options) {
+		o.Cluster = cluster
 	}
 }

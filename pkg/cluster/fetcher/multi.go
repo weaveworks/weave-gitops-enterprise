@@ -18,9 +18,8 @@ import (
 )
 
 const (
-	dataKey               = "value"
-	yamlDataKey           = "value.yaml"
-	ManagementClusterName = "management"
+	dataKey     = "value"
+	yamlDataKey = "value.yaml"
 )
 
 type multiClusterFetcher struct {
@@ -28,14 +27,16 @@ type multiClusterFetcher struct {
 	cfg          *rest.Config
 	clientGetter kube.ClientGetter
 	namespace    string
+	cluster      types.NamespacedName
 }
 
-func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.ClientGetter, namespace string) (mngr.ClusterFetcher, error) {
+func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.ClientGetter, namespace string, mgmtCluster types.NamespacedName) (mngr.ClusterFetcher, error) {
 	return multiClusterFetcher{
 		log:          log.WithName("multi-cluster-fetcher"),
 		cfg:          config,
 		clientGetter: cg,
 		namespace:    namespace,
+		cluster:      mgmtCluster,
 	}, nil
 }
 
@@ -60,7 +61,7 @@ func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) 
 
 func (f *multiClusterFetcher) self() mngr.Cluster {
 	return mngr.Cluster{
-		Name:        ManagementClusterName,
+		Name:        f.cluster.Name,
 		Server:      f.cfg.Host,
 		BearerToken: f.cfg.BearerToken,
 		TLSConfig:   f.cfg.TLSClientConfig,
