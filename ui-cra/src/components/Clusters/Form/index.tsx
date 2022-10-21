@@ -225,6 +225,7 @@ const toPayload = (
   formData: any,
   infraCredential: any,
   templateName: string,
+  templateNamespace: string,
   updatedProfiles: ProfilesIndex,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
@@ -235,6 +236,7 @@ const toPayload = (
     commitMessage: formData.commitMessage,
     credentials: infraCredential,
     templateName,
+    templateNamespace: templateNamespace,
     parameterValues,
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
@@ -310,6 +312,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     setPreviewLoading(true);
     return renderTemplate({
       templateName: template.name,
+      templateNamespace: template.namespace,
       values: parameterValues,
       profiles: encodedProfiles(updatedProfiles),
       credentials: infraCredential || undefined,
@@ -333,6 +336,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     infraCredential,
     setNotifications,
     template.name,
+    template.namespace,
     template.templateKind,
     updatedProfiles,
   ]);
@@ -372,6 +376,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
       formData,
       infraCredential,
       template.name,
+      template.namespace!,
       updatedProfiles,
     );
     setLoading(true);
@@ -414,6 +419,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     setNotifications,
     setPRPreview,
     template.name,
+    template.namespace,
     template.templateKind,
   ]);
 

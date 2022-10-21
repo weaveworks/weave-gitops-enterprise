@@ -26,11 +26,13 @@ export type ListError = {
 export type ListTemplatesResponse = {
   templates?: Template[]
   total?: number
+  errors?: ListError[]
 }
 
 export type GetTemplateRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type GetTemplateResponse = {
@@ -40,6 +42,7 @@ export type GetTemplateResponse = {
 export type ListTemplateParamsRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type ListTemplateParamsResponse = {
@@ -50,6 +53,7 @@ export type ListTemplateParamsResponse = {
 export type ListTemplateProfilesRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type ListTemplateProfilesResponse = {
@@ -65,6 +69,7 @@ export type RenderTemplateRequest = {
   clusterNamespace?: string
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
+  templateNamespace?: string
 }
 
 export type CommitFile = {
@@ -110,6 +115,7 @@ export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
   total?: number
   nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type GetPolicyRequest = {
@@ -193,6 +199,7 @@ export type CreatePullRequestRequest = {
   repositoryApiUrl?: string
   clusterNamespace?: string
   kustomizations?: Kustomization[]
+  templateNamespace?: string
 }
 
 export type CreatePullRequestResponse = {
@@ -209,6 +216,7 @@ export type CreateTfControllerPullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   repositoryApiUrl?: string
+  templateNamespace?: string
 }
 
 export type CreateTfControllerPullRequestResponse = {
@@ -320,6 +328,7 @@ export type Template = {
   annotations?: {[key: string]: string}
   templateKind?: string
   labels?: {[key: string]: string}
+  namespace?: string
 }
 
 export type Parameter = {

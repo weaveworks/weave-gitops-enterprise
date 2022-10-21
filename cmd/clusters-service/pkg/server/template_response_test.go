@@ -67,6 +67,7 @@ func TestToTemplate(t *testing.T) {
 				Description:  "this is test template 1",
 				Provider:     "",
 				TemplateKind: "CAPITemplate",
+				Namespace:    "default",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						ApiVersion: "fooversion",
@@ -111,6 +112,7 @@ func TestToTemplate(t *testing.T) {
 			value: makeErrorTemplate(t, `"derp"`),
 			expected: &capiv1_protos.Template{
 				Name:         "cluster-template-1",
+				Namespace:    "default",
 				TemplateKind: "CAPITemplate",
 				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: json: cannot unmarshal string into Go value of type map[string]interface {}",
 			},
@@ -120,6 +122,7 @@ func TestToTemplate(t *testing.T) {
 			value: makeErrorTemplate(t, `{"boop":"beep"}`),
 			expected: &capiv1_protos.Template{
 				Name:         "cluster-template-1",
+				Namespace:    "default",
 				TemplateKind: "CAPITemplate",
 				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: Object 'Kind' is missing in '{\"boop\":\"beep\"}'",
 			},

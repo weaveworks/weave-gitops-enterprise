@@ -208,17 +208,20 @@ message ListError {
 message ListTemplatesResponse {
   repeated Template templates = 1;
   int32 total = 2;
+  repeated ListError errors = 4;
 }
 
 message GetTemplateRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message GetTemplateResponse { Template template = 1; }
 
 message ListTemplateParamsRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
@@ -228,6 +231,7 @@ message ListTemplateParamsResponse {
 message ListTemplateProfilesRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message ListTemplateProfilesResponse {
   repeated TemplateProfile profiles = 1;
@@ -242,6 +246,7 @@ message RenderTemplateRequest {
   string cluster_namespace = 5;
   repeated ProfileValues profiles = 6;
   repeated Kustomization kustomizations = 7;
+  string template_namespace = 8;
 }
 
 message CommitFile {
@@ -287,6 +292,7 @@ message ListGitopsClustersResponse {
   repeated GitopsCluster gitops_clusters = 1;
   int32 total = 2;
   string next_page_token = 3;
+  repeated ListError errors = 4;
 }
 
 message GetPolicyRequest {
@@ -376,6 +382,7 @@ message CreatePullRequestRequest {
   string repository_api_url = 11;
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
+  string template_namespace = 14;
 }
 
 message CreatePullRequestResponse {
@@ -402,6 +409,7 @@ message CreateTfControllerPullRequestRequest {
   string commit_message = 8;
   // The repo api url.
   string repository_api_url = 11;
+  string template_namespace = 12;
 }
 message CreateTfControllerPullRequestResponse {
   // The url of the new pull request.
@@ -521,6 +529,7 @@ message Template {
   map<string, string> annotations = 7;
   string template_kind = 8;
   map<string, string> labels = 9;
+  string namespace = 10;
 }
 
 message Parameter {
