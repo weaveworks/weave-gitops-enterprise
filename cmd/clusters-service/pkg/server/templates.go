@@ -12,11 +12,13 @@ import (
 	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	apiTemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	template "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type GetFilesRequest struct {
@@ -37,28 +39,92 @@ type GetFilesReturn struct {
 	CostEstimate       *capiv1_proto.CostEstimate
 }
 
+func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind string) (apiTemplates.Template, error) {
+	if namespace == "" {
+		return nil, errors.New("need to specify template namespace")
+	}
+	cl, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	switch templateKind {
+	case capiv1.Kind:
+		var t capiv1.CAPITemplate
+		err = cl.Get(ctx, client.ObjectKey{
+			Namespace: namespace,
+			Name:      name,
+		}, &t)
+		if err != nil {
+			return nil, fmt.Errorf("error getting capitemplate %s/%s: %w", namespace, name, err)
+		}
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+		t.SetGroupVersionKind(capiv1.GroupVersion.WithKind(capiv1.Kind))
+		return &t, nil
+
+	case gapiv1.Kind:
+		var t gapiv1.GitOpsTemplate
+		err = cl.Get(ctx, client.ObjectKey{
+			Namespace: namespace,
+			Name:      name,
+		}, &t)
+		if err != nil {
+			return nil, fmt.Errorf("error getting gitops template %s/%s: %w", namespace, name, err)
+		}
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+		t.SetGroupVersionKind(gapiv1.GroupVersion.WithKind(gapiv1.Kind))
+		return &t, nil
+	}
+
+	return nil, nil
+}
+
 func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTemplatesRequest) (*capiv1_proto.ListTemplatesResponse, error) {
 	templates := []*capiv1_proto.Template{}
+	errors := []*capiv1_proto.ListError{}
 	includeGitopsTemplates := msg.TemplateKind == "" || msg.TemplateKind == gapiv1.Kind
 	includeCAPITemplates := msg.TemplateKind == "" || msg.TemplateKind == capiv1.Kind
 
 	if includeGitopsTemplates {
-		tl, err := s.templatesLibrary.List(ctx, gapiv1.Kind)
+		namespacedLists, err := s.managementFetcher.Fetch(ctx, gapiv1.Kind, func() client.ObjectList {
+			return &gapiv1.GitOpsTemplateList{}
+		})
 		if err != nil {
-			return nil, fmt.Errorf("error listing gitops templates: %w", err)
+			return nil, fmt.Errorf("failed to query gitops templates: %w", err)
 		}
-		for _, t := range tl {
-			templates = append(templates, ToTemplateResponse(t))
+
+		for _, namespacedList := range namespacedLists {
+			if namespacedList.Error != nil {
+				errors = append(errors, &capiv1_proto.ListError{
+					Namespace: namespacedList.Namespace,
+					Message:   err.Error(),
+				})
+			}
+			templatesList := namespacedList.List.(*gapiv1.GitOpsTemplateList)
+			for _, t := range templatesList.Items {
+				templates = append(templates, ToTemplateResponse(&t))
+			}
 		}
 	}
 
 	if includeCAPITemplates {
-		tl, err := s.templatesLibrary.List(ctx, capiv1.Kind)
+		namespacedLists, err := s.managementFetcher.Fetch(ctx, capiv1.Kind, func() client.ObjectList {
+			return &capiv1.CAPITemplateList{}
+		})
 		if err != nil {
-			return nil, fmt.Errorf("error listing capi templates: %w", err)
+			return nil, fmt.Errorf("failed to query capi templates: %w", err)
 		}
-		for _, t := range tl {
-			templates = append(templates, ToTemplateResponse(t))
+
+		for _, namespacedList := range namespacedLists {
+			if namespacedList.Error != nil {
+				errors = append(errors, &capiv1_proto.ListError{
+					Namespace: namespacedList.Namespace,
+					Message:   err.Error(),
+				})
+			}
+			templatesList := namespacedList.List.(*capiv1.CAPITemplateList)
+			for _, t := range templatesList.Items {
+				templates = append(templates, ToTemplateResponse(&t))
+			}
 		}
 	}
 
@@ -75,6 +141,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 	return &capiv1_proto.ListTemplatesResponse{
 		Templates: templates,
 		Total:     total,
+		Errors:    errors,
 	}, nil
 }
 
@@ -83,7 +150,7 @@ func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateR
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -99,7 +166,7 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -116,7 +183,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	if msg.TemplateKind == "" {
 		msg.TemplateKind = capiv1.Kind
 	}
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
@@ -148,8 +215,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	}
 
 	s.log.WithValues("request_values", msg.Values, "request_credentials", msg.Credentials).Info("Received message")
-
-	tm, err := s.templatesLibrary.Get(ctx, msg.TemplateName, msg.TemplateKind)
+	tm, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
