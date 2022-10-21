@@ -196,10 +196,12 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
         repository: {
           name: helmRepo.name || 'weaveworks-charts',
           namespace: helmRepo.namespace || 'flux-system',
-          cluster: {
-            name: helmRepo.clusterName,
-            namespace: helmRepo.clusterNamespace,
-          },
+          cluster: helmRepo.clusterName
+            ? {
+                name: helmRepo.clusterName,
+                namespace: helmRepo.clusterNamespace,
+              }
+            : { name: 'management' },
         },
       }),
     {

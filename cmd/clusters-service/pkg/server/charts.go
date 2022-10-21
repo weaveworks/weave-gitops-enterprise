@@ -7,29 +7,40 @@ import (
 	"net/http"
 	"sort"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
 
 // ListChartsForRepository returns a list of charts for a given repository.
-func (s *server) ListChartsForRepository(ctx context.Context, request *protos.ListChartsForRepositoryRequest) (*protos.ListChartsForRepositoryResponse, error) {
+func (s *server) ListChartsForRepository(ctx context.Context, req *protos.ListChartsForRepositoryRequest) (*protos.ListChartsForRepositoryResponse, error) {
+	if req.Repository == nil || req.Repository.Cluster == nil {
+		return nil, fmt.Errorf("repository or cluster is nil")
+	}
+
 	clusterRef := types.NamespacedName{
-		Name:      request.Repository.Cluster.Name,
-		Namespace: request.Repository.Cluster.Namespace,
+		Name:      req.Repository.Cluster.Name,
+		Namespace: req.Repository.Cluster.Namespace,
 	}
 
 	repoRef := helm.ObjectReference{
-		Kind:      request.Repository.Kind,
-		Name:      request.Repository.Name,
-		Namespace: request.Repository.Namespace,
+		Kind:      req.Repository.Kind,
+		Name:      req.Repository.Name,
+		Namespace: req.Repository.Namespace,
 	}
 
-	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, clusterRef, repoRef, request.Kind)
+	err := s.checkUserCanAccessHelmRepo(ctx, clusterRef, repoRef)
+	if err != nil {
+		return nil, fmt.Errorf("error checking user can access helm repo: %w", err)
+	}
+
+	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, clusterRef, repoRef, req.Kind)
 	if err != nil {
 		// FIXME: does this work?
 		if err.Error() == "no charts found" {
@@ -88,6 +99,11 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 		Version: req.Version,
 	}
 
+	err := s.checkUserCanAccessHelmRepo(ctx, clusterRef, repoRef)
+	if err != nil {
+		return nil, fmt.Errorf("error checking user can access helm repo: %w", err)
+	}
+
 	found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
 	if err != nil {
 		return nil, fmt.Errorf("error checking if chart is known: %w", err)
@@ -98,7 +114,7 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 			HTTPStatus: http.StatusNotFound,
 		}
 	}
-	//
+
 	jobId := s.chartJobs.New()
 
 	go func() {
@@ -118,12 +134,31 @@ func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobReque
 		}
 	}
 
+	// FIXME: avoid users from getting job results they don't have access to.
+	// Save the original HelmRepo reference here and try and grab it?
+
 	errString := ""
 	if result.Error != nil {
 		errString = result.Error.Error()
 	}
 
 	return &protos.GetChartsJobResponse{Values: result.Result, Error: errString}, nil
+}
+
+func (s *server) checkUserCanAccessHelmRepo(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference) error {
+	client, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), fetcher.ToClusterName(clusterRef))
+	if err != nil {
+		return fmt.Errorf("error getting impersonated client for cluster: %w", err)
+	}
+
+	// Get the helmRepo from the cluster
+	hr := sourcev1.HelmRepository{}
+	err = client.Get(ctx, fetcher.ToClusterName(clusterRef), types.NamespacedName{Name: repoRef.Name, Namespace: repoRef.Namespace}, &hr)
+	if err != nil {
+		return fmt.Errorf("error getting helm repository: %w", err)
+	}
+
+	return nil
 }
 
 func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectReference, clusterRef types.NamespacedName, chart helm.Chart) (string, error) {
@@ -156,19 +191,16 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 
 // GetClientConfigForCluster returns the client config for a given cluster.
 func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
-	cfg, _, err := kube.RestConfig()
-	if err != nil {
-		return nil, fmt.Errorf("error getting rest config: %w", err)
-	}
+	// FIXME: temporary until we can get the client config from the clusterManager
+	// Then we can uncomment this and remove this `managementCluster`
+	//
+	// clusters := s.clustersManager.GetClusters()
 	managementCluster := clustersmngr.Cluster{
 		Name:        helm.ManagementClusterName,
-		Server:      cfg.Host,
-		BearerToken: cfg.BearerToken,
-		TLSConfig:   cfg.TLSClientConfig,
+		Server:      s.restConfig.Host,
+		BearerToken: s.restConfig.BearerToken,
+		TLSConfig:   s.restConfig.TLSClientConfig,
 	}
-
-	// FIXME: when this API lands in core we can use it.
-	// clusters := s.clustersManager.GetClusters()
 	clusters := []clustersmngr.Cluster{managementCluster}
 
 	clusterName := cluster.Name

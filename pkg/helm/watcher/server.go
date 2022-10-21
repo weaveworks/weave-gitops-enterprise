@@ -25,10 +25,7 @@ var (
 
 type Options struct {
 	KubeClient                    client.Client
-	MetricsBindAddress            string
-	HealthzBindAddress            string
 	NotificationControllerAddress string
-	WatcherPort                   int
 	ClusterRef                    types.NamespacedName
 	ClientConfig                  *rest.Config
 	Cache                         helm.ChartsCacherWriter
@@ -40,9 +37,6 @@ type Watcher struct {
 	clientConfig        *rest.Config
 	cache               helm.ChartsCacherWriter
 	valuesFetcher       helm.ValuesFetcher
-	metricsBindAddress  string
-	healthzBindAddress  string
-	watcherPort         int
 	notificationAddress string
 }
 
@@ -60,10 +54,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		clientConfig:        opts.ClientConfig,
 		cache:               opts.Cache,
 		valuesFetcher:       opts.ValuesFetcher,
-		healthzBindAddress:  opts.HealthzBindAddress,
-		metricsBindAddress:  opts.MetricsBindAddress,
 		notificationAddress: opts.NotificationControllerAddress,
-		watcherPort:         opts.WatcherPort,
 	}, nil
 }
 
@@ -71,11 +62,8 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 	ctrl.SetLogger(log.WithName("helm-watcher"))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     w.metricsBindAddress,
-		HealthProbeBindAddress: w.healthzBindAddress,
-		Port:                   w.watcherPort,
-		Logger:                 ctrl.Log,
+		Scheme: scheme,
+		Logger: ctrl.Log,
 	})
 	if err != nil {
 		ctrl.Log.Error(err, "unable to create manager")

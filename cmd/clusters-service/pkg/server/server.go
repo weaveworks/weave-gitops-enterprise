@@ -77,6 +77,7 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		profileHelmRepositoryName: opts.ProfileHelmRepositoryName,
 		helmRepositoryCacheDir:    opts.HelmRepositoryCacheDir,
 		capiEnabled:               opts.CAPIEnabled,
+		restConfig:                opts.RestConfig,
 		chartJobs:                 helm.NewJobs(),
 		chartsCache:               opts.ChartsCache,
 		valuesFetcher:             opts.ValuesFetcher,

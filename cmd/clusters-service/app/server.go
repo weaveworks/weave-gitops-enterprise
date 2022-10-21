@@ -36,8 +36,8 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -110,9 +110,6 @@ type Params struct {
 	HelmRepoNamespace                 string                    `mapstructure:"helm-repo-namespace"`
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
-	WatcherMetricsBindAddress         string                    `mapstructure:"watcher-metrics-bind-address"`
-	WatcherHealthzBindAddress         string                    `mapstructure:"watcher-healthz-bind-address"`
-	WatcherPort                       int                       `mapstructure:"watcher-port"`
 	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
 	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
 	GitProviderType                   string                    `mapstructure:"git-provider-type"`
@@ -176,9 +173,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("profile-cache-location", "/tmp", "the location where the cache Profile data lives")
-	cmd.Flags().String("watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
-	cmd.Flags().String("watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
-	cmd.Flags().Int("watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().String("html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().String("git-provider-type", "", "")
 	cmd.Flags().String("git-provider-hostname", "", "")
@@ -328,14 +322,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}
 
 	profileWatcher, err := watcher.NewWatcher(watcher.Options{
-		ClientConfig:       kubeClientConfig,
-		ClusterRef:         types.NamespacedName{Name: "management"},
-		Cache:              chartsCache,
-		ValuesFetcher:      helm.NewValuesFetcher(),
-		KubeClient:         kubeClient,
-		MetricsBindAddress: p.WatcherMetricsBindAddress,
-		HealthzBindAddress: p.WatcherHealthzBindAddress,
-		WatcherPort:        p.WatcherPort,
+		ClientConfig:  kubeClientConfig,
+		ClusterRef:    types.NamespacedName{Name: "management"},
+		Cache:         chartsCache,
+		ValuesFetcher: helm.NewValuesFetcher(),
+		KubeClient:    kubeClient,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to start the watcher: %w", err)
@@ -503,6 +494,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ChartJobs:                 helm.NewJobs(),
 			ChartsCache:               args.ChartsCache,
 			ValuesFetcher:             helm.NewValuesFetcher(),
+			RestConfig:                args.CoreServerConfig.RestCfg,
 			ManagementFetcher:         args.ManagementFetcher,
 		},
 	)

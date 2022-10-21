@@ -1,21 +1,25 @@
 package server
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/rest"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
@@ -107,12 +111,32 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ProfileHelmRepositoryName: "weaveworks-charts",
 			HelmRepositoryCacheDir:    t.TempDir(),
 			CAPIEnabled:               o.capiEnabled,
+			RestConfig:                &rest.Config{},
 			ChartJobs:                 o.chartJobs,
 			ChartsCache:               o.chartsCache,
 			ValuesFetcher:             o.valuesFetcher,
 			ManagementFetcher:         mgmtFetcher,
 		},
 	)
+}
+
+func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) clustersmngr.ClustersManager {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	fakeCl := createClient(t, clusterState...)
+	clients := map[string]client.Client{"management": fakeCl}
+	clientsPool.ClientsReturns(clients)
+	clientsPool.ClientReturns(fakeCl, nil)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clients[name]; found && c != nil {
+			return c, nil
+		}
+		return nil, fmt.Errorf("cluster %s not found", name)
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	return fakeFactory
 }
 
 func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepository {

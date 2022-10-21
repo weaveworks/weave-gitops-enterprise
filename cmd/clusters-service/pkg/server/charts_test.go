@@ -8,31 +8,42 @@ import (
 	"testing"
 	"time"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/repo"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 )
 
+var defaultClusterState = []runtime.Object{
+	&sourcev1.HelmRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "bitnami-charts",
+			Namespace: "demo",
+		},
+	},
+}
+
 func TestListChartsForRepository(t *testing.T) {
 	testCases := []struct {
-		name    string
-		fc      *fakeChartCache
-		request *protos.ListChartsForRepositoryRequest
-		want    *protos.ListChartsForRepositoryResponse
+		name         string
+		fc           *fakeChartCache
+		clusterState []runtime.Object
+		request      *protos.ListChartsForRepositoryRequest
+		want         *protos.ListChartsForRepositoryResponse
 	}{
 		{
 			name: "matching cluster and repo",
 			request: &protos.ListChartsForRepositoryRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "clusters",
-						Name:      "demo-cluster",
+						Name: "management",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -40,11 +51,12 @@ func TestListChartsForRepository(t *testing.T) {
 				},
 				Kind: "chart",
 			},
+			clusterState: defaultClusterState,
 			fc: newFakeChartCache(
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management"},
 					), []helm.Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "postgres", Version: "1.0.2", Kind: "chart"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
@@ -58,8 +70,7 @@ func TestListChartsForRepository(t *testing.T) {
 			request: &protos.ListChartsForRepositoryRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "clusters",
-						Name:      "demo-cluster",
+						Name: "management",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -67,11 +78,12 @@ func TestListChartsForRepository(t *testing.T) {
 				},
 				Kind: "chart",
 			},
+			clusterState: defaultClusterState,
 			fc: newFakeChartCache(
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management"},
 					), []helm.Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "redis", Version: "1.0.2", Kind: "chart"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
@@ -84,8 +96,7 @@ func TestListChartsForRepository(t *testing.T) {
 			request: &protos.ListChartsForRepositoryRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "clusters",
-						Name:      "demo-cluster",
+						Name: "management",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -93,11 +104,12 @@ func TestListChartsForRepository(t *testing.T) {
 				},
 				Kind: "chart",
 			},
+			clusterState: defaultClusterState,
 			fc: newFakeChartCache(
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "not-bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management"},
 					), []helm.Chart{{Name: "redis", Version: "1.0.1"}, {Name: "postgres", Version: "1.0.2"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{},
@@ -108,8 +120,7 @@ func TestListChartsForRepository(t *testing.T) {
 			request: &protos.ListChartsForRepositoryRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "clusters",
-						Name:      "demo-cluster",
+						Name: "management",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -117,11 +128,12 @@ func TestListChartsForRepository(t *testing.T) {
 				},
 				Kind: "profile",
 			},
+			clusterState: defaultClusterState,
 			fc: newFakeChartCache(
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management"},
 					),
 					[]helm.Chart{
 						{Name: "weaveworks-profile", Version: "1.0.1", Kind: "profile"},
@@ -141,7 +153,9 @@ func TestListChartsForRepository(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			s := createServer(t, serverOptions{
-				chartsCache: tt.fc,
+				chartsCache:     tt.fc,
+				clusterState:    tt.clusterState,
+				clustersManager: makeTestClustersManager(t, tt.clusterState...),
 			})
 
 			response, err := s.ListChartsForRepository(context.TODO(), tt.request)
@@ -156,18 +170,18 @@ func TestListChartsForRepository(t *testing.T) {
 }
 func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 	testCases := []struct {
-		name    string
-		fc      *fakeChartCache
-		request *protos.GetValuesForChartRequest
-		want    *protos.GetChartsJobResponse
+		name         string
+		fc           *fakeChartCache
+		clusterState []runtime.Object
+		request      *protos.GetValuesForChartRequest
+		want         *protos.GetChartsJobResponse
 	}{
 		{
 			name: "when value exists in cache",
 			request: &protos.GetValuesForChartRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "clusters",
-						Name:      "demo-cluster",
+						Name: "management",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -176,11 +190,12 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 				Name:    "redis",
 				Version: "1.0.1",
 			},
+			clusterState: defaultClusterState,
 			fc: newFakeChartCache(
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management"},
 					),
 					[]helm.Chart{{Name: "redis", Version: "1.0.1"}},
 				),
@@ -194,8 +209,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			fakeClustersManager := &clustersmngrfakes.FakeClustersManager{}
-			// FIXME: enable when core has this api
+			// FIXME: re-enable this when core gets this api
 			// fakeClustersManager.GetClustersReturns([]clustersmngr.Cluster{
 			// 	{Name: "clusters/demo-cluster"},
 			// })
@@ -203,7 +217,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 				chartsCache:     tt.fc,
 				chartJobs:       helm.NewJobs(),
 				valuesFetcher:   &fakeValuesFetcher{},
-				clustersManager: fakeClustersManager,
+				clustersManager: makeTestClustersManager(t, tt.clusterState...),
 			})
 
 			response, err := s.GetValuesForChart(context.TODO(), tt.request)
@@ -223,7 +237,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("error on JobPoll: %s: %v", err, jobResponse)
 			}
 
 			if diff := cmp.Diff(tt.want, jobResponse, protocmp.Transform()); diff != "" {
@@ -231,7 +245,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			}
 
 			cachedValue, err := tt.fc.GetChartValues(context.TODO(),
-				types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+				types.NamespacedName{Name: "management"},
 				helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 				helm.Chart{Name: "redis", Version: "1.0.1"})
 			if err != nil {
@@ -247,18 +261,18 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 
 func TestGetValuesForChartCached(t *testing.T) {
 	testCases := []struct {
-		name    string
-		fc      *fakeChartCache
-		request *protos.GetValuesForChartRequest
-		want    *protos.GetChartsJobResponse
+		name         string
+		fc           *fakeChartCache
+		clusterState []runtime.Object
+		request      *protos.GetValuesForChartRequest
+		want         *protos.GetChartsJobResponse
 	}{
 		{
 			name: "when value exists in cache",
 			request: &protos.GetValuesForChartRequest{
 				Repository: &protos.RepositoryRef{
 					Cluster: &protos.ClusterNamespacedName{
-						Namespace: "clusters",
-						Name:      "demo-cluster",
+						Name: "management",
 					},
 					Name:      "bitnami-charts",
 					Namespace: "demo",
@@ -267,17 +281,18 @@ func TestGetValuesForChartCached(t *testing.T) {
 				Name:    "redis",
 				Version: "1.0.1",
 			},
+			clusterState: defaultClusterState,
 			fc: newFakeChartCache(
 				cachedCharts(
 					clusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management"},
 					),
 					[]helm.Chart{{Name: "redis", Version: "1.0.1"}}),
 				cachedValues(
 					chartRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
-						types.NamespacedName{Name: "demo-cluster", Namespace: "clusters"},
+						types.NamespacedName{Name: "management"},
 						helm.Chart{Name: "redis", Version: "1.0.1"}),
 					[]byte("this:\n  is:\n    a: value\n"),
 				)),
@@ -292,8 +307,9 @@ func TestGetValuesForChartCached(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			s := createServer(t, serverOptions{
-				chartsCache: tt.fc,
-				chartJobs:   helm.NewJobs(),
+				chartsCache:     tt.fc,
+				chartJobs:       helm.NewJobs(),
+				clustersManager: makeTestClustersManager(t, tt.clusterState...),
 			})
 
 			response, err := s.GetValuesForChart(context.TODO(), tt.request)
