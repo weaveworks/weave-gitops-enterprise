@@ -29,7 +29,8 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "validation error on the message: %s", err.Error())
 	}
 
-	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, gapiv1.Kind)
+	// tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, gapiv1.Kind)
+	tmpl, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, gapiv1.Kind)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Internal, "unable to get template %q: %s", msg.TemplateName, err)
 	}

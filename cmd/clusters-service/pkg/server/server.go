@@ -1,15 +1,19 @@
 package server
 
 import (
+	"context"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/rest"
 
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 )
 
 const defaultAutomationNamespace = "flux-system"
@@ -28,25 +32,34 @@ var providers = map[string]string{
 	"VSphereCluster":         "vsphere",
 }
 
+type chartsCache interface {
+	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, kind string) ([]helm.Chart, error)
+	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (bool, error)
+	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) ([]byte, error)
+	UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart, valuesYaml []byte) error
+}
+
 type server struct {
-	log              logr.Logger
-	templatesLibrary templates.Library
-	clustersLibrary  clusters.Library
-	clustersManager  clustersmngr.ClustersManager
-	provider         git.Provider
-	clientGetter     kube.ClientGetter
-	discoveryClient  discovery.DiscoveryInterface
+	log             logr.Logger
+	clustersManager clustersmngr.ClustersManager
+	provider        git.Provider
+	clientGetter    kube.ClientGetter
+	discoveryClient discovery.DiscoveryInterface
 	capiv1_proto.UnimplementedClustersServiceServer
 	ns                        string // The namespace where cluster objects reside
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
 	capiEnabled               bool
+
+	restConfig        *rest.Config
+	chartJobs         *helm.Jobs
+	valuesFetcher     helm.ValuesFetcher
+	chartsCache       chartsCache
+	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 }
 
 type ServerOpts struct {
 	Logger                    logr.Logger
-	TemplatesLibrary          templates.Library
-	ClustersLibrary           clusters.Library
 	ClustersManager           clustersmngr.ClustersManager
 	GitProvider               git.Provider
 	ClientGetter              kube.ClientGetter
@@ -55,13 +68,17 @@ type ServerOpts struct {
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
+
+	RestConfig        *rest.Config
+	ChartJobs         *helm.Jobs
+	ChartsCache       chartsCache
+	ValuesFetcher     helm.ValuesFetcher
+	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 	return &server{
 		log:                       opts.Logger,
-		clustersLibrary:           opts.ClustersLibrary,
-		templatesLibrary:          opts.TemplatesLibrary,
 		clustersManager:           opts.ClustersManager,
 		provider:                  opts.GitProvider,
 		clientGetter:              opts.ClientGetter,
@@ -70,5 +87,10 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		profileHelmRepositoryName: opts.ProfileHelmRepositoryName,
 		helmRepositoryCacheDir:    opts.HelmRepositoryCacheDir,
 		capiEnabled:               opts.CAPIEnabled,
+		restConfig:                opts.RestConfig,
+		chartJobs:                 helm.NewJobs(),
+		chartsCache:               opts.ChartsCache,
+		valuesFetcher:             opts.ValuesFetcher,
+		managementFetcher:         opts.ManagementFetcher,
 	}
 }
