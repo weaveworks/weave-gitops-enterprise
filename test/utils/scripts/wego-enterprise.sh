@@ -223,6 +223,9 @@ function setup {
     clusterctl init --infrastructure docker    
   fi
 
+  # Set environment variable for cluster-controller to 5s instead of the default 1m
+  kubectl set env deployments.apps -n flux-system my-mccp-cluster-controller --containers=manager DEFAULT_REQUEUE_TIME=5s 
+
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A

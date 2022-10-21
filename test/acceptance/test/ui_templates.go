@@ -1128,7 +1128,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
 					totalAppCount := existingAppCount + 8 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library, postgres, podinfo
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application entries in application table", totalAppCount))
 
 					filterID := "clusterName: " + clusterNamespace + `/` + clusterName
 					searchPage := pages.GetSearchPage(webDriver)
@@ -1172,7 +1172,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				var deletePRUrl string
-				ginkgo.By("And I should veriyfy the delete pull request in the cluster config repository", func() {
+				ginkgo.By("And I should verify the delete pull request in the cluster config repository", func() {
 					deletePRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 				})
 
