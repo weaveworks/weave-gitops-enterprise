@@ -73,7 +73,7 @@ type TemplatesRetriever interface {
 // need to implement in order to render a template populated
 // with parameter values.
 type TemplateRenderer interface {
-	RenderTemplateWithParameters(kind TemplateKind, name string, parameters map[string]string, creds Credentials) (string, error)
+	RenderTemplateWithParameters(req RenderTemplateRequest) (*RenderTemplateResponse, error)
 }
 
 // CredentialsRetriever defines the interface that adapters
@@ -135,6 +135,42 @@ type Maintainer struct {
 	Name  string
 	Email string
 	Url   string
+}
+
+type RenderTemplateRequest struct {
+	TemplateName      string            `json:"template_name,omitempty"`
+	Values            map[string]string `json:"values,omitempty"`
+	Credentials       Credentials       `json:"credentials,omitempty"`
+	TemplateKind      TemplateKind      `json:"template_kind,omitempty"`
+	ClusterNamespace  string            `json:"cluster_namespace,omitempty"`
+	Profiles          []ProfileValues   `json:"profiles,omitempty"`
+	TemplateNamespace string            `json:"template_namespace,omitempty"`
+}
+
+type CommitFile struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
+}
+
+type RenderTemplateResponse struct {
+	RenderedTemplate string       `json:"renderedTemplate"`
+	ProfileFiles     []CommitFile `json:"profileFiles"`
+}
+
+func (r *RenderTemplateResponse) String() string {
+	var output strings.Builder
+	output.WriteString(r.RenderedTemplate)
+	for i := range r.ProfileFiles {
+		file := r.ProfileFiles[i]
+		output.WriteString(
+			fmt.Sprintf(
+				"\n---\n# %s\n\n%s",
+				file.Path,
+				file.Content,
+			),
+		)
+	}
+	return output.String()
 }
 
 // GetTemplate uses a TemplatesRetriever adapter to show print template to the console.
@@ -246,14 +282,14 @@ func GetTemplateParameters(kind TemplateKind, name string, r TemplatesRetriever,
 
 // RenderTemplate uses a TemplateRenderer adapter to show
 // a template populated with parameter values.
-func RenderTemplateWithParameters(kind TemplateKind, name string, parameters map[string]string, creds Credentials, r TemplateRenderer, w io.Writer) error {
-	t, err := r.RenderTemplateWithParameters(kind, name, parameters, creds)
+func RenderTemplateWithParameters(req RenderTemplateRequest, r TemplateRenderer, w io.Writer) error {
+	t, err := r.RenderTemplateWithParameters(req)
 	if err != nil {
-		return fmt.Errorf("unable to render template %q: %w", name, err)
+		return fmt.Errorf("unable to render template %q: %w", req.TemplateName, err)
 	}
 
-	if t != "" {
-		fmt.Fprint(w, t)
+	if t != nil {
+		fmt.Fprint(w, t.String())
 		return nil
 	}
 

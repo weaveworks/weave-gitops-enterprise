@@ -342,7 +342,6 @@ func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 	return tps, nil
 }
 
-// POST request payload
 type TemplateParameterValuesAndCredentials struct {
 	Values      map[string]string     `json:"values"`
 	Credentials templates.Credentials `json:"credentials"`
@@ -350,44 +349,40 @@ type TemplateParameterValuesAndCredentials struct {
 
 // RenderTemplateWithParameters returns a YAML representation of the specified
 // template populated with the supplied parameters.
-func (c *HTTPClient) RenderTemplateWithParameters(kind templates.TemplateKind, name string, parameters map[string]string, creds templates.Credentials) (string, error) {
+func (c *HTTPClient) RenderTemplateWithParameters(req templates.RenderTemplateRequest) (*templates.RenderTemplateResponse, error) {
+
 	endpoint := "v1/templates/{name}/render"
 
-	// POST response payload
-	type RenderedTemplate struct {
-		Template string `json:"renderedTemplate"`
-	}
-
-	var renderedTemplate RenderedTemplate
+	resp := &templates.RenderTemplateResponse{}
 
 	var serviceErr *ServiceError
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
-			"name": name,
+			"name": req.TemplateName,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind": req.TemplateKind.String(),
 		}).
-		SetBody(TemplateParameterValuesAndCredentials{Values: parameters, Credentials: creds}).
-		SetResult(&renderedTemplate).
+		SetBody(req).
+		SetResult(resp).
 		SetError(&serviceErr).
 		Post(endpoint)
 
 	if serviceErr != nil {
-		return "", fmt.Errorf("unable to POST parameters and render template from %q: %s", res.Request.URL, serviceErr.Message)
+		return nil, fmt.Errorf("unable to POST parameters and render template from %q: %s", res.Request.URL, serviceErr.Message)
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("unable to POST parameters and render template from %q: %w", res.Request.URL, err)
+		return nil, fmt.Errorf("unable to POST parameters and render template from %q: %w", res.Request.URL, err)
 	}
 
 	if res.StatusCode() != http.StatusOK {
-		return "", fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
+		return nil, fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	return renderedTemplate.Template, nil
+	return resp, nil
 }
 
 // CreatePullRequestFromTemplate commits the YAML template to the specified
