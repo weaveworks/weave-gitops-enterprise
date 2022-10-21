@@ -22,18 +22,19 @@ func (t TemplateKind) String() string {
 }
 
 type CreatePullRequestFromTemplateParams struct {
-	GitProviderToken string
-	TemplateName     string
-	TemplateKind     string
-	ParameterValues  map[string]string
-	RepositoryURL    string
-	HeadBranch       string
-	BaseBranch       string
-	Title            string
-	Description      string
-	CommitMessage    string
-	Credentials      Credentials
-	ProfileValues    []ProfileValues
+	GitProviderToken  string
+	TemplateName      string
+	TemplateNamespace string
+	TemplateKind      string
+	ParameterValues   map[string]string
+	RepositoryURL     string
+	HeadBranch        string
+	BaseBranch        string
+	Title             string
+	Description       string
+	CommitMessage     string
+	Credentials       Credentials
+	ProfileValues     []ProfileValues
 }
 
 // TemplatePullRequester defines the interface that adapters
