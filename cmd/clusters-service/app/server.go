@@ -132,6 +132,7 @@ type Params struct {
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
 	DevMode                           bool                      `mapstructure:"dev-mode"`
+	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -204,6 +205,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
+	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 
 	return cmd
 }
@@ -396,12 +398,17 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
 
+	clientsFactory := clustersmngr.CachedClientFactory
+	if !p.UseK8sCachedClients {
+		clientsFactory = clustersmngr.ClientFactory
+	}
+
 	clustersManager := clustersmngr.NewClustersManager(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clustersManagerScheme,
-		clustersmngr.NewClustersClientsPool,
+		clientsFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clustersManager.Start(ctx)
