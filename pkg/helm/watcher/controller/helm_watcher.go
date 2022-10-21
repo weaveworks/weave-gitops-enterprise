@@ -88,12 +88,15 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			if isProfile {
 				chartKind = "profile"
 			}
-			r.Cache.AddChart(
+			err := r.Cache.AddChart(
 				ctx, name, version.Version, chartKind,
 				version.Annotations[helm.LayerAnnotation],
 				r.ClusterRef,
 				helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace},
 			)
+			if err != nil {
+				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version, "repository", repository, "cluster", r.ClusterRef)
+			}
 		}
 	}
 
