@@ -340,11 +340,13 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     template.templateKind,
     updatedProfiles,
   ]);
+
   const handleCostEstimation = useCallback(() => {
     const { parameterValues } = formData;
     setCostEstimationLoading(true);
     return renderTemplate({
       templateName: template.name,
+      templateNamespace: template.namespace,
       values: parameterValues,
       profiles: encodedProfiles(updatedProfiles),
       credentials: infraCredential || undefined,
@@ -368,6 +370,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     setNotifications,
     template.name,
     template.templateKind,
+    template.namespace,
     updatedProfiles,
   ]);
 
