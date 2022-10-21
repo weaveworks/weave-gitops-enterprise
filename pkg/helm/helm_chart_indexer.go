@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -278,6 +279,10 @@ CREATE TABLE IF NOT EXISTS helm_charts (
 
 func createDB(cacheLocation string) (*sql.DB, error) {
 	dbFileLocation := filepath.Join(cacheLocation, dbFile)
+	// make sure the directory exists
+	if err := os.MkdirAll(cacheLocation, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("failed to create cache directory: %w", err)
+	}
 	db, err := sql.Open("sqlite3", dbFileLocation)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %q, %w", cacheLocation, err)
