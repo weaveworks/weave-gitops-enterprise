@@ -205,7 +205,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
-	cmd.Flags().Bool("use-k8s-cached-clients", false, "Enables the use of cached clients")
+	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 
 	return cmd
 }
