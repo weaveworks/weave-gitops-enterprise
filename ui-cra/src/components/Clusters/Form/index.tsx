@@ -514,9 +514,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
                 handleCostEstimation={handleCostEstimation}
                 costEstimate={costEstimate}
                 isCostEstimationLoading={costEstimationLoading}
-                isCostEstimationEnabled={
-                  annotations?.['templates.weave.works/cost-estimation-enabled']
-                }
               />
             ) : null}
           </Grid>
@@ -562,7 +559,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     previewLoading,
     loading,
     enableCreatePR,
-    annotations,
     costEstimationLoading,
     handleCostEstimation,
     costEstimate,

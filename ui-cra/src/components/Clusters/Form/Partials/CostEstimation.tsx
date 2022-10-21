@@ -4,7 +4,6 @@ import React, { FC } from 'react';
 import { validateFormData } from '../../../../utils/form';
 
 const CostEstimation: FC<{
-  isCostEstimationEnabled?: string;
   costEstimate: string;
   isCostEstimationLoading: boolean;
   handleCostEstimation: () => Promise<void>;
