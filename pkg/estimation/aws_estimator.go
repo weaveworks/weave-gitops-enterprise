@@ -9,21 +9,21 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// AWSPricer implementations calculate the price for all products matching the
+// Pricer implementations calculate the price for all products matching the
 // filters.
-type AWSPricer interface {
+type Pricer interface {
 	ListPrices(ctx context.Context, service, currency string, filters map[string]string) ([]float32, error)
 }
 
 // NewAWSClusterEstimator creates and returns a new AWS estimator that can parse
 // price Clusters from resources.
-func NewAWSClusterEstimator(pricer AWSPricer, filters map[string]string) *AWSClusterEstimator {
-	return &AWSClusterEstimator{AWSPricer: pricer, EC2Filters: filters, Currency: "USD"}
+func NewAWSClusterEstimator(pricer Pricer, filters map[string]string) *AWSClusterEstimator {
+	return &AWSClusterEstimator{Pricer: pricer, EC2Filters: filters, Currency: "USD"}
 }
 
 // AWSClusterEstimator estimates the costs for EC2 instances in AWS Clusters.
 type AWSClusterEstimator struct {
-	AWSPricer  AWSPricer
+	Pricer     Pricer
 	EC2Filters map[string]string
 	Currency   string
 }
@@ -128,7 +128,7 @@ func (e *AWSClusterEstimator) priceRangeFromFilters(ctx context.Context, instanc
 		"instanceType": instanceType,
 		"regionCode":   regionCode,
 	})
-	prices, err := e.AWSPricer.ListPrices(ctx, "AmazonEC2", e.Currency, filters)
+	prices, err := e.Pricer.ListPrices(ctx, "AmazonEC2", e.Currency, filters)
 	if err != nil {
 		return -1, -1, fmt.Errorf("error getting prices for estimation: %w", err)
 	}
