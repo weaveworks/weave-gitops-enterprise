@@ -33,7 +33,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, r ProfilesRetriever, gitProvid
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	_, version, err := s.discoverHelmRepository(ctx, r, GetOptions{
+	_, version, err := s.GetProfile(ctx, r, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
@@ -41,7 +41,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, r ProfilesRetriever, gitProvid
 		Port:      opts.ProfilesPort,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to discover HelmRepository: %w", err)
+		return fmt.Errorf("failed to get profiles from cluster: %w", err)
 	}
 
 	opts.Version = version

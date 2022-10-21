@@ -19,30 +19,10 @@ import (
 )
 
 const getProfilesResp = `{
-  "profiles": [
+  "charts": [
     {
       "name": "podinfo",
-      "home": "https://github.com/stefanprodan/podinfo",
-      "sources": [
-        "https://github.com/stefanprodan/podinfo"
-      ],
-      "description": "Podinfo Helm chart for Kubernetes",
-      "keywords": [],
-      "maintainers": [
-        {
-          "name": "stefanprodan",
-          "email": "stefanprodan@users.noreply.github.com",
-          "url": ""
-        }
-      ],
-      "icon": "",
-      "annotations": {},
-      "kubeVersion": ">=1.19.0-0",
-      "helmRepository": {
-		  "name": "podinfo",
-		  "namespace": "weave-system"
-	  },
-      "availableVersions": [
+      "versions": [
         "6.0.0",
         "6.0.1"
       ]
@@ -71,7 +51,7 @@ var _ = Describe("Get Profile(s)", func() {
 			Expect(profilesSvc.Get(context.TODO(), client, buffer)).To(Succeed())
 
 			Expect(string(buffer.Contents())).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
-podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
+podinfo		6.0.0,6.0.1
 `))
 		})
 
@@ -135,7 +115,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"profiles": [
+				"charts": [
 				  {
 					"name": "foo"
 				  }
@@ -151,10 +131,10 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"profiles": [
+				"charts": [
 				  {
 					"name": "podinfo",
-					"availableVersions": [
+					"versions": [
 					]
 				  }
 				]
@@ -164,30 +144,6 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			client := NewFakeHTTPClient(badProfileResp, nil)
 			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
-		})
-
-		It("fails if the available profile's HelmRepository name or namespace are empty", func() {
-			badProfileResp := `{
-				"profiles": [
-				  {
-					"name": "podinfo",
-					"helmRepository": {
-						"name": "",
-						"namespace": ""
-					},
-					"availableVersions": [
-					  "6.0.0",
-					  "6.0.1"
-					]
-				  }
-				]
-			  }
-			  `
-
-			client := NewFakeHTTPClient(badProfileResp, nil)
-
-			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
-			Expect(err).To(MatchError("HelmRepository's name or namespace is empty"))
 		})
 	})
 })
