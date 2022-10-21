@@ -101,8 +101,6 @@ func EnterprisePublicRoutes() []string {
 	return core.PublicRoutes
 }
 
-// bump
-
 // Options contains all the options for the `ui run` command.
 type Params struct {
 	EntitlementSecretName             string                    `mapstructure:"entitlement-secret-name"`
