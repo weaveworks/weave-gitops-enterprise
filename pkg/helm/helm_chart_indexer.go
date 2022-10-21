@@ -82,7 +82,15 @@ INSERT INTO helm_charts (name, version, kind, layer,
 	cluster_name, cluster_namespace)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 
-	_, err := i.CacheDB.ExecContext(
+	found, err := i.IsKnownChart(ctx, clusterRef, repoRef, Chart{Name: name, Version: version})
+	if err != nil {
+		return fmt.Errorf("failed to check if chart is known: %w", err)
+	}
+	if found {
+		return nil
+	}
+
+	_, err = i.CacheDB.ExecContext(
 		ctx,
 		sqlStatement, name, version, kind, layer,
 		repoRef.Kind, repoRef.APIVersion, repoRef.Name, repoRef.Namespace,
@@ -254,10 +262,17 @@ AND cluster_name = $3 AND cluster_namespace = $4`
 func applySchema(db *sql.DB) error {
 	_, err := db.Exec(`
 CREATE TABLE IF NOT EXISTS helm_charts (
-	name text, version text, kind text, valuesYaml blob, layer text,
-	repo_kind text, repo_api_version text, repo_name text, repo_namespace text,
-	cluster_name text, cluster_namespace text);
-	`)
+	name text,
+	version text,
+	kind text,
+	valuesYaml blob,
+	layer text,
+	repo_kind text,
+	repo_api_version text,
+	repo_name text,
+	repo_namespace text,
+	cluster_name text,
+	cluster_namespace text);`)
 	return err
 }
 

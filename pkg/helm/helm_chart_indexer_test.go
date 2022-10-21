@@ -254,6 +254,30 @@ func TestHelmChartIndexer_ListChartsByRepositoryAndCluster(t *testing.T) {
 	assert.Equal(t, "1.0.1", charts[1].Version)
 }
 
+func TestAddChart(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	charts, err := indexer.ListChartsByRepositoryAndCluster(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"),
+		"chart")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(charts))
+}
+
 func objref(kind, apiVersion, name, namespace string) ObjectReference {
 	return ObjectReference{
 		Kind:       kind,
