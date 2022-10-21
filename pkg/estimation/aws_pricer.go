@@ -52,7 +52,7 @@ func (a *AWSPricer) ListPrices(ctx context.Context, service, currency string, fi
 				a.log.Error(err, "failed to parse price data")
 				return nil, err
 			}
-			if price >= 0 {
+			if price > invalidPrice {
 				prices = append(prices, price)
 			}
 		}

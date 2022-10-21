@@ -3,7 +3,6 @@ package estimation
 import (
 	"context"
 	"fmt"
-	"sort"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -14,6 +13,8 @@ import (
 type Pricer interface {
 	ListPrices(ctx context.Context, service, currency string, filters map[string]string) ([]float32, error)
 }
+
+var _ Estimator = (*AWSClusterEstimator)(nil)
 
 // NewAWSClusterEstimator creates and returns a new AWS estimator that can parse
 // price Clusters from resources.
@@ -32,7 +33,7 @@ type AWSClusterEstimator struct {
 //
 // It does this by parsing the resources into a set of clusters with their
 // infrastructure and
-func (e *AWSClusterEstimator) Estimate(ctx context.Context, us []*unstructured.Unstructured) (map[string]*CostEstimate, error) {
+func (e *AWSClusterEstimator) Estimate(ctx context.Context, us []*unstructured.Unstructured) (*CostEstimate, error) {
 	resources, err := parseResources(us)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse templates: %w", err)
@@ -46,7 +47,7 @@ func (e *AWSClusterEstimator) Estimate(ctx context.Context, us []*unstructured.U
 		return nil, fmt.Errorf("failed to estimate clusters: %w", err)
 	}
 
-	return estimates, nil
+	return reduceEstimates(estimates), nil
 }
 
 func (e *AWSClusterEstimator) estimateClusters(ctx context.Context, clusters []composedCluster) (map[string]*CostEstimate, error) {
@@ -418,27 +419,4 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 		machinePools:       machinePools,
 		awsMachinePools:    awsMachinePools,
 	}, nil
-}
-
-func mergeStringMaps(origin, update map[string]string) map[string]string {
-	cloned := map[string]string{}
-	for k, v := range origin {
-		cloned[k] = v
-	}
-	for k, v := range update {
-		if v != "" {
-			cloned[k] = v
-		}
-	}
-
-	return cloned
-}
-
-func minMax(vals []float32) (float32, float32) {
-	if len(vals) == 0 {
-		return 0.0, 0.0
-	}
-	sort.Slice(vals, func(i, j int) bool { return vals[i] < vals[j] })
-
-	return vals[0], vals[len(vals)-1]
 }

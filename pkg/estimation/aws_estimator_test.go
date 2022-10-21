@@ -16,33 +16,31 @@ import (
 func TestAWSClusterEstimator_Estimate(t *testing.T) {
 	estimationTests := []struct {
 		filename string
-		want     map[string]*CostEstimate
+		want     *CostEstimate
 	}{
 		{
-			"testdata/cluster-template.yaml", map[string]*CostEstimate{
-				// We have 3 instances of t3.medium in the controlPLane
-				// and 5 t3.large in the machineDeployment
-				// MonthlyHours == 750
-				// regionCode = us-east-1
-				// controlPlane = 5 * 750.0 * 0.04, 0.08, 0.09 = 150.0, 300.0, 337.5
-				// infrastructure = 3 * 750.0 * 0.02, 0.04, 0.05 = 45.0, 90.0, 112.5
-				// max = 337.5+112.5
-				// min = 150+45
-				"test-cluster": {High: 450.00, Low: 195.00, Currency: "USD"},
-			},
+			// We have 3 instances of t3.medium in the controlPLane
+			// and 5 t3.large in the machineDeployment
+			// MonthlyHours == 750
+			// regionCode = us-east-1
+			// controlPlane = 5 * 750.0 * 0.04, 0.08, 0.09 = 150.0, 300.0, 337.5
+			// infrastructure = 3 * 750.0 * 0.02, 0.04, 0.05 = 45.0, 90.0, 112.5
+			// max = 337.5+112.5
+			// min = 150+45
+			filename: "testdata/cluster-template.yaml",
+			want:     &CostEstimate{High: 450.00, Low: 195.00, Currency: "USD"},
 		},
 		{
-			"testdata/cluster-template-machinepool.yaml", map[string]*CostEstimate{
-				// We have 6 instances of t3.medium in the controlPLane
-				// and 5 t3.large in the machineDeployment
-				// MonthlyHours == 750
-				// regionCode = us-west-1
-				// controlPlane = 6 * 750.0 * 0.03, 0.06, 0.07 = 135.0, 270.0, 315.0
-				// infrastructure = 10 * 750.0 * 0.03, 0.06, 0.07 = 225.0, 450.0, 525.0
-				// max = 315.0+525.0
-				// min = 135.0+225.0
-				"demo-cluster": {High: 840.00, Low: 360.00, Currency: "USD"},
-			},
+			// We have 6 instances of t3.medium in the controlPLane
+			// and 5 t3.large in the machineDeployment
+			// MonthlyHours == 750
+			// regionCode = us-west-1
+			// controlPlane = 6 * 750.0 * 0.03, 0.06, 0.07 = 135.0, 270.0, 315.0
+			// infrastructure = 10 * 750.0 * 0.03, 0.06, 0.07 = 225.0, 450.0, 525.0
+			// max = 315.0+525.0
+			// min = 135.0+225.0
+			filename: "testdata/cluster-template-machinepool.yaml",
+			want:     &CostEstimate{High: 840.00, Low: 360.00, Currency: "USD"},
 		},
 	}
 
