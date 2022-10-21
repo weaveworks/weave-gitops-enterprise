@@ -49,7 +49,7 @@ func (e *AWSClusterEstimator) Estimate(ctx context.Context, us []*unstructured.U
 	return estimates, nil
 }
 
-func (e *AWSClusterEstimator) estimateClusters(ctx context.Context, clusters []cluster) (map[string]*CostEstimate, error) {
+func (e *AWSClusterEstimator) estimateClusters(ctx context.Context, clusters []composedCluster) (map[string]*CostEstimate, error) {
 	estimates := map[string]*CostEstimate{}
 	for _, cluster := range clusters {
 		controlPlaneMin, controlPlaneMax, err := e.priceRangeFromFilters(ctx, cluster.controlPlane.instanceType, cluster.regionCode, cluster.controlPlane.instances)
@@ -67,27 +67,27 @@ func (e *AWSClusterEstimator) estimateClusters(ctx context.Context, clusters []c
 	return estimates, nil
 }
 
-func composeClusters(resources *clusterResources) ([]cluster, error) {
-	clusters := []cluster{}
-	for _, c := range resources.capiClusters {
-		infrastructureRegionCode, ok := resources.awsClusters[c.infrastructure.String()]
+func composeClusters(resources *clusterResources) ([]composedCluster, error) {
+	clusters := []composedCluster{}
+	for _, cluster := range resources.capiClusters {
+		infrastructureRegionCode, ok := resources.awsClusters[cluster.infrastructure.String()]
 		if !ok {
-			return nil, fmt.Errorf("could not find infrastructure %s", c.infrastructure)
+			return nil, fmt.Errorf("could not find infrastructure %s", cluster.infrastructure)
 		}
-		controlPlane, ok := resources.controlPlanes[c.controlPlane.String()]
+		controlPlane, ok := resources.controlPlanes[cluster.controlPlane.String()]
 		if !ok {
-			return nil, fmt.Errorf("could not find control plane %s", c.controlPlane)
+			return nil, fmt.Errorf("could not find control plane %s", cluster.controlPlane)
 		}
-		controlPlaneMachineTemplateInstanceType, ok := resources.machineTemplates[controlPlane.machineTemplateRef.String()]
+		controlPlaneMachineTemplateInstanceType, ok := resources.machineTemplates[controlPlane.machineTemplate.String()]
 		if !ok {
-			return nil, fmt.Errorf("could not find AWSMachineTemplate for control plane %s", c.controlPlane)
+			return nil, fmt.Errorf("could not find AWSMachineTemplate for control plane %s", cluster.controlPlane)
 		}
 		controlPlaneInstances := clusterInstances{
 			instances:    *controlPlane.replicas,
 			instanceType: controlPlaneMachineTemplateInstanceType,
 		}
 
-		infrastructureMachineDeployment, ok := func(s string, deploys map[string]machineDeployment) (machineDeployment, bool) {
+		infrastructureMachineDeployment, foundMD := func(s string, deploys map[string]machineDeployment) (machineDeployment, bool) {
 			for _, v := range deploys {
 				if v.clusterName == s {
 					return v, true
@@ -95,26 +95,55 @@ func composeClusters(resources *clusterResources) ([]cluster, error) {
 			}
 
 			return machineDeployment{}, false
-		}(c.name, resources.machineDeployments)
-		if !ok {
-			return nil, fmt.Errorf("failed to find MachineDeployment for Cluster %s", c.name)
+		}(cluster.name, resources.machineDeployments)
+
+		infrastructureMachinePool, foundPool := func(s string, pools map[string]machinePool) (machinePool, bool) {
+			for _, v := range pools {
+				if v.clusterName == s {
+					return v, true
+				}
+			}
+
+			return machinePool{}, false
+		}(cluster.name, resources.machinePools)
+
+		if !foundMD && !foundPool {
+			return nil, fmt.Errorf("failed to find MachineDeployment or MachinePool for Cluster %s", cluster.name)
 		}
 
-		infrastructureMachineTemplateInstanceType, ok := resources.machineTemplates[infrastructureMachineDeployment.infrastructure.String()]
-		if !ok {
-			return nil, fmt.Errorf("failed to find AWSMachineTemplate for MachineDeployment %s in cluster %s",
-				infrastructureMachineDeployment.infrastructure.name, c.name)
+		var infrastructureInstances clusterInstances
+
+		if foundMD {
+			infrastructureMachineTemplateInstanceType, ok := resources.machineTemplates[infrastructureMachineDeployment.infrastructure.String()]
+			if !ok {
+				return nil, fmt.Errorf("failed to find AWSMachineTemplate for MachineDeployment %s in cluster %s",
+					infrastructureMachineDeployment.infrastructure.name, cluster.name)
+			}
+
+			infrastructureInstances = clusterInstances{
+				instances:    infrastructureMachineDeployment.replicas,
+				instanceType: infrastructureMachineTemplateInstanceType,
+			}
 		}
 
-		infrastructureInstances := clusterInstances{
-			instances:    infrastructureMachineDeployment.replicas,
-			instanceType: infrastructureMachineTemplateInstanceType,
+		if foundPool {
+			// TODO: This should check that the infrastructure is an
+			// AWSMachinepool
+			pool, ok := resources.awsMachinePools[infrastructureMachinePool.infrastructure.String()]
+			if !ok {
+				return nil, fmt.Errorf("failed to find AWSMachinePool for MachinePool %s in cluster %s", infrastructureMachinePool.infrastructure, cluster.name)
+			}
+
+			infrastructureInstances = clusterInstances{
+				instances:    infrastructureMachinePool.replicas,
+				instanceType: pool.instanceType,
+			}
 		}
 
 		// This assumes that the infrastructure and control-planes are in the
 		// same region code.
-		clusters = append(clusters, cluster{
-			name: c.name, regionCode: infrastructureRegionCode,
+		clusters = append(clusters, composedCluster{
+			name: cluster.name, regionCode: infrastructureRegionCode,
 			controlPlane:   controlPlaneInstances,
 			infrastructure: infrastructureInstances,
 		})
@@ -140,24 +169,6 @@ func (e *AWSClusterEstimator) priceRangeFromFilters(ctx context.Context, instanc
 	min, max := minMax(totals)
 
 	return min, max, nil
-}
-
-type clusterInstances struct {
-	instances    int32
-	instanceType string
-}
-
-type cluster struct {
-	name           string
-	regionCode     string
-	infrastructure clusterInstances
-	controlPlane   clusterInstances
-}
-
-type machineDeployment struct {
-	infrastructure objectRef
-	replicas       int32
-	clusterName    string
 }
 
 type objectRef struct {
@@ -213,6 +224,46 @@ func nestedOptionalInt32(u *unstructured.Unstructured, elems ...string) (*int32,
 	return nil, nil
 }
 
+type clusterInstances struct {
+	instances    int32
+	instanceType string
+}
+
+type composedCluster struct {
+	name           string
+	regionCode     string
+	infrastructure clusterInstances
+	controlPlane   clusterInstances
+}
+
+type machineDeployment struct {
+	infrastructure objectRef
+	replicas       int32
+	clusterName    string
+}
+
+type capiCluster struct {
+	name           string
+	infrastructure objectRef
+	controlPlane   objectRef
+}
+
+type controlPlane struct {
+	replicas        *int32
+	machineTemplate objectRef
+}
+
+type machinePool struct {
+	replicas       int32
+	infrastructure objectRef
+	clusterName    string
+}
+
+type awsMachinePool struct {
+	maxSize      int32
+	instanceType string
+}
+
 type clusterResources struct {
 	// list of CAPI clusters including the referenced resources
 	capiClusters []capiCluster
@@ -228,17 +279,12 @@ type clusterResources struct {
 
 	// mapping of MachineDeployment ref to details
 	machineDeployments map[string]machineDeployment
-}
 
-type capiCluster struct {
-	name           string
-	infrastructure objectRef
-	controlPlane   objectRef
-}
+	// mapping of MachinePool ref to details
+	machinePools map[string]machinePool
 
-type controlPlane struct {
-	replicas           *int32
-	machineTemplateRef objectRef
+	// mapping of AWSMachinePool ref to details
+	awsMachinePools map[string]awsMachinePool
 }
 
 func parseResources(items []*unstructured.Unstructured) (*clusterResources, error) {
@@ -247,11 +293,16 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 	machineTemplates := map[string]string{}
 	controlPlanes := map[string]controlPlane{}
 	machineDeployments := map[string]machineDeployment{}
+	machinePools := map[string]machinePool{}
+	awsMachinePools := map[string]awsMachinePool{}
 
 	objectKey := func(u *unstructured.Unstructured) string {
 		return fmt.Sprintf("%s:%s", u.GroupVersionKind().String(), u.GetName())
 	}
 
+	// TODO: validate missing fields
+	// Go through the API definitions and check which of the fields
+	// pulled below are not optional
 	for _, u := range items {
 		k := unstructuredKind(u)
 		switch k {
@@ -285,13 +336,13 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 				return nil, fmt.Errorf("failed to parse KubeadmControlPlane replicas %q: %w", u.GetName(), err)
 			}
 			controlPlanes[objectKey(u)] = controlPlane{
-				replicas:           replicas,
-				machineTemplateRef: *machineTemplateRef,
+				replicas:        replicas,
+				machineTemplate: *machineTemplateRef,
 			}
 		case "AWSMachineTemplate.infrastructure.cluster.x-k8s.io":
 			instanceType, err := nestedString(u, "spec", "template", "spec", "instanceType")
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse AWSCluster %q: %w", u.GetName(), err)
+				return nil, fmt.Errorf("failed to parse AWSMachineTemplate %q: %w", u.GetName(), err)
 			}
 			machineTemplates[objectKey(u)] = instanceType
 		case "MachineDeployment.cluster.x-k8s.io":
@@ -301,7 +352,7 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 			}
 			infrastructureRef, err := parseObjectRef(u, "spec", "template", "spec", "infrastructureRef")
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse KubeadmControlPlane infrastructureRef %q: %w", u.GetName(), err)
+				return nil, fmt.Errorf("failed to parse MachineDeployment infrastructureRef %q: %w", u.GetName(), err)
 			}
 			clusterName, err := nestedString(u, "spec", "clusterName")
 			if err != nil {
@@ -310,6 +361,50 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 			machineDeployments[objectKey(u)] = machineDeployment{
 				replicas: *replicas, infrastructure: *infrastructureRef,
 				clusterName: clusterName,
+			}
+		case "MachinePool.cluster.x-k8s.io":
+			optionalReplicas, err := nestedOptionalInt32(u, "spec", "replicas")
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse MachinePool - missing replicas%q: %w", u.GetName(), err)
+			}
+			// v1beta1 MachinePool defaults to 1 if not provided
+			replicas := int32(1)
+			if optionalReplicas != nil {
+				replicas = *optionalReplicas
+			}
+			clusterName, err := nestedString(u, "spec", "clusterName")
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse MachinePool %q: %w", u.GetName(), err)
+			}
+			infrastructureRef, err := parseObjectRef(u, "spec", "template", "spec", "infrastructureRef")
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse MachinePool infrastructureRef %q: %w", u.GetName(), err)
+			}
+			machinePools[objectKey(u)] = machinePool{
+				replicas:       replicas,
+				clusterName:    clusterName,
+				infrastructure: *infrastructureRef,
+			}
+		case "AWSMachinePool.infrastructure.cluster.x-k8s.io":
+			optionalMaxSize, err := nestedOptionalInt32(u, "spec", "maxSize")
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse AWSMachinePool maxSize%q: %w", u.GetName(), err)
+			}
+			// v1beta1 AWSMachinePool defaults to 1 if not provided
+			maxSize := int32(1)
+			if optionalMaxSize != nil {
+				maxSize = *optionalMaxSize
+			}
+			// TODO: instanceType is not required in the AWSLaunchTemplate it's
+			// not clear what to do in this case.
+			instanceType, err := nestedString(u, "spec", "awsLaunchTemplate", "instanceType")
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse AWSMachinePool %q: %w", u.GetName(), err)
+			}
+
+			awsMachinePools[objectKey(u)] = awsMachinePool{
+				maxSize:      maxSize,
+				instanceType: instanceType,
 			}
 		}
 	}
@@ -320,6 +415,8 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 		controlPlanes:      controlPlanes,
 		machineTemplates:   machineTemplates,
 		machineDeployments: machineDeployments,
+		machinePools:       machinePools,
+		awsMachinePools:    awsMachinePools,
 	}, nil
 }
 
@@ -338,6 +435,9 @@ func mergeStringMaps(origin, update map[string]string) map[string]string {
 }
 
 func minMax(vals []float32) (float32, float32) {
+	if len(vals) == 0 {
+		return 0.0, 0.0
+	}
 	sort.Slice(vals, func(i, j int) bool { return vals[i] < vals[j] })
 
 	return vals[0], vals[len(vals)-1]
