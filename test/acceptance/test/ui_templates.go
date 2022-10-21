@@ -1127,6 +1127,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				pages.WaitForPageToLoad(webDriver)
 
 				ginkgo.By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
+					// Describe GitopsCluster to check conditions
+					_ = runCommandPassThrough("kubectl", "describe", "gitopsclusters.gitops.weave.works")
+
 					totalAppCount := existingAppCount + 8 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library, postgres, podinfo
 					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application entries in application table", totalAppCount))
 
