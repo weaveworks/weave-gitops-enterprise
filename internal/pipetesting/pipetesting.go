@@ -17,11 +17,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client) pb.PipelinesClient {
+func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client, cluster types.NamespacedName) pb.PipelinesClient {
 	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
 		Namespaces: []*v1.Namespace{
 			{
@@ -47,6 +48,7 @@ func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Clien
 	pipeSrv := server.NewPipelinesServer(server.ServerOpts{
 		ClustersManager:   fact,
 		ManagementFetcher: mgmtFetcher,
+		Cluster:           cluster,
 	})
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {

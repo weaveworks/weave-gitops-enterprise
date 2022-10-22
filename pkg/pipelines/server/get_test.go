@@ -12,14 +12,19 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestGetPipeline(t *testing.T) {
 	ctx := context.Background()
 
+	cluster := types.NamespacedName{
+		Name: "management",
+	}
+
 	kclient, factory := grpctesting.MakeFactoryWithObjects()
-	serverClient := pipetesting.SetupServer(t, factory, kclient)
+	serverClient := pipetesting.SetupServer(t, factory, kclient, cluster)
 
 	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
