@@ -9,6 +9,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -68,6 +69,7 @@ type serverOptions struct {
 	chartsCache     chartsCache
 	chartJobs       *helm.Jobs
 	valuesFetcher   helm.ValuesFetcher
+	cluster         types.NamespacedName
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -113,6 +115,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ChartsCache:               o.chartsCache,
 			ValuesFetcher:             o.valuesFetcher,
 			ManagementFetcher:         mgmtFetcher,
+			Cluster:                   o.cluster,
 		},
 	)
 }

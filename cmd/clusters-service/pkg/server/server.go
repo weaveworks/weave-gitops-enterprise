@@ -94,5 +94,6 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		chartsCache:               opts.ChartsCache,
 		valuesFetcher:             opts.ValuesFetcher,
 		managementFetcher:         opts.ManagementFetcher,
+		cluster:                   opts.Cluster,
 	}
 }

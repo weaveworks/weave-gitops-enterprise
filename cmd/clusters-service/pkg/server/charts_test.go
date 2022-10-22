@@ -204,6 +204,9 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 				chartJobs:       helm.NewJobs(),
 				valuesFetcher:   &fakeValuesFetcher{},
 				clustersManager: fakeClustersManager,
+				cluster: types.NamespacedName{
+					Name: "management",
+				},
 			})
 
 			response, err := s.GetValuesForChart(context.TODO(), tt.request)
