@@ -1,7 +1,12 @@
 import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { FC } from 'react';
-import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
+import {
+  QueryCache,
+  QueryClient,
+  QueryClientConfig,
+  QueryClientProvider,
+} from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { muiTheme } from './muiTheme';
@@ -96,7 +101,7 @@ interface Error {
   code: number;
   message: string;
 }
-const queryClient = new QueryClient({
+export const queryOptions: QueryClientConfig = {
   queryCache: new QueryCache({
     onError: error => {
       const err = error as Error;
@@ -108,7 +113,8 @@ const queryClient = new QueryClient({
       }
     },
   }),
-});
+};
+ const queryClient = new QueryClient(queryOptions);
 
 const App: FC = () => {
   return (
