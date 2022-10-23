@@ -28,7 +28,7 @@ jobs:
       ARTEFACTS_BASE_DIR: /tmp/workspace/test
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.18.x
       - name: Checkout code
@@ -61,12 +61,12 @@ jobs:
           # Merge all junit test results
           jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
       - name: Store unit test coverage results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: unit-tests-artifacts
           path: |
             ${{ env.ARTEFACTS_BASE_DIR }}
-          retention-days: 7
+          retention-days: 1
 
   smoke-tests-github:
     needs: [build, coverage]
@@ -179,7 +179,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.17.x
       - name: Setup snyk
