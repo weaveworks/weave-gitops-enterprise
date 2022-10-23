@@ -2,10 +2,10 @@ CONTROLLER_TOOLS_VERSION ?= v0.9.2
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 GOOS := $(shell go env GOOS)
 ifeq ($(GOOS),linux)
-	cgo_ldflags=-linkmode external -w -extldflags "-static"
+    cgo_ldflags=-linkmode external -w -extldflags "-static"
 else
-	# darwin doesn't like -static
-	cgo_ldflags=-linkmode external -w
+    # darwin doesn't like -static
+    cgo_ldflags=-linkmode external -w
 endif
 
 
@@ -29,9 +29,16 @@ install:
 
 .PHONY: build
 build:
-# Alpine needs these extra CGO and -a flags to "see" the binary
-	CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ GOARCH=amd64 GOOS=linux CGO_ENABLED=1 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
+	CGO_ENABLED=1 go build -ldflags "$(cgo_ldflags)" -a -installsuffix cgo -o bin/clusters-service main.go
 
+.PHONY: build-linux
+build-linux:
+# set CC and CXX cross compile vars for darwin
+ifeq ($(shell uname),Darwin)
+	CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ GOARCH=amd64 GOOS=linux CGO_ENABLED=1 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
+else
+	GOARCH=amd64 GOOS=linux CGO_ENABLED=1 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
+endif
 
 .PHONY: crd-manifests
 crd-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
