@@ -16,7 +16,7 @@ const ProgressiveDelivery = () => {
             label: 'Applications',
             url:Routes.Applications,
           },
-          { label: 'Delivery', count: data?.canaries?.length },
+          { label: 'Delivery'},
         ]}
       />
       <ContentWrapper

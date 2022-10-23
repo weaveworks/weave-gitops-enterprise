@@ -19,7 +19,7 @@ func TestGetPipeline(t *testing.T) {
 	ctx := context.Background()
 
 	kclient, factory := grpctesting.MakeFactoryWithObjects()
-	serverClient := pipetesting.SetupServer(t, factory)
+	serverClient := pipetesting.SetupServer(t, factory, kclient)
 
 	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)

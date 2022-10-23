@@ -52,7 +52,6 @@ const WGApplicationsDashboard: FC = () => {
         {
           label: 'Applications',
           url: Routes.Applications,
-          count: automations?.result?.length,
         },
       ]}
     >

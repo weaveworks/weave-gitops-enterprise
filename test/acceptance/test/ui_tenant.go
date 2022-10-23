@@ -66,9 +66,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
 				pages.NavigateToPage(webDriver, "Applications")
 				applicationsPage := pages.GetApplicationsPage(webDriver)
-				gomega.Eventually(func(g gomega.Gomega) int {
-					return applicationsPage.CountApplications()
-				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 			})
 
 			ginkgo.It("Verify tenant can install the kustomization application and dashboard is updated accordingly", ginkgo.Label("integration", "tenant", "application"), func() {
@@ -150,13 +148,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
-
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
 				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
@@ -221,7 +213,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				defer cleanGitRepository(appKustomization)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
 				})
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -267,13 +259,8 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
 				verifyAppInformation(applicationsPage, metallb, mgmtCluster, "Ready")
@@ -399,9 +386,6 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("Dashboard failed to update with existing applications count: %d", existingAppCount))
 				})
 
 				ginkgo.By(`And navigate to 'Add Application' page`, func() {
@@ -442,13 +426,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return getAppHeaderCount(applicationsPage)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalAppCount), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
-
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
 				ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
@@ -456,10 +434,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(searchPage.SearchBtn.Click).Should(gomega.Succeed(), "Failed to click search buttton")
 					gomega.Expect(searchPage.Search.SendKeys(podinfo.Name)).Should(gomega.Succeed(), "Failed type application name in search field")
 					gomega.Expect(searchPage.Search.SendKeys("\uE007")).Should(gomega.Succeed()) // send enter key code to do application search in table
-
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
+					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
 				})
 
 				verifyAppInformation(applicationsPage, podinfo, leafCluster, "Ready")

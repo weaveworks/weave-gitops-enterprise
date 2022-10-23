@@ -35,6 +35,7 @@ require (
 	github.com/fluxcd/kustomize-controller/api v0.29.0
 	github.com/fluxcd/pkg/apis/meta v0.16.0
 	github.com/fluxcd/pkg/runtime v0.18.0
+	github.com/fluxcd/pkg/untar v0.2.0
 	github.com/fluxcd/source-controller/api v0.30.0
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/golang/protobuf v1.5.2
@@ -82,6 +83,7 @@ require (
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.27.0 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
+	github.com/gobuffalo/flect v0.2.4 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
 	github.com/google/go-github/v47 v47.0.0 // indirect
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
@@ -168,7 +170,7 @@ require (
 	github.com/bufbuild/buf v1.7.0
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
-	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789 // indirect
+	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/clbanning/mxj/v2 v2.3.3-0.20201214204241-e937bdee5a3e // indirect
 	github.com/containerd/containerd v1.6.6 // indirect
 	github.com/coreos/go-oidc/v3 v3.1.0 // indirect

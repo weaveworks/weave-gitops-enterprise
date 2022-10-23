@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/rest"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -24,12 +25,12 @@ import (
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -64,25 +65,41 @@ type serverOptions struct {
 	hr              *sourcev1.HelmRepository
 	clustersManager clustersmngr.ClustersManager
 	capiEnabled     bool
+	chartsCache     chartsCache
+	chartJobs       *helm.Jobs
+	valuesFetcher   helm.ValuesFetcher
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
 	c := createClient(t, o.clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*corev1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-ns",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
+
 	return NewClusterServer(
 		ServerOpts{
-			Logger: logr.Discard(),
-			TemplatesLibrary: &templates.CRDLibrary{
-				Log:           logr.Discard(),
-				ClientGetter:  kubefakes.NewFakeClientGetter(c),
-				CAPINamespace: o.namespace,
-			},
-			ClustersLibrary: &clusters.CRDLibrary{
-				Log:          logr.Discard(),
-				ClientGetter: kubefakes.NewFakeClientGetter(c),
-				Namespace:    o.namespace,
-			},
+			Logger:                    logr.Discard(),
 			ClustersManager:           o.clustersManager,
 			GitProvider:               o.provider,
 			ClientGetter:              kubefakes.NewFakeClientGetter(c),
@@ -91,6 +108,11 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ProfileHelmRepositoryName: "weaveworks-charts",
 			HelmRepositoryCacheDir:    t.TempDir(),
 			CAPIEnabled:               o.capiEnabled,
+			RestConfig:                &rest.Config{},
+			ChartJobs:                 o.chartJobs,
+			ChartsCache:               o.chartsCache,
+			ValuesFetcher:             o.valuesFetcher,
+			ManagementFetcher:         mgmtFetcher,
 		},
 	)
 }
