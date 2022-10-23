@@ -4,10 +4,8 @@ import {
   useIsAuthenticated,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { GithubDeviceAuthModal } from '../../../GithubAuth';
-import { GitProvider } from '../../../../contexts/GithubAuth/provider';
-
-
+import { GithubDeviceAuthModal } from '.';
+import { GitProvider } from '../../contexts/GithubAuth/provider';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   margin-bottom: ${({ theme }) => theme.spacing.medium};
@@ -43,7 +41,7 @@ const GitAuth: FC<{
       return;
     }
     check(formData.provider);
-  }, [formData.provider, authSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [formData.provider, authSuccess, check]);
 
   useEffect(() => {
     if (isAuthenticated) {

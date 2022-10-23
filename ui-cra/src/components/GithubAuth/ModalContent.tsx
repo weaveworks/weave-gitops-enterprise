@@ -4,7 +4,7 @@ import { Flex, Icon, IconType, Button, theme } from '@weaveworks/weave-gitops';
 import { useGetGithubAuthStatus } from '../../contexts/GithubAuth';
 
 const { extraLarge } = theme.fontSizes;
-const { black, primary20 } = theme.colors;
+const { neutral30, primary10 } = theme.colors;
 
 const Pad = styled(Flex)`
   padding: 8px 0;
@@ -15,6 +15,12 @@ const Text = styled.span`
 `;
 const PointerIcon = styled(Icon)`
   cursor: pointer;
+  svg {
+    fill: ${neutral30};
+  }
+  &.copied > svg {
+    fill: ${primary10};
+  }
 `;
 
 const CopyToClipboard = ({ value }: { value: string }) => {
@@ -33,14 +39,14 @@ const CopyToClipboard = ({ value }: { value: string }) => {
       {value}
       <PointerIcon
         type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
-        color={copied ? primary20 : black}
+        className={copied ? 'copied' : ''}
         size="medium"
       />
     </Text>
   );
 };
 const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
-  const { isLoading, data, error } = useGetGithubAuthStatus(codeRes);
+  const { data } = useGetGithubAuthStatus(codeRes);
   if (!!data) {
     onSuccess(data.accessToken);
   }
@@ -60,16 +66,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
         </a>
       </Pad>
       <Pad wide center>
-        {isLoading && <div>Waiting for authorization to be completed...</div>}
-        {error && (
-          <div
-            style={{
-              color: 'red',
-            }}
-          >
-            {error.message}
-          </div>
-        )}
+        <div>Waiting for authorization to be completed...</div>
       </Pad>
     </div>
   );
