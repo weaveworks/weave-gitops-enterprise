@@ -40,8 +40,6 @@ func UpdateCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Com
 	cmd.Flags().StringVar(&profileOpts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
 	cmd.Flags().StringVar(&profileOpts.ConfigRepo, "config-repo", "", "URL of the external repository that contains the automation manifests")
 	cmd.Flags().StringVar(&profileOpts.Cluster, "cluster", "", "Name of the cluster where the profile is installed")
-	cmd.Flags().StringVar(&profileOpts.HelmRepoName, "repo-name", "weaveworks-charts", "name of the profile repo")
-	cmd.Flags().StringVar(&profileOpts.HelmRepoNamespace, "repo-namespace", "flux-system", "namespace of the profile repo")
 	cmd.Flags().BoolVar(&profileOpts.AutoMerge, "auto-merge", false, "If set, 'gitops update profile' will merge automatically into the repository's branch")
 	internal.AddPRFlags(cmd, &profileOpts.HeadBranch, &profileOpts.BaseBranch, &profileOpts.Description, &profileOpts.Message, &profileOpts.Title)
 

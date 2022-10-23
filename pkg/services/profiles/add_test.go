@@ -198,7 +198,7 @@ var _ = Describe("Add", func() {
 				gitProviders.RepositoryExistsReturns(true, nil)
 				client := NewFakeHTTPClient("", fmt.Errorf("nope"))
 				err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
-				Expect(err).To(MatchError("failed to get profiles from cluster: unable to retrieve profiles from \"Fake Client\": nope"))
+				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: unable to retrieve profiles from \"Fake Client\": nope"))
 				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 			})
 
@@ -207,7 +207,7 @@ var _ = Describe("Add", func() {
 				client := NewFakeHTTPClient(getProfilesResp, nil)
 				addOptions.Version = "7.0.0"
 				err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
-				Expect(err).To(MatchError("failed to get profiles from cluster: version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
+				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
 				Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
 			})
 		})

@@ -13,16 +13,36 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const getProfilesResp = `{
-  "charts": [
+  "profiles": [
     {
       "name": "podinfo",
-      "versions": [
+      "home": "https://github.com/stefanprodan/podinfo",
+      "sources": [
+        "https://github.com/stefanprodan/podinfo"
+      ],
+      "description": "Podinfo Helm chart for Kubernetes",
+      "keywords": [],
+      "maintainers": [
+        {
+          "name": "stefanprodan",
+          "email": "stefanprodan@users.noreply.github.com",
+          "url": ""
+        }
+      ],
+      "icon": "",
+      "annotations": {},
+      "kubeVersion": ">=1.19.0-0",
+      "helmRepository": {
+		  "name": "podinfo",
+		  "namespace": "weave-system"
+	  },
+      "availableVersions": [
         "6.0.0",
         "6.0.1"
       ]
@@ -51,7 +71,7 @@ var _ = Describe("Get Profile(s)", func() {
 			Expect(profilesSvc.Get(context.TODO(), client, buffer)).To(Succeed())
 
 			Expect(string(buffer.Contents())).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
-podinfo		6.0.0,6.0.1
+podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 `))
 		})
 
@@ -102,7 +122,7 @@ podinfo		6.0.0,6.0.1
 
 			profile, version, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(len(profile.Versions)).NotTo(BeZero())
+			Expect(len(profile.AvailableVersions)).NotTo(BeZero())
 			Expect(version).To(Equal("6.0.1"))
 		})
 
@@ -115,7 +135,7 @@ podinfo		6.0.0,6.0.1
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"charts": [
+				"profiles": [
 				  {
 					"name": "foo"
 				  }
@@ -131,10 +151,10 @@ podinfo		6.0.0,6.0.1
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"charts": [
+				"profiles": [
 				  {
 					"name": "podinfo",
-					"versions": [
+					"availableVersions": [
 					]
 				  }
 				]
@@ -144,6 +164,30 @@ podinfo		6.0.0,6.0.1
 			client := NewFakeHTTPClient(badProfileResp, nil)
 			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
+		})
+
+		It("fails if the available profile's HelmRepository name or namespace are empty", func() {
+			badProfileResp := `{
+				"profiles": [
+				  {
+					"name": "podinfo",
+					"helmRepository": {
+						"name": "",
+						"namespace": ""
+					},
+					"availableVersions": [
+					  "6.0.0",
+					  "6.0.1"
+					]
+				  }
+				]
+			  }
+			  `
+
+			client := NewFakeHTTPClient(badProfileResp, nil)
+
+			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
+			Expect(err).To(MatchError("HelmRepository's name or namespace is empty"))
 		})
 	})
 })
@@ -161,12 +205,12 @@ func (c *FakeHTTPClient) Source() string {
 	return "Fake Client"
 }
 
-func (c *FakeHTTPClient) RetrieveProfiles() (*pb.ListChartsForRepositoryResponse, error) {
+func (c *FakeHTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
 
-	result := &pb.ListChartsForRepositoryResponse{}
+	result := &pb.GetProfilesResponse{}
 	data := []byte(c.data)
 
 	err := json.Unmarshal(data, &result)

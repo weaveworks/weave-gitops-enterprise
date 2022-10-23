@@ -2,36 +2,42 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"sort"
 
 	"github.com/Masterminds/semver/v3"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	"helm.sh/helm/v3/pkg/chartutil"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
+	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 )
 
 const (
 	watcherFinalizer = "finalizers.helm.watcher"
 )
 
+// EventRecorder defines an external event recorder's function for creating events for the notification controller.
+//
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate . eventRecorder
+type eventRecorder interface {
+	AnnotatedEventf(object runtime.Object, annotations map[string]string, eventtype, reason string, messageFmt string, args ...interface{})
+}
+
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
-
-	ClusterRef    types.NamespacedName
-	ClientConfig  *rest.Config
-	Cache         helm.ChartsCacherWriter
-	ValuesFetcher helm.ValuesFetcher
+	Cache                 cache.Cache
+	RepoManager           helm.HelmRepoManager
+	ExternalEventRecorder eventRecorder
+	Scheme                *runtime.Scheme
 }
 
 // +kubebuilder:rbac:groups=helm.watcher,resources=helmrepositories,verbs=get;list;watch;create;update;patch;delete
@@ -73,34 +79,51 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
-	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.ClientConfig, types.NamespacedName{
-		Name:      repository.Name,
-		Namespace: repository.Namespace,
-	}, false)
-
+	charts, err := r.RepoManager.ListCharts(context.Background(), &repository, helm.Profiles)
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get index file: %w", err)
+		return ctrl.Result{}, err
 	}
-	for name, versions := range indexFile.Entries {
-		for _, version := range versions {
-			isProfile := helm.Profiles(&repository, version)
-			chartKind := "chart"
-			if isProfile {
-				chartKind = "profile"
-			}
-			err := r.Cache.AddChart(
-				ctx, name, version.Version, chartKind,
-				version.Annotations[helm.LayerAnnotation],
-				r.ClusterRef,
-				helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace},
-			)
+
+	values := make(cache.ValueMap)
+
+	for _, chart := range charts {
+		if v, err := r.checkForNewVersion(ctx, chart); err != nil {
+			log.Error(err, "checking for new versions failed")
+		} else if v != "" {
+			log.Info("sending notification event for new version", "version", v)
+			r.sendEvent(log, &repository, "info", chart.Name, v)
+		}
+
+		for _, v := range chart.AvailableVersions {
+			valueBytes, err := r.RepoManager.GetValuesFile(context.Background(), &repository, &helm.ChartReference{
+				Chart:   chart.Name,
+				Version: v,
+			}, chartutil.ValuesfileName)
+
 			if err != nil {
-				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version, "repository", repository, "cluster", r.ClusterRef)
+				log.Error(err, "failed to get values for chart and version, skipping...", "chart", chart.Name, "version", v)
+				// log error and skip version
+				continue
 			}
+
+			if _, ok := values[chart.Name]; !ok {
+				values[chart.Name] = make(map[string][]byte)
+			}
+
+			values[chart.Name][v] = valueBytes
 		}
 	}
 
-	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "number of profiles", len(indexFile.Entries))
+	data := cache.Data{
+		Profiles: charts,
+		Values:   values,
+	}
+
+	if err := r.Cache.Put(logr.NewContext(ctx, log), repository.Namespace, repository.Name, data); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "number of profiles", len(charts))
 
 	return ctrl.Result{}, nil
 }
@@ -117,7 +140,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 
 	log.Info("deleting repository cache", "namespace", repository.Namespace, "name", repository.Name)
 
-	if err := r.Cache.Delete(ctx, helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace}, r.ClusterRef); err != nil {
+	if err := r.Cache.Delete(ctx, repository.Namespace, repository.Name); err != nil {
 		log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
 		return ctrl.Result{}, err
 	}
@@ -134,6 +157,56 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 	log.Info("removed finalizer from repository", "namespace", repository.Namespace, "name", repository.Name)
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
+}
+
+// sendEvent emits an event and forwards it to the notification controller if configured.
+func (r *HelmWatcherReconciler) sendEvent(log logr.Logger, hr *sourcev1.HelmRepository, severity, profileName, version string) {
+	if r.ExternalEventRecorder == nil {
+		return
+	}
+
+	var meta map[string]string
+	if hr.Status.Artifact.Revision != "" {
+		meta = map[string]string{"revision": hr.Status.Artifact.Revision}
+	}
+
+	r.ExternalEventRecorder.AnnotatedEventf(hr, meta, severity, "", "New version available for profile %s with version %s", profileName, version)
+}
+
+// checkForNewVersion uses existing data to determine if there are newer versions in the incoming data
+// compared to what's already stored in the cache. It returns the LATEST version which is greater than
+// the last version that was stored.
+func (r *HelmWatcherReconciler) checkForNewVersion(ctx context.Context, chart *pb.Profile) (string, error) {
+	versions, err := r.Cache.ListAvailableVersionsForProfile(ctx, chart.GetHelmRepository().GetNamespace(), chart.GetHelmRepository().GetName(), chart.Name)
+	if err != nil {
+		return "", err
+	}
+
+	newVersions, err := ConvertStringListToSemanticVersionList(chart.AvailableVersions)
+	if err != nil {
+		return "", err
+	}
+
+	oldVersions, err := ConvertStringListToSemanticVersionList(versions)
+	if err != nil {
+		return "", err
+	}
+
+	SortVersions(newVersions)
+	SortVersions(oldVersions)
+
+	// If there are no old versions stored, it's likely that the profile didn't exist before. So we don't notify.
+	// Same in case there are no new versions ( which is unlikely to happen, but we ward against it nevertheless ).
+	if len(oldVersions) == 0 || len(newVersions) == 0 {
+		return "", nil
+	}
+
+	// Notify in case the latest new version is greater than the latest old version.
+	if newVersions[0].GreaterThan(oldVersions[0]) {
+		return newVersions[0].String(), nil
+	}
+
+	return "", nil
 }
 
 // ConvertStringListToSemanticVersionList converts a slice of strings into a slice of semantic version.

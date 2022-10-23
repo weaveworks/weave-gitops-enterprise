@@ -36,13 +36,11 @@ var _ = Describe("Update Profile(s)", func() {
 		profilesSvc = profiles.NewService(fakeLogger)
 
 		updateOptions = profiles.Options{
-			ConfigRepo:        "ssh://git@github.com/owner/config-repo.git",
-			Name:              "podinfo",
-			Cluster:           "prod",
-			Namespace:         "weave-system",
-			Version:           "latest",
-			HelmRepoName:      "helm-repo-name",
-			HelmRepoNamespace: "helm-repo-namespace",
+			ConfigRepo: "ssh://git@github.com/owner/config-repo.git",
+			Name:       "podinfo",
+			Cluster:    "prod",
+			Namespace:  "weave-system",
+			Version:    "latest",
 		}
 	})
 
@@ -247,14 +245,14 @@ var _ = Describe("Update Profile(s)", func() {
 			It("fails if it's unable to list available profiles from the cluster", func() {
 				client := NewFakeHTTPClient("", fmt.Errorf("nope"))
 				err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
-				Expect(err).To(MatchError("failed to get profiles from cluster: unable to retrieve profiles from \"Fake Client\": nope"))
+				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: unable to retrieve profiles from \"Fake Client\": nope"))
 			})
 
 			It("fails to find an available profile with the given version", func() {
 				client := NewFakeHTTPClient(getProfilesResp, nil)
 				updateOptions.Version = "7.0.0"
 				err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
-				Expect(err).To(MatchError("failed to get profiles from cluster: version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
+				Expect(err).To(MatchError("failed to discover HelmRepository: failed to get profiles from cluster: version '7.0.0' not found for profile 'podinfo' in prod/weave-system"))
 			})
 		})
 	})

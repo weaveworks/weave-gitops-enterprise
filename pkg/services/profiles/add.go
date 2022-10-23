@@ -38,12 +38,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, r ProfilesRetriever, gitProvider 
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	helmRepo := types.NamespacedName{
-		Name:      opts.HelmRepoName,
-		Namespace: opts.HelmRepoNamespace,
-	}
-
-	_, version, err := s.GetProfile(ctx, r, GetOptions{
+	helmRepo, version, err := s.discoverHelmRepository(ctx, r, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
@@ -51,7 +46,7 @@ func (s *ProfilesSvc) Add(ctx context.Context, r ProfilesRetriever, gitProvider 
 		Port:      opts.ProfilesPort,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get profiles from cluster: %w", err)
+		return fmt.Errorf("failed to discover HelmRepository: %w", err)
 	}
 
 	opts.Version = version

@@ -2,10 +2,13 @@ package profiles
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -23,22 +26,20 @@ type ProfilesService interface {
 }
 
 type Options struct {
-	Name              string
-	Cluster           string
-	ConfigRepo        string
-	Version           string
-	ProfilesPort      string
-	Namespace         string
-	Kubeconfig        string
-	AutoMerge         bool
-	HeadBranch        string
-	BaseBranch        string
-	Message           string
-	Title             string
-	Description       string
-	Endpoint          string
-	HelmRepoName      string
-	HelmRepoNamespace string
+	Name         string
+	Cluster      string
+	ConfigRepo   string
+	Version      string
+	ProfilesPort string
+	Namespace    string
+	Kubeconfig   string
+	AutoMerge    bool
+	HeadBranch   string
+	BaseBranch   string
+	Message      string
+	Title        string
+	Description  string
+	Endpoint     string
 }
 
 type ProfilesSvc struct {
@@ -49,6 +50,18 @@ func NewService(log logger.Logger) *ProfilesSvc {
 	return &ProfilesSvc{
 		Logger: log,
 	}
+}
+
+func (s *ProfilesSvc) discoverHelmRepository(ctx context.Context, r ProfilesRetriever, opts GetOptions) (types.NamespacedName, string, error) {
+	availableProfile, version, err := s.GetProfile(ctx, r, opts)
+	if err != nil {
+		return types.NamespacedName{}, "", fmt.Errorf("failed to get profiles from cluster: %w", err)
+	}
+
+	return types.NamespacedName{
+		Name:      availableProfile.HelmRepository.Name,
+		Namespace: availableProfile.HelmRepository.Namespace,
+	}, version, nil
 }
 
 func getGitCommitFileContent(files []*gitprovider.CommitFile, filePath string) string {

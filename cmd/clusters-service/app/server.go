@@ -38,7 +38,9 @@ import (
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
@@ -60,6 +62,7 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -70,6 +73,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
@@ -108,6 +112,9 @@ type Params struct {
 	HelmRepoNamespace                 string                    `mapstructure:"helm-repo-namespace"`
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
+	WatcherMetricsBindAddress         string                    `mapstructure:"watcher-metrics-bind-address"`
+	WatcherHealthzBindAddress         string                    `mapstructure:"watcher-healthz-bind-address"`
+	WatcherPort                       int                       `mapstructure:"watcher-port"`
 	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
 	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
 	GitProviderType                   string                    `mapstructure:"git-provider-type"`
@@ -171,6 +178,9 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
+	cmd.Flags().String("watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
+	cmd.Flags().String("watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
+	cmd.Flags().Int("watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().String("html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().String("git-provider-type", "", "")
 	cmd.Flags().String("git-provider-hostname", "", "")
@@ -314,12 +324,37 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
 
+	profileCache, err := cache.NewCache(p.ProfileCacheLocation)
+	if err != nil {
+		return fmt.Errorf("failed to create cacher: %w", err)
+	}
+
+	profileWatcher, err := watcher.NewWatcher(watcher.Options{
+		KubeClient:         kubeClient,
+		Cache:              profileCache,
+		MetricsBindAddress: p.WatcherMetricsBindAddress,
+		HealthzBindAddress: p.WatcherHealthzBindAddress,
+		WatcherPort:        p.WatcherPort,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to start the watcher: %w", err)
+	}
+
+	controllerContext := ctrl.SetupSignalHandler()
+
+	go func() {
+		if err := profileWatcher.StartWatcher(controllerContext, log); err != nil {
+			log.Error(err, "failed to start profile watcher")
+			os.Exit(1)
+		}
+	}()
+
 	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation)
 	if err != nil {
 		return fmt.Errorf("could not create charts cache: %w", err)
 	}
 
-	profileWatcher, err := watcher.NewWatcher(watcher.Options{
+	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
 		ClientConfig:  kubeClientConfig,
 		ClusterRef:    types.NamespacedName{Name: "management"},
 		Cache:         chartsCache,
@@ -327,11 +362,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		KubeClient:    kubeClient,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to start the watcher: %w", err)
+		return fmt.Errorf("failed to start the multiwatcher: %w", err)
 	}
 
 	go func() {
-		if err := profileWatcher.StartWatcher(log); err != nil {
+		if err := multiWatcher.StartWatcher(controllerContext, log); err != nil {
 			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}
@@ -414,6 +449,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithCoreConfig(core_core.NewCoreConfig(
 			log, rest, clusterName, clustersManager,
 		)),
+		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
+			DefaultConfig: kubeClientConfig,
+			ClusterName:   "",
+		}, profileCache, p.HelmRepoNamespace, p.HelmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -504,6 +543,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
 	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
+	}
+
+	wegoProfilesServer := server.NewProfilesServer(args.Log, args.ProfilesConfig)
+	if err := profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
+		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
 	// Add logging middleware
