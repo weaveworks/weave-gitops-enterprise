@@ -40,6 +40,7 @@ message ListPipelinesRequest {
 
 message ListPipelinesResponse {
     repeated Pipeline pipelines = 1;
+    repeated ListError errors = 2;
 }
 
 message GetPipelineRequest {
@@ -47,7 +48,11 @@ message GetPipelineRequest {
     string namespace = 2;
 }
 
-
 message GetPipelineResponse {
     Pipeline pipeline = 1;
+}
+
+message ListError {
+    string namespace = 1;
+    string message = 2;
 }

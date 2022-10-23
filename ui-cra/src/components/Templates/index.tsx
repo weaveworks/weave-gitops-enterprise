@@ -69,7 +69,6 @@ const TemplatesDashboard: FC<{
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
   ];
-  const templatesCount = templates?.length;
   const [view, setView] = useState<string>('table');
   const [selectedProvider, setSelectedProvider] = useState<
     string | null | undefined
@@ -85,6 +84,7 @@ const TemplatesDashboard: FC<{
 
   const initialFilterState = {
     ...filterConfig(templates, 'provider'),
+    ...filterConfig(templates, 'namespace'),
     ...filterConfig(templates, 'templateType'),
   };
 
@@ -112,7 +112,6 @@ const TemplatesDashboard: FC<{
         {
           label: 'Templates',
           url: '/templates',
-          count: templatesCount,
         },
       ]}
     >
@@ -172,6 +171,11 @@ const TemplatesDashboard: FC<{
                     label: 'Type',
                     value: 'templateType',
                     sortValue: ({ name }) => name,
+                  },
+                  {
+                    label: 'Namespace',
+                    value: 'namespace',
+                    sortValue: ({ namespace }) => namespace,
                   },
                   {
                     label: 'Provider',

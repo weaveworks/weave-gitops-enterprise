@@ -395,16 +395,17 @@ func (c *HTTPClient) RenderTemplateWithParameters(kind templates.TemplateKind, n
 func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
 	// POST request payload
 	type CreatePullRequestFromTemplateRequest struct {
-		RepositoryURL   string                    `json:"repositoryUrl"`
-		HeadBranch      string                    `json:"headBranch"`
-		BaseBranch      string                    `json:"baseBranch"`
-		Title           string                    `json:"title"`
-		Description     string                    `json:"description"`
-		TemplateName    string                    `json:"templateName"`
-		ParameterValues map[string]string         `json:"parameter_values"`
-		CommitMessage   string                    `json:"commitMessage"`
-		Credentials     templates.Credentials     `json:"credentials"`
-		ProfileValues   []templates.ProfileValues `json:"profile_values"`
+		RepositoryURL     string                    `json:"repositoryUrl"`
+		HeadBranch        string                    `json:"headBranch"`
+		BaseBranch        string                    `json:"baseBranch"`
+		Title             string                    `json:"title"`
+		Description       string                    `json:"description"`
+		TemplateName      string                    `json:"templateName"`
+		TemplateNamespace string                    `json:"templateNamespace"`
+		ParameterValues   map[string]string         `json:"parameter_values"`
+		CommitMessage     string                    `json:"commitMessage"`
+		Credentials       templates.Credentials     `json:"credentials"`
+		ProfileValues     []templates.ProfileValues `json:"profile_values"`
 	}
 
 	// POST response payload
@@ -427,16 +428,17 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 		SetHeader("Accept", "application/json").
 		SetHeader(gitProviderTokenHeaderName, params.GitProviderToken).
 		SetBody(CreatePullRequestFromTemplateRequest{
-			RepositoryURL:   params.RepositoryURL,
-			HeadBranch:      params.HeadBranch,
-			BaseBranch:      params.BaseBranch,
-			Title:           params.Title,
-			Description:     params.Description,
-			TemplateName:    params.TemplateName,
-			ParameterValues: params.ParameterValues,
-			CommitMessage:   params.CommitMessage,
-			Credentials:     params.Credentials,
-			ProfileValues:   params.ProfileValues,
+			RepositoryURL:     params.RepositoryURL,
+			HeadBranch:        params.HeadBranch,
+			BaseBranch:        params.BaseBranch,
+			Title:             params.Title,
+			Description:       params.Description,
+			TemplateName:      params.TemplateName,
+			TemplateNamespace: params.TemplateNamespace,
+			ParameterValues:   params.ParameterValues,
+			CommitMessage:     params.CommitMessage,
+			Credentials:       params.Credentials,
+			ProfileValues:     params.ProfileValues,
 		}).
 		SetResult(&result).
 		SetError(&serviceErr).
