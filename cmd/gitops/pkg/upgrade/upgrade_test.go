@@ -8,12 +8,13 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,7 +28,7 @@ func TestUpgradeDryRun(t *testing.T) {
 	gitProvider.CreatePullRequestStub = func(context.Context, gitproviders.RepoURL, gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
 		return &mockPullRequest{}, nil
 	}
-	logger := &loggerfakes.FakeLogger{}
+	logger := logger.From(logr.Discard())
 
 	var output bytes.Buffer
 
@@ -67,7 +68,7 @@ func TestUpgrade(t *testing.T) {
 	gitProvider.CreatePullRequestStub = func(context.Context, gitproviders.RepoURL, gitproviders.PullRequestInfo) (gitprovider.PullRequest, error) {
 		return &mockPullRequest{}, nil
 	}
-	logger := &loggerfakes.FakeLogger{}
+	logger := logger.From(logr.Discard())
 
 	var output bytes.Buffer
 
