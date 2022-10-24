@@ -7,7 +7,7 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 
-describe('Auth redirect', () => {
+describe('Github Authenticate', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: ApplicationsClientMock;
   beforeEach(() => {
