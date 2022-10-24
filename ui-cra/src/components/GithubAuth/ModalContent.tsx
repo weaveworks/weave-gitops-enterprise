@@ -35,7 +35,7 @@ const CopyToClipboard = ({ value }: { value: string }) => {
   }, [value]);
 
   return (
-    <Text onClick={handleCopy}>
+    <Text onClick={handleCopy} data-testid='github-code'>
       {value}
       <PointerIcon
         type={copied ? IconType.CheckMark : IconType.FileCopyIcon}

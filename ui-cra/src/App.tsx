@@ -113,9 +113,11 @@ export const queryOptions: QueryClientConfig = {
       const err = error as Error;
       const { pathname, search } = window.location;
       const redirectUrl = encodeURIComponent(`${pathname}${search}`);
-
-      if (err.code === 401) {
-        window.location.href = `/sign_in?redirect=${redirectUrl}`;
+      const url = redirectUrl
+        ? `/sign_in?redirect=${redirectUrl}`
+        : `/sign_in?redirect=/`;
+      if (err.code === 401 && !window.location.href.includes('/sign_in')) {
+        window.location.href = url;
       }
     },
   }),
