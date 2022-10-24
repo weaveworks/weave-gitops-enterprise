@@ -134,9 +134,9 @@ func verifyAppInformation(applicationsPage *pages.ApplicationsPage, app Applicat
 		applicationInfo := applicationsPage.FindApplicationInList(app.Name)
 
 		if app.Type == "helm_release" {
-			gomega.Eventually(applicationInfo.Type).Should(matchers.MatchText("HelmRelease"), fmt.Sprintf("Failed to have expected %s application type: %s", app.Name, app.Type))
+			gomega.Eventually(applicationInfo.Type, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText("HelmRelease"), fmt.Sprintf("Failed to have expected %s application type: %s", app.Name, app.Type))
 		} else {
-			gomega.Eventually(applicationInfo.Type).Should(matchers.MatchText("Kustomization"), fmt.Sprintf("Failed to have expected %s application type: %s", app.Name, app.Type))
+			gomega.Eventually(applicationInfo.Type, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText("Kustomization"), fmt.Sprintf("Failed to have expected %s application type: %s", app.Name, app.Type))
 		}
 
 		gomega.Eventually(applicationInfo.Name).Should(matchers.MatchText(app.Name), fmt.Sprintf("Failed to list %s application in  application table", app.Name))
@@ -301,7 +301,7 @@ func verifyDeleteApplication(applicationsPage *pages.ApplicationsPage, existingA
 	})
 }
 
-func createGitopsPR(pullRequest PullRequest) {
+func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 	ginkgo.By("And set GitOps values for pull request", func() {
 		gitops := pages.GetGitOps(webDriver)
 		gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
@@ -315,8 +315,18 @@ func createGitopsPR(pullRequest PullRequest) {
 
 		AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 		gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
-		gomega.Eventually(gitops.CreatePR.Click).Should(gomega.Succeed(), "Failed to create pull request")
 	})
+
+	gitops := pages.GetGitOps(webDriver)
+	ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
+		gomega.Eventually(func(g gomega.Gomega) {
+			g.Expect(gitops.CreatePR.Click()).Should(gomega.Succeed())
+			g.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
+		}, ASSERTION_2MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to create pull request")
+	})
+
+	prUrl, _ = gitops.PRLinkBar.Attribute("href")
+	return prUrl
 }
 
 func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
@@ -513,14 +523,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddHelmReleaseApp(profile, metallb)
-				createGitopsPR(pullRequest)
+				_ = createGitopsPR(pullRequest)
 
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound(), "Failed to find Create PR toast")
-				})
-
-				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
@@ -610,14 +615,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddKustomizationApp(application, podinfo)
-				createGitopsPR(pullRequest)
+				_ = createGitopsPR(pullRequest)
 
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound(), "Failed to find Create PR toast")
-				})
-
-				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
@@ -735,7 +735,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					pages.WaitForPageToLoad(webDriver)
 					clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
 
-					gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
+					gomega.Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText("Ready"))
 				})
 
 				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
@@ -781,14 +781,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddKustomizationApp(application, podinfo)
-				createGitopsPR(pullRequest)
+				_ = (pullRequest)
 
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound(), "Failed to find Create PR toast")
-				})
-
-				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
@@ -928,14 +923,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddHelmReleaseApp(profile, metallb)
-				createGitopsPR(pullRequest)
+				_ = createGitopsPR(pullRequest)
 
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound(), "Failed to find Create PR toast")
-				})
-
-				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
