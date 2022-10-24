@@ -24,8 +24,7 @@ const useStyles = makeStyles(() =>
 export const ApplicationsWrapper: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  isKustomizationsEnabled?: string;
-}> = ({ formData, setFormData, isKustomizationsEnabled = 'true' }) => {
+}> = ({ formData, setFormData }) => {
   const classes = useStyles();
 
   const handleAddApplication = () => {
@@ -39,14 +38,14 @@ export const ApplicationsWrapper: FC<{
     setFormData({ ...formData, clusterAutomations: newAutomations });
   };
 
-  return isKustomizationsEnabled === 'false' ? null : (
+  return (
     <div className={classes.addApplicationSectionWrapper}>
       <h2>Applications</h2>
       {formData.clusterAutomations?.map((kustomization: any, index: number) => {
         return (
           <div key={index} className={classes.applicationWrapper}>
             <h3>Application No.{index + 1}</h3>
-            <Grid container className="">
+            <Grid container>
               <Grid item xs={12} sm={8} md={8} lg={8}>
                 <AppFields
                   index={index}

@@ -85,7 +85,7 @@ const Profiles: FC<{
   const numSelected = updatedProfilesList.filter(up => up.selected).length;
   const rowCount = updatedProfilesList.length || 0;
 
-  return isProfilesEnabled === 'false' ? null : (
+  return (
     <ProfilesWrapper>
       <>
         <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
