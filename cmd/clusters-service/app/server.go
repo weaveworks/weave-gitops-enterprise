@@ -401,7 +401,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clustersManagerScheme,
-		clustersmngr.NewClustersClientsPool,
+		clustersmngr.ClientFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clustersManager.Start(ctx)
