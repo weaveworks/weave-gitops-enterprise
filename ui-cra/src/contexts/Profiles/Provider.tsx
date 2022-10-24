@@ -154,7 +154,7 @@ const setVersionAndValuesFromCluster = (
                   selected: true,
                   yaml: maybeFromBase64(
                     clusterDataProfile.values! as unknown as string,
-                  ) as string,
+                  ),
                 }
               : v,
           ),
