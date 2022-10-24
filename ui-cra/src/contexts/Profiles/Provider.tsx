@@ -14,10 +14,7 @@ import { useQuery } from 'react-query';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
 import { maybeFromBase64 } from '../../utils/base64';
-import {
-  getCreateRequestAnnotation,
-  maybeParseJSON,
-} from '../../components/Clusters/Form/utils';
+import { maybeParseJSON } from '../../components/Clusters/Form/utils';
 
 const profilesUrl = '/v1/profiles';
 
@@ -113,12 +110,31 @@ interface Props {
   cluster?: GitopsClusterEnriched;
 }
 
+interface AnnotationData {
+  commit_message: string;
+  credentials: Credential;
+  description: string;
+  head_branch: string;
+  parameter_values: { [key: string]: string };
+  template_name: string;
+  title: string;
+  values: {
+    name: string;
+    selected: boolean;
+    namespace: string;
+    values: {
+      version: string;
+      yaml: string;
+      selected?: boolean | undefined;
+    }[];
+    version: string;
+  }[];
+}
+
 const setVersionAndValuesFromCluster = (
   profiles: UpdatedProfile[],
-  cluster: GitopsClusterEnriched,
+  clusterData: AnnotationData,
 ) => {
-  const clusterData = getCreateRequestAnnotation(cluster);
-
   const profilesIndex = _.keyBy(profiles, 'name');
 
   let clusterProfiles: ProfilesIndex = {};
@@ -136,7 +152,9 @@ const setVersionAndValuesFromCluster = (
               ? {
                   ...v,
                   selected: true,
-                  yaml: maybeFromBase64(clusterDataProfile.values!),
+                  yaml: maybeFromBase64(
+                    clusterDataProfile.values! as unknown as string,
+                  ) as string,
                 }
               : v,
           ),
@@ -157,7 +175,7 @@ const setVersionAndValuesFromCluster = (
 const mergeClusterAndTemplate = (
   data: ListProfilesResponse | undefined,
   template: TemplateEnriched | undefined,
-  cluster: GitopsClusterEnriched | undefined,
+  clusterData: AnnotationData,
 ) => {
   if (data?.code === 2) {
     return [];
@@ -166,8 +184,8 @@ const mergeClusterAndTemplate = (
   if (template) {
     profiles = setVersionAndValuesFromTemplate(profiles, template);
   }
-  if (cluster) {
-    profiles = setVersionAndValuesFromCluster(profiles, cluster);
+  if (clusterData) {
+    profiles = setVersionAndValuesFromCluster(profiles, clusterData);
   }
   return profiles;
 };
@@ -179,6 +197,8 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
     name: string;
     namespace: string;
   }>({ name: '', namespace: '' });
+  const clusterData =
+    cluster?.annotations?.['templates.weave.works/create-request'];
 
   const getProfileYaml = useCallback(
     (name: string, version: string) => {
@@ -219,8 +239,13 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
   );
 
   const profiles = useMemo(
-    () => mergeClusterAndTemplate(data, template, cluster),
-    [data, template, cluster],
+    () =>
+      mergeClusterAndTemplate(
+        data,
+        template,
+        maybeParseJSON(clusterData || ''),
+      ),
+    [data, template, clusterData],
   );
 
   return (
