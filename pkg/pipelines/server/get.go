@@ -50,9 +50,13 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 			clusterName := fetcher.ManagementClusterName
 			if t.ClusterRef != nil {
+				ns := t.ClusterRef.Namespace
+				if ns == "" {
+					ns = p.Namespace
+				}
 				clusterName = types.NamespacedName{
 					Name:      t.ClusterRef.Name,
-					Namespace: t.ClusterRef.Namespace,
+					Namespace: ns,
 				}.String()
 			}
 
