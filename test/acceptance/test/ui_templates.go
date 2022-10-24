@@ -1084,6 +1084,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					TakeScreenShot("capi-cluster-ready")
 				})
 
+				ginkgo.By("And I wait the cluster to have connectivity", func() {
+					clusterConnectivity := func() error {
+						return runCommandPassThrough("kubectl", "wait", "--for=condition=ClusterConnectivity", "gitopscluster", "-n", capdCluster.Namespace, clusterName)
+					}
+					gomega.Eventually(clusterConnectivity, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.HaveOccurred())
+				})
+
 				clusterInfo := pages.GetClustersPage(webDriver).FindClusterInList(clusterName)
 				verifyDashboard(clusterInfo.GetDashboard("prometheus"), clusterName, "Prometheus")
 
