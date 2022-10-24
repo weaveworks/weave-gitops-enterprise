@@ -153,5 +153,6 @@ func isReady(cluster gitopsv1alpha1.GitopsCluster) bool {
 }
 
 func hasConnectivity(cluster gitopsv1alpha1.GitopsCluster) bool {
-	return apimeta.IsStatusConditionTrue(cluster.GetConditions(), gitopsv1alpha1.ClusterConnectivity)
+	return true
+	// return apimeta.IsStatusConditionTrue(cluster.GetConditions(), gitopsv1alpha1.ClusterConnectivity)
 }
