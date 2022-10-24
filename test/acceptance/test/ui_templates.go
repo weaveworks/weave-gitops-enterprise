@@ -1085,7 +1085,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I wait the cluster to have connectivity", func() {
-					_ = runCommandPassThrough("kubectl", "wait", "--timeout=180s", "--for=condition=ClusterConnectivity", "gitopscluster", "-n", capdCluster.Namespace, clusterName)
+					waitForResourceState("ClusterConnectivity", "true", "gitopscluster", capdCluster.Namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
 				})
 
 				clusterInfo := pages.GetClustersPage(webDriver).FindClusterInList(clusterName)
