@@ -5,48 +5,38 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type ClusterHelmIndexerTracker struct {
-	Cache           cache.Cache
-	ClusterWatchers map[string]*watcher.Watcher
+	Cache           helm.ChartsCacherWriter
+	ClusterWatchers map[string]*multiwatcher.Watcher
 }
 
-var scheme = runtime.NewScheme()
-
-func NewClusterHelmIndexerTracker(c cache.Cache) *ClusterHelmIndexerTracker {
+func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter) *ClusterHelmIndexerTracker {
 	return &ClusterHelmIndexerTracker{
 		Cache:           c,
-		ClusterWatchers: make(map[string]*watcher.Watcher),
+		ClusterWatchers: make(map[string]*multiwatcher.Watcher),
 	}
 }
 
-func (i *ClusterHelmIndexerTracker) newIndexer(ctx context.Context, config *rest.Config, cluster types.NamespacedName, log logr.Logger) (*watcher.Watcher, error) {
-	client, err := client.New(config, client.Options{
-		Scheme: scheme,
+func (i *ClusterHelmIndexerTracker) newIndexer(ctx context.Context, config *rest.Config, cluster types.NamespacedName, log logr.Logger) (*multiwatcher.Watcher, error) {
+	w, err := multiwatcher.NewWatcher(multiwatcher.Options{
+		ClusterRef:    cluster,
+		ClientConfig:  config,
+		Cache:         i.Cache,
+		ValuesFetcher: helm.NewValuesFetcher(),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	w, err := watcher.NewWatcher(watcher.Options{
-		Cluster:    cluster,
-		KubeClient: client,
-		Cache:      i.Cache,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	w.StartWatcher(log)
+	w.StartWatcher(ctx, log)
 
 	return w, nil
 }
@@ -78,6 +68,7 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cw *clustersmngr.
 			case <-ctx.Done():
 				return
 			case updates := <-cw.Updates:
+				ctrl.Log.Info("adding indexer for cluster", "update", updates)
 				for _, added := range updates.Added {
 					_, ok := i.ClusterWatchers[added.Name]
 					if !ok {

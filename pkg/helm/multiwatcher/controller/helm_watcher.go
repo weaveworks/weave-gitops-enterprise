@@ -52,10 +52,11 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
+	useProxy := r.ClusterRef.Name != "management"
 	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.ClientConfig, types.NamespacedName{
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
-	}, false)
+	}, useProxy)
 
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get index file: %w", err)

@@ -35,8 +35,6 @@ export type Profile = {
 export type GetProfilesRequest = {
   helmRepoName?: string
   helmRepoNamespace?: string
-  clusterName?: string
-  clusterNamespace?: string
 }
 
 export type GetProfilesResponse = {

@@ -44,7 +44,6 @@ require (
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jarcoal/httpmock v1.0.8
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/mkmik/multierror v0.3.0

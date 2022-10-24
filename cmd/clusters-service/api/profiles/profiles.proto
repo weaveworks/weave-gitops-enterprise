@@ -84,8 +84,6 @@ message GetProfilesRequest {
   string helmRepoName = 1;
   // The namespace of the HelmRepository
   string helmRepoNamespace = 2;
-  string clusterName = 3;
-  string clusterNamespace = 4;
 }
 
 message GetProfilesResponse {

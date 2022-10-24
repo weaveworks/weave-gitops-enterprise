@@ -49,18 +49,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterNamespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [

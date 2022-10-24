@@ -2,6 +2,7 @@ package multiwatcher
 
 import (
 	"context"
+	"errors"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -11,7 +12,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
@@ -22,7 +22,6 @@ var (
 )
 
 type Options struct {
-	KubeClient    client.Client
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
 	Cache         helm.ChartsCacherWriter
@@ -34,6 +33,7 @@ type Watcher struct {
 	clientConfig  *rest.Config
 	cache         helm.ChartsCacherWriter
 	valuesFetcher helm.ValuesFetcher
+	stopFn        context.CancelFunc
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
@@ -56,7 +56,10 @@ func NewWatcher(opts Options) (*Watcher, error) {
 func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 	ctrl.SetLogger(log.WithName("multi-helm-watcher"))
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	ctx, cancel := context.WithCancel(ctx)
+	w.stopFn = cancel
+
+	mgr, err := ctrl.NewManager(w.clientConfig, ctrl.Options{
 		Scheme:             scheme,
 		Logger:             ctrl.Log,
 		LeaderElection:     false,
@@ -87,4 +90,12 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 	}
 
 	return nil
+}
+
+func (w *Watcher) Stop() {
+	if w.stopFn == nil {
+		ctrl.Log.Error(errors.New("Stop function not set yet"), "unable to stop watcher")
+		return
+	}
+	w.stopFn()
 }

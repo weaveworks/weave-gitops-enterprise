@@ -7,6 +7,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
@@ -40,15 +41,15 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	watcher := clientsFactory.Subscribe()
 	g.Expect(watcher).ToNot(BeNil())
 
-	indexer := indexer.NewClusterHelmIndexerTracker(clientsFactory)
-	g.Expect(indexer.ClustersWatcher).ToNot(BeNil())
+	indexer := indexer.NewClusterHelmIndexerTracker(nil)
+	g.Expect(indexer.ClusterWatchers).ToNot(BeNil())
 
-	indexer.Start(ctx)
+	indexer.Start(context.TODO(), watcher, logger)
 
-	clusterNames := func(c []clustersmngr.Cluster) []string {
+	clusterNames := func(c map[string]*multiwatcher.Watcher) []string {
 		names := []string{}
-		for _, v := range c {
-			names = append(names, v.Name)
+		for name := range c {
+			names = append(names, name)
 		}
 
 		return names
@@ -62,6 +63,14 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 		log.Printf("indexer.Added: %+v", indexer)
 
 		<-watcher.Updates
-		g.Expect(clusterNames(indexer.Clusters)).To(Equal(clusterNames([]clustersmngr.Cluster{c1, c2})))
+		g.Expect(clusterNames(indexer.ClusterWatchers)).To(Equal([]string{clusterName1, clusterName2}))
 	})
+}
+
+func makeLeafCluster(t *testing.T, name string) clustersmngr.Cluster {
+	t.Helper()
+
+	return clustersmngr.Cluster{
+		Name: name,
+	}
 }

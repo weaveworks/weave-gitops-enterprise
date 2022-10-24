@@ -108,7 +108,7 @@ func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, h
 
 	i := &repo.IndexFile{}
 	if err := yaml.Unmarshal(data, i); err != nil {
-		return nil, fmt.Errorf("error unmarshaling chart response: %w", err)
+		return nil, fmt.Errorf("error unmarshaling chart response: %w, url: %v", err, artifactURL)
 	}
 
 	if i.APIVersion == "" {
@@ -226,6 +226,9 @@ func httpGetFromSourceControllerLocal(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get URL: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("non-200 status code: %d", resp.StatusCode)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

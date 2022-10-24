@@ -38,6 +38,7 @@ import (
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
@@ -330,10 +331,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	}
 
 	profileWatcher, err := watcher.NewWatcher(watcher.Options{
-		Cluster: types.NamespacedName{
-			Namespace: "default",
-			Name:      "management",
-		},
 		KubeClient:         kubeClient,
 		Cache:              profileCache,
 		MetricsBindAddress: p.WatcherMetricsBindAddress,
@@ -363,7 +360,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		ClusterRef:    types.NamespacedName{Name: "management"},
 		Cache:         chartsCache,
 		ValuesFetcher: helm.NewValuesFetcher(),
-		KubeClient:    kubeClient,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to start the multiwatcher: %w", err)
@@ -438,7 +434,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 
-	indexer := indexer.NewClusterHelmIndexerTracker(profileCache)
+	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache)
 	indexer.Start(ctx, clustersManager.Subscribe(), log)
 
 	clustersManager.Start(ctx)
