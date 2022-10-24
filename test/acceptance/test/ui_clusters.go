@@ -197,7 +197,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(clustersPage.ClusterHeader).Should(matchers.BeVisible())
 
 					totalClusterCount := existingClustersCount + 1
-					gomega.Eventually(clustersPage.CountClusters, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
+					gomega.Eventually(clustersPage.CountClusters, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
 				})
 
 				clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)

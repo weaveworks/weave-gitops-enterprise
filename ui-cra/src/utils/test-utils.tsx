@@ -12,7 +12,7 @@ import {
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
@@ -79,7 +79,24 @@ export const defaultContexts = () => [
     RequestContextProvider,
     { fetch: () => new Promise(accept => accept(mockRes)) },
   ],
-  [QueryClientProvider, { client: new QueryClient() }],
+  [
+    QueryClientProvider,
+    {
+      client: new QueryClient({
+        queryCache: new QueryCache({
+          onError: error => {
+            const err = error as { code: number; message: string };
+            const { pathname, search } = window.location;
+            const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+
+            if (err.code === 401) {
+              window.location.href = `/sign_in?redirect=${redirectUrl}`;
+            }
+          },
+        }),
+      }),
+    },
+  ],
   [
     EnterpriseClientProvider,
     {
@@ -212,9 +229,10 @@ export class PipelinesClientMock implements Pipelines {
   }
   ListPipelinesReturns: ListPipelinesResponse = {};
   GetPipelineReturns: GetPipelineResponse = {};
+  ErrorRef: { code: number; message: string } | undefined;
 
   ListPipelines() {
-    return promisify(this.ListPipelinesReturns);
+    return promisify(this.ListPipelinesReturns, this.ErrorRef);
   }
 
   GetPipeline() {
