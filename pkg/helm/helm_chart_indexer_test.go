@@ -10,6 +10,122 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+func TestUpdateValuesYaml(t *testing.T) {
+	// create a test db
+	db := testCreateDB(t)
+
+	// create a test indexer
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	// add a chart
+	err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	// update the values.yaml
+	err = indexer.UpdateValuesYaml(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{Name: "redis", Version: "1.0.1"},
+		[]byte("test"))
+	assert.NoError(t, err)
+
+	// get the values
+	values, err := indexer.GetChartValues(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{"redis", "1.0.1", "chart", "layer-0"},
+	)
+	assert.NoError(t, err)
+
+	// check the values
+	assert.Equal(t, []byte("test"), values)
+}
+
+func TestGetValuesFromDB(t *testing.T) {
+	// create a test db
+	db := testCreateDB(t)
+
+	// create a test indexer
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	// test getting values from a non-existent chart
+	values, err := indexer.GetChartValues(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{"redis", "1.0.1", "chart", "layer-0"},
+	)
+	assert.NoError(t, err)
+	assert.Nil(t, values)
+
+	// add a chart
+	err = indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	// update the values.yaml
+	err = indexer.UpdateValuesYaml(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{Name: "redis", Version: "1.0.1"},
+		[]byte("test"))
+	assert.NoError(t, err)
+
+	// get the values
+	values, err = indexer.GetChartValues(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{"redis", "1.0.1", "chart", "layer-0"},
+	)
+	assert.NoError(t, err)
+
+	// check the values
+	assert.Equal(t, []byte("test"), values)
+
+}
+
+func TestIsKnownChart(t *testing.T) {
+	// create a test db
+	db := testCreateDB(t)
+
+	// create a test indexer
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	// see if a chart is known
+	known, err := indexer.IsKnownChart(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{"redis", "1.0.1", "chart", ""})
+	assert.NoError(t, err)
+
+	// should not be known
+	assert.False(t, known)
+
+	// add a chart
+	err = indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	// see if a chart is known
+	known, err = indexer.IsKnownChart(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
+		Chart{"redis", "1.0.1", "chart", ""})
+	assert.NoError(t, err)
+
+	// should be known
+	assert.True(t, known)
+}
+
 func TestHelmChartIndexer_Delete(t *testing.T) {
 	db := testCreateDB(t)
 	indexer := HelmChartIndexer{
@@ -110,6 +226,11 @@ func TestHelmChartIndexer_ListChartsByRepositoryAndCluster(t *testing.T) {
 		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
 	assert.NoError(t, err)
 
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.3", "profile", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
+	assert.NoError(t, err)
+
 	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns"))
@@ -121,8 +242,9 @@ func TestHelmChartIndexer_ListChartsByRepositoryAndCluster(t *testing.T) {
 	assert.NoError(t, err)
 
 	charts, err := indexer.ListChartsByRepositoryAndCluster(context.TODO(),
+		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "bitnami-charts", "team-ns"),
-		nsn("cluster1", "clusters"), "chart")
+		"chart")
 
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(charts))
@@ -130,6 +252,30 @@ func TestHelmChartIndexer_ListChartsByRepositoryAndCluster(t *testing.T) {
 	assert.Equal(t, "1.0.2", charts[0].Version)
 	assert.Equal(t, "nginx", charts[1].Name)
 	assert.Equal(t, "1.0.1", charts[1].Version)
+}
+
+func TestAddChart(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	charts, err := indexer.ListChartsByRepositoryAndCluster(context.TODO(),
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"),
+		"chart")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(charts))
 }
 
 func objref(kind, apiVersion, name, namespace string) ObjectReference {

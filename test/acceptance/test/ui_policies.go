@@ -3,7 +3,6 @@ package acceptance
 import (
 	"fmt"
 	"path"
-	"strconv"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
@@ -20,12 +19,12 @@ func installPolicyAgent(clusterName string) {
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to add profiles repositoy")
 		}
 
-		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "profiles-catalog/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "0.0.7", "--set", "installCRDs=true")
+		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "profiles-catalog/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "0.0.8", "--set", "installCRDs=true")
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install cer-manager to leaf cluster: "+clusterName)
 	})
 
 	ginkgo.By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {
-		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "profiles-catalog/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.4.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
+		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "profiles-catalog/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.5.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install policy agent to leaf cluster: "+clusterName)
 	})
 }
@@ -71,21 +70,14 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				policiesPage := pages.GetPoliciesPage(webDriver)
 
 				ginkgo.By("And wait for policies to be visibe on the dashboard", func() {
-					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 4
-					gomega.Eventually(func(g gomega.Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := policiesPage.PolicyCount.Text()
-						return count
-
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
-
 					gomega.Eventually(func(g gomega.Gomega) int {
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return policiesPage.CountPolicies()
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
 
 				})
 
@@ -234,22 +226,14 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for policies to be visibe on the dashboard", func() {
 					pages.NavigateToPage(webDriver, "Policies")
-					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 8 // 4 management and 4 leaf policies
-
-					gomega.Eventually(func(g gomega.Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := policiesPage.PolicyCount.Text()
-						return count
-
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
-
 					gomega.Eventually(func(g gomega.Gomega) int {
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return policiesPage.CountPolicies()
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
 
 					// Wait for policy page to completely render policy information. Sometimes error appears momentarily due to RBAC reconciliation
 					gomega.Eventually(func(g gomega.Gomega) bool {

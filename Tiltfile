@@ -44,13 +44,16 @@ helm_remote('tf-controller',
             repo_url='https://weaveworks.github.io/tf-controller',
             namespace='flux-system')
 
+# Note for MacOS users:
+# for this to work you need to run:
+#   brew install FiloSottile/musl-cross/musl-cross
+# https://github.com/mattn/go-sqlite3#cross-compiling-from-mac-osx
 native_build = os.getenv('NATIVE_BUILD', False)
 skip_ui = os.getenv("SKIP_UI_BUILD", False)
-
 if native_build:
    local_resource(
       'clusters-service',
-      'GOOS=linux GOARCH=amd64 make build',
+      'make build-linux',
       deps=[
          './cmd/clusters-service',
          './pkg'

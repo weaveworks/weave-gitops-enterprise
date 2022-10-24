@@ -75,7 +75,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 	}, nil
 }
 
-func (w *Watcher) StartWatcher(log logr.Logger) error {
+func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 	ctrl.SetLogger(log.WithName("helm-watcher"))
 
 	ctx, cancel := context.WithCancel(context.TODO())

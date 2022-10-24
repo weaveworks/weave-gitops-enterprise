@@ -37,7 +37,7 @@ app.use(
 // proxy
 setupProxy(app);
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 const server = app.listen(port, () => {
   let { address } = server.address();
   if (address.indexOf(':') !== -1) {

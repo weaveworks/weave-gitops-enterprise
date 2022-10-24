@@ -2335,10 +2335,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.9.6":
-  version "0.9.6"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.9.6/0f9d1d9bf2603026e36ed8f0e3280d6dc24550c4#0f9d1d9bf2603026e36ed8f0e3280d6dc24550c4"
-  integrity sha512-I3lZfNpct9ZySpTx0yAZhY0M28GDl979P2jgK8T4sNFPfMkq08BFO3mRCHyghtlLutPzUnExCNeeB+xlFZEiCQ==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@v0.10.0-29-g829e6f07":
+  version "0.10.0-29-g829e6f07"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.10.0-29-g829e6f07/7cfef8560bb167594f9ea6e189170d378e05c991#7cfef8560bb167594f9ea6e189170d378e05c991"
+  integrity sha512-q8XpgJO3cFF9LPQXUYlITPL9aGVcBM5bYAulzwgexqJadtGWwsNsydFGg4nWUGFaw3bvCviTu9TaeFg2HgvYDg==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -7479,10 +7479,10 @@ mnemonic-browser@^0.0.1:
   resolved "https://registry.yarnpkg.com/mnemonic-browser/-/mnemonic-browser-0.0.1.tgz#1d8a9eba3e40bae6be9df14b1bf3cf380b4c8081"
   integrity sha512-VXtngkArcYSDk1ZcClVPAsY670VUuE8+2bTPerfK+BLq4tij3cvn49TkCftQjHNBpF8sfF6N145D3DgNw4OuQA==
 
-moment@2.25.3:
-  version "2.25.3"
-  resolved "https://registry.npmjs.org/moment/-/moment-2.25.3.tgz"
-  integrity sha512-PuYv0PHxZvzc15Sp8ybUCoQ+xpyPWvjOuK72a5ovzp2LI32rJXOiIfyoFoYvG3s6EwwrdkMyWuRiEHSZRLJNdg==
+moment@2.29.4:
+  version "2.29.4"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
+  integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
 
 moo-color@^1.0.2:
   version "1.0.3"

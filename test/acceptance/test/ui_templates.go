@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,12 +15,6 @@ import (
 	"github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
-
-type ClusterConfig struct {
-	Type      string
-	Name      string
-	Namespace string
-}
 
 type TemplateField struct {
 	Name   string
@@ -97,7 +90,6 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Templates page to be rendered", func() {
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`0`))
 
 					tileCount, _ := templatesPage.TemplateTiles.Count()
 					gomega.Expect(tileCount).To(gomega.Equal(0), "There should not be any template tile rendered")
@@ -144,13 +136,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Templates page to be fully rendered", func() {
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-					gomega.Eventually(templatesPage.TemplateCount).Should(matchers.MatchText(`[0-9]+`))
-
-					count, _ := templatesPage.TemplateCount.Text()
-					templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
-
-					gomega.Eventually(templateCount).Should(gomega.Equal(totalTemplateCount), "The template header count should be equal to templates created")
 					gomega.Eventually(tileCount).Should(gomega.Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
@@ -296,16 +282,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				ginkgo.By("And wait for Templates page to be fully rendered", func() {
-
 					gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
-
 					gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-
-					count, _ := templatesPage.TemplateCount.Text()
-					templateCount, _ := strconv.Atoi(count)
 					tileCount, _ := templatesPage.TemplateTiles.Count()
-
-					gomega.Eventually(templateCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The template header count should be equal to templates created")
 					gomega.Eventually(tileCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template tiles rendered should be equal to number of templates created")
 				})
 
@@ -356,11 +335,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
-				ginkgo.By("Then I should see toast with missing required parameters", func() {
-					errorBar := pages.GetGitOps(webDriver).ErrorBar
+				ginkgo.By("Then missing required parameters should get focus when previewing PR", func() {
 					gomega.Eventually(createPage.PreviewPR.Click).Should(gomega.Succeed())
-					gomega.Eventually(errorBar.Text).Should(gomega.MatchRegexp(`error rendering template eks-fargate-template-0, missing required parameter: AWS_REGION`))
-					gomega.Eventually(errorBar.Click).Should(gomega.HaveOccurred(), "Failed dissmiss error toast")
+					gomega.Eventually(createPage.GetTemplateParameter(webDriver, "AWS_REGION").Focused).Should(matchers.BeFound(), "Missing required parameter 'AWS_REGION' failed to get focus")
 				})
 
 				parameters = []TemplateField{
@@ -487,41 +464,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
-				//Pull request values
-				prBranch := "ui-feature-capd"
-				prTitle := "My first pull request"
-				prCommit := "First capd capi template"
+				pullRequest := PullRequest{
+					Branch:  "ui-feature-capd",
+					Title:   "My first pull request",
+					Message: "First capd capi template",
+				}
 
-				ginkgo.By("And set GitOps values for pull request", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
-
-					pages.ScrollWindow(webDriver, 0, 4000)
-
-					pages.ClearFieldValue(gitops.BranchName)
-					gomega.Expect(gitops.BranchName.SendKeys(prBranch)).To(gomega.Succeed())
-					pages.ClearFieldValue(gitops.PullRequestTile)
-					gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
-					pages.ClearFieldValue(gitops.CommitMessage)
-					gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
-
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
-					if pages.ElementExist(gitops.ErrorBar) {
-						gomega.Expect(gitops.ErrorBar.Click()).To(gomega.Succeed())
-					}
-
-					gomega.Eventually(gitops.CreatePR.Click).Should(gomega.Succeed())
-				})
-
-				var prUrl string
-				gitops := pages.GetGitOps(webDriver)
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-					prUrl, _ = gitops.PRLinkBar.Attribute("href")
-				})
-
+				prUrl := createGitopsPR(pullRequest)
 				var createPRUrl string
+
 				ginkgo.By("And I should veriyfy the pull request in the cluster config repository", func() {
 					createPRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					gomega.Expect(createPRUrl).Should(gomega.Equal(prUrl))
@@ -933,7 +884,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
 				})
 
 				ginkgo.By("And User should choose a template", func() {
@@ -1087,20 +1038,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Title:   "CAPD pull request",
 					Message: "CAPD capi template",
 				}
-				createGitopsPR(pullRequest)
-
-				clustersPage := pages.GetClustersPage(webDriver)
-
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-				})
+				_ = createGitopsPR(pullRequest)
 
 				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
+				clustersPage := pages.GetClustersPage(webDriver)
 				ginkgo.By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 					gomega.Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(matchers.MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")
@@ -1151,9 +1096,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By(fmt.Sprintf("And filter capi cluster '%s' application", clusterName), func() {
 					totalAppCount := existingAppCount + 8 // flux-system, clusters-bases-kustomization, metallb, cert-manager, policy-agent, policy-library, postgres, podinfo
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 
 					filterID := "clusterName: " + clusterNamespace + `/` + clusterName
 					searchPage := pages.GetSearchPage(webDriver)
