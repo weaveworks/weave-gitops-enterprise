@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { GithubDeviceAuthModal } from '..';
 import { GithubAuthProvider } from '../../../contexts/GithubAuth';
 import {
@@ -7,10 +7,28 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 
+Object.assign(navigator, {
+  clipboard: {
+    writeText: () => {},
+  },
+});
+
 describe('Github Authenticate', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: ApplicationsClientMock;
   beforeEach(() => {
+    let clipboardContents = '';
+
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: (text: string) => {
+          clipboardContents = text;
+          return Promise.resolve(text);
+        },
+        readText: () => Promise.resolve(clipboardContents),
+      },
+    });
+
     api = new ApplicationsClientMock();
     wrap = withContext([...defaultContexts(), [GithubAuthProvider, { api }]]);
   });
@@ -38,5 +56,11 @@ describe('Github Authenticate', () => {
 
     const ghCode = screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);
+    await act(async () => {
+      fireEvent.click(ghCode as Element);
+      await navigator.clipboard.readText().then(code => {
+        expect(ghCode.textContent).toEqual(code);
+      });
+    });
   });
 });
