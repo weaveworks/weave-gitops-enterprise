@@ -41,13 +41,10 @@ export const getFormattedCostEstimate = (
     currency: 'USD',
   });
   if (costEstimate) {
-    const { currency, amount, range } = costEstimate;
-    const estimate =
-      amount !== undefined
-        ? `${costFormatter.format(amount)} ${currency}`
-        : `${costFormatter.format(range?.low || 0)} - ${costFormatter.format(
-            range?.high || 0,
-          )} ${currency}`;
+    const { currency, range } = costEstimate;
+    const estimate = `${costFormatter.format(
+      range?.low || 0,
+    )} - ${costFormatter.format(range?.high || 0)} ${currency}`;
     return estimate;
   } else return 'N/A';
 };
