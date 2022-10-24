@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"context"
 	"os"
 
 	"github.com/fluxcd/pkg/runtime/events"
@@ -68,7 +69,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 	}, nil
 }
 
-func (w *Watcher) StartWatcher(log logr.Logger) error {
+func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 	ctrl.SetLogger(log.WithName("helm-watcher"))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
@@ -116,7 +117,7 @@ func (w *Watcher) StartWatcher(log logr.Logger) error {
 
 	ctrl.Log.Info("starting manager")
 
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := mgr.Start(ctx); err != nil {
 		ctrl.Log.Error(err, "problem running manager")
 		return err
 	}

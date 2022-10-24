@@ -1,25 +1,25 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
-import {
-  GitopsClusterEnriched,
-  ListProfilesResponse,
-  Profile,
-  ProfilesIndex,
-  TemplateEnriched,
-  UpdatedProfile,
-} from '../../types/custom';
-import { request } from '../../utils/request';
-import { Profiles } from './index';
-import useNotifications from './../Notifications';
-import { useQuery } from 'react-query';
-import { Template } from '../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
-import { maybeFromBase64 } from '../../utils/base64';
+import { FC, useContext, useMemo, useState } from 'react';
+import { useQuery } from 'react-query';
+import {
+  ListChartsForRepositoryResponse,
+  RepositoryChart,
+  Template,
+} from '../../cluster-services/cluster_services.pb';
 import {
   getCreateRequestAnnotation,
   maybeParseJSON,
 } from '../../components/Clusters/Form/utils';
-
-const profilesUrl = '/v1/profiles';
+import {
+  GitopsClusterEnriched,
+  ProfilesIndex,
+  TemplateEnriched,
+  UpdatedProfile,
+} from '../../types/custom';
+import { maybeFromBase64 } from '../../utils/base64';
+import { EnterpriseClientContext } from '../EnterpriseClient';
+import useNotifications from './../Notifications';
+import { Profiles } from './index';
 
 const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
   return profiles.find(p => p.name === name)?.layer;
@@ -50,10 +50,10 @@ const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
   return defaultProfiles;
 };
 
-const toUpdatedProfiles = (profiles?: Profile[]): UpdatedProfile[] => {
+const toUpdatedProfiles = (profiles?: RepositoryChart[]): UpdatedProfile[] => {
   const accumulator: UpdatedProfile[] = [];
   profiles?.flatMap(profile =>
-    profile.availableVersions.forEach(version => {
+    profile.versions?.forEach(version => {
       const profileName = accumulator.find(p => p.name === profile.name);
       const value = {
         version,
@@ -64,7 +64,7 @@ const toUpdatedProfiles = (profiles?: Profile[]): UpdatedProfile[] => {
         profileName.values.push(value);
       } else {
         accumulator.push({
-          name: profile.name,
+          name: profile.name!,
           values: [value],
           required: false,
           layer: profile.layer,
@@ -155,14 +155,11 @@ const setVersionAndValuesFromCluster = (
 };
 
 const mergeClusterAndTemplate = (
-  data: ListProfilesResponse | undefined,
+  data: ListChartsForRepositoryResponse | undefined,
   template: TemplateEnriched | undefined,
   cluster: GitopsClusterEnriched | undefined,
 ) => {
-  if (data?.code === 2) {
-    return [];
-  }
-  let profiles = toUpdatedProfiles(data?.profiles);
+  let profiles = toUpdatedProfiles(data?.charts);
   if (template) {
     profiles = setVersionAndValuesFromTemplate(profiles, template);
   }
@@ -173,46 +170,40 @@ const mergeClusterAndTemplate = (
 };
 
 const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
-  const [loading, setLoading] = useState<boolean>(true);
   const { setNotifications } = useNotifications();
   const [helmRepo, setHelmRepo] = useState<{
     name: string;
     namespace: string;
-  }>({ name: '', namespace: '' });
+    clusterName: string;
+    clusterNamespace: string;
+  }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
 
-  const getProfileYaml = useCallback(
-    (name: string, version: string) => {
-      const profilesYamlUrl = `${profilesUrl}/${name}/${version}/values`;
-      setLoading(true);
-      return request(
-        'GET',
-        helmRepo?.name !== '' && helmRepo?.name !== ''
-          ? profilesYamlUrl +
-              `?helmRepoName=${helmRepo?.name}&helmRepoNamespace=${helmRepo?.namespace}`
-          : profilesYamlUrl,
-        {
-          headers: {
-            Accept: 'application/octet-stream',
-          },
-        },
-      ).finally(() => setLoading(false));
-    },
-    [helmRepo.name, helmRepo.namespace],
-  );
+  const { api } = useContext(EnterpriseClientContext);
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
 
-  const { isLoading, data } = useQuery<ListProfilesResponse, Error>(
-    ['profiles', helmRepo?.name, helmRepo?.namespace],
+  const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
+    [
+      'profiles',
+      helmRepo.name,
+      helmRepo.namespace,
+      helmRepo.clusterName,
+      helmRepo.clusterNamespace,
+    ],
     () =>
-      request(
-        'GET',
-        helmRepo?.name !== '' && helmRepo?.name !== ''
-          ? profilesUrl +
-              `?helmRepoName=${helmRepo?.name}&helmRepoNamespace=${helmRepo?.namespace}`
-          : profilesUrl,
-      ),
+      api.ListChartsForRepository({
+        repository: {
+          name: helmRepo.name || 'weaveworks-charts',
+          namespace: helmRepo.namespace || 'flux-system',
+          cluster: helmRepo.clusterName
+            ? {
+                name: helmRepo.clusterName,
+                namespace: helmRepo.clusterNamespace,
+              }
+            : { name: 'management' },
+        },
+      }),
     {
       onError,
     },
@@ -226,12 +217,10 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
   return (
     <Profiles.Provider
       value={{
-        loading,
         isLoading,
         helmRepo,
         setHelmRepo,
         profiles,
-        getProfileYaml,
       }}
     >
       {children}
