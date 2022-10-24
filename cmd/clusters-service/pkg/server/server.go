@@ -67,11 +67,6 @@ type ServerOpts struct {
 	ChartsCache               helm.ChartsCacheReader
 	ValuesFetcher             helm.ValuesFetcher
 	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
-	RestConfig                *rest.Config
-	ChartJobs                 *helm.Jobs
-	ChartsCache               chartsCache
-	ValuesFetcher             helm.ValuesFetcher
-	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Estimator                 estimation.Estimator
 }
 

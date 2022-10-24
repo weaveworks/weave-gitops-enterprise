@@ -21,7 +21,7 @@ kind: AWSCluster
 metadata:
   name: "test-cluster"
 spec:
-  region: "us-east-1"
+  region: "us-iso-east-1"
   sshKeyName: "test-key"
 ---
 kind: KubeadmControlPlane

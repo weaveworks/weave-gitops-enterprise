@@ -3,6 +3,7 @@ package estimation
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -160,12 +161,15 @@ func (e *AWSClusterEstimator) priceRangeFromFilters(ctx context.Context, instanc
 	})
 	prices, err := e.Pricer.ListPrices(ctx, "AmazonEC2", e.Currency, filters)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error getting prices for estimation: %w", err)
+		return invalidPrice, invalidPrice, fmt.Errorf("error getting prices for estimation: %w", err)
 	}
 	totals := []float32{}
 	for _, v := range prices {
 		monthlyTotal := float32(instanceCount) * v * MonthlyHours
 		totals = append(totals, monthlyTotal)
+	}
+	if len(totals) == 0 {
+		return invalidPrice, invalidPrice, fmt.Errorf("no price data returned for instanceType %s in region %s", instanceType, regionCode)
 	}
 	min, max := minMax(totals)
 
@@ -190,6 +194,10 @@ func parseObjectRef(u *unstructured.Unstructured, elems ...string) (*objectRef, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get infrastructureRef from %s %q: %w", u.GetKind(), u.GetName(), err)
 	}
+	if elemMap == nil {
+		return nil, fmt.Errorf("missing reference: %s", strings.Join(elems, "."))
+	}
+
 	groupVersion, err := schema.ParseGroupVersion(elemMap["apiVersion"])
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse infrastructureRef from %s %q: %w", u.GetKind(), u.GetName(), err)
