@@ -6,10 +6,11 @@ import (
 	"os"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const (
@@ -38,11 +39,11 @@ func fakeEnvLookupExists(key string) (string, bool) {
 var _ = Describe("Get git provider", func() {
 	var client gitproviders.Client
 	var repoUrl gitproviders.RepoURL
-	var fakeLogger *loggerfakes.FakeLogger
+	var fakeLogger logger.Logger
 
 	Context("Invalid git provider name", func() {
 		It("invalid token key returns an error", func() {
-			fakeLogger = &loggerfakes.FakeLogger{}
+			fakeLogger = logger.From(logr.Discard())
 			client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeLogger)
 			repoUrl, _ = gitproviders.NewRepoURL("ssh://git@some-bucket.com/weaveworks/weave-gitops.git")
 
@@ -57,7 +58,7 @@ var _ = Describe("Get git provider", func() {
 	Describe("token exists in env variable", func() {
 		Describe("github token", func() {
 			BeforeEach(func() {
-				fakeLogger = &loggerfakes.FakeLogger{}
+				fakeLogger = logger.From(logr.Discard())
 				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeLogger)
 				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@github.com/weaveworks/weave-gitops.git")
 			})
@@ -75,13 +76,12 @@ var _ = Describe("Get git provider", func() {
 				Expect(err).To(BeNil())
 				expectedProvider, _ := gitproviders.New(gitproviders.Config{Provider: repoUrl.Provider(), Token: githubToken}, repoUrl.Owner(), fakeAccountGetterSuccess)
 				Expect(provider).To(Equal(expectedProvider))
-				Expect(fakeLogger.WarningfCallCount()).To(Equal(0), "we should not write out a warning message to the user if a token is set")
 			})
 		})
 
 		Describe("gitlab token", func() {
 			BeforeEach(func() {
-				fakeLogger = &loggerfakes.FakeLogger{}
+				fakeLogger = logger.From(logr.Discard())
 				client = NewGitProviderClient(os.Stdout, fakeEnvLookupExists, fakeLogger)
 				repoUrl, _ = gitproviders.NewRepoURL("ssh://git@gitlab.com/weaveworks/weave-gitops.git")
 			})

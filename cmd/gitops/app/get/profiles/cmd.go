@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/cli-runtime/pkg/printers"
 )
 
