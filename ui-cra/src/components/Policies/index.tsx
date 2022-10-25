@@ -10,7 +10,7 @@ const Policies = () => {
   return (
     <PageTemplate
       documentTitle="Policies"
-      path={[{ label: 'Policies', url: Routes.Policies, count: data?.total }]}
+      path={[{ label: 'Policies', url: Routes.Policies }]}
     >
       <ContentWrapper
         loading={isLoading}

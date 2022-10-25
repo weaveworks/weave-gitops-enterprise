@@ -18,17 +18,18 @@ import (
 )
 
 type clusterCommandFlags struct {
-	DryRun          bool
-	Template        string
-	ParameterValues []string
-	RepositoryURL   string
-	BaseBranch      string
-	HeadBranch      string
-	Title           string
-	Description     string
-	CommitMessage   string
-	Credentials     string
-	Profiles        []string
+	DryRun            bool
+	Template          string
+	TemplateNamespace string
+	ParameterValues   []string
+	RepositoryURL     string
+	BaseBranch        string
+	HeadBranch        string
+	Title             string
+	Description       string
+	CommitMessage     string
+	Credentials       string
+	Profiles          []string
 }
 
 var flags clusterCommandFlags
@@ -60,7 +61,7 @@ gitops add cluster --from-template <template-name> \
 	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
 	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml')")
-	internal.AddTemplateFlags(cmd, &flags.Template, &flags.ParameterValues)
+	internal.AddTemplateFlags(cmd, &flags.Template, &flags.TemplateNamespace, &flags.ParameterValues)
 	internal.AddPRFlags(cmd, &flags.HeadBranch, &flags.BaseBranch, &flags.Description, &flags.CommitMessage, &flags.Title)
 
 	return cmd
@@ -124,18 +125,19 @@ func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*
 		}
 
 		params := templates.CreatePullRequestFromTemplateParams{
-			GitProviderToken: token,
-			TemplateKind:     templates.CAPITemplateKind.String(),
-			TemplateName:     flags.Template,
-			ParameterValues:  vals,
-			RepositoryURL:    flags.RepositoryURL,
-			HeadBranch:       flags.HeadBranch,
-			BaseBranch:       flags.BaseBranch,
-			Title:            flags.Title,
-			Description:      flags.Description,
-			CommitMessage:    flags.CommitMessage,
-			Credentials:      creds,
-			ProfileValues:    profilesValues,
+			GitProviderToken:  token,
+			TemplateKind:      templates.CAPITemplateKind.String(),
+			TemplateName:      flags.Template,
+			TemplateNamespace: flags.TemplateNamespace,
+			ParameterValues:   vals,
+			RepositoryURL:     flags.RepositoryURL,
+			HeadBranch:        flags.HeadBranch,
+			BaseBranch:        flags.BaseBranch,
+			Title:             flags.Title,
+			Description:       flags.Description,
+			CommitMessage:     flags.CommitMessage,
+			Credentials:       creds,
+			ProfileValues:     profilesValues,
 		}
 
 		return templates.CreatePullRequestFromTemplate(params, client, os.Stdout)

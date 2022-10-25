@@ -8,7 +8,6 @@ import (
 
 type ViolationsPage struct {
 	ViolationHeader *agouti.Selection
-	ViolationCount  *agouti.Selection
 	ViolationList   *agouti.Selection
 }
 
@@ -56,7 +55,6 @@ func (v ViolationsPage) CountViolations() int {
 func GetViolationsPage(webDriver *agouti.Page) *ViolationsPage {
 	return &ViolationsPage{
 		ViolationHeader: webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
-		ViolationCount:  webDriver.First(`.section-header-count`),
 		ViolationList:   webDriver.First(`table tbody`),
 	}
 }
@@ -69,8 +67,8 @@ func GetViolationDetailPage(webDriver *agouti.Page) *ViolationDetailPage {
 		Severity:         webDriver.FindByXPath(`//div[text()="Severity"]/following-sibling::*[1]`),
 		Category:         webDriver.FindByXPath(`//div[text()="Category"]/following-sibling::*[1]`),
 		Application:      webDriver.FindByXPath(`//div[text()="Application"]/following-sibling::*[1]`),
-		OccurrencesCount: webDriver.FindByXPath(`//div[text()="Occurences"]/span`),
-		Occurrences:      webDriver.AllByXPath(`//div[text()="Occurences"]/following-sibling::*[1]/li`),
+		OccurrencesCount: webDriver.FindByXPath(`//div[text()="Occurrences"]/span`),
+		Occurrences:      webDriver.AllByXPath(`//div[text()="Occurrences"]/following-sibling::*[1]/li`),
 		Description:      webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
 		HowToSolve:       webDriver.FindByXPath(`//div[text()="How to solve:"]/following-sibling::*[1]`),
 		ViolatingEntity:  webDriver.FindByXPath(`//div[text()="Violating Entity:"]/following-sibling::*[1]`),

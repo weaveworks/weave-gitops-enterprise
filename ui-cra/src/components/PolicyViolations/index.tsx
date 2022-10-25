@@ -13,7 +13,6 @@ const PoliciesViolations = () => {
         { label: 'Clusters', url: Routes.Clusters },
         {
           label: 'Violation Log',
-          count: data?.total,
         },
       ]}
     >

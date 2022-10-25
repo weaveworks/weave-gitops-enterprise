@@ -9,7 +9,6 @@ import (
 // Header webDriver elements
 type TemplatesPage struct {
 	TemplateHeader        *agouti.Selection
-	TemplateCount         *agouti.Selection
 	TemplateTiles         *agouti.MultiSelection
 	TemplatesList         *agouti.MultiSelection
 	TemplateProvider      *agouti.Selection
@@ -21,7 +20,6 @@ type TemplatesPage struct {
 func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
 		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/templates"]`),
-		TemplateCount:         webDriver.FindByXPath(`//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div`),
 		TemplateTiles:         webDriver.All(`[data-template-name]`),
 		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
@@ -74,9 +72,9 @@ func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName strin
 		if count, _ := tileRow.Count(); count == 1 {
 			return &TemplateRecord{
 				Name:             templateName,
-				Provider:         tileRow.FindByXPath(`td[3]`),
-				Description:      tileRow.FindByXPath(`td[4]`),
-				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
+				Provider:         tileRow.FindByXPath(`td[4]`),
+				Description:      tileRow.FindByXPath(`td[5]`),
+				CreateTemplate:   tileRow.FindByXPath(`td[6]//button[@id="create-cluster"]`),
 				ErrorHeader:      tileRow.Find(`.template-error-header`),
 				ErrorDescription: tileRow.Find(`.template-error-description`),
 			}

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
@@ -24,13 +25,13 @@ var _ = Describe("Add", func() {
 	var (
 		gitProviders *gitprovidersfakes.FakeGitProvider
 		profilesSvc  *profiles.ProfilesSvc
-		fakeLogger   *loggerfakes.FakeLogger
+		fakeLogger   logger.Logger
 		fakePR       *fakegitprovider.PullRequest
 	)
 
 	BeforeEach(func() {
 		gitProviders = &gitprovidersfakes.FakeGitProvider{}
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(fakeLogger)
 

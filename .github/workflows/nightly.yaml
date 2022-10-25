@@ -70,7 +70,7 @@ jobs:
       WGE_DEX_CLI_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLI_CLIENT_SECRET }}
       WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      WGE_GITHUB_ORG: wge-org-test
+      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
@@ -84,7 +84,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "-ginkgo.label-filter='!(upgrade, capd, kind-gitops-cluster, leaf-application, leaf-policy, leaf-violation)'"
+      label-filter: "-ginkgo.label-filter='!(upgrade, capd, kind-gitops-cluster, tenant, leaf-application, leaf-policy, leaf-violation)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab

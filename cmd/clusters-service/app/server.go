@@ -36,6 +36,9 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -53,9 +56,13 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -63,18 +70,18 @@ import (
 	pd "github.com/weaveworks/progressive-delivery/pkg/server"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
+	k8scache "k8s.io/client-go/tools/cache"
 )
 
 const (
@@ -82,6 +89,9 @@ const (
 
 	// Allowed login requests per second
 	loginRequestRateLimit = 20
+
+	// resync for informers to guarantee that no event was missed
+	sharedFactoryResync = 20 * time.Minute
 )
 
 var (
@@ -296,6 +306,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	if err != nil {
 		return err
 	}
+	kubernetesClientSet, err := kubernetes.NewForConfig(kubeClientConfig)
+	if err != nil {
+		return err
+	}
 	kubeClient, err := client.New(kubeClientConfig, client.Options{Scheme: scheme})
 	if err != nil {
 		return err
@@ -326,8 +340,33 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("failed to start the watcher: %w", err)
 	}
 
+	controllerContext := ctrl.SetupSignalHandler()
+
 	go func() {
-		if err := profileWatcher.StartWatcher(log); err != nil {
+		if err := profileWatcher.StartWatcher(controllerContext, log); err != nil {
+			log.Error(err, "failed to start profile watcher")
+			os.Exit(1)
+		}
+	}()
+
+	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation)
+	if err != nil {
+		return fmt.Errorf("could not create charts cache: %w", err)
+	}
+
+	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
+		ClientConfig:  kubeClientConfig,
+		ClusterRef:    types.NamespacedName{Name: "management"},
+		Cache:         chartsCache,
+		ValuesFetcher: helm.NewValuesFetcher(),
+		KubeClient:    kubeClient,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to start the multiwatcher: %w", err)
+	}
+
+	go func() {
+		if err := multiWatcher.StartWatcher(controllerContext, log); err != nil {
 			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}
@@ -357,6 +396,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
+		pipelinev1alpha1.AddToScheme,
 	)
 
 	rest, clusterName, err := kube.RestConfig()
@@ -390,7 +430,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clustersManagerScheme,
-		clustersmngr.NewClustersClientsPool,
+		clustersmngr.ClientFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clustersManager.Start(ctx)
@@ -405,16 +445,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
-		WithClustersLibrary(&clusters.CRDLibrary{
-			Log:          log,
-			ClientGetter: clientGetter,
-			Namespace:    p.CAPIClustersNamespace,
-		}),
-		WithTemplateLibrary(&templates.CRDLibrary{
-			Log:           log,
-			ClientGetter:  clientGetter,
-			CAPINamespace: p.CAPITemplatesNamespace,
-		}),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(core_core.NewCoreConfig(
 			log, rest, clusterName, clustersManager,
@@ -440,6 +470,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithRuntimeNamespace(p.RuntimeNamespace),
 		WithDevMode(p.DevMode),
 		WithClustersManager(clustersManager),
+		WithChartsCache(chartsCache),
+		WithKubernetesClientSet(kubernetesClientSet),
 	)
 }
 
@@ -452,11 +484,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if args.KubernetesClient == nil {
 		return errors.New("kubernetes client is not set")
 	}
+	if args.KubernetesClientSet == nil {
+		return errors.New("kubernetes client set is not set")
+	}
 	if args.DiscoveryClient == nil {
 		return errors.New("kubernetes discovery client is not set")
-	}
-	if args.TemplateLibrary == nil {
-		return errors.New("template library is not set")
 	}
 	if args.GitProvider == nil {
 		return errors.New("git provider is not set")
@@ -477,12 +509,17 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
+	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
+	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
+	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg)
+	if args.ManagementFetcher == nil {
+		args.ManagementFetcher = mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
+	}
+
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		server.ServerOpts{
 			Logger:                    args.Log,
-			TemplatesLibrary:          args.TemplateLibrary,
-			ClustersLibrary:           args.ClustersLibrary,
 			ClustersManager:           args.CoreServerConfig.ClustersManager,
 			GitProvider:               args.GitProvider,
 			ClientGetter:              args.ClientGetter,
@@ -491,6 +528,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
 			CAPIEnabled:               args.CAPIEnabled,
+			ChartJobs:                 helm.NewJobs(),
+			ChartsCache:               args.ChartsCache,
+			ValuesFetcher:             helm.NewValuesFetcher(),
+			RestConfig:                args.CoreServerConfig.RestCfg,
+			ManagementFetcher:         args.ManagementFetcher,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
@@ -530,7 +572,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
-			ClustersManager: args.ClustersManager,
+			ClustersManager:   args.ClustersManager,
+			ManagementFetcher: args.ManagementFetcher,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
@@ -635,9 +678,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		Handler: mux,
 	}
 
+	factoryStopCh := make(chan struct{})
+	factory.Start(factoryStopCh)
+	k8scache.WaitForCacheSync(factoryStopCh,
+		namespacesCache.CacheSync(),
+	)
+
 	go func() {
 		<-ctx.Done()
 		args.Log.Info("Shutting down the http gateway server")
+		close(factoryStopCh)
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}

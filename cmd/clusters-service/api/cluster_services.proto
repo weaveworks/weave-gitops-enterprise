@@ -14,11 +14,16 @@ service ClustersService {
       get : "/v1/templates"
     };
   }
+
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}"
     };
   }
+
+  /*
+   * Get the Values.yaml for a template if one exists.
+   */
   rpc ListTemplateParams(ListTemplateParamsRequest)
       returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
@@ -75,7 +80,6 @@ service ClustersService {
       body : "*"
     };
   }
-
 
   rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
       returns (DeleteClustersPullRequestResponse) {
@@ -155,6 +159,34 @@ service ClustersService {
       get : "/v1/enterprise/events"
     };
   }
+
+  // ListChartsForRepository lists the discovered Helm charts in the provided
+  // repository.
+  rpc ListChartsForRepository(ListChartsForRepositoryRequest) returns
+    (ListChartsForRepositoryResponse) {
+     option (google.api.http) = {
+        get : "/v1/charts/list",
+      };
+    }
+
+  // GetValuesForChart gets the default Values.yaml for the provided Chart
+  // reference.
+  rpc GetValuesForChart(GetValuesForChartRequest) returns
+    (GetValuesForChartResponse) {
+     option (google.api.http) = {
+        post : "/v1/charts/values"
+        body : "*"
+      };
+    }
+
+  // GetChartsJob gets the default Values.yaml for the provided Chart
+  // reference.
+  rpc GetChartsJob(GetChartsJobRequest) returns
+    (GetChartsJobResponse) {
+     option (google.api.http) = {
+        get : "/v1/charts/jobs/{job_id}",
+      };
+    }
 }
 
 message ListTemplatesRequest {
@@ -176,17 +208,20 @@ message ListError {
 message ListTemplatesResponse {
   repeated Template templates = 1;
   int32 total = 2;
+  repeated ListError errors = 4;
 }
 
 message GetTemplateRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message GetTemplateResponse { Template template = 1; }
 
 message ListTemplateParamsRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
@@ -196,6 +231,7 @@ message ListTemplateParamsResponse {
 message ListTemplateProfilesRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message ListTemplateProfilesResponse {
   repeated TemplateProfile profiles = 1;
@@ -210,6 +246,7 @@ message RenderTemplateRequest {
   string cluster_namespace = 5;
   repeated ProfileValues profiles = 6;
   repeated Kustomization kustomizations = 7;
+  string template_namespace = 8;
 }
 
 message CommitFile {
@@ -255,6 +292,7 @@ message ListGitopsClustersResponse {
   repeated GitopsCluster gitops_clusters = 1;
   int32 total = 2;
   string next_page_token = 3;
+  repeated ListError errors = 4;
 }
 
 message GetPolicyRequest {
@@ -344,6 +382,7 @@ message CreatePullRequestRequest {
   string repository_api_url = 11;
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
+  string template_namespace = 14;
 }
 
 message CreatePullRequestResponse {
@@ -370,6 +409,7 @@ message CreateTfControllerPullRequestRequest {
   string commit_message = 8;
   // The repo api url.
   string repository_api_url = 11;
+  string template_namespace = 12;
 }
 message CreateTfControllerPullRequestResponse {
   // The url of the new pull request.
@@ -489,6 +529,7 @@ message Template {
   map<string, string> annotations = 7;
   string template_kind = 8;
   map<string, string> labels = 9;
+  string namespace = 10;
 }
 
 message Parameter {
@@ -699,4 +740,47 @@ message ListEventsRequest {
 
 message ListEventsResponse {
   repeated Event events = 1;
+}
+
+message RepositoryRef {
+  ClusterNamespacedName cluster = 1;
+  string name = 2;
+  string namespace = 3;
+  string kind = 4;
+}
+
+message ListChartsForRepositoryRequest {
+  RepositoryRef repository = 1;
+  string kind = 2;
+}
+
+message RepositoryChart {
+  string name = 1;
+  // This is the available versions in reverse semver order.
+  repeated string versions = 2;
+  string layer = 3;
+}
+
+message ListChartsForRepositoryResponse {
+  repeated RepositoryChart charts = 1;
+}
+
+message GetValuesForChartRequest {
+  RepositoryRef repository = 1;
+  string name = 2;
+  string version = 3;
+}
+
+message GetValuesForChartResponse {
+  string job_id = 1;
+}
+
+message GetChartsJobRequest {
+  string job_id = 1;
+}
+
+message GetChartsJobResponse {
+  // This is the base64 encoded version of the raw values data.
+  string values = 1;
+  string error = 2;
 }

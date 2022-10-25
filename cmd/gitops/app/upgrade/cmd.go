@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/internal"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/upgrade"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 )
@@ -65,7 +65,7 @@ func upgradeCmdRunE() func(*cobra.Command, []string) error {
 
 		log := logger.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
-		factory := services.NewFactory(fluxClient, logger.Logr())
+		factory := services.NewFactory(fluxClient, log.Logger)
 
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
