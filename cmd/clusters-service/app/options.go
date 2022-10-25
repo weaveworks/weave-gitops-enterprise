@@ -6,6 +6,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -44,6 +45,7 @@ type Options struct {
 	NoTLS                        bool
 	DevMode                      bool
 	ClustersManager              clustersmngr.ClustersManager
+	ChartsCache                  *helm.HelmChartIndexer
 	KubernetesClientSet          kubernetes.Interface
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
 }
@@ -215,6 +217,13 @@ func WithDevMode(devMode bool) Option {
 func WithClustersManager(factory clustersmngr.ClustersManager) Option {
 	return func(o *Options) {
 		o.ClustersManager = factory
+	}
+}
+
+// WithClustersCache defines the clusters cache that will be use for cross-cluster queries.
+func WithChartsCache(chartCache *helm.HelmChartIndexer) Option {
+	return func(o *Options) {
+		o.ChartsCache = chartCache
 	}
 }
 

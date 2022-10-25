@@ -7,28 +7,40 @@ import (
 	"net/http"
 	"sort"
 
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
 
 // ListChartsForRepository returns a list of charts for a given repository.
-func (s *server) ListChartsForRepository(ctx context.Context, request *protos.ListChartsForRepositoryRequest) (*protos.ListChartsForRepositoryResponse, error) {
+func (s *server) ListChartsForRepository(ctx context.Context, req *protos.ListChartsForRepositoryRequest) (*protos.ListChartsForRepositoryResponse, error) {
+	if req.Repository == nil || req.Repository.Cluster == nil {
+		return nil, fmt.Errorf("repository or cluster is nil")
+	}
+
 	clusterRef := types.NamespacedName{
-		Name:      request.Repository.Cluster.Name,
-		Namespace: request.Repository.Cluster.Namespace,
+		Name:      req.Repository.Cluster.Name,
+		Namespace: req.Repository.Cluster.Namespace,
 	}
 
 	repoRef := helm.ObjectReference{
-		Kind:      request.Repository.Kind,
-		Name:      request.Repository.Name,
-		Namespace: request.Repository.Namespace,
+		Kind:      req.Repository.Kind,
+		Name:      req.Repository.Name,
+		Namespace: req.Repository.Namespace,
 	}
 
-	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, clusterRef, repoRef, request.Kind)
+	err := s.checkUserCanAccessHelmRepo(ctx, clusterRef, repoRef)
+	if err != nil {
+		return nil, fmt.Errorf("error checking user can access helm repo: %w", err)
+	}
+
+	charts, err := s.chartsCache.ListChartsByRepositoryAndCluster(ctx, clusterRef, repoRef, req.Kind)
 	if err != nil {
 		// FIXME: does this work?
 		if err.Error() == "no charts found" {
@@ -38,8 +50,10 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 	}
 
 	chartsWithVersions := map[string][]string{}
+	chartsLayers := map[string]string{}
 	for _, chart := range charts {
 		chartsWithVersions[chart.Name] = append(chartsWithVersions[chart.Name], chart.Version)
+		chartsLayers[chart.Name] = chart.Layer
 	}
 
 	responseCharts := []*protos.RepositoryChart{}
@@ -51,6 +65,7 @@ func (s *server) ListChartsForRepository(ctx context.Context, request *protos.Li
 
 		responseCharts = append(responseCharts, &protos.RepositoryChart{
 			Name:     name,
+			Layer:    chartsLayers[name],
 			Versions: sortedVersions,
 		})
 	}
@@ -84,7 +99,21 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 		Version: req.Version,
 	}
 
-	// FIXME: should be looking up the actual helm repository here to check RBAC
+	err := s.checkUserCanAccessHelmRepo(ctx, clusterRef, repoRef)
+	if err != nil {
+		return nil, fmt.Errorf("error checking user can access helm repo: %w", err)
+	}
+
+	found, err := s.chartsCache.IsKnownChart(ctx, clusterRef, repoRef, chart)
+	if err != nil {
+		return nil, fmt.Errorf("error checking if chart is known: %w", err)
+	}
+	if !found {
+		return nil, &grpcruntime.HTTPStatusError{
+			Err:        errors.New("chart version not found"),
+			HTTPStatus: http.StatusNotFound,
+		}
+	}
 
 	jobId := s.chartJobs.New()
 
@@ -105,12 +134,31 @@ func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobReque
 		}
 	}
 
+	// FIXME: avoid users from getting job results they don't have access to.
+	// Save the original HelmRepo reference here and try and grab it?
+
 	errString := ""
 	if result.Error != nil {
 		errString = result.Error.Error()
 	}
 
 	return &protos.GetChartsJobResponse{Values: result.Result, Error: errString}, nil
+}
+
+func (s *server) checkUserCanAccessHelmRepo(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference) error {
+	client, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), fetcher.ToClusterName(clusterRef))
+	if err != nil {
+		return fmt.Errorf("error getting impersonated client for cluster: %w", err)
+	}
+
+	// Get the helmRepo from the cluster
+	hr := sourcev1.HelmRepository{}
+	err = client.Get(ctx, fetcher.ToClusterName(clusterRef), types.NamespacedName{Name: repoRef.Name, Namespace: repoRef.Namespace}, &hr)
+	if err != nil {
+		return fmt.Errorf("error getting helm repository: %w", err)
+	}
+
+	return nil
 }
 
 func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectReference, clusterRef types.NamespacedName, chart helm.Chart) (string, error) {

@@ -22,7 +22,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
-import GitAuth from './Form/Partials/GitAuth';
+import GitAuth from '../GithubAuth/GitAuth';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';

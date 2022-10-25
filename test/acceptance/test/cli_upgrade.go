@@ -322,31 +322,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
-				//Pull request values
-				prBranch = "feature-capd"
-				prTitle := "My first pull request"
-				prCommit := "First capd capi template"
+				pullRequest := PullRequest{
+					Branch:  "feature-capd",
+					Title:   "My first pull request",
+					Message: "First capd capi template",
+				}
 
-				ginkgo.By("And set GitOps values for pull request", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
-
-					gomega.Expect(gitops.BranchName.SendKeys(prBranch)).To(gomega.Succeed())
-					gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
-					gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
-
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
-					if pages.ElementExist(gitops.SuccessBar) {
-						gomega.Expect(gitops.SuccessBar.Click()).To(gomega.Succeed())
-					}
-					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
-				})
-
-				ginkgo.By("Then I should see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-				})
+				_ = createGitopsPR(pullRequest)
 
 				var createPRUrl string
 				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {

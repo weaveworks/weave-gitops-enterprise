@@ -758,6 +758,7 @@ message RepositoryChart {
   string name = 1;
   // This is the available versions in reverse semver order.
   repeated string versions = 2;
+  string layer = 3;
 }
 
 message ListChartsForRepositoryResponse {

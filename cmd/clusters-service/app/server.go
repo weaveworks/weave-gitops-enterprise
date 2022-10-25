@@ -37,6 +37,8 @@ import (
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -54,11 +56,13 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
@@ -336,8 +340,33 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("failed to start the watcher: %w", err)
 	}
 
+	controllerContext := ctrl.SetupSignalHandler()
+
 	go func() {
-		if err := profileWatcher.StartWatcher(log); err != nil {
+		if err := profileWatcher.StartWatcher(controllerContext, log); err != nil {
+			log.Error(err, "failed to start profile watcher")
+			os.Exit(1)
+		}
+	}()
+
+	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation)
+	if err != nil {
+		return fmt.Errorf("could not create charts cache: %w", err)
+	}
+
+	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
+		ClientConfig:  kubeClientConfig,
+		ClusterRef:    types.NamespacedName{Name: "management"},
+		Cache:         chartsCache,
+		ValuesFetcher: helm.NewValuesFetcher(),
+		KubeClient:    kubeClient,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to start the multiwatcher: %w", err)
+	}
+
+	go func() {
+		if err := multiWatcher.StartWatcher(controllerContext, log); err != nil {
 			log.Error(err, "failed to start profile watcher")
 			os.Exit(1)
 		}
@@ -401,7 +430,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clustersManagerScheme,
-		clustersmngr.NewClustersClientsPool,
+		clustersmngr.ClientFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clustersManager.Start(ctx)
@@ -441,6 +470,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithRuntimeNamespace(p.RuntimeNamespace),
 		WithDevMode(p.DevMode),
 		WithClustersManager(clustersManager),
+		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
 	)
 }
@@ -498,6 +528,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ProfileHelmRepositoryName: args.ProfileHelmRepository,
 			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
 			CAPIEnabled:               args.CAPIEnabled,
+			ChartJobs:                 helm.NewJobs(),
+			ChartsCache:               args.ChartsCache,
+			ValuesFetcher:             helm.NewValuesFetcher(),
+			RestConfig:                args.CoreServerConfig.RestCfg,
 			ManagementFetcher:         args.ManagementFetcher,
 		},
 	)
