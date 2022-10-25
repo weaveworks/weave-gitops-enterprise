@@ -190,10 +190,10 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
     clusterNamespace: string;
   }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
 
+  const { api } = useContext(EnterpriseClientContext);
+
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
-
-  const { api } = useContext(EnterpriseClientContext);
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
