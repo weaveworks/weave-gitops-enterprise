@@ -40,22 +40,19 @@ const useStyles = makeStyles(() =>
     mbSmall: {
       marginBottom: small,
     },
-    mlx: {
-      marginLeft: xxs,
-    },
-    target: {
-      fontSize: theme.fontSizes.large,
-      marginBottom: small,
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      width: `calc(250px - ${large})`,
-    },
     subtitleColor: {
       color: neutral30,
     },
   }),
 );
+const TargetWrapper = styled.div`
+  font-size: ${theme.fontSizes.large};
+  margin-bottom: ${small};
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: calc(250px - ${large});
+`;
 const CardContainer = styled.div`
   background: ${white};
   padding: ${small};
@@ -75,6 +72,15 @@ const ClusterName = styled.div`
 `;
 const TargetNamespace = styled.div`
   font-size: ${theme.fontSizes.medium};
+`;
+const WorkloadWrapper = styled.div`
+  position: relative;
+  .version {
+    margin-left: ${xxs};
+  }
+  .workloadName {
+    margin-bottom: ${small};
+  }
 `;
 const LastAppliedVersion = styled.span`
   color: ${neutral30};
@@ -144,7 +150,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                 {status.map(target =>
                   target?.workloads?.map((workload, wrkIndex) => (
                     <CardContainer key={wrkIndex} role="targeting">
-                      <div className={`${classes.target} workloadTarget`}>
+                      <TargetWrapper className="workloadTarget">
                         {target?.clusterRef?.name && (
                           <>
                             <Title>Cluster</Title>
@@ -158,13 +164,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                         <TargetNamespace className="workload-namespace">
                           {target?.namespace}
                         </TargetNamespace>
-                      </div>
-                      <div
-                        style={{
-                          position: 'relative',
-                        }}
-                      >
-                        <div className={`workloadName ${classes.mbSmall}`}>
+                      </TargetWrapper>
+                      <WorkloadWrapper>
+                        <div className={`workloadName`}>
                           {target?.clusterRef?.namespace ? (
                             <Link
                               to={formatURL('/helm_release/details', {
@@ -188,11 +190,11 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                           className={`${classes.subtitle} ${classes.subtitleColor}`}
                         >
                           <span>Specification:</span>
-                          <span className={` ${classes.mlx} version`}>
+                          <span className={`version`}>
                             {`v${workload?.version}`}
                           </span>
                         </div>
-                      </div>
+                      </WorkloadWrapper>
                     </CardContainer>
                   )),
                 )}
