@@ -26,6 +26,10 @@ Sample:
 
 Look for the green tick next to the last commit on [weave-gitops-enterprise](https://github.com/weaveworks/weave-gitops-enterprise)
 
+### Make sure all new OSS commands are included
+
+There is a bot that automatically creates a PR to update the version of OSS used by WGE on every stable release of OSS. However, if there are any new commands introduced in OSS, these need to be added manually by an engineer. Therefore we need to make sure that the new OSS commands are available from WGE CLI too.
+
 ### Make sure all new features in the latest weave-gitops core release work
 
 In the past we have released WGE without making sure the new features in Weave GitOps core have been integrated.
