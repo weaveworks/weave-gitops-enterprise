@@ -729,15 +729,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				gitopsCluster = connectGitopsCuster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
-				ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
-					pages.NavigateToPage(webDriver, "Clusters")
-					clustersPage := pages.GetClustersPage(webDriver)
-					pages.WaitForPageToLoad(webDriver)
-					clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
-
-					gomega.Eventually(clusterInfo.Status, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText("Ready"))
-				})
-
+				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
 				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
 
 				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
@@ -866,15 +858,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				gitopsCluster = connectGitopsCuster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
-				ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
-					pages.NavigateToPage(webDriver, "Clusters")
-					clustersPage := pages.GetClustersPage(webDriver)
-					pages.WaitForPageToLoad(webDriver)
-					clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
-
-					gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
-				})
-
+				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
 				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
 
 				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
