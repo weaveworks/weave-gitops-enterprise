@@ -1190,7 +1190,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			// Just specify the leaf cluster info to create it
 			leafCluster := ClusterConfig{
 				Type:      "leaf",
-				Name:      "wge-leaf-cluster-test",
+				Name:      "app-violations-leaf-cluster-test",
 				Namespace: "test-system",
 			}
 
@@ -1277,48 +1277,34 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(clusterInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to the '%s'  details page", leafCluster.Name))
 					time.Sleep(POLL_INTERVAL_3SECONDS)
 
-					//gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
-
 					// Navigate back to the clusters page
 					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), "Failed to navigate back to the clusters list")
 
-				})
-
-				ginkgo.By("And add kustomization bases for common resources for leaf cluster", func() {
-					pullGitRepo(repoAbsolutePath)
-					leafClusterPath := path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name)
-					clustersBbasesKustomizationPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "clusters-bases-kustomization.yaml")
-					clustersBbasesKustomizationPathOnGithub := path.Join(repoAbsolutePath, leafClusterPath, "flux-system")
-					clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
-					checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
-
-					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", clustersBbasesKustomizationPath, clustersBbasesKustomizationPathOnGithub)
-					err := runCommandPassThrough("sh", "-c", createCommand)
-					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
-
-					//gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
-
-					// pathErr := func() error {
-					// 	pullGitRepo(repoAbsolutePath)
-					// 	_, err := os.Stat(path.Join(leafClusterPath, "flux-system", "kustomization.yaml"))
-					// 	return err
-
-					// }
-					// gomega.Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", leafCluster.Name))
-
-					// if leafCluster.Type != "capi" {
-					// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
-					// }
-
-					gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
-					gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
-					gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
-					gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
-
-					gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
+					//gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
 
 				})
-				//addKustomizationBases(leafCluster.Type, leafCluster.Name, leafCluster.Namespace)
+
+				// ginkgo.By("And add kustomization bases for common resources for leaf cluster", func() {
+				// 	pullGitRepo(repoAbsolutePath)
+				// 	leafClusterPath := path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name)
+				// 	clustersBbasesKustomizationPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "clusters-bases-kustomization.yaml")
+				// 	clustersBbasesKustomizationPathOnGithub := path.Join(repoAbsolutePath, leafClusterPath, "flux-system")
+				// 	clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
+				// 	checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
+
+				// 	createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", clustersBbasesKustomizationPath, clustersBbasesKustomizationPathOnGithub)
+				// 	err := runCommandPassThrough("sh", "-c", createCommand)
+				// 	gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
+
+				// 	gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
+				// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
+				// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
+				// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
+
+				// 	gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
+
+				// })
+				addKustomizationBases(leafCluster.Type, leafCluster.Name, leafCluster.Namespace)
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' leafCluster is bootstraped)", leafCluster.Name), func() {
 					useClusterContext(leafClusterContext)
