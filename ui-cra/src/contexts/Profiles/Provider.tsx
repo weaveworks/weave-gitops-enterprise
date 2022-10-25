@@ -6,10 +6,7 @@ import {
   RepositoryChart,
   Template,
 } from '../../cluster-services/cluster_services.pb';
-import {
-  getCreateRequestAnnotation,
-  maybeParseJSON,
-} from '../../components/Clusters/Form/utils';
+import { maybeParseJSON } from '../../components/Clusters/Form/utils';
 import {
   GitopsClusterEnriched,
   ProfilesIndex,
