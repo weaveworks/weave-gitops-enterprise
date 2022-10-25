@@ -12,7 +12,7 @@ import {
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
@@ -38,6 +38,10 @@ import {
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import {
+  GetGithubAuthStatusResponse,
+  GetGithubDeviceCodeResponse,
+} from '../contexts/GithubAuth/provider';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
@@ -79,7 +83,24 @@ export const defaultContexts = () => [
     RequestContextProvider,
     { fetch: () => new Promise(accept => accept(mockRes)) },
   ],
-  [QueryClientProvider, { client: new QueryClient() }],
+  [
+    QueryClientProvider,
+    {
+      client: new QueryClient({
+        queryCache: new QueryCache({
+          onError: error => {
+            const err = error as { code: number; message: string };
+            const { pathname, search } = window.location;
+            const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+
+            if (err.code === 401) {
+              window.location.href = `/sign_in?redirect=${redirectUrl}`;
+            }
+          },
+        }),
+      }),
+    },
+  ],
   [
     EnterpriseClientProvider,
     {
@@ -154,7 +175,21 @@ export class CoreClientMock {
     );
   }
 }
+export class ApplicationsClientMock {
+  constructor() {
+    this.GetGithubDeviceCode = this.GetGithubDeviceCode.bind(this);
+    this.GetGithubAuthStatus = this.GetGithubAuthStatus.bind(this);
+  }
+  GetGithubDeviceCodeReturn: GetGithubDeviceCodeResponse = {};
+  GetGithubAuthStatusReturn: GetGithubAuthStatusResponse = {};
+  GetGithubDeviceCode() {
+    return promisify(this.GetGithubDeviceCodeReturn);
+  }
 
+  GetGithubAuthStatus() {
+    return promisify(this.GetGithubAuthStatusReturn);
+  }
+}
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);
@@ -212,9 +247,10 @@ export class PipelinesClientMock implements Pipelines {
   }
   ListPipelinesReturns: ListPipelinesResponse = {};
   GetPipelineReturns: GetPipelineResponse = {};
+  ErrorRef: { code: number; message: string } | undefined;
 
   ListPipelines() {
-    return promisify(this.ListPipelinesReturns);
+    return promisify(this.ListPipelinesReturns, this.ErrorRef);
   }
 
   GetPipeline() {

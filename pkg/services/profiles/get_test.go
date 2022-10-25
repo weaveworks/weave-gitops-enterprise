@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -14,7 +15,7 @@ import (
 
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const getProfilesResp = `{
@@ -54,12 +55,12 @@ var _ = Describe("Get Profile(s)", func() {
 	var (
 		buffer      *gbytes.Buffer
 		profilesSvc *profiles.ProfilesSvc
-		fakeLogger  *loggerfakes.FakeLogger
+		fakeLogger  logger.Logger
 	)
 
 	BeforeEach(func() {
 		buffer = gbytes.NewBuffer()
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 		profilesSvc = profiles.NewService(fakeLogger)
 	})
 

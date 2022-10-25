@@ -2118,6 +2118,9 @@
             "type": "string"
           },
           "description": "This is the available versions in reverse semver order."
+        },
+        "layer": {
+          "type": "string"
         }
       }
     },

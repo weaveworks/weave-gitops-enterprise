@@ -48,12 +48,14 @@ import { validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
+import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
 import GitOps from './Partials/GitOps';
 import Preview from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import { getCreateRequestAnnotation } from './utils';
+import { getFormattedCostEstimate } from '../../../utils/formatters';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -126,9 +128,6 @@ const useStyles = makeStyles(theme =>
       display: 'flex',
       justifyContent: 'flex-end',
       padding: small,
-      button: {
-        width: '200px',
-      },
     },
     previewLoading: {
       padding: base,
@@ -297,7 +296,19 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     null,
   );
   const [loading, setLoading] = useState<boolean>(false);
+  const [costEstimationLoading, setCostEstimationLoading] =
+    useState<boolean>(false);
+  const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+
+  const isCredentialEnabled =
+    annotations?.['templates.weave.works/credentials-enabled'] || 'true';
+  const isProfilesEnabled =
+    annotations?.['templates.weave.works/profiles-enabled'] || 'true';
+  const isKustomizationsEnabled =
+    annotations?.['templates.weave.works/kustomizations-enabled'] || 'true';
+  const isCostEstimationEnabled =
+    annotations?.['templates.weave.works/cost-estimation-enabled'] || 'false';
 
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
@@ -330,6 +341,39 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.name,
     template.namespace,
     template.templateKind,
+    updatedProfiles,
+  ]);
+
+  const handleCostEstimation = useCallback(() => {
+    const { parameterValues } = formData;
+    setCostEstimationLoading(true);
+    return renderTemplate({
+      templateName: template.name,
+      templateNamespace: template.namespace,
+      values: parameterValues,
+      profiles: encodedProfiles(updatedProfiles),
+      credentials: infraCredential || undefined,
+      kustomizations: getKustomizations(formData),
+      templateKind: template.templateKind,
+    })
+      .then(data => {
+        const { costEstimate } = data;
+        setCostEstimate(getFormattedCostEstimate(costEstimate));
+      })
+      .catch(err =>
+        setNotifications([
+          { message: { text: err.message }, variant: 'danger' },
+        ]),
+      )
+      .finally(() => setCostEstimationLoading(false));
+  }, [
+    formData,
+    renderTemplate,
+    infraCredential,
+    setNotifications,
+    template.name,
+    template.templateKind,
+    template.namespace,
     updatedProfiles,
   ]);
 
@@ -403,6 +447,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     }
   }, [resource, formData.parameterValues, setFormData]);
 
+  useEffect(() => {
+    setCostEstimate('00.00 USD');
+  }, [formData.parameterValues]);
+
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -421,13 +469,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <div className="template-title">
                 Template: <span>{template.name}</span>
               </div>
-              <Credentials
-                infraCredential={infraCredential}
-                setInfraCredential={setInfraCredential}
-                isCredentialEnabled={
-                  annotations?.['templates.weave.works/credentials-enabled']
-                }
-              />
+              {isCredentialEnabled === 'true' ? (
+                <Credentials
+                  infraCredential={infraCredential}
+                  setInfraCredential={setInfraCredential}
+                />
+              ) : null}
             </CredentialsWrapper>
             <Divider
               className={
@@ -440,22 +487,20 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setFormData={setFormData}
             />
           </Grid>
-          <Profiles
-            isLoading={profilesIsLoading}
-            updatedProfiles={updatedProfiles}
-            setUpdatedProfiles={setUpdatedProfiles}
-            isProfilesEnabled={
-              annotations?.['templates.weave.works/profiles-enabled']
-            }
-          />
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            <ApplicationsWrapper
-              formData={formData}
-              setFormData={setFormData}
-              isKustomizationsEnabled={
-                annotations?.['templates.weave.works/kustomizations-enabled']
-              }
+          {isProfilesEnabled === 'true' ? (
+            <Profiles
+              isLoading={profilesIsLoading}
+              updatedProfiles={updatedProfiles}
+              setUpdatedProfiles={setUpdatedProfiles}
             />
+          ) : null}
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            {isKustomizationsEnabled === 'true' ? (
+              <ApplicationsWrapper
+                formData={formData}
+                setFormData={setFormData}
+              />
+            ) : null}
             {previewLoading ? (
               <LoadingPage className={classes.previewLoading} />
             ) : (
@@ -475,6 +520,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               PRPreview={PRPreview}
             />
           ) : null}
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            {isCostEstimationEnabled === 'true' ? (
+              <CostEstimation
+                handleCostEstimation={handleCostEstimation}
+                costEstimate={costEstimate}
+                isCostEstimationLoading={costEstimationLoading}
+              />
+            ) : null}
+          </Grid>
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <GitOps
               formData={formData}
@@ -517,7 +571,13 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     previewLoading,
     loading,
     enableCreatePR,
-    annotations,
+    costEstimationLoading,
+    handleCostEstimation,
+    costEstimate,
+    isCredentialEnabled,
+    isCostEstimationEnabled,
+    isKustomizationsEnabled,
+    isProfilesEnabled,
   ]);
 };
 
