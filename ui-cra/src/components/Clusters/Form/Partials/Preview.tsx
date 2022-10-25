@@ -19,18 +19,18 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const DialogWrapper = styled(Dialog)`
-  div[class*='MuiPaper-root']{
+  div[class*='MuiPaper-root'] {
     height: 700px;
   }
   .info {
-    padding:  ${({ theme }) => theme.spacing.medium};
+    padding: ${({ theme }) => theme.spacing.medium};
   }
-  .tabs-container{
-    margin-left:  ${({ theme }) => theme.spacing.large};
+  .tabs-container {
+    margin-left: ${({ theme }) => theme.spacing.large};
   }
   .tab-label {
     color: ${({ theme }) => theme.colors.primary10};
-    font-size: ${({ theme }) => theme.fontSizes.small}
+    font-size: ${({ theme }) => theme.fontSizes.small};
   }
 `;
 interface TabPanelProps {
@@ -75,7 +75,7 @@ const Preview: FC<{
 
   const getContetn = (files: CommitFile[] | undefined) =>
     files?.map(file => file.content).join('\n---\n');
-  
+
   const tabsContent =
     context === 'app'
       ? [
@@ -110,6 +110,14 @@ const Preview: FC<{
     }, ''),
   });
 
+  const downloadFile = () => {
+    const file = new Blob([tabsContent[0].value as BlobPart], { type: 'text/plain' });
+    const element = document.createElement('a');
+    element.href = URL.createObjectURL(file);
+    element.download = '100ideas-' + Date.now() + '.yaml';
+    document.body.appendChild(element); 
+    element.click();
+  };
   return (
     <DialogWrapper
       open={openPreview}
@@ -148,7 +156,7 @@ const Preview: FC<{
           </TabPanel>
         ))}
       </DialogContent>
-      <div className="info">
+      <div className="info" onClick={downloadFile}>
         <span>
           You may edit these as part of the pull request with your git provider.
         </span>
