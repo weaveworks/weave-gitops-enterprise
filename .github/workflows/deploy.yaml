@@ -24,7 +24,7 @@ jobs:
       WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
 
   smoke-tests-github:
-    needs: [build, coverage]
+    needs: [build]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
       runs-on: ubuntu-latest
@@ -53,7 +53,7 @@ jobs:
 
   smoke-test-results:
     if: ${{ always() }}
-    needs: [smoke-tests-github, smoke-tests-gitlab, smoke-tests-gitlab-on-prem]
+    needs: [smoke-tests-github]
     uses: ./.github/workflows/publish-test-results.yaml
     with:
       runs-on: ubuntu-latest
