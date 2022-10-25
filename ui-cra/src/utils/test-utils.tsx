@@ -38,6 +38,10 @@ import {
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import {
+  GetGithubAuthStatusResponse,
+  GetGithubDeviceCodeResponse,
+} from '../contexts/GithubAuth/provider';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
@@ -171,7 +175,21 @@ export class CoreClientMock {
     );
   }
 }
+export class ApplicationsClientMock {
+  constructor() {
+    this.GetGithubDeviceCode = this.GetGithubDeviceCode.bind(this);
+    this.GetGithubAuthStatus = this.GetGithubAuthStatus.bind(this);
+  }
+  GetGithubDeviceCodeReturn: GetGithubDeviceCodeResponse = {};
+  GetGithubAuthStatusReturn: GetGithubAuthStatusResponse = {};
+  GetGithubDeviceCode() {
+    return promisify(this.GetGithubDeviceCodeReturn);
+  }
 
+  GetGithubAuthStatus() {
+    return promisify(this.GetGithubAuthStatusReturn);
+  }
+}
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);

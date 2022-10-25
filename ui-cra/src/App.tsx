@@ -25,6 +25,7 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { Pipelines } from './api/pipelines/pipelines.pb';
+import { GithubAuthProvider } from './contexts/GithubAuth';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -102,19 +103,26 @@ interface Error {
   message: string;
 }
 export const queryOptions: QueryClientConfig = {
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
   queryCache: new QueryCache({
     onError: error => {
       const err = error as Error;
       const { pathname, search } = window.location;
       const redirectUrl = encodeURIComponent(`${pathname}${search}`);
-
-      if (err.code === 401) {
-        window.location.href = `/sign_in?redirect=${redirectUrl}`;
+      const url = redirectUrl
+        ? `/sign_in?redirect=${redirectUrl}`
+        : `/sign_in?redirect=/`;
+      if (err.code === 401 && !window.location.href.includes('/sign_in')) {
+        window.location.href = url;
       }
     },
   }),
 };
- const queryClient = new QueryClient(queryOptions);
+const queryClient = new QueryClient(queryOptions);
 
 const App: FC = () => {
   return (
@@ -126,9 +134,11 @@ const App: FC = () => {
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
                 <PipelinesProvider api={Pipelines}>
-                  <AppContextProvider applicationsClient={applicationsClient}>
-                    <ResponsiveDrawer />
-                  </AppContextProvider>
+                  <GithubAuthProvider api={applicationsClient}>
+                    <AppContextProvider applicationsClient={applicationsClient}>
+                      <ResponsiveDrawer />
+                    </AppContextProvider>
+                  </GithubAuthProvider>
                 </PipelinesProvider>
               </ProgressiveDeliveryProvider>
             </BrowserRouter>

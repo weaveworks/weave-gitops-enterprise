@@ -1,11 +1,11 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import {
-  GithubDeviceAuthModal,
   RepoInputWithAuth,
   useIsAuthenticated,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { GithubDeviceAuthModal } from '.';
+import { GitProvider } from '../../contexts/GithubAuth/provider';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   margin-bottom: ${({ theme }) => theme.spacing.medium};
@@ -41,7 +41,7 @@ const GitAuth: FC<{
       return;
     }
     check(formData.provider);
-  }, [formData.provider, authSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [formData.provider, authSuccess, check]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -77,16 +77,18 @@ const GitAuth: FC<{
         helperText=""
         disabled={true}
       />
-      <GithubDeviceAuthModal
-        bodyClassName="GithubDeviceAuthModal"
-        onClose={() => setShowAuthDialog(false)}
-        onSuccess={() => {
-          setShowAuthDialog(false);
-          setAuthSuccess(true);
-        }}
-        open={showAuthDialog}
-        repoName="config"
-      />
+      {showAuthDialog && (
+        <GithubDeviceAuthModal
+          bodyClassName="GithubDeviceAuthModal"
+          onClose={() => setShowAuthDialog(false)}
+          onSuccess={() => {
+            setShowAuthDialog(false);
+            setAuthSuccess(true);
+          }}
+          open={showAuthDialog}
+          repoName="config"
+        />
+      )}
     </>
   );
 };
