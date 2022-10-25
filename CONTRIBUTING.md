@@ -861,3 +861,31 @@ Install and configure the aws CLI if needed. Then run:
 ```bash
 aws eks --region <aws-region> update-kubeconfig --name <cluster-name>
 ```
+
+## How to add a feature flag
+
+First add a new feature flag in [values.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/0605d2992fed7888dd2c5045d675c7baeadb03ef/charts/mccp/values.yaml#L28))
+
+For example:
+```yaml
+# Turns on pipelines features if set to true. This includes the UI elements.
+enablePipelines: false
+```
+
+Then add an `if` block to the [deployment.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/templates/clusters-service/deployment.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/27e143749b5cda32d6d8ac6eadab3d1e2db2999e/charts/mccp/templates/clusters-service/deployment.yaml#L61-L64)) template of cluster-service in order to conditionally set an environment variable. This variable will be available to cluster-service at runtime. As a convention, the environment variable needs to be prefixed with `WEAVE_GITOPS_FEATURE_` and takes a value of `true`.
+
+For example:
+```yaml
+{{- if .Values.enablePipelines }}
+- name: WEAVE_GITOPS_FEATURE_PIPELINES
+  value: "true"
+{{- end }}
+```
+
+Finally, you can use the feature flag from Go through the `featureflags` package, for example:
+
+```go
+if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
+  // Feature flag has been set
+}
+```

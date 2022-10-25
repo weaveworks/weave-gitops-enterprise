@@ -464,41 +464,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
-				//Pull request values
-				prBranch := "ui-feature-capd"
-				prTitle := "My first pull request"
-				prCommit := "First capd capi template"
+				pullRequest := PullRequest{
+					Branch:  "ui-feature-capd",
+					Title:   "My first pull request",
+					Message: "First capd capi template",
+				}
 
-				ginkgo.By("And set GitOps values for pull request", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
-
-					pages.ScrollWindow(webDriver, 0, 4000)
-
-					pages.ClearFieldValue(gitops.BranchName)
-					gomega.Expect(gitops.BranchName.SendKeys(prBranch)).To(gomega.Succeed())
-					pages.ClearFieldValue(gitops.PullRequestTile)
-					gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
-					pages.ClearFieldValue(gitops.CommitMessage)
-					gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
-
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
-					if pages.ElementExist(gitops.ErrorBar) {
-						gomega.Expect(gitops.ErrorBar.Click()).To(gomega.Succeed())
-					}
-
-					gomega.Eventually(gitops.CreatePR.Click).Should(gomega.Succeed())
-				})
-
-				var prUrl string
-				gitops := pages.GetGitOps(webDriver)
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-					prUrl, _ = gitops.PRLinkBar.Attribute("href")
-				})
-
+				prUrl := createGitopsPR(pullRequest)
 				var createPRUrl string
+
 				ginkgo.By("And I should veriyfy the pull request in the cluster config repository", func() {
 					createPRUrl = verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					gomega.Expect(createPRUrl).Should(gomega.Equal(prUrl))
@@ -1064,20 +1038,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Title:   "CAPD pull request",
 					Message: "CAPD capi template",
 				}
-				createGitopsPR(pullRequest)
-
-				clustersPage := pages.GetClustersPage(webDriver)
-
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-				})
+				_ = createGitopsPR(pullRequest)
 
 				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
+				clustersPage := pages.GetClustersPage(webDriver)
 				ginkgo.By("Then I should see cluster status changes to 'Ready'", func() {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 					gomega.Eventually(clustersPage.FindClusterInList(clusterName).Status, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_15SECONDS).Should(matchers.MatchText("Ready"), "Failed to have expected Capi Cluster status: Ready")

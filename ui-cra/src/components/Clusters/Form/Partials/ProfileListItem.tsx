@@ -1,3 +1,5 @@
+import { FormControl, Input, MenuItem, Select } from '@material-ui/core';
+import { Button } from '@weaveworks/weave-gitops';
 import React, {
   ChangeEvent,
   Dispatch,
@@ -7,44 +9,10 @@ import React, {
   useState,
 } from 'react';
 import styled from 'styled-components';
-import { makeStyles } from '@material-ui/core/styles';
-import {
-  ListProfileValuesResponse,
-  ProfilesIndex,
-  UpdatedProfile,
-} from '../../../../types/custom';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogActions,
-  TextareaAutosize,
-  FormControl,
-  Select,
-  MenuItem,
-  Input,
-} from '@material-ui/core';
-import Typography from '@material-ui/core/Typography';
-import { CloseIconButton } from '../../../../assets/img/close-icon-button';
-import {
-  theme as weaveTheme,
-  Button,
-  Icon,
-  IconType,
-} from '@weaveworks/weave-gitops';
-import useProfiles from '../../../../contexts/Profiles';
-import { Loader } from '../../../Loader';
+import { ClusterNamespacedName } from '../../../../cluster-services/cluster_services.pb';
+import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
-
-const xs = weaveTheme.spacing.xs;
-
-const useStyles = makeStyles(() => ({
-  textarea: {
-    width: '100%',
-    padding: xs,
-    border: `1px solid ${weaveTheme.colors.neutral10}`,
-  },
-}));
+import ChartValuesDialog from './ChartValuesDialog';
 
 const ProfileWrapper = styled.div`
   display: flex;
@@ -52,18 +20,16 @@ const ProfileWrapper = styled.div`
 `;
 
 const ProfilesListItem: FC<{
+  cluster?: ClusterNamespacedName;
   profile: UpdatedProfile;
   context?: string;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
-}> = ({ profile, setUpdatedProfiles }) => {
-  const classes = useStyles();
+}> = ({ profile, cluster, setUpdatedProfiles }) => {
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
-  const [loadingYaml, setLoadingYaml] = useState<boolean>(false);
-  const { getProfileYaml } = useProfiles();
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map((value, index) => {
@@ -110,12 +76,6 @@ const ProfilesListItem: FC<{
 
   const handleYamlPreview = () => {
     setOpenYamlPreview(true);
-    if (yaml === '') {
-      setLoadingYaml(true);
-      getProfileYaml(profile?.name, version)
-        .then((res: ListProfileValuesResponse) => setYaml(res.message))
-        .finally(() => setLoadingYaml(false));
-    }
   };
   const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -194,39 +154,17 @@ const ProfilesListItem: FC<{
         </Button>
       </ProfileWrapper>
 
-      <Dialog
-        open={openYamlPreview}
-        maxWidth="md"
-        fullWidth
-        scroll="paper"
-        onClose={() => setOpenYamlPreview(false)}
-      >
-        <DialogTitle disableTypography>
-          <Typography variant="h5">{profile.name}</Typography>
-          <CloseIconButton onClick={() => setOpenYamlPreview(false)} />
-        </DialogTitle>
-        <DialogContent>
-          {loadingYaml ? (
-            <Loader />
-          ) : (
-            <TextareaAutosize
-              className={classes.textarea}
-              defaultValue={yaml}
-              onChange={handleChangeYaml}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            id="edit-yaml"
-            startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
-            onClick={handleUpdateProfiles}
-            disabled={profile.required && profile.editable !== true}
-          >
-            SAVE CHANGES
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openYamlPreview && (
+        <ChartValuesDialog
+          yaml={yaml}
+          cluster={cluster}
+          profile={profile}
+          version={version}
+          onChange={handleChangeYaml}
+          onSave={handleUpdateProfiles}
+          onClose={() => setOpenYamlPreview(false)}
+        />
+      )}
     </>
   );
 };
