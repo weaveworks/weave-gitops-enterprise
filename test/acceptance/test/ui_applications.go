@@ -1220,7 +1220,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteCluster(leafCluster.Type, leafCluster.Name, "")
+				deleteCluster("kind", leafCluster.Name, "")
 
 				cleanGitRepository(appDir)
 
@@ -1245,6 +1245,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				existingAppCount = getApplicationCount()
 
+				leafClusterPath := path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name)
 				//appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
 				appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
 
@@ -1304,6 +1305,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				// 	gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
 
 				// })
+				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
 				addKustomizationBases(leafCluster.Type, leafCluster.Name, leafCluster.Namespace)
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' leafCluster is bootstraped)", leafCluster.Name), func() {
@@ -1313,7 +1315,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Add GitRepository source to leaf cluster
-				addSource("git", podinfo.Source, podinfo.Namespace, path.Join(repoAbsolutePath, appDir), "main", "")
+				addSource("git", podinfo.Source, podinfo.Namespace, leafClusterPath, "main", "")
 				useClusterContext(mgmtClusterContext)
 
 				ginkgo.By("Add Application/Kustomization manifests to leaf cluster's repository main branch", func() {
