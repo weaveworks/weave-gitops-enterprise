@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -716,7 +715,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Message: "Adding management kustomization leaf cluster applications",
 				}
 
-				sourceURL := "https://github.com/stefanprodan/podinfo"
+				sourceURL := "https://github.com/stefanprdetails page odan/podinfo"
 				appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
@@ -1014,10 +1013,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				// Declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
-				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
+				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch", func() {
 					pullGitRepo(repoAbsolutePath)
-					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
-					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo"))
+					podinfoPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
+					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfoPath, path.Join(repoAbsolutePath, "apps/podinfo"))
 					err := runCommandPassThrough("sh", "-c", createCommand)
 					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
 					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
@@ -1190,7 +1189,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			// Just specify the leaf cluster info to create it
 			leafCluster := ClusterConfig{
-				Type:      "other",
+				Type:      "leaf",
 				Name:      "wge-leaf-cluster-test",
 				Namespace: "test-system",
 			}
@@ -1198,7 +1197,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.JustBeforeEach(func() {
 				// Get the count of existing applications before deploying new application
 				existingAppCount = getApplicationCount()
-
 				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				//gomega.ex
@@ -1230,7 +1228,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			ginkgo.FIt("Verify application violations details page for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf cluster"), func() {
+			ginkgo.FIt("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf cluster"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
@@ -1243,13 +1241,14 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					SyncInterval:    "30s",
 				}
 
-				appDir := fmt.Sprintf("./clusters/%s/podinfo", leafCluster.Name)
+				//appDir := fmt.Sprintf("./clusters/%s/podinfo", leafCluster.Name)
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				existingAppCount = getApplicationCount()
 
-				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
+				//appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
+				appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
 
-				defer cleanGitRepository(appDir)
+				//defer cleanGitRepository(appDir)
 
 				useClusterContext(mgmtClusterContext)
 				// Create leaf cluster namespace
@@ -1273,12 +1272,53 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					pages.NavigateToPage(webDriver, "Clusters")
 					pages.WaitForPageToLoad(webDriver)
 					clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
-					gomega.Eventually(clusterInfo.Name, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("wge-leaf-cluster-test"))
+
+					// Assert that the leaf cluster details page openes normally
+					gomega.Eventually(clusterInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to the '%s'  details page", leafCluster.Name))
+					time.Sleep(POLL_INTERVAL_3SECONDS)
 
 					//gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
+
+					// Navigate back to the clusters page
+					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), "Failed to navigate back to the clusters list")
+
 				})
 
-				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
+				ginkgo.By("And add kustomization bases for common resources for leaf cluster", func() {
+					pullGitRepo(repoAbsolutePath)
+					leafClusterPath := path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name)
+					clustersBbasesKustomizationPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "clusters-bases-kustomization.yaml")
+					clustersBbasesKustomizationPathOnGithub := path.Join(repoAbsolutePath, leafClusterPath, "flux-system")
+					clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
+					checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
+
+					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", clustersBbasesKustomizationPath, clustersBbasesKustomizationPathOnGithub)
+					err := runCommandPassThrough("sh", "-c", createCommand)
+					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
+
+					//gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
+
+					// pathErr := func() error {
+					// 	pullGitRepo(repoAbsolutePath)
+					// 	_, err := os.Stat(path.Join(leafClusterPath, "flux-system", "kustomization.yaml"))
+					// 	return err
+
+					// }
+					// gomega.Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", leafCluster.Name))
+
+					// if leafCluster.Type != "capi" {
+					// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
+					// }
+
+					gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
+					gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
+					gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
+					gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
+
+					gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
+
+				})
+				//addKustomizationBases(leafCluster.Type, leafCluster.Name, leafCluster.Namespace)
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' leafCluster is bootstraped)", leafCluster.Name), func() {
 					useClusterContext(leafClusterContext)
@@ -1290,10 +1330,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				addSource("git", podinfo.Source, podinfo.Namespace, path.Join(repoAbsolutePath, appDir), "main", "")
 				useClusterContext(mgmtClusterContext)
 
-				ginkgo.By("Add Application/Kustomization manifests to leaf cluster's repository main branch)", func() {
+				ginkgo.By("Add Application/Kustomization manifests to leaf cluster's repository main branch", func() {
 					pullGitRepo(repoAbsolutePath)
-					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
-					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo"))
+					podinfoPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
+					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfoPath, path.Join(repoAbsolutePath, "apps/podinfo"))
 					err := runCommandPassThrough("sh", "-c", createCommand)
 					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
 					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
@@ -1312,13 +1352,13 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(func(g gomega.Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := applicationsPage.ApplicationCount.Text()
-						return count
+					// gomega.Eventually(func(g gomega.Gomega) string {
+					// 	g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					// 	time.Sleep(POLL_INTERVAL_1SECONDS)
+					// 	count, _ := applicationsPage.ApplicationCount.Text()
+					// 	return count
 
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
+					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
 
 					gomega.Eventually(func(g gomega.Gomega) int {
 						return applicationsPage.CountApplications()
@@ -1330,7 +1370,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
 
 				ginkgo.By(fmt.Sprintf("And navigate to '%s' application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' application detail page", podinfo.Name))
+					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' application details page", podinfo.Name))
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 				})
 
@@ -1355,7 +1395,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 					appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
 
-					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation detail page of violation '%s'", violationMsg))
+					gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation details page of violation '%s'", violationMsg))
 
 					gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/clusters/violations/details?clusterName"))
 					time.Sleep(POLL_INTERVAL_3SECONDS)
