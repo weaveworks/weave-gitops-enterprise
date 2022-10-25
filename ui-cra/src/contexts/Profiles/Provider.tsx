@@ -122,11 +122,7 @@ interface AnnotationData {
     name: string;
     selected: boolean;
     namespace: string;
-    values: {
-      version: string;
-      yaml: string;
-      selected?: boolean | undefined;
-    }[];
+    values: string;
     version: string;
   }[];
 }
@@ -152,9 +148,7 @@ const setVersionAndValuesFromCluster = (
               ? {
                   ...v,
                   selected: true,
-                  yaml: maybeFromBase64(
-                    clusterDataProfile.values! as unknown as string,
-                  ),
+                  yaml: maybeFromBase64(clusterDataProfile.values!),
                 }
               : v,
           ),
