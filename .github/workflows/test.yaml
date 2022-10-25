@@ -1,9 +1,7 @@
 on:
   push:
-    branches-ignore:
-      - "main"
-    tags-ignore:
-      - "*"
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -270,4 +268,3 @@ jobs:
           snyk test --org=product-engineering-ly9 --json --file=ui-cra/yarn.lock | snyk-delta
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-
