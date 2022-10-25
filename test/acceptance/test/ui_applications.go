@@ -1171,7 +1171,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var gitopsCluster string
 			var appDir string
 			var existingAppCount int
-			patSecret := "application-pat"
+			patSecret := "application-violations-pat"
 			bootstrapLabel := "bootstrap"
 
 			// Just specify policies yaml path
