@@ -1,7 +1,7 @@
 package indexer_test
 
 import (
-	"log"
+	"fmt"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -28,7 +28,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	clientsFactory := clustersmngr.NewClustersManager(
-		clustersFetcher, nsChecker, logger, scheme, clustersmngr.NewClustersClientsPool, clustersmngr.DefaultKubeConfigOptions)
+		clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
 	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -38,13 +38,15 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	c1 := makeLeafCluster(t, clusterName1)
 	c2 := makeLeafCluster(t, clusterName2)
 
-	watcher := clientsFactory.Subscribe()
-	g.Expect(watcher).ToNot(BeNil())
-
 	indexer := indexer.NewClusterHelmIndexerTracker(nil)
 	g.Expect(indexer.ClusterWatchers).ToNot(BeNil())
 
-	indexer.Start(context.TODO(), watcher, logger)
+	go func() {
+		err := indexer.Start(ctx, clientsFactory, logger)
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+		}
+	}()
 
 	clusterNames := func(c map[string]*multiwatcher.Watcher) []string {
 		names := []string{}
@@ -60,10 +62,10 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		log.Printf("indexer.Added: %+v", indexer)
 
-		<-watcher.Updates
-		g.Expect(clusterNames(indexer.ClusterWatchers)).To(Equal([]string{clusterName1, clusterName2}))
+		g.Eventually(func() []string {
+			return clusterNames(indexer.ClusterWatchers)
+		}).Should(ConsistOf(clusterName1, clusterName2))
 	})
 }
 

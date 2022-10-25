@@ -435,7 +435,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	)
 
 	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache)
-	indexer.Start(ctx, clustersManager.Subscribe(), log)
+	go func() {
+		err := indexer.Start(ctx, clustersManager, log)
+		if err != nil {
+			log.Error(err, "failed to start indexer")
+		}
+	}()
 
 	clustersManager.Start(ctx)
 

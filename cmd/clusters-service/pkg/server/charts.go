@@ -191,18 +191,7 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 
 // GetClientConfigForCluster returns the client config for a given cluster.
 func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
-	// FIXME: temporary until we can get the client config from the clusterManager
-	// Then we can uncomment this and remove this `managementCluster`
-	//
-	// clusters := s.clustersManager.GetClusters()
-	managementCluster := clustersmngr.Cluster{
-		Name:        helm.ManagementClusterName,
-		Server:      s.restConfig.Host,
-		BearerToken: s.restConfig.BearerToken,
-		TLSConfig:   s.restConfig.TLSClientConfig,
-	}
-	clusters := []clustersmngr.Cluster{managementCluster}
-
+	clusters := s.clustersManager.GetClusters()
 	clusterName := cluster.Name
 	if clusterName != helm.ManagementClusterName {
 		clusterName = fmt.Sprintf("%s/%s", cluster.Namespace, cluster.Name)

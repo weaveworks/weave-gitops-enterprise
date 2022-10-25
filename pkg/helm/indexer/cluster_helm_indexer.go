@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -10,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 type ClusterHelmIndexerTracker struct {
@@ -33,12 +33,70 @@ func (i *ClusterHelmIndexerTracker) newIndexer(ctx context.Context, config *rest
 		ValuesFetcher: helm.NewValuesFetcher(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create indexer: %w", err)
 	}
 
-	w.StartWatcher(ctx, log)
-
 	return w, nil
+}
+
+// Start the indexer and wait for cluster updates notifications.
+func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.ClustersManager, log logr.Logger) error {
+
+	err := i.addClusters(ctx, cm.GetClusters(), log)
+	if err != nil {
+		return fmt.Errorf("failed to add clusters: %w", err)
+	}
+
+	cw := cm.Subscribe()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case updates := <-cw.Updates:
+			err := i.addClusters(ctx, updates.Added, log)
+			if err != nil {
+				log.Error(err, "unable to create indexer")
+			}
+
+			for _, removed := range updates.Removed {
+				watcher, ok := i.ClusterWatchers[removed.Name]
+				if ok {
+					watcher.Stop()
+					// TODO
+					// Remove all the helm releases from the cache
+					// cache.DeleteCluster(types.NamespacedName{Name: removed.Name, Namespace: i.Namespace})
+				}
+			}
+		}
+	}
+}
+
+func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []clustersmngr.Cluster, log logr.Logger) error {
+	for _, cl := range clusters {
+		_, ok := i.ClusterWatchers[cl.Name]
+		if !ok {
+			log.Info("adding indexer for cluster", "cluster", cl.Name)
+			clientConfig, err := clustersmngr.ClientConfigAsServer()(cl)
+			if err != nil {
+				return fmt.Errorf("failed to get client config for cluster %s: %w", cl.Name, err)
+			}
+			watcher, err := i.newIndexer(ctx, clientConfig, toNamespaceName(cl.Name), log)
+			if err != nil {
+				return fmt.Errorf("failed to create indexer for cluster %s: %w", cl.Name, err)
+			}
+			i.ClusterWatchers[cl.Name] = watcher
+
+			go func() {
+				err = watcher.StartWatcher(ctx, log)
+				if err != nil {
+					log.Error(err, "failed to start indexer")
+				}
+			}()
+		}
+	}
+
+	return nil
 }
 
 func toNamespaceName(name string) types.NamespacedName {
@@ -58,47 +116,4 @@ func toNamespaceName(name string) types.NamespacedName {
 		Namespace: parts[0],
 		Name:      parts[1],
 	}
-}
-
-// Start the indexer and wait for cluster updates notifications.
-func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cw *clustersmngr.ClustersWatcher, log logr.Logger) error {
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case updates := <-cw.Updates:
-				ctrl.Log.Info("adding indexer for cluster", "update", updates)
-				for _, added := range updates.Added {
-					_, ok := i.ClusterWatchers[added.Name]
-					if !ok {
-						ctrl.Log.Info("adding indexer for cluster", "cluster", added.Name)
-						clientConfig, err := clustersmngr.ClientConfigAsServer()(added)
-						if err != nil {
-							// FIXME: more info
-							ctrl.Log.Error(err, "unable to build client config")
-						}
-						watcher, err := i.newIndexer(ctx, clientConfig, toNamespaceName(added.Name), log)
-						if err != nil {
-							// FIXME: more info
-							ctrl.Log.Error(err, "unable to create indexer")
-						}
-						i.ClusterWatchers[added.Name] = watcher
-					}
-				}
-
-				for _, removed := range updates.Removed {
-					watcher, ok := i.ClusterWatchers[removed.Name]
-					if ok {
-						watcher.Stop()
-						// TODO
-						// Remove all the helm releases from the cache
-						// cache.DeleteCluster(types.NamespacedName{Name: removed.Name, Namespace: i.Namespace})
-					}
-				}
-			}
-		}
-	}()
-
-	return nil
 }
