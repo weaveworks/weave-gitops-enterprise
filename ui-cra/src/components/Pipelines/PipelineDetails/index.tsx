@@ -178,9 +178,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                               {workload?.name}
                             </Link>
                           ) : (
-                            <div className="workload-name">
+                            <span className="workload-name">
                               {workload?.name}
-                            </div>
+                            </span>
                           )}
                           {workload?.lastAppliedRevision && (
                             <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
