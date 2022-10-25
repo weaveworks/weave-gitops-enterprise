@@ -9,7 +9,7 @@ import { Routes } from '../../../utils/nav';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
-const { white, neutral10, neutral30 } = theme.colors;
+const { white, neutral10, neutral20, neutral30, black } = theme.colors;
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -25,7 +25,6 @@ const useStyles = makeStyles(() =>
       flexWrap: 'nowrap',
       overflow: 'auto',
       paddingBottom: '8px',
-
       margin: `${medium} 0 0 0`,
     },
     title: {
@@ -38,12 +37,15 @@ const useStyles = makeStyles(() =>
       fontWeight: 400,
       marginTop: xxs,
     },
-    cardHeader: {
+    mbSmall: {
       marginBottom: small,
+    },
+    mlx: {
+      marginLeft: xxs,
     },
     target: {
       fontSize: theme.fontSizes.large,
-      marginBottom: xs,
+      marginBottom: small,
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
@@ -56,21 +58,33 @@ const useStyles = makeStyles(() =>
 );
 const CardContainer = styled.div`
   background: ${white};
-  padding: ${medium};
+  padding: ${small};
   margin-bottom: ${xs};
   box-shadow: 0px 0px 1px rgba(26, 32, 36, 0.32);
   border-radius: 10px;
   font-weight: 600;
 `;
+const Title = styled.div`
+  font-size: ${theme.fontSizes.medium};
+  color: ${black};
+  font-weight: 400;
+`;
 const ClusterName = styled.div`
-  margin-bottom: ${xs};
+  margin-bottom: ${small};
+  line-height: 24px;
 `;
 const TargetNamespace = styled.div`
-  font-size: ${small};
+  font-size: ${theme.fontSizes.medium};
 `;
 const LastAppliedVersion = styled.span`
   color: ${neutral30};
-  margin-left: ${xs};
+  position: absolute;
+  right: 0;
+  bottom: auto;
+  font-size: ${theme.fontSizes.medium};
+  border: 1px solid ${neutral20};
+  padding: 14px 6px;
+  border-radius: 50%;
 `;
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
@@ -121,7 +135,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                 className={classes.gridContainer}
                 id={env.name}
               >
-                <div className={classes.cardHeader}>
+                <div className={classes.mbSmall}>
                   <div className={classes.title}>{env.name}</div>
                   <div className={classes.subtitle}>
                     {getTargetsCount(status || [])} Targets
@@ -132,16 +146,25 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                     <CardContainer key={wrkIndex} role="targeting">
                       <div className={`${classes.target} workloadTarget`}>
                         {target?.clusterRef?.name && (
-                          <ClusterName className="cluster-name">
-                            {target?.clusterRef?.name}
-                          </ClusterName>
+                          <>
+                            <Title>Cluster</Title>
+                            <ClusterName className="cluster-name">
+                              {target?.clusterRef?.name}
+                            </ClusterName>
+                          </>
                         )}
+
+                        <Title>Namespace</Title>
                         <TargetNamespace className="workload-namespace">
                           {target?.namespace}
                         </TargetNamespace>
                       </div>
-                      <div>
-                        <div className="workloadName">
+                      <div
+                        style={{
+                          position: 'relative',
+                        }}
+                      >
+                        <div className={`workloadName ${classes.mbSmall}`}>
                           {target?.clusterRef?.namespace ? (
                             <Link
                               to={formatURL('/helm_release/details', {
@@ -153,7 +176,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                               {workload?.name}
                             </Link>
                           ) : (
-                            <div className='workload-name'>{workload?.name}</div>
+                            <div className="workload-name">
+                              {workload?.name}
+                            </div>
                           )}
                           {workload?.lastAppliedRevision && (
                             <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
@@ -162,11 +187,11 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                         <div
                           className={`${classes.subtitle} ${classes.subtitleColor}`}
                         >
-                          Spec Version
+                          <span>Specification:</span>
+                          <span className={` ${classes.mlx} version`}>
+                            {`v${workload?.version}`}
+                          </span>
                         </div>
-                        <div
-                          className={`${classes.subtitle} version`}
-                        >{`v${workload?.version}`}</div>
                       </div>
                     </CardContainer>
                   )),
