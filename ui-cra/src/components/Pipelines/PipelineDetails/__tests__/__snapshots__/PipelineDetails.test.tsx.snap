@@ -483,11 +483,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="workloadName"
                 >
-                  <div
+                  <span
                     class="workload-name"
                   >
                     podinfo
-                  </div>
+                  </span>
                 </div>
                 <div
                   class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
@@ -537,11 +537,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="workloadName"
                 >
-                  <div
+                  <span
                     class="workload-name"
                   >
                     podinfo
-                  </div>
+                  </span>
                 </div>
                 <div
                   class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
@@ -611,11 +611,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="workloadName"
                 >
-                  <div
+                  <span
                     class="workload-name"
                   >
                     podinfo
-                  </div>
+                  </span>
                 </div>
                 <div
                   class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
