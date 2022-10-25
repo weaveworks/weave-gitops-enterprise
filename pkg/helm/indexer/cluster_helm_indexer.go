@@ -3,9 +3,9 @@ package indexer
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -81,7 +81,7 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 			if err != nil {
 				return fmt.Errorf("failed to get client config for cluster %s: %w", cl.Name, err)
 			}
-			watcher, err := i.newIndexer(ctx, clientConfig, toNamespaceName(cl.Name), log)
+			watcher, err := i.newIndexer(ctx, clientConfig, fetcher.FromClusterName(cl.Name), log)
 			if err != nil {
 				return fmt.Errorf("failed to create indexer for cluster %s: %w", cl.Name, err)
 			}
@@ -97,23 +97,4 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 	}
 
 	return nil
-}
-
-func toNamespaceName(name string) types.NamespacedName {
-	// use strings.Split to split the name into two parts
-	// the first part is the namespace and the second part is the name
-	// if the name does not contain a slash, then the namespace is empty
-
-	parts := strings.Split(name, "/")
-	if len(parts) == 1 {
-		return types.NamespacedName{
-			Name:      parts[0],
-			Namespace: "default",
-		}
-	}
-
-	return types.NamespacedName{
-		Namespace: parts[0],
-		Name:      parts[1],
-	}
 }

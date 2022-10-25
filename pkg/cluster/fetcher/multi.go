@@ -3,6 +3,7 @@ package fetcher
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
@@ -47,6 +48,20 @@ func ToClusterName(cluster types.NamespacedName) string {
 	}
 
 	return cluster.String()
+}
+
+func FromClusterName(clusterName string) types.NamespacedName {
+	parts := strings.Split(clusterName, "/")
+	if len(parts) == 1 {
+		return types.NamespacedName{
+			Name: parts[0],
+		}
+	}
+
+	return types.NamespacedName{
+		Namespace: parts[0],
+		Name:      parts[1],
+	}
 }
 
 func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {
