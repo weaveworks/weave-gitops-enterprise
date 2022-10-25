@@ -5,4 +5,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+  url: https://charts.bitnami.com/bitnami
