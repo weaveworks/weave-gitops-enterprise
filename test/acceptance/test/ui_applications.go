@@ -1263,48 +1263,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				gitopsCluster = connectGitopsCuster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
-				// Declare clusters page variable
-				clustersPage := pages.GetClustersPage(webDriver)
-
 				// Declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
-				ginkgo.By("Verify GitopsCluster/leafCluster status after creating kubeconfig secret", func() {
-					pages.NavigateToPage(webDriver, "Clusters")
-					pages.WaitForPageToLoad(webDriver)
-					clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
-
-					// Assert that the leaf cluster details page openes normally
-					gomega.Eventually(clusterInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to the '%s'  details page", leafCluster.Name))
-					time.Sleep(POLL_INTERVAL_3SECONDS)
-
-					// Navigate back to the clusters page
-					gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), "Failed to navigate back to the clusters list")
-
-					//gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
-
-				})
-
-				// ginkgo.By("And add kustomization bases for common resources for leaf cluster", func() {
-				// 	pullGitRepo(repoAbsolutePath)
-				// 	leafClusterPath := path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name)
-				// 	clustersBbasesKustomizationPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "clusters-bases-kustomization.yaml")
-				// 	clustersBbasesKustomizationPathOnGithub := path.Join(repoAbsolutePath, leafClusterPath, "flux-system")
-				// 	clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
-				// 	checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
-
-				// 	createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", clustersBbasesKustomizationPath, clustersBbasesKustomizationPathOnGithub)
-				// 	err := runCommandPassThrough("sh", "-c", createCommand)
-				// 	gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
-
-				// 	gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
-				// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
-				// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
-				// 	gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
-
-				// 	gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
-
-				// })
 				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
 				addKustomizationBases(leafCluster.Type, leafCluster.Name, leafCluster.Namespace)
 
