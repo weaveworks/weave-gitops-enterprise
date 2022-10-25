@@ -38,7 +38,7 @@ func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersm
 	return k8s, factory
 }
 
-func MakeClustersManager(k8s client.Client) *clustersmngrfakes.FakeClustersManager {
+func MakeClustersManager(k8s client.Client, clusters ...string) *clustersmngrfakes.FakeClustersManager {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 
 	clientsPool.ClientsReturns(map[string]client.Client{"Default": k8s})
@@ -46,8 +46,17 @@ func MakeClustersManager(k8s client.Client) *clustersmngrfakes.FakeClustersManag
 		if s == "" {
 			return nil, clustersmngr.ClusterNotFoundError{Cluster: ""}
 		}
+		if len(clusters) == 0 {
+			return k8s, nil
+		}
 
-		return k8s, nil
+		for _, cluster := range clusters {
+			if cluster == s {
+				return k8s, nil
+			}
+		}
+
+		return nil, clustersmngr.ClusterNotFoundError{Cluster: s}
 	}
 
 	nsMap := map[string][]v1.Namespace{"Default": {}}

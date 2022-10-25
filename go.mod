@@ -45,6 +45,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/mattn/go-sqlite3 v1.14.6
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/spf13/viper v1.12.0
@@ -106,6 +107,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
+	golang.org/x/tools v0.1.12 // indirect
 	k8s.io/klog v1.0.0 // indirect
 	mvdan.cc/sh/v3 v3.5.1 // indirect
 )

@@ -551,6 +551,7 @@ export type ListChartsForRepositoryRequest = {
 export type RepositoryChart = {
   name?: string
   versions?: string[]
+  layer?: string
 }
 
 export type ListChartsForRepositoryResponse = {
