@@ -1,12 +1,9 @@
 package server
 
 import (
-	"context"
-
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
@@ -32,13 +29,6 @@ var providers = map[string]string{
 	"VSphereCluster":         "vsphere",
 }
 
-type chartsCache interface {
-	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, kind string) ([]helm.Chart, error)
-	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (bool, error)
-	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) ([]byte, error)
-	UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart, valuesYaml []byte) error
-}
-
 type server struct {
 	log             logr.Logger
 	clustersManager clustersmngr.ClustersManager
@@ -54,7 +44,7 @@ type server struct {
 	restConfig        *rest.Config
 	chartJobs         *helm.Jobs
 	valuesFetcher     helm.ValuesFetcher
-	chartsCache       chartsCache
+	chartsCache       helm.ChartsCacheReader
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 }
 
@@ -71,7 +61,7 @@ type ServerOpts struct {
 
 	RestConfig        *rest.Config
 	ChartJobs         *helm.Jobs
-	ChartsCache       chartsCache
+	ChartsCache       helm.ChartsCacheReader
 	ValuesFetcher     helm.ValuesFetcher
 	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 }
