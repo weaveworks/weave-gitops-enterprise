@@ -17,6 +17,7 @@ import {
 } from '../../../../cluster-services/cluster_services.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Button } from '@weaveworks/weave-gitops';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiPaper-root'] {
@@ -24,6 +25,9 @@ const DialogWrapper = styled(Dialog)`
   }
   .info {
     padding: ${({ theme }) => theme.spacing.medium};
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .tabs-container {
     margin-left: ${({ theme }) => theme.spacing.large};
@@ -82,41 +86,51 @@ const Preview: FC<{
           {
             tabName: 'Kustomizations',
             value: getContetn(PRPreview.kustomizationFiles),
+            fileGroup: 'resources',
           },
           {
             tabName: 'Helm Releases',
             value: getContetn((PRPreview as AppPRPreview).helmReleaseFiles),
+            fileGroup: 'resources',
           },
         ]
       : [
           {
             tabName: 'Cluster Definition',
             value: (PRPreview as ClusterPRPreview).renderedTemplate,
+            fileGroup: 'cluster_definition',
           },
           {
             tabName: 'Profiles',
             value: getContetn((PRPreview as ClusterPRPreview).profileFiles),
+            fileGroup: 'resources',
           },
           {
             tabName: 'Kustomizations',
             value: getContetn(PRPreview.kustomizationFiles),
+            fileGroup: 'resources',
           },
         ];
 
-  tabsContent.push({
-    tabName: 'Full',
-    value: tabsContent.reduce((prev, next) => {
-      return next.value ? prev + next.value + '\n---\n' : prev;
-    }, ''),
-  });
-
   const downloadFile = () => {
-    const file = new Blob([tabsContent[0].value as BlobPart], { type: 'text/plain' });
-    const element = document.createElement('a');
-    element.href = URL.createObjectURL(file);
-    element.download = '100ideas-' + Date.now() + '.yaml';
-    document.body.appendChild(element); 
-    element.click();
+    let files: { [key: string]: BlobPart } = {};
+    tabsContent.forEach(tab => {
+      if (!files[tab.fileGroup]) {
+        files[tab.fileGroup] = tab.value as BlobPart;
+      } else {
+        const content = files[tab.fileGroup] + '\n---\n' + tab.value;
+        files[tab.fileGroup] = content as BlobPart;
+      }
+    });
+
+    Object.entries(files).forEach(([key, value]) => {
+      const file = new Blob([value], { type: 'yaml' });
+      const element = document.createElement('a');
+      element.href = URL.createObjectURL(file);
+      element.download = `${key}.yaml`;
+      document.body.appendChild(element);
+      element.click();
+    });
   };
   return (
     <DialogWrapper
@@ -156,10 +170,11 @@ const Preview: FC<{
           </TabPanel>
         ))}
       </DialogContent>
-      <div className="info" onClick={downloadFile}>
+      <div className="info" >
         <span>
           You may edit these as part of the pull request with your git provider.
         </span>
+        <Button onClick={downloadFile}>Download</Button>
       </div>
     </DialogWrapper>
   );
