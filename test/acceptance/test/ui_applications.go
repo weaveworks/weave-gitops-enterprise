@@ -1240,16 +1240,12 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Path:            "./apps/podinfo",
 					SyncInterval:    "30s",
 				}
-
-				//appDir := fmt.Sprintf("./clusters/%s/podinfo", leafCluster.Name)
+				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
+				appDir := fmt.Sprintf("./clusters/%s/%s/podinfo", leafCluster.Namespace, leafCluster.Name)
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount = getApplicationCount()
 
-				leafClusterPath := path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name)
-				//appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
-				appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
-
-				//defer cleanGitRepository(appDir)
+				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
+				defer cleanGitRepository(appDir)
 
 				useClusterContext(mgmtClusterContext)
 				// Create leaf cluster namespace
@@ -1275,8 +1271,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 				})
 
-				// Add GitRepository source to leaf cluster
-				addSource("git", podinfo.Source, podinfo.Namespace, leafClusterPath, "main", "")
 				useClusterContext(mgmtClusterContext)
 
 				ginkgo.By("Add Application/Kustomization manifests to leaf cluster's repository main branch", func() {
@@ -1300,18 +1294,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					pages.NavigateToPage(webDriver, "Applications")
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
-					totalAppCount := existingAppCount + 1
-					// gomega.Eventually(func(g gomega.Gomega) string {
-					// 	g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-					// 	time.Sleep(POLL_INTERVAL_1SECONDS)
-					// 	count, _ := applicationsPage.ApplicationCount.Text()
-					// 	return count
-
-					// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.MatchRegexp(strconv.Itoa(totalAppCount)), fmt.Sprintf("Dashboard failed to update with expected applications count: %d", totalAppCount))
-
-					gomega.Eventually(func(g gomega.Gomega) int {
-						return applicationsPage.CountApplications()
-					}, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be '%d' application enteries in application table", totalAppCount))
+					totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
 				verifyAppInformation(applicationsPage, podinfo, leafCluster, "Ready")
