@@ -112,13 +112,7 @@ export const ContentWrapper: FC<Props> = ({
       </Box>
     );
   }
-  if (errorMessage) {
-    return (
-      <Alert severity="error" className={classes.alertWrapper}>
-        {errorMessage}
-      </Alert>
-    );
-  }
+
   return (
     <div
       style={{
@@ -139,6 +133,11 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
+      {errorMessage && (
+        <Alert severity="error" className={classes.alertWrapper}>
+          {errorMessage}
+        </Alert>
+      )}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (

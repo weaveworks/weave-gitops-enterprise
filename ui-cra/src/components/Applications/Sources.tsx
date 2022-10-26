@@ -1,4 +1,8 @@
-import { SourcesTable, useListSources, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  SourcesTable,
+  useListSources,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';

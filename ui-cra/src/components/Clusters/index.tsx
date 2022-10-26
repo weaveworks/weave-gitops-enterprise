@@ -199,7 +199,7 @@ const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
   const { clusters, isLoading } = useClusters();
-  const notification = location.state?.notification;
+  const [notification] = location.state?.notification;
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
@@ -227,12 +227,6 @@ const MCCP: FC<{
     Math.random().toString(36).substring(7),
   );
   const classes = useStyles();
-
-  useEffect(() => {
-    if (notification) {
-      setNotifications(notification);
-    }
-  }, [notification, setNotifications]);
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -364,7 +358,7 @@ const MCCP: FC<{
           state: { formData, selectedCapiClusters },
         }}
       >
-        <ContentWrapper>
+        <ContentWrapper errorMessage={notification?.message.text}>
           <div
             style={{
               display: 'flex',

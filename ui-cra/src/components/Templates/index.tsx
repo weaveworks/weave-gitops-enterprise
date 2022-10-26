@@ -1,10 +1,8 @@
-import React, { FC, useCallback, useState, useEffect } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
+import { NotificationData } from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
@@ -63,8 +61,7 @@ const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
   const { templates, isLoading } = useTemplates();
-  const { setNotifications } = useNotifications();
-  const notification = location.state?.notification;
+  const [notification] = location.state?.notification;
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
@@ -99,12 +96,6 @@ const TemplatesDashboard: FC<{
     [history],
   );
 
-  useEffect(() => {
-    if (notification) {
-      setNotifications(notification);
-    }
-  }, [notification, setNotifications]);
-
   return (
     <PageTemplate
       documentTitle="Templates"
@@ -115,7 +106,10 @@ const TemplatesDashboard: FC<{
         },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper
+        loading={isLoading}
+        errorMessage={notification?.message.text}
+      >
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">
             <ListView
