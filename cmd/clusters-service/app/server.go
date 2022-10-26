@@ -359,7 +359,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
 		ClientConfig:  kubeClientConfig,
-		ClusterRef:    types.NamespacedName{Name: "management"},
+		ClusterRef:    p.Cluster,
 		Cache:         chartsCache,
 		ValuesFetcher: helm.NewValuesFetcher(),
 		KubeClient:    kubeClient,
