@@ -12,6 +12,9 @@ import (
 
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
@@ -19,7 +22,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/kubernetes"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
 	testingclient "k8s.io/client-go/testing"
@@ -134,13 +136,12 @@ func TestGetIndexFile(t *testing.T) {
 		return true, newFakeResponseWrapper(data), nil
 	})
 
-	v := valuesFetcher{
-		makeClients: func(config *rest.Config) (client.Client, kubernetes.Interface, error) {
-			return fakeClient, fakeKubeClient, nil
-		},
-	}
+	fakeCluster := new(clusterfakes.FakeCluster)
+	fakeCluster.GetServerClientReturns(fakeClient, nil)
+	fakeCluster.GetServerClientsetReturns(fakeKubeClient, nil)
+	v := valuesFetcher{}
 
-	indexFile, err := v.GetIndexFile(context.Background(), nil, types.NamespacedName{
+	indexFile, err := v.GetIndexFile(context.Background(), fakeCluster, types.NamespacedName{
 		Namespace: "flux-system",
 		Name:      "weaveworks-charts",
 	}, true)
@@ -171,11 +172,10 @@ func TestGetValues(t *testing.T) {
 		return true, newFakeResponseWrapper(data), nil
 	})
 
-	v := valuesFetcher{
-		makeClients: func(config *rest.Config) (client.Client, kubernetes.Interface, error) {
-			return fakeClient, fakeKubeClient, nil
-		},
-	}
+	fakeCluster := new(clusterfakes.FakeCluster)
+	fakeCluster.GetServerClientReturns(fakeClient, nil)
+	fakeCluster.GetServerClientsetReturns(fakeKubeClient, nil)
+	v := valuesFetcher{}
 
 	go func() {
 		err := watchForHelmChartAndUpdateStatus(fakeClient)
@@ -186,7 +186,7 @@ func TestGetValues(t *testing.T) {
 
 	values, err := v.GetValuesFile(
 		context.Background(),
-		&rest.Config{},
+		fakeCluster,
 		types.NamespacedName{Namespace: "flux-system", Name: "weaveworks-charts"},
 		Chart{Name: "cert-manager", Version: "0.0.8"},
 		true,
@@ -225,9 +225,17 @@ func TestValuesFetching(t *testing.T) {
 
 	// Integration test innit
 	config := ctrl.GetConfigOrDie()
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cl, err := cluster.NewSingleCluster("test", config, scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	f := NewValuesFetcher()
-	index, err := f.GetIndexFile(context.Background(), config, types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"}, true)
+	index, err := f.GetIndexFile(context.Background(), cl, types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,7 +247,7 @@ func TestValuesFetching(t *testing.T) {
 
 	data, err := f.GetValuesFile(
 		context.TODO(),
-		config,
+		cl,
 		types.NamespacedName{Namespace: "flux-system", Name: "weaveworks-charts"},
 		Chart{
 			Name:    "cert-manager",

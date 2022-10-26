@@ -15,6 +15,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
 var (
@@ -31,7 +32,7 @@ type Options struct {
 
 type Watcher struct {
 	clusterRef    types.NamespacedName
-	clientConfig  *rest.Config
+	cluster       cluster.Cluster
 	cache         helm.ChartsCacherWriter
 	valuesFetcher helm.ValuesFetcher
 }
@@ -45,9 +46,14 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		return nil, err
 	}
 
+	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.String(), opts.ClientConfig, scheme)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Watcher{
 		clusterRef:    opts.ClusterRef,
-		clientConfig:  opts.ClientConfig,
+		cluster:       cluster,
 		cache:         opts.Cache,
 		valuesFetcher: opts.ValuesFetcher,
 	}, nil
@@ -69,7 +75,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 
 	if err = (&controller.HelmWatcherReconciler{
 		ClusterRef:    w.clusterRef,
-		ClientConfig:  w.clientConfig,
+		Cluster:       w.cluster,
 		Cache:         w.cache,
 		ValuesFetcher: w.valuesFetcher,
 		Client:        mgr.GetClient(),

@@ -43,6 +43,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -406,10 +407,16 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
 
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.CAPIClustersNamespace)
+	mgmtCluster, err := cluster.NewSingleCluster(fetcher.ManagementClusterName, rest, scheme)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create mgmt cluster: %w", err)
 	}
+
+	if p.UseK8sCachedClients {
+		mgmtCluster = cluster.NewDelegatingCacheCluster(mgmtCluster, rest, scheme)
+	}
+
+	mcf := fetcher.NewMultiClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, scheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
 
 	clustersManagerScheme, err := kube.CreateScheme()
 	if err != nil {
@@ -427,18 +434,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
 
-	clientsFactory := clustersmngr.CachedClientFactory
-	if !p.UseK8sCachedClients {
-		clientsFactory = clustersmngr.ClientFactory
-	}
-
 	clustersManager := clustersmngr.NewClustersManager(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
-		clustersManagerScheme,
-		clientsFactory,
-		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clustersManager.Start(ctx)
 
@@ -518,7 +517,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
 	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
-	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg)
+	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg)
+	if err != nil {
+		return fmt.Errorf("failed to set up auth client getter")
+	}
 	if args.ManagementFetcher == nil {
 		args.ManagementFetcher = mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
 	}

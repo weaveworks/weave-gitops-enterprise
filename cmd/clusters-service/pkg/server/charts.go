@@ -12,10 +12,9 @@ import (
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 )
 
 // ListChartsForRepository returns a list of charts for a given repository.
@@ -171,12 +170,12 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 		return string(values), nil
 	}
 
-	config, err := s.GetClientConfigForCluster(ctx, clusterRef)
+	cluster, err := s.GetCluster(ctx, clusterRef)
 	if err != nil {
 		return "", fmt.Errorf("error getting client config for cluster: %w", err)
 	}
 
-	data, err := s.valuesFetcher.GetValuesFile(ctx, config, types.NamespacedName{Namespace: repoRef.Namespace, Name: repoRef.Name}, chart, clusterRef.Name != helm.ManagementClusterName)
+	data, err := s.valuesFetcher.GetValuesFile(ctx, cluster, types.NamespacedName{Namespace: repoRef.Namespace, Name: repoRef.Name}, chart, clusterRef.Name != helm.ManagementClusterName)
 	if err != nil {
 		return "", fmt.Errorf("error fetching values file: %w", err)
 	}
@@ -190,18 +189,8 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 }
 
 // GetClientConfigForCluster returns the client config for a given cluster.
-func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
-	// FIXME: temporary until we can get the client config from the clusterManager
-	// Then we can uncomment this and remove this `managementCluster`
-	//
-	// clusters := s.clustersManager.GetClusters()
-	managementCluster := clustersmngr.Cluster{
-		Name:        helm.ManagementClusterName,
-		Server:      s.restConfig.Host,
-		BearerToken: s.restConfig.BearerToken,
-		TLSConfig:   s.restConfig.TLSClientConfig,
-	}
-	clusters := []clustersmngr.Cluster{managementCluster}
+func (s *server) GetCluster(ctx context.Context, cluster types.NamespacedName) (cluster.Cluster, error) {
+	clusters := s.clustersManager.GetClusters()
 
 	clusterName := cluster.Name
 	if clusterName != helm.ManagementClusterName {
@@ -209,8 +198,8 @@ func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.Na
 	}
 
 	for _, c := range clusters {
-		if c.Name == clusterName {
-			return clustersmngr.ClientConfigAsServer()(c)
+		if c.GetName() == clusterName {
+			return c, nil
 		}
 	}
 

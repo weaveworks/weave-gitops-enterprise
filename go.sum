@@ -384,6 +384,7 @@ github.com/felixge/httpsnoop v1.0.2 h1:+nS9g82KMXccJ/wp0zyRW9ZBHFETmMGtkk+2CTTrW
 github.com/flowstack/go-jsonschema v0.1.1/go.mod h1:yL7fNggx1o8rm9RlgXv7hTBWxdBM0rVwpMwimd3F3N0=
 github.com/fluxcd/flagger v1.21.0 h1:/h3z1BlGhKZfVCTsS50APjAfRyXvGsq0siIhO2UQO3o=
 github.com/fluxcd/flagger v1.21.0/go.mod h1:v7b10ylvAhTDloWbu6R0WJ/HY+DP5rVH1d9UTMZXtkI=
+github.com/fluxcd/flux2 v0.35.0 h1:VBtRlzTxxb0+2xMRMV+7Bh/1XlHw9x5JFwNSrTlV60k=
 github.com/fluxcd/flux2 v0.36.0 h1:MWw7oranAFela0NoeqJPdxDHdyYStM3Pt9bgspCNSag=
 github.com/fluxcd/go-git-providers v0.9.0 h1:iiiKe3dzRCgVkjEi8rfpvaWTZwuGRfb3RJFhjSNz+Uc=
 github.com/fluxcd/go-git-providers v0.9.0/go.mod h1:GcaDVP9RlamLKJp25Nwi7X5t0MyZV3FY+qy1GiRdbtk=
@@ -399,6 +400,7 @@ github.com/fluxcd/pkg/apis/kustomize v0.6.0 h1:Afxv3Uv+xiuettzqm3sP0ceWikDZTfHdH
 github.com/fluxcd/pkg/apis/kustomize v0.6.0/go.mod h1:iY0zSpK6eUiPfNt/yR6g0q/wQP+wH+Ax/L7KBOx5x2M=
 github.com/fluxcd/pkg/apis/meta v0.17.0 h1:Y2dfo1syHZDb9Mexjr2SWdcj1FnxnRXm015hEnhl6wU=
 github.com/fluxcd/pkg/apis/meta v0.17.0/go.mod h1:GrOVzWXiu22XjLNgLLe2EBYhQPqZetes5SIADb4bmHE=
+github.com/fluxcd/pkg/kustomize v0.7.0 h1:604rlpRZTWaOfzDZ1W93aHaFh9kn8/UMX/wzsjwIUQY=
 github.com/fluxcd/pkg/kustomize v0.8.0 h1:8AdEvp6y38ISZzoi0H82Si5zkmLXClbeX10W7HevB00=
 github.com/fluxcd/pkg/runtime v0.22.0 h1:4YV/An41b+OGdSWDogwFfHr22CEE/in+lBLEK0fr1yc=
 github.com/fluxcd/pkg/runtime v0.22.0/go.mod h1:Cm6jIhltzXIM3CRRY6SFASDn+z2m/1yPqOWwD73c3io=
@@ -1368,8 +1370,12 @@ github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
-github.com/weaveworks/weave-gitops v0.10.1-0.20221026114647-3b1059d1a338 h1:C5Vru4yDgFHdppfxjGc4K+xuof34SvIJbZ2FHJkLF2Y=
-github.com/weaveworks/weave-gitops v0.10.1-0.20221026114647-3b1059d1a338/go.mod h1:THv59eikJLcaY8MenyRtMVQ9e5XZtoYndfCRe4rWDeA=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221026161407-4c105f1be434 h1:3kdRhAXeRMHZ8ZQJBgH/2d+Oq2TQWYGO/+oDcKXfMiM=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221026161407-4c105f1be434/go.mod h1:WF96PCMZJjB+9NHUGeczb7XBKlQLtp5G1/5+vx378II=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221027120606-9ed16fff1427 h1:oTAh5xbc2DbSS2L2g9DMCtSFrRx8kVAp2+uZ29+7Wo0=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221027120606-9ed16fff1427/go.mod h1:THv59eikJLcaY8MenyRtMVQ9e5XZtoYndfCRe4rWDeA=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221027134935-80a959f9f3e2 h1:Ff65FIeboPBeiIe0low1wtbsJT125MpFZ8ZRYdf2v9c=
+github.com/weaveworks/weave-gitops v0.10.1-0.20221027134935-80a959f9f3e2/go.mod h1:THv59eikJLcaY8MenyRtMVQ9e5XZtoYndfCRe4rWDeA=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.73.1 h1:UMagqUZLJdjss1SovIC+kJCH4k2AZWXl58gJd38Y/hI=

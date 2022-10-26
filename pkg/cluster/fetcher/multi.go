@@ -8,11 +8,11 @@ import (
 	"github.com/go-logr/logr"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
+	mngrcluster "github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	v1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -24,19 +24,23 @@ const (
 )
 
 type multiClusterFetcher struct {
-	log          logr.Logger
-	cfg          *rest.Config
-	clientGetter kube.ClientGetter
-	namespace    string
+	log               logr.Logger
+	cluster           mngrcluster.Cluster
+	scheme            *runtime.Scheme
+	namespace         string
+	isDelegating      bool
+	kubeConfigOptions []mngrcluster.KubeConfigOption
 }
 
-func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.ClientGetter, namespace string) (mngr.ClusterFetcher, error) {
+func NewMultiClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
 	return multiClusterFetcher{
-		log:          log.WithName("multi-cluster-fetcher"),
-		cfg:          config,
-		clientGetter: cg,
-		namespace:    namespace,
-	}, nil
+		log:               log.WithName("multi-cluster-fetcher"),
+		cluster:           managementCluster,
+		scheme:            scheme,
+		namespace:         namespace,
+		isDelegating:      isDelegating,
+		kubeConfigOptions: kubeConfigOptions,
+	}
 }
 
 // ToClusterName takes a types.NamespacedName and returns the name of the cluster
@@ -49,8 +53,8 @@ func ToClusterName(cluster types.NamespacedName) string {
 	return cluster.String()
 }
 
-func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {
-	clusters := []mngr.Cluster{f.self()}
+func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngrcluster.Cluster, error) {
+	clusters := []mngrcluster.Cluster{f.cluster}
 
 	res, err := f.leafClusters(ctx)
 	if err != nil {
@@ -61,26 +65,17 @@ func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) 
 	allClusters := append(clusters, res...)
 	clusterNames := []string{}
 	for _, c := range allClusters {
-		clusterNames = append(clusterNames, c.Name)
+		clusterNames = append(clusterNames, c.GetName())
 	}
 	f.log.Info("Found clusters", "clusters", clusterNames)
 
 	return allClusters, nil
 }
 
-func (f *multiClusterFetcher) self() mngr.Cluster {
-	return mngr.Cluster{
-		Name:        ManagementClusterName,
-		Server:      f.cfg.Host,
-		BearerToken: f.cfg.BearerToken,
-		TLSConfig:   f.cfg.TLSClientConfig,
-	}
-}
+func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.Cluster, error) {
+	clusters := []mngrcluster.Cluster{}
 
-func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, error) {
-	clusters := []mngr.Cluster{}
-
-	cl, err := f.clientGetter.Client(ctx)
+	cl, err := f.cluster.GetServerClient()
 	if err != nil {
 		return nil, err
 	}
@@ -138,21 +133,33 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 
 		restCfg, err := clientcmd.RESTConfigFromKubeConfig([]byte(data))
 		if err != nil {
-			f.log.Error(err, "unable to create kubconfig from GitOps Cluster secret data", "cluster", cluster.Name)
+			f.log.Error(err, "unable to create kubeconfig from GitOps Cluster secret data", "cluster", cluster.Name)
 
 			continue
 		}
 
-		clusters = append(clusters,
-			mngr.Cluster{
-				Name: types.NamespacedName{
-					Name:      cluster.Name,
-					Namespace: cluster.Namespace,
-				}.String(),
-				Server:      restCfg.Host,
-				BearerToken: restCfg.BearerToken,
-				TLSConfig:   restCfg.TLSClientConfig,
-			})
+		leafCluster, err := mngrcluster.NewSingleCluster(
+			types.NamespacedName{
+				Name:      cluster.Name,
+				Namespace: cluster.Namespace,
+			}.String(),
+			restCfg,
+			f.scheme,
+			f.kubeConfigOptions...,
+		)
+		// TODO: the DefaultKubeConfigOptions will throw an error if the cluster can't be reached
+		// This has moved here, so we won't even return unreachable clusters - is that acceptable?
+		if err != nil {
+			f.log.Error(err, "unable to create cluster object from GitOps Cluster secret data", "cluster", cluster.Name)
+
+			continue
+		}
+
+		if f.isDelegating {
+			leafCluster = mngrcluster.NewDelegatingCacheCluster(leafCluster, restCfg, f.scheme)
+		}
+
+		clusters = append(clusters, leafCluster)
 	}
 
 	return clusters, nil
