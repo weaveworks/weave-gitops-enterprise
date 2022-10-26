@@ -6,10 +6,7 @@ import {
   RepositoryChart,
   Template,
 } from '../../cluster-services/cluster_services.pb';
-import {
-  getCreateRequestAnnotation,
-  maybeParseJSON,
-} from '../../components/Clusters/Form/utils';
+import { maybeParseJSON } from '../../components/Clusters/Form/utils';
 import {
   GitopsClusterEnriched,
   ProfilesIndex,
@@ -113,12 +110,27 @@ interface Props {
   cluster?: GitopsClusterEnriched;
 }
 
+interface AnnotationData {
+  commit_message: string;
+  credentials: Credential;
+  description: string;
+  head_branch: string;
+  parameter_values: { [key: string]: string };
+  template_name: string;
+  title: string;
+  values: {
+    name: string;
+    selected: boolean;
+    namespace: string;
+    values: string;
+    version: string;
+  }[];
+}
+
 const setVersionAndValuesFromCluster = (
   profiles: UpdatedProfile[],
-  cluster: GitopsClusterEnriched,
+  clusterData: AnnotationData,
 ) => {
-  const clusterData = getCreateRequestAnnotation(cluster);
-
   const profilesIndex = _.keyBy(profiles, 'name');
 
   let clusterProfiles: ProfilesIndex = {};
@@ -157,14 +169,14 @@ const setVersionAndValuesFromCluster = (
 const mergeClusterAndTemplate = (
   data: ListChartsForRepositoryResponse | undefined,
   template: TemplateEnriched | undefined,
-  cluster: GitopsClusterEnriched | undefined,
+  clusterData: AnnotationData,
 ) => {
   let profiles = toUpdatedProfiles(data?.charts);
   if (template) {
     profiles = setVersionAndValuesFromTemplate(profiles, template);
   }
-  if (cluster) {
-    profiles = setVersionAndValuesFromCluster(profiles, cluster);
+  if (clusterData) {
+    profiles = setVersionAndValuesFromCluster(profiles, clusterData);
   }
   return profiles;
 };
@@ -179,6 +191,9 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
   }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
 
   const { api } = useContext(EnterpriseClientContext);
+
+  const clusterData =
+    cluster?.annotations?.['templates.weave.works/create-request'];
 
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
@@ -210,8 +225,13 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
   );
 
   const profiles = useMemo(
-    () => mergeClusterAndTemplate(data, template, cluster),
-    [data, template, cluster],
+    () =>
+      mergeClusterAndTemplate(
+        data,
+        template,
+        maybeParseJSON(clusterData || ''),
+      ),
+    [data, template, clusterData],
   );
 
   return (
