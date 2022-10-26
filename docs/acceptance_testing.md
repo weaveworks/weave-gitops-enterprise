@@ -18,6 +18,8 @@ It is recommended to install latest and stable version of these tools. All tools
 | Totp-cli | Generates OTP tokens for two factor authentication | `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-ubuntu-amd64.tar.gz` <br> `tar -xf totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> `mv ./totp-cli /usr/local/bin` |
 | Selenium server | Standalone server for web browser instance | `wget https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar` <br> `It is not required if test host is a macOS machine.`|
 | flux | Command-line interface to bootstrap and interact with Flux | `https://fluxcd.io/docs/installation/#install-the-flux-cli`|
+| WG Client | Command line utility for managing Kubernetes applications via GitOps | https://github.com/weaveworks/weave-gitops#cli-installation
+| Chrome Driver | WebDriver is an open source tool for automated testing of webapps across many browsers | https://chromedriver.chromium.org/downloads
 
 ## Environment Setup
 
@@ -25,17 +27,17 @@ It is recommended to install latest and stable version of these tools. All tools
 
 Configure git with the following global settings. It will elevates the manual intervention of certain git operations.
 
-    git config --global init.defaultBranch main  
-    git config --global user.email <your email address>  
-    git config --global user.name <your user name>  
-    git config --global url.git@github.com/.insteadOf https://github.com/  
-    git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/  
-    git config --global url.git@gitlab.git.dev.weave.works:.insteadOf https://gitlab.git.dev.weave.works/ 
+    git config --global init.defaultBranch main
+    git config --global user.email <your email address>
+    git config --global user.name <your user name>
+    git config --global url.git@github.com/.insteadOf https://github.com/
+    git config --global url.git@gitlab.com:.insteadOf https://gitlab.com/
+    git config --global url.git@gitlab.git.dev.weave.works:.insteadOf https://gitlab.git.dev.weave.works/
 
 
 <font size="5">**Git provider(s) key fingerprints**</font>
 
-Add git providers i.e. (GitHub, gitlab and gitlab-on-prm) key fingerprints to the known_hosts file.  
+Add git providers i.e. (GitHub, gitlab and gitlab-on-prm) key fingerprints to the known_hosts file.
 
 ```
 # Clean up potentially old keys
@@ -89,7 +91,11 @@ export GITHUB_USER=<github account user name>
 export GITHUB_PASSWORD=<github account password>
 export TOTP_TOKEN=<github MFA token key>
 ```
-You must setup`MFA` for GitHub and export the MFA key as `TOTP_TOKEN`. It is required for automated GitHub authentication flows.
+
+`GITHUB_TOKEN` is your personal access token that can be created through the Developer Settings page in github.
+`GITHUB_ORG` can be any org that you create under your account to be used by the tests
+
+You must setup`2FA` for GitHub and export the 2FA key as `TOTP_TOKEN`. It is required for automated GitHub authentication flows.
 
 **Gitlab saas**
 ```
@@ -102,7 +108,7 @@ export GITHUB_PASSWORD=<gitlab account password>
 export GITLAB_CLIENT_ID=<gitlab oath app id>
 export GITLAB_CLIENT_SECRET=<gitlab oath app secret>
 ```
-  
+
 **Gitlab on-prem**
 ```
 export GIT_PROVIDER=gitlab
@@ -129,26 +135,26 @@ You must configure the gitlab oath application with redirect url as below. It is
 	`java -jar ./selenium-server-standalone-3.14.0.jar &`
 - ***Command shell:*** Change directory to weave-gitops-enterprise. All paths in the following instructions are relative to `weave-gitops-enterprise` directory.
 
-	`cd $HOME/go/src/github.com/weaveworks/weave-gitops-enterprise`	 
+	`cd $HOME/go/src/github.com/weaveworks/weave-gitops-enterprise`
 - Delete any existing kind cluster(s).
 
 	`kind delete clusters --all`
 - Create a new clean kind cluster.
 
-	`kind create cluster  --config test/utils/data/local-kind-config.yaml` 
+	`kind create cluster  --config test/utils/data/local-kind-config.yaml`
 
 - ***Automatic installation:*** Test frame work automatically installs the  core and enterprise controllers and setup the management cluster along with required repository, resources, secrets and entitlements etc. Any subsequent test runs will skip the management cluster setup and starts the test execution straight away. You need to recreate the kind cluster in case you want to install new enterprise version/release for testing.
 
 You may needed to add a `MANAGEMENT_CLUSTER_CNAME` entry to `/etc/hosts` file e.g. `192.168.0.5 weave.gitops.enterprise.com` (where `192.168.0.5` is test host's ip address) before start running the tests.
 
-- ***Manual installation:*** You can manually install and setup core and enterprise controllers without running acceptance test. You must create the config repository i.e. `CLUSTER_REPOSITORY` prior to running the following command. The core controllers can not be installed if `CLUSTER_REPOSITORY` doesn't exists. Manual creation of cluster repository is only required for manual installation. 
+- ***Manual installation:*** You can manually install and setup core and enterprise controllers without running acceptance test. You must create the config repository i.e. `CLUSTER_REPOSITORY` prior to running the following command. The core controllers can not be installed if `CLUSTER_REPOSITORY` doesn't exists. Manual creation of cluster repository is only required for manual installation.
 
 	You may be prompted for administrator password while running the below script. It is needed to add a `MANAGEMENT_CLUSTER_CNAME` entry to `/etc/hosts` file e.g. `192.168.0.5 weave.gitops.enterprise.com` (where `192.168.0.5` is test host's ip address).
 
 	`test/utils/scripts/wego-enterprise.sh setup $(pwd)`
-	
 
-- ***Enterprise chart version:*** The management cluster setup script tries to fetch the helm chart from *S3* corresponding  to latest commit hash of the working branch. In case if the image with latest commit hash doesn’t exist in *S3*, then you can manually override the chart version of your choice by setting `ENTERPRISE_CHART_VERSION` environment variable.  
+
+- ***Enterprise chart version:*** The management cluster setup script tries to fetch the helm chart from *S3* corresponding  to latest commit hash of the working branch. In case if the image with latest commit hash doesn’t exist in *S3*, then you can manually override the chart version of your choice by setting `ENTERPRISE_CHART_VERSION` environment variable.
 
 	`export ENTERPRISE_CHART_VERSION=0.0.17-53-gb6aa363`
 
