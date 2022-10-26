@@ -94,7 +94,7 @@ type ApplicationViolationsList struct {
 	SearchResult              *agouti.Selection
 }
 
-// AppViolationsMsgInList conatins the violation's message element
+// AppViolationsMsgInList contains the violation's message element
 type AppViolationsMsgInList struct {
 	AppViolationsMsg *agouti.Selection
 }

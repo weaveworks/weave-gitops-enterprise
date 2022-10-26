@@ -1199,7 +1199,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				existingAppCount = getApplicationCount()
 				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
-				//gomega.ex
+
 				createCluster("kind", leafCluster.Name, "")
 				// Create App namespace
 				createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -1294,7 +1294,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					pages.NavigateToPage(webDriver, "Applications")
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
-					totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
+					totalAppCount := existingAppCount + 1 // Podinfo (leaf cluster)
 					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
