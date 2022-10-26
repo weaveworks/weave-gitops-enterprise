@@ -312,14 +312,14 @@ func TestRenderTemplateWithParameters(t *testing.T) {
 		name       string
 		kind       templates.TemplateKind
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, result string, err error)
+		assertFunc func(t *testing.T, result *templates.RenderTemplateResponse, err error)
 	}{
 		{
 			name:      "rendered template returned for capi kind",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/rendered_template_capi.json")),
-			assertFunc: func(t *testing.T, result string, err error) {
-				assert.Equal(t, result, `apiVersion: cluster.x-k8s.io/v1alpha4
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
+				assert.Equal(t, result.String(), `apiVersion: cluster.x-k8s.io/v1alpha4
 kind: Cluster
 metadata:
   name: dev
@@ -362,6 +362,49 @@ spec:
   clusterName: mb-test-1
   selectors:
   - namespace: default
+
+---
+# clusters/default/cli-end-to-end-capd-cluster-1/profiles.yaml
+
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: profiles-catalog
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  timeout: 1m0s
+  url: https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cert-manager
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: cert-manager
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: profiles-catalog
+        namespace: flux-system
+      version: 0.0.7
+  install:
+    crds: CreateReplace
+    createNamespace: true
+  interval: 1m0s
+  targetNamespace: sdsd
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+    key: value
+status: {}
 `)
 			},
 		},
@@ -369,8 +412,8 @@ spec:
 			name:      "rendered template returned for gitops kind",
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/rendered_template_gitops.json")),
-			assertFunc: func(t *testing.T, result string, err error) {
-				assert.Equal(t, result, `apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
+				assert.Equal(t, result.String(), `apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: dev
@@ -392,7 +435,7 @@ spec:
 			name:      "service error",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("./testdata/service_error.json")),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\": something bad happened")
 			},
 		},
@@ -400,7 +443,7 @@ spec:
 			name:      "error returned for capi kind",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\": Post \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\": oops")
 			},
 		},
@@ -408,7 +451,7 @@ spec:
 			name:      "error returned for gitops kind",
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=GitOpsTemplate\": Post \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=GitOpsTemplate\": oops")
 			},
 		},
@@ -416,7 +459,7 @@ spec:
 			name:      "unexpected status code",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\" was 400")
 			},
 		},
@@ -434,7 +477,11 @@ spec:
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			result, err := client.RenderTemplateWithParameters(tt.kind, "cluster-template", nil, templates.Credentials{})
+			req := templates.RenderTemplateRequest{
+				TemplateName: "cluster-template",
+				TemplateKind: tt.kind,
+			}
+			result, err := client.RenderTemplateWithParameters(req)
 			tt.assertFunc(t, result, err)
 		})
 	}
