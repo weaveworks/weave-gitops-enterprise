@@ -1,7 +1,12 @@
 import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { FC } from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import {
+  QueryCache,
+  QueryClient,
+  QueryClientConfig,
+  QueryClientProvider,
+} from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { muiTheme } from './muiTheme';
@@ -20,6 +25,7 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { Pipelines } from './api/pipelines/pipelines.pb';
+import { GithubAuthProvider } from './contexts/GithubAuth';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -92,7 +98,31 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-const queryClient = new QueryClient();
+interface Error {
+  code: number;
+  message: string;
+}
+export const queryOptions: QueryClientConfig = {
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+  queryCache: new QueryCache({
+    onError: error => {
+      const err = error as Error;
+      const { pathname, search } = window.location;
+      const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+      const url = redirectUrl
+        ? `/sign_in?redirect=${redirectUrl}`
+        : `/sign_in?redirect=/`;
+      if (err.code === 401 && !window.location.href.includes('/sign_in')) {
+        window.location.href = url;
+      }
+    },
+  }),
+};
+const queryClient = new QueryClient(queryOptions);
 
 const App: FC = () => {
   return (
@@ -104,9 +134,11 @@ const App: FC = () => {
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
                 <PipelinesProvider api={Pipelines}>
-                  <AppContextProvider applicationsClient={applicationsClient}>
-                    <ResponsiveDrawer />
-                  </AppContextProvider>
+                  <GithubAuthProvider api={applicationsClient}>
+                    <AppContextProvider applicationsClient={applicationsClient}>
+                      <ResponsiveDrawer />
+                    </AppContextProvider>
+                  </GithubAuthProvider>
                 </PipelinesProvider>
               </ProgressiveDeliveryProvider>
             </BrowserRouter>

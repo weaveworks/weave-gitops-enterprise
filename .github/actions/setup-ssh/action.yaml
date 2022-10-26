@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
     - name: Set up ssh agent
-      uses: webfactory/ssh-agent@v0.5.2
+      uses: webfactory/ssh-agent@v0.7.0
       with:
         ssh-private-key: ${{ inputs.ssh-private-key }}
     - name: Add known_hosts

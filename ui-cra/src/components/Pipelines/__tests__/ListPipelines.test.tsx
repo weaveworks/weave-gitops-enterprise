@@ -122,3 +122,31 @@ describe('ListPipelines', () => {
     filterTable.clearSearchByVal(search);
   });
 });
+
+describe('Auth redirect', () => {
+  let wrap: (el: JSX.Element) => JSX.Element;
+  let api: PipelinesClientMock;
+  beforeEach(() => {
+    api = new PipelinesClientMock();
+    wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+  });
+  const mockResponse = jest.fn();
+  Object.defineProperty(window, 'location', {
+    value: {
+      hash: {
+        endsWith: mockResponse,
+        includes: mockResponse,
+      },
+      assign: mockResponse,
+    },
+    writable: true,
+  });
+  it('auth redirect to login', async () => {
+    api.ErrorRef = { code: 401, message: 'Auth error' };
+    await act(async () => {
+      const c = wrap(<Pipelines />);
+      render(c);
+    });
+    expect(window.location.href).toContain('/sign_in');
+  });
+});

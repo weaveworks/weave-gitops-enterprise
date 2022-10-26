@@ -90,9 +90,9 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				pullRequest := PullRequest{
-					Branch:  "management-kustomization-apps",
-					Title:   "Management Kustomization Application",
-					Message: "Adding management kustomization applications",
+					Branch:  "management-kustomization-tenant-apps",
+					Title:   "Management Kustomization Tenant Application",
+					Message: "Adding management kustomization Tenant applications",
 				}
 
 				tenantYaml := createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
@@ -132,14 +132,9 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddKustomizationApp(application, podinfo)
-				createGitopsPR(pullRequest)
+				_ = createGitopsPR(pullRequest)
 
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound(), "Failed to find Create PR toast")
-				})
-
-				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
@@ -243,14 +238,9 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddHelmReleaseApp(profile, metallb)
-				createGitopsPR(pullRequest)
+				_ = createGitopsPR(pullRequest)
 
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound(), "Failed to find Create PR toast")
-				})
-
-				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
@@ -410,14 +400,9 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddKustomizationApp(application, podinfo)
-				createGitopsPR(pullRequest)
+				_ = createGitopsPR(pullRequest)
 
-				ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound(), "Failed to find Create PR toast")
-				})
-
-				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {
+				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})

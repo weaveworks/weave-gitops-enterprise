@@ -1,5 +1,6 @@
 import { URL } from '../types/global';
 import GitUrlParse from 'git-url-parse';
+import { CostEstimate } from '../cluster-services/cluster_services.pb';
 
 export const toPercent = (value: number, precision = 0) =>
   `${(100 * value).toFixed(precision)}%`;
@@ -30,4 +31,20 @@ export const getGitRepoHTTPSURL = (
     }
   }
   return '';
+};
+
+export const getFormattedCostEstimate = (
+  costEstimate: CostEstimate | undefined,
+): string => {
+  const costFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  });
+  if (costEstimate) {
+    const { currency, range } = costEstimate;
+    const estimate = `${costFormatter.format(
+      range?.low || 0,
+    )} - ${costFormatter.format(range?.high || 0)} ${currency}`;
+    return estimate;
+  } else return 'N/A';
 };
