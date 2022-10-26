@@ -18,8 +18,8 @@ It is recommended to install latest and stable version of these tools. All tools
 | Totp-cli | Generates OTP tokens for two factor authentication | `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-ubuntu-amd64.tar.gz` <br> `tar -xf totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> `mv ./totp-cli /usr/local/bin` |
 | Selenium server | Standalone server for web browser instance | `wget https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar` <br> `It is not required if test host is a macOS machine.`|
 | flux | Command-line interface to bootstrap and interact with Flux | `https://fluxcd.io/docs/installation/#install-the-flux-cli`|
-| WG Client | Command line utility for managing Kubernetes applications via GitOps | https://github.com/weaveworks/weave-gitops#cli-installation
-| Chrome Driver | WebDriver is an open source tool for automated testing of webapps across many browsers | https://chromedriver.chromium.org/downloads
+| WG Client | Command line utility for managing Kubernetes applications via GitOps | `https://github.com/weaveworks/weave-gitops#cli-installation`
+| Chrome Driver | WebDriver is an open source tool for automated testing of webapps across many browsers.  | `https://chromedriver.chromium.org/downloads` <br> Make sure to install the correct driver version for your browser version
 
 ## Environment Setup
 
