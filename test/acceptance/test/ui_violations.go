@@ -177,15 +177,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				gitopsCluster = connectGitopsCuster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
 
-				ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
-					pages.NavigateToPage(webDriver, "Clusters")
-					clustersPage := pages.GetClustersPage(webDriver)
-					pages.WaitForPageToLoad(webDriver)
-					clusterInfo := clustersPage.FindClusterInList(leafClusterName)
-
-					gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
-				})
-
+				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
 				installTestPolicies("management", policiesYaml)

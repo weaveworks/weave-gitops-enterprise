@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -35,7 +35,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
-	k8sFake "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -116,7 +115,7 @@ func TestPipelinesServer(t *testing.T) {
 	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/pipelines", port))
 	assert.NoError(t, err)
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
 	assert.Equal(t, res.StatusCode, http.StatusOK, string(body))
@@ -180,7 +179,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 	go func(ctx context.Context) {
 		coreConfig := fakeCoreConfig(t, log)
 		appsConfig := fakeAppsConfig(k, log)
-		clientSet := k8sFake.NewSimpleClientset(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}})
+		clientSet := fakeclientset.NewSimpleClientset(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}})
 		mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
 			Namespaces: []*corev1.Namespace{
 				{

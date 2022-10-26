@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -14,6 +15,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestGetPipeline(t *testing.T) {
@@ -23,11 +25,13 @@ func TestGetPipeline(t *testing.T) {
 		Name: "management",
 	}
 
-	kclient, factory := grpctesting.MakeFactoryWithObjects()
-	serverClient := pipetesting.SetupServer(t, factory, kclient, cluster)
+	kclient := fake.NewClientBuilder().WithScheme(grpctesting.BuildScheme()).Build()
 
 	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
+
+	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
+	serverClient := pipetesting.SetupServer(t, factory, kclient, cluster)
 
 	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)
 
@@ -56,6 +60,26 @@ func TestGetPipeline(t *testing.T) {
 			Kind:       "GitopsCluster",
 			Name:       "cluster-1",
 			Namespace:  pipelineNamespace.Name,
+		}
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
+			Namespace: pipelineNamespace.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, p.Name, res.Pipeline.Name)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
+		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
+	})
+
+	t.Run("cluster ref without Namespace", func(t *testing.T) {
+		p := newPipeline("pipe-3", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
+			APIVersion: ctrl.GroupVersion.String(),
+			Kind:       "GitopsCluster",
+			Name:       "cluster-1",
 		}
 		require.NoError(t, kclient.Create(ctx, p))
 

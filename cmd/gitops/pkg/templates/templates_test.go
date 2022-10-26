@@ -177,7 +177,7 @@ func TestGetTemplates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(tt.ts, nil, nil, nil, "", tt.err)
+			c := newFakeClient(tt.ts, nil, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.GetTemplates(templates.CAPITemplateKind, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -222,7 +222,7 @@ func TestGetTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(tt.ts, nil, nil, nil, "", tt.err)
+			c := newFakeClient(tt.ts, nil, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.GetTemplates(templates.CAPITemplateKind, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -290,7 +290,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(tt.ts, nil, nil, nil, "", tt.err)
+			c := newFakeClient(tt.ts, nil, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.GetTemplatesByProvider(templates.CAPITemplateKind, tt.provider, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -351,7 +351,7 @@ func TestGetTemplateParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, tt.tps, nil, nil, "", tt.err)
+			c := newFakeClient(nil, tt.tps, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.GetTemplateParameters(templates.CAPITemplateKind, "foo", c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -365,7 +365,7 @@ func TestGetTemplateParameters(t *testing.T) {
 func TestRenderTemplate(t *testing.T) {
 	tests := []struct {
 		name             string
-		result           string
+		result           *templates.RenderTemplateResponse
 		err              error
 		expected         string
 		expectedErrorStr string
@@ -381,7 +381,8 @@ func TestRenderTemplate(t *testing.T) {
 		},
 		{
 			name: "result is rendered to output",
-			result: `apiVersion: cluster.x-k8s.io/v1alpha3
+			result: &templates.RenderTemplateResponse{
+				RenderedTemplate: `apiVersion: cluster.x-k8s.io/v1alpha3
 				kind: Cluster
 				metadata:
 					name: foo
@@ -398,6 +399,7 @@ func TestRenderTemplate(t *testing.T) {
 					apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 					kind: AWSCluster
 					name: foo`,
+			},
 			expected: `apiVersion: cluster.x-k8s.io/v1alpha3
 				kind: Cluster
 				metadata:
@@ -420,9 +422,13 @@ func TestRenderTemplate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, nil, nil, nil, tt.result, tt.err)
+			c := newFakeClient(nil, nil, nil, nil, tt.result, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.RenderTemplateWithParameters(templates.CAPITemplateKind, "foo", nil, templates.Credentials{}, c, w)
+			req := templates.RenderTemplateRequest{
+				TemplateName: "foo",
+				TemplateKind: templates.CAPITemplateKind,
+			}
+			err := templates.RenderTemplateWithParameters(req, c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -453,7 +459,7 @@ func TestCreatePullRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, nil, nil, nil, tt.result, tt.err)
+			c := newFakeClient(nil, nil, nil, nil, nil, tt.result, tt.err)
 			w := new(bytes.Buffer)
 			err := templates.CreatePullRequestFromTemplate(templates.CreatePullRequestFromTemplateParams{}, c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -499,7 +505,7 @@ func TestGetCredentials(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, nil, tt.creds, nil, "", tt.err)
+			c := newFakeClient(nil, nil, tt.creds, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.GetCredentials(c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -558,7 +564,7 @@ func TestGetTemplateProfiles(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := newFakeClient(nil, nil, nil, tt.fs, "", tt.err)
+			c := newFakeClient(nil, nil, nil, tt.fs, nil, "", tt.err)
 			w := new(bytes.Buffer)
 			err := templates.GetTemplateProfiles("profile-b", c, w)
 			assert.Equal(t, tt.expected, w.String())
@@ -574,17 +580,19 @@ type fakeClient struct {
 	ps  []templates.TemplateParameter
 	cs  []templates.Credentials
 	fs  []templates.Profile
-	s   string
+	rt  *templates.RenderTemplateResponse
+	w   string
 	err error
 }
 
-func newFakeClient(ts []templates.Template, ps []templates.TemplateParameter, cs []templates.Credentials, fs []templates.Profile, s string, err error) *fakeClient {
+func newFakeClient(ts []templates.Template, ps []templates.TemplateParameter, cs []templates.Credentials, fs []templates.Profile, rt *templates.RenderTemplateResponse, w string, err error) *fakeClient {
 	return &fakeClient{
 		ts:  ts,
 		ps:  ps,
 		cs:  cs,
 		fs:  fs,
-		s:   s,
+		rt:  rt,
+		w:   w,
 		err: err,
 	}
 }
@@ -629,12 +637,12 @@ func (c *fakeClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 	return c.ps, nil
 }
 
-func (c *fakeClient) RenderTemplateWithParameters(kind templates.TemplateKind, name string, parameters map[string]string, creds templates.Credentials) (string, error) {
+func (c *fakeClient) RenderTemplateWithParameters(req templates.RenderTemplateRequest) (*templates.RenderTemplateResponse, error) {
 	if c.err != nil {
-		return "", c.err
+		return nil, c.err
 	}
 
-	return c.s, nil
+	return c.rt, nil
 }
 
 func (c *fakeClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
@@ -642,7 +650,7 @@ func (c *fakeClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 		return "", c.err
 	}
 
-	return c.s, nil
+	return c.w, nil
 }
 
 func (c *fakeClient) RetrieveCredentials() ([]templates.Credentials, error) {

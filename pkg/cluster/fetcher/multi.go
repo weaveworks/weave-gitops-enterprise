@@ -40,6 +40,16 @@ func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.Client
 	}, nil
 }
 
+// ToClusterName takes a types.NamespacedName and returns the name of the cluster
+// ManagementClusterName doesn't have a namespace
+func ToClusterName(cluster types.NamespacedName) string {
+	if cluster.Namespace == "" {
+		return cluster.Name
+	}
+
+	return cluster.String()
+}
+
 func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {
 	clusters := []mngr.Cluster{f.self()}
 
