@@ -77,7 +77,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 		if namespacedList.Error != nil {
 			errors = append(errors, &capiv1_proto.ListError{
 				Namespace: namespacedList.Namespace,
-				Message:   err.Error(),
+				Message:   namespacedList.Error.Error(),
 			})
 		}
 		clustersList := namespacedList.List.(*gitopsv1alpha1.GitopsClusterList)
