@@ -2,6 +2,7 @@ package git
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/fluxcd/go-git-providers/azure"
@@ -316,10 +317,14 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 			return nil, err
 		}
 	case "azure":
+		var token string
+		if gpi.Token != "" {
+			token = base64.StdEncoding.EncodeToString([]byte(":" + gpi.Token))
+		}
 		azureClientOptions := azure.ClientOptions{
 			Org:     "efernandezbreis",
 			Project: "weaveworks",
-			Token:   gpi.Token,
+			Token:   token,
 		}
 		client, err = azure.NewClient(azureClientOptions)
 		if err != nil {

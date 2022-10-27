@@ -30,26 +30,14 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func TestGetGitProviderClient(t *testing.T) {
-
-	azureGitProvider := git.GitProvider{
-		Token:    os.Getenv("AZURE_DEVOPS_TOKEN"),
-		Type:     "azure",
-		Hostname: "dev.azure.com",
-	}
-
-	client, err := git.getGitProviderClient(azureGitProvider)
-
-	require.NoError(t, err)
-	require.NotNil(t, client.ProviderID())
-}
-
 func TestCreatePullRequestInAzure(t *testing.T) {
 	// Create a client
 	ctx := context.Background()
 
-	repoUrl := "https://efernandezbreis@dev.azure.com/efernandezbreis/weaveworks/_git/weaveworks"
+	repoUrl := "https://dev.azure.com/efernandezbreis/weaveworks/_git/weaveworks"
 	baseBranch := "main"
+
+	branchName := fmt.Sprintf("test-branch-%03d", rand.Intn(1000))
 
 	s := git.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
@@ -61,7 +49,7 @@ func TestCreatePullRequestInAzure(t *testing.T) {
 			Hostname: "dev.azure.com",
 		},
 		RepositoryURL: repoUrl,
-		HeadBranch:    "feature-01",
+		HeadBranch:    branchName,
 		BaseBranch:    baseBranch,
 		Title:         "New cluster",
 		Description:   "Creates a cluster through a CAPI template",

@@ -17,5 +17,5 @@ func Test_getGitProviderClient(t *testing.T) {
 	client, err := getGitProviderClient(azureGitProvider)
 
 	require.NoError(t, err)
-	require.NotNil(t, client.ProviderID())
+	require.NotNil(t, client)
 }
