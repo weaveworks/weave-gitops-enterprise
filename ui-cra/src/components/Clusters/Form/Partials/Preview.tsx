@@ -18,6 +18,7 @@ import {
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Button } from '@weaveworks/weave-gitops';
+import JSZip from 'jszip';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiPaper-root'] {
@@ -46,7 +47,7 @@ interface TabPanelProps {
 interface TabContent {
   tabName: string;
   value?: string;
-  fileGroup: string;
+  path?: string;
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -64,18 +65,14 @@ function TabPanel(props: TabPanelProps) {
     </div>
   );
 }
-const generateFileContent = (tabsContent: Array<TabContent>) => {
-  let files: { [key: string]: BlobPart } = {};
-  tabsContent.forEach(tab => {
-    if (!files[tab.fileGroup]) {
-      files[tab.fileGroup] = tab.value as BlobPart;
-    } else {
-      const content = files[tab.fileGroup] + '\n---\n' + tab.value;
-      files[tab.fileGroup] = content as BlobPart;
-    }
-  });
-  return files;
+const saveAs = (content: Blob, fileName: string) => {
+  const element = document.createElement('a');
+  element.href = URL.createObjectURL(content);
+  element.download = `${fileName}.zip`;
+  document.body.appendChild(element);
+  element.click();
 };
+
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
@@ -89,49 +86,51 @@ const Preview: FC<{
     setValue(newValue);
   };
 
-  const getContetn = (files: CommitFile[] | undefined) =>
+  const getContent = (files: CommitFile[] | undefined) =>
     files?.map(file => file.content).join('\n---\n');
+
+  const getPath = (files: CommitFile[] | undefined) =>
+    files ? files[0].path : undefined;
 
   const tabsContent: Array<TabContent> =
     context === 'app'
       ? [
           {
             tabName: 'Kustomizations',
-            value: getContetn(PRPreview.kustomizationFiles),
-            fileGroup: 'resources',
+            value: getContent(PRPreview.kustomizationFiles),
+            path: getPath(PRPreview.kustomizationFiles),
           },
           {
             tabName: 'Helm Releases',
-            value: getContetn((PRPreview as AppPRPreview).helmReleaseFiles),
-            fileGroup: 'resources',
+            value: getContent((PRPreview as AppPRPreview).helmReleaseFiles),
+            path: getPath((PRPreview as AppPRPreview).helmReleaseFiles),
           },
         ]
       : [
           {
             tabName: 'Cluster Definition',
             value: (PRPreview as ClusterPRPreview).renderedTemplate,
-            fileGroup: 'cluster_definition',
+            path: 'cluster_definition.yaml',
           },
           {
             tabName: 'Profiles',
-            value: getContetn((PRPreview as ClusterPRPreview).profileFiles),
-            fileGroup: 'resources',
+            value: getContent((PRPreview as ClusterPRPreview).profileFiles),
+            path: getPath((PRPreview as ClusterPRPreview).profileFiles),
           },
           {
             tabName: 'Kustomizations',
-            value: getContetn(PRPreview.kustomizationFiles),
-            fileGroup: 'resources',
+            value: getContent(PRPreview.kustomizationFiles),
+            path: getPath(PRPreview.kustomizationFiles),
           },
         ];
 
   const downloadFile = () => {
-    Object.entries(generateFileContent(tabsContent)).forEach(([key, value]) => {
-      const file = new Blob([value], { type: 'yaml' });
-      const element = document.createElement('a');
-      element.href = URL.createObjectURL(file);
-      element.download = `${key}.yaml`;
-      document.body.appendChild(element);
-      element.click();
+    const zip = new JSZip();
+    tabsContent.forEach(tab => {
+      if (tab.path) zip.file(tab.path, tab.value || '');
+    });
+    zip.generateAsync({ type: 'blob' }).then(content => {
+      saveAs(content, 'resources.zip');
     });
   };
   return (
