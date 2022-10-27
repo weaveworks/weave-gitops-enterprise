@@ -277,19 +277,17 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 	}
 
 	// FIXME: parse and read from Cluster in yaml template
-	var resourceName string
+	clusterName, _ := msg.ParameterValues["CLUSTER_NAME"]
+	nonClusterName, _ := msg.ParameterValues["RESOURCE_NAME"]
 
-	clusterName, clusterNamePresent := msg.ParameterValues["CLUSTER_NAME"]
-	nonClusterName, nonClusterNamePresent := msg.ParameterValues["RESOURCE_NAME"]
-
-	if clusterName == "" && resourceName == "" {
+	if clusterName == "" && nonClusterName == "" {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
-	} else {
-		if clusterName != "" {
-			resourceName = clusterName
-		} else {
-			resourceName = nonClusterName
-		}
+	}
+
+	resourceName := clusterName
+
+	if clusterName != "" {
+		resourceName = nonClusterName
 	}
 
 	cluster := createNamespacedName(resourceName, clusterNamespace)

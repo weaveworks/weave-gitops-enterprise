@@ -45,7 +45,8 @@ export enum Routes {
   Clusters = '/clusters',
   ClusterDashboard = '/cluster',
   DeleteCluster = '/clusters/delete',
-  EditResource = '/resources/:resourceName/edit',
+  EditResource = `/resources/edit`,
+
   PolicyViolations = '/clusters/violations',
   PolicyViolationDetails = '/clusters/violations/details',
 

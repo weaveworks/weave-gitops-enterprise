@@ -91,7 +91,11 @@ const AppRoutes = () => {
         ))}
         path={Routes.ClusterDashboard}
       />
-      <Route component={EditResourcePage} exact path={Routes.EditResource} />
+      <Route
+        component={withSearchParams(EditResourcePage)}
+        exact
+        path={Routes.EditResource}
+      />
       <Route
         component={AddClusterWithCredentials}
         exact

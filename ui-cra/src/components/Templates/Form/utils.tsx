@@ -22,5 +22,6 @@ export const getCreateRequestAnnotation = (
     annotation = (resource as Automation | Source)?.obj?.metadata
       ?.annotations?.['templates.weave.works/create-request'];
   }
-  return maybeParseJSON(annotation);
+
+  return maybeParseJSON(annotation || '');
 };
