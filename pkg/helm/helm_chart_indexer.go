@@ -11,12 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-const (
-	// ManagementClusterNamespace is the namespace of the management cluster
-	ManagementClusterNamespace = "default"
-	// dbFile is the name of the sqlite3 database file
-	dbFile = "charts.db"
-)
+// dbFile is the name of the sqlite3 database file
+const dbFile = "charts.db"
 
 type ChartsCacherWriter interface {
 	AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error
@@ -59,7 +55,7 @@ type HelmChartIndexer struct {
 }
 
 // NewCache initialises the cache and returns it.
-func NewChartIndexer(cacheLocation string, mgmtCluster types.NamespacedName) (*HelmChartIndexer, error) {
+func NewChartIndexer(cacheLocation, mgmtCluster string) (*HelmChartIndexer, error) {
 	db, err := createDB(cacheLocation)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cache database: %w", err)
@@ -67,7 +63,9 @@ func NewChartIndexer(cacheLocation string, mgmtCluster types.NamespacedName) (*H
 
 	return &HelmChartIndexer{
 		CacheDB: db,
-		Cluster: mgmtCluster,
+		Cluster: types.NamespacedName{
+			Name: mgmtCluster,
+		},
 	}, nil
 }
 

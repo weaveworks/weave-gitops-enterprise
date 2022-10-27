@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -21,17 +20,13 @@ import (
 func TestGetPipeline(t *testing.T) {
 	ctx := context.Background()
 
-	cluster := types.NamespacedName{
-		Name: "management",
-	}
-
 	kclient := fake.NewClientBuilder().WithScheme(grpctesting.BuildScheme()).Build()
 
 	pipelineNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 
 	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
-	serverClient := pipetesting.SetupServer(t, factory, kclient, cluster)
+	serverClient := pipetesting.SetupServer(t, factory, kclient, "management")
 
 	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)
 

@@ -114,7 +114,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	}
 
 	// Append the management cluster to the end of clusters list
-	mgmtCluster, err := getManagementCluster(s.cluster.Name)
+	mgmtCluster, err := getManagementCluster(s.cluster)
 	if err != nil {
 		return nil, err
 	}

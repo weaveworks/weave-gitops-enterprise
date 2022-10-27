@@ -15,7 +15,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -222,7 +221,7 @@ func TestMultiFetcher(t *testing.T) {
 		t.Run(tt.context, func(t *testing.T) {
 			cg := kubefakes.NewFakeClientGetter(makeClient(t, g, tt.clusterObjects...))
 
-			fetcher, err := fetcher.NewMultiClusterFetcher(logr.Discard(), config, cg, "default", types.NamespacedName{Name: "management"})
+			fetcher, err := fetcher.NewMultiClusterFetcher(logr.Discard(), config, cg, "default", "management")
 			g.Expect(err).NotTo(HaveOccurred())
 
 			clusters, err := fetcher.Fetch(context.TODO())

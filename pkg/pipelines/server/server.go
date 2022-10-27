@@ -8,14 +8,13 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type ServerOpts struct {
 	logr.Logger
 	ClustersManager   clustersmngr.ClustersManager
 	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
-	Cluster           types.NamespacedName
+	Cluster           string
 }
 
 type server struct {
@@ -24,7 +23,7 @@ type server struct {
 	log               logr.Logger
 	clients           clustersmngr.ClustersManager
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
-	cluster           types.NamespacedName
+	cluster           string
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {

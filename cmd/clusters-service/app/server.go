@@ -136,7 +136,7 @@ type Params struct {
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
 	DevMode                           bool                      `mapstructure:"dev-mode"`
-	Cluster                           types.NamespacedName      `mapstructure:"cluster"`
+	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 }
 
@@ -201,8 +201,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
-	cmd.Flags().String("management-cluster-name", "", "name of the management cluster")
-	cmd.Flags().String("management-cluster-namespace", "", "namespace of the management cluster")
+	cmd.Flags().String("cluster-name", "management", "name of the management cluster")
 
 	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -361,7 +360,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
 		ClientConfig:  kubeClientConfig,
-		ClusterRef:    p.Cluster,
+		ClusterRef:    types.NamespacedName{Name: p.Cluster},
 		Cache:         chartsCache,
 		ValuesFetcher: helm.NewValuesFetcher(),
 		KubeClient:    kubeClient,

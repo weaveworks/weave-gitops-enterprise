@@ -176,7 +176,7 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 		return "", fmt.Errorf("error getting client config for cluster: %w", err)
 	}
 
-	data, err := s.valuesFetcher.GetValuesFile(ctx, config, types.NamespacedName{Namespace: repoRef.Namespace, Name: repoRef.Name}, chart, clusterRef.Name != s.cluster.Name)
+	data, err := s.valuesFetcher.GetValuesFile(ctx, config, types.NamespacedName{Namespace: repoRef.Namespace, Name: repoRef.Name}, chart, clusterRef.Name != s.cluster)
 	if err != nil {
 		return "", fmt.Errorf("error fetching values file: %w", err)
 	}
@@ -196,7 +196,7 @@ func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.Na
 	//
 	// clusters := s.clustersManager.GetClusters()
 	managementCluster := clustersmngr.Cluster{
-		Name:        s.cluster.Name,
+		Name:        s.cluster,
 		Server:      s.restConfig.Host,
 		BearerToken: s.restConfig.BearerToken,
 		TLSConfig:   s.restConfig.TLSClientConfig,
@@ -204,7 +204,7 @@ func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.Na
 	clusters := []clustersmngr.Cluster{managementCluster}
 
 	clusterName := cluster.Name
-	if clusterName != s.cluster.Name {
+	if clusterName != s.cluster {
 		clusterName = fmt.Sprintf("%s/%s", cluster.Namespace, cluster.Name)
 	}
 

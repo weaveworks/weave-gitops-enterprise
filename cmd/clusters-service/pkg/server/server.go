@@ -4,7 +4,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
@@ -41,7 +40,7 @@ type server struct {
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
 	capiEnabled               bool
-	cluster                   types.NamespacedName
+	cluster                   string
 
 	restConfig        *rest.Config
 	chartJobs         *helm.Jobs
@@ -60,7 +59,7 @@ type ServerOpts struct {
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
-	Cluster                   types.NamespacedName
+	Cluster                   string
 
 	RestConfig        *rest.Config
 	ChartJobs         *helm.Jobs

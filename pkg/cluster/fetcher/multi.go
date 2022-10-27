@@ -30,13 +30,13 @@ type multiClusterFetcher struct {
 	cluster      types.NamespacedName
 }
 
-func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.ClientGetter, namespace string, mgmtCluster types.NamespacedName) (mngr.ClusterFetcher, error) {
+func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.ClientGetter, namespace, mgmtCluster string) (mngr.ClusterFetcher, error) {
 	return multiClusterFetcher{
 		log:          log.WithName("multi-cluster-fetcher"),
 		cfg:          config,
 		clientGetter: cg,
 		namespace:    namespace,
-		cluster:      mgmtCluster,
+		cluster:      types.NamespacedName{Name: mgmtCluster},
 	}, nil
 }
 

@@ -30,8 +30,8 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 		},
 	}
 
-	if err := c.Get(ctx, s.cluster.Name, client.ObjectKeyFromObject(&p), &p); err != nil {
-		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster.Name, err)
+	if err := c.Get(ctx, s.cluster, client.ObjectKeyFromObject(&p), &p); err != nil {
+		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 	}
 
 	pipelineResp := convert.PipelineToProto(p)
@@ -47,7 +47,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(t.Namespace)
 
-			clusterName := s.cluster.Name
+			clusterName := s.cluster
 			if t.ClusterRef != nil {
 				ns := t.ClusterRef.Namespace
 				if ns == "" {
