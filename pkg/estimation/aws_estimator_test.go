@@ -23,26 +23,26 @@ func TestAWSClusterEstimator_Estimate(t *testing.T) {
 		{
 			// We have 3 instances of t3.medium in the controlPLane
 			// and 5 t3.large in the machineDeployment
-			// MonthlyHours == 750
+			// MonthlyHours == 730
 			// regionCode = us-iso-east-1
-			// controlPlane = 5 * 750.0 * 0.04, 0.08, 0.09 = 150.0, 300.0, 337.5
-			// infrastructure = 3 * 750.0 * 0.02, 0.04, 0.05 = 45.0, 90.0, 112.5
-			// max = 337.5+112.5
-			// min = 150+45
+			// controlPlane = 5 * 730.0 * 0.04, 0.08, 0.09 = [146.0, 292.0, 328.5]
+			// infrastructure = 3 * 730.0 * 0.02, 0.04, 0.05 = [43.8, 87.6, 109.5]
+			// max = 328.5+109.5
+			// min = 146.0+43.8
 			filename: "testdata/cluster-template.yaml",
-			want:     &CostEstimate{High: 450.00, Low: 195.00, Currency: "USD"},
+			want:     &CostEstimate{High: 438.0, Low: 189.8, Currency: "USD"},
 		},
 		{
 			// We have 6 instances of t3.medium in the controlPLane
 			// and 10 t3.large in the machineDeployment
-			// MonthlyHours == 750
+			// MonthlyHours == 730
 			// regionCode = us-iso-west-1
-			// controlPlane = 6 * 750.0 * 0.03, 0.06, 0.07 = 135.0, 270.0, 315.0
-			// infrastructure = 10 * 750.0 * 0.03, 0.06, 0.07 = 225.0, 450.0, 525.0
-			// max = 315.0+525.0
-			// min = 135.0+225.0
+			// controlPlane = 6 * 730.0 * 0.03, 0.06, 0.07 = [131.4, 262.8, 306.6]
+			// infrastructure = 10 * 730.0 * 0.03, 0.06, 0.07 = [219.0, 438.0, 511.00]
+			// max = 306.6+511.0
+			// min = 131.4+219.0
 			filename: "testdata/cluster-template-machinepool.yaml",
-			want:     &CostEstimate{High: 840.00, Low: 360.00, Currency: "USD"},
+			want:     &CostEstimate{High: 817.60, Low: 350.40, Currency: "USD"},
 		},
 	}
 

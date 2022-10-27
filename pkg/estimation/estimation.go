@@ -8,7 +8,7 @@ import (
 
 // MonthlyHours represents the number of hours AWS uses to calculate a price for
 // a month.
-const MonthlyHours = 750
+const MonthlyHours = 730
 
 // CostEstimate a price range for a cluster cost.
 type CostEstimate struct {
@@ -18,7 +18,7 @@ type CostEstimate struct {
 }
 
 // Estimator implementations take a set of K8s resources, and estimate the cost
-// for the items over a 750 hour period.
+// for the items over a 730 hour period.
 type Estimator interface {
 	Estimate(context.Context, []*unstructured.Unstructured) (*CostEstimate, error)
 }
