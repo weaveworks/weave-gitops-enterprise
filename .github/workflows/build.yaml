@@ -55,9 +55,9 @@ jobs:
           echo "zero_filled_tag=$ZERO_FILLED_TAG" >> $GITHUB_OUTPUT
           echo "semver_tag=$SEMVER_TAG" >> $GITHUB_OUTPUT
       - name: Install Helm v3
-        uses: azure/setup-helm@v3.3
+        uses: azure/setup-helm@v3
         with:
-          version: v3.9.0
+          version: v3.10.0
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
