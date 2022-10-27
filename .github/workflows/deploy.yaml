@@ -32,7 +32,7 @@ jobs:
         with:
           go-version: 1.18.x
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Configure git for private modules
         env:
           GITHUB_BUILD_USERNAME: wge-build-bot
@@ -177,11 +177,11 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.3.1
         with:
-          go-version: 1.17.x
+          go-version: 1.18.x
       - name: Setup snyk
         uses: snyk/actions/setup@master
       - name: Monitor dependencies & license problems with Snyk

@@ -10,7 +10,7 @@ import (
 	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -93,7 +93,7 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 	}
 
 	for _, cluster := range goClusters.Items {
-		if !isReady(cluster) {
+		if !isReady(cluster) || !hasConnectivity(cluster) {
 			continue
 		}
 
@@ -160,10 +160,9 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 }
 
 func isReady(cluster gitopsv1alpha1.GitopsCluster) bool {
-	for _, condition := range cluster.GetConditions() {
-		if condition.Type == meta.ReadyCondition && condition.Status == metav1.ConditionTrue {
-			return true
-		}
-	}
-	return false
+	return apimeta.IsStatusConditionTrue(cluster.GetConditions(), meta.ReadyCondition)
+}
+
+func hasConnectivity(cluster gitopsv1alpha1.GitopsCluster) bool {
+	return apimeta.IsStatusConditionTrue(cluster.GetConditions(), gitopsv1alpha1.ClusterConnectivity)
 }
