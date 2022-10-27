@@ -15,7 +15,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
-.c15 {
+.c18 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -42,11 +42,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
   transform: initial;
 }
 
-.c8 .c14 {
+.c8 .c17 {
   margin-left: 4px;
 }
 
-.c13 {
+.c16 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
@@ -82,7 +82,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-radius: 8px 8px 0 0;
 }
 
-.c17 {
+.c20 {
   padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
@@ -98,7 +98,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c17 a {
+.c20 a {
   color: #00b3ec;
 }
 
@@ -164,26 +164,60 @@ exports[`PipelineDetails snapshots renders 1`] = `
   min-width: 30px;
 }
 
+.c11 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: calc(250px - 32px);
+}
+
 .c10 {
   background: #fff;
-  padding: 24px;
+  padding: 12px;
   margin-bottom: 8px;
   box-shadow: 0px 0px 1px rgba(26,32,36,0.32);
   border-radius: 10px;
   font-weight: 600;
 }
 
-.c11 {
-  margin-bottom: 8px;
-}
-
 .c12 {
-  font-size: 12px;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 400;
 }
 
-.c16 {
+.c13 {
+  margin-bottom: 12px;
+  line-height: 24px;
+}
+
+.c14 {
+  font-size: 14px;
+}
+
+.c15 {
+  position: relative;
+}
+
+.c15 .version {
+  margin-left: 4px;
+}
+
+.c15 .workloadName {
+  margin-bottom: 12px;
+}
+
+.c19 {
   color: #737373;
-  margin-left: 8px;
+  position: absolute;
+  right: 0;
+  bottom: auto;
+  font-size: 14px;
+  border: 1px solid #d8d8d8;
+  padding: 14px 6px;
+  border-radius: 50%;
 }
 
 <div>
@@ -197,7 +231,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-23"
+          class="makeStyles-path-21"
           style="align-items: center;"
         >
           <div
@@ -205,7 +239,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-26"
+              class="makeStyles-link-24"
               href="/applications"
             >
               Applications
@@ -213,15 +247,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-23"
+          class="makeStyles-path-21"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-24"
+            class="makeStyles-divider-22"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-25"
+              class="MuiSvgIcon-root makeStyles-iconDivider-23"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -235,7 +269,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-26"
+              class="makeStyles-link-24"
               href="/applications/pipelines"
             >
               Pipelines
@@ -243,15 +277,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-23"
+          class="makeStyles-path-21"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-24"
+            class="makeStyles-divider-22"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-25"
+              class="MuiSvgIcon-root makeStyles-iconDivider-23"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -261,7 +295,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </svg>
           </div>
           <span
-            class="c4 makeStyles-labelLink-27"
+            class="c4 makeStyles-labelLink-25"
             title="podinfo-02"
           >
             podinfo-02
@@ -309,22 +343,22 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c9"
       >
         <div
-          class="MuiGrid-root makeStyles-gridWrapper-17 MuiGrid-container MuiGrid-spacing-xs-4"
+          class="MuiGrid-root makeStyles-gridWrapper-16 MuiGrid-container MuiGrid-spacing-xs-4"
         >
           <div
-            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
             id="dev"
           >
             <div
-              class="makeStyles-cardHeader-20"
+              class="makeStyles-mbSmall-19"
             >
               <div
-                class="makeStyles-title-18"
+                class="makeStyles-title-17"
               >
                 dev
               </div>
               <div
-                class="makeStyles-subtitle-19"
+                class="makeStyles-subtitle-18"
               >
                 1
                  Targets
@@ -335,67 +369,81 @@ exports[`PipelineDetails snapshots renders 1`] = `
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c11 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c12"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c13 cluster-name"
                 >
                   dev
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c12"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c14 workload-namespace"
                 >
                   podinfo-02-dev
                 </div>
               </div>
-              <div>
+              <div
+                class="c15"
+              >
                 <div
                   class="workloadName"
                 >
                   <a
-                    class="c13"
+                    class="c16"
                     href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
                   >
                     <span
-                      class="c14 c15"
+                      class="c17 c18"
                       color="primary"
                     >
                       podinfo
                     </span>
                   </a>
                   <span
-                    class="c16 last-applied-version"
+                    class="c19 last-applied-version"
                   >
                     v6.2.0
                   </span>
                 </div>
                 <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
+                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
                 >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.2.0
+                  <span>
+                    Specification:
+                  </span>
+                  <span
+                    class="version"
+                  >
+                    v6.2.0
+                  </span>
                 </div>
               </div>
             </div>
           </div>
           <div
-            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
             id="test"
           >
             <div
-              class="makeStyles-cardHeader-20"
+              class="makeStyles-mbSmall-19"
             >
               <div
-                class="makeStyles-title-18"
+                class="makeStyles-title-17"
               >
                 test
               </div>
               <div
-                class="makeStyles-subtitle-19"
+                class="makeStyles-subtitle-18"
               >
                 2
                  Targets
@@ -406,38 +454,52 @@ exports[`PipelineDetails snapshots renders 1`] = `
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c11 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c12"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c13 cluster-name"
                 >
                   dev
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c12"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c14 workload-namespace"
                 >
                   podinfo-02-qa
                 </div>
               </div>
-              <div>
+              <div
+                class="c15"
+              >
                 <div
                   class="workloadName"
                 >
-                  <div
+                  <span
                     class="workload-name"
                   >
                     podinfo
-                  </div>
+                  </span>
                 </div>
                 <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
+                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
                 >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.1.8
+                  <span>
+                    Specification:
+                  </span>
+                  <span
+                    class="version"
+                  >
+                    v6.1.8
+                  </span>
                 </div>
               </div>
             </div>
@@ -446,56 +508,70 @@ exports[`PipelineDetails snapshots renders 1`] = `
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c11 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c12"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c13 cluster-name"
                 >
                   dev
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c12"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c14 workload-namespace"
                 >
                   podinfo-02-perf
                 </div>
               </div>
-              <div>
+              <div
+                class="c15"
+              >
                 <div
                   class="workloadName"
                 >
-                  <div
+                  <span
                     class="workload-name"
                   >
                     podinfo
-                  </div>
+                  </span>
                 </div>
                 <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
+                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
                 >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.1.8
+                  <span>
+                    Specification:
+                  </span>
+                  <span
+                    class="version"
+                  >
+                    v6.1.8
+                  </span>
                 </div>
               </div>
             </div>
           </div>
           <div
-            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
             id="prod"
           >
             <div
-              class="makeStyles-cardHeader-20"
+              class="makeStyles-mbSmall-19"
             >
               <div
-                class="makeStyles-title-18"
+                class="makeStyles-title-17"
               >
                 prod
               </div>
               <div
-                class="makeStyles-subtitle-19"
+                class="makeStyles-subtitle-18"
               >
                 1
                  Targets
@@ -506,38 +582,52 @@ exports[`PipelineDetails snapshots renders 1`] = `
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c11 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c12"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c13 cluster-name"
                 >
                   prod
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c12"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c14 workload-namespace"
                 >
                   podinfo-02-prod
                 </div>
               </div>
-              <div>
+              <div
+                class="c15"
+              >
                 <div
                   class="workloadName"
                 >
-                  <div
+                  <span
                     class="workload-name"
                   >
                     podinfo
-                  </div>
+                  </span>
                 </div>
                 <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
+                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
                 >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.1.6
+                  <span>
+                    Specification:
+                  </span>
+                  <span
+                    class="version"
+                  >
+                    v6.1.6
+                  </span>
                 </div>
               </div>
             </div>
@@ -545,18 +635,18 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c17"
+        class="c20"
       >
         <div>
           Need help? Raise a 
           <a
-            class="c13"
+            class="c16"
             href="https://weavesupport.zendesk.com/"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              class="c14 c15"
+              class="c17 c18"
               color="primary"
             >
               support ticket
