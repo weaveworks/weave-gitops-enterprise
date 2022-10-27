@@ -429,7 +429,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	clientsFactory := clustersmngr.CachedClientFactory
 	if !p.UseK8sCachedClients {
+		log.Info("Using un-cached clients")
 		clientsFactory = clustersmngr.ClientFactory
+	} else {
+		log.Info("Using cached clients")
 	}
 
 	clustersManager := clustersmngr.NewClustersManager(
