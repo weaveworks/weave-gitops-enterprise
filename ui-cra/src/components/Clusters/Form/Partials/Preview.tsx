@@ -47,7 +47,7 @@ interface TabPanelProps {
 interface TabContent {
   tabName: string;
   value?: string;
-  path?: string;
+  path?: CommitFile[];
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -89,45 +89,51 @@ const Preview: FC<{
   const getContent = (files: CommitFile[] | undefined) =>
     files?.map(file => file.content).join('\n---\n');
 
-  const getPath = (files: CommitFile[] | undefined) =>
-    files ? files[0].path : undefined;
-
   const tabsContent: Array<TabContent> =
     context === 'app'
       ? [
           {
             tabName: 'Kustomizations',
             value: getContent(PRPreview.kustomizationFiles),
-            path: getPath(PRPreview.kustomizationFiles),
+            path: PRPreview.kustomizationFiles,
           },
           {
             tabName: 'Helm Releases',
             value: getContent((PRPreview as AppPRPreview).helmReleaseFiles),
-            path: getPath((PRPreview as AppPRPreview).helmReleaseFiles),
+            path: (PRPreview as AppPRPreview).helmReleaseFiles,
           },
         ]
       : [
           {
             tabName: 'Cluster Definition',
             value: (PRPreview as ClusterPRPreview).renderedTemplate,
-            path: 'cluster_definition.yaml',
+            path: [
+              {
+                path: 'cluster_definition.yaml',
+                content: (PRPreview as ClusterPRPreview).renderedTemplate,
+              },
+            ],
           },
           {
             tabName: 'Profiles',
             value: getContent((PRPreview as ClusterPRPreview).profileFiles),
-            path: getPath((PRPreview as ClusterPRPreview).profileFiles),
+            path: (PRPreview as ClusterPRPreview).profileFiles,
           },
           {
             tabName: 'Kustomizations',
             value: getContent(PRPreview.kustomizationFiles),
-            path: getPath(PRPreview.kustomizationFiles),
+            path: PRPreview.kustomizationFiles,
           },
         ];
 
   const downloadFile = () => {
     const zip = new JSZip();
     tabsContent.forEach(tab => {
-      if (tab.path) zip.file(tab.path, tab.value || '');
+      if (tab.path) {
+        tab.path.forEach(
+          file => file.path && zip.file(file.path, file.content || ''),
+        );
+      }
     });
     zip.generateAsync({ type: 'blob' }).then(content => {
       saveAs(content, 'resources.zip');
