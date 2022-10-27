@@ -14,6 +14,7 @@ type ServerOpts struct {
 	logr.Logger
 	ClustersManager   clustersmngr.ClustersManager
 	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Cluster           string
 }
 
 type server struct {
@@ -22,6 +23,7 @@ type server struct {
 	log               logr.Logger
 	clients           clustersmngr.ClustersManager
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
+	cluster           string
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -35,5 +37,6 @@ func NewPipelinesServer(opts ServerOpts) pb.PipelinesServer {
 		log:               opts.Logger,
 		clients:           opts.ClustersManager,
 		managementFetcher: opts.ManagementFetcher,
+		cluster:           opts.Cluster,
 	}
 }

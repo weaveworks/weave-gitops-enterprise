@@ -32,7 +32,7 @@ enableTerraformUI: false
 
 config:
   cluster:
-    name: default
+    name: management
   git:
     type: github
     hostname: github.com
