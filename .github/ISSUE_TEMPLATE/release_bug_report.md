@@ -1,8 +1,8 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Release Bug report
+about: Template for bugs found in a specific release
 title: ''
-labels: team/pesto
+labels: ["bug_release", "team/pesto"]
 assignees: ''
 
 ---
@@ -14,7 +14,12 @@ assignees: ''
  - which kubernetes release
 
 **Priority**
- - low 
+ - low
+ - medium
+ - high
+
+**Severity**
+ - low
  - medium
  - high
 
@@ -23,6 +28,9 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behaviour:
+
+**Actual behaviour**
+A clear and concise description of the resulting behaviour.
 
 **Expected behaviour**
 A clear and concise description of what you expected to happen.
