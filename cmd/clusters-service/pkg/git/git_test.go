@@ -30,6 +30,39 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+func TestCreatePullRequestInAzure(t *testing.T) {
+	// Create a client
+	ctx := context.Background()
+
+	repoUrl := "https://efernandezbreis@dev.azure.com/efernandezbreis/weaveworks/_git/weaveworks"
+	baseBranch := "main"
+
+	s := git.NewGitProviderService(logr.Discard())
+	path := "management/cluster-01.yaml"
+	content := "---\n"
+	res, err := s.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: git.GitProvider{
+			Token:    os.Getenv("AZURE_DEVOPS_TOKEN"),
+			Type:     "azure",
+			Hostname: "dev.azure.com",
+		},
+		RepositoryURL: repoUrl,
+		HeadBranch:    "feature-01",
+		BaseBranch:    baseBranch,
+		Title:         "New cluster",
+		Description:   "Creates a cluster through a CAPI template",
+		CommitMessage: "Add cluster manifest",
+		Files: []gitprovider.CommitFile{
+			{
+				Path:    &path,
+				Content: &content,
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNilf(t, res)
+}
+
 func TestCreatePullRequestInGitHubOrganization(t *testing.T) {
 	// Create a client
 	ctx := context.Background()
