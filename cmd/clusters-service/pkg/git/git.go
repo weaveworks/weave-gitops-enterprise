@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fluxcd/go-git-providers/azure"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -311,6 +312,16 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		} else {
 			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithConditionalRequests(true))
 		}
+		if err != nil {
+			return nil, err
+		}
+	case "azure":
+		azureClientOptions := azure.ClientOptions{
+			Org:     "efernandezbreis",
+			Project: "weaveworks",
+			Token:   gpi.Token,
+		}
+		client, err = azure.NewClient(azureClientOptions)
 		if err != nil {
 			return nil, err
 		}
