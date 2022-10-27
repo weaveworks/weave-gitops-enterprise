@@ -20,7 +20,7 @@ jobs:
     needs: build
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3.1.0
       with:
         fetch-depth: 0
     - name: Build Changelog
@@ -42,7 +42,7 @@ jobs:
     needs: releaser
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3.1.0
       with:
         fetch-depth: 0
     - name: Setup Go

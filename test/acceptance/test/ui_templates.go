@@ -1052,6 +1052,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					TakeScreenShot("capi-cluster-ready")
 				})
 
+				ginkgo.By("And I wait the cluster to have connectivity", func() {
+					// Describe GitopsCluster to check conditions
+					_ = runCommandPassThrough("kubectl", "describe", "gitopsclusters.gitops.weave.works")
+					waitForResourceState("ClusterConnectivity", "true", "gitopscluster", capdCluster.Namespace, "", "", ASSERTION_3MINUTE_TIME_OUT)
+				})
+
 				clusterInfo := pages.GetClustersPage(webDriver).FindClusterInList(clusterName)
 				verifyDashboard(clusterInfo.GetDashboard("prometheus"), clusterName, "Prometheus")
 
