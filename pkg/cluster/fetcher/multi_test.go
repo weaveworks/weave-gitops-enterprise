@@ -192,6 +192,29 @@ func TestMultiFetcher(t *testing.T) {
 			},
 			expectedCount: 1,
 		},
+		{
+			context: "when cluster has not connectivity, it is not added",
+			clusterObjects: []runtime.Object{
+				makeTestCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = clusterName
+					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
+						Name: secretName,
+					}
+
+					// Remove connectivity status
+					o.SetConditions([]metav1.Condition{
+						{Type: meta.ReadyCondition, Status: metav1.ConditionTrue},
+					})
+				}),
+				makeTestSecret(func(o *corev1.Secret) {
+					o.ObjectMeta.Name = secretName + "-kubeconfig"
+					o.Data = map[string][]byte{
+						"value": secretData(clusterName),
+					}
+				}),
+			},
+			expectedCount: 1,
+		},
 	}
 
 	for _, tt := range testCases {
@@ -241,6 +264,7 @@ func makeTestCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv1alpha
 		Status: gitopsv1alpha1.GitopsClusterStatus{
 			Conditions: []metav1.Condition{
 				{Type: meta.ReadyCondition, Status: metav1.ConditionTrue},
+				{Type: gitopsv1alpha1.ClusterConnectivity, Status: metav1.ConditionTrue},
 			},
 		},
 	}

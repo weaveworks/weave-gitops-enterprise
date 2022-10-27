@@ -30,21 +30,22 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     steps:
       - name: Download test artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3.0.1
         with:
           path: ${{ env.TEST_RESULTS_PATH }}
       - name: Publish Test Report      
         id: test-report
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v3.5.2
         if: always()
         with:
           report_paths: ${{ env.TEST_RESULTS_PATH }}/**/${{ inputs.junit-results-glob-pattern }}
           check_name: ${{ inputs.check-name }}
       - name: Notify slack of test results
         if: ${{ (inputs.slack-notification) && (github.event_name != 'workflow_dispatch') }}
-        uses: skarlso/slack-notification-action@28f5c1166e2fba7ed5a1d9ceaeb4f2c89a4e5bc5
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
         with:
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          channel: C03FDNVE7RC
-          message: "*${{inputs.check-name}}*\n>Tests :test_tube:\t\t\tPassed :check:\t\t\tSkipped :arrow_right_hook:\t\t\tFailed :x:\n>${{steps.test-report.outputs.total}} runs\t\t\t ${{steps.test-report.outputs.passed}} passed\t\t\t ${{steps.test-report.outputs.skipped}} skipped\t\t\t  ${{steps.test-report.outputs.failed}} failed"
-
+          channel-id: C03FDNVE7RC
+          slack-message: "*${{inputs.check-name}}*\n>Tests :test_tube:\t\t\tPassed :check:\t\t\tSkipped :arrow_right_hook:\t\t\tFailed :x:\n>${{steps.test-report.outputs.total}} runs\t\t\t ${{steps.test-report.outputs.passed}} passed\t\t\t ${{steps.test-report.outputs.skipped}} skipped\t\t\t  ${{steps.test-report.outputs.failed}} failed"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
