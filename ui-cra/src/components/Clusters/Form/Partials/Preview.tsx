@@ -68,7 +68,7 @@ function TabPanel(props: TabPanelProps) {
 const saveAs = (content: Blob, fileName: string) => {
   const element = document.createElement('a');
   element.href = URL.createObjectURL(content);
-  element.download = `${fileName}.zip`;
+  element.download = fileName;
   document.body.appendChild(element);
   element.click();
 };
