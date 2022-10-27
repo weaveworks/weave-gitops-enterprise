@@ -43,6 +43,11 @@ interface TabPanelProps {
   value: number;
   empty?: boolean;
 }
+interface TabContent {
+  tabName: string;
+  value?: string;
+  fileGroup: string;
+}
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, empty, ...other } = props;
@@ -55,15 +60,22 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
 }
-
+const generateFileContent = (tabsContent: Array<TabContent>) => {
+  let files: { [key: string]: BlobPart } = {};
+  tabsContent.forEach(tab => {
+    if (!files[tab.fileGroup]) {
+      files[tab.fileGroup] = tab.value as BlobPart;
+    } else {
+      const content = files[tab.fileGroup] + '\n---\n' + tab.value;
+      files[tab.fileGroup] = content as BlobPart;
+    }
+  });
+  return files;
+};
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
@@ -80,7 +92,7 @@ const Preview: FC<{
   const getContetn = (files: CommitFile[] | undefined) =>
     files?.map(file => file.content).join('\n---\n');
 
-  const tabsContent =
+  const tabsContent: Array<TabContent> =
     context === 'app'
       ? [
           {
@@ -113,17 +125,7 @@ const Preview: FC<{
         ];
 
   const downloadFile = () => {
-    let files: { [key: string]: BlobPart } = {};
-    tabsContent.forEach(tab => {
-      if (!files[tab.fileGroup]) {
-        files[tab.fileGroup] = tab.value as BlobPart;
-      } else {
-        const content = files[tab.fileGroup] + '\n---\n' + tab.value;
-        files[tab.fileGroup] = content as BlobPart;
-      }
-    });
-
-    Object.entries(files).forEach(([key, value]) => {
+    Object.entries(generateFileContent(tabsContent)).forEach(([key, value]) => {
       const file = new Blob([value], { type: 'yaml' });
       const element = document.createElement('a');
       element.href = URL.createObjectURL(file);
@@ -170,7 +172,7 @@ const Preview: FC<{
           </TabPanel>
         ))}
       </DialogContent>
-      <div className="info" >
+      <div className="info">
         <span>
           You may edit these as part of the pull request with your git provider.
         </span>
