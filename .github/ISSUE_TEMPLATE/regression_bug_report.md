@@ -1,14 +1,14 @@
 ---
-name: Acceptance Bug Report
-about: Template for bugs found during Acceptance Testing
+name: Regression Bug report
+about: Template for bugs found in regression testing done on main
 title: ''
-labels: ["bug_acceptance", "team/pesto"]
+labels: ["bug_regression", "team/pesto"]
 assignees: ''
 
 ---
 
-**WGE Story/Feature:**
- - which wge story/feature was being verified and which branch contains the changes
+**Kubernetes release:**
+ - which kubernetes release
 
 **Priority**
  - low
@@ -32,8 +32,13 @@ A clear and concise description of the resulting behaviour.
 **Expected behaviour**
 A clear and concise description of what you expected to happen.
 
-**Test Environment**
-The url of the environment the feature was tested on
+**Cloud provider:**
+ - AWS
+ - Azure
+ - Equinix
+ - GCP
+ - VMware
+ - LiquidMetal
 
 **Additional context**
 Add any other context about the problem here.
