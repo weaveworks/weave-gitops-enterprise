@@ -182,17 +182,17 @@ jobs:
           echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
           echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v3.3.1
         with:
           go-version: 1.18.x
       - name: Checkout code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
       - name: Go Build Cache
         env:
           GO_CACHE_NAME: cache-go-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v3.0.11
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -247,12 +247,12 @@ jobs:
           kubectl-oidc_login version
       - name: Authenticate to Google Cloud
         if: ${{ inputs.management-cluster-kind == 'gke' }}
-        uses: google-github-actions/auth@v0.4.4
+        uses: google-github-actions/auth@v0.8.3
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - name: Set up gcloud SDK
         if: ${{ inputs.management-cluster-kind == 'gke' }}
-        uses: google-github-actions/setup-gcloud@v0.3.0
+        uses: google-github-actions/setup-gcloud@v0.6.2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
       - name: Install gcloud auth plugin
@@ -312,7 +312,7 @@ jobs:
           tar -xf totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
           mv ./totp-cli /usr/local/bin
       - name: Download gitops binary
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3.0.1
         with:
           name: gitops
           path: /tmp
@@ -372,7 +372,7 @@ jobs:
           go test ${{ inputs.label-filter }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=99999s
       - name: Store test results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ env.TEST_ARTIFACT_NAME }}
           path: ${{ env.ARTIFACTS_BASE_DIR }}
