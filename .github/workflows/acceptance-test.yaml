@@ -264,22 +264,21 @@ jobs:
         if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
         uses: docker-practice/actions-setup-docker@master
       - name: Install helm
-        uses: azure/setup-helm@v3.3
-        with:
-          version: v3.8.2
-      - name: Install kubectl
-        uses: Azure/setup-kubectl@v3.0
-        with:
-          version: ${{ inputs.kubectl-version }}
-      - name: Install kind
         run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.12.0/kind-linux-amd64
-            chmod +x ./kind
-            sudo mv ./kind /usr/local/bin/kind
-           elif [ "$RUNNER_OS" == "macOS" ]; then
-              brew install kind
-          fi
+          wget --no-verbose https://get.helm.sh/helm-v3.10.0-${{ inputs.os-name }}-amd64.tar.gz
+          tar -zxvf helm-v3.10.0-${{ inputs.os-name }}-amd64.tar.gz
+          mv ${{ inputs.os-name }}-amd64/helm /usr/local/bin/helm
+          helm version
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/${{ inputs.kubectl-version }}/bin/${{ inputs.os-name }}/amd64/kubectl"          
+          chmod +x kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+      - name: Install kind
+        if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
+        run: |    
+          brew update      
+          brew install kind          
           kind version
       - name: Install clusterctl
         run: |
@@ -287,7 +286,6 @@ jobs:
           chmod +x ./clusterctl
           sudo mv ./clusterctl /usr/local/bin/clusterctl
           clusterctl version
-
       - name: Set up ssh
         uses: ./.github/actions/setup-ssh
         with:
