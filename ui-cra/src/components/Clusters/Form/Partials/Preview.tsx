@@ -47,7 +47,7 @@ interface TabPanelProps {
 interface TabContent {
   tabName: string;
   value?: string;
-  path?: CommitFile[];
+  files?: CommitFile[];
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -95,19 +95,19 @@ const Preview: FC<{
           {
             tabName: 'Kustomizations',
             value: getContent(PRPreview.kustomizationFiles),
-            path: PRPreview.kustomizationFiles,
+            files: PRPreview.kustomizationFiles,
           },
           {
             tabName: 'Helm Releases',
             value: getContent((PRPreview as AppPRPreview).helmReleaseFiles),
-            path: (PRPreview as AppPRPreview).helmReleaseFiles,
+            files: (PRPreview as AppPRPreview).helmReleaseFiles,
           },
         ]
       : [
           {
             tabName: 'Cluster Definition',
             value: (PRPreview as ClusterPRPreview).renderedTemplate,
-            path: [
+            files: [
               {
                 path: 'cluster_definition.yaml',
                 content: (PRPreview as ClusterPRPreview).renderedTemplate,
@@ -117,20 +117,20 @@ const Preview: FC<{
           {
             tabName: 'Profiles',
             value: getContent((PRPreview as ClusterPRPreview).profileFiles),
-            path: (PRPreview as ClusterPRPreview).profileFiles,
+            files: (PRPreview as ClusterPRPreview).profileFiles,
           },
           {
             tabName: 'Kustomizations',
             value: getContent(PRPreview.kustomizationFiles),
-            path: PRPreview.kustomizationFiles,
+            files: PRPreview.kustomizationFiles,
           },
         ];
 
   const downloadFile = () => {
     const zip = new JSZip();
     tabsContent.forEach(tab => {
-      if (tab.path) {
-        tab.path.forEach(
+      if (tab.files) {
+        tab.files.forEach(
           file => file.path && zip.file(file.path, file.content || ''),
         );
       }
