@@ -1,11 +1,12 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
-import styled from 'styled-components';
 import { formatURL, Link, theme } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import styled from 'styled-components';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
+import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { Routes } from '../../../utils/nav';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -147,8 +148,12 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                     {getTargetsCount(status || [])} Targets
                   </div>
                 </div>
-                {status.map(target =>
-                  target?.workloads?.map((workload, wrkIndex) => (
+                {status.map(target => {
+                  const clusterName = target?.clusterRef?.name
+                    ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
+                    : 'management';
+
+                  return target?.workloads?.map((workload, wrkIndex) => (
                     <CardContainer key={wrkIndex} role="targeting">
                       <TargetWrapper className="workloadTarget">
                         {target?.clusterRef?.name && (
@@ -167,21 +172,21 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                       </TargetWrapper>
                       <WorkloadWrapper>
                         <div className={`workloadName`}>
-                          {target?.clusterRef?.namespace ? (
-                            <Link
-                              to={formatURL('/helm_release/details', {
-                                name: workload?.name,
-                                namespace: target?.namespace,
-                                clusterName: `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`,
-                              })}
-                            >
-                              {workload?.name}
-                            </Link>
-                          ) : (
-                            <span className="workload-name">
-                              {workload?.name}
-                            </span>
-                          )}
+                          <Link
+                            to={formatURL(
+                              '/helm_release/details',
+                              _.omitBy(
+                                {
+                                  name: workload?.name,
+                                  namespace: target?.namespace,
+                                  clusterName,
+                                },
+                                _.isNull,
+                              ),
+                            )}
+                          >
+                            {workload?.name}
+                          </Link>
                           {workload?.lastAppliedRevision && (
                             <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
                           )}
@@ -196,8 +201,8 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                         </div>
                       </WorkloadWrapper>
                     </CardContainer>
-                  )),
-                )}
+                  ));
+                })}
               </Grid>
             );
           })}
