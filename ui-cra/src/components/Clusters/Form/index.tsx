@@ -540,7 +540,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
               <div className="create-cta">
                 <Button
                   onClick={event => validateFormData(event, handleAddCluster)}
-                  disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
                 </Button>
