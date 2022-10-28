@@ -17,15 +17,14 @@ const EditWrapper = styled(Button)`
 
 export const EditButton: React.FC<{
   resource: GitopsClusterEnriched | Automation | Source;
-  isLoading: boolean;
-}> = ({ resource, isLoading }) => {
+}> = ({ resource }) => {
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
   return (
     <Link
       to={formatURL(Routes.EditResource, {
         name: resource.name,
         namespace: resource.namespace,
-        type: resource.type,
+        kind: resource.type,
       })}
       style={{ pointerEvents: disabled ? 'none' : 'all' }}
     >

@@ -69,9 +69,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         {!error && !isLoading && (
           <HelmReleaseDetail
             helmRelease={helmRelease}
-            customActions={[
-              <EditButton resource={helmRelease} isLoading={isLoading} />,
-            ]}
+            customActions={[<EditButton resource={helmRelease} />]}
             customTabs={customTabs}
             {...props}
           />

@@ -55,9 +55,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
       >
         <GitRepositoryDetail
           gitRepository={gitRepository}
-          customActions={[
-            <EditButton resource={gitRepository} isLoading={isLoading} />,
-          ]}
+          customActions={[<EditButton resource={gitRepository} />]}
           {...props}
         />
       </ContentWrapper>

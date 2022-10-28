@@ -50,9 +50,7 @@ const WGApplicationsBucket: FC<Props> = props => {
       >
         <BucketDetail
           bucket={bucket}
-          customActions={[
-            <EditButton resource={bucket} isLoading={isLoading} />,
-          ]}
+          customActions={[<EditButton resource={bucket} />]}
           {...props}
         />
       </ContentWrapper>

@@ -50,9 +50,7 @@ const WGApplicationsHelmChart: FC<Props> = props => {
       >
         <HelmChartDetail
           helmChart={helmChart}
-          customActions={[
-            <EditButton resource={helmChart} isLoading={isLoading} />,
-          ]}
+          customActions={[<EditButton resource={helmChart} />]}
           {...props}
         />
       </ContentWrapper>

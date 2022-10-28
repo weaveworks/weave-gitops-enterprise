@@ -76,9 +76,7 @@ const WGApplicationsKustomization: FC<Props> = ({
       >
         <KustomizationDetail
           kustomization={kustomization}
-          customActions={[
-            <EditButton resource={kustomization} isLoading={isLoading} />,
-          ]}
+          customActions={[<EditButton resource={kustomization} />]}
           customTabs={customTabs}
         />
       </ContentWrapper>
