@@ -71,6 +71,11 @@ spec:
               {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- end }}
+            {{- if .Values.extraEnvVars }}
+            {{- with .Values.extraEnvVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
           volumeMounts:
             - name: ui-server-volume
               mountPath: /html
