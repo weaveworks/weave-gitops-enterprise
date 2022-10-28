@@ -330,6 +330,7 @@ func TestListGitopsClusters(t *testing.T) {
 				clusterState: tt.clusterState,
 				namespace:    "default",
 				capiEnabled:  tt.capiEnabled,
+				cluster:      "management",
 			})
 
 			// request
