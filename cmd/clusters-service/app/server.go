@@ -54,8 +54,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/grpc/metadata"
+	appsv1 "k8s.io/api/apps/v1"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
@@ -291,10 +293,12 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
+		appsv1.AddToScheme,
 		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		authv1.AddToScheme,
+		apiextensionsv1.AddToScheme,
 	}
 
 	if p.CAPIEnabled {
@@ -416,7 +420,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		mgmtCluster = cluster.NewDelegatingCacheCluster(mgmtCluster, rest, scheme)
 	}
 
-	mcf := fetcher.NewMultiClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, scheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	mcf, err := fetcher.NewVClusterFetcher(log, mgmtCluster, scheme)
+	if err != nil {
+		return fmt.Errorf("could not create mgmt cluster: %w", err)
+	}
 
 	clustersManagerScheme, err := kube.CreateScheme()
 	if err != nil {
