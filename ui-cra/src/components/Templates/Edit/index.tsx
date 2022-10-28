@@ -54,11 +54,12 @@ type Props = {
 const EditResourcePage: FC<Props> = props => {
   const { isLoading: isTemplateLoading } = useTemplates();
   const { name, namespace, kind, clusterName } = props;
-  const {
-    data: resource,
-    isLoading,
-    error,
-  } = useGetObject(name, namespace, kind as Kind, clusterName);
+  const { data: resource, isLoading } = useGetObject(
+    name,
+    namespace,
+    kind as Kind,
+    clusterName,
+  );
   const { getCluster } = useClusters();
   const cluster = getCluster(name);
 

@@ -11,7 +11,7 @@ import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
-import { EditButton } from '../EditButton';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 type Props = {
   name: string;

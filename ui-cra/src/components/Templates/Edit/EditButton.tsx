@@ -4,10 +4,10 @@ import styled from 'styled-components';
 import { Button, formatURL } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import EditIcon from '@material-ui/icons/Edit';
-import { Tooltip } from './Shared';
-import { GitopsClusterEnriched } from '../types/custom';
-import { getCreateRequestAnnotation } from './Templates/Form/utils';
-import { Routes } from './../utils/nav';
+import { Tooltip } from '../../Shared';
+import { GitopsClusterEnriched } from '../../../types/custom';
+import { getCreateRequestAnnotation } from '../Form/utils';
+import { Routes } from '../../../utils/nav';
 
 const EditWrapper = styled(Button)`
   span {
@@ -21,7 +21,7 @@ export const EditButton: React.FC<{
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
 
   const link =
-    resource.type !== 'Cluster'
+    resource.type !== 'GitopsCluster'
       ? formatURL(Routes.EditResource, {
           name: resource.name,
           namespace: resource.namespace,

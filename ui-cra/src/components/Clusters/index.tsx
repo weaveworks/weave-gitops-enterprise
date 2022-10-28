@@ -49,7 +49,7 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { openLinkHandler } from '../../utils/link-checker';
-import { EditButton } from '../EditButton';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 interface Size {
   size?: 'small';

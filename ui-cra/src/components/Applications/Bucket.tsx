@@ -8,7 +8,7 @@ import {
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { EditButton } from '../EditButton';
+import { EditButton } from '../Templates/Edit/EditButton';
 import { Routes } from '../../utils/nav';
 
 type Props = {

@@ -8,7 +8,7 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { EditButton } from '../EditButton';
+import { EditButton } from '../Templates/Edit/EditButton';
 import { Routes } from '../../utils/nav';
 
 type Props = {
