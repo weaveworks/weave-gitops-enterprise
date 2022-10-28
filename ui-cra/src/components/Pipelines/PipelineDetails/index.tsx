@@ -1,5 +1,5 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
-import { formatURL, Link, theme } from '@weaveworks/weave-gitops';
+import { Flex, formatURL, Link, theme } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
@@ -7,6 +7,7 @@ import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
+import WorkloadStatus from './WorkloadStatus';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -79,15 +80,9 @@ const WorkloadWrapper = styled.div`
   .version {
     margin-left: ${xxs};
   }
-  .workloadName {
-    margin-bottom: ${small};
-  }
 `;
 const LastAppliedVersion = styled.span`
   color: ${neutral30};
-  position: absolute;
-  right: 0;
-  bottom: auto;
   font-size: ${theme.fontSizes.medium};
   border: 1px solid ${neutral20};
   padding: 14px 6px;
@@ -171,7 +166,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                         </TargetNamespace>
                       </TargetWrapper>
                       <WorkloadWrapper>
-                        <div className={`workloadName`}>
+                        <div>
                           <Link
                             to={formatURL(
                               '/helm_release/details',
@@ -185,20 +180,29 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                               ),
                             )}
                           >
-                            {workload?.name}
+                            {workload && (
+                              <WorkloadStatus
+                                name={workload.name || ''}
+                                namespace={target.namespace || ''}
+                                clusterName={clusterName || ''}
+                              />
+                            )}
                           </Link>
+                        </div>
+                        <Flex wide between>
+                          <div
+                            style={{ alignSelf: 'flex-end' }}
+                            className={`${classes.subtitle} ${classes.subtitleColor}`}
+                          >
+                            <span>Specification:</span>
+                            <span className={`version`}>
+                              {`v${workload?.version}`}
+                            </span>
+                          </div>
                           {workload?.lastAppliedRevision && (
                             <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
                           )}
-                        </div>
-                        <div
-                          className={`${classes.subtitle} ${classes.subtitleColor}`}
-                        >
-                          <span>Specification:</span>
-                          <span className={`version`}>
-                            {`v${workload?.version}`}
-                          </span>
-                        </div>
+                        </Flex>
                       </WorkloadWrapper>
                     </CardContainer>
                   ));
