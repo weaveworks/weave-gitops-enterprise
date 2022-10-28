@@ -114,7 +114,7 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	}
 
 	// Append the management cluster to the end of clusters list
-	mgmtCluster, err := getManagementCluster()
+	mgmtCluster, err := getManagementCluster(s.cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -876,9 +876,7 @@ func filterClustersByType(cl []*capiv1_proto.GitopsCluster, refType string) ([]*
 }
 
 // getManagementCluster returns the management cluster as a gitops cluster
-func getManagementCluster() (*capiv1_proto.GitopsCluster, error) {
-	name := "management"
-
+func getManagementCluster(name string) (*capiv1_proto.GitopsCluster, error) {
 	cluster := &capiv1_proto.GitopsCluster{
 		Name: name,
 		Conditions: []*capiv1_proto.Condition{

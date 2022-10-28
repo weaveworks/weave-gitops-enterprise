@@ -40,6 +40,7 @@ type server struct {
 	profileHelmRepositoryName string
 	helmRepositoryCacheDir    string
 	capiEnabled               bool
+	cluster                   string
 
 	restConfig        *rest.Config
 	chartJobs         *helm.Jobs
@@ -58,6 +59,7 @@ type ServerOpts struct {
 	ProfileHelmRepositoryName string
 	HelmRepositoryCacheDir    string
 	CAPIEnabled               bool
+	Cluster                   string
 
 	RestConfig        *rest.Config
 	ChartJobs         *helm.Jobs
@@ -82,5 +84,6 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		chartsCache:               opts.ChartsCache,
 		valuesFetcher:             opts.ValuesFetcher,
 		managementFetcher:         opts.ManagementFetcher,
+		cluster:                   opts.Cluster,
 	}
 }

@@ -48,6 +48,7 @@ type Options struct {
 	ChartsCache                  *helm.HelmChartIndexer
 	KubernetesClientSet          kubernetes.Interface
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Cluster                      string
 }
 
 type Option func(*Options)
@@ -238,5 +239,12 @@ func WithKubernetesClientSet(kubernetesClientSet kubernetes.Interface) Option {
 func WithManagemetFetcher(fetcher *mgmtfetcher.ManagementCrossNamespacesFetcher) Option {
 	return func(o *Options) {
 		o.ManagementFetcher = fetcher
+	}
+}
+
+// WithManagementCluster is used to set the management cluster name
+func WithManagementCluster(cluster string) Option {
+	return func(o *Options) {
+		o.Cluster = cluster
 	}
 }

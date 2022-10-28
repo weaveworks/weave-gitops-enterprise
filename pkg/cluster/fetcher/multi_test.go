@@ -221,7 +221,7 @@ func TestMultiFetcher(t *testing.T) {
 		t.Run(tt.context, func(t *testing.T) {
 			cg := kubefakes.NewFakeClientGetter(makeClient(t, g, tt.clusterObjects...))
 
-			fetcher, err := fetcher.NewMultiClusterFetcher(logr.Discard(), config, cg, "default")
+			fetcher, err := fetcher.NewMultiClusterFetcher(logr.Discard(), config, cg, "default", "management")
 			g.Expect(err).NotTo(HaveOccurred())
 
 			clusters, err := fetcher.Fetch(context.TODO())

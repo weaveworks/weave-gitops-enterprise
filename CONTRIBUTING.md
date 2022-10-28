@@ -92,6 +92,21 @@ reconcile from a GitOps repository in your personal GitHub account. It will also
 create a file containing local settings such as your GitOps repository that the
 enterprise Helm chart will use in the next step.
 
+### Customizing your development environment
+
+#### Custom kind configuration
+
+The `reboot.sh` script has the capability to patch the default kind config
+using custom configuration provided in the `./tools/custom/` directory. Place
+any configuration you'd like in a file matching the pattern `kind-cluster-patch-*.yaml`
+in that directory and it will get merged into the base configuration.
+
+#### Custom scripts
+
+The `reboot.sh` script will execute all scripts it finds in `./tools/custom/` that
+match the file name pattern `*.sh` after creating the cluster and installing
+all components.
+
 ### Start environment
 
 To start the development environment, run

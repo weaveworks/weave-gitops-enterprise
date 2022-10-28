@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client) pb.PipelinesClient {
+func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client, cluster string) pb.PipelinesClient {
 	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
 		Namespaces: []*v1.Namespace{
 			{
@@ -47,6 +47,7 @@ func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Clien
 	pipeSrv := server.NewPipelinesServer(server.ServerOpts{
 		ClustersManager:   fact,
 		ManagementFetcher: mgmtFetcher,
+		Cluster:           cluster,
 	})
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {
