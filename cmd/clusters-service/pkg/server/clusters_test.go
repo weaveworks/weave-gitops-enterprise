@@ -6,9 +6,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/go-logr/logr"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -351,6 +354,87 @@ func TestListGitopsClusters(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+
+func TestAzureCreatePullRequest(t *testing.T) {
+	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
+	viper.SetDefault("capi-repository-clusters-path", "clusters")
+	viper.SetDefault("add-bases-kustomization", "enabled")
+	viper.SetDefault("capi-templates-namespace", "default")
+
+	viper.SetDefault("git-provider-type", "azure")
+	viper.SetDefault("git-provider-hostname", "dev.azure.com")
+	viper.SetDefault("git-provider-token", os.Getenv("AZURE_DEVOPS_TOKEN"))
+
+	branchName := fmt.Sprintf("test-branch-%04d", rand.Intn(1000))
+
+	testCases := []struct {
+		name           string
+		clusterState   []runtime.Object
+		provider       git.Provider
+		pruneEnvVar    string
+		req            *capiv1_protos.CreatePullRequestRequest
+		expected       string
+		committedFiles []*capiv1_protos.CommitFile
+		err            error
+	}{
+		{
+			name: "create pull request",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: git.NewGitProviderService(logr.Discard()),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl:     "https://dev.azure.com/efernandezbreis/weaveworks/_git/weaveworks",
+				HeadBranch:        branchName,
+				BaseBranch:        "main",
+				Title:             "New cluster from wge",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.SetDefault("runtime-namespace", "default")
+			// setup
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+				hr:           hr,
+			})
+
+			// request
+			createPullRequestResponse, err := s.CreatePullRequest(context.Background(), tt.req)
+
+			// Check the response looks good
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to create a pull request:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				require.NotNil(t, createPullRequestResponse.WebUrl)
+			}
 		})
 	}
 }
