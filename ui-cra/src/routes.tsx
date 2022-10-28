@@ -91,11 +91,6 @@ const AppRoutes = () => {
         ))}
         path={Routes.ClusterDashboard}
       />
-      {/* <Route
-        component={withSearchParams(EditResourcePage)}
-        exact
-        path={Routes.EditResource}
-      /> */}
       <Route
         component={withSearchParams((props: any) => (
           <CoreWrapper>

@@ -3,6 +3,7 @@ import { Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
+import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Routes } from '../../../utils/nav';
@@ -47,19 +48,19 @@ type Props = {
   name: string;
   namespace: string;
   kind: string;
+  clusterName: string;
 };
 
 const EditResourcePage: FC<Props> = props => {
   const { isLoading: isTemplateLoading } = useTemplates();
-  const { name, namespace, kind } = props;
-  const { data, isLoading, error } = useGetObject(
-    name,
-    namespace,
-    kind as Kind,
-    '',
-  );
-
-  console.log(data, error);
+  const { name, namespace, kind, clusterName } = props;
+  const {
+    data: resource,
+    isLoading,
+    error,
+  } = useGetObject(name, namespace, kind as Kind, clusterName);
+  const { getCluster } = useClusters();
+  const cluster = getCluster(name);
 
   return (
     <PageTemplate
@@ -67,8 +68,7 @@ const EditResourcePage: FC<Props> = props => {
       path={[
         { label: 'Resource' },
         {
-          label: '',
-          // resource.name
+          label: kind === 'GitopsCluster' ? cluster?.name || '' : resource.name,
         },
       ]}
     >
@@ -78,7 +78,11 @@ const EditResourcePage: FC<Props> = props => {
             <Title>Edit resource</Title>
           </Grid>
           <EditResource
-            resource={{} as GitopsClusterEnriched | Automation | Source}
+            resource={
+              kind === 'GitopsCluster'
+                ? (cluster as GitopsClusterEnriched)
+                : (resource as Automation | Source)
+            }
           />
         </Grid>
       </ContentWrapper>

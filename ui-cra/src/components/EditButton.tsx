@@ -19,15 +19,23 @@ export const EditButton: React.FC<{
   resource: GitopsClusterEnriched | Automation | Source;
 }> = ({ resource }) => {
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
+
+  const link =
+    resource.type !== 'Cluster'
+      ? formatURL(Routes.EditResource, {
+          name: resource.name,
+          namespace: resource.namespace,
+          kind: resource.type,
+          clusterName: (resource as Automation | Source).clusterName,
+        })
+      : formatURL(Routes.EditResource, {
+          name: resource.name,
+          namespace: resource.namespace,
+          kind: resource.type,
+        });
+
   return (
-    <Link
-      to={formatURL(Routes.EditResource, {
-        name: resource.name,
-        namespace: resource.namespace,
-        kind: resource.type,
-      })}
-      style={{ pointerEvents: disabled ? 'none' : 'all' }}
-    >
+    <Link to={link} style={{ pointerEvents: disabled ? 'none' : 'all' }}>
       <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div>
           <EditWrapper
