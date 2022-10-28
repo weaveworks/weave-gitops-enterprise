@@ -254,14 +254,12 @@ func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestR
 	gomega.Expect(verifyGitRepositories).Should(gomega.BeTrue(), "GitRepositories resource has failed to become READY.")
 }
 
-func suspendReconciliation(sourceType string, sourceName string, namespace string) {
-	cmdSuspend := fmt.Sprintf("flux suspend source %s %s --namespace %s", sourceType, sourceName, namespace)
-	_, _ = runCommandAndReturnStringOutput(cmdSuspend, ASSERTION_30SECONDS_TIME_OUT)
+func reconcile(action, resource, resourceType, resourceName, namespace, kubeconfig string) {
+	if kubeconfig != "" {
+		kubeconfig = "--kubeconfig=" + kubeconfig
+	}
 
-}
-
-func resumeReconciliation(sourceType string, sourceName string, namespace string) {
-	cmdSuspend := fmt.Sprintf("flux resume source %s %s --namespace %s", sourceType, sourceName, namespace)
+	cmdSuspend := fmt.Sprintf("flux %s %s %s %s --namespace %s %s", action, resource, resourceType, resourceName, namespace, kubeconfig)
 	_, _ = runCommandAndReturnStringOutput(cmdSuspend, ASSERTION_30SECONDS_TIME_OUT)
 }
 
@@ -348,22 +346,24 @@ func verifyCapiClusterHealth(kubeconfigPath string, applications []Application) 
 	waitForResourceState("Ready", "true", "pods", GITOPS_DEFAULT_NAMESPACE, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 
 	for _, app := range applications {
-		// Check all profiles are installed in layering order
 		switch app.Name {
-		case "observability":
+		case "observability": // layer-0
 			gomega.Expect(waitForResource("deploy", "observability-grafana", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			gomega.Expect(waitForResource("deploy", "observability-kube-state-metrics", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "podinfo":
+		case "postgres": // ks
+			gomega.Expect(waitForResource("deploy", "postgres ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app=postgres", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "podinfo": // ks
 			gomega.Expect(waitForResource("deploy", "podinfo ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "metallb":
-			gomega.Expect(waitForResource("deploy", "metallb-controller ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app=podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "metallb": // layer-0
+			gomega.Expect(waitForResource("deploy", app.TargetNamespace+"-metallb-controller ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app.kubernetes.io/name="+"metallb", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "cert-manager":
-			gomega.Expect(waitForResource("deploy", "cert-manager-cert-manager", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+		case "cert-manager": //l ayer-0
+			gomega.Expect(waitForResource("deploy", app.TargetNamespace+"-cert-manager", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "weave-policy-agent":
+		case "weave-policy-agent": // layer-1
 			gomega.Expect(waitForResource("deploy", "policy-agent", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
