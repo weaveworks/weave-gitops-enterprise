@@ -358,6 +358,7 @@ func TestListGitopsClusters(t *testing.T) {
 	}
 }
 
+// TODO: remove me, just here for convenience
 func TestAzureCreatePullRequest(t *testing.T) {
 	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
 	viper.SetDefault("capi-repository-clusters-path", "clusters")
