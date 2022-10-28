@@ -12,7 +12,7 @@ import (
 
 const (
 	cacheTTL            = time.Minute
-	cacheResolutionTime = 5 * time.Minute
+	cacheResolutionTime = 30 * time.Second
 )
 
 type UsersResourcesNamespaces struct {
