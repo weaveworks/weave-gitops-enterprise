@@ -2,7 +2,6 @@ import React, { FC, useCallback, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
-import { NotificationData } from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
@@ -22,6 +21,7 @@ import TextField from '@material-ui/core/TextField';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
+import { NotificationData } from '../../types/custom';
 
 const ActionsWrapper = styled.div`
   display: flex;
@@ -108,7 +108,10 @@ const TemplatesDashboard: FC<{
     >
       <ContentWrapper
         loading={isLoading}
-        errorMessage={notification?.message.text}
+        notification={{
+          message: { text: notification?.message.text },
+          severity: 'error',
+        }}
       >
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">

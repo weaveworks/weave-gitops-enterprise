@@ -6,6 +6,7 @@ import { FC, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
+import { NotificationData } from '../../types/custom';
 import { Tooltip } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
@@ -75,7 +76,7 @@ interface Props {
   backgroundColor?: string;
   errors?: ListError[];
   loading?: boolean;
-  errorMessage?: string;
+  notification?: NotificationData;
 }
 
 export const ContentWrapper: FC<Props> = ({
@@ -84,7 +85,7 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
-  errorMessage,
+  notification,
 }) => {
   const classes = useStyles();
   const { setNotifications } = useNotifications();
@@ -133,9 +134,12 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
-      {errorMessage && (
-        <Alert severity="error" className={classes.alertWrapper}>
-          {errorMessage}
+      {notification?.message.text && (
+        <Alert
+          severity={notification.severity}
+          className={classes.alertWrapper}
+        >
+          {notification.message.text}
         </Alert>
       )}
       {type === 'WG' ? (

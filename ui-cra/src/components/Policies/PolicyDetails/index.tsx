@@ -26,7 +26,13 @@ const PolicyDetails = ({
         { label: data?.policy?.name || '' },
       ]}
     >
-      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+      <ContentWrapper
+        loading={isLoading}
+        notification={{
+          message: { text: error?.message },
+          severity: 'error',
+        }}
+      >
         <>
           <HeaderSection
             id={policy?.id}

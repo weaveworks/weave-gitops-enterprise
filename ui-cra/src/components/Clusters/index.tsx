@@ -358,7 +358,12 @@ const MCCP: FC<{
           state: { formData, selectedCapiClusters },
         }}
       >
-        <ContentWrapper errorMessage={notification?.message.text}>
+        <ContentWrapper
+          notification={{
+            message: { text: notification?.message.text },
+            severity: 'error',
+          }}
+        >
           <div
             style={{
               display: 'flex',

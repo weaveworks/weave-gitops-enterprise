@@ -163,3 +163,8 @@ export interface AppPRPreview {
   kustomizationFiles: { path: string; content: string }[];
   helmReleaseFiles: { path: string; content: string }[];
 }
+
+export type NotificationData = {
+  message: { text?: string; component?: JSX.Element };
+  severity?: 'success' | 'error' | 'warning' | 'info';
+};

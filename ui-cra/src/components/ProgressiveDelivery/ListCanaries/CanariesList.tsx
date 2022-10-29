@@ -14,15 +14,18 @@ const ProgressiveDelivery = () => {
         path={[
           {
             label: 'Applications',
-            url:Routes.Applications,
+            url: Routes.Applications,
           },
-          { label: 'Delivery'},
+          { label: 'Delivery' },
         ]}
       />
       <ContentWrapper
         loading={isLoading}
         errors={data?.errors}
-        errorMessage={error?.message}
+        notification={{
+          message: { text: error?.message },
+          severity: 'error',
+        }}
       >
         {data?.canaries && <CanaryTable canaries={data.canaries} />}
       </ContentWrapper>

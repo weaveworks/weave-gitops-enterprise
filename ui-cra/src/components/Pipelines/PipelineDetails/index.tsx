@@ -109,7 +109,13 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         },
       ]}
     >
-      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+      <ContentWrapper
+        loading={isLoading}
+        notification={{
+          message: { text: error?.message },
+          severity: 'error',
+        }}
+      >
         <Grid className={classes.gridWrapper} container spacing={4}>
           {environments.map((env, index) => {
             const status = targetsStatuses[env.name!].targetsStatuses || [];
@@ -153,7 +159,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                               {workload?.name}
                             </Link>
                           ) : (
-                            <div className='workload-name'>{workload?.name}</div>
+                            <div className="workload-name">
+                              {workload?.name}
+                            </div>
                           )}
                           {workload?.lastAppliedRevision && (
                             <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
