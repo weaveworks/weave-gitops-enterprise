@@ -203,7 +203,6 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
 			}
 		}
-
 		continueToken = clistV2beta2.GetContinue()
 		listsV2beta2 = clistV2beta2.Lists()
 		listsV2beta1 = clistV2beta1.Lists()
