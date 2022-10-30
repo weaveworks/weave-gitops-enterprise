@@ -773,7 +773,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				AddKustomizationApp(application, podinfo)
-				_ = (pullRequest)
+				_ = createGitopsPR(pullRequest)
 
 				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)

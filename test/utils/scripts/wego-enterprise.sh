@@ -155,7 +155,6 @@ function setup {
   # using default repository path '"./clusters/management/clusters"' so the application reconciliation always happen out of the box
   # helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
-  helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
   helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )

@@ -136,6 +136,8 @@ type Params struct {
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
 	DevMode                           bool                      `mapstructure:"dev-mode"`
+	Cluster                           string                    `mapstructure:"cluster-name"`
+	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -199,6 +201,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
+	cmd.Flags().String("cluster-name", "management", "name of the management cluster")
 
 	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -208,6 +211,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
+	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 
 	return cmd
 }
@@ -349,14 +353,14 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}()
 
-	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation)
+	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation, p.Cluster)
 	if err != nil {
 		return fmt.Errorf("could not create charts cache: %w", err)
 	}
 
 	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
 		ClientConfig:  kubeClientConfig,
-		ClusterRef:    types.NamespacedName{Name: "management"},
+		ClusterRef:    types.NamespacedName{Name: p.Cluster},
 		Cache:         chartsCache,
 		ValuesFetcher: helm.NewValuesFetcher(),
 		KubeClient:    kubeClient,
@@ -404,7 +408,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
 
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.CAPIClustersNamespace)
+	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.CAPIClustersNamespace, p.Cluster)
 	if err != nil {
 		return err
 	}
@@ -425,12 +429,20 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
 
+	clientsFactory := clustersmngr.CachedClientFactory
+	if !p.UseK8sCachedClients {
+		log.Info("Using un-cached clients")
+		clientsFactory = clustersmngr.ClientFactory
+	} else {
+		log.Info("Using cached clients")
+	}
+
 	clustersManager := clustersmngr.NewClustersManager(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clustersManagerScheme,
-		clustersmngr.ClientFactory,
+		clientsFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 	clustersManager.Start(ctx)
@@ -472,6 +484,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithClustersManager(clustersManager),
 		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
+		WithManagementCluster(p.Cluster),
 	)
 }
 
@@ -511,7 +524,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
 	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
-	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg)
+	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
 	if args.ManagementFetcher == nil {
 		args.ManagementFetcher = mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
 	}
@@ -533,6 +546,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ValuesFetcher:             helm.NewValuesFetcher(),
 			RestConfig:                args.CoreServerConfig.RestCfg,
 			ManagementFetcher:         args.ManagementFetcher,
+			Cluster:                   args.Cluster,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
@@ -574,6 +588,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
 			ClustersManager:   args.ClustersManager,
 			ManagementFetcher: args.ManagementFetcher,
+			Cluster:           args.Cluster,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
