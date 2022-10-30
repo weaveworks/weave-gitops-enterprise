@@ -34,6 +34,7 @@ import (
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
@@ -397,6 +398,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		capiv1.AddToScheme,
 		pacv1.AddToScheme,
 		pacv2beta1.AddToScheme,
+		pacv2beta2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
@@ -425,6 +427,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	runtimeUtil.Must(pacv1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(pacv2beta2.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
