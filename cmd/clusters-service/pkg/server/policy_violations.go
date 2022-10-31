@@ -188,9 +188,12 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*
 		if err != nil {
 			return nil, fmt.Errorf("failed to get occurrences from event: %w", err)
 		}
-		err = json.Unmarshal([]byte(getAnnotation(annotations, "parameters")), &policyValidation.Parameters)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get parameters from event: %w", err)
+		params := getAnnotation(annotations, "parameters")
+		if params != "" {
+			err = json.Unmarshal([]byte(params), &policyValidation.Parameters)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get parameters from event: %w", err)
+			}
 		}
 	}
 	return policyValidation, nil
