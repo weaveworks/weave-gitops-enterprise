@@ -427,7 +427,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 
-	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache)
+	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster)
 	go func() {
 		err := indexer.Start(controllerContext, clustersManager, log)
 		if err != nil {

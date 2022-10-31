@@ -26,6 +26,7 @@ type Options struct {
 	ClientConfig  *rest.Config
 	Cache         helm.ChartsCacherWriter
 	ValuesFetcher helm.ValuesFetcher
+	UseProxy      bool
 }
 
 type Watcher struct {
@@ -33,6 +34,7 @@ type Watcher struct {
 	clientConfig  *rest.Config
 	cache         helm.ChartsCacherWriter
 	valuesFetcher helm.ValuesFetcher
+	useProxy      bool
 	stopFn        context.CancelFunc
 }
 
@@ -50,6 +52,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		clientConfig:  opts.ClientConfig,
 		cache:         opts.Cache,
 		valuesFetcher: opts.ValuesFetcher,
+		useProxy:      opts.UseProxy,
 	}, nil
 }
 
@@ -75,6 +78,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 		ClientConfig:  w.clientConfig,
 		Cache:         w.cache,
 		ValuesFetcher: w.valuesFetcher,
+		UseProxy:      w.useProxy,
 		Client:        mgr.GetClient(),
 		Scheme:        scheme,
 	}).SetupWithManager(mgr); err != nil {

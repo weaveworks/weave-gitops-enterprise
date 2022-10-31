@@ -22,6 +22,7 @@ type HelmWatcherReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 
+	UseProxy      bool
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
 	Cache         helm.ChartsCacherWriter
@@ -52,11 +53,10 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
-	useProxy := r.ClusterRef.Name != "management"
 	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.ClientConfig, types.NamespacedName{
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
-	}, useProxy)
+	}, r.UseProxy)
 
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get index file: %w", err)

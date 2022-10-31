@@ -38,7 +38,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	c1 := makeLeafCluster(t, clusterName1)
 	c2 := makeLeafCluster(t, clusterName2)
 
-	indexer := indexer.NewClusterHelmIndexerTracker(nil)
+	indexer := indexer.NewClusterHelmIndexerTracker(nil, "")
 	g.Expect(indexer.ClusterWatchers).ToNot(BeNil())
 
 	go func() {

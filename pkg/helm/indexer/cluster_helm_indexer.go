@@ -14,14 +14,16 @@ import (
 )
 
 type ClusterHelmIndexerTracker struct {
-	Cache           helm.ChartsCacherWriter
-	ClusterWatchers map[string]*multiwatcher.Watcher
+	Cache                 helm.ChartsCacherWriter
+	ManagementClusterName string
+	ClusterWatchers       map[string]*multiwatcher.Watcher
 }
 
-func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter) *ClusterHelmIndexerTracker {
+func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter, managementClusterName string) *ClusterHelmIndexerTracker {
 	return &ClusterHelmIndexerTracker{
-		Cache:           c,
-		ClusterWatchers: make(map[string]*multiwatcher.Watcher),
+		Cache:                 c,
+		ManagementClusterName: managementClusterName,
+		ClusterWatchers:       make(map[string]*multiwatcher.Watcher),
 	}
 }
 
@@ -94,6 +96,7 @@ func (i *ClusterHelmIndexerTracker) newIndexer(ctx context.Context, config *rest
 		ClusterRef:    cluster,
 		ClientConfig:  config,
 		Cache:         i.Cache,
+		UseProxy:      !fetcher.IsManagementCluster(i.ManagementClusterName, cluster),
 		ValuesFetcher: helm.NewValuesFetcher(),
 	})
 	if err != nil {

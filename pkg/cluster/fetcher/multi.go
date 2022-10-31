@@ -65,6 +65,12 @@ func FromClusterName(clusterName string) types.NamespacedName {
 	}
 }
 
+// IsManagementCluster returns true if the cluster is the management cluster
+// Provide the name of the management cluster and a ref to another cluster
+func IsManagementCluster(mgmtClusterName string, cluster types.NamespacedName) bool {
+	return cluster.Namespace == "" && mgmtClusterName == cluster.Name
+}
+
 func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {
 	clusters := []mngr.Cluster{f.self()}
 
