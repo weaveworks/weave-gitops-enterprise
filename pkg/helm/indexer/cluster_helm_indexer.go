@@ -25,29 +25,15 @@ func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter) *ClusterHelmIndexer
 	}
 }
 
-func (i *ClusterHelmIndexerTracker) newIndexer(ctx context.Context, config *rest.Config, cluster types.NamespacedName, log logr.Logger) (*multiwatcher.Watcher, error) {
-	w, err := multiwatcher.NewWatcher(multiwatcher.Options{
-		ClusterRef:    cluster,
-		ClientConfig:  config,
-		Cache:         i.Cache,
-		ValuesFetcher: helm.NewValuesFetcher(),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create indexer: %w", err)
-	}
-
-	return w, nil
-}
-
 // Start the indexer and wait for cluster updates notifications.
 func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.ClustersManager, log logr.Logger) error {
+
+	cw := cm.Subscribe()
 
 	err := i.addClusters(ctx, cm.GetClusters(), log)
 	if err != nil {
 		return fmt.Errorf("failed to add clusters: %w", err)
 	}
-
-	cw := cm.Subscribe()
 
 	for {
 		select {
@@ -66,6 +52,8 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.C
 					// TODO
 					// Remove all the helm releases from the cache
 					// cache.DeleteCluster(types.NamespacedName{Name: removed.Name, Namespace: i.Namespace})
+				} else {
+					log.Info("cluster not found in indexer", "cluster", removed.Name)
 				}
 			}
 		}
@@ -93,8 +81,24 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 					log.Error(err, "failed to start indexer")
 				}
 			}()
+		} else {
+			log.Info("indexer already exists for cluster", "cluster", cl.Name)
 		}
 	}
 
 	return nil
+}
+
+func (i *ClusterHelmIndexerTracker) newIndexer(ctx context.Context, config *rest.Config, cluster types.NamespacedName, log logr.Logger) (*multiwatcher.Watcher, error) {
+	w, err := multiwatcher.NewWatcher(multiwatcher.Options{
+		ClusterRef:    cluster,
+		ClientConfig:  config,
+		Cache:         i.Cache,
+		ValuesFetcher: helm.NewValuesFetcher(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create indexer: %w", err)
+	}
+
+	return w, nil
 }
