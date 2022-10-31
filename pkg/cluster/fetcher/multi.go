@@ -41,8 +41,12 @@ func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.Client
 	}, nil
 }
 
-// ToClusterName takes a types.NamespacedName and returns the name of the cluster
-// ManagementCluster doesn't have a namespace
+// ToClusterName takes a nice type.NamespacedName and returns
+// a string that the MC-fetcher understands
+// e.g.
+// - {Name: "foo", Namespace: "bar"} -> "bar/foo"
+// - {Name: "foo"} -> "foo"
+// (ManagementCluster doesn't have a namespace)
 func ToClusterName(cluster types.NamespacedName) string {
 	if cluster.Namespace == "" {
 		return cluster.Name
@@ -51,12 +55,8 @@ func ToClusterName(cluster types.NamespacedName) string {
 	return cluster.String()
 }
 
-// FromClusterName takes a nice type.NamespacedName and returns
-// a string that the MC-fetcher understands
-// e.g.
-// - {Name: "foo", Namespace: "bar"} -> "bar/foo"
-// - {Name: "foo"} -> "foo"
-// (ManagementCluster doesn't have a namespace)
+// FromClusterName takes a string that the MC-fetcher understands
+// and returns a nice type.NamespacedName
 func FromClusterName(clusterName string) types.NamespacedName {
 	parts := strings.Split(clusterName, "/")
 	if len(parts) == 1 {
