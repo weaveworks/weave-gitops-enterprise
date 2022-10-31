@@ -84,7 +84,6 @@ export type CostEstimateRange = {
 
 export type CostEstimate = {
   currency?: string
-  amount?: number
   range?: CostEstimateRange
 }
 

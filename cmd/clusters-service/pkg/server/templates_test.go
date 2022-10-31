@@ -21,6 +21,7 @@ import (
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
@@ -870,6 +871,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 		name             string
 		pruneEnvVar      string
 		clusterNamespace string
+		estimator        estimation.Estimator
 		clusterState     []runtime.Object
 		expected         *capiv1_protos.RenderTemplateResponse
 		err              error
@@ -1033,6 +1035,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
+			estimator: testEstimator{low: 50, high: 150000, currency: "GBP"},
 			req: &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
 				Values: map[string]string{
@@ -1047,11 +1050,10 @@ status: {}
 				KustomizationFiles: []*capiv1_protos.CommitFile{},
 				ProfileFiles:       []*capiv1_protos.CommitFile{},
 				CostEstimate: &capiv1_protos.CostEstimate{
-					Currency: "USD",
-					Amount:   0,
+					Currency: "GBP",
 					Range: &capiv1_protos.CostEstimate_Range{
-						Low:  0,
-						High: 1000000,
+						Low:  50,
+						High: 150000,
 					},
 				},
 			},
@@ -1076,6 +1078,7 @@ status: {}
 				clusterState: tt.clusterState,
 				namespace:    "default",
 				hr:           hr,
+				estimator:    tt.estimator,
 			})
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
@@ -1099,6 +1102,11 @@ status: {}
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.expected.ProfileFiles), renderTemplateResponse.ProfileFiles, protocmp.Transform()); len(tt.expected.ProfileFiles) > 0 && diff != "" {
 					t.Fatalf("templates profiles didn't match expected:\n%s", diff)
 				}
+
+				if diff := cmp.Diff(tt.expected.CostEstimate, renderTemplateResponse.CostEstimate, protocmp.Transform()); diff != "" {
+					t.Fatalf("cost estimate does not match:\n%s", diff)
+				}
+
 			}
 		})
 	}
@@ -1270,4 +1278,14 @@ func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...f
 		},
 	}
 	return makeClusterTemplates(t, append(defaultOpts, opts...)...)
+}
+
+type testEstimator struct {
+	high     float32
+	low      float32
+	currency string
+}
+
+func (t testEstimator) Estimate(context.Context, []*unstructured.Unstructured) (*estimation.CostEstimate, error) {
+	return &estimation.CostEstimate{Low: t.low, High: t.high, Currency: t.currency}, nil
 }

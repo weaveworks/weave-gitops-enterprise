@@ -80,7 +80,10 @@ const Preview: FC<{
   sourceType?: string;
   context?: string;
 }> = ({ PRPreview, openPreview, setOpenPreview, sourceType, context }) => {
-  const [value, setValue] = useState<number>(0);
+  const initialIndex =
+    context === 'app' && sourceType === 'HelmRepository' ? 1 : 0;
+
+  const [value, setValue] = useState<number>(initialIndex);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
@@ -170,7 +173,6 @@ const Preview: FC<{
               language="yaml"
               style={darcula}
               wrapLongLines="pre-wrap"
-              showLineNumbers={true}
             >
               {tab.value}
             </SyntaxHighlighter>
