@@ -56,6 +56,9 @@ func buildCache(ctx context.Context, client typedauth.AuthorizationV1Interface, 
 		// make sure each resource is set in map
 		resourceNamespaces[requiredResource.Kind] = []string{}
 	}
+
+	fmt.Printf("resourceNamespaces: %+v\n", resourceNamespaces)
+
 	for i := range namespaces {
 		namespace := namespaces[i]
 		reviewReqeust := &authv1.SelfSubjectRulesReview{
@@ -68,6 +71,8 @@ func buildCache(ctx context.Context, client typedauth.AuthorizationV1Interface, 
 		if err != nil {
 			return nil, fmt.Errorf("failed to get user rules for namespace %s: %w", namespace.Name, err)
 		}
+
+		fmt.Printf("rules for namespace %s: %+v\n", namespace.Name, review)
 
 		rulesCache := buildRules(review.Status.ResourceRules)
 
