@@ -1,13 +1,14 @@
 import {
   Kind,
   KustomizationDetail,
+  LinkResolverProvider,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
 import { Kustomization } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
-import { Routes } from '../../utils/nav';
+import { reconciledObjectsRoute, Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
@@ -60,7 +61,7 @@ const WGApplicationsKustomization: FC<Props> = ({
       path={[
         {
           label: 'Applications',
-          url:Routes.Applications,
+          url: Routes.Applications,
         },
         {
           label: `${name}`,
@@ -73,10 +74,12 @@ const WGApplicationsKustomization: FC<Props> = ({
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <KustomizationDetail
-          kustomization={kustomization}
-          customTabs={customTabs}
-        />
+        <LinkResolverProvider resolver={reconciledObjectsRoute}>
+          <KustomizationDetail
+            kustomization={kustomization}
+            customTabs={customTabs}
+          />
+        </LinkResolverProvider>
       </ContentWrapper>
     </PageTemplate>
   );

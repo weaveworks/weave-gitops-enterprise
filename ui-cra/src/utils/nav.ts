@@ -1,5 +1,4 @@
-import { V2Routes } from '@weaveworks/weave-gitops';
-import { Kind } from '@weaveworks/weave-gitops';
+import { formatURL, Kind, V2Routes } from '@weaveworks/weave-gitops';
 
 export function getKindRoute(k: Kind | string): string {
   switch (k) {
@@ -35,8 +34,8 @@ export function getKindRoute(k: Kind | string): string {
 export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
-  Canaries = '/applications/delivery',
-  CanaryDetails = '/applications/delivery/:id',
+  Canaries = '/applications/canaries',
+  CanaryDetails = '/applications/canary_details',
   Pipelines = '/applications/pipelines',
   PipelineDetails = '/applications/pipelines/details',
 
@@ -48,12 +47,22 @@ export enum Routes {
   EditCluster = '/clusters/:clusterName/edit',
   PolicyViolations = '/clusters/violations',
   PolicyViolationDetails = '/clusters/violations/details',
-  
+
   GitlabOauthCallback = '/oauth/gitlab',
   Policies = '/policies',
   PolicyDetails = '/policies/details',
-  
+
   AddCluster = '/templates/:templateName/create',
-  
+
   Templates = '/templates',
+}
+
+export function reconciledObjectsRoute(s: string, params: any) {
+  switch (s) {
+    case 'Canary':
+      return formatURL(Routes.CanaryDetails, params);
+
+    default:
+      return '';
+  }
 }

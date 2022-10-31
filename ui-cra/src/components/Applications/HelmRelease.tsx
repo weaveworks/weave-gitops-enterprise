@@ -1,5 +1,4 @@
 import {
-  formatURL,
   HelmReleaseDetail,
   Kind,
   LinkResolverProvider,
@@ -9,7 +8,7 @@ import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDe
 import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
-import { Routes } from '../../utils/nav';
+import { reconciledObjectsRoute, Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
@@ -19,16 +18,6 @@ type Props = {
   clusterName: string;
   namespace: string;
 };
-
-function reconciledObjectsRoute(s: string, params: any) {
-  switch (s) {
-    case 'Deployment':
-      return formatURL('/applications', params);
-
-    default:
-      return '';
-  }
-}
 
 const WGApplicationsHelmRelease: FC<Props> = props => {
   const { name, namespace, clusterName } = props;
