@@ -67,7 +67,7 @@ subjects:
   name: foo-tenant
   namespace: foo-ns
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   creationTimestamp: null
@@ -114,6 +114,7 @@ spec:
     required: false
     type: string
     value: foo-tenant
+  provider: kubernetes
   severity: high
   standards: []
   tags:
@@ -125,4 +126,5 @@ spec:
     labels: []
     namespaces:
     - foo-ns
+status: {}
 ---
