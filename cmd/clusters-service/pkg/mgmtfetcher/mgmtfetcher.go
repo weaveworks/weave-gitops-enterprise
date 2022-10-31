@@ -73,8 +73,6 @@ func (m *ManagementCrossNamespacesFetcher) getUserNamespaces(ctx context.Context
 	var userNamespaces []string
 	userNamespaces, found := m.UsersResourcesNamespaces.Get(hash(user), resourceKind)
 
-	fmt.Printf("found %v, userNamespaces: %v", found, userNamespaces)
-
 	authClientSet, err := m.authClientGetter.Get(user)
 	if err != nil {
 		return nil, err
@@ -89,7 +87,6 @@ func (m *ManagementCrossNamespacesFetcher) getUserNamespaces(ctx context.Context
 		if !found {
 			return nil, fmt.Errorf("unsupported resource kind: %s", resourceKind)
 		}
-		fmt.Printf("userNamespaces: %v, userHash: %v", userNamespaces, hash(user))
 	}
 
 	return userNamespaces, nil
