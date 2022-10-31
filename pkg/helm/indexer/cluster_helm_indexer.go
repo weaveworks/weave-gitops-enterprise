@@ -51,9 +51,10 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.C
 				watcher, ok := i.ClusterWatchers[removed.Name]
 				if ok {
 					watcher.Stop()
-					// TODO
-					// Remove all the helm releases from the cache
-					// cache.DeleteCluster(types.NamespacedName{Name: removed.Name, Namespace: i.Namespace})
+					err := i.Cache.DeleteAllChartsForCluster(ctx, fetcher.FromClusterName(removed.Name))
+					if err != nil {
+						log.Error(err, "unable to delete charts for cluster")
+					}
 				} else {
 					log.Info("cluster not found in indexer", "cluster", removed.Name)
 				}

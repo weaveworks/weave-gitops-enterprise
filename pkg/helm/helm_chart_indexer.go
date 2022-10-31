@@ -17,6 +17,7 @@ const dbFile = "charts.db"
 type ChartsCacherWriter interface {
 	AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error
 	Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error
+	DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error
 }
 
 type ChartsCacheReader interface {
@@ -68,10 +69,6 @@ func NewChartIndexer(cacheLocation, mgmtCluster string) (*HelmChartIndexer, erro
 		},
 	}, nil
 }
-
-//
-// Future potential interface
-//
 
 // AddChart inserts a new chart into helm_charts table.
 func (i *HelmChartIndexer) AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
@@ -255,6 +252,16 @@ WHERE repo_name = $1 AND repo_namespace = $2
 AND cluster_name = $3 AND cluster_namespace = $4`
 
 	_, err := i.CacheDB.ExecContext(ctx, sqlStatement, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	return err
+}
+
+// DeleteAllChartsForCluster deletes all charts for a cluster
+func (i *HelmChartIndexer) DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error {
+	sqlStatement := `
+DELETE FROM helm_charts
+WHERE cluster_name = $1 AND cluster_namespace = $2`
+
+	_, err := i.CacheDB.ExecContext(ctx, sqlStatement, clusterRef.Name, clusterRef.Namespace)
 	return err
 }
 
