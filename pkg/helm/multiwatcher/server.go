@@ -36,6 +36,7 @@ type Watcher struct {
 	valuesFetcher helm.ValuesFetcher
 	useProxy      bool
 	stopFn        context.CancelFunc
+	log           logr.Logger
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
@@ -57,19 +58,19 @@ func NewWatcher(opts Options) (*Watcher, error) {
 }
 
 func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
-	ctrl.SetLogger(log.WithName("multi-helm-watcher"))
+	w.log = log.WithName("multi-helm-watcher")
 
 	ctx, cancel := context.WithCancel(ctx)
 	w.stopFn = cancel
 
 	mgr, err := ctrl.NewManager(w.clientConfig, ctrl.Options{
 		Scheme:             scheme,
-		Logger:             ctrl.Log,
+		Logger:             w.log,
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
 	})
 	if err != nil {
-		ctrl.Log.Error(err, "unable to create manager")
+		w.log.Error(err, "unable to create manager")
 		return err
 	}
 
@@ -82,14 +83,14 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 		Client:        mgr.GetClient(),
 		Scheme:        scheme,
 	}).SetupWithManager(mgr); err != nil {
-		ctrl.Log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
+		w.log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err
 	}
 
-	ctrl.Log.Info("starting manager")
+	w.log.Info("starting manager")
 
 	if err := mgr.Start(ctx); err != nil {
-		ctrl.Log.Error(err, "problem running manager")
+		log.Error(err, "problem running manager")
 		return err
 	}
 
@@ -98,7 +99,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 
 func (w *Watcher) Stop() {
 	if w.stopFn == nil {
-		ctrl.Log.Error(errors.New("Stop function not set yet"), "unable to stop watcher")
+		w.log.Error(errors.New("Stop function not set yet"), "unable to stop watcher")
 		return
 	}
 	w.stopFn()

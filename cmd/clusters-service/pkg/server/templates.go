@@ -95,7 +95,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 			if namespacedList.Error != nil {
 				errors = append(errors, &capiv1_proto.ListError{
 					Namespace: namespacedList.Namespace,
-					Message:   err.Error(),
+					Message:   namespacedList.Error.Error(),
 				})
 			}
 			templatesList := namespacedList.List.(*gapiv1.GitOpsTemplateList)
@@ -117,7 +117,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 			if namespacedList.Error != nil {
 				errors = append(errors, &capiv1_proto.ListError{
 					Namespace: namespacedList.Namespace,
-					Message:   err.Error(),
+					Message:   namespacedList.Error.Error(),
 				})
 			}
 			templatesList := namespacedList.List.(*capiv1.CAPITemplateList)
