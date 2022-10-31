@@ -180,13 +180,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                               ),
                             )}
                           >
-                            {workload && (
-                              <WorkloadStatus
-                                name={workload.name || ''}
-                                namespace={target.namespace || ''}
-                                clusterName={clusterName || ''}
-                              />
-                            )}
+                            {workload && <WorkloadStatus workload={workload} />}
                           </Link>
                         </div>
                         <Flex wide between>

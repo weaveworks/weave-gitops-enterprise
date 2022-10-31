@@ -1,45 +1,21 @@
-import { CircularProgress } from '@material-ui/core';
-import { Alert } from '@material-ui/lab';
-import {
-  Flex,
-  Kind,
-  KubeStatusIndicator,
-  useGetObject,
-} from '@weaveworks/weave-gitops';
-import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Flex, KubeStatusIndicator } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { WorkloadStatus as WorkloadStatusType } from '../../../api/pipelines/types.pb';
 
 interface Props {
   className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
+  workload?: WorkloadStatusType;
 }
 
-function WorkloadStatus({ className, name, namespace, clusterName }: Props) {
-  const { data, isLoading, error } = useGetObject<HelmRelease>(
-    name,
-    namespace,
-    Kind.HelmRelease,
-    clusterName,
-  );
-
+function WorkloadStatus({ className, workload }: Props) {
   return (
     <div className={className}>
       <Flex align>
         <div style={{ marginRight: 4 }}>
-          {isLoading ? (
-            <CircularProgress size={12} />
-          ) : (
-            <KubeStatusIndicator
-              short
-              conditions={data?.obj?.status?.conditions}
-            />
-          )}
+          <KubeStatusIndicator short conditions={workload?.conditions || []} />
         </div>
-        <div>{name}</div>
+        <div>{workload?.name}</div>
       </Flex>
-      {error && <Alert severity="error">{error.message}</Alert>}
     </div>
   );
 }
