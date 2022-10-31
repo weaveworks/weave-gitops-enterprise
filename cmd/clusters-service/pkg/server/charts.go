@@ -192,12 +192,7 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 // GetClientConfigForCluster returns the client config for a given cluster.
 func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
 	clusters := s.clustersManager.GetClusters()
-	clusterName := cluster.Name
-
-	// FIXME: SIMON
-	if clusterName != s.cluster {
-		clusterName = fmt.Sprintf("%s/%s", cluster.Namespace, cluster.Name)
-	}
+	clusterName := fetcher.ToClusterName(cluster)
 
 	for _, c := range clusters {
 		if c.Name == clusterName {
