@@ -265,6 +265,26 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
+	// TODO: Do we need to skip non-CAPI?
+	unstructureds, err := templates.ConvertToUnstructured(tmplWithValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse rendered templates: %w", err)
+	}
+	var costEstimate *capiv1_proto.CostEstimate
+	estimate, err := s.estimator.Estimate(ctx, unstructureds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate estimate for cluster costs: %w", err)
+	}
+	if estimate != nil {
+		costEstimate = &capiv1_proto.CostEstimate{
+			Currency: estimate.Currency,
+			Range: &capiv1_proto.CostEstimate_Range{
+				Low:  estimate.Low,
+				High: estimate.High,
+			},
+		}
+	}
+
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
 		return nil, err
@@ -327,15 +347,6 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 
 			kustomizationFiles = append(kustomizationFiles, kustomization)
 		}
-	}
-
-	// Temporary mock data of cost estimate
-	costEstimate := &capiv1_proto.CostEstimate{
-		Currency: "USD",
-		Range: &capiv1_proto.CostEstimate_Range{
-			Low:  0,
-			High: 1000000,
-		},
 	}
 
 	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
