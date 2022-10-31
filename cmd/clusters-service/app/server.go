@@ -38,7 +38,7 @@ import (
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -56,7 +56,6 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
@@ -358,24 +357,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create charts cache: %w", err)
 	}
 
-	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
-		ClientConfig:  kubeClientConfig,
-		ClusterRef:    types.NamespacedName{Name: p.Cluster},
-		Cache:         chartsCache,
-		ValuesFetcher: helm.NewValuesFetcher(),
-		KubeClient:    kubeClient,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to start the multiwatcher: %w", err)
-	}
-
-	go func() {
-		if err := multiWatcher.StartWatcher(controllerContext, log); err != nil {
-			log.Error(err, "failed to start profile watcher")
-			os.Exit(1)
-		}
-	}()
-
 	// trap Ctrl+C and call cancel on the context
 	ctx, cancel := context.WithCancel(ctx)
 	c := make(chan os.Signal, 1)
@@ -445,6 +426,16 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		clientsFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
+
+	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster)
+	go func() {
+		err := indexer.Start(controllerContext, clustersManager, log)
+		if err != nil {
+			log.Error(err, "failed to start indexer")
+			os.Exit(1)
+		}
+	}()
+
 	clustersManager.Start(ctx)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
