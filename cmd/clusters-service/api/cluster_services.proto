@@ -339,6 +339,16 @@ message PolicyValidationOccurrence {
   string message = 1;
 }
 
+
+message PolicyValidationParam {
+  string name = 1;
+  string type = 2;
+  google.protobuf.Any value = 3;
+  bool required = 4;
+  string config_ref = 5;
+}
+
+
 message PolicyValidation{
   string id = 1;
   string message = 2;
@@ -355,6 +365,7 @@ message PolicyValidation{
   string clusterName = 13;
   repeated PolicyValidationOccurrence occurrences = 14;
   string policy_id = 15;
+  repeated PolicyValidationParam parameters = 16;
 }
 
 message CreatePullRequestRequest {
@@ -718,6 +729,7 @@ message Policy {
   string created_at = 13;
   string clusterName = 14;
   string tenant = 15;
+  repeated string modes = 16;
 }
 
 message ObjectRef {

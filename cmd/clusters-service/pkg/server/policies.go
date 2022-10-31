@@ -127,6 +127,7 @@ func toPolicyResponse(policyCRD pacv2beta2.Policy, clusterName string) (*capiv1_
 		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
 		ClusterName: clusterName,
 		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
+		Modes:       policyCRD.Status.Modes,
 	}
 
 	return policy, nil

@@ -1907,6 +1907,12 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -2026,6 +2032,12 @@
         },
         "policyId": {
           "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidationParam"
+          }
         }
       }
     },
@@ -2033,6 +2045,26 @@
       "type": "object",
       "properties": {
         "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PolicyValidationParam": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/definitions/protobufAny"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "configRef": {
           "type": "string"
         }
       }
