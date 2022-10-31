@@ -111,7 +111,7 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 func GetPreview(webDriver *agouti.Page) Preview {
 	return Preview{
 		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
-		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  code`),
+		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),
 		Close: webDriver.Find(`div[class*=MuiDialogTitle-root] button`),
 	}
 }
