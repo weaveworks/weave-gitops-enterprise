@@ -33,6 +33,8 @@ func (u *UserConfigAuth) Get(user *auth.UserPrincipal) (typedauth.AuthorizationV
 		return nil, fmt.Errorf("failed to create management cluster client config: %w", err)
 	}
 
+	fmt.Printf("cfg: %+v", cfg)
+
 	cs, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("error making authorization clientset: %w", err)
