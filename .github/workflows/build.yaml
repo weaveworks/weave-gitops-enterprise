@@ -66,6 +66,9 @@ jobs:
           aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
+      - name: Login to ghcr.io
+        run: |
+          echo $GITHUB_BUILD_TOKEN | helm registry login ghcr.io -u $GITHUB_BUILD_USERNAME --password-stdin
       - name: Publish helm chart to s3
         env:
           TAG: ${{ steps.release_tags.outputs.tag }}
