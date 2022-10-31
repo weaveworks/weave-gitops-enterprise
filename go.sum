@@ -1364,6 +1364,8 @@ github.com/weaveworks/pipeline-controller/api v0.0.0-20220916165727-cb8504f08c22
 github.com/weaveworks/pipeline-controller/api v0.0.0-20220916165727-cb8504f08c22/go.mod h1:BW37buP/YOallo3/ujy2u5UlwZtJed4ZcilBT5yeJsE=
 github.com/weaveworks/policy-agent/api v1.0.5-0.20221026121952-5ff8d5039fc7 h1:7wdxs41gYOBPL/NhHaPmEAYqu5QZFCZ+lCLf1mJ1K78=
 github.com/weaveworks/policy-agent/api v1.0.5-0.20221026121952-5ff8d5039fc7/go.mod h1:Bzy4vzn0cAfnzllxsPI7pnUgMwAL97QqBdV/3cDTW50=
+github.com/weaveworks/policy-agent/api v1.0.5-0.20221030110158-02b00fefabd9 h1:Wm4AGd/Cu7lKxb2lWyR/0rp1sqoJ2Xw9Uvew6JonwXU=
+github.com/weaveworks/policy-agent/api v1.0.5-0.20221030110158-02b00fefabd9/go.mod h1:Bzy4vzn0cAfnzllxsPI7pnUgMwAL97QqBdV/3cDTW50=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1:EG/SrRMfrUAUCclChn8JwPBlZ5mFtstsnQ1hc241GLg=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
