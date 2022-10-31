@@ -51,7 +51,8 @@ func ToClusterName(cluster types.NamespacedName) string {
 	return cluster.String()
 }
 
-// Take a nice type.NamespacedName and return a string that the MC-fetcher understands
+// FromClusterName takes a nice type.NamespacedName and returns
+// a string that the MC-fetcher understands
 // e.g.
 // - {Name: "foo", Namespace: "bar"} -> "bar/foo"
 // - {Name: "foo"} -> "foo"

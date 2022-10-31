@@ -126,6 +126,8 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 }
 
 func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobRequest) (*protos.GetChartsJobResponse, error) {
+	// We're do a little bit of security obscurity here. Job IDs are UUIDs, so
+	// "it's not possible to guess the ID of a job that's not yours".
 	result, found := s.chartJobs.Get(req.JobId)
 	if !found {
 		return nil, &grpcruntime.HTTPStatusError{
@@ -133,9 +135,6 @@ func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobReque
 			HTTPStatus: http.StatusOK,
 		}
 	}
-
-	// FIXME: avoid users from getting job results they don't have access to.
-	// Save the original HelmRepo reference here and try and grab it?
 
 	errString := ""
 	if result.Error != nil {
