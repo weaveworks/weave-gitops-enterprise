@@ -68,13 +68,13 @@ func getTerraformTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClie
 				return errors.New("terraform template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], client, w)
+			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], "", client, w)
 		}
 
 		if len(args) == 0 {
 			return templates.GetTemplates(templates.GitOpsTemplateKind, client, w)
 		}
 
-		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, client, w)
+		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, "", client, w)
 	}
 }
