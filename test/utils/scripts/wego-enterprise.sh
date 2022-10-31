@@ -50,6 +50,10 @@ function setup {
       aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${UI_NODEPORT},ToPort=${UI_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
     else
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
+      # to test out cli auth passthrough to the cluster.
+      # Our current system of SelfSubjectAccessReview is not supported by GKE's external auth system
+      # so we need to add explicit RBAC rules for the user.
+      kubectl apply -f ${args[1]}/test/utils/data/gke-ci-user-cluster-admin-rolebinding.yaml
     fi
   elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
     # MANAGEMENT_CLUSTER_KIND is a KIND cluster
