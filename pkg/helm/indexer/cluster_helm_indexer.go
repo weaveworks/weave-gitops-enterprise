@@ -13,12 +13,16 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// ClusterHelmIndexerTracker tracks the helm indexers for each cluster.
+// We subscribe to cluster updates and start/stop indexers as needed.
 type ClusterHelmIndexerTracker struct {
 	Cache                 helm.ChartsCacherWriter
 	ManagementClusterName string
 	ClusterWatchers       map[string]*multiwatcher.Watcher
 }
 
+// NewClusterHelmIndexerTracker creates a new ClusterHelmIndexerTracker.
+// Pass in the management cluster name so we can determine if we need to use the proxy.
 func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter, managementClusterName string) *ClusterHelmIndexerTracker {
 	return &ClusterHelmIndexerTracker{
 		Cache:                 c,
@@ -44,7 +48,7 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.C
 		case updates := <-cw.Updates:
 			err := i.addClusters(ctx, updates.Added, log)
 			if err != nil {
-				log.Error(err, "unable to create indexer")
+				log.Error(err, "failed to add clusters")
 			}
 
 			for _, removed := range updates.Removed {
@@ -81,7 +85,7 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 			go func() {
 				err = watcher.StartWatcher(ctx, log)
 				if err != nil {
-					log.Error(err, "failed to start indexer")
+					log.Error(err, "failed to start indexer", "cluster", cl.Name)
 				}
 			}()
 		} else {

@@ -228,7 +228,7 @@ func httpGetFromSourceControllerLocal(url string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to get URL: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("non-200 status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("non-200 status code: %d from %s", resp.StatusCode, url)
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

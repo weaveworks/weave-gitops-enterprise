@@ -35,8 +35,8 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	clusterName1 := "bar"
 	clusterName2 := "foo"
 
-	c1 := makeLeafCluster(t, clusterName1)
-	c2 := makeLeafCluster(t, clusterName2)
+	c1 := makeLeafCluster(clusterName1)
+	c2 := makeLeafCluster(clusterName2)
 
 	indexer := indexer.NewClusterHelmIndexerTracker(nil, "")
 	g.Expect(indexer.ClusterWatchers).ToNot(BeNil())
@@ -69,9 +69,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	})
 }
 
-func makeLeafCluster(t *testing.T, name string) clustersmngr.Cluster {
-	t.Helper()
-
+func makeLeafCluster(name string) clustersmngr.Cluster {
 	return clustersmngr.Cluster{
 		Name: name,
 	}

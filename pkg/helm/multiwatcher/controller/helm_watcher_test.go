@@ -265,7 +265,7 @@ func (fc fakeChartCache) Delete(ctx context.Context, repoRef helm.ObjectReferenc
 }
 
 func (fc fakeChartCache) DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 // fake erroring cache implementation
@@ -283,7 +283,7 @@ func (fc fakeErroringChartCache) Delete(ctx context.Context, repoRef helm.Object
 }
 
 func (fc fakeErroringChartCache) DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 func clusterRefToString(or helm.ObjectReference, cr types.NamespacedName) string {

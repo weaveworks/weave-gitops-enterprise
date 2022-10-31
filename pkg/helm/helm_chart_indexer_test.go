@@ -300,8 +300,13 @@ func TestDeleteAllChartsForCluster(t *testing.T) {
 	err = indexer.DeleteAllChartsForCluster(context.TODO(), nsn("cluster1", "clusters"))
 	assert.NoError(t, err)
 
+	// check that no charts are returned for cluster1
+	charts, err := indexer.ListChartsByCluster(context.TODO(), nsn("cluster1", "clusters"), "chart")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(charts))
+
 	// check that only the chart for cluster2 is left
-	charts, err := indexer.ListChartsByCluster(context.TODO(), nsn("cluster2", "clusters"), "chart")
+	charts, err = indexer.ListChartsByCluster(context.TODO(), nsn("cluster2", "clusters"), "chart")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(charts))
 }
