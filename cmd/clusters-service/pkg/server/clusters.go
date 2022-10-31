@@ -66,6 +66,9 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitopsCluster", func() client.ObjectList {
 		return &gitopsv1alpha1.GitopsClusterList{}
 	})
+
+	s.log.Info("ListGitopsClusters", "namespacedLists", namespacedLists)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to query clusters: %w", err)
 	}
