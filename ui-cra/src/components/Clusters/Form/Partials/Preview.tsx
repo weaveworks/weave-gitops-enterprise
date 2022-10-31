@@ -1,4 +1,4 @@
-import React, { FC, Dispatch, useState, useEffect } from 'react';
+import React, { FC, Dispatch, useState } from 'react';
 import styled from 'styled-components';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
@@ -8,33 +8,70 @@ import {
   DialogContent,
   DialogTitle,
   Dialog,
-  TextareaAutosize,
   Box,
 } from '@material-ui/core';
 import { AppPRPreview, ClusterPRPreview } from '../../../../types/custom';
-import { RenderTemplateResponse } from '../../../../cluster-services/cluster_services.pb';
+import {
+  CommitFile,
+  RenderTemplateResponse,
+} from '../../../../cluster-services/cluster_services.pb';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Button } from '@weaveworks/weave-gitops';
+import JSZip from 'jszip';
 
 const DialogWrapper = styled(Dialog)`
-  div[class*='MuiPaper-root']{
+  div[class*='MuiPaper-root'] {
     height: 700px;
   }
-  .textarea {
-    width: 100%;
-      padding:  ${({ theme }) => theme.spacing.xs};
-      border: 1px solid ${({ theme }) => theme.colors.neutral20};
-    }
-  }
   .info {
-    padding:  ${({ theme }) => theme.spacing.medium};
+    padding: ${({ theme }) => theme.spacing.medium};
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .tabs-container{
-    margin-left:  ${({ theme }) => theme.spacing.large};
+  .tabs-container {
+    margin-left: ${({ theme }) => theme.spacing.large};
   }
   .tab-label {
     color: ${({ theme }) => theme.colors.primary10};
-    font-size: ${({ theme }) => theme.fontSizes.small}
+    font-size: ${({ theme }) => theme.fontSizes.small};
   }
 `;
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+  empty?: boolean;
+}
+interface TabContent {
+  tabName: string;
+  value?: string;
+  files?: CommitFile[];
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, empty, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+const saveAs = (content: Blob, fileName: string) => {
+  const element = document.createElement('a');
+  element.href = URL.createObjectURL(content);
+  element.download = fileName;
+  document.body.appendChild(element);
+  element.click();
+};
 
 const Preview: FC<{
   openPreview: boolean;
@@ -49,39 +86,59 @@ const Preview: FC<{
     setValue(newValue);
   };
 
-  interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-    empty?: boolean;
-  }
+  const getContent = (files: CommitFile[] | undefined) =>
+    files?.map(file => file.content).join('\n---\n');
 
-  function TabPanel(props: TabPanelProps) {
-    const { children, value, index, empty, ...other } = props;
+  const tabsContent: Array<TabContent> =
+    context === 'app'
+      ? [
+          {
+            tabName: 'Kustomizations',
+            value: getContent(PRPreview.kustomizationFiles),
+            files: PRPreview.kustomizationFiles,
+          },
+          {
+            tabName: 'Helm Releases',
+            value: getContent((PRPreview as AppPRPreview).helmReleaseFiles),
+            files: (PRPreview as AppPRPreview).helmReleaseFiles,
+          },
+        ]
+      : [
+          {
+            tabName: 'Cluster Definition',
+            value: (PRPreview as ClusterPRPreview).renderedTemplate,
+            files: [
+              {
+                path: 'cluster_definition.yaml',
+                content: (PRPreview as ClusterPRPreview).renderedTemplate,
+              },
+            ],
+          },
+          {
+            tabName: 'Profiles',
+            value: getContent((PRPreview as ClusterPRPreview).profileFiles),
+            files: (PRPreview as ClusterPRPreview).profileFiles,
+          },
+          {
+            tabName: 'Kustomizations',
+            value: getContent(PRPreview.kustomizationFiles),
+            files: PRPreview.kustomizationFiles,
+          },
+        ];
 
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`tabpanel-${index}`}
-        aria-labelledby={`tab-${index}`}
-        {...other}
-      >
-        {value === index && (
-          <Box sx={{ p: 3 }}>
-            <Typography>{children}</Typography>
-          </Box>
-        )}
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    if (context === 'app' && sourceType === 'HelmRepository') {
-      setValue(1);
-    }
-  }, [context, sourceType]);
-
+  const downloadFile = () => {
+    const zip = new JSZip();
+    tabsContent.forEach(tab => {
+      if (tab.files) {
+        tab.files.forEach(
+          file => file.path && zip.file(file.path, file.content || ''),
+        );
+      }
+    });
+    zip.generateAsync({ type: 'blob' }).then(content => {
+      saveAs(content, 'resources.zip');
+    });
+  };
   return (
     <DialogWrapper
       open={openPreview}
@@ -102,69 +159,29 @@ const Preview: FC<{
         aria-label="pr-preview-sections"
         selectionFollowsFocus={true}
       >
-        {(context === 'app'
-          ? ['Kustomizations', 'Helm Releases']
-          : ['Cluster Definition', 'Profiles', 'Kustomizations']
-        ).map((tabName, index) => (
+        {tabsContent.map(({ tabName }, index) => (
           <Tab key={index} className="tab-label" label={tabName} />
         ))}
       </Tabs>
       <DialogContent>
-        {context !== 'app' ? (
-          <>
-            <TabPanel value={value} index={0}>
-              <TextareaAutosize
-                className="textarea"
-                value={(PRPreview as ClusterPRPreview).renderedTemplate}
-                readOnly
-              />
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-              <TextareaAutosize
-                className="textarea"
-                value={(PRPreview as ClusterPRPreview).profileFiles
-                  ?.map(profileFile => profileFile.content)
-                  .join('\n---\n')}
-                readOnly
-              />
-            </TabPanel>
-            <TabPanel value={value} index={2}>
-              <TextareaAutosize
-                className="textarea"
-                value={PRPreview.kustomizationFiles
-                  ?.map(kustomizationFile => kustomizationFile.content)
-                  .join('\n---\n')}
-                readOnly
-              />
-            </TabPanel>
-          </>
-        ) : (
-          <>
-            <TabPanel value={value} index={0}>
-              <TextareaAutosize
-                className="textarea"
-                value={PRPreview.kustomizationFiles
-                  ?.map(kustomizationFile => kustomizationFile.content)
-                  .join('\n---\n')}
-                readOnly
-              />
-            </TabPanel>
-            <TabPanel value={value} index={1}>
-              <TextareaAutosize
-                className="textarea"
-                value={(PRPreview as AppPRPreview).helmReleaseFiles
-                  ?.map(helmReleaseFile => helmReleaseFile.content)
-                  .join('\n---\n')}
-                readOnly
-              />
-            </TabPanel>
-          </>
-        )}
+        {tabsContent.map((tab, index) => (
+          <TabPanel value={value} index={index} key={index}>
+            <SyntaxHighlighter
+              language="yaml"
+              style={darcula}
+              wrapLongLines="pre-wrap"
+              showLineNumbers={true}
+            >
+              {tab.value}
+            </SyntaxHighlighter>
+          </TabPanel>
+        ))}
       </DialogContent>
       <div className="info">
         <span>
           You may edit these as part of the pull request with your git provider.
         </span>
+        <Button onClick={downloadFile}>Download</Button>
       </div>
     </DialogWrapper>
   );

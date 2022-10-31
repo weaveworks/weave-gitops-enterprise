@@ -81,6 +81,17 @@ func createLeafClusterSecret(leafClusterNamespace string, leafClusterkubeconfig 
 	})
 }
 
+func waitForLeafClusterAvailability(leafCluster string, status string) {
+	ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
+		pages.NavigateToPage(webDriver, "Clusters")
+		clustersPage := pages.GetClustersPage(webDriver)
+		pages.WaitForPageToLoad(webDriver)
+		clusterInfo := clustersPage.FindClusterInList(leafCluster)
+
+		gomega.Eventually(clusterInfo.Status, ASSERTION_3MINUTE_TIME_OUT).Should(matchers.MatchText(status))
+	})
+}
+
 func verifyDashboard(dashboard *agouti.Selection, clusterName string, dashboardName string) {
 	ginkgo.By(fmt.Sprintf("And verify %s Cluster dashboard/metada link: %s)", clusterName, dashboardName), func() {
 		currentWindow, err := webDriver.Session().GetWindow()
@@ -197,17 +208,14 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(clustersPage.ClusterHeader).Should(matchers.BeVisible())
 
 					totalClusterCount := existingClustersCount + 1
-					gomega.Eventually(clustersPage.CountClusters, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
+					gomega.Eventually(clustersPage.CountClusters, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalClusterCount), fmt.Sprintf("There should be %d cluster enteries in cluster table", totalClusterCount))
 				})
 
 				clusterInfo := clustersPage.FindClusterInList(leafCluster.Name)
 				verifyClusterInformation(clusterInfo, leafCluster, "Not Ready")
 
 				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
-
-				ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
-					gomega.Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("Ready"))
-				})
+				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
 
 				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
 

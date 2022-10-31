@@ -90,9 +90,9 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				pullRequest := PullRequest{
-					Branch:  "management-kustomization-apps",
-					Title:   "Management Kustomization Application",
-					Message: "Adding management kustomization applications",
+					Branch:  "management-kustomization-tenant-apps",
+					Title:   "Management Kustomization Tenant Application",
+					Message: "Adding management kustomization Tenant applications",
 				}
 
 				tenantYaml := createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
@@ -338,8 +338,8 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				pullRequest := PullRequest{
-					Branch:  "management-kustomization-leaf-cluster-apps",
-					Title:   "Management Kustomization Leaf Cluster Application",
+					Branch:  "management-kustomization-leaf-cluster-tenant-apps",
+					Title:   "Management Kustomization Leaf Cluster Tenant Application",
 					Message: "Adding management kustomization leaf cluster applications",
 				}
 

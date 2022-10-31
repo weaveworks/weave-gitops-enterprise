@@ -70,6 +70,7 @@ type serverOptions struct {
 	chartsCache     helm.ChartsCacheReader
 	chartJobs       *helm.Jobs
 	valuesFetcher   helm.ValuesFetcher
+	cluster         string
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -115,6 +116,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ChartsCache:               o.chartsCache,
 			ValuesFetcher:             o.valuesFetcher,
 			ManagementFetcher:         mgmtFetcher,
+			Cluster:                   o.cluster,
 		},
 	)
 }

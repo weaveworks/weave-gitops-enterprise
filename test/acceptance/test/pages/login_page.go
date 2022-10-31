@@ -99,7 +99,7 @@ func AuthenticateWithGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
 		Password:           webDriver.Find(`#user_password`),
 		Signin:             webDriver.Find(`button[data-qa-selector=sign_in_button]`),
 		AcceptCookies:      webDriver.Find(`#onetrust-accept-btn-handler`),
-		CheckBrowser:       webDriver.Find(`span[data-translate=checking_browser]`),
+		CheckBrowser:       webDriver.Find(`span[data-translate=error]`),
 	}
 }
 
