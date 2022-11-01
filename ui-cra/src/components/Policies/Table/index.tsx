@@ -12,6 +12,7 @@ import Severity from '../Severity';
 import moment from 'moment';
 import { TableWrapper } from '../../Shared';
 import { Routes } from '../../../utils/nav';
+import Mode from '../Mode';
 
 interface Props {
   policies: Policy[];
@@ -33,7 +34,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
       ...filterConfig(policies, 'tenant'),
     };
   }
-
+console.log(policies)
   return (
     <TableWrapper id="policy-list">
       <DataTable
@@ -62,6 +63,13 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           {
             label: 'Category',
             value: 'category',
+          },{
+            label: 'Mode',
+            value: ({modes}) => (
+              modes?.map((mode:string, index:number) =>(
+                <Mode key={index} modeName={mode}/> 
+              ))
+            ),
           },
           ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
             ? [{ label: 'Tenant', value: 'tenant' }]

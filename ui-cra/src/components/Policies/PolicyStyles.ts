@@ -154,6 +154,15 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       flexDirection: 'column',
       width: '100%',
     },
+    inlineFlex:{
+      display: 'inline-flex',
+      marginRight: xs,
+    },
+    modeIcon: {
+      fontSize: theme.fontSizes.medium,
+      marginRight: xxs,
+      color: '#0000008a',
+    },
   }),
 );
 

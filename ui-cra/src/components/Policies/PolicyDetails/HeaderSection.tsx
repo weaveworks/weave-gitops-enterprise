@@ -10,6 +10,7 @@ import {
   SectionRowHeader,
 } from '../../RowHeader';
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
+import Mode from '../Mode';
 
 function HeaderSection({
   id,
@@ -22,11 +23,12 @@ function HeaderSection({
   howToSolve,
   code,
   tenant,
+  modes
 }: Policy) {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-
+console.log(modes)
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
@@ -64,6 +66,14 @@ function HeaderSection({
     {
       rowkey: 'Category',
       value: category,
+    }
+    ,{
+      rowkey: 'Mode',
+      children: (
+        modes?.map((mode:string, index:number) =>(
+          <Mode key={index} modeName={mode}/> 
+        ))
+      ),
     },
     {
       rowkey: 'Targeted K8s Kind',
