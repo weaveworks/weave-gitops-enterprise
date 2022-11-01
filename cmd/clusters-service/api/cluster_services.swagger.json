@@ -2059,7 +2059,8 @@
           "type": "string"
         },
         "value": {
-          "$ref": "#/definitions/protobufAny"
+          "type": "string",
+          "format": "byte"
         },
         "required": {
           "type": "boolean"
