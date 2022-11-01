@@ -24,6 +24,8 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -37,6 +39,7 @@ import (
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
@@ -438,6 +441,25 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	clustersManager.Start(ctx)
 
+	var estimator estimation.Estimator
+	cfg, err := awsconfig.LoadDefaultConfig(ctx)
+	if err != nil {
+		log.Error(err, "unable to load SDK config")
+		os.Exit(1)
+	}
+	svc := pricing.NewFromConfig(cfg)
+
+	// FIXME: should come out of the helm values or a configmap etc.
+	filters := map[string]string{
+		"operatingSystem": "Linux",
+		"tenancy":         "Dedicated",
+		"capacitystatus":  "UnusedCapacityReservation",
+		"operation":       "RunInstances",
+	}
+
+	pricer := estimation.NewAWSPricer(log, svc)
+	estimator = estimation.NewAWSClusterEstimator(pricer, filters)
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(p.HelmRepoName),
@@ -476,6 +498,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
 		WithManagementCluster(p.Cluster),
+		WithTemplateCostEstimator(estimator),
 	)
 }
 
@@ -511,6 +534,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return errors.New("OIDC configuration is not set")
 	}
 
+	estimator := estimation.NilEstimator()
+	if args.Estimator != nil {
+		estimator = args.Estimator
+	}
+
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
@@ -538,6 +566,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			RestConfig:                args.CoreServerConfig.RestCfg,
 			ManagementFetcher:         args.ManagementFetcher,
 			Cluster:                   args.Cluster,
+			Estimator:                 estimator,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {

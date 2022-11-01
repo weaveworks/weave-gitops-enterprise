@@ -853,6 +853,102 @@ func TestRenderTemplate(t *testing.T) {
 	}
 }
 
+func TestCostEstimation(t *testing.T) {
+	// Works very similarly to the render tests, but we need to set up a fake
+	// cost estimator server to test the cost estimation functionality.
+
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		expectedCost *capiv1_protos.CostEstimate
+		estimator    estimation.Estimator
+		err          error
+	}{
+		{
+			name: "no annotation",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			expectedCost: nil,
+		},
+		{
+			name: "has annotation",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.SetAnnotations(map[string]string{
+						"templates.weave.works/cost-estimation-enabled": "true",
+					})
+				}),
+			},
+			estimator: testEstimator{low: 50, high: 150000, currency: "GBP"},
+			expectedCost: &capiv1_protos.CostEstimate{
+				Currency: "GBP",
+				Range: &capiv1_protos.CostEstimate_Range{
+					Low:  50,
+					High: 150000,
+				},
+			},
+		},
+		{
+			name: "estimator errors come back in the response",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.SetAnnotations(map[string]string{
+						"templates.weave.works/cost-estimation-enabled": "true",
+					})
+				}),
+			},
+			estimator: errorEstimator{err: errors.New("on no.")},
+			expectedCost: &capiv1_protos.CostEstimate{
+				Message: "failed to calculate estimate for cluster costs: on no.",
+			},
+		},
+		{
+			name: "estimator doesn't return anything",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.SetAnnotations(map[string]string{
+						"templates.weave.works/cost-estimation-enabled": "true",
+					})
+				}),
+			},
+			estimator: errorEstimator{err: nil},
+			expectedCost: &capiv1_protos.CostEstimate{
+				Message: "no estimate returned",
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.Reset()
+			viper.SetDefault("capi-templates-namespace", "default")
+
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				estimator:    tt.estimator,
+			})
+
+			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "test-cluster",
+				},
+				TemplateKind:      "CAPITemplate",
+				TemplateNamespace: "default",
+			}
+
+			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
+			assert.NoError(t, err)
+			if diff := cmp.Diff(tt.expectedCost, renderTemplateResponse.CostEstimate, protocmp.Transform()); diff != "" {
+				t.Fatalf("cost estimate does not match:\n%s", diff)
+			}
+
+		})
+	}
+}
+
 func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 	u := &unstructured.Unstructured{}
 	u.Object = map[string]interface{}{
@@ -871,7 +967,6 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 		name             string
 		pruneEnvVar      string
 		clusterNamespace string
-		estimator        estimation.Estimator
 		clusterState     []runtime.Object
 		expected         *capiv1_protos.RenderTemplateResponse
 		err              error
@@ -1035,7 +1130,6 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			estimator: testEstimator{low: 50, high: 150000, currency: "GBP"},
 			req: &capiv1_protos.RenderTemplateRequest{
 				TemplateName: "cluster-template-1",
 				Values: map[string]string{
@@ -1049,13 +1143,6 @@ status: {}
 				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
 				KustomizationFiles: []*capiv1_protos.CommitFile{},
 				ProfileFiles:       []*capiv1_protos.CommitFile{},
-				CostEstimate: &capiv1_protos.CostEstimate{
-					Currency: "GBP",
-					Range: &capiv1_protos.CostEstimate_Range{
-						Low:  50,
-						High: 150000,
-					},
-				},
 			},
 		},
 	}
@@ -1078,7 +1165,6 @@ status: {}
 				clusterState: tt.clusterState,
 				namespace:    "default",
 				hr:           hr,
-				estimator:    tt.estimator,
 			})
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
@@ -1102,11 +1188,6 @@ status: {}
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.expected.ProfileFiles), renderTemplateResponse.ProfileFiles, protocmp.Transform()); len(tt.expected.ProfileFiles) > 0 && diff != "" {
 					t.Fatalf("templates profiles didn't match expected:\n%s", diff)
 				}
-
-				if diff := cmp.Diff(tt.expected.CostEstimate, renderTemplateResponse.CostEstimate, protocmp.Transform()); diff != "" {
-					t.Fatalf("cost estimate does not match:\n%s", diff)
-				}
-
 			}
 		})
 	}
@@ -1288,4 +1369,12 @@ type testEstimator struct {
 
 func (t testEstimator) Estimate(context.Context, []*unstructured.Unstructured) (*estimation.CostEstimate, error) {
 	return &estimation.CostEstimate{Low: t.low, High: t.high, Currency: t.currency}, nil
+}
+
+type errorEstimator struct {
+	err error
+}
+
+func (t errorEstimator) Estimate(context.Context, []*unstructured.Unstructured) (*estimation.CostEstimate, error) {
+	return nil, t.err
 }
