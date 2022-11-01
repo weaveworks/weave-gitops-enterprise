@@ -170,7 +170,7 @@ export type PolicyValidationOccurrence = {
 export type PolicyValidationParam = {
   name?: string
   type?: string
-  value?: Uint8Array
+  value?: GoogleProtobufAny.Any
   required?: boolean
   configRef?: string
 }
