@@ -15,6 +15,7 @@ import (
 
 type templateCommandFlags struct {
 	ListTemplateParameters bool
+	TemplateNamespace      string
 }
 
 var flags templateCommandFlags
@@ -60,6 +61,11 @@ func getTerraformTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClie
 			return err
 		}
 
+		namespace := "default"
+		if flags.TemplateNamespace != "" {
+			namespace = flags.TemplateNamespace
+		}
+
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
@@ -68,13 +74,13 @@ func getTerraformTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClie
 				return errors.New("terraform template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], "", client, w)
+			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], namespace, client, w)
 		}
 
 		if len(args) == 0 {
 			return templates.GetTemplates(templates.GitOpsTemplateKind, client, w)
 		}
 
-		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, "", client, w)
+		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, namespace, client, w)
 	}
 }
