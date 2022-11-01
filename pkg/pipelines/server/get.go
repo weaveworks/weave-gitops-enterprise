@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -112,6 +113,16 @@ func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, erro
 		ws.Name = hr.Name
 		ws.Version = hr.Spec.Chart.Spec.Version
 		ws.LastAppliedRevision = hr.Status.LastAppliedRevision
+		ws.Conditions = []*pb.Condition{}
+		for _, c := range hr.Status.Conditions {
+			ws.Conditions = append(ws.Conditions, &pb.Condition{
+				Type:      c.Type,
+				Status:    string(c.Status),
+				Reason:    c.Reason,
+				Message:   c.Message,
+				Timestamp: c.LastTransitionTime.Format(time.RFC3339),
+			})
+		}
 	}
 
 	return ws, nil

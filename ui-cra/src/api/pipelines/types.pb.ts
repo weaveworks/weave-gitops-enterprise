@@ -31,11 +31,20 @@ export type AppRef = {
   name?: string
 }
 
+export type Condition = {
+  type?: string
+  status?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+}
+
 export type WorkloadStatus = {
   kind?: string
   name?: string
   version?: string
   lastAppliedRevision?: string
+  conditions?: Condition[]
 }
 
 export type PipelineTargetStatus = {

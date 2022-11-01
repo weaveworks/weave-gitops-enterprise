@@ -1,10 +1,11 @@
 /* eslint-disable testing-library/no-node-access */
 import { act, render, RenderResult, screen } from '@testing-library/react';
-import { formatURL } from '@weaveworks/weave-gitops';
+import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { PipelinesProvider } from '../../../../contexts/Pipelines';
 import {
+  CoreClientMock,
   defaultContexts,
   PipelinesClientMock,
   withContext,
@@ -156,14 +157,21 @@ interface MappedWorkload {
 describe('PipelineDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PipelinesClientMock;
+  let core: CoreClientMock;
 
   beforeEach(() => {
     api = new PipelinesClientMock();
-    wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+    core = new CoreClientMock();
+    wrap = withContext([
+      ...defaultContexts(),
+      [PipelinesProvider, { api }],
+      [CoreClientContextProvider, { api: core }],
+    ]);
   });
   it('renders pipeline details', async () => {
     const params = res.pipeline;
     api.GetPipelineReturns = res;
+    core.GetObjectReturns = { object: {} };
 
     await act(async () => {
       const c = wrap(
@@ -230,7 +238,8 @@ describe('PipelineDetails', () => {
         );
 
         //Target as a link
-        const linkToAutomation = target.querySelector('.workloadName > a');
+        const linkToAutomation = target.querySelector('a');
+
         if (workloads![index].mappedClusterName) {
           const href = formatURL('/helm_release/details', {
             name: workloads![index].name,
@@ -238,12 +247,6 @@ describe('PipelineDetails', () => {
             clusterName: workloads![index].mappedClusterName,
           });
           linkToExists(linkToAutomation, href);
-        } else {
-          elementToBeNull(linkToAutomation);
-          checkTextContentToEqual(
-            target.querySelector('.workload-name'),
-            workloads![index].name || '',
-          );
         }
         // Workload Last Applied Version
         const lastAppliedRevision = target.querySelector(
