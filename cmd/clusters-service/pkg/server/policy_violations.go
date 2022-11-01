@@ -239,6 +239,9 @@ func getPolicyValidationParam(raw []byte) ([]*capiv1_proto.PolicyValidationParam
 }
 
 func getParamValue(in interface{}) (*any.Any, error) {
+	if in == nil {
+		return nil, nil
+	}
 	switch val := in.(type) {
 	case string:
 		value := wrapperspb.String(val)
