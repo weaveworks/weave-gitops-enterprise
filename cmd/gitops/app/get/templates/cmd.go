@@ -88,24 +88,25 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
+		namespace := "default"
+		if flags.TemplateNamespace != "" {
+			namespace = flags.TemplateNamespace
+		}
+
 		if flags.ListTemplateParameters {
 			if len(args) == 0 {
 				return errors.New("template name is required")
-			} else if flags.TemplateNamespace == "" {
-				return errors.New("template-namespace is required")
 			}
 
-			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], flags.TemplateNamespace, client, w)
+			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], namespace, client, w)
 		}
 
 		if flags.ListTemplateProfiles {
 			if len(args) == 0 {
 				return errors.New("template name is required")
-			} else if flags.TemplateNamespace == "" {
-				return errors.New("template-namespace is required")
 			}
 
-			return templates.GetTemplateProfiles(args[0], flags.TemplateNamespace, client, w)
+			return templates.GetTemplateProfiles(args[0], namespace, client, w)
 		}
 
 		if len(args) == 0 {
@@ -115,11 +116,8 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 
 			return templates.GetTemplates(templates.CAPITemplateKind, client, w)
 		}
-		if flags.TemplateNamespace == "" {
-			return errors.New("template-namespace is required")
-		}
 
-		return templates.GetTemplate(args[0], templates.CAPITemplateKind, flags.TemplateNamespace, client, w)
+		return templates.GetTemplate(args[0], templates.CAPITemplateKind, namespace, client, w)
 	}
 }
 
