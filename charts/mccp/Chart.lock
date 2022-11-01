@@ -9,4 +9,4 @@ dependencies:
   repository: oci://ghcr.io/weaveworks/charts
   version: 0.0.2
 digest: sha256:9bb544f175d3794271190128c903c8a0d2356a218761c10f97010d4b00af7845
-generated: "2022-10-31T11:30:44.332516597-07:00"
+generated: "2022-11-01T10:49:32.889707+01:00"
