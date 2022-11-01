@@ -283,24 +283,18 @@ func verifyAppSourcePage(applicationInfo *pages.ApplicationInformation, app Appl
 	})
 }
 
-func verifyAppViolationsList(appName string, appType string) {
-	// Just specify the Violating policy info to create it
-	policyName := "Container Running As Root acceptance test"
-	violationMsg := `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`
-	violationSeverity := "High"
-	// violationCategory := "weave.categories.pod-security"
+func verifyAppViolationsList(appName string, appType string, policyName string, violationMsg string, violationSeverity string) {
+	// Declare application details page variable
+	appDetailPage := pages.GetApplicationsDetailPage(webDriver, appType)
 
 	ginkgo.By(fmt.Sprintf("And open  '%s' application Violations tab", appName), func() {
-		// Declare application details page variable
-		appDetailPage := pages.GetApplicationsDetailPage(webDriver, appType)
+
 		gomega.Eventually(appDetailPage.Violations.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to click '%s' Violations tab button", appName))
 		pages.WaitForPageToLoad(webDriver)
 
 	})
 
 	ginkgo.By("And check violations are visible in the Application Violations List", func() {
-		appDetailPage := pages.GetApplicationsDetailPage(webDriver, appType)
-		//gomega.Eventually(appDetailPage.Violations.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to click %s Violations tab button", appName))
 
 		gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 		gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
@@ -309,7 +303,7 @@ func verifyAppViolationsList(appName string, appType string) {
 
 		// Checking that application violation are visible.
 		gomega.Eventually(appDetailPage.Violations).Should(matchers.BeVisible())
-		pages.WaitForPageToLoad(webDriver)
+		//pages.WaitForPageToLoad(webDriver)
 		ApplicationViolationsList := pages.GetApplicationViolationsList(webDriver)
 		// Checking the Violation Message in the application violation list.
 		gomega.Eventually(ApplicationViolationsList.ViolationMessage.Text).Should(gomega.MatchRegexp("MESSAGE"), "Failed to get Violation Message title in violations List page")
@@ -354,13 +348,7 @@ func verifyAppViolationsList(appName string, appType string) {
 
 }
 
-func verifyAppViolationsDetailsPage(clusterName string, appName string) {
-
-	// Just specify the Violating policy info to create it
-	policyName := "Container Running As Root acceptance test"
-	violationMsg := `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`
-	violationSeverity := "High"
-	violationCategory := "weave.categories.pod-security"
+func verifyAppViolationsDetailsPage(clusterName string, appName string, policyName string, violationMsg string, violationSeverity string, violationCategory string) {
 
 	ginkgo.By(fmt.Sprintf("Verify '%s' Application Violation Details", policyName), func() {
 
@@ -369,7 +357,6 @@ func verifyAppViolationsDetailsPage(clusterName string, appName string) {
 		gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation details page of violation '%s'", violationMsg))
 
 		gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/clusters/violations/details?clusterName"))
-		time.Sleep(POLL_INTERVAL_3SECONDS)
 
 		appViolationsDetialsPage := pages.GetApplicationViolationsDetailsPage(webDriver)
 
@@ -380,11 +367,9 @@ func verifyAppViolationsDetailsPage(clusterName string, appName string) {
 		// Click policy name from app violations details page to navigate to policy details page
 		gomega.Eventually(appViolationsDetialsPage.PolicyNameValue.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' policy detail page", appViolationsDetialsPage.PolicyNameValue))
 		gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/policies/details?"))
-		time.Sleep(POLL_INTERVAL_3SECONDS)
 
 		// Navigate back to the app violations list
 		gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to navigate back to the '%s' app violations list", appName))
-		time.Sleep(POLL_INTERVAL_3SECONDS)
 
 		gomega.Eventually(appViolationsDetialsPage.ClusterName.Text).Should(gomega.MatchRegexp("Cluster Name :"), "Failed to get cluster name field on App violations details page")
 		gomega.Eventually(appViolationsDetialsPage.ClusterNameValue.Text).Should(gomega.MatchRegexp(clusterName), "Failed to get cluster name value on App violations details page")
@@ -1172,8 +1157,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				verifyAppViolationsList(podinfo.Name, podinfo.Type)
-				verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo.Name)
+				verifyAppViolationsList(podinfo.Name, podinfo.Type, "Container Running As Root acceptance test", `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`, "High")
+				verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo.Name, "Container Running As Root acceptance test", `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`, "High", "weave.categories.pod-security")
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 
 			})
@@ -1238,7 +1223,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			ginkgo.FIt("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf cluster"), func() {
+			ginkgo.It("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf cluster"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
@@ -1317,8 +1302,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 				})
 
-				verifyAppViolationsList(podinfo.Name, podinfo.Type)
-				verifyAppViolationsDetailsPage(leafCluster.Name, podinfo.Name)
+				verifyAppViolationsList(podinfo.Name, podinfo.Type, "Container Running As Root acceptance test", `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`, "High")
+				verifyAppViolationsDetailsPage(leafCluster.Name, podinfo.Name, "Container Running As Root acceptance test", `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`, "High", "weave.categories.pod-security")
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 
 			})
