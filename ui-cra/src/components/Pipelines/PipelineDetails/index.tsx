@@ -151,17 +151,10 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                   return target?.workloads?.map((workload, wrkIndex) => (
                     <CardContainer key={wrkIndex} role="targeting">
                       <TargetWrapper className="workloadTarget">
-                         <Title>Cluster</Title>
+                        <Title>Cluster</Title>
                         <ClusterName className="cluster-name">
                           {target?.clusterRef?.name || clusterName}
                         </ClusterName>
-                          <>
-                            <Title>Cluster</Title>
-                            <ClusterName className="cluster-name">
-                              {target?.clusterRef?.name}
-                            </ClusterName>
-                          </>
-                        )}
 
                         <Title>Namespace</Title>
                         <TargetNamespace className="workload-namespace">
