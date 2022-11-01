@@ -221,10 +221,13 @@ func getPolicyValidationParam(raw []byte) ([]*capiv1_proto.PolicyValidationParam
 	var parameters []*capiv1_proto.PolicyValidationParam
 	for i := range arr {
 		param := capiv1_proto.PolicyValidationParam{
-			Name:      arr[i]["name"].(string),
-			Type:      arr[i]["type"].(string),
-			Required:  arr[i]["required"].(bool),
-			ConfigRef: arr[i]["config_ref"].(string),
+			Name:     arr[i]["name"].(string),
+			Type:     arr[i]["type"].(string),
+			Required: arr[i]["required"].(bool),
+		}
+
+		if val, ok := arr[i]["config_ref"]; ok {
+			param.ConfigRef = val.(string)
 		}
 
 		val, err := getParamValue(arr[i]["value"])
@@ -232,7 +235,6 @@ func getPolicyValidationParam(raw []byte) ([]*capiv1_proto.PolicyValidationParam
 			return nil, err
 		}
 		param.Value = val
-
 		parameters = append(parameters, &param)
 	}
 	return parameters, nil
