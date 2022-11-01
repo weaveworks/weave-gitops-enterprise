@@ -284,13 +284,32 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+// configureKlogVerbosity sets the klog verbosity level.
+// This log is used by the client-go k8s libraries and can be useful for debugging
+// client-go's network requests.
+//
+// v=5 - log CRD cache things?
+// v=6 - log requests (e.g. GET url)
+// v=7 - log req/res headers
+// v=8 - log res body
+func configureKLogVerbosity(v string) error {
 	klog.InitFlags(nil)
-	flag.Set("v", p.KLogVerbosity)
+	err := flag.Set("v", v)
+	if err != nil {
+		return fmt.Errorf("could not set klog verbosity: %w", err)
+	}
 	flag.Parse()
-	log.Info("Setting klog verbosity", "verbosity", p.KLogVerbosity)
+	return nil
+}
 
+func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
 	featureflags.SetFromEnv(os.Environ())
+
+	log.Info("Setting klog verbosity", "verbosity", p.KLogVerbosity)
+	err := configureKLogVerbosity(p.KLogVerbosity)
+	if err != nil {
+		return fmt.Errorf("could not configure klog verbosity: %w", err)
+	}
 
 	if p.CAPITemplatesNamespace == "" {
 		return errors.New("CAPI templates namespace not set")
@@ -309,7 +328,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
-	err := schemeBuilder.AddToScheme(scheme)
+	err = schemeBuilder.AddToScheme(scheme)
 	if err != nil {
 		return err
 	}
