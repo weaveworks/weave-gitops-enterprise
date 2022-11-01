@@ -16,6 +16,11 @@ enablePipelines: true
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
 
+# Can bump this up to 4+ to get more verbose logging
+extraEnvVars:
+  - name: KLOG_VERBOSITY
+    value: "0"
+
 # Re-clarify capiEnabled
 global:
   capiEnabled: true

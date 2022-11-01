@@ -11,6 +11,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"flag"
 	"fmt"
 	"math/big"
 	"net"
@@ -60,6 +61,7 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/klog/v2"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -137,6 +139,7 @@ type Params struct {
 	DevMode                           bool                      `mapstructure:"dev-mode"`
 	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
+	KLogVerbosity                     string                    `mapstructure:"klog-verbosity"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -211,6 +214,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
+	cmd.Flags().String("klog-verbosity", "0", "Set the logging of the klog library")
 
 	return cmd
 }
@@ -281,6 +285,10 @@ func initializeConfig(cmd *cobra.Command) error {
 }
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+	klog.InitFlags(nil)
+	flag.Set("v", p.KLogVerbosity)
+	flag.Parse()
+	log.Info("Setting klog verbosity", "verbosity", p.KLogVerbosity)
 
 	featureflags.SetFromEnv(os.Environ())
 
