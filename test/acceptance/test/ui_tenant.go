@@ -357,7 +357,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafCluster.Namespace, patSecret)
 				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCuster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
+				gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
 				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
