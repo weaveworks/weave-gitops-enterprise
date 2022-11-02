@@ -3,6 +3,7 @@ package fetcher
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
@@ -40,14 +41,40 @@ func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.Client
 	}, nil
 }
 
-// ToClusterName takes a types.NamespacedName and returns the name of the cluster
-// ManagementClusterName doesn't have a namespace
+// ToClusterName takes a nice type.NamespacedName and returns
+// a string that the MC-fetcher understands
+// e.g.
+// - {Name: "foo", Namespace: "bar"} -> "bar/foo"
+// - {Name: "foo"} -> "foo"
+// (ManagementCluster doesn't have a namespace)
 func ToClusterName(cluster types.NamespacedName) string {
 	if cluster.Namespace == "" {
 		return cluster.Name
 	}
 
 	return cluster.String()
+}
+
+// FromClusterName takes a string that the MC-fetcher understands
+// and returns a nice type.NamespacedName
+func FromClusterName(clusterName string) types.NamespacedName {
+	parts := strings.Split(clusterName, "/")
+	if len(parts) == 1 {
+		return types.NamespacedName{
+			Name: parts[0],
+		}
+	}
+
+	return types.NamespacedName{
+		Namespace: parts[0],
+		Name:      parts[1],
+	}
+}
+
+// IsManagementCluster returns true if the cluster is the management cluster
+// Provide the name of the management cluster and a ref to another cluster
+func IsManagementCluster(mgmtClusterName string, cluster types.NamespacedName) bool {
+	return cluster.Namespace == "" && mgmtClusterName == cluster.Name
 }
 
 func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {

@@ -206,7 +206,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafClusterNamespace, patSecret)
 				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCuster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
+				gitopsCluster = connectGitopsCluster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
 
 				waitForLeafClusterAvailability(leafClusterName, "Ready")

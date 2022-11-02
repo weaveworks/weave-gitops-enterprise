@@ -1116,10 +1116,6 @@
         "currency": {
           "type": "string"
         },
-        "amount": {
-          "type": "number",
-          "format": "float"
-        },
         "range": {
           "$ref": "#/definitions/CostEstimateRange"
         }

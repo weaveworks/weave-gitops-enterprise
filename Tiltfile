@@ -109,3 +109,5 @@ else:
    )
 
 k8s_resource('chart-mccp-cluster-service', port_forwards='8000')
+
+secret_settings(disable_scrub=True)

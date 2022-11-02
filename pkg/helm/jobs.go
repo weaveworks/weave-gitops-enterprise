@@ -1,11 +1,10 @@
 package helm
 
 import (
-	"fmt"
-	"sync/atomic"
 	"time"
 
 	"github.com/cheshir/ttlcache"
+	"github.com/google/uuid"
 )
 
 // JobTTL is how long until a job expires
@@ -15,8 +14,7 @@ const JobTTL = time.Hour
 const JobCleanupInterval = time.Hour
 
 type Jobs struct {
-	idCounter *int64
-	results   ttlcache.Cache
+	results ttlcache.Cache
 }
 
 type JobResult struct {
@@ -27,16 +25,14 @@ type JobResult struct {
 // NewJobs creates an in memory job cache
 // Jobs expire after after a hour
 func NewJobs() *Jobs {
-	var idCounter int64
 	return &Jobs{
-		idCounter: &idCounter,
-		results:   *ttlcache.New(JobCleanupInterval),
+		results: *ttlcache.New(JobCleanupInterval),
 	}
 }
 
 // New creates and saves a new empty job and returns its id
 func (j *Jobs) New() string {
-	nextId := fmt.Sprint(atomic.AddInt64(j.idCounter, 1))
+	nextId := uuid.New().String()
 	j.Set(nextId, JobResult{})
 	return nextId
 }

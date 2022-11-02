@@ -107,6 +107,9 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 }
 
 // RenderTemplates renders all the resourceTemplates in the template.
+//
+// TODO: This should return []*unstructured.Unstructured to avoid having to
+// convert back and forth.
 func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
 	params, err := p.Params()
 	if err != nil {

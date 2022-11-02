@@ -9,4 +9,4 @@ Bugs reported internally usually come from three test flows/streams:
  3)  Bugs reported during testing a released version. Those bugs are labeled with `bug_release`. For reporting those bugs, `Bug Report` issue template can be used.
 
 
- Both issue templates are created by default with the label `team/pesto` attached to them. Make sure to add your teams label instead if the bug is within one of the domains handled by your team.
+ Both issue templates are created by default with the label `team/pesto` attached to them. Make sure to add your team's label instead if the bug is within one of the domains handled by your team.

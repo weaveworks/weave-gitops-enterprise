@@ -262,8 +262,7 @@ message CostEstimate{
     float high = 2;
   };
   string currency = 1;
-  float amount = 2;
-  Range range = 3;
+  Range range = 2;
 }
 
 message RenderTemplateResponse { 
