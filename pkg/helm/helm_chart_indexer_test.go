@@ -278,6 +278,39 @@ func TestAddChart(t *testing.T) {
 	assert.Equal(t, 1, len(charts))
 }
 
+func TestDeleteAllChartsForCluster(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	// add a chart to cluster1
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	// add a chart to cluster2
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster2", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	// delete all charts for cluster1
+	err = indexer.DeleteAllChartsForCluster(context.TODO(), nsn("cluster1", "clusters"))
+	assert.NoError(t, err)
+
+	// check that no charts are returned for cluster1
+	charts, err := indexer.ListChartsByCluster(context.TODO(), nsn("cluster1", "clusters"), "chart")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(charts))
+
+	// check that only the chart for cluster2 is left
+	charts, err = indexer.ListChartsByCluster(context.TODO(), nsn("cluster2", "clusters"), "chart")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(charts))
+}
+
 func objref(kind, apiVersion, name, namespace string) ObjectReference {
 	return ObjectReference{
 		Kind:       kind,

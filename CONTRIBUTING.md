@@ -442,6 +442,17 @@ cd ui-cra
 CAPI_SERVER_HOST=http://localhost:8000 yarn start
 ```
 
+#### Grab a copy of the SQLite chart cache
+
+The `clusters-service` caches the `index.yaml` and `values.yaml` files from
+helm-repos (profiles) in a SQLite database. This is to avoid hammering the
+source-controller with requests. The cache is stored in a file called
+`/tmp/helm-cache/charts.db` by default.
+
+```
+kubectl cp flux-system/$(kubectl get pods -A -l app=clusters-service --no-headers -o custom-columns=":metadata.name"):/tmp/helm-cache/charts.db mccp.db
+```
+
 ## Developing the UI
 
 We usually develop the UI against the test server and by default the UI dev

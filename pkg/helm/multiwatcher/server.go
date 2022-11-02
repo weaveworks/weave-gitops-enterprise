@@ -2,6 +2,7 @@ package multiwatcher
 
 import (
 	"context"
+	"errors"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -11,7 +12,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
@@ -22,11 +22,11 @@ var (
 )
 
 type Options struct {
-	KubeClient    client.Client
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
 	Cache         helm.ChartsCacherWriter
 	ValuesFetcher helm.ValuesFetcher
+	UseProxy      bool
 }
 
 type Watcher struct {
@@ -34,6 +34,9 @@ type Watcher struct {
 	clientConfig  *rest.Config
 	cache         helm.ChartsCacherWriter
 	valuesFetcher helm.ValuesFetcher
+	useProxy      bool
+	stopFn        context.CancelFunc
+	log           logr.Logger
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
@@ -50,20 +53,24 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		clientConfig:  opts.ClientConfig,
 		cache:         opts.Cache,
 		valuesFetcher: opts.ValuesFetcher,
+		useProxy:      opts.UseProxy,
 	}, nil
 }
 
 func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
-	ctrl.SetLogger(log.WithName("multi-helm-watcher"))
+	w.log = log.WithName("multi-helm-watcher")
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	ctx, cancel := context.WithCancel(ctx)
+	w.stopFn = cancel
+
+	mgr, err := ctrl.NewManager(w.clientConfig, ctrl.Options{
 		Scheme:             scheme,
-		Logger:             ctrl.Log,
+		Logger:             w.log,
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
 	})
 	if err != nil {
-		ctrl.Log.Error(err, "unable to create manager")
+		w.log.Error(err, "unable to create manager")
 		return err
 	}
 
@@ -72,19 +79,28 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 		ClientConfig:  w.clientConfig,
 		Cache:         w.cache,
 		ValuesFetcher: w.valuesFetcher,
+		UseProxy:      w.useProxy,
 		Client:        mgr.GetClient(),
 		Scheme:        scheme,
 	}).SetupWithManager(mgr); err != nil {
-		ctrl.Log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
+		w.log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err
 	}
 
-	ctrl.Log.Info("starting manager")
+	w.log.Info("starting manager")
 
 	if err := mgr.Start(ctx); err != nil {
-		ctrl.Log.Error(err, "problem running manager")
+		log.Error(err, "problem running manager")
 		return err
 	}
 
 	return nil
+}
+
+func (w *Watcher) Stop() {
+	if w.stopFn == nil {
+		w.log.Error(errors.New("Stop function not set yet"), "unable to stop watcher")
+		return
+	}
+	w.stopFn()
 }

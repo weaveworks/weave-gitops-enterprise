@@ -22,7 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var requiredClusterNameErr = errors.New("`clusterName` param is required")
+var errRequiredClusterName = errors.New("`clusterName` param is required")
 
 func getPolicyParamValue(param pacv2beta1.PolicyParameters, policyID string) (*anypb.Any, error) {
 	if param.Value == nil {
@@ -249,7 +249,7 @@ func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest
 	}
 
 	if m.ClusterName == "" {
-		return nil, requiredClusterNameErr
+		return nil, errRequiredClusterName
 	}
 	policyCR := pacv2beta1.Policy{}
 	policyCRv1 := pacv1.Policy{}

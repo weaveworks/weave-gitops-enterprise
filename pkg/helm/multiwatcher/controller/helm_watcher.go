@@ -22,6 +22,7 @@ type HelmWatcherReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 
+	UseProxy      bool
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
 	Cache         helm.ChartsCacherWriter
@@ -55,7 +56,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.ClientConfig, types.NamespacedName{
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
-	}, false)
+	}, r.UseProxy)
 
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get index file: %w", err)
