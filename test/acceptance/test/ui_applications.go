@@ -1119,8 +1119,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Path:            "./apps/podinfo",
 					SyncInterval:    "30s",
 				}
-				// Violated policy details
-				violatedPolicy := ApplicationViolations{
+				// App Violations data
+				appViolations := ApplicationViolations{
 					PolicyName:        "Container Running As Root acceptance test",
 					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`,
 					ViolationSeverity: "High",
@@ -1171,8 +1171,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				verifyAppViolationsList(podinfo, violatedPolicy)
-				verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo, violatedPolicy)
+				verifyAppViolationsList(podinfo, appViolations)
+				verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo, appViolations)
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 
 			})
@@ -1249,8 +1249,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Path:            "./apps/podinfo",
 					SyncInterval:    "30s",
 				}
-				// Violated policy details
-				violatedPolicy := ApplicationViolations{
+				// App Violations data
+				appViolations := ApplicationViolations{
 					PolicyName:        "Container Running As Root acceptance test",
 					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`,
 					ViolationSeverity: "High",
@@ -1323,8 +1323,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				})
 
-				verifyAppViolationsList(podinfo, violatedPolicy)
-				verifyAppViolationsDetailsPage(leafCluster.Name, podinfo, violatedPolicy)
+				verifyAppViolationsList(podinfo, appViolations)
+				verifyAppViolationsDetailsPage(leafCluster.Name, podinfo, appViolations)
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 
 			})
