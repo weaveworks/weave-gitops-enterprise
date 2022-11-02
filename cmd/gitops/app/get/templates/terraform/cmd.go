@@ -40,6 +40,7 @@ gitops get template terraform <template-name> --list-parameters
 	}
 
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of Terraform template")
+	cmd.Flags().StringVar(&flags.TemplateNamespace, "template-namespace", "default", "Filter templates by template namespace")
 
 	return cmd
 }
@@ -61,11 +62,6 @@ func getTerraformTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClie
 			return err
 		}
 
-		namespace := "default"
-		if flags.TemplateNamespace != "" {
-			namespace = flags.TemplateNamespace
-		}
-
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
@@ -74,13 +70,13 @@ func getTerraformTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClie
 				return errors.New("terraform template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], namespace, client, w)
+			return templates.GetTemplateParameters(templates.GitOpsTemplateKind, args[0], flags.TemplateNamespace, client, w)
 		}
 
 		if len(args) == 0 {
 			return templates.GetTemplates(templates.GitOpsTemplateKind, client, w)
 		}
 
-		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, namespace, client, w)
+		return templates.GetTemplate(args[0], templates.GitOpsTemplateKind, flags.TemplateNamespace, client, w)
 	}
 }

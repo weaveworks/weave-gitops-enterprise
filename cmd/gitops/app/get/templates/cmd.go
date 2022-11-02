@@ -59,7 +59,7 @@ gitops get template <template-name> --list-parameters
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
 	cmd.Flags().BoolVar(&flags.ListTemplateProfiles, "list-profiles", false, "Show profiles of CAPI template")
 	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
-	cmd.Flags().StringVar(&flags.TemplateNamespace, "template-namespace", "", "Filter templates by template namespace")
+	cmd.Flags().StringVar(&flags.TemplateNamespace, "template-namespace", "default", "Filter templates by template namespace")
 
 	return cmd
 }
@@ -88,17 +88,12 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
-		namespace := "default"
-		if flags.TemplateNamespace != "" {
-			namespace = flags.TemplateNamespace
-		}
-
 		if flags.ListTemplateParameters {
 			if len(args) == 0 {
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], namespace, client, w)
+			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], flags.TemplateNamespace, client, w)
 		}
 
 		if flags.ListTemplateProfiles {
@@ -106,7 +101,7 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateProfiles(args[0], namespace, client, w)
+			return templates.GetTemplateProfiles(args[0], flags.TemplateNamespace, client, w)
 		}
 
 		if len(args) == 0 {
@@ -117,7 +112,7 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 			return templates.GetTemplates(templates.CAPITemplateKind, client, w)
 		}
 
-		return templates.GetTemplate(args[0], templates.CAPITemplateKind, namespace, client, w)
+		return templates.GetTemplate(args[0], templates.CAPITemplateKind, flags.TemplateNamespace, client, w)
 	}
 }
 
