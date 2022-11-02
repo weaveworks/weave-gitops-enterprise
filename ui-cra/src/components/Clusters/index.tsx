@@ -200,16 +200,24 @@ const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
   const { clusters, isLoading, errors } = useClusters();
-  const [notification] = location.state?.notification;
+  const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const handleClose = useCallback(() => {
-    setOpenDeletePR(false);
-    setSelectedClusters([]);
-  }, [setOpenDeletePR, setSelectedClusters]);
+  const handleClose = useCallback(
+    (notif?: NotificationData) => {
+      setOpenDeletePR(false);
+      console.log(notif);
+      // this isn't working
+      if (notif) {
+        setNotifications([notif]);
+      }
+      setSelectedClusters([]);
+    },
+    [setOpenDeletePR, setSelectedClusters],
+  );
   const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
@@ -361,10 +369,17 @@ const MCCP: FC<{
         <ContentWrapper
           notification={[
             ...errors,
-            {
-              message: { text: notification?.message.text },
-              severity: 'error',
-            },
+            ...notifications,
+            ...(location.state?.notification?.[0]?.message.text
+              ? [
+                  {
+                    message: {
+                      text: location.state?.notification?.[0]?.message.text,
+                    },
+                    severity: 'error',
+                  } as NotificationData,
+                ]
+              : []),
           ]}
         >
           <div
@@ -399,8 +414,7 @@ const MCCP: FC<{
                     id="delete-cluster"
                     startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
                     onClick={() => {
-                      // keep the notif coming from location in a state so we can update it?
-                      // setNotifications([]);
+                      setNotifications([]);
                       setOpenDeletePR(true);
                     }}
                     color="secondary"
@@ -417,6 +431,7 @@ const MCCP: FC<{
                   selectedCapiClusters={selectedCapiClusters}
                   onClose={handleClose}
                   prDefaults={PRdefaults}
+                  setNotifications={setNotifications}
                 />
               )}
               {openConnectInfo && (

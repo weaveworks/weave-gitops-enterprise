@@ -93,18 +93,19 @@ export const ContentWrapper: FC<Props> = ({
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
-  const [notif, setNotif] = useState(
-    notification || ([] as NotificationData[]),
-  );
+  const [notif, setNotif] = useState<NotificationData[]>([]);
 
   useEffect(() => {
+    if (notification) {
+      setNotif(prevState => [...prevState, ...notification]);
+    }
     if (error) {
       setNotif(prevState => [
         ...prevState,
         { message: { text: error?.message }, severity: 'error' },
       ]);
     }
-  }, [error, setNotif]);
+  }, [error, setNotif, notification]);
 
   if (loading) {
     return (
@@ -138,7 +139,7 @@ export const ContentWrapper: FC<Props> = ({
       {errors && <AlertListErrors errors={errors} />}
       {notif.map(
         (n, index) =>
-          n?.message.text && (
+          (n?.message.text || n?.message.component) && (
             <Alert
               key={index}
               severity={n.severity}

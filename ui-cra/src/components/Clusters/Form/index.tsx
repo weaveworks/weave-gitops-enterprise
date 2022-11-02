@@ -463,14 +463,22 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
       >
         <ContentWrapper
           notification={[
-            {
-              message: { text: notification?.message.text },
-              severity: notification?.severity,
-            },
-            {
-              message: { text: error?.message },
-              severity: 'error',
-            },
+            ...(notification
+              ? [
+                  {
+                    message: { text: notification?.message.text },
+                    severity: 'error',
+                  } as NotificationData,
+                ]
+              : []),
+            ...(error
+              ? [
+                  {
+                    message: { text: error?.message },
+                    severity: 'error',
+                  } as NotificationData,
+                ]
+              : []),
           ]}
         >
           <FormWrapper>
@@ -589,9 +597,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
-    notification?.message.text,
-    notification?.severity,
-    error?.message,
+    notification,
+    error,
   ]);
 };
 

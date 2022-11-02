@@ -61,7 +61,6 @@ const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
   const { templates, isLoading, error } = useTemplates();
-  const [notification] = location.state?.notification;
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
@@ -110,11 +109,13 @@ const TemplatesDashboard: FC<{
         loading={isLoading}
         notification={[
           {
-            message: { text: notification?.message.text },
+            message: { text: error?.message },
             severity: 'error',
           },
           {
-            message: { text: error?.message },
+            message: {
+              text: location.state?.notification?.[0]?.message.text,
+            },
             severity: 'error',
           },
         ]}

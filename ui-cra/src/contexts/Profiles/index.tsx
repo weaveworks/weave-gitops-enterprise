@@ -1,5 +1,5 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { NotificationData, UpdatedProfile } from '../../types/custom';
+import { UpdatedProfile } from '../../types/custom';
 
 interface ProfilesContext {
   helmRepo: { name: string; namespace: string };

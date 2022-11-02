@@ -48,7 +48,10 @@ const EditClusterPage = () => {
   return (
     <PageTemplate
       documentTitle="Create new cluster"
-      path={[{ label: 'Clusters', url: Routes.Clusters }, { label: clusterName }]}
+      path={[
+        { label: 'Clusters', url: Routes.Clusters },
+        { label: clusterName },
+      ]}
     >
       <ContentWrapper loading={isLoading || isTemplateLoading}>
         <Grid container>
