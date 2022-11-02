@@ -1,4 +1,9 @@
-import { Flex, KubeStatusIndicator } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  Icon,
+  IconType,
+  KubeStatusIndicator,
+} from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { WorkloadStatus as WorkloadStatusType } from '../../../api/pipelines/types.pb';
 
@@ -12,7 +17,18 @@ function WorkloadStatus({ className, workload }: Props) {
     <div className={className}>
       <Flex align>
         <div style={{ marginRight: 4 }}>
-          <KubeStatusIndicator short conditions={workload?.conditions || []} />
+          {workload?.suspended ? (
+            <Icon
+              size="small"
+              type={IconType.SuspendedIcon}
+              color="suspended"
+            />
+          ) : (
+            <KubeStatusIndicator
+              short
+              conditions={workload?.conditions || []}
+            />
+          )}
         </div>
         <div>{workload?.name}</div>
       </Flex>
@@ -26,5 +42,9 @@ export default styled(WorkloadStatus).attrs({ className: 'WorkloadStatus' })`
   /* Hack to hide the text; we only want the icon here */
   ${KubeStatusIndicator} span {
     display: none;
+  }
+
+  ${Icon} img {
+    width: 16px;
   }
 `;
