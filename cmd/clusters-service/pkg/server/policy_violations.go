@@ -1,13 +1,14 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -192,7 +193,7 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*
 		paramsRaw := getAnnotation(annotations, "parameters")
 		if paramsRaw != "" {
 			var m capiv1_proto.PolicyValidationRepeatedParam
-			err = proto.Unmarshal([]byte(paramsRaw), &m)
+			err = jsonpb.Unmarshal(bytes.NewReader([]byte(paramsRaw)), &m)
 			if err != nil {
 				return nil, err
 			}
