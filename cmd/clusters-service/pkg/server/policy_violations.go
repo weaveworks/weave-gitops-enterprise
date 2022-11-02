@@ -8,13 +8,10 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"google.golang.org/protobuf/types/known/anypb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 	v1 "k8s.io/api/core/v1"
 	k8sFields "k8s.io/apimachinery/pkg/fields"
 	k8sLabels "k8s.io/apimachinery/pkg/labels"
@@ -213,55 +210,55 @@ func getAnnotation(annotations map[string]string, key string) string {
 	return value
 }
 
-func getPolicyValidationParam(raw []byte) ([]*capiv1_proto.PolicyValidationParam, error) {
-	var arr []map[string]interface{}
-	err := json.Unmarshal(raw, &arr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal policy validation parameter, error: %v", err)
-	}
+// func getPolicyValidationParam(raw []byte) ([]*capiv1_proto.PolicyValidationParam, error) {
+// 	var arr []map[string]interface{}
+// 	err := json.Unmarshal(raw, &arr)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to unmarshal policy validation parameter, error: %v", err)
+// 	}
 
-	var parameters []*capiv1_proto.PolicyValidationParam
-	for i := range arr {
-		param := capiv1_proto.PolicyValidationParam{
-			Name:     arr[i]["name"].(string),
-			Type:     arr[i]["type"].(string),
-			Required: arr[i]["required"].(bool),
-		}
+// 	var parameters []*capiv1_proto.PolicyValidationParam
+// 	for i := range arr {
+// 		param := capiv1_proto.PolicyValidationParam{
+// 			Name:     arr[i]["name"].(string),
+// 			Type:     arr[i]["type"].(string),
+// 			Required: arr[i]["required"].(bool),
+// 		}
 
-		if val, ok := arr[i]["config_ref"]; ok {
-			param.ConfigRef = val.(string)
-		}
+// 		if val, ok := arr[i]["config_ref"]; ok {
+// 			param.ConfigRef = val.(string)
+// 		}
 
-		val, err := getParamValue(arr[i]["value"])
-		if err != nil {
-			return nil, err
-		}
-		param.Value = val
-		parameters = append(parameters, &param)
-	}
-	return parameters, nil
-}
+// 		val, err := getParamValue(arr[i]["value"])
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		param.Value = val
+// 		parameters = append(parameters, &param)
+// 	}
+// 	return parameters, nil
+// }
 
-func getParamValue(in interface{}) (*any.Any, error) {
-	if in == nil {
-		return nil, nil
-	}
-	switch val := in.(type) {
-	case string:
-		value := wrapperspb.String(val)
-		return anypb.New(value)
-	case float64:
-		value := wrapperspb.Double(val)
-		return anypb.New(value)
-	case bool:
-		value := wrapperspb.Bool(val)
-		return anypb.New(value)
-	case []interface{}:
-		b, err := proto.Marshal(proto.MessageV1(val))
-		if err != nil {
-			return nil, err
-		}
-		return &anypb.Any{Value: b}, nil
-	}
-	return nil, nil
-}
+// func getParamValue(in interface{}) (*any.Any, error) {
+// 	if in == nil {
+// 		return nil, nil
+// 	}
+// 	switch val := in.(type) {
+// 	case string:
+// 		value := wrapperspb.String(val)
+// 		return anypb.New(value)
+// 	case float64:
+// 		value := wrapperspb.Double(val)
+// 		return anypb.New(value)
+// 	case bool:
+// 		value := wrapperspb.Bool(val)
+// 		return anypb.New(value)
+// 	case []interface{}:
+// 		b, err := proto.Marshal(proto.MessageV1(val))
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		return &anypb.Any{Value: b}, nil
+// 	}
+// 	return nil, nil
+// }
