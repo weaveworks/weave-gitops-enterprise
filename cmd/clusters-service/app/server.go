@@ -66,6 +66,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	imgv1beta1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	reflector "github.com/fluxcd/image-reflector-controller/api/v1beta1"
 	pd "github.com/weaveworks/progressive-delivery/pkg/server"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -295,6 +297,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		sourcev1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		authv1.AddToScheme,
+		imgv1beta1.AddToScheme,
+		reflector.AddToScheme,
 	}
 
 	if p.CAPIEnabled {
@@ -397,6 +401,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	clustersManagerScheme, err := kube.CreateScheme()
 	if err != nil {
 		return fmt.Errorf("could not create scheme: %w", err)
+	}
+
+	if err := reflector.AddToScheme(clustersManagerScheme); err != nil {
+		return fmt.Errorf("adding reflector to scheme: %w", err)
 	}
 
 	authMethods, err := auth.ParseAuthMethodArray(p.AuthMethods)

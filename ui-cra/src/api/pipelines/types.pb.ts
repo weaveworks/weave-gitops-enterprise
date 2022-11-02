@@ -69,3 +69,13 @@ export type Pipeline = {
   targets?: Target[]
   status?: PipelineStatus
 }
+
+export type ImageAutomation = {
+  lastPushCommit?: string
+  lastPushTime?: string
+  conditions?: Condition[]
+}
+
+export type ImageRepository = {
+  image?: string
+}

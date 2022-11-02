@@ -17,6 +17,28 @@
     "application/json"
   ],
   "paths": {
+    "/v1/imageautomations": {
+      "get": {
+        "operationId": "Pipelines_ListImageAutomationObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListImageAutomationObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
     "/v1/pipelines": {
       "get": {
         "operationId": "Pipelines_ListPipelines",
@@ -193,6 +215,14 @@
         }
       }
     },
+    "v1ImageRepository": {
+      "type": "object",
+      "properties": {
+        "image": {
+          "type": "string"
+        }
+      }
+    },
     "v1ListError": {
       "type": "object",
       "properties": {
@@ -201,6 +231,17 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "v1ListImageAutomationObjectsResponse": {
+      "type": "object",
+      "properties": {
+        "imageRepos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ImageRepository"
+          }
         }
       }
     },

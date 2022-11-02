@@ -29,11 +29,21 @@ export type ListError = {
   message?: string
 }
 
+export type ListImageAutomationObjectsRequest = {
+}
+
+export type ListImageAutomationObjectsResponse = {
+  imageRepos?: PipelinesV1Types.ImageRepository[]
+}
+
 export class Pipelines {
   static ListPipelines(req: ListPipelinesRequest, initReq?: fm.InitReq): Promise<ListPipelinesResponse> {
     return fm.fetchReq<ListPipelinesRequest, ListPipelinesResponse>(`/v1/pipelines?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetPipeline(req: GetPipelineRequest, initReq?: fm.InitReq): Promise<GetPipelineResponse> {
     return fm.fetchReq<GetPipelineRequest, GetPipelineResponse>(`/v1/pipelines/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static ListImageAutomationObjects(req: ListImageAutomationObjectsRequest, initReq?: fm.InitReq): Promise<ListImageAutomationObjectsResponse> {
+    return fm.fetchReq<ListImageAutomationObjectsRequest, ListImageAutomationObjectsResponse>(`/v1/imageautomations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

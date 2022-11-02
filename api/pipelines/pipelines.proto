@@ -32,6 +32,12 @@ service Pipelines {
         };
     }
 
+    rpc ListImageAutomationObjects(ListImageAutomationObjectsRequest) returns (ListImageAutomationObjectsResponse) {
+        option (google.api.http) = {
+            get : "/v1/imageautomations"
+        };
+    }
+
 }
 
 message ListPipelinesRequest {
@@ -55,4 +61,12 @@ message GetPipelineResponse {
 message ListError {
     string namespace = 1;
     string message = 2;
+}
+
+message ListImageAutomationObjectsRequest {
+
+}
+
+message ListImageAutomationObjectsResponse {
+    repeated ImageRepository imageRepos = 1;
 }

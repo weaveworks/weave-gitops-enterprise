@@ -95,6 +95,7 @@ require (
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
+	github.com/fluxcd/image-automation-controller/api v0.26.1 // indirect
 	github.com/fluxcd/notification-controller/api v0.28.0 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gobuffalo/flect v0.2.4 // indirect
@@ -205,6 +206,7 @@ require (
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.13.0 // indirect
+	github.com/fluxcd/image-reflector-controller/api v0.22.1
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.6.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.21.0 // indirect

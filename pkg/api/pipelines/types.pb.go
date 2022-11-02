@@ -674,6 +674,116 @@ func (x *Pipeline) GetStatus() *PipelineStatus {
 	return nil
 }
 
+type ImageAutomation struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	LastPushCommit string       `protobuf:"bytes,1,opt,name=lastPushCommit,proto3" json:"lastPushCommit,omitempty"`
+	LastPushTime   string       `protobuf:"bytes,2,opt,name=lastPushTime,proto3" json:"lastPushTime,omitempty"`
+	Conditions     []*Condition `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+}
+
+func (x *ImageAutomation) Reset() {
+	*x = ImageAutomation{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImageAutomation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImageAutomation) ProtoMessage() {}
+
+func (x *ImageAutomation) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImageAutomation.ProtoReflect.Descriptor instead.
+func (*ImageAutomation) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ImageAutomation) GetLastPushCommit() string {
+	if x != nil {
+		return x.LastPushCommit
+	}
+	return ""
+}
+
+func (x *ImageAutomation) GetLastPushTime() string {
+	if x != nil {
+		return x.LastPushTime
+	}
+	return ""
+}
+
+func (x *ImageAutomation) GetConditions() []*Condition {
+	if x != nil {
+		return x.Conditions
+	}
+	return nil
+}
+
+type ImageRepository struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Image string `protobuf:"bytes,1,opt,name=image,proto3" json:"image,omitempty"`
+}
+
+func (x *ImageRepository) Reset() {
+	*x = ImageRepository{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImageRepository) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImageRepository) ProtoMessage() {}
+
+func (x *ImageRepository) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImageRepository.ProtoReflect.Descriptor instead.
+func (*ImageRepository) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ImageRepository) GetImage() string {
+	if x != nil {
+		return x.Image
+	}
+	return ""
+}
+
 type PipelineStatus_TargetStatusList struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -685,7 +795,7 @@ type PipelineStatus_TargetStatusList struct {
 func (x *PipelineStatus_TargetStatusList) Reset() {
 	*x = PipelineStatus_TargetStatusList{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_pipelines_types_proto_msgTypes[10]
+		mi := &file_api_pipelines_types_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -698,7 +808,7 @@ func (x *PipelineStatus_TargetStatusList) String() string {
 func (*PipelineStatus_TargetStatusList) ProtoMessage() {}
 
 func (x *PipelineStatus_TargetStatusList) ProtoReflect() protoreflect.Message {
-	mi := &file_api_pipelines_types_proto_msgTypes[10]
+	mi := &file_api_pipelines_types_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -821,12 +931,24 @@ var file_api_pipelines_types_proto_rawDesc = []byte{
 	0x67, 0x65, 0x74, 0x73, 0x12, 0x34, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x06,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x70, 0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73,
 	0x2e, 0x76, 0x31, 0x2e, 0x50, 0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x53, 0x74, 0x61, 0x74,
-	0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x42, 0x3d, 0x5a, 0x3b, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f,
-	0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73,
-	0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x70, 0x69, 0x70, 0x65,
-	0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x22, 0x96, 0x01, 0x0a, 0x0f, 0x49,
+	0x6d, 0x61, 0x67, 0x65, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x26,
+	0x0a, 0x0e, 0x6c, 0x61, 0x73, 0x74, 0x50, 0x75, 0x73, 0x68, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x6c, 0x61, 0x73, 0x74, 0x50, 0x75, 0x73, 0x68,
+	0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x12, 0x22, 0x0a, 0x0c, 0x6c, 0x61, 0x73, 0x74, 0x50, 0x75,
+	0x73, 0x68, 0x54, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0c, 0x6c, 0x61,
+	0x73, 0x74, 0x50, 0x75, 0x73, 0x68, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x37, 0x0a, 0x0a, 0x63, 0x6f,
+	0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x17,
+	0x2e, 0x70, 0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f,
+	0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x63, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x22, 0x27, 0x0a, 0x0f, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70, 0x6f,
+	0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x42, 0x3d, 0x5a, 0x3b,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f,
+	0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x70, 0x69,
+	0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -841,7 +963,7 @@ func file_api_pipelines_types_proto_rawDescGZIP() []byte {
 	return file_api_pipelines_types_proto_rawDescData
 }
 
-var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_api_pipelines_types_proto_goTypes = []interface{}{
 	(*ClusterRef)(nil),                      // 0: pipelines.v1.ClusterRef
 	(*Target)(nil),                          // 1: pipelines.v1.Target
@@ -853,8 +975,10 @@ var file_api_pipelines_types_proto_goTypes = []interface{}{
 	(*PipelineTargetStatus)(nil),            // 7: pipelines.v1.PipelineTargetStatus
 	(*PipelineStatus)(nil),                  // 8: pipelines.v1.PipelineStatus
 	(*Pipeline)(nil),                        // 9: pipelines.v1.Pipeline
-	(*PipelineStatus_TargetStatusList)(nil), // 10: pipelines.v1.PipelineStatus.TargetStatusList
-	nil,                                     // 11: pipelines.v1.PipelineStatus.EnvironmentsEntry
+	(*ImageAutomation)(nil),                 // 10: pipelines.v1.ImageAutomation
+	(*ImageRepository)(nil),                 // 11: pipelines.v1.ImageRepository
+	(*PipelineStatus_TargetStatusList)(nil), // 12: pipelines.v1.PipelineStatus.TargetStatusList
+	nil,                                     // 13: pipelines.v1.PipelineStatus.EnvironmentsEntry
 }
 var file_api_pipelines_types_proto_depIdxs = []int32{
 	0,  // 0: pipelines.v1.Target.clusterRef:type_name -> pipelines.v1.ClusterRef
@@ -862,18 +986,19 @@ var file_api_pipelines_types_proto_depIdxs = []int32{
 	5,  // 2: pipelines.v1.WorkloadStatus.conditions:type_name -> pipelines.v1.Condition
 	0,  // 3: pipelines.v1.PipelineTargetStatus.clusterRef:type_name -> pipelines.v1.ClusterRef
 	6,  // 4: pipelines.v1.PipelineTargetStatus.workloads:type_name -> pipelines.v1.WorkloadStatus
-	11, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
+	13, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
 	4,  // 6: pipelines.v1.Pipeline.appRef:type_name -> pipelines.v1.AppRef
 	2,  // 7: pipelines.v1.Pipeline.environments:type_name -> pipelines.v1.Environment
 	1,  // 8: pipelines.v1.Pipeline.targets:type_name -> pipelines.v1.Target
 	8,  // 9: pipelines.v1.Pipeline.status:type_name -> pipelines.v1.PipelineStatus
-	7,  // 10: pipelines.v1.PipelineStatus.TargetStatusList.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
-	10, // 11: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.TargetStatusList
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	5,  // 10: pipelines.v1.ImageAutomation.conditions:type_name -> pipelines.v1.Condition
+	7,  // 11: pipelines.v1.PipelineStatus.TargetStatusList.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
+	12, // 12: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.TargetStatusList
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_api_pipelines_types_proto_init() }
@@ -1003,6 +1128,30 @@ func file_api_pipelines_types_proto_init() {
 			}
 		}
 		file_api_pipelines_types_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ImageAutomation); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ImageRepository); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PipelineStatus_TargetStatusList); i {
 			case 0:
 				return &v.state
@@ -1021,7 +1170,7 @@ func file_api_pipelines_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_pipelines_types_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

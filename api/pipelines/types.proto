@@ -71,3 +71,13 @@ message Pipeline {
     repeated       Target targets           = 5;
     PipelineStatus status                   = 6;
 }
+
+message ImageAutomation {
+    string   lastPushCommit       = 1;
+    string   lastPushTime         = 2;
+    repeated Condition conditions = 3;
+}
+
+message ImageRepository {
+    string image = 1;
+}

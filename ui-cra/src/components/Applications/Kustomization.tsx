@@ -11,6 +11,7 @@ import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
+import ImageAutomation from './ImageAutomation';
 
 type Props = {
   name: string;
@@ -52,6 +53,18 @@ const WGApplicationsKustomization: FC<Props> = ({
       },
       visible: true,
     },
+    {
+      name: 'Images',
+      path: `${path}/images`,
+      visible: true,
+      component: () => (
+        <ImageAutomation
+          name={name}
+          namespace={namespace}
+          clusterName={clusterName}
+        />
+      ),
+    },
   ];
 
   return (
@@ -60,7 +73,7 @@ const WGApplicationsKustomization: FC<Props> = ({
       path={[
         {
           label: 'Applications',
-          url:Routes.Applications,
+          url: Routes.Applications,
         },
         {
           label: `${name}`,
