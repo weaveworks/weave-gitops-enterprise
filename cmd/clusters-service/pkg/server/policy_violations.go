@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -193,11 +194,12 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*
 		}
 		paramsRaw := getAnnotation(annotations, "parameters")
 		if paramsRaw != "" {
-			params, err := getPolicyValidationParam([]byte(paramsRaw))
+			var m capiv1_proto.PolicyValidationRepeatedParam
+			err = proto.Unmarshal([]byte(paramsRaw), &m)
 			if err != nil {
 				return nil, err
 			}
-			policyValidation.Parameters = params
+			policyValidation.Parameters = m.Value
 		}
 	}
 	return policyValidation, nil
@@ -255,7 +257,7 @@ func getParamValue(in interface{}) (*any.Any, error) {
 		value := wrapperspb.Bool(val)
 		return anypb.New(value)
 	case []interface{}:
-		b, err := json.Marshal(val)
+		b, err := proto.Marshal(proto.MessageV1(val))
 		if err != nil {
 			return nil, err
 		}

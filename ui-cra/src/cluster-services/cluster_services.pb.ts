@@ -167,6 +167,10 @@ export type PolicyValidationOccurrence = {
   message?: string
 }
 
+export type PolicyValidationRepeatedParam = {
+  value?: PolicyValidationParam[]
+}
+
 export type PolicyValidationParam = {
   name?: string
   type?: string

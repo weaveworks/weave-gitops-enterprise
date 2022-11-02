@@ -339,6 +339,7 @@ message PolicyValidationOccurrence {
   string message = 1;
 }
 
+message PolicyValidationRepeatedParam { repeated PolicyValidationParam value = 1; }
 
 message PolicyValidationParam {
   string name = 1;
