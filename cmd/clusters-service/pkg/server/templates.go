@@ -299,14 +299,12 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	clusterName := msg.ParameterValues["CLUSTER_NAME"]
 	resourceName := msg.ParameterValues["RESOURCE_NAME"]
 
-	if clusterName == "" && nonClusterName == "" {
+	if clusterName == "" && resourceName == "" {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
 	}
 
-	resourceName := clusterName
-
 	if clusterName != "" {
-		resourceName = nonClusterName
+		resourceName = clusterName
 	}
 
 	cluster := createNamespacedName(resourceName, clusterNamespace)
