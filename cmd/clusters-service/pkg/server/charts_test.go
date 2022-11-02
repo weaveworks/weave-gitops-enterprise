@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/repo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -209,15 +210,16 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			// FIXME: re-enable this when core gets this api
-			// fakeClustersManager.GetClustersReturns([]clustersmngr.Cluster{
-			// 	{Name: "clusters/demo-cluster"},
-			// })
+			fakeClustersManager := makeTestClustersManager(t, tt.clusterState...)
+			fakeClustersManager.GetClustersReturns([]clustersmngr.Cluster{
+				{Name: "management"},
+			})
 			s := createServer(t, serverOptions{
 				chartsCache:     tt.fc,
 				chartJobs:       helm.NewJobs(),
 				valuesFetcher:   &fakeValuesFetcher{},
-				clustersManager: makeTestClustersManager(t, tt.clusterState...),
+				cluster:         "management",
+				clustersManager: fakeClustersManager,
 			})
 
 			response, err := s.GetValuesForChart(context.TODO(), tt.request)

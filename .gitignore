@@ -66,3 +66,7 @@ tilt_modules
 
 # build flag artifacts
 tools/core-files
+
+# ignore custom scripts and generated config
+/tools/custom/
+/tools/kind-config.yaml

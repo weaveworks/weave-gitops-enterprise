@@ -3,7 +3,6 @@ package mgmtfetcher
 import (
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/kubernetes"
@@ -15,9 +14,9 @@ type UserConfigAuth struct {
 	mngcluster clustersmngr.Cluster
 }
 
-func NewUserConfigAuth(cfg *rest.Config) *UserConfigAuth {
+func NewUserConfigAuth(cfg *rest.Config, mgmtCluster string) *UserConfigAuth {
 	mngcluster := clustersmngr.Cluster{
-		Name:        fetcher.ManagementClusterName,
+		Name:        mgmtCluster,
 		Server:      cfg.Host,
 		BearerToken: cfg.BearerToken,
 		TLSConfig:   cfg.TLSClientConfig,

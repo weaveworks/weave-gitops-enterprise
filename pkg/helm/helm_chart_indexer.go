@@ -11,18 +11,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-const (
-	// ManagementClusterName is the name of the management cluster.
-	ManagementClusterName = "management"
-	// ManagementClusterNamespace is the namespace of the management cluster
-	ManagementClusterNamespace = "default"
-	// dbFile is the name of the sqlite3 database file
-	dbFile = "charts.db"
-)
+// dbFile is the name of the sqlite3 database file
+const dbFile = "charts.db"
 
 type ChartsCacherWriter interface {
 	AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error
 	Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error
+	DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error
 }
 
 type ChartsCacheReader interface {
@@ -57,10 +52,11 @@ type Chart struct {
 // repositories.
 type HelmChartIndexer struct {
 	CacheDB *sql.DB
+	Cluster types.NamespacedName
 }
 
 // NewCache initialises the cache and returns it.
-func NewChartIndexer(cacheLocation string) (*HelmChartIndexer, error) {
+func NewChartIndexer(cacheLocation, mgmtCluster string) (*HelmChartIndexer, error) {
 	db, err := createDB(cacheLocation)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cache database: %w", err)
@@ -68,12 +64,11 @@ func NewChartIndexer(cacheLocation string) (*HelmChartIndexer, error) {
 
 	return &HelmChartIndexer{
 		CacheDB: db,
+		Cluster: types.NamespacedName{
+			Name: mgmtCluster,
+		},
 	}, nil
 }
-
-//
-// Future potential interface
-//
 
 // AddChart inserts a new chart into helm_charts table.
 func (i *HelmChartIndexer) AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
@@ -257,6 +252,16 @@ WHERE repo_name = $1 AND repo_namespace = $2
 AND cluster_name = $3 AND cluster_namespace = $4`
 
 	_, err := i.CacheDB.ExecContext(ctx, sqlStatement, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	return err
+}
+
+// DeleteAllChartsForCluster deletes all charts for a cluster
+func (i *HelmChartIndexer) DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error {
+	sqlStatement := `
+DELETE FROM helm_charts
+WHERE cluster_name = $1 AND cluster_namespace = $2`
+
+	_, err := i.CacheDB.ExecContext(ctx, sqlStatement, clusterRef.Name, clusterRef.Namespace)
 	return err
 }
 

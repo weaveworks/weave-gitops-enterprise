@@ -18,7 +18,7 @@ func (s *server) ListEvents(ctx context.Context, msg *capiv1_proto.ListEventsReq
 	}
 
 	if msg.ClusterName == "" {
-		return nil, requiredClusterNameErr
+		return nil, errRequiredClusterName
 	}
 
 	scoped, err := c.Scoped(msg.ClusterName)

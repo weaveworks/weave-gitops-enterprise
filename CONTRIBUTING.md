@@ -92,6 +92,21 @@ reconcile from a GitOps repository in your personal GitHub account. It will also
 create a file containing local settings such as your GitOps repository that the
 enterprise Helm chart will use in the next step.
 
+### Customizing your development environment
+
+#### Custom kind configuration
+
+The `reboot.sh` script has the capability to patch the default kind config
+using custom configuration provided in the `./tools/custom/` directory. Place
+any configuration you'd like in a file matching the pattern `kind-cluster-patch-*.yaml`
+in that directory and it will get merged into the base configuration.
+
+#### Custom scripts
+
+The `reboot.sh` script will execute all scripts it finds in `./tools/custom/` that
+match the file name pattern `*.sh` after creating the cluster and installing
+all components.
+
 ### Start environment
 
 To start the development environment, run
@@ -427,6 +442,17 @@ cd ui-cra
 CAPI_SERVER_HOST=http://localhost:8000 yarn start
 ```
 
+#### Grab a copy of the SQLite chart cache
+
+The `clusters-service` caches the `index.yaml` and `values.yaml` files from
+helm-repos (profiles) in a SQLite database. This is to avoid hammering the
+source-controller with requests. The cache is stored in a file called
+`/tmp/helm-cache/charts.db` by default.
+
+```
+kubectl cp flux-system/$(kubectl get pods -A -l app=clusters-service --no-headers -o custom-columns=":metadata.name"):/tmp/helm-cache/charts.db mccp.db
+```
+
 ## Developing the UI
 
 We usually develop the UI against the test server and by default the UI dev
@@ -637,10 +663,10 @@ rules:
     verbs: ["impersonate"]
   - apiGroups: [""]
     resources: ["namespaces"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["apiextensions.k8s.io"] # required for canary support
     resources: ["customresourcedefinitions"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
 ```
 
 **CAPI NAME COLLISION WARNING**

@@ -87,7 +87,7 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 	}
 
 	if m.ClusterName == "" {
-		return nil, requiredClusterNameErr
+		return nil, errRequiredClusterName
 	}
 
 	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{

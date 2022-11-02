@@ -7,6 +7,8 @@ import {
 } from '@weaveworks/progressive-delivery';
 import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import {
+  GetObjectRequest,
+  GetObjectResponse,
   ListObjectsRequest,
   ListObjectsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
@@ -155,6 +157,7 @@ export class CoreClientMock {
   constructor() {
     this.ListObjects = this.ListObjects.bind(this);
     this.GetFeatureFlags = this.GetFeatureFlags.bind(this);
+    this.GetObject = this.GetObject.bind(this);
   }
   GetFeatureFlagsReturns: { flags: { [x: string]: string } } = {
     flags: {
@@ -162,6 +165,7 @@ export class CoreClientMock {
     },
   };
   ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
+  GetObjectReturns: GetObjectResponse = {};
 
   GetFeatureFlags() {
     return promisify(this.GetFeatureFlagsReturns);
@@ -171,6 +175,10 @@ export class CoreClientMock {
     return promisify(
       this.ListObjectsReturns[req.kind!] || defaultListObjectsResponse,
     );
+  }
+
+  GetObject(req: GetObjectRequest) {
+    return promisify(this.GetObjectReturns);
   }
 }
 export class ApplicationsClientMock {

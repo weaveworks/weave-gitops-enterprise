@@ -13,12 +13,29 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func createProfileValuesYaml(clusterName string) string {
-	profileValues := `/tmp/profile-values.yaml`
+func createProfileValuesYaml(profileName string, clusterName string) string {
+	profileValues := fmt.Sprintf(`/tmp/%s-values.yaml`, profileName)
 
-	values := map[string]string{
-		"installCRDs": "true",                                 // cert-manager values
-		"accountId":   "weaveworks", "clusterId": clusterName} // policy-agent values
+	var values map[string]interface{}
+
+	switch profileName {
+	case "cert-manager":
+		values = map[string]interface{}{
+			"installCRDs": "true",
+		}
+	case "weave-policy-agent":
+		values = map[string]interface{}{
+			"useCertManager": "true",
+			"certificate":    "",
+			"key":            "",
+			"caCertificate":  "",
+			"persistence":    map[string]string{"enabled": "false"},
+			"audit":          map[string]string{"enabled": "false"},
+			"policySource":   map[string]string{"enabled": "false"},
+			"admission":      map[string]interface{}{"enabled": "true", "sinks": map[string]interface{}{"k8sEventsSink": map[string]string{"enabled": "true"}}},
+			"config":         map[string]string{"accountId": "weaveworks", "clusterId": clusterName},
+		}
+	}
 
 	data, err := yaml.Marshal(&values)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to serializes yaml values")
@@ -392,8 +409,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					profileFlag := ""
 					if len(profiles) > 0 {
 						for _, p := range profiles {
-							// profileFlag += fmt.Sprintf(`--profile 'name=%s,version=%s,values=%s'`, p.Name, p.Version, p.Values)
-							profileFlag += fmt.Sprintf(`--profile 'name=%s,version=%s'`, p.Name, p.Version)
+							profileFlag += fmt.Sprintf(`--profile 'name=%s,version=%s,namespace=%s,values=%s' `, p.Name, p.Version, p.TargetNamespace, p.Values)
 						}
 					}
 
@@ -435,19 +451,20 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				clusterName := capdClusters[0].Name
 				namespace := capdClusters[0].Namespace
 				k8version := "1.23.3"
-				profileValues := createProfileValuesYaml(clusterName)
 				profiles := []Application{
 					{
-						Name:      "cert-manager",
-						Namespace: "cert-manager",
-						Version:   "0.0.7",
-						Values:    profileValues,
+						Name:            "cert-manager",
+						Namespace:       GITOPS_DEFAULT_NAMESPACE,
+						TargetNamespace: "cert-manager",
+						Version:         "0.0.8",
+						Values:          createProfileValuesYaml("cert-manager", clusterName),
 					},
 					{
-						Name:      "weave-policy-agent",
-						Namespace: "policy-system",
-						Version:   "0.3.1",
-						Values:    profileValues,
+						Name:            "weave-policy-agent",
+						Namespace:       GITOPS_DEFAULT_NAMESPACE,
+						TargetNamespace: "policy-system",
+						Version:         "0.5.0",
+						Values:          createProfileValuesYaml("weave-policy-agent", clusterName),
 					},
 				}
 
@@ -459,11 +476,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By(fmt.Sprintf("And I verify %s capd cluster is healthy and profiles are installed)", clusterName), func() {
-					// Fixme: profiles are not installed via cli; issue #1228
-					// podInfo := Profile{
-					// 	Name:      "podinfo",
-					// 	Namespace: "flux-system",
-					// }
+					// verifyCapiClusterHealth(kubeconfigPath, profiles)
 					verifyCapiClusterHealth(kubeconfigPath, []Application{})
 				})
 

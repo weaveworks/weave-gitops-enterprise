@@ -50,6 +50,12 @@ function setup {
       aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${UI_NODEPORT},ToPort=${UI_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
     else
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
+      # This allows us to test out cli auth passthrough.
+      # Our current system of SelfSubjectAccessReview to determine namespace access
+      # does not supported external auth systems like the one GKE configures by default for kubectl etc.
+      # We need to add explicit permissions here that will correctly appear in the SelfSubjectAccessReview
+      # query made by the clusters-service when responding to get /v1/clusters and /v1/templates etc.
+      kubectl apply -f ${args[1]}/test/utils/data/gke-ci-user-cluster-admin-rolebinding.yaml
     fi
   elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
     # MANAGEMENT_CLUSTER_KIND is a KIND cluster
@@ -155,7 +161,6 @@ function setup {
   # using default repository path '"./clusters/management/clusters"' so the application reconciliation always happen out of the box
   # helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
-  helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
   helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )

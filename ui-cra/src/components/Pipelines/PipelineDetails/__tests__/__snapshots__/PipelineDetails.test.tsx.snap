@@ -15,7 +15,44 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
-.c15 {
+.c21 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c26 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c19 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -24,29 +61,66 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-.c8 svg {
+.c25 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: none;
+  font-style: normal;
+  color: #BC381D;
+}
+
+.c9 svg {
   fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c8.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c8.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c8 .c14 {
+.c9 .c18 {
   margin-left: 4px;
 }
 
-.c13 {
+.c24 svg {
+  fill: #BC381D !important;
+  height: 16px;
+  width: 16px;
+}
+
+.c24.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c24.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c24 .c18 {
+  margin-left: 4px;
+  color: #BC381D;
+}
+
+.c23 .c8 .c18 {
+  color: #1a1a1a;
+  font-weight: 400;
+}
+
+.c17 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
@@ -75,14 +149,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
   margin: 0 auto;
 }
 
-.c9 {
+.c10 {
   margin: 0 16px;
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
 }
 
-.c17 {
+.c28 {
   padding: calc(24px - 4px) 24px;
   margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
@@ -98,7 +172,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c17 a {
+.c28 a {
   color: #00b3ec;
 }
 
@@ -164,26 +238,61 @@ exports[`PipelineDetails snapshots renders 1`] = `
   min-width: 30px;
 }
 
-.c10 {
+.c20 {
+  font-size: 20px;
+}
+
+.c20 .c22 span {
+  display: none;
+}
+
+.c12 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  width: calc(250px - 32px);
+}
+
+.c11 {
   background: #fff;
-  padding: 24px;
+  padding: 12px;
   margin-bottom: 8px;
   box-shadow: 0px 0px 1px rgba(26,32,36,0.32);
   border-radius: 10px;
   font-weight: 600;
 }
 
-.c11 {
-  margin-bottom: 8px;
+.c13 {
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 400;
 }
 
-.c12 {
-  font-size: 12px;
+.c14 {
+  margin-bottom: 12px;
+  line-height: 24px;
+}
+
+.c15 {
+  font-size: 14px;
 }
 
 .c16 {
+  position: relative;
+}
+
+.c16 .version {
+  margin-left: 4px;
+}
+
+.c27 {
   color: #737373;
-  margin-left: 8px;
+  font-size: 14px;
+  border: 1px solid #d8d8d8;
+  padding: 14px 6px;
+  border-radius: 50%;
 }
 
 <div>
@@ -197,7 +306,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-23"
+          class="makeStyles-path-21"
           style="align-items: center;"
         >
           <div
@@ -205,7 +314,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-26"
+              class="makeStyles-link-24"
               href="/applications"
             >
               Applications
@@ -213,15 +322,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-23"
+          class="makeStyles-path-21"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-24"
+            class="makeStyles-divider-22"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-25"
+              class="MuiSvgIcon-root makeStyles-iconDivider-23"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -235,7 +344,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-26"
+              class="makeStyles-link-24"
               href="/applications/pipelines"
             >
               Pipelines
@@ -243,15 +352,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-23"
+          class="makeStyles-path-21"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-24"
+            class="makeStyles-divider-22"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-25"
+              class="MuiSvgIcon-root makeStyles-iconDivider-23"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -261,7 +370,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </svg>
           </div>
           <span
-            class="c4 makeStyles-labelLink-27"
+            class="c4 makeStyles-labelLink-25"
             title="podinfo-02"
           >
             podinfo-02
@@ -282,7 +391,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c7 c8"
+              class="c7 c8 c9"
             >
               <svg
                 aria-hidden="true"
@@ -306,238 +415,476 @@ exports[`PipelineDetails snapshots renders 1`] = `
       style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
     >
       <div
-        class="c9"
+        class="c10"
       >
         <div
-          class="MuiGrid-root makeStyles-gridWrapper-17 MuiGrid-container MuiGrid-spacing-xs-4"
+          class="MuiGrid-root makeStyles-gridWrapper-16 MuiGrid-container MuiGrid-spacing-xs-4"
         >
           <div
-            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
             id="dev"
           >
             <div
-              class="makeStyles-cardHeader-20"
+              class="makeStyles-mbSmall-19"
             >
               <div
-                class="makeStyles-title-18"
+                class="makeStyles-title-17"
               >
                 dev
               </div>
               <div
-                class="makeStyles-subtitle-19"
+                class="makeStyles-subtitle-18"
               >
                 1
                  Targets
               </div>
             </div>
             <div
-              class="c10"
+              class="c11"
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c12 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c13"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c14 cluster-name"
                 >
                   dev
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c13"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c15 workload-namespace"
                 >
                   podinfo-02-dev
                 </div>
               </div>
-              <div>
-                <div
-                  class="workloadName"
-                >
+              <div
+                class="c16"
+              >
+                <div>
                   <a
-                    class="c13"
+                    class="c17"
                     href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
                   >
                     <span
-                      class="c14 c15"
+                      class="c18 c19"
                       color="primary"
                     >
-                      podinfo
+                      <div
+                        class="c20 WorkloadStatus"
+                      >
+                        <div
+                          class="c7"
+                        >
+                          <div
+                            style="margin-right: 4px;"
+                          >
+                            <div
+                              class="c21 c22 c23 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                            >
+                              <div
+                                class="c7 c8 c24"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                  />
+                                </svg>
+                                <span
+                                  class="c18 c25"
+                                  color="alert"
+                                >
+                                  Not Ready
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            podinfo
+                          </div>
+                        </div>
+                      </div>
                     </span>
                   </a>
+                </div>
+                <div
+                  class="c26"
+                >
+                  <div
+                    class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                    style="align-self: flex-end;"
+                  >
+                    <span>
+                      Specification:
+                    </span>
+                    <span
+                      class="version"
+                    >
+                      v6.2.0
+                    </span>
+                  </div>
                   <span
-                    class="c16 last-applied-version"
+                    class="c27 last-applied-version"
                   >
                     v6.2.0
                   </span>
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
-                >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.2.0
                 </div>
               </div>
             </div>
           </div>
           <div
-            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
             id="test"
           >
             <div
-              class="makeStyles-cardHeader-20"
+              class="makeStyles-mbSmall-19"
             >
               <div
-                class="makeStyles-title-18"
+                class="makeStyles-title-17"
               >
                 test
               </div>
               <div
-                class="makeStyles-subtitle-19"
+                class="makeStyles-subtitle-18"
               >
                 2
                  Targets
               </div>
             </div>
             <div
-              class="c10"
+              class="c11"
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c12 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c13"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c14 cluster-name"
                 >
                   dev
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c13"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c15 workload-namespace"
                 >
                   podinfo-02-qa
                 </div>
               </div>
-              <div>
+              <div
+                class="c16"
+              >
+                <div>
+                  <a
+                    class="c17"
+                    href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-qa"
+                  >
+                    <span
+                      class="c18 c19"
+                      color="primary"
+                    >
+                      <div
+                        class="c20 WorkloadStatus"
+                      >
+                        <div
+                          class="c7"
+                        >
+                          <div
+                            style="margin-right: 4px;"
+                          >
+                            <div
+                              class="c21 c22 c23 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                            >
+                              <div
+                                class="c7 c8 c24"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                  />
+                                </svg>
+                                <span
+                                  class="c18 c25"
+                                  color="alert"
+                                >
+                                  Not Ready
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            podinfo
+                          </div>
+                        </div>
+                      </div>
+                    </span>
+                  </a>
+                </div>
                 <div
-                  class="workloadName"
+                  class="c26"
                 >
                   <div
-                    class="workload-name"
+                    class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                    style="align-self: flex-end;"
                   >
-                    podinfo
+                    <span>
+                      Specification:
+                    </span>
+                    <span
+                      class="version"
+                    >
+                      v6.1.8
+                    </span>
                   </div>
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
-                >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.1.8
                 </div>
               </div>
             </div>
             <div
-              class="c10"
+              class="c11"
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c12 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c13"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c14 cluster-name"
                 >
                   dev
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c13"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c15 workload-namespace"
                 >
                   podinfo-02-perf
                 </div>
               </div>
-              <div>
+              <div
+                class="c16"
+              >
+                <div>
+                  <a
+                    class="c17"
+                    href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-perf"
+                  >
+                    <span
+                      class="c18 c19"
+                      color="primary"
+                    >
+                      <div
+                        class="c20 WorkloadStatus"
+                      >
+                        <div
+                          class="c7"
+                        >
+                          <div
+                            style="margin-right: 4px;"
+                          >
+                            <div
+                              class="c21 c22 c23 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                            >
+                              <div
+                                class="c7 c8 c24"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                  />
+                                </svg>
+                                <span
+                                  class="c18 c25"
+                                  color="alert"
+                                >
+                                  Not Ready
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            podinfo
+                          </div>
+                        </div>
+                      </div>
+                    </span>
+                  </a>
+                </div>
                 <div
-                  class="workloadName"
+                  class="c26"
                 >
                   <div
-                    class="workload-name"
+                    class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                    style="align-self: flex-end;"
                   >
-                    podinfo
+                    <span>
+                      Specification:
+                    </span>
+                    <span
+                      class="version"
+                    >
+                      v6.1.8
+                    </span>
                   </div>
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
-                >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.1.8
                 </div>
               </div>
             </div>
           </div>
           <div
-            class="MuiGrid-root makeStyles-gridContainer-16 MuiGrid-item MuiGrid-grid-xs-true"
+            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
             id="prod"
           >
             <div
-              class="makeStyles-cardHeader-20"
+              class="makeStyles-mbSmall-19"
             >
               <div
-                class="makeStyles-title-18"
+                class="makeStyles-title-17"
               >
                 prod
               </div>
               <div
-                class="makeStyles-subtitle-19"
+                class="makeStyles-subtitle-18"
               >
                 1
                  Targets
               </div>
             </div>
             <div
-              class="c10"
+              class="c11"
               role="targeting"
             >
               <div
-                class="makeStyles-target-21 workloadTarget"
+                class="c12 workloadTarget"
               >
                 <div
-                  class="c11 cluster-name"
+                  class="c13"
+                >
+                  Cluster
+                </div>
+                <div
+                  class="c14 cluster-name"
                 >
                   prod
                 </div>
                 <div
-                  class="c12 workload-namespace"
+                  class="c13"
+                >
+                  Namespace
+                </div>
+                <div
+                  class="c15 workload-namespace"
                 >
                   podinfo-02-prod
                 </div>
               </div>
-              <div>
+              <div
+                class="c16"
+              >
+                <div>
+                  <a
+                    class="c17"
+                    href="/helm_release/details?clusterName=undefined%2Fprod&name=podinfo&namespace=podinfo-02-prod"
+                  >
+                    <span
+                      class="c18 c19"
+                      color="primary"
+                    >
+                      <div
+                        class="c20 WorkloadStatus"
+                      >
+                        <div
+                          class="c7"
+                        >
+                          <div
+                            style="margin-right: 4px;"
+                          >
+                            <div
+                              class="c21 c22 c23 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                            >
+                              <div
+                                class="c7 c8 c24"
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  class="MuiSvgIcon-root"
+                                  focusable="false"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                  />
+                                </svg>
+                                <span
+                                  class="c18 c25"
+                                  color="alert"
+                                >
+                                  Not Ready
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            podinfo
+                          </div>
+                        </div>
+                      </div>
+                    </span>
+                  </a>
+                </div>
                 <div
-                  class="workloadName"
+                  class="c26"
                 >
                   <div
-                    class="workload-name"
+                    class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                    style="align-self: flex-end;"
                   >
-                    podinfo
+                    <span>
+                      Specification:
+                    </span>
+                    <span
+                      class="version"
+                    >
+                      v6.1.6
+                    </span>
                   </div>
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 makeStyles-subtitleColor-22"
-                >
-                  Spec Version
-                </div>
-                <div
-                  class="makeStyles-subtitle-19 version"
-                >
-                  v6.1.6
                 </div>
               </div>
             </div>
@@ -545,18 +892,18 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c17"
+        class="c28"
       >
         <div>
           Need help? Raise a 
           <a
-            class="c13"
+            class="c17"
             href="https://weavesupport.zendesk.com/"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              class="c14 c15"
+              class="c18 c19"
               color="primary"
             >
               support ticket

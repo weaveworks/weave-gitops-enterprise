@@ -38,7 +38,7 @@ import (
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -56,7 +56,6 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
@@ -136,6 +135,8 @@ type Params struct {
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
 	DevMode                           bool                      `mapstructure:"dev-mode"`
+	Cluster                           string                    `mapstructure:"cluster-name"`
+	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -199,6 +200,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
 	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
+	cmd.Flags().String("cluster-name", "management", "name of the management cluster")
 
 	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -208,6 +210,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
+	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 
 	return cmd
 }
@@ -349,28 +352,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}()
 
-	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation)
+	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation, p.Cluster)
 	if err != nil {
 		return fmt.Errorf("could not create charts cache: %w", err)
 	}
-
-	multiWatcher, err := multiwatcher.NewWatcher(multiwatcher.Options{
-		ClientConfig:  kubeClientConfig,
-		ClusterRef:    types.NamespacedName{Name: "management"},
-		Cache:         chartsCache,
-		ValuesFetcher: helm.NewValuesFetcher(),
-		KubeClient:    kubeClient,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to start the multiwatcher: %w", err)
-	}
-
-	go func() {
-		if err := multiWatcher.StartWatcher(controllerContext, log); err != nil {
-			log.Error(err, "failed to start profile watcher")
-			os.Exit(1)
-		}
-	}()
 
 	// trap Ctrl+C and call cancel on the context
 	ctx, cancel := context.WithCancel(ctx)
@@ -404,7 +389,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
 
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.CAPIClustersNamespace)
+	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.CAPIClustersNamespace, p.Cluster)
 	if err != nil {
 		return err
 	}
@@ -425,14 +410,32 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
 
+	clientsFactory := clustersmngr.CachedClientFactory
+	if !p.UseK8sCachedClients {
+		log.Info("Using un-cached clients")
+		clientsFactory = clustersmngr.ClientFactory
+	} else {
+		log.Info("Using cached clients")
+	}
+
 	clustersManager := clustersmngr.NewClustersManager(
 		mcf,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 		clustersManagerScheme,
-		clustersmngr.ClientFactory,
+		clientsFactory,
 		clustersmngr.DefaultKubeConfigOptions,
 	)
+
+	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster)
+	go func() {
+		err := indexer.Start(controllerContext, clustersManager, log)
+		if err != nil {
+			log.Error(err, "failed to start indexer")
+			os.Exit(1)
+		}
+	}()
+
 	clustersManager.Start(ctx)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
@@ -472,6 +475,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithClustersManager(clustersManager),
 		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
+		WithManagementCluster(p.Cluster),
 	)
 }
 
@@ -511,7 +515,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
 	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
-	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg)
+	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
 	if args.ManagementFetcher == nil {
 		args.ManagementFetcher = mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
 	}
@@ -533,6 +537,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ValuesFetcher:             helm.NewValuesFetcher(),
 			RestConfig:                args.CoreServerConfig.RestCfg,
 			ManagementFetcher:         args.ManagementFetcher,
+			Cluster:                   args.Cluster,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
@@ -574,6 +579,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
 			ClustersManager:   args.ClustersManager,
 			ManagementFetcher: args.ManagementFetcher,
+			Cluster:           args.Cluster,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}

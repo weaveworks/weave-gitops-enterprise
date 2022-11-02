@@ -453,6 +453,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     enableCreatePR,
     notification?.message.text,
     notification?.severity,
+    error?.message,
   ]);
 };
 

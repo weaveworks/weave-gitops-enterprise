@@ -8,7 +8,6 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -31,6 +30,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
@@ -71,6 +71,8 @@ type serverOptions struct {
 	chartsCache     helm.ChartsCacheReader
 	chartJobs       *helm.Jobs
 	valuesFetcher   helm.ValuesFetcher
+	cluster         string
+	estimator       estimation.Estimator
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -116,11 +118,13 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			ChartsCache:               o.chartsCache,
 			ValuesFetcher:             o.valuesFetcher,
 			ManagementFetcher:         mgmtFetcher,
+			Cluster:                   o.cluster,
+			Estimator:                 o.estimator,
 		},
 	)
 }
 
-func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) clustersmngr.ClustersManager {
+func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) *clustersmngrfakes.FakeClustersManager {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	fakeCl := createClient(t, clusterState...)
 	clients := map[string]client.Client{"management": fakeCl}
@@ -132,7 +136,7 @@ func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) clust
 		}
 		return nil, fmt.Errorf("cluster %s not found", name)
 	}
-	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)

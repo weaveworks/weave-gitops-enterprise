@@ -126,6 +126,8 @@ func (s *server) GetValuesForChart(ctx context.Context, req *protos.GetValuesFor
 }
 
 func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobRequest) (*protos.GetChartsJobResponse, error) {
+	// We're do a little bit of security obscurity here. Job IDs are UUIDs, so
+	// "it's not possible to guess the ID of a job that's not yours".
 	result, found := s.chartJobs.Get(req.JobId)
 	if !found {
 		return nil, &grpcruntime.HTTPStatusError{
@@ -133,9 +135,6 @@ func (s *server) GetChartsJob(ctx context.Context, req *protos.GetChartsJobReque
 			HTTPStatus: http.StatusOK,
 		}
 	}
-
-	// FIXME: avoid users from getting job results they don't have access to.
-	// Save the original HelmRepo reference here and try and grab it?
 
 	errString := ""
 	if result.Error != nil {
@@ -176,7 +175,7 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 		return "", fmt.Errorf("error getting client config for cluster: %w", err)
 	}
 
-	data, err := s.valuesFetcher.GetValuesFile(ctx, config, types.NamespacedName{Namespace: repoRef.Namespace, Name: repoRef.Name}, chart, clusterRef.Name != helm.ManagementClusterName)
+	data, err := s.valuesFetcher.GetValuesFile(ctx, config, types.NamespacedName{Namespace: repoRef.Namespace, Name: repoRef.Name}, chart, clusterRef.Name != s.cluster)
 	if err != nil {
 		return "", fmt.Errorf("error fetching values file: %w", err)
 	}
@@ -191,22 +190,8 @@ func (s *server) GetOrFetchValues(ctx context.Context, repoRef helm.ObjectRefere
 
 // GetClientConfigForCluster returns the client config for a given cluster.
 func (s *server) GetClientConfigForCluster(ctx context.Context, cluster types.NamespacedName) (*rest.Config, error) {
-	// FIXME: temporary until we can get the client config from the clusterManager
-	// Then we can uncomment this and remove this `managementCluster`
-	//
-	// clusters := s.clustersManager.GetClusters()
-	managementCluster := clustersmngr.Cluster{
-		Name:        helm.ManagementClusterName,
-		Server:      s.restConfig.Host,
-		BearerToken: s.restConfig.BearerToken,
-		TLSConfig:   s.restConfig.TLSClientConfig,
-	}
-	clusters := []clustersmngr.Cluster{managementCluster}
-
-	clusterName := cluster.Name
-	if clusterName != helm.ManagementClusterName {
-		clusterName = fmt.Sprintf("%s/%s", cluster.Namespace, cluster.Name)
-	}
+	clusters := s.clustersManager.GetClusters()
+	clusterName := fetcher.ToClusterName(cluster)
 
 	for _, c := range clusters {
 		if c.Name == clusterName {
