@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/hashicorp/go-multierror"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -155,7 +154,6 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 	var continueToken string
 	var listsV2beta2 map[string][]client.ObjectList
 	var listsV2beta1 map[string][]client.ObjectList
-	var listsV1 map[string][]client.ObjectList
 
 	if m.ClusterName == "" {
 		clistV2beta2 := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -164,13 +162,9 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		clistV2beta1 := clustersmngr.NewClusteredList(func() client.ObjectList {
 			return &pacv2beta1.PolicyList{}
 		})
-		clistV1 := clustersmngr.NewClusteredList(func() client.ObjectList {
-			return &pacv1.PolicyList{}
-		})
 
 		var errsV2beta2 clustersmngr.ClusteredListError
 		var errsV2beta1 clustersmngr.ClusteredListError
-		var errsV1 clustersmngr.ClusteredListError
 
 		if err := clustersClient.ClusteredList(ctx, clistV2beta2, false, opts...); err != nil {
 			if !errors.As(err, &errsV2beta2) {
@@ -194,26 +188,14 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 			}
 		}
 
-		if err := clustersClient.ClusteredList(ctx, clistV1, false, opts...); err != nil {
-			if !errors.As(err, &errsV1) {
-				return nil, fmt.Errorf("error while listing v1 policies: %w", err)
-			}
-		}
-		for _, e := range errsV1.Errors {
-			if !strings.Contains(e.Err.Error(), "no matches for kind \"Policy\"") {
-				respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
-			}
-		}
 		continueToken = clistV2beta2.GetContinue()
 		listsV2beta2 = clistV2beta2.Lists()
 		listsV2beta1 = clistV2beta1.Lists()
-		listsV1 = clistV1.Lists()
 	} else {
 		listV2beta2 := &pacv2beta2.PolicyList{}
 		listV2beta1 := &pacv2beta1.PolicyList{}
-		listV1 := &pacv1.PolicyList{}
 
-		policiesV2beta2, policiesV2beta1, policiesV1 := true, true, true
+		policiesV2beta2, policiesV2beta1 := true, true
 
 		if err := clustersClient.List(ctx, m.ClusterName, listV2beta2, opts...); err != nil {
 			policiesV2beta2 = false
@@ -221,18 +203,13 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		if err := clustersClient.List(ctx, m.ClusterName, listV2beta1, opts...); err != nil {
 			policiesV2beta1 = false
 		}
-		if err := clustersClient.List(ctx, m.ClusterName, listV1, opts...); err != nil {
-			policiesV1 = false
-		}
 
-		if !(policiesV2beta2 || policiesV2beta1 || policiesV1) {
+		if !(policiesV2beta2 || policiesV2beta1) {
 			return nil, fmt.Errorf("error while listing policies for cluster %s: %w", m.ClusterName, err)
 		}
 
 		continueToken = listV2beta2.GetContinue()
-		if policiesV1 {
-			listsV1 = map[string][]client.ObjectList{m.ClusterName: {listV2beta1}}
-		}
+
 		if policiesV2beta1 {
 			listsV2beta1 = map[string][]client.ObjectList{m.ClusterName: {listV2beta1}}
 		}
@@ -275,23 +252,6 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 		}
 	}
 
-	for clusterName, lists := range listsV1 {
-		for _, l := range lists {
-			list, ok := l.(*pacv1.PolicyList)
-			if !ok {
-				continue
-			}
-			for i := range list.Items {
-				policy, err := toPolicyResponseV1(list.Items[i], clusterName)
-				if err != nil {
-					return nil, err
-				}
-
-				policies = append(policies, policy)
-			}
-		}
-	}
-
 	return &capiv1_proto.ListPoliciesResponse{
 		Policies:      policies,
 		Total:         int32(len(policies)),
@@ -311,28 +271,18 @@ func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest
 	}
 	policyCRv2beta2 := pacv2beta2.Policy{}
 	policyCRv2beta1 := pacv2beta1.Policy{}
-	policyCRv1 := pacv1.Policy{}
-	policiesV2beta2, policiesV2beta1, policiesV1 := true, true, true
+	policiesV2beta2, policiesV2beta1 := true, true
 	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCRv2beta2); err != nil {
 		policiesV2beta2 = false
 	}
 	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCRv2beta1); err != nil {
 		policiesV2beta1 = false
 	}
-	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCRv1); err != nil {
-		policiesV1 = false
-	}
-	if !(policiesV2beta2 || policiesV2beta1 || policiesV1) {
+	if !(policiesV2beta2 || policiesV2beta1) {
 		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
 	}
 
 	var policy *capiv1_proto.Policy
-	if policiesV1 {
-		policy, err = toPolicyResponseV1(policyCRv1, m.ClusterName)
-		if err != nil {
-			return nil, err
-		}
-	}
 	if policiesV2beta1 {
 		policy, err = toPolicyResponseV2beta1(policyCRv2beta1, m.ClusterName)
 		if err != nil {
