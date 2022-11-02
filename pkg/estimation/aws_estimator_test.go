@@ -87,13 +87,13 @@ func TestAWSClusterEstimator_Estimate(t *testing.T) {
 			}, []float32{0.03, 0.06, 0.07})
 			pricer.addPrices("AmazonEC2", "USD", map[string]string{
 				"operatingSystem": "Linux",
-				"regionCode":      "us-iso-west-1",
+				"regionCode":      "us-iso-east-1",
 				"instanceType":    "t3.large",
 				"tenancy":         "Shared",
 			}, []float32{0.02, 0.03, 0.04})
 			pricer.addPrices("AmazonEC2", "USD", map[string]string{
 				"operatingSystem": "Linux",
-				"regionCode":      "us-iso-west-1",
+				"regionCode":      "us-iso-east-1",
 				"instanceType":    "t3.medium",
 				"tenancy":         "Shared",
 			}, []float32{0.01, 0.02, 0.03})
@@ -153,6 +153,115 @@ func TestAWSClusterEstimator_Estimate_errors(t *testing.T) {
 			})
 			_, err := estimator.Estimate(context.TODO(), testParseMultiDoc(t, tt.filename))
 			assert.ErrorContains(t, err, tt.wantErr)
+		})
+	}
+}
+
+func Test_mergeStringMaps(t *testing.T) {
+	mergeMapsTests := []struct {
+		name     string
+		origin   map[string]string
+		updates  []map[string]string
+		expected map[string]string
+	}{
+		{
+			name: "updates overide origin",
+			origin: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-1",
+				"instanceType":    "t3.medium",
+			},
+			updates: []map[string]string{
+				{
+					"operatingSystem": "Linux",
+					"regionCode":      "us-iso-west-2",
+					"instanceType":    "t3.large",
+				},
+			},
+			expected: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-2",
+				"instanceType":    "t3.large",
+			},
+		},
+		{
+			name: "updates with empty values are ignored",
+			origin: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-1",
+				"instanceType":    "t3.medium",
+			},
+			updates: []map[string]string{
+				{
+					"operatingSystem": "",
+					"regionCode":      "",
+					"instanceType":    "t3.large",
+				},
+			},
+			expected: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-1",
+				"instanceType":    "t3.large",
+			},
+		},
+		{
+			name: "Multiple updates provided to be merged with the origin",
+			origin: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-1",
+				"instanceType":    "t3.medium",
+			},
+			updates: []map[string]string{
+				{
+					"operatingSystem": "Linux",
+					"regionCode":      "us-iso-west-2",
+					"instanceType":    "t3.medium",
+				},
+				{
+					"operatingSystem": "Linux",
+					"regionCode":      "us-iso-west-3",
+					"instanceType":    "t3.large",
+				},
+			},
+			expected: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-3",
+				"instanceType":    "t3.large",
+			},
+		},
+		{
+			name: "Multiple updates provided to be merged with the origin, ignoring empty",
+			origin: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-1",
+				"instanceType":    "t3.medium",
+			},
+			updates: []map[string]string{
+				{
+					"operatingSystem": "Linux",
+					"regionCode":      "us-iso-west-2",
+					"instanceType":    "t3.large",
+				},
+				{
+					"operatingSystem": "Linux",
+					"regionCode":      "",
+					"instanceType":    "",
+				},
+			},
+			expected: map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-west-2",
+				"instanceType":    "t3.large",
+			},
+		},
+	}
+
+	for _, tt := range mergeMapsTests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			res := mergeStringMaps(tt.origin, tt.updates...)
+			assert.Equal(t, res, tt.expected)
+
 		})
 	}
 }

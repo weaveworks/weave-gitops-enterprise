@@ -8,14 +8,16 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func mergeStringMaps(origin, update map[string]string) map[string]string {
+func mergeStringMaps(origin map[string]string, updates ...map[string]string) map[string]string {
 	cloned := map[string]string{}
 	for k, v := range origin {
 		cloned[k] = v
 	}
-	for k, v := range update {
-		if v != "" {
-			cloned[k] = v
+	for _, update := range updates {
+		for k, v := range update {
+			if v != "" {
+				cloned[k] = v
+			}
 		}
 	}
 
