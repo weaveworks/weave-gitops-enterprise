@@ -28,7 +28,6 @@ function HeaderSection({
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-console.log(modes)
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',

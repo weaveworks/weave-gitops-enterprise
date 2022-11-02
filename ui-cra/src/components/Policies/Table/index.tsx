@@ -34,7 +34,6 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
       ...filterConfig(policies, 'tenant'),
     };
   }
-console.log(policies)
   return (
     <TableWrapper id="policy-list">
       <DataTable
