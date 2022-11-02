@@ -296,8 +296,8 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	}
 
 	// FIXME: parse and read from Cluster in yaml template
-	clusterName, _ := msg.ParameterValues["CLUSTER_NAME"]
-	nonClusterName, _ := msg.ParameterValues["RESOURCE_NAME"]
+	clusterName := msg.ParameterValues["CLUSTER_NAME"]
+	resourceName := msg.ParameterValues["RESOURCE_NAME"]
 
 	if clusterName == "" && nonClusterName == "" {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
