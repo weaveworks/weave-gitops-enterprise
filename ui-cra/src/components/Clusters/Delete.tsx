@@ -122,15 +122,18 @@ export const DeleteClusterDialog: FC<Props> = ({
           },
         ),
       )
-      .catch(error =>
+      .catch(error => {
         cleanUp(
           {},
           {
             message: { text: error.message },
             severity: 'error',
           },
-        ),
-      );
+        );
+        if (isUnauthenticated(error.code)) {
+          removeToken(formData.provider);
+        }
+      });
 
   const cleanUp = useCallback(
     (event: any, notif?: NotificationData) => {

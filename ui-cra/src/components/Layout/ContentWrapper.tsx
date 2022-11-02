@@ -9,6 +9,7 @@ import { useListVersion } from '../../hooks/versions';
 import { NotificationData } from '../../types/custom';
 import { Tooltip } from '../Shared';
 import { AlertListErrors } from './AlertListErrors';
+import _ from 'lodash';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
 const { feedbackLight, white } = theme.colors;
@@ -137,7 +138,7 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
-      {notif.map(
+      {_.uniq(notif).map(
         (n, index) =>
           (n?.message.text || n?.message.component) && (
             <Alert
