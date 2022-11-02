@@ -9,7 +9,6 @@ import {
 import styled from 'styled-components';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../hooks/clusters';
-import useNotifications from '../../contexts/Notifications';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import {
@@ -24,7 +23,7 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import GitAuth from '../GithubAuth/GitAuth';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import { PRDefaults } from '../../types/custom';
+import { NotificationData, PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
 
 const DeleteClusterWrapper = styled(Dialog)`
@@ -58,7 +57,11 @@ export const DeleteClusterDialog: FC<Props> = ({
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const { deleteCreatedClusters, loading } = useClusters();
-  const { setNotifications } = useNotifications();
+  const [notification, setNotification] = useState<NotificationData | null>(
+    null,
+  );
+
+  // sent the notification via the state to the clusters dashboard for display
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -110,23 +113,22 @@ export const DeleteClusterDialog: FC<Props> = ({
     )
       .then(response => {
         cleanUp();
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully.
-                </Link>
-              ),
-            },
-            variant: 'success',
+        setNotification({
+          message: {
+            component: (
+              <Link href={response.webUrl} newTab>
+                PR created successfully.
+              </Link>
+            ),
           },
-        ]);
+          severity: 'success',
+        });
       })
       .catch(error => {
-        setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
-        ]);
+        setNotification({
+          message: { text: error.message },
+          severity: 'error',
+        });
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }

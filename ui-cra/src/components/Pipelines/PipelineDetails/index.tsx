@@ -111,10 +111,12 @@ const PipelineDetails = ({ name, namespace }: Props) => {
     >
       <ContentWrapper
         loading={isLoading}
-        notification={{
-          message: { text: error?.message },
-          severity: 'error',
-        }}
+        notification={[
+          {
+            message: { text: error?.message },
+            severity: 'error',
+          },
+        ]}
       >
         <Grid className={classes.gridWrapper} container spacing={4}>
           {environments.map((env, index) => {

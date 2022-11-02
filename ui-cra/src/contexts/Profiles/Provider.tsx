@@ -15,7 +15,6 @@ import {
 } from '../../types/custom';
 import { maybeFromBase64 } from '../../utils/base64';
 import { EnterpriseClientContext } from '../EnterpriseClient';
-import useNotifications from './../Notifications';
 import { Profiles } from './index';
 
 const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
@@ -182,7 +181,6 @@ const mergeClusterAndTemplate = (
 };
 
 const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
-  const { setNotifications } = useNotifications();
   const [helmRepo, setHelmRepo] = useState<{
     name: string;
     namespace: string;
@@ -195,10 +193,10 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
 
-  const onError = (error: Error) =>
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
-
-  const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
+  const { isLoading, data, error } = useQuery<
+    ListChartsForRepositoryResponse,
+    Error
+  >(
     [
       'profiles',
       helmRepo.name,
@@ -219,9 +217,6 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
             : { name: 'management' },
         },
       }),
-    {
-      onError,
-    },
   );
 
   const profiles = useMemo(
@@ -238,6 +233,7 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
     <Profiles.Provider
       value={{
         isLoading,
+        error,
         helmRepo,
         setHelmRepo,
         profiles,

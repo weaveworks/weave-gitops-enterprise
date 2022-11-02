@@ -60,7 +60,7 @@ const DocsLink = styled(Link)`
 const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { templates, isLoading } = useTemplates();
+  const { templates, isLoading, error } = useTemplates();
   const [notification] = location.state?.notification;
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
@@ -108,10 +108,16 @@ const TemplatesDashboard: FC<{
     >
       <ContentWrapper
         loading={isLoading}
-        notification={{
-          message: { text: notification?.message.text },
-          severity: 'error',
-        }}
+        notification={[
+          {
+            message: { text: notification?.message.text },
+            severity: 'error',
+          },
+          {
+            message: { text: error?.message },
+            severity: 'error',
+          },
+        ]}
       >
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">

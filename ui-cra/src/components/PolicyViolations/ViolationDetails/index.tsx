@@ -46,7 +46,9 @@ const PolicyViolationDetails = ({
     <PageTemplate documentTitle="Violation Logs" path={headerPath}>
       <ContentWrapper
         loading={isLoading}
-        notification={{ message: { text: error?.message }, severity: 'error' }}
+        notification={[
+          { message: { text: error?.message }, severity: 'error' },
+        ]}
       >
         {data?.violation && (
           <ViolationDetails violation={data.violation} source={source} />

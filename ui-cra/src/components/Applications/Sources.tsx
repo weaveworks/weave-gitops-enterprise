@@ -28,10 +28,12 @@ const WGApplicationsSources: FC = () => {
       <ContentWrapper
         errors={sources?.errors}
         loading={isLoading}
-        notification={{
-          message: { text: error?.message },
-          severity: 'error',
-        }}
+        notification={[
+          {
+            message: { text: error?.message },
+            severity: 'error',
+          },
+        ]}
       >
         {sources && <SourcesTable sources={sources?.result} />}
       </ContentWrapper>

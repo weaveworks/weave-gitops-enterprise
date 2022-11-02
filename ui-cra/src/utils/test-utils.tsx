@@ -42,7 +42,6 @@ import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
 } from '../contexts/GithubAuth/provider';
-import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
 
@@ -114,7 +113,6 @@ export const defaultContexts = () => [
     },
   ],
   [MemoryRouter],
-  [NotificationProvider],
 ];
 
 const promisify = <R, E>(res: R, errRes?: E) =>

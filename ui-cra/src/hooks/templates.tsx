@@ -4,22 +4,16 @@ import { ListTemplatesResponse } from '../cluster-services/cluster_services.pb';
 import { TemplateEnriched } from '../types/custom';
 import { request } from '../utils/request';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
-import useNotifications from '../contexts/Notifications';
 
 const useTemplates = () => {
   const [loading, setLoading] = useState<boolean>(false);
-  const { setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
 
-  const onError = (error: Error) =>
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
-
-  const { isLoading, data } = useQuery<ListTemplatesResponse, Error>(
+  const { isLoading, data, error } = useQuery<ListTemplatesResponse, Error>(
     'templates',
     () => api.ListTemplates({}),
     {
       keepPreviousData: true,
-      onError,
     },
   );
   const templates = useMemo(
@@ -55,6 +49,7 @@ const useTemplates = () => {
 
   return {
     isLoading,
+    error,
     templates,
     loading,
     getTemplate,

@@ -137,7 +137,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   };
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+  const { profiles, isLoading: profilesIsLoading, error } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -333,10 +333,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper
-              notification={{
-                message: { text: notification?.message.text },
-                severity: notification?.severity,
-              }}
+              notification={[
+                {
+                  message: { text: notification?.message.text },
+                  severity: notification?.severity,
+                },
+                {
+                  message: { text: error?.message },
+                  severity: 'error',
+                },
+              ]}
             >
               <FormWrapper>
                 <Grid container>

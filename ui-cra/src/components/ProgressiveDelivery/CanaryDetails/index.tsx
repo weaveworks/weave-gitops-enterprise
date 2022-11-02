@@ -34,10 +34,12 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
     >
       <ContentWrapper
         loading={isLoading}
-        notification={{
-          message: { text: error?.message },
-          severity: 'error',
-        }}
+        notification={[
+          {
+            message: { text: error?.message },
+            severity: 'error',
+          },
+        ]}
       >
         {data?.canary && (
           <CanaryDetailsSection

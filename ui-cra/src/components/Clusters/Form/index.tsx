@@ -27,7 +27,6 @@ import {
   ProfileValues,
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import useTemplates from '../../../hooks/templates';
@@ -36,6 +35,7 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
   GitopsClusterEnriched,
+  NotificationData,
   ProfilesIndex,
   TemplateEnriched,
 } from '../../../types/custom';
@@ -49,6 +49,7 @@ import { validateFormData } from '../../../utils/form';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
@@ -266,7 +267,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredentials,
   );
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+  const { profiles, isLoading: profilesIsLoading, error } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
@@ -284,7 +285,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
-  const { setNotifications } = useNotifications();
   const authRedirectPage = cluster
     ? `/clusters/${cluster?.name}/edit`
     : `/templates/${template?.name}/create`;
@@ -297,6 +297,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const [notification, setNotification] = useState<NotificationData | null>(
+    null,
+  );
 
   const isCredentialEnabled =
     annotations?.['templates.weave.works/credentials-enabled'] || 'true';
@@ -324,9 +327,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
         setPRPreview(data);
       })
       .catch(err =>
-        setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
-        ]),
+        setNotification({
+          message: { text: err.message },
+          severity: 'error',
+        }),
       )
       .finally(() => setPreviewLoading(false));
   }, [
@@ -334,7 +338,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     setOpenPreview,
     renderTemplate,
     infraCredential,
-    setNotifications,
     template.name,
     template.namespace,
     template.templateKind,
@@ -358,16 +361,16 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
         setCostEstimate(getFormattedCostEstimate(costEstimate));
       })
       .catch(err =>
-        setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
-        ]),
+        setNotification({
+          message: { text: err.message },
+          severity: 'error',
+        }),
       )
       .finally(() => setCostEstimationLoading(false));
   }, [
     formData,
     renderTemplate,
     infraCredential,
-    setNotifications,
     template.name,
     template.templateKind,
     template.namespace,
@@ -391,23 +394,22 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Clusters);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully.
-                </Link>
-              ),
-            },
-            variant: 'success',
+        setNotification({
+          message: {
+            component: (
+              <Link href={response.webUrl} newTab>
+                PR created successfully.
+              </Link>
+            ),
           },
-        ]);
+          severity: 'success',
+        });
       })
       .catch(error => {
-        setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
-        ]);
+        setNotification({
+          message: { text: error.message },
+          severity: 'error',
+        });
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
@@ -419,7 +421,6 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     formData,
     infraCredential,
     history,
-    setNotifications,
     setPRPreview,
     template.name,
     template.namespace,
@@ -460,94 +461,107 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
           },
         }}
       >
-        <FormWrapper>
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            <CredentialsWrapper>
-              <div className="template-title">
-                Template: <span>{template.name}</span>
-              </div>
-              {isCredentialEnabled === 'true' ? (
-                <Credentials
-                  infraCredential={infraCredential}
-                  setInfraCredential={setInfraCredential}
-                />
-              ) : null}
-            </CredentialsWrapper>
-            <Divider
-              className={
-                !isLargeScreen ? classes.divider : classes.largeDivider
-              }
-            />
-            <TemplateFields
-              template={template}
-              formData={formData}
-              setFormData={setFormData}
-            />
-          </Grid>
-          {isProfilesEnabled === 'true' ? (
-            <Profiles
-              isLoading={profilesIsLoading}
-              updatedProfiles={updatedProfiles}
-              setUpdatedProfiles={setUpdatedProfiles}
-            />
-          ) : null}
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            {isKustomizationsEnabled === 'true' ? (
-              <ApplicationsWrapper
+        <ContentWrapper
+          notification={[
+            {
+              message: { text: notification?.message.text },
+              severity: notification?.severity,
+            },
+            {
+              message: { text: error?.message },
+              severity: 'error',
+            },
+          ]}
+        >
+          <FormWrapper>
+            <Grid item xs={12} sm={10} md={10} lg={8}>
+              <CredentialsWrapper>
+                <div className="template-title">
+                  Template: <span>{template.name}</span>
+                </div>
+                {isCredentialEnabled === 'true' ? (
+                  <Credentials
+                    infraCredential={infraCredential}
+                    setInfraCredential={setInfraCredential}
+                  />
+                ) : null}
+              </CredentialsWrapper>
+              <Divider
+                className={
+                  !isLargeScreen ? classes.divider : classes.largeDivider
+                }
+              />
+              <TemplateFields
+                template={template}
                 formData={formData}
                 setFormData={setFormData}
               />
-            ) : null}
-            {previewLoading ? (
-              <LoadingPage className={classes.previewLoading} />
-            ) : (
-              <div className={classes.previewCta}>
-                <Button
-                  onClick={event => validateFormData(event, handlePRPreview)}
-                >
-                  PREVIEW PR
-                </Button>
-              </div>
-            )}
-          </Grid>
-          {openPreview && PRPreview ? (
-            <Preview
-              openPreview={openPreview}
-              setOpenPreview={setOpenPreview}
-              PRPreview={PRPreview}
-            />
-          ) : null}
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            {isCostEstimationEnabled === 'true' ? (
-              <CostEstimation
-                handleCostEstimation={handleCostEstimation}
-                costEstimate={costEstimate}
-                isCostEstimationLoading={costEstimationLoading}
+            </Grid>
+            {isProfilesEnabled === 'true' ? (
+              <Profiles
+                isLoading={profilesIsLoading}
+                updatedProfiles={updatedProfiles}
+                setUpdatedProfiles={setUpdatedProfiles}
               />
             ) : null}
-          </Grid>
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            <GitOps
-              formData={formData}
-              setFormData={setFormData}
-              showAuthDialog={showAuthDialog}
-              setShowAuthDialog={setShowAuthDialog}
-              setEnableCreatePR={setEnableCreatePR}
-            />
-            {loading ? (
-              <LoadingPage className="create-loading" />
-            ) : (
-              <div className="create-cta">
-                <Button
-                  onClick={event => validateFormData(event, handleAddCluster)}
-                  disabled={!enableCreatePR}
-                >
-                  CREATE PULL REQUEST
-                </Button>
-              </div>
-            )}
-          </Grid>
-        </FormWrapper>
+            <Grid item xs={12} sm={10} md={10} lg={8}>
+              {isKustomizationsEnabled === 'true' ? (
+                <ApplicationsWrapper
+                  formData={formData}
+                  setFormData={setFormData}
+                />
+              ) : null}
+              {previewLoading ? (
+                <LoadingPage className={classes.previewLoading} />
+              ) : (
+                <div className={classes.previewCta}>
+                  <Button
+                    onClick={event => validateFormData(event, handlePRPreview)}
+                  >
+                    PREVIEW PR
+                  </Button>
+                </div>
+              )}
+            </Grid>
+            {openPreview && PRPreview ? (
+              <Preview
+                openPreview={openPreview}
+                setOpenPreview={setOpenPreview}
+                PRPreview={PRPreview}
+              />
+            ) : null}
+            <Grid item xs={12} sm={10} md={10} lg={8}>
+              {isCostEstimationEnabled === 'true' ? (
+                <CostEstimation
+                  handleCostEstimation={handleCostEstimation}
+                  costEstimate={costEstimate}
+                  isCostEstimationLoading={costEstimationLoading}
+                />
+              ) : null}
+            </Grid>
+            <Grid item xs={12} sm={10} md={10} lg={8}>
+              <GitOps
+                formData={formData}
+                setFormData={setFormData}
+                showAuthDialog={showAuthDialog}
+                setShowAuthDialog={setShowAuthDialog}
+                setEnableCreatePR={setEnableCreatePR}
+              />
+              {loading ? (
+                <LoadingPage className="create-loading" />
+              ) : (
+                <div className="create-cta">
+                  <Button
+                    onClick={event => validateFormData(event, handleAddCluster)}
+                    disabled={!enableCreatePR}
+                  >
+                    CREATE PULL REQUEST
+                  </Button>
+                </div>
+              )}
+            </Grid>
+          </FormWrapper>
+        </ContentWrapper>
       </CallbackStateContextProvider>
     );
   }, [
@@ -575,6 +589,9 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
+    notification?.message.text,
+    notification?.severity,
+    error?.message,
   ]);
 };
 

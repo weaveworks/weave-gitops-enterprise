@@ -1,5 +1,5 @@
 import { createContext, Dispatch, useContext } from 'react';
-import { UpdatedProfile } from '../../types/custom';
+import { NotificationData, UpdatedProfile } from '../../types/custom';
 
 interface ProfilesContext {
   helmRepo: { name: string; namespace: string };
@@ -13,6 +13,7 @@ interface ProfilesContext {
   >;
   isLoading: boolean;
   profiles: UpdatedProfile[];
+  error: Error | null;
 }
 
 export const Profiles = createContext<ProfilesContext | null>(null);

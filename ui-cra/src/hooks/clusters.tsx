@@ -1,32 +1,32 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import { request } from '../utils/request';
-import useNotifications from '../contexts/Notifications';
 import fileDownload from 'js-file-download';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { ListGitopsClustersResponse } from '../cluster-services/cluster_services.pb';
 import {
   GitopsClusterEnriched,
   DeleteClustersPRRequestEnriched,
+  NotificationData,
 } from '../types/custom';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
 const useClusters = () => {
   const [loading, setLoading] = useState<boolean>(false);
-  const { notifications, setNotifications } = useNotifications();
+  const [errors, setErrors] = useState<NotificationData[]>([]);
   const { api } = useContext(EnterpriseClientContext);
 
   const onError = (error: Error) => {
     if (
       error &&
-      notifications?.some(
+      errors?.some(
         notification => error.message === notification.message.text,
       ) === false
     ) {
-      setNotifications([
-        ...notifications,
-        { message: { text: error.message }, variant: 'danger' },
+      setErrors([
+        ...errors,
+        { message: { text: error?.message }, severity: 'error' },
       ]);
     }
   };
@@ -94,16 +94,15 @@ const useClusters = () => {
       )
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
-          setNotifications([
-            { message: { text: err.message }, variant: 'danger' },
-          ]),
+          setErrors([{ message: { text: err?.message }, severity: 'error' }]),
         );
     },
-    [setNotifications],
+    [setErrors],
   );
   return {
     clusters,
     isLoading,
+    errors,
     count,
     loading,
     deleteCreatedClusters,

@@ -18,10 +18,12 @@ const PoliciesViolations = () => {
     >
       <ContentWrapper
         loading={isLoading}
-        notification={{
-          message: { text: error?.message },
-          severity: 'error',
-        }}
+        notification={[
+          {
+            message: { text: error?.message },
+            severity: 'error',
+          },
+        ]}
         errors={data?.errors}
       >
         <PolicyViolationsTable

@@ -22,10 +22,12 @@ const ProgressiveDelivery = () => {
       <ContentWrapper
         loading={isLoading}
         errors={data?.errors}
-        notification={{
-          message: { text: error?.message },
-          severity: 'error',
-        }}
+        notification={[
+          {
+            message: { text: error?.message },
+            severity: 'error',
+          },
+        ]}
       >
         {data?.canaries && <CanaryTable canaries={data.canaries} />}
       </ContentWrapper>

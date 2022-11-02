@@ -2,13 +2,12 @@ import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
 import { NotificationData } from '../../types/custom';
 import { Tooltip } from '../Shared';
-import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
@@ -76,7 +75,7 @@ interface Props {
   backgroundColor?: string;
   errors?: ListError[];
   loading?: boolean;
-  notification?: NotificationData;
+  notification?: NotificationData[];
 }
 
 export const ContentWrapper: FC<Props> = ({
@@ -88,21 +87,24 @@ export const ContentWrapper: FC<Props> = ({
   notification,
 }) => {
   const classes = useStyles();
-  const { setNotifications } = useNotifications();
   const { data, error } = useListVersion();
   const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
+  const [notif, setNotif] = useState(
+    notification || ([] as NotificationData[]),
+  );
 
   useEffect(() => {
     if (error) {
-      setNotifications([
-        { message: { text: error?.message }, variant: 'danger' },
+      setNotif(prevState => [
+        ...prevState,
+        { message: { text: error?.message }, severity: 'error' },
       ]);
     }
-  }, [error, setNotifications]);
+  }, [error, setNotif]);
 
   if (loading) {
     return (
@@ -134,13 +136,17 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
-      {notification?.message.text && (
-        <Alert
-          severity={notification.severity}
-          className={classes.alertWrapper}
-        >
-          {notification.message.text}
-        </Alert>
+      {notif.map(
+        (n, index) =>
+          n?.message.text && (
+            <Alert
+              key={index}
+              severity={n.severity}
+              className={classes.alertWrapper}
+            >
+              {n.message.text} {n.message.component}
+            </Alert>
+          ),
       )}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>

@@ -26,11 +26,12 @@ import { Link, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../hooks/clusters';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
-import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
+import {
+  GitopsClusterEnriched,
+  NotificationData,
+  PRDefaults,
+} from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
 import {
   EKSDefault,
@@ -198,12 +199,11 @@ interface FormData {
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { clusters, isLoading } = useClusters();
+  const { clusters, isLoading, errors } = useClusters();
   const [notification] = location.state?.notification;
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
-  const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const handleClose = useCallback(() => {
@@ -359,10 +359,13 @@ const MCCP: FC<{
         }}
       >
         <ContentWrapper
-          notification={{
-            message: { text: notification?.message.text },
-            severity: 'error',
-          }}
+          notification={[
+            ...errors,
+            {
+              message: { text: notification?.message.text },
+              severity: 'error',
+            },
+          ]}
         >
           <div
             style={{
@@ -396,7 +399,8 @@ const MCCP: FC<{
                     id="delete-cluster"
                     startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
                     onClick={() => {
-                      setNotifications([]);
+                      // keep the notif coming from location in a state so we can update it?
+                      // setNotifications([]);
                       setOpenDeletePR(true);
                     }}
                     color="secondary"
