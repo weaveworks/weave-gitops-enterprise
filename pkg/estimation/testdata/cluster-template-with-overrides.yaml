@@ -1,0 +1,116 @@
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: "test-cluster"
+  annotations:
+    "templates.weave.works/estimation-filters": "tenancy=Shared"
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks: ["192.168.0.0/16"]
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+    kind: AWSCluster
+    name: "test-cluster"
+  controlPlaneRef:
+    kind: KubeadmControlPlane
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    name: "test-cluster-control-plane"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+kind: AWSCluster
+metadata:
+  name: "test-cluster"
+spec:
+  region: "us-iso-east-1"
+  sshKeyName: "test-key"
+---
+kind: KubeadmControlPlane
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+metadata:
+  name: "test-cluster-control-plane"
+spec:
+  replicas: 3
+  machineTemplate:
+    infrastructureRef:
+      kind: AWSMachineTemplate
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+      name: "test-cluster-control-plane"
+  kubeadmConfigSpec:
+    initConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data.local_hostname }}'
+        kubeletExtraArgs:
+          cloud-provider: aws
+    clusterConfiguration:
+      apiServer:
+        extraArgs:
+          cloud-provider: aws
+      controllerManager:
+        extraArgs:
+          cloud-provider: aws
+    joinConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data.local_hostname }}'
+        kubeletExtraArgs:
+          cloud-provider: aws
+  version: "1.25.0"
+---
+kind: AWSMachineTemplate
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+metadata:
+  name: "test-cluster-control-plane"
+spec:
+  template:
+    spec:
+      instanceType: t3.medium
+      iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
+      sshKeyName: "test-key"
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: "test-cluster-md-0"
+spec:
+  clusterName: "test-cluster"
+  replicas: 5
+  selector:
+    matchLabels:
+  template:
+    spec:
+      clusterName: "test-cluster"
+      version: "1.25.0"
+      bootstrap:
+        configRef:
+          name: "test-cluster-md-0"
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+      infrastructureRef:
+        name: "test-cluster-md-0"
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+        kind: AWSMachineTemplate
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+kind: AWSMachineTemplate
+metadata:
+  name: "test-cluster-md-0"
+spec:
+  template:
+    spec:
+      instanceType: t3.large
+      iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
+      sshKeyName: "test-key"
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: "test-cluster-md-0"
+spec:
+  template:
+    spec:
+      joinConfiguration:
+        nodeRegistration:
+          name: '{{ ds.meta_data.local_hostname }}'
+          kubeletExtraArgs:
+            cloud-provider: aws
