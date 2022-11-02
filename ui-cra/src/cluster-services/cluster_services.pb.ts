@@ -167,10 +167,6 @@ export type PolicyValidationOccurrence = {
   message?: string
 }
 
-export type RepeatedAny = {
-  value?: GoogleProtobufAny.Any[]
-}
-
 export type PolicyValidationRepeatedParam = {
   value?: PolicyValidationParam[]
 }

@@ -339,10 +339,6 @@ message PolicyValidationOccurrence {
   string message = 1;
 }
 
-
-message RepeatedAny { repeated google.protobuf.Any value = 1; }
-
-
 message PolicyValidationRepeatedParam { repeated PolicyValidationParam value = 1; }
 
 message PolicyValidationParam {
