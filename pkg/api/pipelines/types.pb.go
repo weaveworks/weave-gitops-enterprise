@@ -742,7 +742,9 @@ type ImageRepository struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Image string `protobuf:"bytes,1,opt,name=image,proto3" json:"image,omitempty"`
+	Image     string `protobuf:"bytes,1,opt,name=image,proto3" json:"image,omitempty"`
+	Name      string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace string `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
 }
 
 func (x *ImageRepository) Reset() {
@@ -784,6 +786,193 @@ func (x *ImageRepository) GetImage() string {
 	return ""
 }
 
+func (x *ImageRepository) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ImageRepository) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+type ImageRepoRef struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Namespace string `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name      string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+}
+
+func (x *ImageRepoRef) Reset() {
+	*x = ImageRepoRef{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImageRepoRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImageRepoRef) ProtoMessage() {}
+
+func (x *ImageRepoRef) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImageRepoRef.ProtoReflect.Descriptor instead.
+func (*ImageRepoRef) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ImageRepoRef) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *ImageRepoRef) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type ImagePolicyChoice struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Semver       string `protobuf:"bytes,1,opt,name=semver,proto3" json:"semver,omitempty"`
+	Alphabetical string `protobuf:"bytes,2,opt,name=alphabetical,proto3" json:"alphabetical,omitempty"`
+	Numerical    string `protobuf:"bytes,3,opt,name=numerical,proto3" json:"numerical,omitempty"`
+}
+
+func (x *ImagePolicyChoice) Reset() {
+	*x = ImagePolicyChoice{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImagePolicyChoice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImagePolicyChoice) ProtoMessage() {}
+
+func (x *ImagePolicyChoice) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImagePolicyChoice.ProtoReflect.Descriptor instead.
+func (*ImagePolicyChoice) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ImagePolicyChoice) GetSemver() string {
+	if x != nil {
+		return x.Semver
+	}
+	return ""
+}
+
+func (x *ImagePolicyChoice) GetAlphabetical() string {
+	if x != nil {
+		return x.Alphabetical
+	}
+	return ""
+}
+
+func (x *ImagePolicyChoice) GetNumerical() string {
+	if x != nil {
+		return x.Numerical
+	}
+	return ""
+}
+
+type ImagePolicy struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Policy  *ImagePolicyChoice `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
+	RepoRef *ImageRepoRef      `protobuf:"bytes,2,opt,name=repoRef,proto3" json:"repoRef,omitempty"`
+}
+
+func (x *ImagePolicy) Reset() {
+	*x = ImagePolicy{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ImagePolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImagePolicy) ProtoMessage() {}
+
+func (x *ImagePolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImagePolicy.ProtoReflect.Descriptor instead.
+func (*ImagePolicy) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ImagePolicy) GetPolicy() *ImagePolicyChoice {
+	if x != nil {
+		return x.Policy
+	}
+	return nil
+}
+
+func (x *ImagePolicy) GetRepoRef() *ImageRepoRef {
+	if x != nil {
+		return x.RepoRef
+	}
+	return nil
+}
+
 type PipelineStatus_TargetStatusList struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -795,7 +984,7 @@ type PipelineStatus_TargetStatusList struct {
 func (x *PipelineStatus_TargetStatusList) Reset() {
 	*x = PipelineStatus_TargetStatusList{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_pipelines_types_proto_msgTypes[12]
+		mi := &file_api_pipelines_types_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -808,7 +997,7 @@ func (x *PipelineStatus_TargetStatusList) String() string {
 func (*PipelineStatus_TargetStatusList) ProtoMessage() {}
 
 func (x *PipelineStatus_TargetStatusList) ProtoReflect() protoreflect.Message {
-	mi := &file_api_pipelines_types_proto_msgTypes[12]
+	mi := &file_api_pipelines_types_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -941,14 +1130,36 @@ var file_api_pipelines_types_proto_rawDesc = []byte{
 	0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x17,
 	0x2e, 0x70, 0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6f,
 	0x6e, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0a, 0x63, 0x6f, 0x6e, 0x64, 0x69, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x22, 0x27, 0x0a, 0x0f, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70, 0x6f,
+	0x6f, 0x6e, 0x73, 0x22, 0x59, 0x0a, 0x0f, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70, 0x6f,
 	0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x42, 0x3d, 0x5a, 0x3b,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65,
-	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f,
-	0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x70, 0x69,
-	0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x12, 0x12, 0x0a, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x22, 0x40,
+	0x0a, 0x0c, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70, 0x6f, 0x52, 0x65, 0x66, 0x12, 0x1c,
+	0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x22, 0x6d, 0x0a, 0x11, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43,
+	0x68, 0x6f, 0x69, 0x63, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65, 0x6d, 0x76, 0x65, 0x72, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x6d, 0x76, 0x65, 0x72, 0x12, 0x22, 0x0a,
+	0x0c, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x62, 0x65, 0x74, 0x69, 0x63, 0x61, 0x6c, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0c, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x62, 0x65, 0x74, 0x69, 0x63, 0x61,
+	0x6c, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x69, 0x63, 0x61, 0x6c, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x75, 0x6d, 0x65, 0x72, 0x69, 0x63, 0x61, 0x6c, 0x22,
+	0x7c, 0x0a, 0x0b, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x12, 0x37,
+	0x0a, 0x06, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f,
+	0x2e, 0x70, 0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6d,
+	0x61, 0x67, 0x65, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x68, 0x6f, 0x69, 0x63, 0x65, 0x52,
+	0x06, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x12, 0x34, 0x0a, 0x07, 0x72, 0x65, 0x70, 0x6f, 0x52,
+	0x65, 0x66, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x70, 0x69, 0x70, 0x65, 0x6c,
+	0x69, 0x6e, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70,
+	0x6f, 0x52, 0x65, 0x66, 0x52, 0x07, 0x72, 0x65, 0x70, 0x6f, 0x52, 0x65, 0x66, 0x42, 0x3d, 0x5a,
+	0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76,
+	0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74,
+	0x6f, 0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x70,
+	0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -963,7 +1174,7 @@ func file_api_pipelines_types_proto_rawDescGZIP() []byte {
 	return file_api_pipelines_types_proto_rawDescData
 }
 
-var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_api_pipelines_types_proto_goTypes = []interface{}{
 	(*ClusterRef)(nil),                      // 0: pipelines.v1.ClusterRef
 	(*Target)(nil),                          // 1: pipelines.v1.Target
@@ -977,8 +1188,11 @@ var file_api_pipelines_types_proto_goTypes = []interface{}{
 	(*Pipeline)(nil),                        // 9: pipelines.v1.Pipeline
 	(*ImageAutomation)(nil),                 // 10: pipelines.v1.ImageAutomation
 	(*ImageRepository)(nil),                 // 11: pipelines.v1.ImageRepository
-	(*PipelineStatus_TargetStatusList)(nil), // 12: pipelines.v1.PipelineStatus.TargetStatusList
-	nil,                                     // 13: pipelines.v1.PipelineStatus.EnvironmentsEntry
+	(*ImageRepoRef)(nil),                    // 12: pipelines.v1.ImageRepoRef
+	(*ImagePolicyChoice)(nil),               // 13: pipelines.v1.ImagePolicyChoice
+	(*ImagePolicy)(nil),                     // 14: pipelines.v1.ImagePolicy
+	(*PipelineStatus_TargetStatusList)(nil), // 15: pipelines.v1.PipelineStatus.TargetStatusList
+	nil,                                     // 16: pipelines.v1.PipelineStatus.EnvironmentsEntry
 }
 var file_api_pipelines_types_proto_depIdxs = []int32{
 	0,  // 0: pipelines.v1.Target.clusterRef:type_name -> pipelines.v1.ClusterRef
@@ -986,19 +1200,21 @@ var file_api_pipelines_types_proto_depIdxs = []int32{
 	5,  // 2: pipelines.v1.WorkloadStatus.conditions:type_name -> pipelines.v1.Condition
 	0,  // 3: pipelines.v1.PipelineTargetStatus.clusterRef:type_name -> pipelines.v1.ClusterRef
 	6,  // 4: pipelines.v1.PipelineTargetStatus.workloads:type_name -> pipelines.v1.WorkloadStatus
-	13, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
+	16, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
 	4,  // 6: pipelines.v1.Pipeline.appRef:type_name -> pipelines.v1.AppRef
 	2,  // 7: pipelines.v1.Pipeline.environments:type_name -> pipelines.v1.Environment
 	1,  // 8: pipelines.v1.Pipeline.targets:type_name -> pipelines.v1.Target
 	8,  // 9: pipelines.v1.Pipeline.status:type_name -> pipelines.v1.PipelineStatus
 	5,  // 10: pipelines.v1.ImageAutomation.conditions:type_name -> pipelines.v1.Condition
-	7,  // 11: pipelines.v1.PipelineStatus.TargetStatusList.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
-	12, // 12: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.TargetStatusList
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	13, // 11: pipelines.v1.ImagePolicy.policy:type_name -> pipelines.v1.ImagePolicyChoice
+	12, // 12: pipelines.v1.ImagePolicy.repoRef:type_name -> pipelines.v1.ImageRepoRef
+	7,  // 13: pipelines.v1.PipelineStatus.TargetStatusList.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
+	15, // 14: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.TargetStatusList
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_api_pipelines_types_proto_init() }
@@ -1152,6 +1368,42 @@ func file_api_pipelines_types_proto_init() {
 			}
 		}
 		file_api_pipelines_types_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ImageRepoRef); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ImagePolicyChoice); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ImagePolicy); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PipelineStatus_TargetStatusList); i {
 			case 0:
 				return &v.state
@@ -1170,7 +1422,7 @@ func file_api_pipelines_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_pipelines_types_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

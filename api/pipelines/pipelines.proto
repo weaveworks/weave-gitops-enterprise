@@ -38,6 +38,12 @@ service Pipelines {
         };
     }
 
+    rpc ListImagePolicies(ListImagePoliciesRequest) returns (ListImagePoliciesResponse) {
+        option (google.api.http) = {
+            get : "/v1/imagepolicies"
+        };
+    }
+
 }
 
 message ListPipelinesRequest {
@@ -69,4 +75,13 @@ message ListImageAutomationObjectsRequest {
 
 message ListImageAutomationObjectsResponse {
     repeated ImageRepository imageRepos = 1;
+}
+
+
+message ListImagePoliciesRequest {
+
+}
+
+message ListImagePoliciesResponse {
+    repeated ImagePolicy policies = 1;
 }

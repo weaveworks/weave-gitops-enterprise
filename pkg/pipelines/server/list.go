@@ -68,7 +68,9 @@ func (s *server) ListImageAutomationObjects(ctx context.Context, msg *pb.ListIma
 
 			for _, img := range imgs.Items {
 				res = append(res, &pb.ImageRepository{
-					Image: img.Spec.Image,
+					Name:      img.Name,
+					Namespace: img.Namespace,
+					Image:     img.Spec.Image,
 				})
 			}
 		}
@@ -76,5 +78,60 @@ func (s *server) ListImageAutomationObjects(ctx context.Context, msg *pb.ListIma
 
 	return &pb.ListImageAutomationObjectsResponse{
 		ImageRepos: res,
+	}, nil
+}
+
+func (s *server) ListImagePolicies(ctx context.Context, msg *pb.ListImagePoliciesRequest) (*pb.ListImagePoliciesResponse, error) {
+	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
+
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &reflector.ImagePolicyList{}
+	})
+
+	if err := c.ClusteredList(ctx, clist, false); err != nil {
+		return nil, fmt.Errorf("fetching image polcies: %w", err)
+	}
+
+	res := []*pb.ImagePolicy{}
+
+	for _, list := range clist.Lists() {
+
+		for _, l := range list {
+			pl, ok := l.(*reflector.ImagePolicyList)
+			if !ok {
+				return nil, fmt.Errorf("type assertion error")
+			}
+
+			for _, p := range pl.Items {
+				policy := &pb.ImagePolicy{
+					Policy: &pb.ImagePolicyChoice{},
+					RepoRef: &pb.ImageRepoRef{
+						Name:      p.Spec.ImageRepositoryRef.Name,
+						Namespace: p.Spec.ImageRepositoryRef.Namespace,
+					},
+				}
+
+				if p.Spec.Policy.SemVer != nil {
+					policy.Policy.Semver = p.Spec.Policy.SemVer.Range
+				}
+
+				if p.Spec.Policy.Alphabetical != nil {
+					policy.Policy.Alphabetical = p.Spec.Policy.Alphabetical.Order
+				}
+
+				if p.Spec.Policy.Numerical != nil {
+					policy.Policy.Numerical = p.Spec.Policy.Numerical.Order
+				}
+
+				res = append(res, policy)
+			}
+		}
+	}
+
+	return &pb.ListImagePoliciesResponse{
+		Policies: res,
 	}, nil
 }

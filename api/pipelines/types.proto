@@ -79,5 +79,23 @@ message ImageAutomation {
 }
 
 message ImageRepository {
-    string image = 1;
+    string image     = 1;
+    string name      = 2;
+    string namespace = 3;
+}
+
+message ImageRepoRef {
+    string namespace = 1;
+    string name = 2;    
+}
+
+message ImagePolicyChoice {
+    string semver       = 1;
+    string alphabetical = 2;
+    string numerical   = 3;
+}
+
+message ImagePolicy {
+    ImagePolicyChoice policy  = 1;
+    ImageRepoRef      repoRef = 2;
 }

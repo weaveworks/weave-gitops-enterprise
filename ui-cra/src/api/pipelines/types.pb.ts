@@ -78,4 +78,22 @@ export type ImageAutomation = {
 
 export type ImageRepository = {
   image?: string
+  name?: string
+  namespace?: string
+}
+
+export type ImageRepoRef = {
+  namespace?: string
+  name?: string
+}
+
+export type ImagePolicyChoice = {
+  semver?: string
+  alphabetical?: string
+  numerical?: string
+}
+
+export type ImagePolicy = {
+  policy?: ImagePolicyChoice
+  repoRef?: ImageRepoRef
 }

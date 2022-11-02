@@ -21,6 +21,7 @@ type PipelinesClient interface {
 	ListPipelines(ctx context.Context, in *ListPipelinesRequest, opts ...grpc.CallOption) (*ListPipelinesResponse, error)
 	GetPipeline(ctx context.Context, in *GetPipelineRequest, opts ...grpc.CallOption) (*GetPipelineResponse, error)
 	ListImageAutomationObjects(ctx context.Context, in *ListImageAutomationObjectsRequest, opts ...grpc.CallOption) (*ListImageAutomationObjectsResponse, error)
+	ListImagePolicies(ctx context.Context, in *ListImagePoliciesRequest, opts ...grpc.CallOption) (*ListImagePoliciesResponse, error)
 }
 
 type pipelinesClient struct {
@@ -58,6 +59,15 @@ func (c *pipelinesClient) ListImageAutomationObjects(ctx context.Context, in *Li
 	return out, nil
 }
 
+func (c *pipelinesClient) ListImagePolicies(ctx context.Context, in *ListImagePoliciesRequest, opts ...grpc.CallOption) (*ListImagePoliciesResponse, error) {
+	out := new(ListImagePoliciesResponse)
+	err := c.cc.Invoke(ctx, "/pipelines.v1.Pipelines/ListImagePolicies", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PipelinesServer is the server API for Pipelines service.
 // All implementations must embed UnimplementedPipelinesServer
 // for forward compatibility
@@ -65,6 +75,7 @@ type PipelinesServer interface {
 	ListPipelines(context.Context, *ListPipelinesRequest) (*ListPipelinesResponse, error)
 	GetPipeline(context.Context, *GetPipelineRequest) (*GetPipelineResponse, error)
 	ListImageAutomationObjects(context.Context, *ListImageAutomationObjectsRequest) (*ListImageAutomationObjectsResponse, error)
+	ListImagePolicies(context.Context, *ListImagePoliciesRequest) (*ListImagePoliciesResponse, error)
 	mustEmbedUnimplementedPipelinesServer()
 }
 
@@ -80,6 +91,9 @@ func (UnimplementedPipelinesServer) GetPipeline(context.Context, *GetPipelineReq
 }
 func (UnimplementedPipelinesServer) ListImageAutomationObjects(context.Context, *ListImageAutomationObjectsRequest) (*ListImageAutomationObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListImageAutomationObjects not implemented")
+}
+func (UnimplementedPipelinesServer) ListImagePolicies(context.Context, *ListImagePoliciesRequest) (*ListImagePoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListImagePolicies not implemented")
 }
 func (UnimplementedPipelinesServer) mustEmbedUnimplementedPipelinesServer() {}
 
@@ -148,6 +162,24 @@ func _Pipelines_ListImageAutomationObjects_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pipelines_ListImagePolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListImagePoliciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PipelinesServer).ListImagePolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pipelines.v1.Pipelines/ListImagePolicies",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PipelinesServer).ListImagePolicies(ctx, req.(*ListImagePoliciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Pipelines_ServiceDesc is the grpc.ServiceDesc for Pipelines service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +198,10 @@ var Pipelines_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListImageAutomationObjects",
 			Handler:    _Pipelines_ListImageAutomationObjects_Handler,
+		},
+		{
+			MethodName: "ListImagePolicies",
+			Handler:    _Pipelines_ListImagePolicies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

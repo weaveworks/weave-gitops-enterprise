@@ -39,6 +39,28 @@
         ]
       }
     },
+    "/v1/imagepolicies": {
+      "get": {
+        "operationId": "Pipelines_ListImagePolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListImagePoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
     "/v1/pipelines": {
       "get": {
         "operationId": "Pipelines_ListPipelines",
@@ -215,10 +237,52 @@
         }
       }
     },
+    "v1ImagePolicy": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/v1ImagePolicyChoice"
+        },
+        "repoRef": {
+          "$ref": "#/definitions/v1ImageRepoRef"
+        }
+      }
+    },
+    "v1ImagePolicyChoice": {
+      "type": "object",
+      "properties": {
+        "semver": {
+          "type": "string"
+        },
+        "alphabetical": {
+          "type": "string"
+        },
+        "numerical": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ImageRepoRef": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1ImageRepository": {
       "type": "object",
       "properties": {
         "image": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
           "type": "string"
         }
       }
@@ -241,6 +305,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ImageRepository"
+          }
+        }
+      }
+    },
+    "v1ListImagePoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ImagePolicy"
           }
         }
       }
