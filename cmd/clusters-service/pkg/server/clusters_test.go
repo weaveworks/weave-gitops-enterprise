@@ -78,6 +78,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 					o.ObjectMeta.Name = "gitops-cluster"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -90,6 +91,7 @@ func TestListGitopsClusters(t *testing.T) {
 					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
 						Name: "dev",
 					},
+					Type: "GitopsCluster",
 				},
 				{
 					Name: "management",
@@ -109,6 +111,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 					o.ObjectMeta.Name = "gitops-cluster"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -116,6 +119,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 					o.ObjectMeta.Name = "gitops-cluster2"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -128,6 +132,7 @@ func TestListGitopsClusters(t *testing.T) {
 					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
 						Name: "dev",
 					},
+					Type: "GitopsCluster",
 				},
 				{
 					Name:      "gitops-cluster2",
@@ -135,6 +140,7 @@ func TestListGitopsClusters(t *testing.T) {
 					SecretRef: &capiv1_protos.GitopsClusterRef{
 						Name: "dev",
 					},
+					Type: "GitopsCluster",
 				},
 				{
 					Name: "management",
@@ -154,6 +160,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 					o.ObjectMeta.Name = "gitops-cluster"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -161,6 +168,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 					o.ObjectMeta.Name = "gitops-cluster2"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.Spec.SecretRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -174,6 +182,7 @@ func TestListGitopsClusters(t *testing.T) {
 					SecretRef: &capiv1_protos.GitopsClusterRef{
 						Name: "dev",
 					},
+					Type: "GitopsCluster",
 				},
 				{
 					Name: "management",
@@ -214,6 +223,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 					o.ObjectMeta.Name = "gitops-cluster"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -221,6 +231,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestCluster(func(o *clusterv1.Cluster) {
 					o.ObjectMeta.Name = "gitops-cluster"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.ObjectMeta.Annotations = map[string]string{
 						"cni": "calico",
 					}
@@ -258,6 +269,7 @@ func TestListGitopsClusters(t *testing.T) {
 							},
 						},
 					},
+					Type: "GitopsCluster",
 				},
 				{
 					Name: "management",
@@ -278,6 +290,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
 					o.ObjectMeta.Name = "gitops-cluster"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.Spec.CAPIClusterRef = &meta.LocalObjectReference{
 						Name: "dev",
 					}
@@ -285,6 +298,7 @@ func TestListGitopsClusters(t *testing.T) {
 				makeTestCluster(func(o *clusterv1.Cluster) {
 					o.ObjectMeta.Name = "gitops-cluster"
 					o.ObjectMeta.Namespace = "default"
+					o.TypeMeta.Kind = "GitopsCluster"
 					o.ObjectMeta.Annotations = map[string]string{
 						"cni": "calico",
 					}
@@ -304,6 +318,7 @@ func TestListGitopsClusters(t *testing.T) {
 					CapiClusterRef: &capiv1_protos.GitopsClusterRef{
 						Name: "dev",
 					},
+					Type: "GitopsCluster",
 				},
 				{
 					Name: "management",

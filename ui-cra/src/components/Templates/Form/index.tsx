@@ -1,11 +1,12 @@
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { useHistory, Redirect } from 'react-router-dom';
+import styled from 'styled-components';
+import { Divider, Grid, useMediaQuery } from '@material-ui/core';
 import {
   createStyles,
   makeStyles,
   ThemeProvider,
 } from '@material-ui/core/styles';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {
   Button,
   CallbackStateContextProvider,
@@ -15,12 +16,10 @@ import {
   LoadingPage,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
+import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, Redirect } from 'react-router-dom';
-import styled from 'styled-components';
 import {
   CreatePullRequestRequest,
   Kustomization,
@@ -46,7 +45,6 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
-import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
@@ -57,6 +55,7 @@ import Preview from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import { getCreateRequestAnnotation } from './utils';
+import { getFormattedCostEstimate } from '../../../utils/formatters';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -137,30 +136,32 @@ const useStyles = makeStyles(theme =>
 );
 
 function getInitialData(
-  cluster: GitopsClusterEnriched | undefined,
+  resource: GitopsClusterEnriched | Automation | Source | undefined,
   callbackState: any,
   random: string,
+  templateName: string,
 ) {
-  const clusterData = cluster && getCreateRequestAnnotation(cluster);
-  const clusterName = clusterData?.parameter_values?.CLUSTER_NAME || '';
+  const resourceData = resource && getCreateRequestAnnotation(resource);
+
+  const resourceName = resource?.name || resourceData?.objects?.[0].name;
   const defaultFormData = {
     url: '',
     provider: '',
-    branchName: clusterData
-      ? `edit-cluster-${clusterName}-branch-${random}`
-      : `create-clusters-branch-${random}`,
-    pullRequestTitle: clusterData
-      ? `Edits cluster ${clusterName}`
-      : 'Creates cluster',
-    commitMessage: clusterData
-      ? `Edits capi cluster ${clusterName}`
-      : 'Creates capi cluster',
-    pullRequestDescription: clusterData
-      ? 'This PR edits the cluster'
-      : 'This PR creates a new cluster',
-    parameterValues: clusterData?.parameter_values || {},
+    branchName: resourceData
+      ? `edit-${resourceName}-branch-${random}`
+      : `wge-create-branch-${random}`,
+    pullRequestTitle: resourceData
+      ? `Edits ${resourceName}`
+      : `Creates ${templateName} instance`,
+    commitMessage: resourceData
+      ? `Edits ${resourceName}`
+      : `Creates ${templateName} instance`,
+    pullRequestDescription: resourceData
+      ? `This PR edits the resource ${resourceName}`
+      : `This PR creates a ${templateName} instance`,
+    parameterValues: resourceData?.parameter_values || {},
     clusterAutomations:
-      clusterData?.kustomizations?.map((k: any) => ({
+      resourceData?.kustomizations?.map((k: any) => ({
         name: k.metadata?.name,
         namespace: k.metadata?.namespace,
         path: k.spec?.path,
@@ -169,7 +170,7 @@ function getInitialData(
   };
 
   const initialInfraCredentials = {
-    ...clusterData?.infraCredential,
+    ...resourceData?.infraCredential,
     ...callbackState?.state?.infraCredential,
   };
 
@@ -243,12 +244,13 @@ const toPayload = (
   };
 };
 
-interface ClusterFormProps {
-  cluster?: GitopsClusterEnriched;
+interface ResourceFormProps {
+  resource?: any;
   template: TemplateEnriched;
+  type?: string;
 }
 
-const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
+const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addCluster } = useTemplates();
@@ -258,9 +260,10 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const { annotations } = template;
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
-    cluster,
+    resource,
     callbackState,
     random,
+    template.name,
   );
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
@@ -285,8 +288,8 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const { setNotifications } = useNotifications();
-  const authRedirectPage = cluster
-    ? `/clusters/${cluster?.name}/edit`
+  const authRedirectPage = resource
+    ? `/resources/${resource?.name}/edit`
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
@@ -434,15 +437,15 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
   }, [repositoryURL]);
 
   useEffect(() => {
-    if (!cluster) {
+    if (!resource) {
       setFormData((prevState: any) => ({
         ...prevState,
-        pullRequestTitle: `Creates cluster ${
-          formData.parameterValues.CLUSTER_NAME || ''
+        pullRequestTitle: `Creates resource ${
+          Object.values(formData.parameterValues)?.[0] || ''
         }`,
       }));
     }
-  }, [cluster, formData.parameterValues, setFormData]);
+  }, [resource, formData.parameterValues, setFormData]);
 
   useEffect(() => {
     setCostEstimate('00.00 USD');
@@ -580,10 +583,11 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
 
 interface Props {
   template?: TemplateEnriched | null;
-  cluster?: GitopsClusterEnriched | null;
+  resource?: any | null;
+  type?: string;
 }
 
-const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
+const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
   if (!template) {
     return (
       <Redirect
@@ -593,7 +597,7 @@ const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
             notification: [
               {
                 message: {
-                  text: 'No template information is available to create a cluster.',
+                  text: 'No template information is available to create a resource.',
                 },
                 variant: 'danger',
               },
@@ -606,11 +610,11 @@ const ClusterFormWrapper: FC<Props> = ({ template, cluster }) => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <ProfilesProvider cluster={cluster || undefined} template={template}>
-        <ClusterForm template={template} cluster={cluster || undefined} />
+      <ProfilesProvider cluster={resource || undefined} template={template}>
+        <ResourceForm template={template} resource={resource || undefined} />
       </ProfilesProvider>
     </ThemeProvider>
   );
 };
 
-export default ClusterFormWrapper;
+export default ResourceFormWrapper;

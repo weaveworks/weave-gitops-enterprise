@@ -1,8 +1,14 @@
 import { FC } from 'react';
-import { BucketDetail, Kind, useGetObject, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  BucketDetail,
+  Kind,
+  useGetObject,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../Templates/Edit/EditButton';
 import { Routes } from '../../utils/nav';
 
 type Props = {
@@ -42,7 +48,11 @@ const WGApplicationsBucket: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <BucketDetail bucket={bucket} {...props} />
+        <BucketDetail
+          bucket={bucket}
+          customActions={[<EditButton resource={bucket} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );
