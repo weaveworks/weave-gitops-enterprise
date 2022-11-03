@@ -75,7 +75,7 @@ interface Props {
   backgroundColor?: string;
   errors?: ListError[];
   loading?: boolean;
-  notification?: NotificationData[];
+  notifications?: NotificationData[];
 }
 
 export const ContentWrapper: FC<Props> = ({
@@ -84,7 +84,7 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
-  notification,
+  notifications,
 }) => {
   const classes = useStyles();
   const { data, error } = useListVersion();
@@ -124,8 +124,8 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
-      {notification &&
-        notification.map(
+      {notifications &&
+        notifications.map(
           (n, index) =>
             (n?.message.text || n?.message.component) && (
               <Alert

@@ -463,7 +463,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
         }}
       >
         <ContentWrapper
-          notification={[
+          notifications={[
             ...(notification
               ? [
                   {

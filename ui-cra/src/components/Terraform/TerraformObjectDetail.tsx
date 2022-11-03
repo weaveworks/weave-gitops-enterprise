@@ -39,7 +39,9 @@ function TerraformObjectDetail({ className, ...params }: Props) {
   const { path } = useRouteMatch();
   const [syncing, setSyncing] = useState(false);
   const [suspending, setSuspending] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [notification, setNotification] = useState<NotificationData | null>(
+    null,
+  );
 
   const { data, isLoading, error } = useGetTerraformObjectDetail(params);
   const sync = useSyncTerraformObject(params);
@@ -52,20 +54,16 @@ function TerraformObjectDetail({ className, ...params }: Props) {
 
     return sync()
       .then(() => {
-        setNotifications([
-          {
-            message: { text: 'Sync successful' },
-            severity: 'success',
-          },
-        ]);
+        setNotification({
+          message: { text: 'Sync successful' },
+          severity: 'success',
+        });
       })
       .catch(err => {
-        setNotifications([
-          {
-            message: { text: err?.message },
-            severity: 'error',
-          },
-        ]);
+        setNotification({
+          message: { text: err?.message },
+          severity: 'error',
+        });
       })
       .finally(() => setSyncing(false));
   };
@@ -77,21 +75,17 @@ function TerraformObjectDetail({ className, ...params }: Props) {
 
     return toggleSuspend(suspend)
       .then(() => {
-        setNotifications([
-          {
-            message: {
-              text: `Successfully ${suspend ? 'suspended' : 'resumed'} ${
-                object?.name
-              }`,
-            },
-            severity: 'success',
+        setNotification({
+          message: {
+            text: `Successfully ${suspend ? 'suspended' : 'resumed'} ${
+              object?.name
+            }`,
           },
-        ]);
+          severity: 'success',
+        });
       })
       .catch(err => {
-        setNotifications([
-          { message: { text: err.message }, severity: 'error' },
-        ]);
+        setNotification({ message: { text: err.message }, severity: 'error' });
       })
       .finally(() => setSuspending(false));
   };
@@ -117,7 +111,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
       <ContentWrapper
         errors={error ? [error] : []}
         loading={isLoading}
-        notification={notifications}
+        notifications={[...(notification ? [notification] : [])]}
       >
         <div className={className}>
           <Box paddingBottom={3}>

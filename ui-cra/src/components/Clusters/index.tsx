@@ -366,7 +366,7 @@ const MCCP: FC<{
         }}
       >
         <ContentWrapper
-          notification={[
+          notifications={[
             ...errors,
             ...notifications,
             ...(location?.state?.notification

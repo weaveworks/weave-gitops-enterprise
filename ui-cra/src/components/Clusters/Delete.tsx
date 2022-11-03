@@ -42,7 +42,7 @@ interface Props {
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
   selectedCapiClusters: ClusterNamespacedName[];
-  onClose: (notif?: NotificationData) => void;
+  onClose: (notification?: NotificationData) => void;
   prDefaults: PRDefaults;
 }
 

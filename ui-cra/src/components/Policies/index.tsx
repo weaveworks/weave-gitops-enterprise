@@ -14,7 +14,7 @@ const Policies = () => {
     >
       <ContentWrapper
         loading={isLoading}
-        notification={[
+        notifications={[
           {
             message: { text: error?.message },
             severity: 'error',

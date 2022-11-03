@@ -59,7 +59,7 @@ const WGApplicationsDashboard: FC<{
     >
       <ContentWrapper
         errors={automations?.errors}
-        notification={[
+        notifications={[
           ...(location?.state?.notification
             ? [stateNotification(location?.state?.notification?.[0])]
             : []),

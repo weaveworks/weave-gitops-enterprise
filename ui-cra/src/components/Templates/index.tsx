@@ -107,7 +107,7 @@ const TemplatesDashboard: FC<{
     >
       <ContentWrapper
         loading={isLoading}
-        notification={[
+        notifications={[
           {
             message: { text: error?.message },
             severity: 'error',
@@ -116,7 +116,7 @@ const TemplatesDashboard: FC<{
             message: {
               text: location.state?.notification?.[0]?.message.text,
             },
-            severity: 'error',
+            severity: location.state?.notification?.[0]?.severity,
           },
         ]}
       >

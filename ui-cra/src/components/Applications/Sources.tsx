@@ -28,7 +28,7 @@ const WGApplicationsSources: FC = () => {
       <ContentWrapper
         errors={sources?.errors}
         loading={isLoading}
-        notification={[
+        notifications={[
           {
             message: { text: error?.message },
             severity: 'error',

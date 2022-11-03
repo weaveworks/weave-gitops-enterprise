@@ -22,7 +22,7 @@ const ProgressiveDelivery = () => {
       <ContentWrapper
         loading={isLoading}
         errors={data?.errors}
-        notification={[
+        notifications={[
           {
             message: { text: error?.message },
             severity: 'error',

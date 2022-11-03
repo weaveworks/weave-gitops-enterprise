@@ -127,7 +127,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
     >
       <ContentWrapper
         loading={isLoading}
-        notification={[
+        notifications={[
           {
             message: { text: error?.message },
             severity: 'error',

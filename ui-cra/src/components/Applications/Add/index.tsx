@@ -335,7 +335,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper
-              notification={[
+              notifications={[
                 {
                   message: { text: notification?.message.text },
                   severity: notification?.severity,

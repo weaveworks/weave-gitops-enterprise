@@ -28,7 +28,7 @@ const Pipelines = ({ className }: any) => {
     >
       <ContentWrapper
         loading={isLoading}
-        notification={[
+        notifications={[
           {
             message: { text: error?.message },
             severity: 'error',
