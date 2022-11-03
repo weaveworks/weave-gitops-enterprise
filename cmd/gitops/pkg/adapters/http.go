@@ -231,7 +231,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 }
 
 // RetrieveTemplate returns a template from the cluster service.
-func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind) (*templates.Template, error) {
+func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind, namespace string) (*templates.Template, error) {
 	endpoint := "v1/templates/{template_name}"
 
 	type GetTemplateResponse struct {
@@ -245,7 +245,8 @@ func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind) 
 			"template_name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind":      kind.String(),
+			"template_namespace": namespace,
 		}).
 		SetResult(&template).
 		Get(endpoint)
@@ -302,7 +303,7 @@ func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, pr
 
 // RetrieveTemplateParameters returns the list of all parameters of the
 // specified template.
-func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string) ([]templates.TemplateParameter, error) {
+func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string, namespace string) ([]templates.TemplateParameter, error) {
 	endpoint := "v1/templates/{template_name}/params"
 
 	type ListTemplateParametersResponse struct {
@@ -316,7 +317,8 @@ func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 			"template_name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind":      kind.String(),
+			"template_namespace": namespace,
 		}).
 		SetResult(&templateParametersList).
 		Get(endpoint)
@@ -672,7 +674,7 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 
 // RetrieveTemplateProfiles returns the list of all profiles of the
 // specified template.
-func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]templates.Profile, error) {
+func (c *HTTPClient) RetrieveTemplateProfiles(name string, namespace string) ([]templates.Profile, error) {
 	endpoint := "v1/templates/{name}/profiles"
 
 	type ListTemplatePResponse struct {
@@ -684,6 +686,9 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]templates.Profile,
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
 			"name": name,
+		}).
+		SetQueryParams(map[string]string{
+			"template_namespace": namespace,
 		}).
 		SetResult(&templateProfilesList).
 		Get(endpoint)
