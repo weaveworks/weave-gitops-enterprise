@@ -2,14 +2,13 @@ import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
 import { NotificationData } from '../../types/custom';
 import { Tooltip } from '../Shared';
 import { AlertListErrors } from './AlertListErrors';
-import _ from 'lodash';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
 const { feedbackLight, white } = theme.colors;
@@ -94,19 +93,6 @@ export const ContentWrapper: FC<Props> = ({
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
-  const [notif, setNotif] = useState<NotificationData[]>([]);
-
-  useEffect(() => {
-    if (notification) {
-      setNotif(prevState => [...prevState, ...notification]);
-    }
-    if (error) {
-      setNotif(prevState => [
-        ...prevState,
-        { message: { text: error?.message }, severity: 'error' },
-      ]);
-    }
-  }, [error, setNotif, notification]);
 
   if (loading) {
     return (
@@ -138,17 +124,23 @@ export const ContentWrapper: FC<Props> = ({
         </Alert>
       )}
       {errors && <AlertListErrors errors={errors} />}
-      {_.uniq(notif).map(
-        (n, index) =>
-          (n?.message.text || n?.message.component) && (
-            <Alert
-              key={index}
-              severity={n.severity}
-              className={classes.alertWrapper}
-            >
-              {n.message.text} {n.message.component}
-            </Alert>
-          ),
+      {notification &&
+        notification.map(
+          (n, index) =>
+            (n?.message.text || n?.message.component) && (
+              <Alert
+                key={index}
+                severity={n.severity}
+                className={classes.alertWrapper}
+              >
+                {n.message.text} {n.message.component}
+              </Alert>
+            ),
+        )}
+      {error && (
+        <Alert severity="error" className={classes.alertWrapper}>
+          {error?.message}
+        </Alert>
       )}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
