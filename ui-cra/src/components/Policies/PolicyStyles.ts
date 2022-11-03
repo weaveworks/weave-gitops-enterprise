@@ -23,7 +23,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       fontWeight: 400,
       fontSize: theme.fontSizes.medium,
       color: black,
-      marginLeft: xs,
+      marginTop: xs,
     },
     chip: {
       background: neutral10,
