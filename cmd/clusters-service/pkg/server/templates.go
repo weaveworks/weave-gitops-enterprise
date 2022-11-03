@@ -268,11 +268,7 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 
 	var costEstimate *capiv1_proto.CostEstimate
 	if tmpl.GetAnnotations()[templates.CostEstimationAnnotation] == "true" {
-		var err error
-		costEstimate, err = getCostEstimate(ctx, s.estimator, tmplWithValues)
-		if err != nil {
-			costEstimate = &capiv1_proto.CostEstimate{Message: err.Error()}
-		}
+		costEstimate = getCostEstimate(ctx, s.estimator, tmplWithValues)
 	}
 
 	client, err := s.clientGetter.Client(ctx)
@@ -342,18 +338,18 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
 }
 
-func getCostEstimate(ctx context.Context, estimator estimation.Estimator, tmplWithValues [][]byte) (*capiv1_proto.CostEstimate, error) {
+func getCostEstimate(ctx context.Context, estimator estimation.Estimator, tmplWithValues [][]byte) *capiv1_proto.CostEstimate {
 	unstructureds, err := templates.ConvertToUnstructured(tmplWithValues)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse rendered templates: %w", err)
+		return &capiv1_proto.CostEstimate{Message: fmt.Sprintf("failed to parse rendered templates: %s", err)}
 	}
 
 	estimate, err := estimator.Estimate(ctx, unstructureds)
 	if err != nil {
-		return nil, fmt.Errorf("failed to calculate estimate for cluster costs: %w", err)
+		return &capiv1_proto.CostEstimate{Message: fmt.Sprintf("failed to calculate estimate for cluster costs: %s", err)}
 	}
 	if estimate == nil {
-		return nil, fmt.Errorf("no estimate returned")
+		return &capiv1_proto.CostEstimate{Message: "no estimate returned"}
 	}
 
 	return &capiv1_proto.CostEstimate{
@@ -362,7 +358,7 @@ func getCostEstimate(ctx context.Context, estimator estimation.Estimator, tmplWi
 			Low:  estimate.Low,
 			High: estimate.High,
 		},
-	}, nil
+	}
 }
 
 func isProviderRecognised(provider string) bool {

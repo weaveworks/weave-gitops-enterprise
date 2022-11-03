@@ -442,23 +442,26 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	clustersManager.Start(ctx)
 
 	var estimator estimation.Estimator
-	cfg, err := awsconfig.LoadDefaultConfig(ctx)
-	if err != nil {
-		log.Error(err, "unable to load SDK config")
-		os.Exit(1)
-	}
-	svc := pricing.NewFromConfig(cfg)
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
+		log.Info("Cost estimation feature flag is enabled")
+		cfg, err := awsconfig.LoadDefaultConfig(ctx)
+		if err != nil {
+			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
+		} else {
+			svc := pricing.NewFromConfig(cfg)
+			pricer := estimation.NewAWSPricer(log, svc)
 
-	// FIXME: should come out of the helm values or a configmap etc.
-	filters := map[string]string{
-		"operatingSystem": "Linux",
-		"tenancy":         "Dedicated",
-		"capacitystatus":  "UnusedCapacityReservation",
-		"operation":       "RunInstances",
-	}
+			// FIXME: should come out of the helm values or a configmap etc.
+			filters := map[string]string{
+				"operatingSystem": "Linux",
+				"tenancy":         "Dedicated",
+				"capacitystatus":  "UnusedCapacityReservation",
+				"operation":       "RunInstances",
+			}
 
-	pricer := estimation.NewAWSPricer(log, svc)
-	estimator = estimation.NewAWSClusterEstimator(pricer, filters)
+			estimator = estimation.NewAWSClusterEstimator(pricer, filters)
+		}
+	}
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
