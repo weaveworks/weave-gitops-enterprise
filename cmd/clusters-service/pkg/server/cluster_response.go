@@ -20,6 +20,7 @@ func ToClusterResponse(c *gitopsv1alpha1.GitopsCluster) *capiv1_proto.GitopsClus
 		Annotations: c.Annotations,
 		Labels:      c.Labels,
 		Conditions:  mapConditions(c.Status.Conditions),
+		Type:        c.GetObjectKind().GroupVersionKind().Kind,
 	}
 
 	if c.Spec.CAPIClusterRef != nil {

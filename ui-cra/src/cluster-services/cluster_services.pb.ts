@@ -280,6 +280,7 @@ export type GitopsCluster = {
   secretRef?: GitopsClusterRef
   capiCluster?: CapiCluster
   controlPlane?: boolean
+  type?: string
 }
 
 export type CapiCluster = {
@@ -337,6 +338,7 @@ export type Parameter = {
   required?: boolean
   options?: string[]
   default?: string
+  editable?: boolean
 }
 
 export type TemplateProfile = {

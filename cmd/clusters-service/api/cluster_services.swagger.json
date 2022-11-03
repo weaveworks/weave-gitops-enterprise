@@ -1526,6 +1526,9 @@
         },
         "controlPlane": {
           "type": "boolean"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
@@ -1839,6 +1842,9 @@
         },
         "default": {
           "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
         }
       }
     },

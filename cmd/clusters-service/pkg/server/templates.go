@@ -282,12 +282,18 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	}
 
 	// FIXME: parse and read from Cluster in yaml template
-	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
-	if !ok {
-		return nil, errors.New("unable to find 'CLUSTER_NAME' parameter in supplied values")
+	clusterName := msg.ParameterValues["CLUSTER_NAME"]
+	resourceName := msg.ParameterValues["RESOURCE_NAME"]
+
+	if clusterName == "" && resourceName == "" {
+		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
 	}
 
-	cluster := createNamespacedName(clusterName, clusterNamespace)
+	if clusterName != "" {
+		resourceName = clusterName
+	}
+
+	cluster := createNamespacedName(resourceName, clusterNamespace)
 	content := string(tmplWithValuesAndCredentials[:])
 
 	var profileFiles []gitprovider.CommitFile
