@@ -247,6 +247,9 @@
         },
         "status": {
           "$ref": "#/definitions/v1PipelineStatus"
+        },
+        "yaml": {
+          "type": "string"
         }
       }
     },

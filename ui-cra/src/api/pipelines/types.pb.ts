@@ -68,4 +68,5 @@ export type Pipeline = {
   environments?: Environment[]
   targets?: Target[]
   status?: PipelineStatus
+  yaml?: string
 }
