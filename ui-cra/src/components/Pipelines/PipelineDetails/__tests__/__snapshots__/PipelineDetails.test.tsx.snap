@@ -307,6 +307,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
   display: none;
 }
 
+.c24 .c8 img {
+  width: 16px;
+}
+
 .c19 {
   font-size: 20px;
   margin-bottom: 12px;
