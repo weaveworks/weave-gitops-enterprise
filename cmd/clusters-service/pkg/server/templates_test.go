@@ -869,7 +869,9 @@ func TestCostEstimation(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			expectedCost: nil,
+			expectedCost: &capiv1_protos.CostEstimate{
+				Message: "no estimate returned",
+			},
 		},
 		{
 			name: "has annotation",
