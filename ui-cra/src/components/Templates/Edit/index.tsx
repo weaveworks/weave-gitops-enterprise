@@ -59,6 +59,7 @@ const EditResourcePage: FC<Props> = props => {
     namespace,
     kind as Kind,
     clusterName,
+    { enabled: kind !== 'GitopsCluster' },
   );
   const { getCluster } = useClusters();
   const cluster = getCluster(name);
