@@ -18,7 +18,6 @@ import {
   LoadingPage,
   statusSortHelper,
   theme,
-  Link as LinkWrapper,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -53,6 +52,7 @@ import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { getCreateRequestAnnotation } from './Form/utils';
 import { openLinkHandler } from '../../utils/link-checker';
+import { stateNotification } from '../../utils/stateNotification';
 
 interface Size {
   size?: 'small';
@@ -354,38 +354,6 @@ const MCCP: FC<{
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
 
-  const stateNotification = () => {
-    const [notification] = location.state.notification;
-
-    if (notification?.message?.text) {
-      if (notification?.message?.text?.includes('PR created successfully')) {
-        const href = notification?.message?.text.split('::')[1];
-        return {
-          message: {
-            component: (
-              <LinkWrapper href={href} newTab>
-                PR created successfully.
-              </LinkWrapper>
-            ),
-          },
-          severity: 'success',
-        } as NotificationData;
-      }
-      return {
-        message: {
-          text: notification?.message?.text,
-        },
-        severity: notification?.severity,
-      };
-    } else
-      return {
-        message: {
-          component: notification?.message?.component,
-        },
-        severity: notification?.severity,
-      };
-  };
-
   return (
     <PageTemplate
       documentTitle="Clusters"
@@ -401,7 +369,9 @@ const MCCP: FC<{
           notification={[
             ...errors,
             ...notifications,
-            ...(location?.state?.notification ? [stateNotification()] : []),
+            ...(location?.state?.notification
+              ? [stateNotification(location?.state?.notification?.[0])]
+              : []),
           ]}
         >
           <div

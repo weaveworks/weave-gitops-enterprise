@@ -16,6 +16,8 @@ import { useListConfig } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core';
 import { openLinkHandler } from '../../utils/link-checker';
 import { Routes } from '../../utils/nav';
+import { NotificationData } from '../../types/custom';
+import { stateNotification } from '../../utils/stateNotification';
 
 interface Size {
   size?: 'small';
@@ -35,15 +37,15 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-const WGApplicationsDashboard: FC = () => {
+const WGApplicationsDashboard: FC<{
+  location?: { state: { notification: NotificationData[] } };
+}> = ({ location }) => {
   const { data: automations, isLoading } = useListAutomations();
   const history = useHistory();
   const { repoLink } = useListConfig();
   const classes = useStyles();
 
-  const handleAddApplication = () => {
-    history.push(Routes.AddApplication);
-  };
+  const handleAddApplication = () => history.push(Routes.AddApplication);
 
   return (
     <PageTemplate
@@ -55,7 +57,14 @@ const WGApplicationsDashboard: FC = () => {
         },
       ]}
     >
-      <ContentWrapper errors={automations?.errors}>
+      <ContentWrapper
+        errors={automations?.errors}
+        notification={[
+          ...(location?.state?.notification
+            ? [stateNotification(location?.state?.notification?.[0])]
+            : []),
+        ]}
+      >
         <div
           style={{
             display: 'flex',

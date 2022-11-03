@@ -286,16 +286,18 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push(Routes.Applications);
-        setNotification({
-          message: {
-            component: (
-              <Link href={response.webUrl} newTab>
-                PR created successfully.
-              </Link>
-            ),
+        history.push({
+          pathname: Routes.Applications,
+          state: {
+            notification: [
+              {
+                message: {
+                  text: `PR created successfully::${response.webUrl}`,
+                },
+                severity: 'success',
+              },
+            ],
           },
-          severity: 'success',
         });
       })
       .catch(error => {

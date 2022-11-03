@@ -108,9 +108,9 @@ const AppRoutes = () => {
         path={Routes.PolicyViolationDetails}
       />
       <Route
-        component={() => (
+        component={(props: any) => (
           <CoreWrapper>
-            <WGApplicationsDashboard />
+            <WGApplicationsDashboard {...props} />
           </CoreWrapper>
         )}
         exact
