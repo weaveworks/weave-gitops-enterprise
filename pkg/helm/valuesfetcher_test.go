@@ -84,6 +84,9 @@ func watchForHelmChartAndUpdateStatus(fakeClient client.Client) error {
 		if err != nil {
 			return false, err
 		}
+		if len(helmCharts.Items) == 0 {
+			return false, nil
+		}
 		hc := helmCharts.Items[0]
 		hc.Status.URL = "http://source-controller.flux-system.svc.cluster.local./demo-index.yaml/index.yaml"
 		hc.Status.Conditions = []metav1.Condition{

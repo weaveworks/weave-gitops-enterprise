@@ -464,7 +464,7 @@ func createClusterBootstrapConfig(clusterName string, nameSpace string, bootstra
 	return bootstrapConfig
 }
 
-func connectGitopsCuster(clusterName string, nameSpace string, bootstrapLabel string, kubeconfigSecret string) (gitopsCluster string) {
+func connectGitopsCluster(clusterName string, nameSpace string, bootstrapLabel string, kubeconfigSecret string) (gitopsCluster string) {
 	ginkgo.By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", clusterName), func() {
 		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/gitops-cluster.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
@@ -520,7 +520,7 @@ func deleteSource(sourceType, sourceName, namespace, kubeconfig string) {
 }
 
 func addKustomizationBases(clusterType, clusterName, clusterNamespace string) {
-	ginkgo.By("And add kustomization bases for common resources for leaf cluster)", func() {
+	ginkgo.By("And add kustomization bases for common resources for leaf cluster", func() {
 		repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
 		checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 		leafClusterPath := path.Join(repoAbsolutePath, "clusters", clusterNamespace, clusterName)

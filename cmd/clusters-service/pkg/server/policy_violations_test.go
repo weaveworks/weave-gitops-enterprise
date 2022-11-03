@@ -73,7 +73,7 @@ func TestGetPolicyViolation(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeEvent(t),
 			},
-			err: requiredClusterNameErr,
+			err: errRequiredClusterName,
 		},
 	}
 
