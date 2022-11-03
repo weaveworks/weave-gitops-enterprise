@@ -171,7 +171,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			// leafClusterName := "wge-leaf-kind"
 			// leafClusterNamespace := "test-system"
 			ClusterLables := []string{"weave.works/flux: bootstrap", "weave.works/apps: backup"}
-			downloadedKubeconfigPath := getDownloadedKubeconfigPath(leafCluster.Name)
+			downloadedKubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", leafCluster.Name))
 
 			ginkgo.JustBeforeEach(func() {
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
