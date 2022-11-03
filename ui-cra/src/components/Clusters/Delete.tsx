@@ -44,7 +44,6 @@ interface Props {
   selectedCapiClusters: ClusterNamespacedName[];
   onClose: (notif?: NotificationData) => void;
   prDefaults: PRDefaults;
-  setNotifications: Dispatch<React.SetStateAction<any>>;
 }
 
 export const DeleteClusterDialog: FC<Props> = ({
@@ -53,7 +52,6 @@ export const DeleteClusterDialog: FC<Props> = ({
   selectedCapiClusters,
   onClose,
   prDefaults,
-  setNotifications,
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
@@ -136,11 +134,11 @@ export const DeleteClusterDialog: FC<Props> = ({
       });
 
   const cleanUp = useCallback(
-    (event: any, notif?: NotificationData) => {
+    (event: any, notification?: NotificationData) => {
       clearCallbackState();
       setShowAuthDialog(false);
       setFormData(prDefaults);
-      onClose(notif);
+      onClose(notification);
     },
     [onClose, setFormData, prDefaults],
   );

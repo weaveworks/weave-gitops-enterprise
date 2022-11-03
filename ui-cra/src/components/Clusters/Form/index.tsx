@@ -11,7 +11,6 @@ import {
   CallbackStateContextProvider,
   clearCallbackState,
   getProviderToken,
-  Link,
   LoadingPage,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -393,16 +392,18 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push(Routes.Clusters);
-        setNotification({
-          message: {
-            component: (
-              <Link href={response.webUrl} newTab>
-                PR created successfully.
-              </Link>
-            ),
+        history.push({
+          pathname: Routes.Clusters,
+          state: {
+            notification: [
+              {
+                message: {
+                  text: `PR created successfully::${response.webUrl}`,
+                },
+                severity: 'success',
+              },
+            ],
           },
-          severity: 'success',
         });
       })
       .catch(error => {
@@ -467,7 +468,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
               ? [
                   {
                     message: { text: notification?.message.text },
-                    severity: 'error',
+                    severity: notification.severity,
                   } as NotificationData,
                 ]
               : []),

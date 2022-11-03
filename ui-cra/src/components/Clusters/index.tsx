@@ -18,6 +18,7 @@ import {
   LoadingPage,
   statusSortHelper,
   theme,
+  Link as LinkWrapper,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -207,12 +208,10 @@ const MCCP: FC<{
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const handleClose = useCallback(
-    (notif?: NotificationData) => {
+    (notification?: NotificationData) => {
       setOpenDeletePR(false);
-      console.log(notif);
-      // this isn't working
-      if (notif) {
-        setNotifications([notif]);
+      if (notification) {
+        setNotifications([notification]);
       }
       setSelectedClusters([]);
     },
@@ -355,6 +354,38 @@ const MCCP: FC<{
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
 
+  const stateNotification = () => {
+    const [notification] = location.state.notification;
+
+    if (notification?.message?.text) {
+      if (notification?.message?.text?.includes('PR created successfully')) {
+        const href = notification?.message?.text.split('::')[1];
+        return {
+          message: {
+            component: (
+              <LinkWrapper href={href} newTab>
+                PR created successfully.
+              </LinkWrapper>
+            ),
+          },
+          severity: 'success',
+        } as NotificationData;
+      }
+      return {
+        message: {
+          text: notification?.message?.text,
+        },
+        severity: notification?.severity,
+      };
+    } else
+      return {
+        message: {
+          component: notification?.message?.component,
+        },
+        severity: notification?.severity,
+      };
+  };
+
   return (
     <PageTemplate
       documentTitle="Clusters"
@@ -370,16 +401,7 @@ const MCCP: FC<{
           notification={[
             ...errors,
             ...notifications,
-            ...(location.state?.notification?.[0]?.message.text
-              ? [
-                  {
-                    message: {
-                      text: location.state?.notification?.[0]?.message.text,
-                    },
-                    severity: 'error',
-                  } as NotificationData,
-                ]
-              : []),
+            ...(location?.state?.notification ? [stateNotification()] : []),
           ]}
         >
           <div
@@ -431,7 +453,6 @@ const MCCP: FC<{
                   selectedCapiClusters={selectedCapiClusters}
                   onClose={handleClose}
                   prDefaults={PRdefaults}
-                  setNotifications={setNotifications}
                 />
               )}
               {openConnectInfo && (
