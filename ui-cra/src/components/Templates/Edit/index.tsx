@@ -70,7 +70,10 @@ const EditResourcePage: FC<Props> = props => {
       path={[
         { label: 'Resource' },
         {
-          label: kind === 'GitopsCluster' ? cluster?.name || '' : resource.name,
+          label:
+            kind === 'GitopsCluster'
+              ? cluster?.name || ''
+              : resource?.name || '',
         },
       ]}
     >
