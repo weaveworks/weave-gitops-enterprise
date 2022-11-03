@@ -258,8 +258,8 @@ func Test_mergeStringMaps(t *testing.T) {
 
 	for _, tt := range mergeMapsTests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			res := mergeStringMaps(tt.origin, tt.updates...)
+			mapsToMerge := append([]map[string]string{tt.origin}, tt.updates...)
+			res := mergeStringMaps(mapsToMerge...)
 			assert.Equal(t, res, tt.expected)
 
 		})

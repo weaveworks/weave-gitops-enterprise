@@ -154,11 +154,13 @@ func composeClusters(resources *clusterResources) ([]composedCluster, error) {
 	return clusters, nil
 }
 
-func (e *AWSClusterEstimator) priceRangeFromFilters(ctx context.Context, instanceType, regionCode string, instanceCount int32) (float32, float32, error) {
-	filters := mergeStringMaps(e.EC2Filters, map[string]string{
+func (e *AWSClusterEstimator) priceRangeFromFilters(ctx context.Context, instanceType, regionCode string, instanceCount int32, additionalFilters ...map[string]string) (float32, float32, error) {
+	unmergedFilters := append([]map[string]string{e.EC2Filters}, additionalFilters...)
+	unmergedFilters = append(unmergedFilters, map[string]string{
 		"instanceType": instanceType,
 		"regionCode":   regionCode,
 	})
+	filters := mergeStringMaps(unmergedFilters...)
 	prices, err := e.Pricer.ListPrices(ctx, "AmazonEC2", e.Currency, filters)
 	if err != nil {
 		return invalidPrice, invalidPrice, fmt.Errorf("error getting prices for estimation: %w", err)
