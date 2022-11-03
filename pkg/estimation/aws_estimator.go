@@ -3,6 +3,7 @@ package estimation
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -54,12 +55,12 @@ func (e *AWSClusterEstimator) Estimate(ctx context.Context, us []*unstructured.U
 func (e *AWSClusterEstimator) estimateClusters(ctx context.Context, clusters []composedCluster) (map[string]*CostEstimate, error) {
 	estimates := map[string]*CostEstimate{}
 	for _, cluster := range clusters {
-		controlPlaneMin, controlPlaneMax, err := e.priceRangeFromFilters(ctx, cluster.controlPlane.instanceType, cluster.regionCode, cluster.controlPlane.instances)
+		controlPlaneMin, controlPlaneMax, err := e.priceRangeFromFilters(ctx, cluster.controlPlane.instanceType, cluster.regionCode, cluster.controlPlane.instances, cluster.filterAnnotations)
 		if err != nil {
 			return nil, err
 		}
 
-		infrastructureMin, infrastructureMax, err := e.priceRangeFromFilters(ctx, cluster.infrastructure.instanceType, cluster.regionCode, cluster.infrastructure.instances)
+		infrastructureMin, infrastructureMax, err := e.priceRangeFromFilters(ctx, cluster.infrastructure.instanceType, cluster.regionCode, cluster.infrastructure.instances, cluster.filterAnnotations)
 		if err != nil {
 			return nil, err
 		}
@@ -146,8 +147,9 @@ func composeClusters(resources *clusterResources) ([]composedCluster, error) {
 		// same region code.
 		clusters = append(clusters, composedCluster{
 			name: cluster.name, regionCode: infrastructureRegionCode,
-			controlPlane:   controlPlaneInstances,
-			infrastructure: infrastructureInstances,
+			controlPlane:      controlPlaneInstances,
+			infrastructure:    infrastructureInstances,
+			filterAnnotations: cluster.filterAnnotations,
 		})
 	}
 
@@ -241,10 +243,11 @@ type clusterInstances struct {
 }
 
 type composedCluster struct {
-	name           string
-	regionCode     string
-	infrastructure clusterInstances
-	controlPlane   clusterInstances
+	name              string
+	regionCode        string
+	infrastructure    clusterInstances
+	controlPlane      clusterInstances
+	filterAnnotations map[string]string
 }
 
 type machineDeployment struct {
@@ -254,9 +257,10 @@ type machineDeployment struct {
 }
 
 type capiCluster struct {
-	name           string
-	infrastructure objectRef
-	controlPlane   objectRef
+	name              string
+	infrastructure    objectRef
+	controlPlane      objectRef
+	filterAnnotations map[string]string
 }
 
 type controlPlane struct {
@@ -298,6 +302,23 @@ type clusterResources struct {
 	awsMachinePools map[string]awsMachinePool
 }
 
+func parseFilterAnnotations(annotations string) (map[string]string, error) {
+	resultAnnotations := make(map[string]string)
+
+	parsedAnnot, err := url.ParseQuery(annotations)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range parsedAnnot {
+		if len(v) > 1 {
+			return nil, fmt.Errorf("annotation values cannot contain multiple values for the same key %s: %v", k, &v)
+		}
+		resultAnnotations[k] = v[0]
+
+	}
+	return resultAnnotations, nil
+}
+
 func parseResources(items []*unstructured.Unstructured) (*clusterResources, error) {
 	clusters := []capiCluster{}
 	awsClusters := map[string]string{}
@@ -326,11 +347,27 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse Cluster controlPlaneRef %q: %w", u.GetName(), err)
 			}
-			clusters = append(clusters, capiCluster{
-				name:           u.GetName(),
-				infrastructure: *infrastructureRef,
-				controlPlane:   *controlPlaneRef,
-			})
+			annotations := u.GetAnnotations()
+			if annot, ok := annotations["templates.weave.works/estimation-filters"]; ok {
+				parsedAnnot, err := parseFilterAnnotations(annot)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse estimation-filters annotations %q: %w", u.GetName(), err)
+				}
+
+				clusters = append(clusters, capiCluster{
+					name:              u.GetName(),
+					infrastructure:    *infrastructureRef,
+					controlPlane:      *controlPlaneRef,
+					filterAnnotations: parsedAnnot,
+				})
+			} else {
+				clusters = append(clusters, capiCluster{
+					name:           u.GetName(),
+					infrastructure: *infrastructureRef,
+					controlPlane:   *controlPlaneRef,
+				})
+			}
+
 		case "AWSCluster.infrastructure.cluster.x-k8s.io":
 			regionCode, err := nestedString(u, "spec", "region")
 			if err != nil {
