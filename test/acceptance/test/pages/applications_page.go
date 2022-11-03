@@ -94,10 +94,12 @@ type ApplicationViolationsList struct {
 	SearchResult              *agouti.Selection
 }
 
+// AppViolationsMsgInList contains the violation's message element
 type AppViolationsMsgInList struct {
 	AppViolationsMsg *agouti.Selection
 }
 
+// ApplicationViolationsDetailsPage contains all the fields in the app violations details page
 type ApplicationViolationsDetailsPage struct {
 	ViolationHeader      *agouti.Selection
 	PolicyName           *agouti.Selection
@@ -256,13 +258,14 @@ func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolations
 	return &applicationViolationsList
 }
 
+// GetAppViolationsMsgInList returns the violation's message field which we need to press it to open the app violations detail page
 func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
 	return &AppViolationsMsgInList{
 		AppViolationsMsg: webDriver.FirstByXPath(`//td[1]//a`),
 	}
 }
 
-// GetApplicationViolationsDetailsPage will have all the locators for App Violations Details page.
+// GetApplicationViolationsDetailsPage returns all the locators for the app violations details page
 func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
 	return &ApplicationViolationsDetailsPage{
 		ViolationHeader:      webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),

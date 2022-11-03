@@ -3,7 +3,7 @@ import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { TemplateEnriched } from '../../../../types/custom';
 import { Input, Select } from '../../../../utils/form';
-import { EDIT_CLUSTER } from '../../../ResponsiveDrawer';
+import { Routes } from '../../../../utils/nav';
 
 const TemplateFieldsWrapper = styled.div`
   .form-section {
@@ -16,8 +16,10 @@ const TemplateFields: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }> = ({ template, formData, setFormData }) => {
-  const UNEDITABLE_FIELDS = ['CLUSTER_NAME', 'NAMESPACE'];
-  const { isExact: isEditing } = useRouteMatch(EDIT_CLUSTER) || {};
+  const UNEDITABLE_FIELDS = template.parameters
+    ?.filter(param => Boolean(param.editable))
+    .map(param => param.name);
+  const { isExact: isEditing } = useRouteMatch(Routes.EditResource) || {};
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
     event:
@@ -67,7 +69,7 @@ const TemplateFields: FC<{
               placeholder={param.default}
               onChange={handleFormData}
               description={param.description}
-              disabled={isEditing && UNEDITABLE_FIELDS.includes(name)}
+              disabled={isEditing && UNEDITABLE_FIELDS?.includes(name)}
             />
           );
       })}

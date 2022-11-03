@@ -47,6 +47,7 @@ message WorkloadStatus {
     string   version              = 3;
     string   lastAppliedRevision  = 4;
     repeated Condition conditions = 5;
+    bool     suspended            = 6;
 }
 
 message PipelineTargetStatus {

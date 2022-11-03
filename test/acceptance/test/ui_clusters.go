@@ -202,7 +202,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				createNamespace([]string{leafCluster.Namespace})
 				createPATSecret(leafCluster.Namespace, patSecret)
 				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCuster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
+				gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 
 				ginkgo.By("And wait for GitopsCluster to be visibe on the dashboard", func() {
 					gomega.Eventually(clustersPage.ClusterHeader).Should(matchers.BeVisible())

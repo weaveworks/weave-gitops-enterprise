@@ -482,6 +482,7 @@ message GitopsCluster {
   GitopsClusterRef secretRef = 8;
   CapiCluster capi_cluster = 9;
   bool control_plane = 10;
+  string type = 11; 
 }
 
 message CapiCluster {
@@ -537,6 +538,7 @@ message Parameter {
   bool required = 3;
   repeated string options = 4;
   string default = 5;
+  bool editable = 6;
 }
 
 message TemplateProfile {

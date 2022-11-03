@@ -11,6 +11,7 @@ import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 type Props = {
   name: string;
@@ -60,7 +61,7 @@ const WGApplicationsKustomization: FC<Props> = ({
       path={[
         {
           label: 'Applications',
-          url:Routes.Applications,
+          url: Routes.Applications,
         },
         {
           label: `${name}`,
@@ -75,6 +76,7 @@ const WGApplicationsKustomization: FC<Props> = ({
       >
         <KustomizationDetail
           kustomization={kustomization}
+          customActions={[<EditButton resource={kustomization} />]}
           customTabs={customTabs}
         />
       </ContentWrapper>

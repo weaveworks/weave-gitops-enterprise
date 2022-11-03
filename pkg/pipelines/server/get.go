@@ -119,6 +119,7 @@ func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, erro
 		ws.Name = hr.Name
 		ws.Version = hr.Spec.Chart.Spec.Version
 		ws.LastAppliedRevision = hr.Status.LastAppliedRevision
+		ws.Suspended = hr.Spec.Suspend
 		ws.Conditions = []*pb.Condition{}
 		for _, c := range hr.Status.Conditions {
 			ws.Conditions = append(ws.Conditions, &pb.Condition{

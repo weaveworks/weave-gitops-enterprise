@@ -45,6 +45,7 @@ export type WorkloadStatus = {
   version?: string
   lastAppliedRevision?: string
   conditions?: Condition[]
+  suspended?: boolean
 }
 
 export type PipelineTargetStatus = {
