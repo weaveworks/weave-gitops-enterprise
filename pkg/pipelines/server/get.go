@@ -92,10 +92,13 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 				Namespace:  t.Namespace,
 				Workloads:  []*pb.WorkloadStatus{ws},
 			})
-			pipelineYaml, _ := yaml.Marshal(p)
-			pipelineResp.Yaml = string(pipelineYaml)
 		}
 	}
+	pipelineYaml, err := yaml.Marshal(pipelineResp)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling %s pipeline, %w", pipelineResp.Name, err)
+	}
+	pipelineResp.Yaml = string(pipelineYaml)
 
 	return &pb.GetPipelineResponse{
 		Pipeline: pipelineResp,
