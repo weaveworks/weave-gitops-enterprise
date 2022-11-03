@@ -20,6 +20,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ImageAutomationPolicyChoice int32
+
+const (
+	ImageAutomationPolicyChoice_SemVer       ImageAutomationPolicyChoice = 0
+	ImageAutomationPolicyChoice_Alphabetical ImageAutomationPolicyChoice = 1
+	ImageAutomationPolicyChoice_Numerical    ImageAutomationPolicyChoice = 2
+)
+
+// Enum value maps for ImageAutomationPolicyChoice.
+var (
+	ImageAutomationPolicyChoice_name = map[int32]string{
+		0: "SemVer",
+		1: "Alphabetical",
+		2: "Numerical",
+	}
+	ImageAutomationPolicyChoice_value = map[string]int32{
+		"SemVer":       0,
+		"Alphabetical": 1,
+		"Numerical":    2,
+	}
+)
+
+func (x ImageAutomationPolicyChoice) Enum() *ImageAutomationPolicyChoice {
+	p := new(ImageAutomationPolicyChoice)
+	*p = x
+	return p
+}
+
+func (x ImageAutomationPolicyChoice) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ImageAutomationPolicyChoice) Descriptor() protoreflect.EnumDescriptor {
+	return file_api_pipelines_types_proto_enumTypes[0].Descriptor()
+}
+
+func (ImageAutomationPolicyChoice) Type() protoreflect.EnumType {
+	return &file_api_pipelines_types_proto_enumTypes[0]
+}
+
+func (x ImageAutomationPolicyChoice) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ImageAutomationPolicyChoice.Descriptor instead.
+func (ImageAutomationPolicyChoice) EnumDescriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{0}
+}
+
 type ClusterRef struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -973,6 +1022,77 @@ func (x *ImagePolicy) GetRepoRef() *ImageRepoRef {
 	return nil
 }
 
+type CrossNamespaceRef struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ApiVersion string `protobuf:"bytes,1,opt,name=apiVersion,proto3" json:"apiVersion,omitempty"`
+	Kind       string `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	Name       string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace  string `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+}
+
+func (x *CrossNamespaceRef) Reset() {
+	*x = CrossNamespaceRef{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CrossNamespaceRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CrossNamespaceRef) ProtoMessage() {}
+
+func (x *CrossNamespaceRef) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CrossNamespaceRef.ProtoReflect.Descriptor instead.
+func (*CrossNamespaceRef) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *CrossNamespaceRef) GetApiVersion() string {
+	if x != nil {
+		return x.ApiVersion
+	}
+	return ""
+}
+
+func (x *CrossNamespaceRef) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *CrossNamespaceRef) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CrossNamespaceRef) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
 type PipelineStatus_TargetStatusList struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -984,7 +1104,7 @@ type PipelineStatus_TargetStatusList struct {
 func (x *PipelineStatus_TargetStatusList) Reset() {
 	*x = PipelineStatus_TargetStatusList{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_pipelines_types_proto_msgTypes[15]
+		mi := &file_api_pipelines_types_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -997,7 +1117,7 @@ func (x *PipelineStatus_TargetStatusList) String() string {
 func (*PipelineStatus_TargetStatusList) ProtoMessage() {}
 
 func (x *PipelineStatus_TargetStatusList) ProtoReflect() protoreflect.Message {
-	mi := &file_api_pipelines_types_proto_msgTypes[15]
+	mi := &file_api_pipelines_types_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1154,12 +1274,24 @@ var file_api_pipelines_types_proto_rawDesc = []byte{
 	0x06, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x12, 0x34, 0x0a, 0x07, 0x72, 0x65, 0x70, 0x6f, 0x52,
 	0x65, 0x66, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x70, 0x69, 0x70, 0x65, 0x6c,
 	0x69, 0x6e, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6d, 0x61, 0x67, 0x65, 0x52, 0x65, 0x70,
-	0x6f, 0x52, 0x65, 0x66, 0x52, 0x07, 0x72, 0x65, 0x70, 0x6f, 0x52, 0x65, 0x66, 0x42, 0x3d, 0x5a,
-	0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76,
-	0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74,
-	0x6f, 0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x70,
-	0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x52, 0x65, 0x66, 0x52, 0x07, 0x72, 0x65, 0x70, 0x6f, 0x52, 0x65, 0x66, 0x22, 0x79, 0x0a,
+	0x11, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x52,
+	0x65, 0x66, 0x12, 0x1e, 0x0a, 0x0a, 0x61, 0x70, 0x69, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x61, 0x70, 0x69, 0x56, 0x65, 0x72, 0x73, 0x69,
+	0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61,
+	0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e,
+	0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x2a, 0x4a, 0x0a, 0x1b, 0x49, 0x6d, 0x61, 0x67,
+	0x65, 0x41, 0x75, 0x74, 0x6f, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x6f, 0x6c, 0x69, 0x63,
+	0x79, 0x43, 0x68, 0x6f, 0x69, 0x63, 0x65, 0x12, 0x0a, 0x0a, 0x06, 0x53, 0x65, 0x6d, 0x56, 0x65,
+	0x72, 0x10, 0x00, 0x12, 0x10, 0x0a, 0x0c, 0x41, 0x6c, 0x70, 0x68, 0x61, 0x62, 0x65, 0x74, 0x69,
+	0x63, 0x61, 0x6c, 0x10, 0x01, 0x12, 0x0d, 0x0a, 0x09, 0x4e, 0x75, 0x6d, 0x65, 0x72, 0x69, 0x63,
+	0x61, 0x6c, 0x10, 0x02, 0x42, 0x3d, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65,
+	0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72,
+	0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x70, 0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f,
+	0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1174,42 +1306,45 @@ func file_api_pipelines_types_proto_rawDescGZIP() []byte {
 	return file_api_pipelines_types_proto_rawDescData
 }
 
-var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_api_pipelines_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_api_pipelines_types_proto_goTypes = []interface{}{
-	(*ClusterRef)(nil),                      // 0: pipelines.v1.ClusterRef
-	(*Target)(nil),                          // 1: pipelines.v1.Target
-	(*Environment)(nil),                     // 2: pipelines.v1.Environment
-	(*ObjectRef)(nil),                       // 3: pipelines.v1.ObjectRef
-	(*AppRef)(nil),                          // 4: pipelines.v1.AppRef
-	(*Condition)(nil),                       // 5: pipelines.v1.Condition
-	(*WorkloadStatus)(nil),                  // 6: pipelines.v1.WorkloadStatus
-	(*PipelineTargetStatus)(nil),            // 7: pipelines.v1.PipelineTargetStatus
-	(*PipelineStatus)(nil),                  // 8: pipelines.v1.PipelineStatus
-	(*Pipeline)(nil),                        // 9: pipelines.v1.Pipeline
-	(*ImageAutomation)(nil),                 // 10: pipelines.v1.ImageAutomation
-	(*ImageRepository)(nil),                 // 11: pipelines.v1.ImageRepository
-	(*ImageRepoRef)(nil),                    // 12: pipelines.v1.ImageRepoRef
-	(*ImagePolicyChoice)(nil),               // 13: pipelines.v1.ImagePolicyChoice
-	(*ImagePolicy)(nil),                     // 14: pipelines.v1.ImagePolicy
-	(*PipelineStatus_TargetStatusList)(nil), // 15: pipelines.v1.PipelineStatus.TargetStatusList
-	nil,                                     // 16: pipelines.v1.PipelineStatus.EnvironmentsEntry
+	(ImageAutomationPolicyChoice)(0),        // 0: pipelines.v1.ImageAutomationPolicyChoice
+	(*ClusterRef)(nil),                      // 1: pipelines.v1.ClusterRef
+	(*Target)(nil),                          // 2: pipelines.v1.Target
+	(*Environment)(nil),                     // 3: pipelines.v1.Environment
+	(*ObjectRef)(nil),                       // 4: pipelines.v1.ObjectRef
+	(*AppRef)(nil),                          // 5: pipelines.v1.AppRef
+	(*Condition)(nil),                       // 6: pipelines.v1.Condition
+	(*WorkloadStatus)(nil),                  // 7: pipelines.v1.WorkloadStatus
+	(*PipelineTargetStatus)(nil),            // 8: pipelines.v1.PipelineTargetStatus
+	(*PipelineStatus)(nil),                  // 9: pipelines.v1.PipelineStatus
+	(*Pipeline)(nil),                        // 10: pipelines.v1.Pipeline
+	(*ImageAutomation)(nil),                 // 11: pipelines.v1.ImageAutomation
+	(*ImageRepository)(nil),                 // 12: pipelines.v1.ImageRepository
+	(*ImageRepoRef)(nil),                    // 13: pipelines.v1.ImageRepoRef
+	(*ImagePolicyChoice)(nil),               // 14: pipelines.v1.ImagePolicyChoice
+	(*ImagePolicy)(nil),                     // 15: pipelines.v1.ImagePolicy
+	(*CrossNamespaceRef)(nil),               // 16: pipelines.v1.CrossNamespaceRef
+	(*PipelineStatus_TargetStatusList)(nil), // 17: pipelines.v1.PipelineStatus.TargetStatusList
+	nil,                                     // 18: pipelines.v1.PipelineStatus.EnvironmentsEntry
 }
 var file_api_pipelines_types_proto_depIdxs = []int32{
-	0,  // 0: pipelines.v1.Target.clusterRef:type_name -> pipelines.v1.ClusterRef
-	1,  // 1: pipelines.v1.Environment.targets:type_name -> pipelines.v1.Target
-	5,  // 2: pipelines.v1.WorkloadStatus.conditions:type_name -> pipelines.v1.Condition
-	0,  // 3: pipelines.v1.PipelineTargetStatus.clusterRef:type_name -> pipelines.v1.ClusterRef
-	6,  // 4: pipelines.v1.PipelineTargetStatus.workloads:type_name -> pipelines.v1.WorkloadStatus
-	16, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
-	4,  // 6: pipelines.v1.Pipeline.appRef:type_name -> pipelines.v1.AppRef
-	2,  // 7: pipelines.v1.Pipeline.environments:type_name -> pipelines.v1.Environment
-	1,  // 8: pipelines.v1.Pipeline.targets:type_name -> pipelines.v1.Target
-	8,  // 9: pipelines.v1.Pipeline.status:type_name -> pipelines.v1.PipelineStatus
-	5,  // 10: pipelines.v1.ImageAutomation.conditions:type_name -> pipelines.v1.Condition
-	13, // 11: pipelines.v1.ImagePolicy.policy:type_name -> pipelines.v1.ImagePolicyChoice
-	12, // 12: pipelines.v1.ImagePolicy.repoRef:type_name -> pipelines.v1.ImageRepoRef
-	7,  // 13: pipelines.v1.PipelineStatus.TargetStatusList.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
-	15, // 14: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.TargetStatusList
+	1,  // 0: pipelines.v1.Target.clusterRef:type_name -> pipelines.v1.ClusterRef
+	2,  // 1: pipelines.v1.Environment.targets:type_name -> pipelines.v1.Target
+	6,  // 2: pipelines.v1.WorkloadStatus.conditions:type_name -> pipelines.v1.Condition
+	1,  // 3: pipelines.v1.PipelineTargetStatus.clusterRef:type_name -> pipelines.v1.ClusterRef
+	7,  // 4: pipelines.v1.PipelineTargetStatus.workloads:type_name -> pipelines.v1.WorkloadStatus
+	18, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
+	5,  // 6: pipelines.v1.Pipeline.appRef:type_name -> pipelines.v1.AppRef
+	3,  // 7: pipelines.v1.Pipeline.environments:type_name -> pipelines.v1.Environment
+	2,  // 8: pipelines.v1.Pipeline.targets:type_name -> pipelines.v1.Target
+	9,  // 9: pipelines.v1.Pipeline.status:type_name -> pipelines.v1.PipelineStatus
+	6,  // 10: pipelines.v1.ImageAutomation.conditions:type_name -> pipelines.v1.Condition
+	14, // 11: pipelines.v1.ImagePolicy.policy:type_name -> pipelines.v1.ImagePolicyChoice
+	13, // 12: pipelines.v1.ImagePolicy.repoRef:type_name -> pipelines.v1.ImageRepoRef
+	8,  // 13: pipelines.v1.PipelineStatus.TargetStatusList.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
+	17, // 14: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.TargetStatusList
 	15, // [15:15] is the sub-list for method output_type
 	15, // [15:15] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
@@ -1404,6 +1539,18 @@ func file_api_pipelines_types_proto_init() {
 			}
 		}
 		file_api_pipelines_types_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CrossNamespaceRef); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PipelineStatus_TargetStatusList); i {
 			case 0:
 				return &v.state
@@ -1421,13 +1568,14 @@ func file_api_pipelines_types_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_pipelines_types_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   17,
+			NumEnums:      1,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_api_pipelines_types_proto_goTypes,
 		DependencyIndexes: file_api_pipelines_types_proto_depIdxs,
+		EnumInfos:         file_api_pipelines_types_proto_enumTypes,
 		MessageInfos:      file_api_pipelines_types_proto_msgTypes,
 	}.Build()
 	File_api_pipelines_types_proto = out.File

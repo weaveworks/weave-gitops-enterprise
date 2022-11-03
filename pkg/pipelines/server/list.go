@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	automation "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflector "github.com/fluxcd/image-reflector-controller/api/v1beta1"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/imagemanager"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/internal/convert"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -134,4 +136,40 @@ func (s *server) ListImagePolicies(ctx context.Context, msg *pb.ListImagePolicie
 	return &pb.ListImagePoliciesResponse{
 		Policies: res,
 	}, nil
+}
+
+func (s *server) AddImageAutomation(ctx context.Context, msg *pb.AddImageAutomationRequest) (*pb.AddImageAutomationResponse, error) {
+	img := imagemanager.NewImageManager(s.clients)
+
+	choice := reflector.ImagePolicyChoice{}
+	if msg.PolicyType == pb.ImageAutomationPolicyChoice_SemVer {
+		choice.SemVer = &reflector.SemVerPolicy{
+			Range: msg.PolicyValue,
+		}
+	}
+
+	if msg.PolicyType == pb.ImageAutomationPolicyChoice_Numerical {
+		choice.Numerical = &reflector.NumericalPolicy{
+			Order: msg.PolicyValue,
+		}
+	}
+
+	if msg.PolicyType == pb.ImageAutomationPolicyChoice_Alphabetical {
+		choice.Alphabetical = &reflector.AlphabeticalPolicy{
+			Order: msg.PolicyValue,
+		}
+	}
+
+	ref := automation.CrossNamespaceSourceReference{
+		APIVersion: msg.SourceRef.ApiVersion,
+		Kind:       msg.SourceRef.Kind,
+		Name:       msg.SourceRef.Name,
+		Namespace:  msg.SourceRef.Namespace,
+	}
+
+	if err := img.AddImageAutomation(ctx, msg, ref, choice, nil); err != nil {
+		return nil, fmt.Errorf("adding image automation: %w", err)
+	}
+
+	return &pb.AddImageAutomationResponse{}, nil
 }

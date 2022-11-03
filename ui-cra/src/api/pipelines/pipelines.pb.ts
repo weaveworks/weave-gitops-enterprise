@@ -43,6 +43,22 @@ export type ListImagePoliciesResponse = {
   policies?: PipelinesV1Types.ImagePolicy[]
 }
 
+export type AddImageAutomationRequest = {
+  name?: string
+  namespace?: string
+  clusterName?: string
+  image?: string
+  sourceRef?: PipelinesV1Types.CrossNamespaceRef
+  branch?: string
+  path?: string
+  secretName?: string
+  policyType?: PipelinesV1Types.ImageAutomationPolicyChoice
+  policyValue?: string
+}
+
+export type AddImageAutomationResponse = {
+}
+
 export class Pipelines {
   static ListPipelines(req: ListPipelinesRequest, initReq?: fm.InitReq): Promise<ListPipelinesResponse> {
     return fm.fetchReq<ListPipelinesRequest, ListPipelinesResponse>(`/v1/pipelines?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -55,5 +71,8 @@ export class Pipelines {
   }
   static ListImagePolicies(req: ListImagePoliciesRequest, initReq?: fm.InitReq): Promise<ListImagePoliciesResponse> {
     return fm.fetchReq<ListImagePoliciesRequest, ListImagePoliciesResponse>(`/v1/imagepolicies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static AddImageAutomation(req: AddImageAutomationRequest, initReq?: fm.InitReq): Promise<AddImageAutomationResponse> {
+    return fm.fetchReq<AddImageAutomationRequest, AddImageAutomationResponse>(`/v1/imageautomations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

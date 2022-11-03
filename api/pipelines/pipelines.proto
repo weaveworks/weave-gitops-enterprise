@@ -44,6 +44,13 @@ service Pipelines {
         };
     }
 
+    rpc AddImageAutomation(AddImageAutomationRequest) returns (AddImageAutomationResponse) {
+        option (google.api.http) = {
+            post : "/v1/imageautomations",
+            body: "*"
+        };
+    }
+
 }
 
 message ListPipelinesRequest {
@@ -84,4 +91,21 @@ message ListImagePoliciesRequest {
 
 message ListImagePoliciesResponse {
     repeated ImagePolicy policies = 1;
+}
+
+message AddImageAutomationRequest {
+    string                      name        = 1;
+    string                      namespace   = 2;
+    string                      clusterName = 3;
+    string                      image       = 4;
+    CrossNamespaceRef           sourceRef   = 5;
+    string                      branch      = 6;
+    string                      Path        = 7;
+    string                      secretName  = 8;
+    ImageAutomationPolicyChoice policyType  = 9;
+    string                      policyValue = 10;
+}
+
+message AddImageAutomationResponse {
+
 }

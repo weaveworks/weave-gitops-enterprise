@@ -99,3 +99,16 @@ message ImagePolicy {
     ImagePolicyChoice policy  = 1;
     ImageRepoRef      repoRef = 2;
 }
+
+message CrossNamespaceRef {
+    string apiVersion = 1;
+    string kind       = 2;
+    string name       = 3;
+    string namespace  = 4;
+}
+
+enum ImageAutomationPolicyChoice {
+    SemVer = 0;
+    Alphabetical = 1;
+    Numerical = 2;     
+}

@@ -3,6 +3,13 @@
 /*
 * This file is a generated Typescript file for GRPC Gateway, DO NOT MODIFY
 */
+
+export enum ImageAutomationPolicyChoice {
+  SemVer = "SemVer",
+  Alphabetical = "Alphabetical",
+  Numerical = "Numerical",
+}
+
 export type ClusterRef = {
   kind?: string
   name?: string
@@ -96,4 +103,11 @@ export type ImagePolicyChoice = {
 export type ImagePolicy = {
   policy?: ImagePolicyChoice
   repoRef?: ImageRepoRef
+}
+
+export type CrossNamespaceRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
+  namespace?: string
 }
