@@ -266,10 +266,8 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	var costEstimate *capiv1_proto.CostEstimate
-	if tmpl.GetAnnotations()[templates.CostEstimationAnnotation] == "true" {
-		costEstimate = getCostEstimate(ctx, s.estimator, tmplWithValues)
-	}
+	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
+	costEstimate := getCostEstimate(ctx, s.estimator, tmplWithValues)
 
 	client, err := s.clientGetter.Client(ctx)
 	if err != nil {
