@@ -266,7 +266,7 @@ func getFiles(
 	estimator estimation.Estimator,
 	helmRepositoryCacheDir,
 	profileHelmRepositoryName string,
-	tmpl template.Template,
+	tmpl apiTemplates.Template,
 	msg GetFilesRequest,
 	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
