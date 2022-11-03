@@ -141,18 +141,7 @@ const res: GetPipelineResponse = {
         },
       },
     },
-    yaml: `apiVersion: gitops.weave.works/v1alpha1
-    kind: GitopsCluster
-    metadata:
-      labels:
-        templates.weave.works/template-name: cluster-template-development-with-policies
-        templates.weave.works/template-namespace: default
-        weave.works/capi: bootstrap
-      name: test-profile
-      namespace: default
-    spec:
-      capiClusterRef:
-        name: test-profile
+    yaml: `apiVersion: pipelines.weave.works/v1alpha1    kind: Pipeline    metadata:      labels:        kustomize.toolkit.fluxcd.io/name: flux-system        kustomize.toolkit.fluxcd.io/namespace: flux-system      name: test      namespace: default    spec:      appRef:        apiVersion: helm.toolkit.fluxcd.io/v2beta1        kind: HelmRelease        name: dex      environments:      - name: dev        targets:        - namespace: dex
     `,
   },
 };
@@ -218,7 +207,7 @@ describe('PipelineDetails', () => {
           const wrks = ts.workloads.map(wrk => ({
             ...wrk,
             clusterName: ts.clusterRef?.name || 'management',
-            mappedClusterName: ts.clusterRef?.namespace
+            mappedClusterName: ts.clusterRef?.name
               ? `${ts.clusterRef?.namespace}/${ts.clusterRef.name}`
               : 'management',
             namespace: ts.namespace,
@@ -294,8 +283,8 @@ describe('PipelineDetails', () => {
       .filter(tabEle => tabEle.textContent === 'Yaml')[0];
 
     yamlTab.click();
-    const code = document.querySelector('pre')?.textContent;
-    expect(code).toEqual(params?.yaml);
+    const code = document.querySelector('pre')?.textContent?.trimEnd();
+    expect(code).toEqual(params?.yaml?.trimEnd());
   });
 
   describe('snapshots', () => {

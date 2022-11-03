@@ -94,7 +94,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			})
 		}
 	}
-	pipelineYaml, err := yaml.Marshal(p)
+	pipelineYaml, err := yaml.Marshal(ctrl.Pipeline{})
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling %s pipeline, %w", pipelineResp.Name, err)
 	}
