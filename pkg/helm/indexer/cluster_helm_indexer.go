@@ -57,7 +57,7 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.C
 		case updates := <-cw.Updates:
 			err := i.addClusters(ctx, updates.Added, log)
 			if err != nil {
-				log.Error(err, "failed to add clusters to indexer: %s", updates.Added)
+				log.Error(err, "failed to add clusters")
 			}
 
 			for _, removed := range updates.Removed {
