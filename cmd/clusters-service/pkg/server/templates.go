@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -17,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -220,8 +222,18 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	files, err := s.getFiles(
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting client: %v", err)
+	}
+
+	files, err := getFiles(
 		ctx,
+		client,
+		s.log,
+		s.estimator,
+		s.helmRepositoryCacheDir,
+		s.profileHelmRepositoryName,
 		tm,
 		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
 		nil,
@@ -248,7 +260,16 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
 }
 
-func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
+func getFiles(
+	ctx context.Context,
+	client client.Client,
+	log logr.Logger,
+	estimator estimation.Estimator,
+	helmRepositoryCacheDir,
+	profileHelmRepositoryName string,
+	tmpl template.Template,
+	msg GetFilesRequest,
+	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
@@ -272,7 +293,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 		return nil, fmt.Errorf("failed to parse rendered templates: %w", err)
 	}
 	var costEstimate *capiv1_proto.CostEstimate
-	estimate, err := s.estimator.Estimate(ctx, unstructureds)
+	estimate, err := estimator.Estimate(ctx, unstructureds)
 	if err != nil {
 		return nil, fmt.Errorf("failed to calculate estimate for cluster costs: %w", err)
 	}
@@ -286,12 +307,7 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 		}
 	}
 
-	client, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
 	}
@@ -308,15 +324,20 @@ func (s *server) getFiles(ctx context.Context, tmpl template.Template, msg GetFi
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
 
-	if len(msg.Profiles) > 0 {
+	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
+	}
+
+	if len(msg.Profiles) > 0 || len(requiredProfiles) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
 			tmpl,
 			cluster,
 			client,
 			generateProfileFilesParams{
-				helmRepository:         createNamespacedName(s.profileHelmRepositoryName, viper.GetString("runtime-namespace")),
-				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
+				helmRepository:         createNamespacedName(profileHelmRepositoryName, viper.GetString("runtime-namespace")),
+				helmRepositoryCacheDir: helmRepositoryCacheDir,
 				profileValues:          msg.Profiles,
 				parameterValues:        msg.ParameterValues,
 			},

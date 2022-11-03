@@ -8,7 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -16,10 +18,12 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -1237,6 +1241,109 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	if diff := cmp.Diff(expected, result, protocmp.Transform()); diff != "" {
 		t.Fatalf("template params didn't match expected:\n%s", diff)
 	}
+}
+
+func TestGetFiles(t *testing.T) {
+	viper.SetDefault("runtime-namespace", "test-ns")
+	c := createClient(t, makeTestHelmRepository("base"))
+	log := logr.Discard()
+	testEstimator := testEstimator{low: 1, high: 2, currency: "USD"}
+	getFilesRequest := GetFilesRequest{
+		ClusterNamespace: "ns-foo",
+		ParameterValues: map[string]string{
+			"CLUSTER_NAME": "cluster-foo",
+			"NAMESPACE":    "ns-foo",
+		},
+		Credentials: &capiv1_protos.Credential{
+			Group:     "",
+			Version:   "",
+			Kind:      "",
+			Name:      "",
+			Namespace: "",
+		},
+		// Profiles: []*capiv1_protos.ProfileValues{
+		// 	{
+		// 		Name:    "demo-profile",
+		// 		Version: "0.0.1",
+		// 		Values:  base64.StdEncoding.EncodeToString([]byte(``)),
+		// 	},
+		// },
+		Kustomizations: []*capiv1_protos.Kustomization{},
+	}
+
+	path := "ns-foo/cluster-foo/profiles.yaml"
+	content := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+status: {}
+`
+	expected := &GetFilesReturn{
+		ProfileFiles: []gitprovider.CommitFile{
+			{
+				Path:    &path,
+				Content: &content,
+			},
+		},
+		CostEstimate: &capiv1_protos.CostEstimate{
+			Currency: "USD",
+			Range: &capiv1_protos.CostEstimate_Range{
+				Low:  1,
+				High: 2,
+			},
+		},
+		Cluster: types.NamespacedName{
+			Namespace: "ns-foo",
+			Name:      "cluster-foo",
+		},
+	}
+
+	files, err := getFiles(
+		context.TODO(),
+		c,
+		log,
+		testEstimator,
+		"base",
+		"testing",
+		makeTestTemplateWithProfileAnnotation(
+			templatesv1.RenderTypeEnvsubst,
+			"capi.weave.works/profile-0",
+			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
+		),
+		getFilesRequest,
+		nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, files)
 }
 
 func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) *capiv1.CAPITemplate {
