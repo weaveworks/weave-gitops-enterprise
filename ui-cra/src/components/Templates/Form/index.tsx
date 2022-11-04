@@ -473,7 +473,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-<<<<<<< HEAD:ui-cra/src/components/Clusters/Form/index.tsx
         <ContentWrapper
           notifications={[
             ...(notification ? [notification] : []),
@@ -493,7 +492,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 <div className="template-title">
                   Template: <span>{template.name}</span>
                 </div>
-                {isCredentialEnabled === 'true' ? (
+                {isCredentialEnabled ? (
                   <Credentials
                     infraCredential={infraCredential}
                     setInfraCredential={setInfraCredential}
@@ -507,56 +506,19 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               />
               <TemplateFields
                 template={template}
-=======
-        <FormWrapper>
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            <CredentialsWrapper>
-              <div className="template-title">
-                Template: <span>{template.name}</span>
-              </div>
-              {isCredentialEnabled ? (
-                <Credentials
-                  infraCredential={infraCredential}
-                  setInfraCredential={setInfraCredential}
-                />
-              ) : null}
-            </CredentialsWrapper>
-            <Divider
-              className={
-                !isLargeScreen ? classes.divider : classes.largeDivider
-              }
-            />
-            <TemplateFields
-              template={template}
-              formData={formData}
-              setFormData={setFormData}
-            />
-          </Grid>
-          {isProfilesEnabled ? (
-            <Profiles
-              isLoading={profilesIsLoading}
-              updatedProfiles={updatedProfiles}
-              setUpdatedProfiles={setUpdatedProfiles}
-            />
-          ) : null}
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            {isKustomizationsEnabled ? (
-              <ApplicationsWrapper
->>>>>>> c0b53934339c957b96e92a748848a53839f2dc40:ui-cra/src/components/Templates/Form/index.tsx
                 formData={formData}
                 setFormData={setFormData}
               />
             </Grid>
-            {isProfilesEnabled === 'true' ? (
+            {isProfilesEnabled ? (
               <Profiles
                 isLoading={profilesIsLoading}
                 updatedProfiles={updatedProfiles}
                 setUpdatedProfiles={setUpdatedProfiles}
               />
             ) : null}
-<<<<<<< HEAD:ui-cra/src/components/Clusters/Form/index.tsx
             <Grid item xs={12} sm={10} md={10} lg={8}>
-              {isKustomizationsEnabled === 'true' ? (
+              {isKustomizationsEnabled ? (
                 <ApplicationsWrapper
                   formData={formData}
                   setFormData={setFormData}
@@ -579,37 +541,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 openPreview={openPreview}
                 setOpenPreview={setOpenPreview}
                 PRPreview={PRPreview}
-=======
-            {previewLoading ? (
-              <LoadingPage className={classes.previewLoading} />
-            ) : (
-              <div className={classes.previewCta}>
-                <Button
-                  onClick={event => validateFormData(event, handlePRPreview)}
-                >
-                  PREVIEW PR
-                </Button>
-              </div>
-            )}
-          </Grid>
-          {openPreview && PRPreview ? (
-            <Preview
-              openPreview={openPreview}
-              setOpenPreview={setOpenPreview}
-              PRPreview={PRPreview}
-            />
-          ) : null}
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            {isCostEstimationEnabled ? (
-              <CostEstimation
-                handleCostEstimation={handleCostEstimation}
-                costEstimate={costEstimate}
-                isCostEstimationLoading={costEstimationLoading}
->>>>>>> c0b53934339c957b96e92a748848a53839f2dc40:ui-cra/src/components/Templates/Form/index.tsx
               />
             ) : null}
             <Grid item xs={12} sm={10} md={10} lg={8}>
-              {isCostEstimationEnabled === 'true' ? (
+              {isCostEstimationEnabled ? (
                 <CostEstimation
                   handleCostEstimation={handleCostEstimation}
                   costEstimate={costEstimate}
@@ -667,8 +602,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
-    notification,
-    error,
   ]);
 };
 
