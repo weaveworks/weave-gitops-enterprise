@@ -287,7 +287,7 @@ func getFiles(
 	}
 
 	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
-	costEstimate := getCostEstimate(ctx, s.estimator, tmplWithValues)
+	costEstimate := getCostEstimate(ctx, estimator, tmplWithValues)
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
 	if err != nil {

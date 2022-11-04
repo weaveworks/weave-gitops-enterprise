@@ -1350,13 +1350,7 @@ func TestGetFiles(t *testing.T) {
 			Name:      "",
 			Namespace: "",
 		},
-		Profiles: []*capiv1_protos.ProfileValues{
-			{
-				Name:    "demo-profile",
-				Version: "0.0.1",
-				Values:  base64.StdEncoding.EncodeToString([]byte(``)),
-			},
-		},
+		Profiles:       []*capiv1_protos.ProfileValues{},
 		Kustomizations: []*capiv1_protos.Kustomization{},
 	}
 
