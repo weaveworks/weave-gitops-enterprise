@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -54,6 +53,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	log.Info("found the repository")
+
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
@@ -63,10 +63,8 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}, r.UseProxy)
 
 	if err != nil {
-		errMsg := "failed to get index file"
-		// gives us more context in the logs
-		log.Error(err, errMsg)
-		return ctrl.Result{}, fmt.Errorf("%s: %w", errMsg, err)
+		log.Error(err, "failed to get index file")
+		return ctrl.Result{}, err
 	}
 
 	for name, versions := range indexFile.Entries {

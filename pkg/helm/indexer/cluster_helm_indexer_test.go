@@ -45,7 +45,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	c1 := makeLeafCluster(clusterName1)
 	c2 := makeLeafCluster(clusterName2)
 
-	fakeCache := helmfakes.MakeFakeCache(helmfakes.WithCharts(
+	fakeCache := helmfakes.NewFakeChartCache(helmfakes.WithCharts(
 		helmfakes.ClusterRefToString(
 			helm.ObjectReference{
 				Namespace: "test-namespace",
@@ -62,7 +62,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 		},
 	))
 
-	ind := indexer.NewClusterHelmIndexerTracker(fakeCache, "", NewFakeWatcher)
+	ind := indexer.NewClusterHelmIndexerTracker(fakeCache, "", newFakeWatcher)
 	g.Expect(ind.ClusterWatchers).ToNot(BeNil())
 	go func() {
 		err := ind.Start(ctx, clientsFactory, logger)
@@ -123,7 +123,9 @@ func TestErroringCache(t *testing.T) {
 	c1 := makeLeafCluster(clusterName1)
 	c2 := makeLeafCluster(clusterName2)
 
-	ind := indexer.NewClusterHelmIndexerTracker(helmfakes.FakeErroringChartCache{DeleteAllError: errors.New("oh no")}, "", NewFakeWatcher)
+	ind := indexer.NewClusterHelmIndexerTracker(helmfakes.NewFakeChartCache(func(fc *helmfakes.FakeChartCache) {
+		fc.DeleteAllChartsForClusterError = errors.New("oh no")
+	}), "", newFakeWatcher)
 	g.Expect(ind.ClusterWatchers).ToNot(BeNil())
 	go func() {
 		err := ind.Start(ctx, clientsFactory, logger)
@@ -164,7 +166,7 @@ func clusterNames(c map[string]indexer.Watcher) []string {
 	return names
 }
 
-func NewFakeWatcher(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (indexer.Watcher, error) {
+func newFakeWatcher(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (indexer.Watcher, error) {
 	return &fakeWatcher{}, nil
 }
 

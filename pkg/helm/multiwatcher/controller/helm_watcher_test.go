@@ -73,7 +73,7 @@ var (
 )
 
 func TestReconcile(t *testing.T) {
-	fakeCache := helmfakes.MakeFakeCache()
+	fakeCache := helmfakes.NewFakeChartCache()
 	reconciler := setupReconcileAndFakes(
 		makeTestHelmRepo(),
 		&fakeValuesFetcher{repo1Index, nil},
@@ -124,7 +124,7 @@ func TestReconcileDelete(t *testing.T) {
 		},
 		clusterRef,
 	)
-	fakeCache := helmfakes.MakeFakeCache(helmfakes.WithCharts(key, repo1Charts))
+	fakeCache := helmfakes.NewFakeChartCache(helmfakes.WithCharts(key, repo1Charts))
 	reconciler := setupReconcileAndFakes(
 		makeTestHelmRepo(func(hr *sourcev1.HelmRepository) {
 			newTime := metav1.NewTime(time.Now())
@@ -151,7 +151,9 @@ func TestReconcileDeletingTheCacheFails(t *testing.T) {
 		newTime := metav1.NewTime(time.Now())
 		hr.ObjectMeta.DeletionTimestamp = &newTime
 	})
-	fakeErroringCache := helmfakes.FakeErroringChartCache{DeleteError: errors.New("nope")}
+	fakeErroringCache := helmfakes.NewFakeChartCache(func(fc *helmfakes.FakeChartCache) {
+		fc.DeleteError = errors.New("nope")
+	})
 	reconciler := setupReconcileAndFakes(deletedHelmRepo, &fakeValuesFetcher{nil, nil}, fakeErroringCache)
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
@@ -174,7 +176,7 @@ func TestReconcileGetChartFails(t *testing.T) {
 			Name:      "test-name",
 		},
 	})
-	assert.EqualError(t, err, "failed to get index file: nope")
+	assert.EqualError(t, err, "nope")
 }
 
 func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetcher, fakeCache helm.ChartsCacherWriter) *HelmWatcherReconciler {
