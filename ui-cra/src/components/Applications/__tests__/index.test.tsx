@@ -41,8 +41,6 @@ describe('Applications index test', () => {
       ],
       [CoreClientContextProvider, { api }],
       [MemoryRouter],
-      [],
-      ,
     ]);
   });
   it('renders table rows', async () => {

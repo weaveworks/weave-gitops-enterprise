@@ -602,6 +602,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
+    notification,
+    error,
   ]);
 };
 
