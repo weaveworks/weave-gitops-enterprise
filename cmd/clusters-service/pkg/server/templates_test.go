@@ -1081,7 +1081,6 @@ status: {}
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
 				namespace:    "default",
-				hr:           hr,
 				estimator:    tt.estimator,
 			})
 
@@ -1244,8 +1243,15 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 }
 
 func TestGetFiles(t *testing.T) {
-	viper.SetDefault("runtime-namespace", "test-ns")
-	c := createClient(t, makeTestHelmRepository("base"))
+	viper.SetDefault("runtime-namespace", "flux-system")
+	ts := httptest.NewServer(makeServeMux(t))
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+		hr.SetName("weaveworks-charts")
+		hr.SetNamespace("flux-system")
+	})
+	fmt.Println("hr", hr.GetName(), hr.GetNamespace())
+	c := createClient(t, hr)
+
 	log := logr.Discard()
 	testEstimator := testEstimator{low: 1, high: 2, currency: "USD"}
 	getFilesRequest := GetFilesRequest{
@@ -1261,43 +1267,43 @@ func TestGetFiles(t *testing.T) {
 			Name:      "",
 			Namespace: "",
 		},
-		// Profiles: []*capiv1_protos.ProfileValues{
-		// 	{
-		// 		Name:    "demo-profile",
-		// 		Version: "0.0.1",
-		// 		Values:  base64.StdEncoding.EncodeToString([]byte(``)),
-		// 	},
-		// },
+		Profiles: []*capiv1_protos.ProfileValues{
+			{
+				Name:    "demo-profile",
+				Version: "0.0.1",
+				Values:  base64.StdEncoding.EncodeToString([]byte(``)),
+			},
+		},
 		Kustomizations: []*capiv1_protos.Kustomization{},
 	}
 
 	path := "ns-foo/cluster-foo/profiles.yaml"
-	content := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	templateContent := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
-  name: testing
-  namespace: test-ns
+  name: weaveworks-charts
+  namespace: flux-system
 spec:
   interval: 10m0s
-  url: base/charts
+  url: {{ .URL }}/charts
 status: {}
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
   creationTimestamp: null
-  name: foo
+  name: demo-profile
   namespace: flux-system
 spec:
   chart:
     spec:
-      chart: foo
+      chart: demo-profile
       sourceRef:
         apiVersion: source.toolkit.fluxcd.io/v1beta2
         kind: HelmRepository
-        name: testing
-        namespace: test-ns
+        name: weaveworks-charts
+        namespace: flux-system
       version: 0.0.1
   install:
     crds: CreateReplace
@@ -1308,6 +1314,7 @@ spec:
     foo: bar
 status: {}
 `
+	content := simpleTemplate(t, templateContent, struct{ URL string }{URL: ts.URL})
 	expected := &GetFilesReturn{
 		ProfileFiles: []gitprovider.CommitFile{
 			{
@@ -1334,16 +1341,18 @@ status: {}
 		log,
 		testEstimator,
 		"base",
-		"testing",
+		"weaveworks-charts",
 		makeTestTemplateWithProfileAnnotation(
 			templatesv1.RenderTypeEnvsubst,
 			"capi.weave.works/profile-0",
-			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
+			"{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"foo: bar\" }",
 		),
 		getFilesRequest,
 		nil)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, files)
+	if diff := cmp.Diff(expected, files, protocmp.Transform()); diff != "" {
+		t.Fatalf("files did not match:\n%s", diff)
+	}
 }
 
 func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) *capiv1.CAPITemplate {

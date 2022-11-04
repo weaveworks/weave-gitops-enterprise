@@ -882,7 +882,6 @@ status: {}
 				clusterState: tt.clusterState,
 				namespace:    "default",
 				provider:     tt.provider,
-				hr:           hr,
 			})
 
 			// request

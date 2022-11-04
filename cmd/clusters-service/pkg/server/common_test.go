@@ -65,7 +65,6 @@ type serverOptions struct {
 	namespace       string
 	provider        git.Provider
 	ns              string
-	hr              *sourcev1.HelmRepository
 	clustersManager clustersmngr.ClustersManager
 	capiEnabled     bool
 	chartsCache     helm.ChartsCacheReader
