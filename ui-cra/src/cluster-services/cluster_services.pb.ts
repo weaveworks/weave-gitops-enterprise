@@ -85,6 +85,7 @@ export type CostEstimateRange = {
 export type CostEstimate = {
   currency?: string
   range?: CostEstimateRange
+  message?: string
 }
 
 export type RenderTemplateResponse = {
