@@ -1,5 +1,12 @@
-import { coreClient, DataTable, Flex, Kind } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  coreClient,
+  DataTable,
+  Flex,
+  Kind,
+} from '@weaveworks/weave-gitops';
 import _ from 'lodash';
+import React from 'react';
 
 import { useQuery } from 'react-query';
 import styled from 'styled-components';
@@ -9,6 +16,8 @@ import {
   ImagePolicyChoice,
   ImageRepository,
 } from '../../api/pipelines/types.pb';
+import Modal from '../Modal';
+import ImageAutomationForm from './ImageAutomationForm';
 
 type Props = {
   className?: string;
@@ -71,9 +80,16 @@ function ImageAutomation({ className, name, namespace, clusterName }: Props) {
   const { data } = useGetReconciledObjects(name, namespace, clusterName);
   const { data: automations } = useListImageAutomations();
   const { data: policies } = useListImagePolicies();
+  const [modalData, setModalData] = React.useState<ImageRepository | null>(
+    null,
+  );
 
   //   @ts-ignore
   const images = _.flatten(_.map(data, d => d.spec.template.spec.containers));
+
+  const handleAddAutomationClick = (i: ImageRepository) => {
+    setModalData(i);
+  };
 
   return (
     <div className={className}>
@@ -108,7 +124,16 @@ function ImageAutomation({ className, name, namespace, clusterName }: Props) {
 
                 const repo = _.find(automations?.imageRepos, { image: raw });
 
-                return repo?.image || '';
+                return (
+                  repo?.image || (
+                    <Button
+                      onClick={() => handleAddAutomationClick(i)}
+                      type="button"
+                    >
+                      Add Image Automation
+                    </Button>
+                  )
+                );
               },
             },
             {
@@ -126,6 +151,16 @@ function ImageAutomation({ className, name, namespace, clusterName }: Props) {
           rows={images}
         />
       </Flex>
+      <Modal
+        title="some title"
+        description="some desc"
+        open={!!modalData}
+        onClose={() => setModalData(null)}
+      >
+        <Flex wide>
+          <ImageAutomationForm />
+        </Flex>
+      </Modal>
     </div>
   );
 }
