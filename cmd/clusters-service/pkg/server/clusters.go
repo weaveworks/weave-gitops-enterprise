@@ -166,14 +166,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		},
 	}
 
-	if viper.GetString("add-bases-kustomization") == "enabled" {
-		commonKustomization, err := getCommonKustomization(git_files.Cluster)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues["CLUSTER_NAME"], err)
-		}
-		files = append(files, *commonKustomization)
-	}
-
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
 

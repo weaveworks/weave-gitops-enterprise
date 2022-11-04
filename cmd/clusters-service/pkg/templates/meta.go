@@ -13,7 +13,9 @@ const (
 	GitOpsTemplateNameAnnotation = "clustertemplates.weave.works/display-name"
 	CAPIDisplayNameAnnotation    = "capi.weave.works/display-name"
 	// CostEstimationAnnotation is to signal we should try and estimate the cost of a template when rendering it
-	CostEstimationAnnotation = "templates.weave.works/cost-estimation-enabled"
+	CostEstimationAnnotation        = "templates.weave.works/cost-estimation-enabled"
+	AddCommonBasesAnnotation        = "templates.weave.works/add-common-bases"
+	InjectPruneAnnotationAnnotation = "templates.weave.works/inject-prune-annotation"
 )
 
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
@@ -69,8 +71,8 @@ type Object struct {
 // TemplateMeta contains all the objects
 // with the parameters.
 type TemplateMeta struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Params      []Param  `json:"params,omitempty"`
-	Objects     []Object `json:"objects,omitempty"`
+	Name        string                       `json:"name"`
+	Description string                       `json:"description,omitempty"`
+	Params      []apitemplates.TemplateParam `json:"params,omitempty"`
+	Objects     []Object                     `json:"objects,omitempty"`
 }

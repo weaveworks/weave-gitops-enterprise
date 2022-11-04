@@ -249,7 +249,15 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
-	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
+	params, err := templates.ParamValuesWithDefaults(tmpl.GetSpec().Params, msg.ParameterValues)
+	if err != nil {
+		return nil, fmt.Errorf("error getting parameter values: %v", err)
+	}
+
+	clusterName := params["CLUSTER_NAME"]
+	clusterNamespace := getClusterNamespace(params["NAMESPACE"])
+	resourceName := params["RESOURCE_NAME"]
+
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
 		return nil, err
@@ -278,10 +286,7 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	if err != nil {
 		return nil, err
 	}
-
-	// FIXME: parse and read from Cluster in yaml template
-	clusterName := msg.ParameterValues["CLUSTER_NAME"]
-	resourceName := msg.ParameterValues["RESOURCE_NAME"]
+	content := string(tmplWithValuesAndCredentials)
 
 	if clusterName == "" && resourceName == "" {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
@@ -292,7 +297,6 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	}
 
 	cluster := createNamespacedName(resourceName, clusterNamespace)
-	content := string(tmplWithValuesAndCredentials[:])
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
@@ -339,7 +343,24 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 		}
 	}
 
+	if shouldAddCommonBases(tmpl) {
+		commonKustomization, err := getCommonKustomization(cluster)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", params, err)
+		}
+		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
+	}
+
 	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
+}
+
+func shouldAddCommonBases(t apiTemplates.Template) bool {
+	anno := t.GetAnnotations()[templates.AddCommonBasesAnnotation]
+	if anno != "" {
+		return anno == "true"
+	}
+
+	return viper.GetString("add-bases-kustomization") != "disabled" && isCAPITemplate(t)
 }
 
 func getCostEstimate(ctx context.Context, estimator estimation.Estimator, tmplWithValues [][]byte) *capiv1_proto.CostEstimate {
