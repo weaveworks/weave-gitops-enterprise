@@ -41,6 +41,7 @@ describe('Applications index test', () => {
       ],
       [CoreClientContextProvider, { api }],
       [MemoryRouter],
+      [],
       ,
     ]);
   });
