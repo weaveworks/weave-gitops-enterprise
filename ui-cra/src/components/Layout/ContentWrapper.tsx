@@ -1,17 +1,17 @@
 import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
-import { createStyles, makeStyles } from '@material-ui/styles';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
 import { NotificationData } from '../../types/custom';
 import { Tooltip } from '../Shared';
 import { AlertListErrors } from './AlertListErrors';
+import Collapse from '@material-ui/core/Collapse';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
-const { feedbackLight, white } = theme.colors;
+const { white } = theme.colors;
 
 export const Title = styled.h2`
   margin-top: 0px;
@@ -57,18 +57,14 @@ const HelpLinkWrapper = styled.div`
   }
 `;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    alertWrapper: {
-      padding: base,
-      margin: `0 ${base} ${base} ${base}`,
-      borderRadius: '10px',
-    },
-    warning: {
-      backgroundColor: feedbackLight,
-    },
-  }),
-);
+const AlertWrapper = styled(Alert)`
+  padding: ${base};
+  margin: 0 ${base} ${base} ${base};
+  border-radius: 10px;
+  div[class*='MuiAlert-action'] {
+    display: inline;
+  }
+`;
 
 interface Props {
   type?: string;
@@ -86,13 +82,57 @@ export const ContentWrapper: FC<Props> = ({
   loading,
   notifications,
 }) => {
-  const classes = useStyles();
   const { data, error } = useListVersion();
+  const [open, setOpen] = useState<{ [index: number]: boolean }>({ 0: true });
+  const [allNotifications, setAllNotifications] = useState<NotificationData[]>(
+    [],
+  );
   const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
+
+  const handleOpen = (index: number) => {
+    setOpen(prevState => ({
+      ...prevState,
+      [index]: !prevState[index],
+    }));
+  };
+
+  useEffect(() => {
+    let allNotif: NotificationData[] = [];
+    if (entitlement) {
+      allNotif = [
+        ...allNotif,
+        {
+          message: { text: entitlement },
+          severity: 'warning',
+        },
+      ];
+    }
+    if (error) {
+      allNotif = [
+        ...allNotif,
+        {
+          message: { text: error?.message },
+          severity: 'error',
+        },
+      ];
+    }
+    if (notifications) {
+      allNotif = [...allNotif, ...notifications];
+    }
+
+    allNotif.forEach((_, index) =>
+      setOpen(prevState => ({
+        ...prevState,
+        [index]: true,
+      })),
+    );
+
+    setAllNotifications(allNotif);
+  }, [entitlement, error, notifications]);
 
   if (loading) {
     return (
@@ -105,12 +145,14 @@ export const ContentWrapper: FC<Props> = ({
   }
 
   const notificationAlert = (n: NotificationData, index: number) => (
-    <Alert key={index} severity={n.severity} className={classes.alertWrapper}>
-      {n.message.text} {n.message.component}
-    </Alert>
+    <Box key={index}>
+      <Collapse in={open[index]}>
+        <AlertWrapper severity={n?.severity} onClose={() => handleOpen(index)}>
+          {n?.message.text} {n?.message.component}
+        </AlertWrapper>
+      </Collapse>
+    </Box>
   );
-
-  console.log(notifications);
 
   return (
     <div
@@ -123,41 +165,28 @@ export const ContentWrapper: FC<Props> = ({
         overflowX: 'scroll',
       }}
     >
-      {entitlement && (
-        <Alert
-          className={`${classes.alertWrapper} ${classes.warning}`}
-          severity="warning"
-        >
-          {entitlement}
-        </Alert>
-      )}
       {errors && <AlertListErrors errors={errors} />}
-      {notifications &&
-        notifications
-          .filter(n => n.display !== 'bottom')
-          .map(
-            (n, index) =>
-              (n?.message.text || n?.message.component) &&
-              notificationAlert(n, index),
-          )}
-      {error && (
-        <Alert severity="error" className={classes.alertWrapper}>
-          {error?.message}
-        </Alert>
-      )}
+      {allNotifications
+        ?.filter(n => n.display !== 'bottom')
+        .map((n, index) => {
+          return (
+            (n?.message.text || n?.message.component) &&
+            notificationAlert(n, index)
+          );
+        })}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
         <Content backgroundColor={backgroundColor}>{children}</Content>
       )}
-      {notifications &&
-        notifications
-          .filter(n => n.display === 'bottom')
-          .map(
-            (n, index) =>
-              (n?.message.text || n?.message.component) &&
-              notificationAlert(n, index),
-          )}
+      {allNotifications
+        ?.filter(n => n.display === 'bottom')
+        .map((n, index) => {
+          return (
+            (n?.message.text || n?.message.component) &&
+            notificationAlert(n, index)
+          );
+        })}
       <HelpLinkWrapper>
         <div>
           Need help? Raise a&nbsp;
