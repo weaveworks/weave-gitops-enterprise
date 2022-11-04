@@ -329,6 +329,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
         setNotification({
           message: { text: err.message },
           severity: 'error',
+          display: 'bottom',
         }),
       )
       .finally(() => setPreviewLoading(false));
@@ -363,6 +364,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
         setNotification({
           message: { text: err.message },
           severity: 'error',
+          display: 'bottom',
         }),
       )
       .finally(() => setCostEstimationLoading(false));
@@ -410,6 +412,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
         setNotification({
           message: { text: error.message },
           severity: 'error',
+          display: 'bottom',
         });
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
@@ -464,14 +467,7 @@ const ClusterForm: FC<ClusterFormProps> = ({ template, cluster }) => {
       >
         <ContentWrapper
           notifications={[
-            ...(notification
-              ? [
-                  {
-                    message: { text: notification?.message.text },
-                    severity: notification.severity,
-                  } as NotificationData,
-                ]
-              : []),
+            ...(notification ? [notification] : []),
             ...(error
               ? [
                   {

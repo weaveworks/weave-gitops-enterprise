@@ -167,4 +167,5 @@ export interface AppPRPreview {
 export type NotificationData = {
   message: { text?: string; component?: JSX.Element };
   severity?: 'success' | 'error' | 'warning' | 'info';
+  display?: 'top' | 'bottom';
 };

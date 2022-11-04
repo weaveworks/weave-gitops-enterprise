@@ -104,6 +104,14 @@ export const ContentWrapper: FC<Props> = ({
     );
   }
 
+  const notificationAlert = (n: NotificationData, index: number) => (
+    <Alert key={index} severity={n.severity} className={classes.alertWrapper}>
+      {n.message.text} {n.message.component}
+    </Alert>
+  );
+
+  console.log(notifications);
+
   return (
     <div
       style={{
@@ -125,18 +133,13 @@ export const ContentWrapper: FC<Props> = ({
       )}
       {errors && <AlertListErrors errors={errors} />}
       {notifications &&
-        notifications.map(
-          (n, index) =>
-            (n?.message.text || n?.message.component) && (
-              <Alert
-                key={index}
-                severity={n.severity}
-                className={classes.alertWrapper}
-              >
-                {n.message.text} {n.message.component}
-              </Alert>
-            ),
-        )}
+        notifications
+          .filter(n => n.display !== 'bottom')
+          .map(
+            (n, index) =>
+              (n?.message.text || n?.message.component) &&
+              notificationAlert(n, index),
+          )}
       {error && (
         <Alert severity="error" className={classes.alertWrapper}>
           {error?.message}
@@ -147,6 +150,14 @@ export const ContentWrapper: FC<Props> = ({
       ) : (
         <Content backgroundColor={backgroundColor}>{children}</Content>
       )}
+      {notifications &&
+        notifications
+          .filter(n => n.display === 'bottom')
+          .map(
+            (n, index) =>
+              (n?.message.text || n?.message.component) &&
+              notificationAlert(n, index),
+          )}
       <HelpLinkWrapper>
         <div>
           Need help? Raise a&nbsp;

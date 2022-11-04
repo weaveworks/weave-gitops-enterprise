@@ -266,6 +266,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         setNotification({
           message: { text: err.message },
           severity: 'error',
+          display: 'bottom',
         }),
       )
       .finally(() => setPreviewLoading(false));
@@ -304,6 +305,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         setNotification({
           message: { text: error.message },
           severity: 'error',
+          display: 'bottom',
         });
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
@@ -336,14 +338,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
           >
             <ContentWrapper
               notifications={[
-                {
-                  message: { text: notification?.message.text },
-                  severity: notification?.severity,
-                },
-                {
-                  message: { text: error?.message },
-                  severity: 'error',
-                },
+                ...(notification ? [notification] : []),
+                ...(error
+                  ? [
+                      {
+                        message: { text: error?.message },
+                        severity: 'error',
+                      } as NotificationData,
+                    ]
+                  : []),
               ]}
             >
               <FormWrapper>
@@ -453,9 +456,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     previewLoading,
     clusterName,
     enableCreatePR,
-    notification?.message.text,
-    notification?.severity,
-    error?.message,
+    notification,
+    error,
   ]);
 };
 
