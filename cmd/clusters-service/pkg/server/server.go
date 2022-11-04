@@ -71,11 +71,6 @@ type ServerOpts struct {
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
-	estimator := estimation.NilEstimator()
-	if opts.Estimator != nil {
-		estimator = opts.Estimator
-	}
-
 	return &server{
 		log:                       opts.Logger,
 		clustersManager:           opts.ClustersManager,
@@ -92,6 +87,6 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		valuesFetcher:             opts.ValuesFetcher,
 		managementFetcher:         opts.ManagementFetcher,
 		cluster:                   opts.Cluster,
-		estimator:                 estimator,
+		estimator:                 opts.Estimator,
 	}
 }

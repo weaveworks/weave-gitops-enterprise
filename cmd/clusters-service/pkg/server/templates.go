@@ -286,25 +286,8 @@ func getFiles(
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
-	// TODO: Do we need to skip non-CAPI?
-	unstructureds, err := templates.ConvertToUnstructured(tmplWithValues)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse rendered templates: %w", err)
-	}
-	var costEstimate *capiv1_proto.CostEstimate
-	estimate, err := estimator.Estimate(ctx, unstructureds)
-	if err != nil {
-		return nil, fmt.Errorf("failed to calculate estimate for cluster costs: %w", err)
-	}
-	if estimate != nil {
-		costEstimate = &capiv1_proto.CostEstimate{
-			Currency: estimate.Currency,
-			Range: &capiv1_proto.CostEstimate_Range{
-				Low:  estimate.Low,
-				High: estimate.High,
-			},
-		}
-	}
+	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
+	costEstimate := getCostEstimate(ctx, s.estimator, tmplWithValues)
 
 	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
 	if err != nil {
@@ -312,12 +295,18 @@ func getFiles(
 	}
 
 	// FIXME: parse and read from Cluster in yaml template
-	clusterName, ok := msg.ParameterValues["CLUSTER_NAME"]
-	if !ok {
-		return nil, errors.New("unable to find 'CLUSTER_NAME' parameter in supplied values")
+	clusterName := msg.ParameterValues["CLUSTER_NAME"]
+	resourceName := msg.ParameterValues["RESOURCE_NAME"]
+
+	if clusterName == "" && resourceName == "" {
+		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
 	}
 
-	cluster := createNamespacedName(clusterName, clusterNamespace)
+	if clusterName != "" {
+		resourceName = clusterName
+	}
+
+	cluster := createNamespacedName(resourceName, clusterNamespace)
 	content := string(tmplWithValuesAndCredentials[:])
 
 	var profileFiles []gitprovider.CommitFile
@@ -371,6 +360,29 @@ func getFiles(
 	}
 
 	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
+}
+
+func getCostEstimate(ctx context.Context, estimator estimation.Estimator, tmplWithValues [][]byte) *capiv1_proto.CostEstimate {
+	unstructureds, err := templates.ConvertToUnstructured(tmplWithValues)
+	if err != nil {
+		return &capiv1_proto.CostEstimate{Message: fmt.Sprintf("failed to parse rendered templates: %s", err)}
+	}
+
+	estimate, err := estimator.Estimate(ctx, unstructureds)
+	if err != nil {
+		return &capiv1_proto.CostEstimate{Message: fmt.Sprintf("failed to calculate estimate for cluster costs: %s", err)}
+	}
+	if estimate == nil {
+		return &capiv1_proto.CostEstimate{Message: "no estimate returned"}
+	}
+
+	return &capiv1_proto.CostEstimate{
+		Currency: estimate.Currency,
+		Range: &capiv1_proto.CostEstimate_Range{
+			Low:  estimate.Low,
+			High: estimate.High,
+		},
+	}
 }
 
 func isProviderRecognised(provider string) bool {

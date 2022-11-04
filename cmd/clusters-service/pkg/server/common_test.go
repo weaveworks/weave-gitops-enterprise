@@ -101,6 +101,10 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 		},
 	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
 
+	if o.estimator == nil {
+		o.estimator = estimation.NilEstimator()
+	}
+
 	return NewClusterServer(
 		ServerOpts{
 			Logger:                    logr.Discard(),

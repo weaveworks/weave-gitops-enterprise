@@ -37,6 +37,10 @@ spec:
           - secretRef:
               name: git-provider-credentials
               optional: true
+          {{- if .Values.extraEnvVarsSecret }}
+          - secretRef:
+              name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+          {{- end }}
           env:
             - name: RUNTIME_NAMESPACE
               valueFrom:

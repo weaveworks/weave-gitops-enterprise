@@ -6,6 +6,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
@@ -49,6 +50,7 @@ type Options struct {
 	KubernetesClientSet          kubernetes.Interface
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Cluster                      string
+	Estimator                    estimation.Estimator
 }
 
 type Option func(*Options)
@@ -246,5 +248,11 @@ func WithManagemetFetcher(fetcher *mgmtfetcher.ManagementCrossNamespacesFetcher)
 func WithManagementCluster(cluster string) Option {
 	return func(o *Options) {
 		o.Cluster = cluster
+	}
+}
+
+func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
+	return func(o *Options) {
+		o.Estimator = estimator
 	}
 }

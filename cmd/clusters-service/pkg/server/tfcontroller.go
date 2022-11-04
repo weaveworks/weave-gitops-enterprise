@@ -40,6 +40,11 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		return nil, grpcStatus.Errorf(codes.Internal, "failed to render template with parameter values: %s", err)
 	}
 
+	tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+	}
+
 	err = templates.ValidateRenderedTemplates(tmplWithValues)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Internal, "validation error rendering template %v, %s", msg.TemplateName, err)
