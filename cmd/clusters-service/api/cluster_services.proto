@@ -263,6 +263,7 @@ message CostEstimate{
   };
   string currency = 1;
   Range range = 2;
+  string message = 3;
 }
 
 message RenderTemplateResponse { 

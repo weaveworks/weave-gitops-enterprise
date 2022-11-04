@@ -1118,6 +1118,9 @@
         },
         "range": {
           "$ref": "#/definitions/CostEstimateRange"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
