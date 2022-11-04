@@ -51,7 +51,7 @@ type Preview struct {
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
-		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
+		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new resource with template"]/following-sibling::text()`),
 		Credentials:     webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		ProfileList:     webDriver.Find(`.profiles-table table tbody`),

@@ -1118,6 +1118,9 @@
         },
         "range": {
           "$ref": "#/definitions/CostEstimateRange"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1523,6 +1526,9 @@
         },
         "controlPlane": {
           "type": "boolean"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
@@ -1836,6 +1842,9 @@
         },
         "default": {
           "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
         }
       }
     },

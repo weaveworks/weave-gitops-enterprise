@@ -17,7 +17,6 @@ import WGApplicationsOCIRepository from './components/Applications/OCIRepository
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
 import ClusterDashboard from './components/Clusters/ClusterDashboard';
-import EditClusterPage from './components/Clusters/Edit';
 import { ContentWrapper } from './components/Layout/ContentWrapper';
 import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
@@ -33,8 +32,9 @@ import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail'
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import { Routes } from './utils/nav';
 import AddApplication from './components/Applications/Add';
-import AddClusterWithCredentials from './components/Clusters/Create';
+import AddClusterWithCredentials from './components/Templates/Create';
 import error404 from './assets/img/error404.json';
+import EditResourcePage from './components/Templates/Edit';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -91,7 +91,14 @@ const AppRoutes = () => {
         ))}
         path={Routes.ClusterDashboard}
       />
-      <Route component={EditClusterPage} exact path={Routes.EditCluster} />
+      <Route
+        component={withSearchParams((props: any) => (
+          <CoreWrapper>
+            <EditResourcePage {...props} />
+          </CoreWrapper>
+        ))}
+        path={Routes.EditResource}
+      />
       <Route
         component={AddClusterWithCredentials}
         exact

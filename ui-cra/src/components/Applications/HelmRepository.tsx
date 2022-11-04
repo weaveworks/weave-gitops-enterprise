@@ -8,6 +8,7 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { HelmRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../Templates/Edit/EditButton';
 import { Routes } from '../../utils/nav';
 
 type Props = {
@@ -52,7 +53,11 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <HelmRepositoryDetail helmRepository={helmRepository} {...props} />
+        <HelmRepositoryDetail
+          helmRepository={helmRepository}
+          customActions={[<EditButton resource={helmRepository} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

@@ -4,7 +4,6 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { AddApplicationRequest, renderKustomization } from '../utils';
-import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
@@ -21,10 +20,8 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
-import Profiles from '../../Clusters/Form/Partials/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
-import Preview from '../../Clusters/Form/Partials/Preview';
 import _ from 'lodash';
 import useProfiles from '../../../contexts/Profiles';
 import { useCallbackState } from '../../../utils/callback-state';
@@ -37,6 +34,9 @@ import {
 import { validateFormData } from '../../../utils/form';
 import { getGitRepoHTTPSURL } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
+import Preview from '../../Templates/Form/Partials/Preview';
+import Profiles from '../../Templates/Form/Partials/Profiles';
+import GitOps from '../../Templates/Form/Partials/GitOps';
 
 const FormWrapper = styled.form`
   .preview-cta {

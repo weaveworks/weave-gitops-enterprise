@@ -353,7 +353,7 @@ func TestGetTemplateParameters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newFakeClient(nil, tt.tps, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.GetTemplateParameters(templates.CAPITemplateKind, "foo", c, w)
+			err := templates.GetTemplateParameters(templates.CAPITemplateKind, "foo", "default", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -566,7 +566,7 @@ func TestGetTemplateProfiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newFakeClient(nil, nil, nil, tt.fs, nil, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.GetTemplateProfiles("profile-b", c, w)
+			err := templates.GetTemplateProfiles("profile-b", "default", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -609,7 +609,7 @@ func (c *fakeClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 	return c.ts, nil
 }
 
-func (c *fakeClient) RetrieveTemplate(name string, kind templates.TemplateKind) (*templates.Template, error) {
+func (c *fakeClient) RetrieveTemplate(name string, kind templates.TemplateKind, namespace string) (*templates.Template, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
@@ -629,7 +629,7 @@ func (c *fakeClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, pr
 	return c.ts, nil
 }
 
-func (c *fakeClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string) ([]templates.TemplateParameter, error) {
+func (c *fakeClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string, namespace string) ([]templates.TemplateParameter, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
@@ -661,7 +661,7 @@ func (c *fakeClient) RetrieveCredentials() ([]templates.Credentials, error) {
 	return c.cs, nil
 }
 
-func (c *fakeClient) RetrieveTemplateProfiles(name string) ([]templates.Profile, error) {
+func (c *fakeClient) RetrieveTemplateProfiles(name string, namespace string) ([]templates.Profile, error) {
 	if c.err != nil {
 		return nil, c.err
 	}

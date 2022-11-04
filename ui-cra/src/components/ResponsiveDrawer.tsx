@@ -29,8 +29,6 @@ import AppRoutes from '../routes';
 import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 
-export const EDIT_CLUSTER = '/clusters/:clusterName/edit';
-
 const drawerWidth = 220;
 
 const useStyles = makeStyles((theme: Theme) =>

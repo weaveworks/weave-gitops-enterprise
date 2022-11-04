@@ -16,6 +16,12 @@ enablePipelines: true
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
 
+extraEnvVars:
+  - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
+    value: "true"
+
+extraEnvVarsSecret: ""
+
 # Re-clarify capiEnabled
 global:
   capiEnabled: true

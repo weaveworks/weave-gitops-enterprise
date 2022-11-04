@@ -1,10 +1,12 @@
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import {
   Checkbox,
   createStyles,
   makeStyles,
   withStyles,
 } from '@material-ui/core';
-import EditIcon from '@material-ui/icons/Edit';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
@@ -21,9 +23,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../hooks/clusters';
 import { useListConfig } from '../../hooks/versions';
@@ -50,9 +49,9 @@ import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
-import { getCreateRequestAnnotation } from './Form/utils';
 import { openLinkHandler } from '../../utils/link-checker';
 import { stateNotification } from '../../utils/stateNotification';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 interface Size {
   size?: 'small';
@@ -271,22 +270,16 @@ const MCCP: FC<{
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const history = useHistory();
 
-  const handleAddCluster = useCallback(() => {
-    history.push(`/templates`);
-  }, [history]);
+  const handleAddCluster = useCallback(
+    () => history.push(`/templates`),
+    [history],
+  );
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
     ...filterConfig(clusters, 'namespace'),
     ...filterConfig(clusters, 'name'),
   };
-
-  const handleEditCluster = useCallback(
-    (event, c) => {
-      history.push(`/clusters/${c.name}/edit`);
-    },
-    [history],
-  );
 
   useEffect(() => {
     if (!callbackState) {
@@ -529,14 +522,7 @@ const MCCP: FC<{
                   {
                     label: '',
                     value: (c: GitopsClusterEnriched) => (
-                      <Button
-                        id="edit-cluster"
-                        startIcon={<EditIcon fontSize="small" />}
-                        onClick={event => handleEditCluster(event, c)}
-                        disabled={!Boolean(getCreateRequestAnnotation(c))}
-                      >
-                        EDIT CLUSTER
-                      </Button>
+                      <EditButton resource={c} />
                     ),
                   },
                 ]}

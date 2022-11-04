@@ -6,7 +6,7 @@ import {
   RepositoryChart,
   Template,
 } from '../../cluster-services/cluster_services.pb';
-import { maybeParseJSON } from '../../components/Clusters/Form/utils';
+import { maybeParseJSON } from '../../components/Templates/Form/utils';
 import {
   GitopsClusterEnriched,
   ProfilesIndex,
