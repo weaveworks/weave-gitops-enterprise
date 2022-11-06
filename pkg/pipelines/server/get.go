@@ -10,6 +10,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/internal/convert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -47,7 +48,6 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetKind(p.Spec.AppRef.Kind)
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(t.Namespace)
-
 			clusterName := s.cluster
 			if t.ClusterRef != nil {
 				ns := t.ClusterRef.Namespace
@@ -93,7 +93,11 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			})
 		}
 	}
-	pipelineResp.Yaml = "Test Yaml changes"
+	pipelineYaml, err := yaml.Marshal(p)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling %s pipeline, %w", pipelineResp.Name, err)
+	}
+	pipelineResp.Yaml = string(pipelineYaml)
 	return &pb.GetPipelineResponse{
 		Pipeline: pipelineResp,
 	}, nil

@@ -3,14 +3,9 @@ package convert
 import (
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
-	"gopkg.in/yaml.v2"
 )
 
 func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
-	pipelineYaml, _ := yaml.Marshal(p)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error marshalling %s pipeline, %w", r.Name, err)
-	// }
 
 	r := &pb.Pipeline{
 		Name:      p.Name,
@@ -21,7 +16,6 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 			Name:       p.Spec.AppRef.Name,
 		},
 		Environments: []*pb.Environment{},
-		Yaml:         string(pipelineYaml),
 	}
 
 	for _, e := range p.Spec.Environments {
