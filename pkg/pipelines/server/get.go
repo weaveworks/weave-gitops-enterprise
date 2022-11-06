@@ -93,7 +93,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			})
 		}
 	}
-
+	pipelineResp.Yaml = "Test Yaml changes"
 	return &pb.GetPipelineResponse{
 		Pipeline: pipelineResp,
 	}, nil
