@@ -15,7 +15,6 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 			Kind:       p.Spec.AppRef.Kind,
 			Name:       p.Spec.AppRef.Name,
 		},
-		Yaml:         "test yaml",
 		Environments: []*pb.Environment{},
 	}
 
