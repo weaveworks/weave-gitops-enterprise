@@ -3,7 +3,6 @@ package estimation
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -300,23 +299,6 @@ type clusterResources struct {
 
 	// mapping of AWSMachinePool ref to details
 	awsMachinePools map[string]awsMachinePool
-}
-
-func parseFilterAnnotations(annotations string) (map[string]string, error) {
-	resultAnnotations := make(map[string]string)
-
-	parsedAnnot, err := url.ParseQuery(annotations)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range parsedAnnot {
-		if len(v) > 1 {
-			return nil, fmt.Errorf("annotation values cannot contain multiple values for the same key %s: %v", k, &v)
-		}
-		resultAnnotations[k] = v[0]
-
-	}
-	return resultAnnotations, nil
 }
 
 func parseResources(items []*unstructured.Unstructured) (*clusterResources, error) {
