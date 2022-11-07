@@ -249,14 +249,9 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
-	params, err := templates.ParamValuesWithDefaults(tmpl.GetSpec().Params, msg.ParameterValues)
-	if err != nil {
-		return nil, fmt.Errorf("error getting parameter values: %v", err)
-	}
-
-	clusterName := params["CLUSTER_NAME"]
-	clusterNamespace := getClusterNamespace(params["NAMESPACE"])
-	resourceName := params["RESOURCE_NAME"]
+	clusterName := msg.ParameterValues["CLUSTER_NAME"]
+	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
+	resourceName := msg.ParameterValues["RESOURCE_NAME"]
 
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
@@ -346,7 +341,7 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	if shouldAddCommonBases(tmpl) {
 		commonKustomization, err := getCommonKustomization(cluster)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", params, err)
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues, err)
 		}
 		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
 	}

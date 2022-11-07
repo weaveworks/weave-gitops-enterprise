@@ -59,7 +59,7 @@ type TemplateProcessor struct {
 // declared on the template.
 //
 // The returned slice is sorted by Name.
-func (p TemplateProcessor) Params() ([]templates.TemplateParam, error) {
+func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
 	for _, v := range p.GetSpec().ResourceTemplates {
 		names, err := p.Processor.ParamNames(v)
@@ -82,9 +82,9 @@ func (p TemplateProcessor) Params() ([]templates.TemplateParam, error) {
 		}
 	}
 
-	paramsMeta := map[string]templates.TemplateParam{}
+	paramsMeta := map[string]Param{}
 	for _, v := range paramNames.List() {
-		paramsMeta[v] = templates.TemplateParam{Name: v}
+		paramsMeta[v] = Param{Name: v}
 	}
 
 	for _, v := range p.GetSpec().Params {
@@ -97,7 +97,7 @@ func (p TemplateProcessor) Params() ([]templates.TemplateParam, error) {
 		}
 	}
 
-	var params []templates.TemplateParam
+	var params []Param
 	for _, v := range paramsMeta {
 		params = append(params, v)
 	}
@@ -116,9 +116,23 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 		return nil, err
 	}
 
-	vars, err = ParamValuesWithDefaults(params, vars)
-	if err != nil {
-		return nil, err
+	if vars == nil {
+		vars = map[string]string{}
+	}
+
+	for _, param := range params {
+		val, ok := vars[param.Name]
+		if !ok || val == "" {
+			if param.Default != "" {
+				vars[param.Name] = param.Default
+			} else {
+				if param.Required {
+					return nil, fmt.Errorf("missing required parameter: %s", param.Name)
+				}
+				vars[param.Name] = ""
+			}
+
+		}
 	}
 
 	var processed [][]byte

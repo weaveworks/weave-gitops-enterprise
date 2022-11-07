@@ -7,7 +7,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"sigs.k8s.io/yaml"
 )
 
@@ -35,7 +34,7 @@ func TestParseTemplateTerraformMeta(t *testing.T) {
 				Params:     []string{"RESOURCE_NAME"},
 			},
 		},
-		Params: []templates.TemplateParam{
+		Params: []Param{
 			{
 				Name:        "RESOURCE_NAME",
 				Description: "Name of the template.",
@@ -84,7 +83,7 @@ func TestParseTemplateCAPIMeta(t *testing.T) {
 				Params:     []string{"CLUSTER_NAME", "CONTROL_PLANE_MACHINE_COUNT"},
 			},
 		},
-		Params: []templates.TemplateParam{
+		Params: []Param{
 			{
 				Name:        "CLUSTER_NAME",
 				Description: "This is used for the cluster naming.",

@@ -71,8 +71,8 @@ type Object struct {
 // TemplateMeta contains all the objects
 // with the parameters.
 type TemplateMeta struct {
-	Name        string                       `json:"name"`
-	Description string                       `json:"description,omitempty"`
-	Params      []apitemplates.TemplateParam `json:"params,omitempty"`
-	Objects     []Object                     `json:"objects,omitempty"`
+	Name        string   `json:"name"`
+	Description string   `json:"description,omitempty"`
+	Params      []Param  `json:"params,omitempty"`
+	Objects     []Object `json:"objects,omitempty"`
 }

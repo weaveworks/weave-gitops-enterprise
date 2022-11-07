@@ -20,7 +20,7 @@ extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
     value: "true"
 
-extraEnvVarsSecret: ""
+extraEnvVarsSecret: "aws-pricing"
 
 # Re-clarify capiEnabled
 global:
