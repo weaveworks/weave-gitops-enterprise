@@ -35,11 +35,8 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	if err := c.Get(ctx, s.cluster, client.ObjectKeyFromObject(&p), &p); err != nil {
 		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 	}
-	cp := p
-	cp.APIVersion = p.APIVersion
-	cp.Kind = p.Kind
 
-	pipelineYaml, err := yaml.Marshal(cp)
+	pipelineYaml, err := yaml.Marshal(p)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling %s pipeline, %w", msg.Name, err)
 	}
