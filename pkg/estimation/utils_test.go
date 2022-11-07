@@ -134,7 +134,7 @@ func Test_mergeStringMaps(t *testing.T) {
 }
 
 func Test_parseFilterAnnotations(t *testing.T) {
-	mergeMapsTests := []struct {
+	parseFilterAnnotationsTests := []struct {
 		name        string
 		annotations string
 		expected    map[string]string
@@ -161,7 +161,7 @@ func Test_parseFilterAnnotations(t *testing.T) {
 			expected:    map[string]string{},
 		},
 		{
-			name:        "Annotation string with empty parameters",
+			name:        "Annotation string with multiple values for the same key",
 			annotations: "instanceType=t3.large&instanceType=t3.medium",
 			expected:    nil,
 			expectedErr: "annotation values cannot contain multiple values for the same key",
@@ -174,7 +174,7 @@ func Test_parseFilterAnnotations(t *testing.T) {
 		},
 	}
 
-	for _, tt := range mergeMapsTests {
+	for _, tt := range parseFilterAnnotationsTests {
 		t.Run(tt.name, func(t *testing.T) {
 
 			res, err := parseFilterAnnotations(tt.annotations)
