@@ -1,14 +1,13 @@
+import React, { FC, useState } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
-import { FC, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
 import { NotificationData } from '../../types/custom';
 import { Tooltip } from '../Shared';
 import { AlertListErrors } from './AlertListErrors';
-import Collapse from '@material-ui/core/Collapse';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
 const { white } = theme.colors;
@@ -83,7 +82,6 @@ export const ContentWrapper: FC<Props> = ({
   notifications,
 }) => {
   const { data, error } = useListVersion();
-  const [open, setOpen] = useState<{ [index: number]: boolean }>({ 0: true });
   const [allNotifications, setAllNotifications] = useState<NotificationData[]>(
     [],
   );
@@ -92,47 +90,6 @@ export const ContentWrapper: FC<Props> = ({
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
-
-  const handleOpen = (index: number) => {
-    setOpen(prevState => ({
-      ...prevState,
-      [index]: !prevState[index],
-    }));
-  };
-
-  useEffect(() => {
-    let allNotif: NotificationData[] = [];
-    if (entitlement) {
-      allNotif = [
-        ...allNotif,
-        {
-          message: { text: entitlement },
-          severity: 'warning',
-        },
-      ];
-    }
-    if (error) {
-      allNotif = [
-        ...allNotif,
-        {
-          message: { text: error?.message },
-          severity: 'error',
-        },
-      ];
-    }
-    if (notifications) {
-      allNotif = [...allNotif, ...notifications];
-    }
-
-    allNotif.forEach((_, index) =>
-      setOpen(prevState => ({
-        ...prevState,
-        [index]: true,
-      })),
-    );
-
-    setAllNotifications(allNotif);
-  }, [entitlement, error, notifications]);
 
   if (loading) {
     return (
@@ -143,16 +100,6 @@ export const ContentWrapper: FC<Props> = ({
       </Box>
     );
   }
-
-  const notificationAlert = (n: NotificationData, index: number) => (
-    <Box key={index}>
-      <Collapse in={open[index]}>
-        <AlertWrapper severity={n?.severity} onClose={() => handleOpen(index)}>
-          {n?.message.text} {n?.message.component}
-        </AlertWrapper>
-      </Collapse>
-    </Box>
-  );
 
   return (
     <div
@@ -166,27 +113,11 @@ export const ContentWrapper: FC<Props> = ({
       }}
     >
       {errors && <AlertListErrors errors={errors} />}
-      {allNotifications
-        ?.filter(n => n.display !== 'bottom')
-        .map((n, index) => {
-          return (
-            (n?.message.text || n?.message.component) &&
-            notificationAlert(n, index)
-          );
-        })}
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
         <Content backgroundColor={backgroundColor}>{children}</Content>
       )}
-      {allNotifications
-        ?.filter(n => n.display === 'bottom')
-        .map((n, index) => {
-          return (
-            (n?.message.text || n?.message.component) &&
-            notificationAlert(n, index)
-          );
-        })}
       <HelpLinkWrapper>
         <div>
           Need help? Raise a&nbsp;

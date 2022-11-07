@@ -34,7 +34,6 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
   GitopsClusterEnriched,
-  NotificationData,
   ProfilesIndex,
   TemplateEnriched,
 } from '../../../types/custom';
@@ -57,6 +56,9 @@ import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
+import useNotifications, {
+  NotificationData,
+} from './../../../contexts/Notifications';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -259,6 +261,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
+  const { setNotifications } = useNotifications();
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -300,9 +303,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-  const [notification, setNotification] = useState<NotificationData | null>(
-    null,
-  );
 
   // get the cost estimate feature flag
   const { data: featureFlagsData } = useFeatureFlags();
@@ -334,11 +334,13 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         setPRPreview(data);
       })
       .catch(err =>
-        setNotification({
-          message: { text: err.message },
-          severity: 'error',
-          display: 'bottom',
-        }),
+        setNotifications([
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]),
       )
       .finally(() => setPreviewLoading(false));
   }, [
@@ -350,6 +352,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.namespace,
     template.templateKind,
     updatedProfiles,
+    setNotifications,
   ]);
 
   const handleCostEstimation = useCallback(() => {
@@ -369,11 +372,13 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         setCostEstimate(getFormattedCostEstimate(costEstimate));
       })
       .catch(err =>
-        setNotification({
-          message: { text: err.message },
-          severity: 'error',
-          display: 'bottom',
-        }),
+        setNotifications([
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]),
       )
       .finally(() => setCostEstimationLoading(false));
   }, [
@@ -384,6 +389,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.templateKind,
     template.namespace,
     updatedProfiles,
+    setNotifications,
   ]);
 
   const handleAddCluster = useCallback(() => {
@@ -417,11 +423,13 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         });
       })
       .catch(error => {
-        setNotification({
-          message: { text: error.message },
-          severity: 'error',
-          display: 'bottom',
-        });
+        setNotifications([
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
@@ -437,6 +445,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.name,
     template.namespace,
     template.templateKind,
+    setNotifications,
   ]);
 
   useEffect(() => {
@@ -475,7 +484,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       >
         <ContentWrapper
           notifications={[
-            ...(notification ? [notification] : []),
+            // ...(notification ? [notification] : []),
             ...(error
               ? [
                   {
@@ -602,7 +611,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
-    notification,
     error,
   ]);
 };

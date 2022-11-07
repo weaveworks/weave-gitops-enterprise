@@ -25,9 +25,11 @@ import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import { TerraformProvider } from '../contexts/Terraform';
+import NotificationsProvider from '../contexts/Notifications/Provider';
 import AppRoutes from '../routes';
 import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
+import Compose from './ProvidersCompose';
 
 const drawerWidth = 220;
 
@@ -108,56 +110,58 @@ const App = () => {
   };
 
   return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <Box className={classes.menuButtonBox}>
-        <IconButton
-          color="inherit"
-          aria-label="open drawer"
-          edge="start"
-          onClick={handleDrawerToggle}
-          className={classes.menuButton}
-        >
-          <MenuIcon />
-        </IconButton>
-      </Box>
-      <nav className={classes.drawer} aria-label="mailbox folders">
-        <Hidden smUp implementation="css">
-          <Drawer
-            variant="temporary"
-            anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
+    <Compose components={[NotificationsProvider]}>
+      <div className={classes.root}>
+        <CssBaseline />
+        <Box className={classes.menuButtonBox}>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            className={classes.menuButton}
           >
-            <div>
+            <MenuIcon />
+          </IconButton>
+        </Box>
+        <nav className={classes.drawer} aria-label="mailbox folders">
+          <Hidden smUp implementation="css">
+            <Drawer
+              variant="temporary"
+              anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+              open={mobileOpen}
+              onClose={handleDrawerToggle}
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+              ModalProps={{
+                keepMounted: true, // Better open performance on mobile.
+              }}
+            >
+              <div>
+                <Navigation />
+              </div>
+            </Drawer>
+          </Hidden>
+          <Hidden xsDown implementation="css">
+            <Drawer
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+              variant="permanent"
+              open
+            >
               <Navigation />
-            </div>
-          </Drawer>
-        </Hidden>
-        <Hidden xsDown implementation="css">
-          <Drawer
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            variant="permanent"
-            open
-          >
-            <Navigation />
-          </Drawer>
-        </Hidden>
-      </nav>
-      <main className={classes.content}>
-        <ErrorBoundary>
-          <AppRoutes />
-        </ErrorBoundary>
-      </main>
-    </div>
+            </Drawer>
+          </Hidden>
+        </nav>
+        <main className={classes.content}>
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
+        </main>
+      </div>
+    </Compose>
   );
 };
 
