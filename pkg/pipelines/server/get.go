@@ -26,6 +26,10 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	}
 
 	p := ctrl.Pipeline{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: v1.SchemeGroupVersion.Version,
+			Kind:       "Pipeline",
+		},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      msg.Name,
 			Namespace: msg.Namespace,
