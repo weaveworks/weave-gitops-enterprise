@@ -1,5 +1,4 @@
-import { V2Routes } from '@weaveworks/weave-gitops';
-import { Kind } from '@weaveworks/weave-gitops';
+import { Kind, V2Routes } from '@weaveworks/weave-gitops';
 
 export function getKindRoute(k: Kind | string): string {
   switch (k) {
@@ -39,6 +38,8 @@ export enum Routes {
   CanaryDetails = '/applications/delivery/:id',
   Pipelines = '/applications/pipelines',
   PipelineDetails = '/applications/pipelines/details',
+
+  GitOpsRun = '/run',
 
   TerraformObjects = '/terraform_objects',
   TerraformDetail = '/terraform',

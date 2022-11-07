@@ -12,6 +12,7 @@ import styled from 'styled-components';
 import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
+import { ReactComponent as GitOpsRun } from '../assets/img/gitops-run-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
@@ -206,6 +207,12 @@ export const Navigation: FC = () => {
         },
       ],
       relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
+    },
+    {
+      name: 'GITOPS RUN',
+      link: Routes.GitOpsRun,
+      icon: <GitOpsRun />,
+      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_RUN_UI,
     },
     {
       name: 'TEMPLATES',
