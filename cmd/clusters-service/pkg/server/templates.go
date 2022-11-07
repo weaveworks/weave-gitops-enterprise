@@ -250,10 +250,10 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 
 func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 	clusterName := msg.ParameterValues["CLUSTER_NAME"]
-	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
+	resourceNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 	resourceName := msg.ParameterValues["RESOURCE_NAME"]
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
+	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(resourceNamespace), msg.ParameterValues)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +291,7 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 		resourceName = clusterName
 	}
 
-	cluster := createNamespacedName(resourceName, clusterNamespace)
+	cluster := createNamespacedName(resourceName, resourceNamespace)
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
