@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -18,6 +19,7 @@ func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.C
 		ParameterValues:   msg.ParameterValues,
 		CommitMessage:     msg.CommitMessage,
 		RepositoryApiUrl:  msg.RepositoryApiUrl,
+		TemplateKind:      gapiv1.Kind,
 	})
 
 	var tfRes *proto.CreateTfControllerPullRequestResponse
