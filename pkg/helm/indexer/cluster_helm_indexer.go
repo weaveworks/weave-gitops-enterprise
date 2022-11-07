@@ -18,16 +18,25 @@ import (
 type ClusterHelmIndexerTracker struct {
 	Cache                 helm.ChartsCacherWriter
 	ManagementClusterName string
-	ClusterWatchers       map[string]*multiwatcher.Watcher
+	ClusterWatchers       map[string]Watcher
+	newWatcherFunc        NewWatcherFunc
 }
+
+type Watcher interface {
+	StartWatcher(ctx context.Context, log logr.Logger) error
+	Stop()
+}
+
+type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (Watcher, error)
 
 // NewClusterHelmIndexerTracker creates a new ClusterHelmIndexerTracker.
 // Pass in the management cluster name so we can determine if we need to use the proxy.
-func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter, managementClusterName string) *ClusterHelmIndexerTracker {
+func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter, managementClusterName string, newWatcherFunc NewWatcherFunc) *ClusterHelmIndexerTracker {
 	return &ClusterHelmIndexerTracker{
 		Cache:                 c,
 		ManagementClusterName: managementClusterName,
-		ClusterWatchers:       make(map[string]*multiwatcher.Watcher),
+		ClusterWatchers:       make(map[string]Watcher),
+		newWatcherFunc:        newWatcherFunc,
 	}
 }
 
@@ -55,6 +64,8 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.C
 				watcher, ok := i.ClusterWatchers[removed.Name]
 				if ok {
 					watcher.Stop()
+					// remove the watcher from the map
+					delete(i.ClusterWatchers, removed.Name)
 					err := i.Cache.DeleteAllChartsForCluster(ctx, fetcher.FromClusterName(removed.Name))
 					if err != nil {
 						log.Error(err, "unable to delete charts for cluster")
@@ -76,7 +87,10 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 			if err != nil {
 				return fmt.Errorf("failed to get client config for cluster %s: %w", cl.Name, err)
 			}
-			watcher, err := i.newIndexer(ctx, clientConfig, fetcher.FromClusterName(cl.Name), log)
+
+			cluster := fetcher.FromClusterName(cl.Name)
+			isManagementCluster := !fetcher.IsManagementCluster(i.ManagementClusterName, cluster)
+			watcher, err := i.newWatcherFunc(clientConfig, cluster, isManagementCluster, i.Cache)
 			if err != nil {
 				return fmt.Errorf("failed to create indexer for cluster %s: %w", cl.Name, err)
 			}
@@ -96,12 +110,12 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 	return nil
 }
 
-func (i *ClusterHelmIndexerTracker) newIndexer(ctx context.Context, config *rest.Config, cluster types.NamespacedName, log logr.Logger) (*multiwatcher.Watcher, error) {
+func NewIndexer(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (Watcher, error) {
 	w, err := multiwatcher.NewWatcher(multiwatcher.Options{
 		ClusterRef:    cluster,
 		ClientConfig:  config,
-		Cache:         i.Cache,
-		UseProxy:      !fetcher.IsManagementCluster(i.ManagementClusterName, cluster),
+		Cache:         cache,
+		UseProxy:      !isManagementCluster,
 		ValuesFetcher: helm.NewValuesFetcher(),
 	})
 	if err != nil {

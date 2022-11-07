@@ -17,10 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
 )
 
-var (
-	scheme = runtime.NewScheme()
-)
-
 type Options struct {
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
@@ -30,6 +26,7 @@ type Options struct {
 }
 
 type Watcher struct {
+	scheme        *runtime.Scheme
 	clusterRef    types.NamespacedName
 	clientConfig  *rest.Config
 	cache         helm.ChartsCacherWriter
@@ -40,6 +37,7 @@ type Watcher struct {
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
+	scheme := runtime.NewScheme()
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
@@ -64,7 +62,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 	w.stopFn = cancel
 
 	mgr, err := ctrl.NewManager(w.clientConfig, ctrl.Options{
-		Scheme:             scheme,
+		Scheme:             w.scheme,
 		Logger:             w.log,
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
@@ -81,7 +79,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 		ValuesFetcher: w.valuesFetcher,
 		UseProxy:      w.useProxy,
 		Client:        mgr.GetClient(),
-		Scheme:        scheme,
+		Scheme:        w.scheme,
 	}).SetupWithManager(mgr); err != nil {
 		w.log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err

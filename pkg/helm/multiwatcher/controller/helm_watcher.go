@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -32,7 +31,11 @@ type HelmWatcherReconciler struct {
 // Reconcile is either called when there is a new HelmRepository or, when there is an update to a HelmRepository.
 // Because the watcher watches all helmrepositories, it will update data for all of them.
 func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logr.FromContextOrDiscard(ctx).WithValues("repository", req.NamespacedName)
+	log := logr.FromContextOrDiscard(ctx).WithValues(
+		"repository", req.NamespacedName,
+		"useProxy", r.UseProxy,
+		"cluster", r.ClusterRef,
+	)
 
 	// get source object
 	var repository sourcev1.HelmRepository
@@ -49,7 +52,8 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("found the repository: ", "name", repository.Name)
+	log.Info("found the repository")
+
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
@@ -59,8 +63,10 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}, r.UseProxy)
 
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get index file: %w", err)
+		log.Error(err, "failed to get index file")
+		return ctrl.Result{}, err
 	}
+
 	for name, versions := range indexFile.Entries {
 		for _, version := range versions {
 			isProfile := helm.Profiles(&repository, version)
@@ -75,12 +81,12 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace},
 			)
 			if err != nil {
-				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version, "repository", repository, "cluster", r.ClusterRef)
+				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version)
 			}
 		}
 	}
 
-	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "number of profiles", len(indexFile.Entries))
+	log.Info("cached data from repository", "url", repository.Status.URL, "number of profiles", len(indexFile.Entries))
 
 	return ctrl.Result{}, nil
 }
@@ -93,15 +99,19 @@ func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository sourcev1.HelmRepository) (ctrl.Result, error) {
-	log := logr.FromContextOrDiscard(ctx)
+	log := logr.FromContextOrDiscard(ctx).WithValues(
+		"repository", repository,
+		"cluster", r.ClusterRef,
+	)
 
-	log.Info("deleting repository cache", "namespace", repository.Namespace, "name", repository.Name)
+	log.Info("deleting repository cache")
 	if err := r.Cache.Delete(ctx, helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace}, r.ClusterRef); err != nil {
-		log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
+		log.Error(err, "failed to remove cache for repository")
 		return ctrl.Result{}, err
 	}
 
-	log.Info("deleted repository cache", "namespace", repository.Namespace, "name", repository.Name)
+	log.Info("deleted repository cache")
+
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
 }
