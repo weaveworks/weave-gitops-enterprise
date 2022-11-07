@@ -26,7 +26,6 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	}
 
 	p := ctrl.Pipeline{
-		TypeMeta: v1.TypeMeta{},
 		ObjectMeta: v1.ObjectMeta{
 			Name:      msg.Name,
 			Namespace: msg.Namespace,
@@ -36,8 +35,11 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	if err := c.Get(ctx, s.cluster, client.ObjectKeyFromObject(&p), &p); err != nil {
 		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 	}
+	cp := p
+	cp.APIVersion = p.APIVersion
+	cp.Kind = p.Kind
 
-	pipelineYaml, err := yaml.Marshal(p)
+	pipelineYaml, err := yaml.Marshal(cp)
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling %s pipeline, %w", msg.Name, err)
 	}
