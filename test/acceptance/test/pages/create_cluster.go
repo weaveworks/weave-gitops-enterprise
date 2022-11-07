@@ -3,12 +3,12 @@ package pages
 import (
 	"fmt"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/sclevine/agouti/matchers"
 )
 
-//Header webDriver elements
+// Header webDriver elements
 type CreateCluster struct {
 	CreateHeader *agouti.Selection
 	// TemplateName   *agouti.Selection
@@ -16,6 +16,7 @@ type CreateCluster struct {
 	TemplateSection *agouti.MultiSelection
 	ProfileList     *agouti.Selection
 	PreviewPR       *agouti.Selection
+	AddApplication  *agouti.Selection
 }
 
 type ProfileInformation struct {
@@ -34,11 +35,6 @@ type FormField struct {
 	ListBox *agouti.Selection
 }
 
-type TemplateSection struct {
-	Name   *agouti.Selection
-	Fields []FormField
-}
-
 type ValuesYaml struct {
 	Title    *agouti.Selection
 	Cancel   *agouti.Selection
@@ -52,55 +48,22 @@ type Preview struct {
 	Close *agouti.Selection
 }
 
-type GitOps struct {
-	GitOpsLabel    *agouti.Selection
-	GitOpsFields   []FormField
-	GitCredentials *agouti.Selection
-	CreatePR       *agouti.Selection
-	SuccessBar     *agouti.Selection
-	PRLinkBar      *agouti.Selection
-	ErrorBar       *agouti.Selection
-}
-
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
-		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
+		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new resource with template"]/following-sibling::text()`),
 		Credentials:     webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		ProfileList:     webDriver.Find(`.profiles-table table tbody`),
 		PreviewPR:       webDriver.FindByButton("PREVIEW PR"),
+		AddApplication:  webDriver.FindByButton("ADD AN APPLICATION"),
 	}
 
 	return &clusterPage
 }
 
-func (c CreateCluster) GetTemplateSection(webdriver *agouti.Page, sectionName string) TemplateSection {
-	paramSection := fmt.Sprintf(`div[data-name="%s"]`, sectionName)
-	Eventually(webdriver.Find(paramSection)).Should(BeFound())
-	section := webdriver.Find(paramSection)
-	name := section.Find(".section-name")
-	fields := section.All(".step-child")
-
-	formFields := []FormField{}
-	fCnt, _ := fields.Count()
-
-	for i := 0; i < fCnt; i++ {
-		formFields = append(formFields, FormField{
-			Label:   fields.At(i).Find(`label`),
-			Field:   fields.At(i).Find(`input`),
-			ListBox: fields.At(i).Find(`div[role="button"][aria-haspopup="listbox"]`),
-		})
-	}
-
-	return TemplateSection{
-		Name:   name,
-		Fields: formFields,
-	}
-}
-
 func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string) FormField {
-	Eventually(webdriver.FindByID(fmt.Sprintf(`%s-group`, name))).Should(BeFound())
+	gomega.Eventually(webdriver.FindByID(fmt.Sprintf(`%s-group`, name))).Should(matchers.BeFound())
 	param := webdriver.FindByID(fmt.Sprintf(`%s-group`, name))
 
 	return FormField{
@@ -112,7 +75,7 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 }
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
-	Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(BeVisible())
+	gomega.Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(matchers.BeVisible())
 	return ValuesYaml{
 		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
 		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),
@@ -121,16 +84,15 @@ func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	}
 }
 
-// FindProfileInList finds the profile with given name
-func (c CreateCluster) FindProfileInList(profileName string) *ProfileInformation {
+func (c CreateCluster) GetProfileInList(profileName string) *ProfileInformation {
 	cluster := c.ProfileList.FindByXPath(fmt.Sprintf(`//span[@data-profile-name="%s"]/ancestor::tr`, profileName))
 	return &ProfileInformation{
 		Checkbox:  cluster.FindByXPath(`td[1]//input`),
 		Name:      cluster.FindByXPath(`td[2]`),
 		Layer:     cluster.FindByXPath(`td[3]`),
-		Version:   cluster.FindByXPath(`td[4]//div[contains(@class, "profile-version")]`),
-		Namespace: cluster.FindByXPath(`td[4]//div[contains(@class, "profile-namespace")]//input`),
-		Values:    cluster.FindByXPath(`td[4]//button`),
+		Version:   cluster.FindByXPath(`td//div[contains(@class, "profile-version")]`),
+		Namespace: cluster.FindByXPath(`td//div[contains(@class, "profile-namespace")]//input`),
+		Values:    cluster.FindByXPath(`td//div[contains(@class, "profile-version")]/following-sibling::button`),
 	}
 }
 
@@ -149,36 +111,7 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 func GetPreview(webDriver *agouti.Page) Preview {
 	return Preview{
 		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
-		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),
-		Close: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  button`),
-	}
-}
-
-func GetGitOps(webDriver *agouti.Page) GitOps {
-	return GitOps{
-		GitOpsLabel: webDriver.FindByXPath(`//h2[.="GitOps"]`),
-		GitOpsFields: []FormField{
-			{
-				Label: webDriver.FindByLabel(`CREATE BRANCH`),
-				Field: webDriver.FindByID(`CREATE BRANCH-input`),
-			},
-			{
-				Label: webDriver.FindByLabel(`PULL REQUEST TITLE`),
-				Field: webDriver.FindByID(`PULL REQUEST TITLE-input`),
-			},
-			{
-				Label: webDriver.FindByLabel(`COMMIT MESSAGE`),
-				Field: webDriver.FindByID(`COMMIT MESSAGE-input`),
-			},
-			{
-				Label: webDriver.FindByLabel(`PULL REQUEST DESCRIPTION`),
-				Field: webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
-			},
-		},
-		GitCredentials: webDriver.Find(`div.auth-message`),
-		CreatePR:       webDriver.FindByButton(`CREATE PULL REQUEST`),
-		SuccessBar:     webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::div`),
-		PRLinkBar:      webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "PR created")]/parent::div`),
-		ErrorBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::div`),
+		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  code`),
+		Close: webDriver.Find(`div[class*=MuiDialogTitle-root] button`),
 	}
 }

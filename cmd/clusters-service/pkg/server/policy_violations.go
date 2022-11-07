@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -23,6 +24,17 @@ type validationList struct {
 }
 
 func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.ListPolicyValidationsRequest) (*capiv1_proto.ListPolicyValidationsResponse, error) {
+	var respErrors []*capiv1_proto.ListError
+	clustersClient, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+				}
+			}
+		}
+	}
 	labelSelector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
 		"pac.weave.works/type": "Admission"})
 	if err != nil {
@@ -54,22 +66,28 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 	})
 	opts = append(opts, sigsClient.InNamespace(v1.NamespaceAll))
 
-	validationsList, err := s.listEvents(ctx, m.ClusterName, false, opts)
+	validationsList, err := s.listEvents(ctx, clustersClient, m.ClusterName, false, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events: %v", err)
 	}
+	respErrors = append(respErrors, validationsList.Errors...)
 	policyviolationlist := capiv1_proto.ListPolicyValidationsResponse{
 		Total:         int32(len(validationsList.Validations)),
 		Violations:    validationsList.Validations,
-		Errors:        validationsList.Errors,
+		Errors:        respErrors,
 		NextPageToken: validationsList.Token,
 	}
 	return &policyviolationlist, nil
 }
 
 func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPolicyValidationRequest) (*capiv1_proto.GetPolicyValidationResponse, error) {
+	clusterClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
 	if m.ClusterName == "" {
-		return nil, requiredClusterNameErr
+		return nil, errRequiredClusterName
 	}
 
 	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
@@ -88,7 +106,7 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 	})
 	opts = append(opts, sigsClient.InNamespace(v1.NamespaceAll))
 
-	validationsList, err := s.listEvents(ctx, m.ClusterName, true, opts)
+	validationsList, err := s.listEvents(ctx, clusterClient, m.ClusterName, true, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events: %v", err)
 	}
@@ -103,17 +121,13 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 	}, nil
 }
 
-func (s *server) listEvents(ctx context.Context, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
-	clustersClient, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %s", err)
-	}
+func (s *server) listEvents(ctx context.Context, clusterClient clustersmngr.Client, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
+	respErrors := []*capiv1_proto.ListError{}
 	clist := clustersmngr.NewClusteredList(func() sigsClient.ObjectList {
 		return &v1.EventList{}
 	})
 
-	respErrors := []*capiv1_proto.ListError{}
-	if err := clustersClient.ClusteredList(ctx, clist, true, opts...); err != nil {
+	if err := clusterClient.ClusteredList(ctx, clist, true, opts...); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {
 			return nil, fmt.Errorf("error while listing events: %w", err)
@@ -156,6 +170,7 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*
 	policyValidation := &capiv1_proto.PolicyValidation{
 		Id:          getAnnotation(item.GetLabels(), "pac.weave.works/id"),
 		Name:        getAnnotation(annotations, "policy_name"),
+		PolicyId:    getAnnotation(annotations, "policy_id"),
 		ClusterId:   getAnnotation(annotations, "cluster_id"),
 		Category:    getAnnotation(annotations, "category"),
 		Severity:    getAnnotation(annotations, "severity"),

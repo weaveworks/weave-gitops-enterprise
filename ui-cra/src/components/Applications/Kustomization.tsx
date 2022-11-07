@@ -1,15 +1,17 @@
 import {
+  Kind,
   KustomizationDetail,
-  useGetKustomization,
+  useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { Kustomization } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
+import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
-import { useApplicationsCount } from './utils';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 type Props = {
   name: string;
@@ -22,9 +24,16 @@ const WGApplicationsKustomization: FC<Props> = ({
   namespace,
   clusterName,
 }) => {
-  const applicationsCount = useApplicationsCount();
-  const { data, isLoading } = useGetKustomization(name, namespace, clusterName);
-  const kustomization = data?.kustomization;
+  const {
+    data: kustomization,
+    isLoading,
+    error,
+  } = useGetObject<Kustomization>(
+    name,
+    namespace,
+    Kind.Kustomization,
+    clusterName,
+  );
   const { path } = useRouteMatch();
 
   const customTabs: Array<routeTab> = [
@@ -47,22 +56,27 @@ const WGApplicationsKustomization: FC<Props> = ({
   ];
 
   return (
-    <PageTemplate documentTitle="WeGO · Kustomization">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
-            label: `${name}`,
-          },
-        ]}
-      />
-      <ContentWrapper loading={isLoading}>
+    <PageTemplate
+      documentTitle="Kustomization"
+      path={[
+        {
+          label: 'Applications',
+          url: Routes.Applications,
+        },
+        {
+          label: `${name}`,
+        },
+      ]}
+    >
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
         <KustomizationDetail
           kustomization={kustomization}
+          customActions={[<EditButton resource={kustomization} />]}
           customTabs={customTabs}
         />
       </ContentWrapper>

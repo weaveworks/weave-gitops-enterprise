@@ -20,7 +20,6 @@ const _ = grpc.SupportPackageIsVersion7
 type PipelinesClient interface {
 	ListPipelines(ctx context.Context, in *ListPipelinesRequest, opts ...grpc.CallOption) (*ListPipelinesResponse, error)
 	GetPipeline(ctx context.Context, in *GetPipelineRequest, opts ...grpc.CallOption) (*GetPipelineResponse, error)
-	GetPipelineStatusForObject(ctx context.Context, in *GetPipelineStatusForObjectRequest, opts ...grpc.CallOption) (*GetPipelineStatusForObjectResponse, error)
 }
 
 type pipelinesClient struct {
@@ -49,22 +48,12 @@ func (c *pipelinesClient) GetPipeline(ctx context.Context, in *GetPipelineReques
 	return out, nil
 }
 
-func (c *pipelinesClient) GetPipelineStatusForObject(ctx context.Context, in *GetPipelineStatusForObjectRequest, opts ...grpc.CallOption) (*GetPipelineStatusForObjectResponse, error) {
-	out := new(GetPipelineStatusForObjectResponse)
-	err := c.cc.Invoke(ctx, "/pipelines.v1.Pipelines/GetPipelineStatusForObject", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // PipelinesServer is the server API for Pipelines service.
 // All implementations must embed UnimplementedPipelinesServer
 // for forward compatibility
 type PipelinesServer interface {
 	ListPipelines(context.Context, *ListPipelinesRequest) (*ListPipelinesResponse, error)
 	GetPipeline(context.Context, *GetPipelineRequest) (*GetPipelineResponse, error)
-	GetPipelineStatusForObject(context.Context, *GetPipelineStatusForObjectRequest) (*GetPipelineStatusForObjectResponse, error)
 	mustEmbedUnimplementedPipelinesServer()
 }
 
@@ -77,9 +66,6 @@ func (UnimplementedPipelinesServer) ListPipelines(context.Context, *ListPipeline
 }
 func (UnimplementedPipelinesServer) GetPipeline(context.Context, *GetPipelineRequest) (*GetPipelineResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPipeline not implemented")
-}
-func (UnimplementedPipelinesServer) GetPipelineStatusForObject(context.Context, *GetPipelineStatusForObjectRequest) (*GetPipelineStatusForObjectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPipelineStatusForObject not implemented")
 }
 func (UnimplementedPipelinesServer) mustEmbedUnimplementedPipelinesServer() {}
 
@@ -130,24 +116,6 @@ func _Pipelines_GetPipeline_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Pipelines_GetPipelineStatusForObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPipelineStatusForObjectRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PipelinesServer).GetPipelineStatusForObject(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/pipelines.v1.Pipelines/GetPipelineStatusForObject",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PipelinesServer).GetPipelineStatusForObject(ctx, req.(*GetPipelineStatusForObjectRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Pipelines_ServiceDesc is the grpc.ServiceDesc for Pipelines service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,10 +130,6 @@ var Pipelines_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPipeline",
 			Handler:    _Pipelines_GetPipeline_Handler,
-		},
-		{
-			MethodName: "GetPipelineStatusForObject",
-			Handler:    _Pipelines_GetPipelineStatusForObject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

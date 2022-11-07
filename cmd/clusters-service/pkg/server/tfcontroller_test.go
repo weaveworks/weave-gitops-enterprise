@@ -25,7 +25,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreateTfControllerPullRequestRequest
 		expected       string
-		committedFiles []CommittedFile
+		committedFiles []*capiv1_protos.CommitFile
 		err            error
 		dbRows         int
 	}{
@@ -46,12 +46,13 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 					"RESOURCE_NAME": "foo bar bad name",
 					"NAMESPACE":     "default",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a cluster through a CAPI template",
-				CommitMessage: "Add cluster manifest",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
 			},
 			err:    errors.New(`rpc error: code = Internal desc = validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 			dbRows: 0,
@@ -61,19 +62,20 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("", nil, errors.New("oops")),
+			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"RESOURCE_NAME": "foo",
 					"NAMESPACE":     "default",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a resource through Terraform template",
-				CommitMessage: "Add terraform template",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a resource through Terraform template",
+				CommitMessage:     "Add terraform template",
+				TemplateNamespace: "default",
 			},
 			dbRows: 0,
 			err:    errors.New(`rpc error: code = Internal desc = failed to access repository under https://github.com/org/repo.git: oops`),
@@ -83,19 +85,20 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil),
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
 					"RESOURCE_NAME": "foo",
 					"NAMESPACE":     "default",
 				},
-				RepositoryUrl: "https://github.com/org/repo.git",
-				HeadBranch:    "feature-01",
-				BaseBranch:    "main",
-				Title:         "New Cluster",
-				Description:   "Creates a resource through Terraform template",
-				CommitMessage: "Add terraform template",
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a resource through Terraform template",
+				CommitMessage:     "Add terraform template",
+				TemplateNamespace: "default",
 			},
 			dbRows:   1,
 			expected: "https://github.com/org/repo/pull/1",

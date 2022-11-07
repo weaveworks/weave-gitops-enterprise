@@ -3,6 +3,7 @@ package fetcher
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
@@ -10,7 +11,7 @@ import (
 	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -18,9 +19,8 @@ import (
 )
 
 const (
-	dataKey        = "value"
-	yamlDataKey    = "value.yaml"
-	defaultCluster = "management"
+	dataKey     = "value"
+	yamlDataKey = "value.yaml"
 )
 
 type multiClusterFetcher struct {
@@ -28,15 +28,53 @@ type multiClusterFetcher struct {
 	cfg          *rest.Config
 	clientGetter kube.ClientGetter
 	namespace    string
+	cluster      types.NamespacedName
 }
 
-func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.ClientGetter, namespace string) (mngr.ClusterFetcher, error) {
+func NewMultiClusterFetcher(log logr.Logger, config *rest.Config, cg kube.ClientGetter, namespace, mgmtCluster string) (mngr.ClusterFetcher, error) {
 	return multiClusterFetcher{
 		log:          log.WithName("multi-cluster-fetcher"),
 		cfg:          config,
 		clientGetter: cg,
 		namespace:    namespace,
+		cluster:      types.NamespacedName{Name: mgmtCluster},
 	}, nil
+}
+
+// ToClusterName takes a nice type.NamespacedName and returns
+// a string that the MC-fetcher understands
+// e.g.
+// - {Name: "foo", Namespace: "bar"} -> "bar/foo"
+// - {Name: "foo"} -> "foo"
+// (ManagementCluster doesn't have a namespace)
+func ToClusterName(cluster types.NamespacedName) string {
+	if cluster.Namespace == "" {
+		return cluster.Name
+	}
+
+	return cluster.String()
+}
+
+// FromClusterName takes a string that the MC-fetcher understands
+// and returns a nice type.NamespacedName
+func FromClusterName(clusterName string) types.NamespacedName {
+	parts := strings.Split(clusterName, "/")
+	if len(parts) == 1 {
+		return types.NamespacedName{
+			Name: parts[0],
+		}
+	}
+
+	return types.NamespacedName{
+		Namespace: parts[0],
+		Name:      parts[1],
+	}
+}
+
+// IsManagementCluster returns true if the cluster is the management cluster
+// Provide the name of the management cluster and a ref to another cluster
+func IsManagementCluster(mgmtClusterName string, cluster types.NamespacedName) bool {
+	return cluster.Namespace == "" && mgmtClusterName == cluster.Name
 }
 
 func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) {
@@ -60,7 +98,7 @@ func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngr.Cluster, error) 
 
 func (f *multiClusterFetcher) self() mngr.Cluster {
 	return mngr.Cluster{
-		Name:        defaultCluster,
+		Name:        f.cluster.Name,
 		Server:      f.cfg.Host,
 		BearerToken: f.cfg.BearerToken,
 		TLSConfig:   f.cfg.TLSClientConfig,
@@ -82,7 +120,7 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 	}
 
 	for _, cluster := range goClusters.Items {
-		if !isReady(cluster) {
+		if !isReady(cluster) || !hasConnectivity(cluster) {
 			continue
 		}
 
@@ -149,10 +187,9 @@ func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngr.Cluster, 
 }
 
 func isReady(cluster gitopsv1alpha1.GitopsCluster) bool {
-	for _, condition := range cluster.GetConditions() {
-		if condition.Type == meta.ReadyCondition && condition.Status == metav1.ConditionTrue {
-			return true
-		}
-	}
-	return false
+	return apimeta.IsStatusConditionTrue(cluster.GetConditions(), meta.ReadyCondition)
+}
+
+func hasConnectivity(cluster gitopsv1alpha1.GitopsCluster) bool {
+	return apimeta.IsStatusConditionTrue(cluster.GetConditions(), gitopsv1alpha1.ClusterConnectivity)
 }

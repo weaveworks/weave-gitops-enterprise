@@ -1,7 +1,12 @@
 import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { FC } from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import {
+  QueryCache,
+  QueryClient,
+  QueryClientConfig,
+  QueryClientProvider,
+} from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { muiTheme } from './muiTheme';
@@ -12,12 +17,15 @@ import {
   applicationsClient,
   theme,
 } from '@weaveworks/weave-gitops';
-import Background from './assets/img/background.svg';
+import bg from './assets/img/bg.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
+import { PipelinesProvider } from './contexts/Pipelines';
+import { Pipelines } from './api/pipelines/pipelines.pb';
+import { GithubAuthProvider } from './contexts/GithubAuth';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -43,16 +51,16 @@ const GlobalStyle = createGlobalStyle`
 
   html, body {
     height: 100%;
+    background-color:#EEF0F4 !important;
   }
 
   body {
-    background: right bottom url(${Background}) no-repeat fixed ${
-  theme.colors.neutral10
-}; 
+    background: right bottom no-repeat fixed; 
+    background-image: url(${bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);
     background-size: 100%;
     color: ${theme.colors.black};
     font-family: ${theme.fontFamilies.regular};
-    font-size: ${theme.fontSizes.normal};
+    font-size: ${theme.fontSizes.medium};
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
@@ -78,7 +86,7 @@ const GlobalStyle = createGlobalStyle`
     margin-top: 50px;
   }
  ::-webkit-scrollbar-thumb {
-    background-color: ${props => props.theme.colors.neutral20};
+    background-color: ${props => props.theme.colors.neutral30};
     border-radius: 5px;
   }
  ::-webkit-scrollbar-thumb:hover {
@@ -90,7 +98,31 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-const queryClient = new QueryClient();
+interface Error {
+  code: number;
+  message: string;
+}
+export const queryOptions: QueryClientConfig = {
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+  queryCache: new QueryCache({
+    onError: error => {
+      const err = error as Error;
+      const { pathname, search } = window.location;
+      const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+      const url = redirectUrl
+        ? `/sign_in?redirect=${redirectUrl}`
+        : `/sign_in?redirect=/`;
+      if (err.code === 401 && !window.location.href.includes('/sign_in')) {
+        window.location.href = url;
+      }
+    },
+  }),
+};
+const queryClient = new QueryClient(queryOptions);
 
 const App: FC = () => {
   return (
@@ -101,9 +133,13 @@ const App: FC = () => {
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
-                <AppContextProvider applicationsClient={applicationsClient}>
-                  <ResponsiveDrawer />
-                </AppContextProvider>
+                <PipelinesProvider api={Pipelines}>
+                  <GithubAuthProvider api={applicationsClient}>
+                    <AppContextProvider applicationsClient={applicationsClient}>
+                      <ResponsiveDrawer />
+                    </AppContextProvider>
+                  </GithubAuthProvider>
+                </PipelinesProvider>
               </ProgressiveDeliveryProvider>
             </BrowserRouter>
           </QueryClientProvider>

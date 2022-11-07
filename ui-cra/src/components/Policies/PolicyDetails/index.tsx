@@ -1,15 +1,10 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 
-import { PolicyService } from '../PolicyService';
-import { useCallback, useState } from 'react';
-import LoadingError from '../../LoadingError';
 import HeaderSection from './HeaderSection';
-import { GetPolicyResponse } from '../../../cluster-services/cluster_services.pb';
 import ParametersSection from './ParametersSection';
+import { useGetPolicyDetails } from '../../../contexts/PolicyViolations';
+import { Routes } from '../../../utils/nav';
 
 const PolicyDetails = ({
   clusterName,
@@ -18,54 +13,39 @@ const PolicyDetails = ({
   clusterName: string;
   id: string;
 }) => {
-  const [name, setName] = useState('');
-
-  const fetchPoliciesAPI = useCallback(
-    () =>
-      PolicyService.getPolicyById(id, clusterName).then(
-        (res: GetPolicyResponse) => {
-          res.policy && setName(res.policy?.name || '');
-          return res;
-        },
-      ),
-    [id, clusterName],
-  );
-
+  const { data, error, isLoading } = useGetPolicyDetails({
+    clusterName,
+    policyName: id,
+  });
+  const policy = data?.policy;
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Policies">
-        <SectionHeader
-          className="count-header"
-          path={[
-            { label: 'Policies', url: '/policies' },
-            { label: name, url: 'policy-details' },
-          ]}
-        />
-        <ContentWrapper>
-          <Title>{name}</Title>
-          <LoadingError fetchFn={fetchPoliciesAPI}>
-            {({ value: { policy } }: { value: GetPolicyResponse }) => (
-              <>
-                <HeaderSection
-                  id={policy?.id}
-                  clusterName={policy?.clusterName}
-                  tags={policy?.tags}
-                  severity={policy?.severity}
-                  category={policy?.category}
-                  targets={policy?.targets}
-                  description={policy?.description}
-                  howToSolve={policy?.howToSolve}
-                  code={policy?.code}
-                ></HeaderSection>
-                <ParametersSection
-                  parameters={policy?.parameters}
-                ></ParametersSection>
-              </>
-            )}
-          </LoadingError>
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate
+      documentTitle="Policies"
+      path={[
+        { label: 'Policies', url: Routes.Policies },
+        { label: data?.policy?.name || '' },
+      ]}
+    >
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        <>
+          <HeaderSection
+            id={policy?.id}
+            clusterName={policy?.clusterName}
+            tags={policy?.tags}
+            severity={policy?.severity}
+            category={policy?.category}
+            targets={policy?.targets}
+            description={policy?.description}
+            howToSolve={policy?.howToSolve}
+            code={policy?.code}
+            tenant={policy?.tenant}
+          ></HeaderSection>
+          <ParametersSection
+            parameters={policy?.parameters}
+          ></ParametersSection>
+        </>
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 

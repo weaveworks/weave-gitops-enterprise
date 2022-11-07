@@ -16,6 +16,131 @@
     "application/json"
   ],
   "paths": {
+    "/v1/charts/jobs/{jobId}": {
+      "get": {
+        "summary": "GetChartsJob gets the default Values.yaml for the provided Chart\nreference.",
+        "operationId": "ClustersService_GetChartsJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetChartsJobResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/charts/list": {
+      "get": {
+        "summary": "ListChartsForRepository lists the discovered Helm charts in the provided\nrepository.",
+        "operationId": "ClustersService_ListChartsForRepository",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListChartsForRepositoryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "repository.cluster.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.cluster.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/charts/values": {
+      "post": {
+        "summary": "GetValuesForChart gets the default Values.yaml for the provided Chart\nreference.",
+        "operationId": "ClustersService_GetValuesForChart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/clusters": {
       "get": {
         "operationId": "ClustersService_ListGitopsClusters",
@@ -233,6 +358,38 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1CreateAutomationsPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/enterprise/automations/render": {
+      "post": {
+        "operationId": "ClustersService_RenderAutomation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationRequest"
             }
           }
         ],
@@ -529,6 +686,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "templateNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -538,6 +701,7 @@
     },
     "/v1/templates/{templateName}/params": {
       "get": {
+        "summary": "Get the Values.yaml for a template if one exists.",
         "operationId": "ClustersService_ListTemplateParams",
         "responses": {
           "200": {
@@ -562,6 +726,12 @@
           },
           {
             "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "templateNamespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -599,6 +769,12 @@
           },
           {
             "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "templateNamespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -654,6 +830,21 @@
                 },
                 "clusterNamespace": {
                   "type": "string"
+                },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ProfileValues"
+                  }
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
+                },
+                "templateNamespace": {
+                  "type": "string"
                 }
               }
             }
@@ -699,6 +890,19 @@
     }
   },
   "definitions": {
+    "CostEstimateRange": {
+      "type": "object",
+      "properties": {
+        "low": {
+          "type": "number",
+          "format": "float"
+        },
+        "high": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
     "apiHttpBody": {
       "type": "object",
       "properties": {
@@ -730,7 +934,7 @@
         }
       },
       "additionalProperties": {},
-      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "rpcStatus": {
       "type": "object",
@@ -773,6 +977,23 @@
         },
         "status": {
           "$ref": "#/definitions/v1CapiClusterStatus"
+        },
+        "infrastructureRef": {
+          "$ref": "#/definitions/v1CapiClusterInfrastructureRef"
+        }
+      }
+    },
+    "v1CapiClusterInfrastructureRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
@@ -819,6 +1040,9 @@
         },
         "sourceRef": {
           "$ref": "#/definitions/v1SourceRef"
+        },
+        "version": {
+          "type": "string"
         }
       }
     },
@@ -854,6 +1078,17 @@
         }
       }
     },
+    "v1CommitFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -874,6 +1109,20 @@
         }
       },
       "title": "kubernetes status condition field\nXXX: is dup'd in core, can we share?"
+    },
+    "v1CostEstimate": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/definitions/CostEstimateRange"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v1CreateAutomationsPullRequestRequest": {
       "type": "object",
@@ -985,6 +1234,9 @@
           "items": {
             "$ref": "#/definitions/v1Kustomization"
           }
+        },
+        "templateNamespace": {
+          "type": "string"
         }
       }
     },
@@ -1038,6 +1290,9 @@
         "repositoryApiUrl": {
           "type": "string",
           "description": "The repo api url."
+        },
+        "templateNamespace": {
+          "type": "string"
         }
       }
     },
@@ -1155,6 +1410,18 @@
         }
       }
     },
+    "v1GetChartsJobResponse": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "string",
+          "description": "This is the base64 encoded version of the raw values data."
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetConfigResponse": {
       "type": "object",
       "properties": {
@@ -1199,6 +1466,28 @@
         }
       }
     },
+    "v1GetValuesForChartRequest": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "$ref": "#/definitions/v1RepositoryRef"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetValuesForChartResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string"
+        }
+      }
+    },
     "v1GitopsCluster": {
       "type": "object",
       "properties": {
@@ -1237,6 +1526,9 @@
         },
         "controlPlane": {
           "type": "boolean"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
@@ -1289,6 +1581,23 @@
         },
         "sourceRef": {
           "$ref": "#/definitions/v1SourceRef"
+        },
+        "targetNamespace": {
+          "type": "string"
+        },
+        "createNamespace": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1ListChartsForRepositoryResponse": {
+      "type": "object",
+      "properties": {
+        "charts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1RepositoryChart"
+          }
         }
       }
     },
@@ -1347,6 +1656,12 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1461,6 +1776,12 @@
         "total": {
           "type": "integer",
           "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -1521,6 +1842,9 @@
         },
         "default": {
           "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
         }
       }
     },
@@ -1576,6 +1900,9 @@
           "type": "string"
         },
         "clusterName": {
+          "type": "string"
+        },
+        "tenant": {
           "type": "string"
         }
       }
@@ -1693,6 +2020,9 @@
           "items": {
             "$ref": "#/definitions/v1PolicyValidationOccurrence"
           }
+        },
+        "policyId": {
+          "type": "string"
         }
       }
     },
@@ -1724,10 +2054,88 @@
         }
       }
     },
+    "v1RenderAutomationRequest": {
+      "type": "object",
+      "properties": {
+        "clusterAutomations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterAutomation"
+          }
+        }
+      }
+    },
+    "v1RenderAutomationResponse": {
+      "type": "object",
+      "properties": {
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "helmReleaseFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        }
+      }
+    },
     "v1RenderTemplateResponse": {
       "type": "object",
       "properties": {
         "renderedTemplate": {
+          "type": "string"
+        },
+        "profileFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "costEstimate": {
+          "$ref": "#/definitions/v1CostEstimate"
+        }
+      }
+    },
+    "v1RepositoryChart": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "This is the available versions in reverse semver order."
+        },
+        "layer": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RepositoryRef": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
           "type": "string"
         }
       }
@@ -1778,6 +2186,15 @@
         },
         "templateKind": {
           "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },
@@ -1817,6 +2234,9 @@
           "type": "boolean"
         },
         "values": {
+          "type": "string"
+        },
+        "namespace": {
           "type": "string"
         }
       }

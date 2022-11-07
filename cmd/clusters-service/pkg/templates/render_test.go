@@ -52,6 +52,74 @@ spec:
 	}
 }
 
+func TestTextTemplateStringReplace(t *testing.T) {
+	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-1
+spec:
+  description: this is test template 1
+  renderType: templating
+  params:
+  - name: CLUSTER_NAME
+    description: This is used for the cluster naming.
+  resourcetemplates:
+  - apiVersion: cluster.x-k8s.io/v1alpha3
+    kind: Cluster
+    metadata:
+      name: '{{ .params.CLUSTER_NAME | replace "." "-" }}'
+`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing.name",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `---
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing-name
+`
+	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
+func TestTextTemplateMissingFunction(t *testing.T) {
+	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: cluster-template-1
+spec:
+  description: this is test template 1
+  renderType: templating
+  params:
+  - name: CLUSTER_NAME
+    description: This is used for the cluster naming.
+  resourcetemplates:
+  - apiVersion: cluster.x-k8s.io/v1alpha3
+    kind: Cluster
+    metadata:
+      name: '{{ env "TESTING" }}'
+`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = processor.RenderTemplates(map[string]string{
+		"CLUSTER_NAME": "testing.name",
+	})
+	assert.ErrorContains(t, err, `template: capi-template:4: function "env" not defined`)
+}
+
 func TestGitopsRender(t *testing.T) {
 	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template.yaml")
 	processor, err := NewProcessorForTemplate(parsed)
@@ -518,4 +586,90 @@ func writeMultiDoc(t *testing.T, objs [][]byte) string {
 		}
 	}
 	return out.String()
+}
+
+func TestInjectLabels(t *testing.T) {
+	raw := []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing
+  namespace: new-namespace
+  labels:
+    com.example/testing: tested
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+kind: KubeadmControlPlane
+metadata:
+  name: testing-control-plane
+  labels:
+    com.example/other: tested
+spec:
+  replicas: 5`)
+	updated, err := processUnstructured(raw, InjectLabels(map[string]string{
+		"new-label": "test-label",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := `apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  labels:
+    com.example/testing: tested
+    new-label: test-label
+  name: testing
+  namespace: new-namespace
+`
+
+	if diff := cmp.Diff(want, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
+func TestConvertToUnstructured(t *testing.T) {
+	raw := [][]byte{[]byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing1
+  namespace: default
+`), []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing2
+  namespace: default
+`)}
+
+	converted, err := ConvertToUnstructured(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []*unstructured.Unstructured{
+		{
+			Object: map[string]any{
+				"apiVersion": "cluster.x-k8s.io/v1alpha3",
+				"kind":       "Cluster",
+				"metadata": map[string]any{
+					"name":      "testing1",
+					"namespace": "default",
+				},
+			},
+		},
+		{
+			Object: map[string]any{
+				"apiVersion": "cluster.x-k8s.io/v1alpha3",
+				"kind":       "Cluster",
+				"metadata": map[string]any{
+					"name":      "testing2",
+					"namespace": "default",
+				},
+			},
+		},
+	}
+	if diff := cmp.Diff(want, converted); diff != "" {
+		t.Fatalf("failed to convert to unstructured:\n%s", diff)
+	}
 }

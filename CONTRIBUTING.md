@@ -54,6 +54,12 @@ You will also be using your personal GitHub account to host GitOps repositories.
 export GITHUB_USER=your_username
 ```
 
+If you are running into issues installing Go modules try setting the `GOPRIVATE` environment variable:
+
+```bash
+export GOPRIVATE=github.com/weaveworks/*
+```
+
 Along with this repository you need to clone the [cluster-controller](https://github.com/weaveworks/cluster-controller) and [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller) repositories next to this repository's clone.
 
 Finally, make sure you can access to the
@@ -85,6 +91,21 @@ This will recreate a local Kind cluster, install CAPD and setup Flux to
 reconcile from a GitOps repository in your personal GitHub account. It will also
 create a file containing local settings such as your GitOps repository that the
 enterprise Helm chart will use in the next step.
+
+### Customizing your development environment
+
+#### Custom kind configuration
+
+The `reboot.sh` script has the capability to patch the default kind config
+using custom configuration provided in the `./tools/custom/` directory. Place
+any configuration you'd like in a file matching the pattern `kind-cluster-patch-*.yaml`
+in that directory and it will get merged into the base configuration.
+
+#### Custom scripts
+
+The `reboot.sh` script will execute all scripts it finds in `./tools/custom/` that
+match the file name pattern `*.sh` after creating the cluster and installing
+all components.
 
 ### Start environment
 
@@ -238,6 +259,19 @@ To run all tests before pushing run:
 ```bash
 make test
 ```
+
+### Creating leaf cluster
+To create leaf clusters to test out our features, we can rely on the [vcluster](https://www.vcluster.com/) to help us deploy new clusters on the fly. That project will basically create a entire cluster inside you kind cluster without adding much overhead.
+
+to get started install the `vcluster` cli first, by following https://www.vcluster.com/docs/getting-started/setup and then just run the `./tools/create-leaf-cluster.sh` script.
+
+```shell
+$ ./tools/create-leaf-cluster.sh leaf-cluster-01
+```
+
+This command will create a new cluster and configure the `GitopsCluster` CR pointing to the cluster's kubeconfig.
+
+Note that this won't configure completelly the cluster, you might need to install flux and rbac rules in order to be able to query it properly. But it should be already visible on the Weave Gitops cluster's tab.
 
 ### How to install everything from your working branch on a cluster
 
@@ -408,6 +442,17 @@ cd ui-cra
 CAPI_SERVER_HOST=http://localhost:8000 yarn start
 ```
 
+#### Grab a copy of the SQLite chart cache
+
+The `clusters-service` caches the `index.yaml` and `values.yaml` files from
+helm-repos (profiles) in a SQLite database. This is to avoid hammering the
+source-controller with requests. The cache is stored in a file called
+`/tmp/helm-cache/charts.db` by default.
+
+```
+kubectl cp flux-system/$(kubectl get pods -A -l app=clusters-service --no-headers -o custom-columns=":metadata.name"):/tmp/helm-cache/charts.db mccp.db
+```
+
 ## Developing the UI
 
 We usually develop the UI against the test server and by default the UI dev
@@ -533,17 +578,10 @@ cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 This will update WGE to use the latest `main` of `weave-gitops`
 
 ```bash
-# 1.update the backend golang code
-go get -d github.com/weaveworks/weave-gitops@main
-go mod tidy
-
-# 2. Update the frontend typescript/javascript code
-cd ui-cra
-yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main
+make update-weave-gitops-main
 ```
 
 You can commit and push this to GitHub and CI will be able to build and test. It is fine to merge this to main too, just be careful before a release. We always want to release WGE with a released version of WG under the hood.
-
 
 ## How to update the version of `cluster-controller`
 
@@ -575,6 +613,8 @@ git add --patch
 ## How to update the version of `cluster-bootstrap-controller`
 
 Update `images.clusterBootstrapController` in https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
+
+Manually copy across any big changes to the deployment or CRDs from cluster-controller/config into weave-gitops-enterprise/charts/mccp/
 
 ## Demo clusters
 
@@ -623,10 +663,10 @@ rules:
     verbs: ["impersonate"]
   - apiGroups: [""]
     resources: ["namespaces"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: ["apiextensions.k8s.io"] # required for canary support
     resources: ["customresourcedefinitions"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "watch"]
 ```
 
 **CAPI NAME COLLISION WARNING**
@@ -846,4 +886,32 @@ Install and configure the aws CLI if needed. Then run:
 
 ```bash
 aws eks --region <aws-region> update-kubeconfig --name <cluster-name>
+```
+
+## How to add a feature flag
+
+First add a new feature flag in [values.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/0605d2992fed7888dd2c5045d675c7baeadb03ef/charts/mccp/values.yaml#L28))
+
+For example:
+```yaml
+# Turns on pipelines features if set to true. This includes the UI elements.
+enablePipelines: false
+```
+
+Then add an `if` block to the [deployment.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/templates/clusters-service/deployment.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/27e143749b5cda32d6d8ac6eadab3d1e2db2999e/charts/mccp/templates/clusters-service/deployment.yaml#L61-L64)) template of cluster-service in order to conditionally set an environment variable. This variable will be available to cluster-service at runtime. As a convention, the environment variable needs to be prefixed with `WEAVE_GITOPS_FEATURE_` and takes a value of `true`.
+
+For example:
+```yaml
+{{- if .Values.enablePipelines }}
+- name: WEAVE_GITOPS_FEATURE_PIPELINES
+  value: "true"
+{{- end }}
+```
+
+Finally, you can use the feature flag from Go through the `featureflags` package, for example:
+
+```go
+if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
+  // Feature flag has been set
+}
 ```

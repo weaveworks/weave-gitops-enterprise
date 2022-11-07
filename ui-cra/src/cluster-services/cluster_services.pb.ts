@@ -26,11 +26,13 @@ export type ListError = {
 export type ListTemplatesResponse = {
   templates?: Template[]
   total?: number
+  errors?: ListError[]
 }
 
 export type GetTemplateRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type GetTemplateResponse = {
@@ -40,6 +42,7 @@ export type GetTemplateResponse = {
 export type ListTemplateParamsRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type ListTemplateParamsResponse = {
@@ -50,6 +53,7 @@ export type ListTemplateParamsResponse = {
 export type ListTemplateProfilesRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type ListTemplateProfilesResponse = {
@@ -63,10 +67,41 @@ export type RenderTemplateRequest = {
   credentials?: Credential
   templateKind?: string
   clusterNamespace?: string
+  profiles?: ProfileValues[]
+  kustomizations?: Kustomization[]
+  templateNamespace?: string
+}
+
+export type CommitFile = {
+  path?: string
+  content?: string
+}
+
+export type CostEstimateRange = {
+  low?: number
+  high?: number
+}
+
+export type CostEstimate = {
+  currency?: string
+  range?: CostEstimateRange
+  message?: string
 }
 
 export type RenderTemplateResponse = {
   renderedTemplate?: string
+  profileFiles?: CommitFile[]
+  kustomizationFiles?: CommitFile[]
+  costEstimate?: CostEstimate
+}
+
+export type RenderAutomationRequest = {
+  clusterAutomations?: ClusterAutomation[]
+}
+
+export type RenderAutomationResponse = {
+  kustomizationFiles?: CommitFile[]
+  helmReleaseFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -80,6 +115,7 @@ export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
   total?: number
   nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type GetPolicyRequest = {
@@ -146,6 +182,7 @@ export type PolicyValidation = {
   name?: string
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
+  policyId?: string
 }
 
 export type CreatePullRequestRequest = {
@@ -162,6 +199,7 @@ export type CreatePullRequestRequest = {
   repositoryApiUrl?: string
   clusterNamespace?: string
   kustomizations?: Kustomization[]
+  templateNamespace?: string
 }
 
 export type CreatePullRequestResponse = {
@@ -178,6 +216,7 @@ export type CreateTfControllerPullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   repositoryApiUrl?: string
+  templateNamespace?: string
 }
 
 export type CreateTfControllerPullRequestResponse = {
@@ -241,6 +280,7 @@ export type GitopsCluster = {
   secretRef?: GitopsClusterRef
   capiCluster?: CapiCluster
   controlPlane?: boolean
+  type?: string
 }
 
 export type CapiCluster = {
@@ -249,6 +289,7 @@ export type CapiCluster = {
   annotations?: {[key: string]: string}
   labels?: {[key: string]: string}
   status?: CapiClusterStatus
+  infrastructureRef?: CapiClusterInfrastructureRef
 }
 
 export type CapiClusterStatus = {
@@ -258,6 +299,12 @@ export type CapiClusterStatus = {
   controlPlaneReady?: boolean
   conditions?: Condition[]
   observedGeneration?: string
+}
+
+export type CapiClusterInfrastructureRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
 }
 
 export type GitopsClusterRef = {
@@ -281,6 +328,8 @@ export type Template = {
   error?: string
   annotations?: {[key: string]: string}
   templateKind?: string
+  labels?: {[key: string]: string}
+  namespace?: string
 }
 
 export type Parameter = {
@@ -289,6 +338,7 @@ export type Parameter = {
   required?: boolean
   options?: string[]
   default?: string
+  editable?: boolean
 }
 
 export type TemplateProfile = {
@@ -296,6 +346,7 @@ export type TemplateProfile = {
   version?: string
   editable?: boolean
   values?: string
+  namespace?: string
 }
 
 export type TemplateObject = {
@@ -340,6 +391,8 @@ export type Kustomization = {
 export type KustomizationSpec = {
   path?: string
   sourceRef?: SourceRef
+  targetNamespace?: string
+  createNamespace?: boolean
 }
 
 export type HelmRelease = {
@@ -359,6 +412,7 @@ export type Chart = {
 export type ChartSpec = {
   chart?: string
   sourceRef?: SourceRef
+  version?: string
 }
 
 export type Metadata = {
@@ -456,6 +510,7 @@ export type Policy = {
   targets?: PolicyTargets
   createdAt?: string
   clusterName?: string
+  tenant?: string
 }
 
 export type ObjectRef = {
@@ -483,6 +538,47 @@ export type ListEventsResponse = {
   events?: Event[]
 }
 
+export type RepositoryRef = {
+  cluster?: ClusterNamespacedName
+  name?: string
+  namespace?: string
+  kind?: string
+}
+
+export type ListChartsForRepositoryRequest = {
+  repository?: RepositoryRef
+  kind?: string
+}
+
+export type RepositoryChart = {
+  name?: string
+  versions?: string[]
+  layer?: string
+}
+
+export type ListChartsForRepositoryResponse = {
+  charts?: RepositoryChart[]
+}
+
+export type GetValuesForChartRequest = {
+  repository?: RepositoryRef
+  name?: string
+  version?: string
+}
+
+export type GetValuesForChartResponse = {
+  jobId?: string
+}
+
+export type GetChartsJobRequest = {
+  jobId?: string
+}
+
+export type GetChartsJobResponse = {
+  values?: string
+  error?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -498,6 +594,9 @@ export class ClustersService {
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static RenderAutomation(req: RenderAutomationRequest, initReq?: fm.InitReq): Promise<RenderAutomationResponse> {
+    return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(`/v1/enterprise/automations/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
     return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -540,5 +639,14 @@ export class ClustersService {
   }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
     return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListChartsForRepository(req: ListChartsForRepositoryRequest, initReq?: fm.InitReq): Promise<ListChartsForRepositoryResponse> {
+    return fm.fetchReq<ListChartsForRepositoryRequest, ListChartsForRepositoryResponse>(`/v1/charts/list?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetValuesForChart(req: GetValuesForChartRequest, initReq?: fm.InitReq): Promise<GetValuesForChartResponse> {
+    return fm.fetchReq<GetValuesForChartRequest, GetValuesForChartResponse>(`/v1/charts/values`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetChartsJob(req: GetChartsJobRequest, initReq?: fm.InitReq): Promise<GetChartsJobResponse> {
+    return fm.fetchReq<GetChartsJobRequest, GetChartsJobResponse>(`/v1/charts/jobs/${req["jobId"]}?${fm.renderURLSearchParams(req, ["jobId"])}`, {...initReq, method: "GET"})
   }
 }

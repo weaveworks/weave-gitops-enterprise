@@ -7,25 +7,45 @@ import {
 } from '@weaveworks/progressive-delivery';
 import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import {
-  ListHelmReleasesResponse,
-  ListKustomizationsResponse,
+  GetObjectRequest,
+  GetObjectResponse,
+  ListObjectsRequest,
+  ListObjectsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
+  GetPipelineResponse,
+  ListPipelinesResponse,
+  Pipelines,
+} from '../api/pipelines/pipelines.pb';
+import {
+  GetTerraformObjectResponse,
+  ListTerraformObjectsResponse,
+  SyncTerraformObjectResponse,
+  Terraform,
+  ToggleSuspendTerraformObjectResponse,
+} from '../api/terraform/terraform.pb';
+import {
   GetConfigResponse,
+  GetPolicyResponse,
+  GetPolicyValidationResponse,
   ListGitopsClustersResponse,
+  ListPoliciesResponse,
+  ListPolicyValidationsResponse,
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
-import ClustersProvider from '../contexts/Clusters/Provider';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import {
+  GetGithubAuthStatusResponse,
+  GetGithubDeviceCodeResponse,
+} from '../contexts/GithubAuth/provider';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
-import TemplatesProvider from '../contexts/Templates/Provider';
 import { muiTheme } from '../muiTheme';
 
 export const withContext = (contexts: any[]) => {
@@ -65,18 +85,38 @@ export const defaultContexts = () => [
     RequestContextProvider,
     { fetch: () => new Promise(accept => accept(mockRes)) },
   ],
-  [QueryClientProvider, { client: new QueryClient() }],
+  [
+    QueryClientProvider,
+    {
+      client: new QueryClient({
+        queryCache: new QueryCache({
+          onError: error => {
+            const err = error as { code: number; message: string };
+            const { pathname, search } = window.location;
+            const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+
+            if (err.code === 401) {
+              window.location.href = `/sign_in?redirect=${redirectUrl}`;
+            }
+          },
+        }),
+      }),
+    },
+  ],
   [
     EnterpriseClientProvider,
     {
       api: new EnterpriseClientMock(),
     },
   ],
-  [CoreClientContextProvider, { api: new CoreClientMock() }],
+  [
+    CoreClientContextProvider,
+    {
+      api: new CoreClientMock(),
+    },
+  ],
   [MemoryRouter],
   [NotificationProvider],
-  [TemplatesProvider],
-  [ClustersProvider],
 ];
 
 const promisify = <R, E>(res: R, errRes?: E) =>
@@ -110,23 +150,54 @@ export class EnterpriseClientMock {
   }
 }
 
+const defaultListObjectsResponse: ListObjectsResponse = {
+  objects: [],
+  errors: [],
+};
+
 export class CoreClientMock {
   constructor() {
-    this.ListKustomizations = this.ListKustomizations.bind(this);
-    this.ListHelmReleases = this.ListHelmReleases.bind(this);
+    this.ListObjects = this.ListObjects.bind(this);
+    this.GetFeatureFlags = this.GetFeatureFlags.bind(this);
+    this.GetObject = this.GetObject.bind(this);
   }
-  ListKustomizationsReturns: ListKustomizationsResponse = {};
-  ListHelmReleasesReturns: ListHelmReleasesResponse = {};
+  GetFeatureFlagsReturns: { flags: { [x: string]: string } } = {
+    flags: {
+      WEAVE_GITOPS_FEATURE_CLUSTER: 'true',
+    },
+  };
+  ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
+  GetObjectReturns: GetObjectResponse = {};
 
-  ListKustomizations() {
-    return promisify(this.ListKustomizationsReturns);
+  GetFeatureFlags() {
+    return promisify(this.GetFeatureFlagsReturns);
   }
 
-  ListHelmReleases() {
-    return promisify(this.ListHelmReleasesReturns);
+  ListObjects(req: ListObjectsRequest) {
+    return promisify(
+      this.ListObjectsReturns[req.kind!] || defaultListObjectsResponse,
+    );
+  }
+
+  GetObject(req: GetObjectRequest) {
+    return promisify(this.GetObjectReturns);
   }
 }
+export class ApplicationsClientMock {
+  constructor() {
+    this.GetGithubDeviceCode = this.GetGithubDeviceCode.bind(this);
+    this.GetGithubAuthStatus = this.GetGithubAuthStatus.bind(this);
+  }
+  GetGithubDeviceCodeReturn: GetGithubDeviceCodeResponse = {};
+  GetGithubAuthStatusReturn: GetGithubAuthStatusResponse = {};
+  GetGithubDeviceCode() {
+    return promisify(this.GetGithubDeviceCodeReturn);
+  }
 
+  GetGithubAuthStatus() {
+    return promisify(this.GetGithubAuthStatusReturn);
+  }
+}
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);
@@ -148,6 +219,81 @@ export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
 
   GetCanary() {
     return promisify(this.GetCanaryReturns);
+  }
+}
+
+export class PolicyClientMock {
+  constructor() {
+    this.ListPolicies = this.ListPolicies.bind(this);
+    this.ListPolicyValidations = this.ListPolicyValidations.bind(this);
+    this.GetPolicy = this.GetPolicy.bind(this);
+    this.GetPolicyValidation = this.GetPolicyValidation.bind(this);
+  }
+  ListPoliciesReturns: ListPoliciesResponse = {};
+  ListPolicyValidationsReturns: ListPolicyValidationsResponse = {};
+  GetPolicyReturns: GetPolicyResponse = {};
+  GetPolicyValidationReturns: GetPolicyValidationResponse = {};
+
+  ListPolicies() {
+    return promisify(this.ListPoliciesReturns);
+  }
+  GetPolicy() {
+    return promisify(this.GetPolicyReturns);
+  }
+  ListPolicyValidations() {
+    return promisify(this.ListPolicyValidationsReturns);
+  }
+  GetPolicyValidation() {
+    return promisify(this.GetPolicyValidationReturns);
+  }
+}
+
+export class PipelinesClientMock implements Pipelines {
+  constructor() {
+    this.ListPipelines = this.ListPipelines.bind(this);
+    this.GetPipeline = this.GetPipeline.bind(this);
+  }
+  ListPipelinesReturns: ListPipelinesResponse = {};
+  GetPipelineReturns: GetPipelineResponse = {};
+  ErrorRef: { code: number; message: string } | undefined;
+
+  ListPipelines() {
+    return promisify(this.ListPipelinesReturns, this.ErrorRef);
+  }
+
+  GetPipeline() {
+    return promisify(this.GetPipelineReturns);
+  }
+}
+
+export class TerraformClientMock implements Terraform {
+  constructor() {
+    this.ListTerraformObjects = this.ListTerraformObjects.bind(this);
+    this.GetTerraformObject = this.GetTerraformObject.bind(this);
+    this.SyncTerraformObject = this.SyncTerraformObject.bind(this);
+    this.ToggleSuspendTerraformObject =
+      this.ToggleSuspendTerraformObject.bind(this);
+  }
+
+  ListTerraformObjectsReturns: ListTerraformObjectsResponse = {};
+  ListTerraformObjects() {
+    return promisify(this.ListTerraformObjectsReturns);
+  }
+
+  GetTerraformObjectReturns: GetTerraformObjectResponse = {};
+  GetTerraformObject() {
+    return promisify(this.GetTerraformObjectReturns);
+  }
+
+  SyncTerraformObjectReturns: SyncTerraformObjectResponse = {};
+  SyncTerraformObject() {
+    return promisify(this.SyncTerraformObjectReturns);
+  }
+
+  ToggleSuspendTerraformObjectReturns: ToggleSuspendTerraformObjectResponse =
+    {};
+  ToggleSuspendTerraformObject() {
+    return promisify(this.ToggleSuspendTerraformObjectReturns);
   }
 }
 
@@ -174,6 +320,30 @@ export function findTextByHeading(
   return row.childNodes.item(index).textContent;
 }
 
+export function getTableInfo(id: string) {
+  const tbl = document.querySelector(`#${id} table`);
+  const rows = tbl?.querySelectorAll('tbody tr');
+  const headers = tbl?.querySelectorAll('thead tr th');
+
+  return { rows, headers };
+}
+export function getRowInfoByIndex(tableId: string, rowIndex: number) {
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  return rows[rowIndex].querySelectorAll('td');
+}
+
+export function sortTableByColumn(tableId: string, column: string) {
+  const btns = document.querySelectorAll<HTMLElement>(
+    `#${tableId} table thead tr th button`,
+  );
+  // Click on ${column} button
+  btns.forEach(ele => {
+    if (ele.textContent === column) {
+      ele.click();
+    }
+  });
+}
+
 // Helper to ensure that tests still pass if columns get re-ordered
 function findColByHeading(
   cols: NodeListOf<Element> | undefined,
@@ -192,4 +362,118 @@ function findColByHeading(
   });
 
   return idx;
+}
+
+// WIP - Make a sharable class to test all Filterable table functionality
+
+export class TestFilterableTable {
+  constructor(_tableId: string, _fireEvent: any) {
+    this.tableId = _tableId;
+    this.fireEvent = _fireEvent;
+  }
+  tableId: string = '';
+  fireEvent: any;
+
+  getTableInfo() {
+    const tbl = document.querySelector(`#${this.tableId} table`);
+    const rows = tbl?.querySelectorAll('tbody tr');
+    const headers = tbl?.querySelectorAll('thead tr th');
+    return { rows, headers };
+  }
+  getRowInfoByIndex(rowIndex: number) {
+    const rows = document.querySelectorAll(`#${this.tableId} tbody tr`);
+    return rows[rowIndex].querySelectorAll('td');
+  }
+
+  sortTableByColumn(columnName: string) {
+    const btns = document.querySelectorAll<HTMLElement>(
+      `#${this.tableId} table thead tr th button`,
+    );
+    btns.forEach(ele => {
+      if (ele.textContent === columnName) {
+        ele.click();
+      }
+    });
+  }
+  searchTableByValue(searchVal: string) {
+    const searchBtn = document.querySelector<HTMLElement>(
+      `#${this.tableId} button[class*='SearchField']`,
+    );
+    searchBtn?.click();
+    const searchInput = document.getElementById(
+      'table-search',
+    ) as HTMLInputElement;
+
+    this.fireEvent.change(searchInput, { target: { value: searchVal } });
+
+    const searchForm = document.querySelector(
+      `#${this.tableId} div[class*='SearchField'] > form`,
+    ) as Element;
+
+    this.fireEvent.submit(searchForm);
+    return this.getTableInfo();
+  }
+  clearSearchByVal(searchVal: string) {
+    document.querySelectorAll('.filter-options-chip').forEach(chip => {
+      if (chip.textContent === searchVal) {
+        const deleteIcon = chip.querySelector('.MuiChip-deleteIcon');
+        this.fireEvent.click(deleteIcon);
+      }
+    });
+    const chip = Array.from(
+      document.querySelectorAll('.filter-options-chip'),
+    ).filter(ele => ele.textContent === searchVal);
+    expect(chip.length).toEqual(0);
+  }
+  applyFilterByValue(filterIndex: number, value: string) {
+    const filterBtn = document.querySelector<HTMLElement>(
+      `#${this.tableId} button[class*='FilterableTable']`,
+    );
+    filterBtn?.click();
+
+    const filters = document.querySelectorAll<HTMLElement>(
+      `#${this.tableId} form > ul > li`,
+    );
+    const filterInput = filters[filterIndex].querySelector<HTMLElement>(
+      `input[id="${value}"]`,
+    );
+    filterInput?.click();
+    return this.getTableInfo();
+  }
+
+  testRowValues = (rowValue: NodeListOf<Element>, matches: Array<string>) => {
+    for (let index = 0; index < rowValue.length; index++) {
+      const element = rowValue[index];
+      expect(element.textContent).toEqual(matches[index]);
+    }
+  };
+
+  testRenderTable(displayedHeaders: Array<string>, rowLength: number) {
+    const { rows, headers } = this.getTableInfo();
+    expect(headers).toHaveLength(displayedHeaders.length);
+    expect(rows).toHaveLength(rowLength);
+    this.testRowValues(headers!, displayedHeaders);
+  }
+
+  testSearchTableByValue(searchValue: string, rowValues: Array<Array<string>>) {
+    const { rows } = this.searchTableByValue(searchValue);
+    expect(rows).toHaveLength(rowValues.length);
+    rowValues.forEach((row, index) => {
+      const tds = rows![index].querySelectorAll('td');
+      this.testRowValues(tds, row);
+    });
+  }
+
+  testFilterTableByValue(
+    filterIndex: number,
+    value: string,
+    rowValues: Array<Array<string>>,
+  ) {
+    const { rows } = this.applyFilterByValue(filterIndex, value);
+    expect(rows).toHaveLength(rowValues.length);
+    rowValues.forEach((row, index) => {
+      const tds = rows![index].querySelectorAll('td');
+      this.testRowValues(tds, row);
+    });
+  }
 }

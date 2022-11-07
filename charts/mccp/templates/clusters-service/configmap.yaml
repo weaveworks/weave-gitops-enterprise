@@ -16,6 +16,13 @@ data:
   CAPI_REPOSITORY_CLUSTERS_PATH: {{ .Values.config.capi.repositoryClustersPath | quote }}
   CAPI_TEMPLATES_REPOSITORY_API_URL: {{ .Values.config.capi.repositoryApiURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
+  USE_K8S_CACHED_CLIENTS: {{.Values.global.useK8sCachedClients | quote }}
+  {{- /* build up the support auth methods string, should look like "oidc,user-account" */ -}}
+  {{- $authMethods := list }}
+  {{- if .Values.config.auth.userAccount.enabled -}}{{- $authMethods = append $authMethods "user-account"  -}}{{- end }}
+  {{- if .Values.config.auth.tokenPassthrough.enabled -}}{{- $authMethods = append $authMethods "token-passthrough" -}}{{- end }}
+  {{- if .Values.config.oidc.enabled -}}{{- $authMethods = append $authMethods "oidc"  -}}{{- end }}
+  AUTH_METHODS: {{ join "," $authMethods | quote }}
   CAPI_ENABLED: {{ .Values.global.capiEnabled | quote }}
   {{- if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1

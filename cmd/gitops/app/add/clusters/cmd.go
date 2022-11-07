@@ -1,6 +1,7 @@
 package clusters
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -18,17 +19,18 @@ import (
 )
 
 type clusterCommandFlags struct {
-	DryRun          bool
-	Template        string
-	ParameterValues []string
-	RepositoryURL   string
-	BaseBranch      string
-	HeadBranch      string
-	Title           string
-	Description     string
-	CommitMessage   string
-	Credentials     string
-	Profiles        []string
+	DryRun            bool
+	Template          string
+	TemplateNamespace string
+	ParameterValues   []string
+	RepositoryURL     string
+	BaseBranch        string
+	HeadBranch        string
+	Title             string
+	Description       string
+	CommitMessage     string
+	Credentials       string
+	Profiles          []string
 }
 
 var flags clusterCommandFlags
@@ -46,9 +48,9 @@ gitops add cluster --from-template <template-name> --set key=val
 # without creating a pull request for it
 gitops add cluster --from-template <template-name> --set key=val --dry-run
 
-# Add a new cluster supplied with profiles versions and values files
+# Add a new cluster supplied with profiles versions, namespaces and values files
 gitops add cluster --from-template <template-name> \
---profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml
+--profile 'name=foo-profile,version=0.0.1,namespace=foo-system' --profile 'name=bar-profile,values=bar-values.yaml
 		`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -59,8 +61,8 @@ gitops add cluster --from-template <template-name> \
 	cmd.Flags().BoolVar(&flags.DryRun, "dry-run", false, "View the populated template without creating a pull request")
 	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
 	cmd.Flags().StringVar(&flags.Credentials, "set-credentials", "", "The CAPI credentials to use")
-	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1' --profile 'name=bar-profile,values=bar-values.yaml')")
-	internal.AddTemplateFlags(cmd, &flags.Template, &flags.ParameterValues)
+	cmd.Flags().StringArrayVar(&flags.Profiles, "profile", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1,namespace=foo-system' --profile 'name=bar-profile,namespace=bar-system,values=bar-values.yaml')")
+	internal.AddTemplateFlags(cmd, &flags.Template, &flags.TemplateNamespace, &flags.ParameterValues)
 	internal.AddPRFlags(cmd, &flags.HeadBranch, &flags.BaseBranch, &flags.Description, &flags.CommitMessage, &flags.Title)
 
 	return cmd
@@ -106,7 +108,15 @@ func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*
 		}
 
 		if flags.DryRun {
-			return templates.RenderTemplateWithParameters(templates.CAPITemplateKind, flags.Template, vals, creds, client, os.Stdout)
+			req := templates.RenderTemplateRequest{
+				TemplateName:      flags.Template,
+				TemplateKind:      templates.CAPITemplateKind,
+				TemplateNamespace: flags.TemplateNamespace,
+				Values:            vals,
+				Credentials:       creds,
+				Profiles:          profilesValues,
+			}
+			return templates.RenderTemplateWithParameters(req, client, os.Stdout)
 		}
 
 		if flags.RepositoryURL == "" {
@@ -124,18 +134,19 @@ func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*
 		}
 
 		params := templates.CreatePullRequestFromTemplateParams{
-			GitProviderToken: token,
-			TemplateKind:     templates.CAPITemplateKind.String(),
-			TemplateName:     flags.Template,
-			ParameterValues:  vals,
-			RepositoryURL:    flags.RepositoryURL,
-			HeadBranch:       flags.HeadBranch,
-			BaseBranch:       flags.BaseBranch,
-			Title:            flags.Title,
-			Description:      flags.Description,
-			CommitMessage:    flags.CommitMessage,
-			Credentials:      creds,
-			ProfileValues:    profilesValues,
+			GitProviderToken:  token,
+			TemplateKind:      templates.CAPITemplateKind.String(),
+			TemplateName:      flags.Template,
+			TemplateNamespace: flags.TemplateNamespace,
+			ParameterValues:   vals,
+			RepositoryURL:     flags.RepositoryURL,
+			HeadBranch:        flags.HeadBranch,
+			BaseBranch:        flags.BaseBranch,
+			Title:             flags.Title,
+			Description:       flags.Description,
+			CommitMessage:     flags.CommitMessage,
+			Credentials:       creds,
+			ProfileValues:     profilesValues,
 		}
 
 		return templates.CreatePullRequestFromTemplate(params, client, os.Stdout)
@@ -156,8 +167,13 @@ func parseProfileFlags(profiles []string) ([]templates.ProfileValues, error) {
 			fmt.Println(pair)
 			kv := strings.Split(pair, "=")
 
-			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" {
+			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" && kv[0] != "namespace" {
 				return nil, fmt.Errorf("invalid key: %s", kv[0])
+			} else if kv[0] == "values" {
+				file, err := os.ReadFile(kv[1])
+				if err == nil {
+					profileMap[kv[0]] = base64.StdEncoding.EncodeToString(file)
+				}
 			} else if !r.MatchString(kv[1]) {
 				return nil, fmt.Errorf("invalid value for %s: %s", kv[0], kv[1])
 			} else {

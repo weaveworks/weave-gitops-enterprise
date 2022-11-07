@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
+	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
 	// `gitops get <template-name> --list-profiles`
@@ -28,6 +29,7 @@ type ClustersServiceClient interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
+	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -59,6 +61,15 @@ type ClustersServiceClient interface {
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
+	// ListChartsForRepository lists the discovered Helm charts in the provided
+	// repository.
+	ListChartsForRepository(ctx context.Context, in *ListChartsForRepositoryRequest, opts ...grpc.CallOption) (*ListChartsForRepositoryResponse, error)
+	// GetValuesForChart gets the default Values.yaml for the provided Chart
+	// reference.
+	GetValuesForChart(ctx context.Context, in *GetValuesForChartRequest, opts ...grpc.CallOption) (*GetValuesForChartResponse, error)
+	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// reference.
+	GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -108,6 +119,15 @@ func (c *clustersServiceClient) ListTemplateProfiles(ctx context.Context, in *Li
 func (c *clustersServiceClient) RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error) {
 	out := new(RenderTemplateResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/RenderTemplate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error) {
+	out := new(RenderAutomationResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/RenderAutomation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -240,12 +260,40 @@ func (c *clustersServiceClient) ListEvents(ctx context.Context, in *ListEventsRe
 	return out, nil
 }
 
+func (c *clustersServiceClient) ListChartsForRepository(ctx context.Context, in *ListChartsForRepositoryRequest, opts ...grpc.CallOption) (*ListChartsForRepositoryResponse, error) {
+	out := new(ListChartsForRepositoryResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListChartsForRepository", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetValuesForChart(ctx context.Context, in *GetValuesForChartRequest, opts ...grpc.CallOption) (*GetValuesForChartResponse, error) {
+	out := new(GetValuesForChartResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetValuesForChart", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error) {
+	out := new(GetChartsJobResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetChartsJob", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
 type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
+	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
 	// `gitops get <template-name> --list-profiles`
@@ -253,6 +301,7 @@ type ClustersServiceServer interface {
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
+	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -284,6 +333,15 @@ type ClustersServiceServer interface {
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
+	// ListChartsForRepository lists the discovered Helm charts in the provided
+	// repository.
+	ListChartsForRepository(context.Context, *ListChartsForRepositoryRequest) (*ListChartsForRepositoryResponse, error)
+	// GetValuesForChart gets the default Values.yaml for the provided Chart
+	// reference.
+	GetValuesForChart(context.Context, *GetValuesForChartRequest) (*GetValuesForChartResponse, error)
+	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// reference.
+	GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -305,6 +363,9 @@ func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, 
 }
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
+}
+func (UnimplementedClustersServiceServer) RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenderAutomation not implemented")
 }
 func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
@@ -347,6 +408,15 @@ func (UnimplementedClustersServiceServer) GetPolicyValidation(context.Context, *
 }
 func (UnimplementedClustersServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
+}
+func (UnimplementedClustersServiceServer) ListChartsForRepository(context.Context, *ListChartsForRepositoryRequest) (*ListChartsForRepositoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListChartsForRepository not implemented")
+}
+func (UnimplementedClustersServiceServer) GetValuesForChart(context.Context, *GetValuesForChartRequest) (*GetValuesForChartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetValuesForChart not implemented")
+}
+func (UnimplementedClustersServiceServer) GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChartsJob not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -447,6 +517,24 @@ func _ClustersService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).RenderTemplate(ctx, req.(*RenderTemplateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_RenderAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenderAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).RenderAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/RenderAutomation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).RenderAutomation(ctx, req.(*RenderAutomationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -703,6 +791,60 @@ func _ClustersService_ListEvents_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_ListChartsForRepository_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChartsForRepositoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListChartsForRepository(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListChartsForRepository",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListChartsForRepository(ctx, req.(*ListChartsForRepositoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetValuesForChart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetValuesForChartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetValuesForChart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetValuesForChart",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetValuesForChart(ctx, req.(*GetValuesForChartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetChartsJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChartsJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetChartsJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetChartsJob",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetChartsJob(ctx, req.(*GetChartsJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -729,6 +871,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenderTemplate",
 			Handler:    _ClustersService_RenderTemplate_Handler,
+		},
+		{
+			MethodName: "RenderAutomation",
+			Handler:    _ClustersService_RenderAutomation_Handler,
 		},
 		{
 			MethodName: "ListGitopsClusters",
@@ -785,6 +931,18 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListEvents",
 			Handler:    _ClustersService_ListEvents_Handler,
+		},
+		{
+			MethodName: "ListChartsForRepository",
+			Handler:    _ClustersService_ListChartsForRepository_Handler,
+		},
+		{
+			MethodName: "GetValuesForChart",
+			Handler:    _ClustersService_GetValuesForChart_Handler,
+		},
+		{
+			MethodName: "GetChartsJob",
+			Handler:    _ClustersService_GetChartsJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

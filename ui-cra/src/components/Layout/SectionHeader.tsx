@@ -7,6 +7,7 @@ interface Size {
   size?: 'small';
 }
 
+const { medium, small } = theme.spacing;
 const Wrapper = styled.div<Size>`
   align-items: center;
   justify-content: space-between;
@@ -14,14 +15,14 @@ const Wrapper = styled.div<Size>`
   color: ${({ size }) =>
     size === 'small' ? theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
-  background: ${theme.colors.primary};
   height: ${80}px;
   flex-grow: 1;
-  padding-left: ${theme.spacing.large};
+  padding: 0 ${small} 0 ${medium};
   position: sticky;
   top: 0;
   z-index: 2;
 
+  background: inherit;
   .MuiListItemIcon-root {
     min-width: 30px;
   }

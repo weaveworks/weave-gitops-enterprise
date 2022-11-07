@@ -50,6 +50,12 @@ function setup {
       aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${UI_NODEPORT},ToPort=${UI_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
     else
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
+      # This allows us to test out cli auth passthrough.
+      # Our current system of SelfSubjectAccessReview to determine namespace access
+      # does not supported external auth systems like the one GKE configures by default for kubectl etc.
+      # We need to add explicit permissions here that will correctly appear in the SelfSubjectAccessReview
+      # query made by the clusters-service when responding to get /v1/clusters and /v1/templates etc.
+      kubectl apply -f ${args[1]}/test/utils/data/gke-ci-user-cluster-admin-rolebinding.yaml
     fi
   elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
     # MANAGEMENT_CLUSTER_KIND is a KIND cluster
@@ -65,8 +71,19 @@ function setup {
   fi
   
   helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+  helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+  helm repo add cert-manager https://charts.jetstack.io
   helm repo update  
   
+  # Install cert-manager for tls certificate creation
+  helm upgrade --install \
+    cert-manager cert-manager/cert-manager \
+    --namespace cert-manager --create-namespace \
+    --version v1.9.1 \
+    --set installCRDs=true
+  kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
+
   kubectl create namespace flux-system
 
   # Create secrete for git provider authentication
@@ -81,7 +98,8 @@ function setup {
       --owner=${GITHUB_ORG} \
       --repository=${CLUSTER_REPOSITORY} \
       --branch=main \
-      --path=./clusters/my-cluster
+      --path=./clusters/management \
+      --interval=30s
 
   elif [ ${GIT_PROVIDER} == "gitlab" ]; then
     GIT_REPOSITORY_URL="https://$GIT_PROVIDER_HOSTNAME/$GITLAB_ORG/$CLUSTER_REPOSITORY"
@@ -106,9 +124,12 @@ function setup {
       --repository=${CLUSTER_REPOSITORY} \
       --branch=main \
       --hostname=${GIT_PROVIDER_HOSTNAME} \
-      --path=./clusters/my-cluster
+      --path=./clusters/management \
+      --interval=30s
   fi  
 
+  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
+    
   # Create admin cluster user secret
   kubectl create secret generic cluster-user-auth \
   --namespace flux-system \
@@ -137,16 +158,19 @@ function setup {
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
   helmArgs+=( --set "config.capi.repositoryURL=${GIT_REPOSITORY_URL}" )
-  helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
+  # using default repository path '"./clusters/management/clusters"' so the application reconciliation always happen out of the box
+  # helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
-  helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
   helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )
   helmArgs+=( --set "config.oidc.clientCredentialsSecret=client-credentials" )
   helmArgs+=( --set "config.oidc.issuerURL=${OIDC_ISSUER_URL}" )
   helmArgs+=( --set "config.oidc.redirectURL=https://${MANAGEMENT_CLUSTER_CNAME}:${UI_NODEPORT}/oauth2/callback" )
-
+  helmArgs+=( --set "policy-agent.enabled=true" )
+  helmArgs+=( --set "policy-agent.config.accountId=weaveworks" )
+  helmArgs+=( --set "policy-agent.config.clusterId=${MANAGEMENT_CLUSTER_CNAME}" )
+ 
   if [ ! -z $WEAVE_GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
     helmArgs+=( --set "config.extraVolumes[0].configMap.name=ssh-config" )
@@ -158,26 +182,14 @@ function setup {
   fi
 
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
-
-  helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
-  helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-  helm repo add cert-manager https://charts.jetstack.io
-  helm repo update 
-
-  # Install cert-manager for tls certificate creation
-  helm upgrade --install \
-    cert-manager cert-manager/cert-manager \
-    --namespace cert-manager --create-namespace \
-    --version v1.8.0 \
-    --set installCRDs=true
-  kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
-
+  
   # Install ingress-nginx for tls termination 
   helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
     --namespace ingress-nginx --create-namespace \
     --version 4.0.18 \
     --set controller.service.type=NodePort \
-    --set controller.service.nodePorts.https=${UI_NODEPORT}
+    --set controller.service.nodePorts.https=${UI_NODEPORT} \
+    --set controller.extraArgs.v=4
   kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
   
   cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
@@ -189,8 +201,11 @@ function setup {
       sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
       kubectl apply -f -
 
+  # Create profiles HelmReposiotry 'weaveworks-charts'
+  flux create source helm weaveworks-charts --url="https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages" --interval=30s --namespace flux-system 
+
   # Install RBAC for user authentication
-   kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
 
   # enable cluster resource sets
   export EXP_CLUSTER_RESOURCE_SET=true
@@ -213,17 +228,6 @@ function setup {
     clusterctl init --infrastructure docker    
   fi
 
-  # Install policy agent to enforce rego policies - (Installing policy agent after capi because capi violates some of thge policies and failed to install)
-  helm upgrade --install weave-policy-agent profiles-catalog/weave-policy-agent \
-    --namespace policy-system --create-namespace \
-    --version 0.3.x \
-    --set accountId=weaveworks \
-    --set clusterId=${MANAGEMENT_CLUSTER_CNAME}
-  kubectl wait --for=condition=Ready --timeout=120s -n policy-system --all pod
-
-  # Install resources for bootstrapping and CNI
-  kubectl apply -f ${args[1]}/test/utils/data/profile-repo.yaml
-  
   # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A

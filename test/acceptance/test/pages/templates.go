@@ -6,10 +6,9 @@ import (
 	"github.com/sclevine/agouti"
 )
 
-//Header webDriver elements
+// Header webDriver elements
 type TemplatesPage struct {
 	TemplateHeader        *agouti.Selection
-	TemplateCount         *agouti.Selection
 	TemplateTiles         *agouti.MultiSelection
 	TemplatesList         *agouti.MultiSelection
 	TemplateProvider      *agouti.Selection
@@ -17,16 +16,15 @@ type TemplatesPage struct {
 	TemplateView          *agouti.MultiSelection
 }
 
-//TemplatesPage webdriver initialises the webDriver object
+// TemplatesPage webdriver initialises the webDriver object
 func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
-		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/clusters/templates"]`),
-		TemplateCount:         webDriver.FindByXPath(`//*[@href="/clusters/templates"]/parent::div[@role="heading"]/following-sibling::div`),
+		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/templates"]`),
 		TemplateTiles:         webDriver.All(`[data-template-name]`),
 		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
 		TemplateProviderPopup: webDriver.All(`ul#filter-by-provider-popup li`),
-		TemplateView:          webDriver.All(`main > div > div > div > svg`),
+		TemplateView:          webDriver.All(`#display-action > svg`),
 	}
 
 	return &templatesPage
@@ -74,9 +72,9 @@ func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName strin
 		if count, _ := tileRow.Count(); count == 1 {
 			return &TemplateRecord{
 				Name:             templateName,
-				Provider:         tileRow.FindByXPath(`td[3]`),
-				Description:      tileRow.FindByXPath(`td[4]`),
-				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
+				Provider:         tileRow.FindByXPath(`td[4]`),
+				Description:      tileRow.FindByXPath(`td[5]`),
+				CreateTemplate:   tileRow.FindByXPath(`td[6]//button[@id="create-cluster"]`),
 				ErrorHeader:      tileRow.Find(`.template-error-header`),
 				ErrorDescription: tileRow.Find(`.template-error-description`),
 			}
@@ -109,9 +107,9 @@ func (t TemplatesPage) SelectProvider(providerName string) *agouti.Selection {
 
 func (t TemplatesPage) SelectView(viewName string) *agouti.Selection {
 	switch viewName {
-	case "grid":
-		return t.TemplateView.At(0)
 	case "table":
+		return t.TemplateView.At(0)
+	case "grid":
 		return t.TemplateView.At(1)
 	}
 	return nil

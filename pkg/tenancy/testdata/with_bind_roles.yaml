@@ -1,0 +1,15 @@
+tenants:
+  - name: foo-tenant
+    namespaces:
+    - foo-ns
+    deploymentRBAC:
+      bindRoles:
+        - name: foo-role
+          kind: Role
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'pods'
+          verbs:
+            - 'list'

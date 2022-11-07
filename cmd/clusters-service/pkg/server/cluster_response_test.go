@@ -92,6 +92,73 @@ func TestAddCAPIClusters(t *testing.T) {
 			},
 		},
 		{
+			name: "CapiCluster Infrastructure ref exists",
+			gitopsClusters: []*capiv1_proto.GitopsCluster{
+				{
+					Name:        "capi-cluster",
+					Namespace:   "default",
+					Annotations: map[string]string{},
+					Labels:      map[string]string{},
+					CapiClusterRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
+					},
+				},
+			},
+			clusterObjects: []runtime.Object{
+				makeTestCluster(func(o *clusterv1.Cluster) {
+					o.ObjectMeta.Name = "capi-cluster"
+					o.ObjectMeta.Namespace = "default"
+					o.ObjectMeta.Annotations = map[string]string{
+						"cni": "calico",
+					}
+					o.Status.Phase = "Provisioned"
+					o.Status.Conditions = clusterv1.Conditions{
+						clusterv1.Condition{
+							Type:   clusterv1.ControlPlaneInitializedCondition,
+							Status: corev1.ConditionStatus(strconv.FormatBool(true)),
+						},
+					}
+					o.Spec.InfrastructureRef = &corev1.ObjectReference{
+						APIVersion: "infrastructure.cluster.x-k8s.io/v1beta1",
+						Name:       "capi-cluster",
+						Kind:       "DockerCluster",
+					}
+				}),
+			},
+			expected: []*capiv1_proto.GitopsCluster{
+				{
+					Name:      "capi-cluster",
+					Namespace: "default",
+					CapiClusterRef: &capiv1_proto.GitopsClusterRef{
+						Name: "dev",
+					},
+					CapiCluster: &capiv1_proto.CapiCluster{
+						Name:      "capi-cluster",
+						Namespace: "default",
+						Annotations: map[string]string{
+							"cni": "calico",
+						},
+						Status: &capiv1_proto.CapiClusterStatus{
+							Phase:                   "Provisioned",
+							ControlPlaneInitialized: true,
+							Conditions: []*capiv1_proto.Condition{
+								{
+									Type:      string(clusterv1.ControlPlaneInitializedCondition),
+									Status:    "true",
+									Timestamp: "0001-01-01 00:00:00 +0000 UTC",
+								},
+							},
+						},
+						InfrastructureRef: &capiv1_proto.CapiClusterInfrastructureRef{
+							ApiVersion: "infrastructure.cluster.x-k8s.io/v1beta1",
+							Name:       "capi-cluster",
+							Kind:       "DockerCluster",
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "CapiClusterRef exists but cluster isn't ready",
 			gitopsClusters: []*capiv1_proto.GitopsCluster{
 				{

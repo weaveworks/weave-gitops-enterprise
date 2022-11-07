@@ -2,10 +2,11 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/sclevine/agouti/matchers"
 )
 
 type SearchPage struct {
@@ -17,28 +18,30 @@ type SearchPage struct {
 
 func GetSearchPage(webDriver *agouti.Page) *SearchPage {
 	return &SearchPage{
-		SearchBtn:    webDriver.AllByXPath(`//input[@placeholder="Search"]/ancestor::div/button`).At(0),
+		SearchBtn:    webDriver.FindByXPath(`(//input[@placeholder="Search"]/ancestor::div[contains(@class, "TopBar")]/div[last()]//button)[1]`),
 		Search:       webDriver.FindByID(`table-search`),
-		FilterBtn:    webDriver.AllByXPath(`//input[@placeholder="Search"]/ancestor::div/button`).At(1),
+		FilterBtn:    webDriver.FindByXPath(`(//input[@placeholder="Search"]/ancestor::div[contains(@class, "TopBar")]/div[last()]//button)[2]`),
 		FilterDialog: webDriver.Find(`div[class*="FilterDialog"].open`),
 	}
 }
 
 func (s SearchPage) SelectFilter(filterType string, filterID string) {
-	Eventually(s.FilterDialog).Should(BeVisible(), "Filter dialog can not be found")
+	gomega.Eventually(s.FilterBtn.Click).Should(gomega.Succeed())
+	gomega.Eventually(s.FilterDialog).Should(matchers.BeVisible())
+
 	filters := s.FilterDialog.AllByXPath(`//form/ul/li`)
 	fCount, _ := filters.Count()
 
 	for i := 0; i < fCount; i++ {
 		f := filters.At(i).FindByXPath(fmt.Sprintf(`//li/span[.="%s"]`, filterType))
 		if count, _ := f.Count(); count == 1 {
-
-			Eventually(func(g Gomega) {
-				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]`, filterID)).Check()).Should(Succeed())
-				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]/ancestor::span[contains(@class, "Mui-checked")]`, filterID))).Should(BeFound())
-			}).Should(Succeed(), "Failed to select cluster filter: "+filterID)
-
+			gomega.Eventually(func(g gomega.Gomega) {
+				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]`, filterID)).Check()).Should(gomega.Succeed())
+				g.Eventually(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]/ancestor::span[contains(@class, "Mui-checked")]`, filterID)), time.Second*5).Should(matchers.BeFound())
+			}, time.Second*30, time.Second*5).Should(gomega.Succeed(), "Failed to select cluster filter: "+filterID)
+			break
 		}
 	}
 
+	gomega.Expect(s.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to close filter dialog")
 }

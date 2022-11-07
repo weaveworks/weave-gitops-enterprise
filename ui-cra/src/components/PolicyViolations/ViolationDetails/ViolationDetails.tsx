@@ -6,36 +6,15 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import CanaryRowHeader from '../../ProgressiveDelivery/SharedComponent/CanaryRowHeader';
 import { Link } from 'react-router-dom';
+import { generateRowHeaders } from '../../RowHeader';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
   source?: string;
 }
 
-const generateRowHeaders = (
-  rows: Array<{
-    children?: any;
-    rowkey: string;
-    value?: string | JSX.Element | undefined;
-  }>,
-) => {
-  return rows.map(r => {
-    return !!r.children ? (
-      <CanaryRowHeader rowkey={r.rowkey} value={undefined} key={r.rowkey}>
-        {r.children}
-      </CanaryRowHeader>
-    ) : (
-      <CanaryRowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey} />
-    );
-  });
-};
-
-function ViolationDetails({
-  violation,
-  source,
-}: IViolationDetailsProps) {
+function ViolationDetails({ violation, source }: IViolationDetailsProps) {
   const classes = usePolicyStyle();
   const {
     severity,
@@ -49,10 +28,13 @@ function ViolationDetails({
     occurrences,
     clusterName,
     name,
-    id,
   } = violation || {};
 
   const defaultHeaders = [
+    {
+      rowkey: 'Cluster Name',
+      value: clusterName,
+    },
     {
       rowkey: 'Violation Time',
       value: moment(createdAt).fromNow(),
@@ -72,7 +54,7 @@ function ViolationDetails({
       rowkey: 'Policy Name',
       children: (
         <Link
-          to={`/policies/details?clusterName=${clusterName}&id=${id}`}
+          to={`/policies/details?clusterName=${clusterName}&id=${violation?.policyId}`}
           className={classes.link}
           data-violation-message={name}
         >
@@ -83,10 +65,6 @@ function ViolationDetails({
     ...defaultHeaders,
   ];
   const headerDetails = [
-    {
-      rowkey: 'Cluster Name',
-      value: clusterName,
-    },
     ...defaultHeaders,
     {
       rowkey: 'Application',
@@ -99,15 +77,14 @@ function ViolationDetails({
     <>
       {generateRowHeaders(displayedHeaders)}
 
-      <hr />
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>
-          Occurences{' '}
+          Occurrences{' '}
           <span className={classes.titleNotification}>
             ( {occurrences?.length} )
           </span>
         </div>
-        <ul className={classes.occurrencesList}>
+        <ul className={classes.occurrencesList} id="occurrences">
           {occurrences?.map(item => (
             <li key={item.message} className={classes.body1}>
               {item.message}
@@ -116,8 +93,7 @@ function ViolationDetails({
         </ul>
       </div>
 
-      <hr />
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="description">
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
@@ -125,16 +101,16 @@ function ViolationDetails({
         />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="howToSolve">
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
           className={classes.editor}
           remarkPlugins={[remarkGfm]}
-        />{' '}
+        />
       </div>
 
-      <div className={classes.sectionSeperator}>
+      <div className={classes.sectionSeperator} data-testid="violatingEntity">
         <div className={classes.cardTitle}>Violating Entity:</div>
         <div>
           <SyntaxHighlighter

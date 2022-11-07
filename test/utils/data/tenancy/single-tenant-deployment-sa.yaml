@@ -1,0 +1,43 @@
+tenants:
+  - name: test-team
+    namespaces:
+    - test-system
+    teamRBAC:
+      groupNames: 
+      - wge-test
+      rules:
+        - apiGroups: [""]
+          resources: ["secrets", "pods" ]
+          verbs: [ "get", "list" ]
+        - apiGroups: ["apps"]
+          resources: [ "deployments", "replicasets"]
+          verbs: [ "get", "list" ]
+        - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+          resources: [ "kustomizations" ]
+          verbs: [ "get", "list", "patch" ]
+        - apiGroups: ["helm.toolkit.fluxcd.io"]
+          resources: [ "helmreleases" ]
+          verbs: [ "get", "list", "patch" ]
+        - apiGroups: ["source.toolkit.fluxcd.io"]
+          resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories" ]
+          verbs: [ "get", "list", "patch" ]
+        - apiGroups: [""]
+          resources: ["events"]
+          verbs: ["get", "watch", "list"]
+    deploymentRBAC:
+      bindRoles:
+        - name: foo-role
+          kind: Role
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - 'namespaces'
+            - 'pods'
+          verbs:
+            - 'list'
+            - 'get'
+serviceAccount:
+  name: "reconcilerServiceAccount"
+
+              

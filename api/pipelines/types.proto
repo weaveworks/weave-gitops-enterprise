@@ -8,6 +8,7 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api
 message ClusterRef {
     string kind = 1;
     string name = 2;
+    string namespace = 3;
 }
 
 message Target {
@@ -26,26 +27,48 @@ message ObjectRef {
     string namespace = 3;
 }
 
+message AppRef {
+    string api_version = 1;
+    string kind        = 2;
+    string name        = 3;
+}
+
+message Condition {
+    string type = 1;
+    string status = 2;
+    string reason = 3;
+    string message = 4;
+    string timestamp = 5;
+}
+
 message WorkloadStatus {
-    string kind    = 1;
-    string name    = 2;
-    string version = 3;
+    string   kind                 = 1;
+    string   name                 = 2;
+    string   version              = 3;
+    string   lastAppliedRevision  = 4;
+    repeated Condition conditions = 5;
+    bool     suspended            = 6;
 }
 
 message PipelineTargetStatus {
-    string   kind                     = 1;
-    string   name                     = 2;
+    ClusterRef clusterRef = 2;
+    string     namespace  = 1;
     repeated WorkloadStatus workloads = 3;
 }
 
 message PipelineStatus {
-    map<string, PipelineTargetStatus> environments = 1;
+    message TargetStatusList {
+        repeated PipelineTargetStatus targetsStatuses = 1;
+    }
+
+    map<string, TargetStatusList> environments = 1;
 }
 
 message Pipeline {
     string         name                     = 1;
     string         namespace                = 2;
-    repeated       Environment environments = 3;
-    repeated       Target targets           = 4;
-    PipelineStatus status                   = 5;
+    AppRef         appRef                   = 3;
+    repeated       Environment environments = 4;
+    repeated       Target targets           = 5;
+    PipelineStatus status                   = 6;
 }

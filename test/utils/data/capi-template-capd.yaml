@@ -4,7 +4,7 @@ metadata:
   name: cluster-template-development-{{.Count}}
   namespace: default
   annotations:
-    capi.weave.works/profile-0: '{"name": "podinfo", "version": "6.0.1"}'
+    capi.weave.works/profile-1: '{"name": "metallb", "version": "0.0.2", "values": "prometheus.namespace: ${NAMESPACE}"}'
 spec:
   description: This is the std. CAPD template {{.Count}}
   params:

@@ -6,6 +6,7 @@
 export type ClusterRef = {
   kind?: string
   name?: string
+  namespace?: string
 }
 
 export type Target = {
@@ -24,25 +25,47 @@ export type ObjectRef = {
   namespace?: string
 }
 
+export type AppRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
+}
+
+export type Condition = {
+  type?: string
+  status?: string
+  reason?: string
+  message?: string
+  timestamp?: string
+}
+
 export type WorkloadStatus = {
   kind?: string
   name?: string
   version?: string
+  lastAppliedRevision?: string
+  conditions?: Condition[]
+  suspended?: boolean
 }
 
 export type PipelineTargetStatus = {
-  kind?: string
-  name?: string
+  clusterRef?: ClusterRef
+  namespace?: string
   workloads?: WorkloadStatus[]
 }
 
+export type PipelineStatusTargetStatusList = {
+  targetsStatuses?: PipelineTargetStatus[]
+}
+
 export type PipelineStatus = {
-  environments?: {[key: string]: PipelineTargetStatus}
+  environments?: {[key: string]: PipelineStatusTargetStatusList}
 }
 
 export type Pipeline = {
   name?: string
   namespace?: string
+  appRef?: AppRef
   environments?: Environment[]
   targets?: Target[]
   status?: PipelineStatus

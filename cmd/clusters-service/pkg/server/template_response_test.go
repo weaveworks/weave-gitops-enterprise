@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -47,7 +47,7 @@ func TestToTemplate(t *testing.T) {
 			value: makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 				ct.ObjectMeta.Name = "cluster-template-1"
 				ct.Spec.Description = "this is test template 1"
-				ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{
+				ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 					{
 						RawExtension: rawExtension(`{
 							"apiVersion": "fooversion",
@@ -67,6 +67,7 @@ func TestToTemplate(t *testing.T) {
 				Description:  "this is test template 1",
 				Provider:     "",
 				TemplateKind: "CAPITemplate",
+				Namespace:    "default",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						ApiVersion: "fooversion",
@@ -111,6 +112,7 @@ func TestToTemplate(t *testing.T) {
 			value: makeErrorTemplate(t, `"derp"`),
 			expected: &capiv1_protos.Template{
 				Name:         "cluster-template-1",
+				Namespace:    "default",
 				TemplateKind: "CAPITemplate",
 				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: json: cannot unmarshal string into Go value of type map[string]interface {}",
 			},
@@ -120,8 +122,70 @@ func TestToTemplate(t *testing.T) {
 			value: makeErrorTemplate(t, `{"boop":"beep"}`),
 			expected: &capiv1_protos.Template{
 				Name:         "cluster-template-1",
+				Namespace:    "default",
 				TemplateKind: "CAPITemplate",
 				Error:        "Couldn't load template body: failed to unmarshal resourceTemplate: Object 'Kind' is missing in '{\"boop\":\"beep\"}'",
+			},
+		},
+		{
+			name: "annotations with parameters",
+			value: &capiv1.CAPITemplate{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "capi.weave.works/v1alpha1",
+					Kind:       "CAPITemplate",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+					Annotations: map[string]string{
+						"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: ${INSTALL_CRDS}"}`,
+					},
+				},
+			},
+			expected: &capiv1_protos.Template{
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
+				Annotations: map[string]string{
+					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: ${INSTALL_CRDS}"}`,
+				},
+
+				Parameters: []*capiv1_protos.Parameter{
+					{
+						Name: "INSTALL_CRDS",
+					},
+				},
+			},
+		},
+		{
+			name: "annotations with go-template parameters",
+			value: &capiv1.CAPITemplate{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "capi.weave.works/v1alpha1",
+					Kind:       "CAPITemplate",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+					Annotations: map[string]string{
+						"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}}"}`,
+					},
+				},
+				Spec: templatesv1.TemplateSpec{
+					RenderType: templatesv1.RenderTypeTemplating,
+				},
+			},
+			expected: &capiv1_protos.Template{
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
+				Annotations: map[string]string{
+					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}}"}`,
+				},
+
+				Parameters: []*capiv1_protos.Parameter{
+					{
+						Name: "INSTALL_CRDS",
+					},
+				},
 			},
 		},
 	}
@@ -140,7 +204,7 @@ func makeErrorTemplate(t *testing.T, rawData string) *capiv1.CAPITemplate {
 	return makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 		ct.ObjectMeta.Name = "cluster-template-1"
 		ct.Spec.Description = ""
-		ct.Spec.ResourceTemplates = []apitemplates.ResourceTemplate{
+		ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
 				RawExtension: rawExtension(rawData),
 			},

@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -21,9 +21,11 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -41,8 +43,9 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
-	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pipepb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 )
 
@@ -64,7 +67,7 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/kustomizations?namespace=foo", port))
+	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/objects?kind=Kustomization", port))
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
@@ -91,6 +94,12 @@ func TestPipelinesServer(t *testing.T) {
 
 	port := "8002"
 
+	ff := featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES")
+	t.Cleanup(func() {
+		featureflags.Set("WEAVE_GITOPS_FEATURE_PIPELINES", ff)
+	})
+	featureflags.Set("WEAVE_GITOPS_FEATURE_PIPELINES", "true")
+
 	client := runServer(t, ctx, c, runtimeNamespace, "0.0.0.0:"+port)
 
 	p := &pipectrl.Pipeline{}
@@ -106,7 +115,7 @@ func TestPipelinesServer(t *testing.T) {
 	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/pipelines", port))
 	assert.NoError(t, err)
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
 	assert.Equal(t, res.StatusCode, http.StatusOK, string(body))
@@ -170,6 +179,20 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 	go func(ctx context.Context) {
 		coreConfig := fakeCoreConfig(t, log)
 		appsConfig := fakeAppsConfig(k, log)
+		clientSet := fakeclientset.NewSimpleClientset(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}})
+		mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+			Namespaces: []*corev1.Namespace{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "flux-system",
+					},
+					TypeMeta: metav1.TypeMeta{
+						APIVersion: "v1",
+						Kind:       "Namespace",
+					},
+				},
+			},
+		}, kubefakes.NewFakeClientGetter(k), &mgmtfetcherfake.FakeAuthClientGetter{})
 
 		err = app.RunInProcessGateway(ctx, addr,
 			app.WithCAPIClustersNamespace("default"),
@@ -179,16 +202,16 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
 			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
-			app.WithTemplateLibrary(&templates.CRDLibrary{
-				Log:           log,
-				ClientGetter:  kubefakes.NewFakeClientGetter(k),
-				CAPINamespace: "default",
-			}),
 			app.WithRuntimeNamespace(ns),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
-			app.WithOIDCConfig(app.OIDCAuthenticationOptions{TokenDuration: time.Hour}),
-			app.WithClientsFactory(pipetesting.MakeClientsFactory(k)),
+			app.WithAuthConfig(
+				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
+				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
+			),
+			app.WithKubernetesClientSet(clientSet),
+			app.WithClustersManager(grpctesting.MakeClustersManager(k)),
+			app.WithManagemetFetcher(mgmtFetcher),
 		)
 		t.Logf("%v", err)
 	}(ctx)
@@ -208,17 +231,17 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 
-	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
 
 	// A fake to support kustomizations, sorry, this is pretty frgaile and will likely break.
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(map[string]client.Client{})
 
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
-	clientsFactory.GetImpersonatedClientReturns(client, nil)
-	clientsFactory.GetServerClientReturns(client, nil)
+	clustersManager.GetImpersonatedClientReturns(client, nil)
+	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
+	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
 	return coreConfig
 }
 

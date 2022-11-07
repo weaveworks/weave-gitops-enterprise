@@ -24,7 +24,9 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 		Description:  t.GetSpec().Description,
 		Provider:     getProvider(t, annotation),
 		Annotations:  t.GetAnnotations(),
+		Labels:       t.GetLabels(),
 		TemplateKind: templateKind,
+		Namespace:    t.GetNamespace(),
 	}
 
 	meta, err := templates.ParseTemplateMeta(t, annotation)

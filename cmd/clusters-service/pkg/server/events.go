@@ -12,13 +12,13 @@ import (
 )
 
 func (s *server) ListEvents(ctx context.Context, msg *capiv1_proto.ListEventsRequest) (*capiv1_proto.ListEventsResponse, error) {
-	c, err := s.clientsFactory.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	c, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %s", err)
 	}
 
 	if msg.ClusterName == "" {
-		return nil, requiredClusterNameErr
+		return nil, errRequiredClusterName
 	}
 
 	scoped, err := c.Scoped(msg.ClusterName)

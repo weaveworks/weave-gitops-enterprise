@@ -1,9 +1,9 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import useClusters from './../../contexts/Clusters';
+import useClusters from '../../hooks/clusters';
 import { List, ListItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
-import { isAllowedLink } from '@weaveworks/weave-gitops';
+import { Link } from '@weaveworks/weave-gitops';
 
 // FIXME: move "a" styling up to a top level CSS rule
 const ListWrapper = styled(List)`
@@ -25,13 +25,11 @@ export const DashboardsList: FC<{
     <ListWrapper style={{ padding: 0 }}>
       {Object.entries(annotations).map(([key, value]) => (
         <ListItem key={key}>
-          {isAllowedLink(value) ? (
-            <a href={value} target="_blank" rel="noopener noreferrer">
+          {
+            <Link href={value} newTab>
               {key}
-            </a>
-          ) : (
-            <span>{key}</span>
-          )}
+            </Link>
+          }
         </ListItem>
       ))}
     </ListWrapper>

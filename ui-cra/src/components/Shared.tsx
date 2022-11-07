@@ -1,6 +1,6 @@
-import React, { FC } from 'react';
-import styled from 'styled-components';
 import { Tooltip as Mtooltip, TooltipProps } from '@material-ui/core';
+import { FC } from 'react';
+import styled from 'styled-components';
 
 export const Code = styled.div`
   display: flex;
@@ -46,14 +46,18 @@ export const ColumnHeaderTooltip: FC<TooltipProps> = ({
 
 export const TableWrapper = styled.div`
   margin-top: ${({ theme }) => theme.spacing.medium};
-  div[class*='FilterDialog__SlideContainer'],
-  div[class*='SearchField'] {
-    overflow: hidden;
-  }
+  max-width: calc(100vw - 300px);
   div[class*='FilterDialog'] {
     .Mui-checked {
       color: ${({ theme }) => theme.colors.primary};
     }
   }
-  max-width: calc(100vw - 300px);
+  div[class*='SearchField__Expander'] {
+    overflow: hidden;
+  }
+  div.expanded {
+    overflow: unset;
+  }
 `;
+
+

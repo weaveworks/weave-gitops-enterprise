@@ -25,39 +25,43 @@ var (
 func Test_PreFlightChecks(t *testing.T) {
 	tt := []struct {
 		name         string
-		tenants      []tenancy.Tenant
+		tenants      *tenancy.Config
 		clusterState []runtime.Object
 		expectError  bool
 	}{
 		{
-			name: "no policies applied to any tenants",
-			tenants: []tenancy.Tenant{
-				{
-					Name: "test-tenant-01",
-					Namespaces: []string{
-						"test-ns-01", "test-ns-02",
+			name: "check performed with only base resources",
+			tenants: &tenancy.Config{
+				Tenants: []tenancy.Tenant{
+					{
+						Name: "test-tenant-01",
+						Namespaces: []string{
+							"test-ns-01", "test-ns-02",
+						},
 					},
-				},
-				{
-					Name: "test-tenant-02",
-					Namespaces: []string{
-						"test-ns-03", "test-ns-04",
+					{
+						Name: "test-tenant-02",
+						Namespaces: []string{
+							"test-ns-03", "test-ns-04",
+						},
 					},
 				},
 			},
 			clusterState: []runtime.Object{},
-			expectError:  false,
+			expectError:  true,
 		},
 		{
 			name: "tenant contains policy and crd exists",
-			tenants: []tenancy.Tenant{
-				{
-					Name:       "test-tenant-01",
-					Namespaces: []string{"test-ns-01"},
-					AllowedRepositories: []tenancy.AllowedRepository{
-						{
-							URL:  "https://github.com/testorg/testrepo",
-							Kind: "GitRepository",
+			tenants: &tenancy.Config{
+				Tenants: []tenancy.Tenant{
+					{
+						Name:       "test-tenant-01",
+						Namespaces: []string{"test-ns-01"},
+						AllowedRepositories: []tenancy.AllowedRepository{
+							{
+								URL:  "https://github.com/testorg/testrepo",
+								Kind: "GitRepository",
+							},
 						},
 					},
 				},
@@ -69,14 +73,16 @@ func Test_PreFlightChecks(t *testing.T) {
 		},
 		{
 			name: "tenant contains allowed repo policy and crd does not exist",
-			tenants: []tenancy.Tenant{
-				{
-					Name:       "test-tenant-01",
-					Namespaces: []string{"test-ns-01"},
-					AllowedRepositories: []tenancy.AllowedRepository{
-						{
-							URL:  "https://github.com/testorg/testrepo",
-							Kind: "GitRepository",
+			tenants: &tenancy.Config{
+				Tenants: []tenancy.Tenant{
+					{
+						Name:       "test-tenant-01",
+						Namespaces: []string{"test-ns-01"},
+						AllowedRepositories: []tenancy.AllowedRepository{
+							{
+								URL:  "https://github.com/testorg/testrepo",
+								Kind: "GitRepository",
+							},
 						},
 					},
 				},
@@ -86,13 +92,15 @@ func Test_PreFlightChecks(t *testing.T) {
 		},
 		{
 			name: "tenant contains allowed cluster policy and crd does not exist",
-			tenants: []tenancy.Tenant{
-				{
-					Name:       "test-tenant-01",
-					Namespaces: []string{"test-ns-01"},
-					AllowedClusters: []tenancy.AllowedCluster{
-						{
-							KubeConfig: "some-cluster-name",
+			tenants: &tenancy.Config{
+				Tenants: []tenancy.Tenant{
+					{
+						Name:       "test-tenant-01",
+						Namespaces: []string{"test-ns-01"},
+						AllowedClusters: []tenancy.AllowedCluster{
+							{
+								KubeConfig: "some-cluster-name",
+							},
 						},
 					},
 				},

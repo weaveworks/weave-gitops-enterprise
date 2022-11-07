@@ -19,13 +19,13 @@ jobs:
     steps:
       - id: go-cache-paths
         run: |
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: echo ref
         run: |
           echo "${{ github.ref }}"
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3.3.1
         with:
           go-version: 1.18.x
       - name: Configure git for private modules
@@ -34,9 +34,9 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Go Build Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -56,10 +56,10 @@ jobs:
     steps:
       - id: go-cache-paths
         run: |
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3.3.1
         with:
           go-version: 1.18.x
       - name: Configure git for private modules
@@ -68,9 +68,9 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Go Build Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -93,7 +93,6 @@ jobs:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
       WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      WGE_NPM_GITHUB_TOKEN: ${{ secrets.WGE_NPM_GITHUB_TOKEN }}
       WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
       WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
 
@@ -103,18 +102,18 @@ jobs:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      GITHUB_ORG: wge-org-test
+      GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
       GIT_PROVIDER_HOSTNAME: gitlab.git.dev.weave.works
     steps:
       - id: cache-paths
         run: |
-          echo "::set-output name=dir::$(yarn cache dir)"
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+          echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3.3.1
         with:
           go-version: 1.18.x
       - name: Configure git for private modules
@@ -123,9 +122,9 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Go Build Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: |
             ${{ steps.cache-paths.outputs.go-build }}
@@ -134,7 +133,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
       - name: Yarn Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: ${{ steps.cache-paths.outputs.dir }}
           key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
@@ -159,13 +158,13 @@ jobs:
     steps:
       - id: cache-paths
         run: |
-          echo "::set-output name=dir::$(yarn cache dir)"
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+          echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Yarn Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: ${{ steps.cache-paths.outputs.dir }}
           key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
@@ -187,11 +186,11 @@ jobs:
     steps:
       - id: cache-paths
         run: |
-          echo "::set-output name=dir::$(yarn cache dir)"
-          echo "::set-output name=go-build::$(go env GOCACHE)"
-          echo "::set-output name=go-mod::$(go env GOMODCACHE)"
+          echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.18.x
       - name: Configure git for private modules
@@ -200,9 +199,9 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Go Build Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: |
             ${{ steps.cache-paths.outputs.go-build }}
@@ -211,7 +210,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ github.job }}-${{ env.GO_CACHE_NAME }}-
       - name: Yarn Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3.0.11
         with:
           path: ${{ steps.cache-paths.outputs.dir }}
           key: ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-${{ hashFiles('**/yarn.lock') }}
@@ -232,18 +231,18 @@ jobs:
           go test -v -ginkgo.v -run TestMccpUI -ginkgo.label-filter='!(integration, gce, eks, application, upgrade)'  -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
       - name: Store integration test results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ui-integration-test-artifacts
           path: ${{ env.ARTIFACTS_BASE_DIR }}
           retention-days: 1
       - name: Store test results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ui-integration-tests
           path: ${{ env.ARTIFACTS_BASE_DIR }}
-          retention-days: 7
+          retention-days: 1
 
   snyk-checks:
     runs-on: ubuntu-latest
@@ -254,9 +253,9 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.18.x
       - name: Setup snyk
@@ -271,3 +270,4 @@ jobs:
           snyk test --org=product-engineering-ly9 --json --file=ui-cra/yarn.lock | snyk-delta
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+

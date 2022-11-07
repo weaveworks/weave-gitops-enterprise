@@ -1,4 +1,5 @@
 load('ext://restart_process', 'docker_build_with_restart')
+load('ext://helm_remote', 'helm_remote')
 
 if not os.path.exists("./charts/mccp/charts"):
    # Download chart deps on first run. This command is slow, so you'd have to
@@ -17,7 +18,7 @@ if not os.getenv('GITHUB_TOKEN'):
    fail("You need to set GITHUB_TOKEN in your terminal before running this")
 
 # Install resources I couldn't find elsewhere
-k8s_yaml('tools/dev-resources.yaml')
+k8s_yaml(listdir('tools/dev-resources/', recursive=True))
 
 k8s_yaml('test/utils/scripts/entitlement-secret.yaml')
 
@@ -39,14 +40,23 @@ docker_build('weaveworks/cluster-bootstrap-controller', '../cluster-bootstrap-co
    build_args={'GITHUB_BUILD_USERNAME': 'wge-build-bot', 'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN')}
 )
 
-native_build = os.getenv('NATIVE_BUILD', False)
+helm_remote('tf-controller',
+            repo_url='https://weaveworks.github.io/tf-controller',
+            namespace='flux-system')
 
+# Note for MacOS users:
+# for this to work you need to run:
+#   brew install FiloSottile/musl-cross/musl-cross
+# https://github.com/mattn/go-sqlite3#cross-compiling-from-mac-osx
+native_build = os.getenv('NATIVE_BUILD', False)
+skip_ui = os.getenv("SKIP_UI_BUILD", False)
 if native_build:
    local_resource(
       'clusters-service',
-      'GOOS=linux GOARCH=amd64 make build',
+      'make build-linux',
       deps=[
          './cmd/clusters-service',
+         './pkg'
       ],
       ignore=[
          './cmd/clusters-service/bin'
@@ -54,14 +64,15 @@ if native_build:
       dir='cmd/clusters-service',
    )
 
-   local_resource(
-      'ui',
-      'make build',
-      deps=[
-         './ui-cra/src',
-      ],
-      dir='ui-cra',
-   )
+   if not skip_ui:
+      local_resource(
+         'ui',
+         'make build',
+         deps=[
+            './ui-cra/src',
+         ],
+         dir='ui-cra',
+      )
 
    docker_build_with_restart(
       'weaveworks/weave-gitops-enterprise-clusters-service',
@@ -98,3 +109,5 @@ else:
    )
 
 k8s_resource('chart-mccp-cluster-service', port_forwards='8000')
+
+secret_settings(disable_scrub=True)

@@ -14,11 +14,16 @@ service ClustersService {
       get : "/v1/templates"
     };
   }
+
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}"
     };
   }
+
+  /*
+   * Get the Values.yaml for a template if one exists.
+   */
   rpc ListTemplateParams(ListTemplateParamsRequest)
       returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
@@ -38,6 +43,12 @@ service ClustersService {
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
       post : "/v1/templates/{template_name}/render"
+      body : "*"
+    };
+  }
+  rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
+    option (google.api.http) = {
+      post : "/v1/enterprise/automations/render"
       body : "*"
     };
   }
@@ -69,7 +80,6 @@ service ClustersService {
       body : "*"
     };
   }
-
 
   rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
       returns (DeleteClustersPullRequestResponse) {
@@ -149,6 +159,34 @@ service ClustersService {
       get : "/v1/enterprise/events"
     };
   }
+
+  // ListChartsForRepository lists the discovered Helm charts in the provided
+  // repository.
+  rpc ListChartsForRepository(ListChartsForRepositoryRequest) returns
+    (ListChartsForRepositoryResponse) {
+     option (google.api.http) = {
+        get : "/v1/charts/list",
+      };
+    }
+
+  // GetValuesForChart gets the default Values.yaml for the provided Chart
+  // reference.
+  rpc GetValuesForChart(GetValuesForChartRequest) returns
+    (GetValuesForChartResponse) {
+     option (google.api.http) = {
+        post : "/v1/charts/values"
+        body : "*"
+      };
+    }
+
+  // GetChartsJob gets the default Values.yaml for the provided Chart
+  // reference.
+  rpc GetChartsJob(GetChartsJobRequest) returns
+    (GetChartsJobResponse) {
+     option (google.api.http) = {
+        get : "/v1/charts/jobs/{job_id}",
+      };
+    }
 }
 
 message ListTemplatesRequest {
@@ -170,17 +208,20 @@ message ListError {
 message ListTemplatesResponse {
   repeated Template templates = 1;
   int32 total = 2;
+  repeated ListError errors = 4;
 }
 
 message GetTemplateRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message GetTemplateResponse { Template template = 1; }
 
 message ListTemplateParamsRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
@@ -190,6 +231,7 @@ message ListTemplateParamsResponse {
 message ListTemplateProfilesRequest {
   string template_name = 1;
   string template_kind = 2;
+  string template_namespace = 3;
 }
 message ListTemplateProfilesResponse {
   repeated TemplateProfile profiles = 1;
@@ -202,8 +244,43 @@ message RenderTemplateRequest {
   Credential credentials = 3;
   string template_kind = 4;
   string cluster_namespace = 5;
+  repeated ProfileValues profiles = 6;
+  repeated Kustomization kustomizations = 7;
+  string template_namespace = 8;
 }
-message RenderTemplateResponse { string rendered_template = 1; }
+
+message CommitFile {
+	string path = 1; 
+	string content = 2;
+}
+
+
+
+message CostEstimate{
+  message Range {
+    float low = 1;
+    float high = 2;
+  };
+  string currency = 1;
+  Range range = 2;
+  string message = 3;
+}
+
+message RenderTemplateResponse { 
+  string rendered_template = 1; 
+  repeated CommitFile profile_files = 2; 
+  repeated CommitFile kustomization_files = 3;
+  CostEstimate costEstimate = 4;
+}
+
+message RenderAutomationRequest {
+  repeated ClusterAutomation cluster_automations = 1;
+}
+
+message RenderAutomationResponse { 
+  repeated CommitFile kustomization_files = 1;
+  repeated CommitFile helm_release_files = 2;
+}
 
 message ListGitopsClustersRequest {
   string label = 1; 
@@ -215,6 +292,7 @@ message ListGitopsClustersResponse {
   repeated GitopsCluster gitops_clusters = 1;
   int32 total = 2;
   string next_page_token = 3;
+  repeated ListError errors = 4;
 }
 
 message GetPolicyRequest {
@@ -276,6 +354,7 @@ message PolicyValidation{
   string name=12;
   string clusterName = 13;
   repeated PolicyValidationOccurrence occurrences = 14;
+  string policy_id = 15;
 }
 
 message CreatePullRequestRequest {
@@ -303,7 +382,9 @@ message CreatePullRequestRequest {
   string repository_api_url = 11;
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
+  string template_namespace = 14;
 }
+
 message CreatePullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
@@ -328,6 +409,7 @@ message CreateTfControllerPullRequestRequest {
   string commit_message = 8;
   // The repo api url.
   string repository_api_url = 11;
+  string template_namespace = 12;
 }
 message CreateTfControllerPullRequestResponse {
   // The url of the new pull request.
@@ -401,6 +483,7 @@ message GitopsCluster {
   GitopsClusterRef secretRef = 8;
   CapiCluster capi_cluster = 9;
   bool control_plane = 10;
+  string type = 11; 
 }
 
 message CapiCluster {
@@ -409,6 +492,7 @@ message CapiCluster {
   map<string, string> annotations = 3;
   map<string, string> labels = 4;
   CapiClusterStatus status = 5;
+  CapiClusterInfrastructureRef infrastructureRef = 6;
 }
 
 message CapiClusterStatus {
@@ -418,6 +502,12 @@ message CapiClusterStatus {
   bool controlPlaneReady = 4;
   repeated Condition conditions = 5;
   int64 observedGeneration = 6;
+}
+
+message CapiClusterInfrastructureRef {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
 }
 
 message GitopsClusterRef { string name = 1; }
@@ -439,6 +529,8 @@ message Template {
   string error = 6;
   map<string, string> annotations = 7;
   string template_kind = 8;
+  map<string, string> labels = 9;
+  string namespace = 10;
 }
 
 message Parameter {
@@ -447,6 +539,7 @@ message Parameter {
   bool required = 3;
   repeated string options = 4;
   string default = 5;
+  bool editable = 6;
 }
 
 message TemplateProfile {
@@ -454,6 +547,7 @@ message TemplateProfile {
   string version = 2;
   bool editable = 3;
   string values = 4;
+  string namespace = 5;
 }
 
 message TemplateObject {
@@ -507,6 +601,8 @@ message Kustomization {
 message KustomizationSpec {
   string path = 1;
   SourceRef source_ref = 2;
+  string target_namespace = 3;
+  bool create_namespace = 4;
 }
 
 message HelmRelease {
@@ -526,6 +622,7 @@ message Chart {
 message ChartSpec {
   string chart = 1;
   SourceRef source_ref = 2;
+  string version = 3; 
 }
 
 message Metadata {
@@ -619,6 +716,7 @@ message Policy {
   PolicyTargets targets = 12;
   string created_at = 13;
   string clusterName = 14;
+  string tenant = 15;
 }
 
 message ObjectRef {
@@ -644,4 +742,47 @@ message ListEventsRequest {
 
 message ListEventsResponse {
   repeated Event events = 1;
+}
+
+message RepositoryRef {
+  ClusterNamespacedName cluster = 1;
+  string name = 2;
+  string namespace = 3;
+  string kind = 4;
+}
+
+message ListChartsForRepositoryRequest {
+  RepositoryRef repository = 1;
+  string kind = 2;
+}
+
+message RepositoryChart {
+  string name = 1;
+  // This is the available versions in reverse semver order.
+  repeated string versions = 2;
+  string layer = 3;
+}
+
+message ListChartsForRepositoryResponse {
+  repeated RepositoryChart charts = 1;
+}
+
+message GetValuesForChartRequest {
+  RepositoryRef repository = 1;
+  string name = 2;
+  string version = 3;
+}
+
+message GetValuesForChartResponse {
+  string job_id = 1;
+}
+
+message GetChartsJobRequest {
+  string job_id = 1;
+}
+
+message GetChartsJobResponse {
+  // This is the base64 encoded version of the raw values data.
+  string values = 1;
+  string error = 2;
 }

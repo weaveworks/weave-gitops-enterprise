@@ -1,0 +1,16 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: "{{CLUSTER_NAME}}"
+  region: "{{AWS_REGION}}"
+
+identityProviders:
+  - name: identity-provider
+    type: oidc
+    issuerUrl: "{{ISSUER_URL}}"
+    clientId: "{{CLIENT_ID}}"
+    usernameClaim: email
+    groupsClaim: groups
+    tags:
+      env: test

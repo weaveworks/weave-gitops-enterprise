@@ -2,92 +2,56 @@ package pipetesting
 
 import (
 	"context"
-	"net"
 	"testing"
 
 	"github.com/alecthomas/assert"
-	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/test/bufconn"
 
 	v1 "k8s.io/api/core/v1"
 
-	"k8s.io/apimachinery/pkg/runtime"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClientsFactory) {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(v1.AddToScheme(scheme))
-	utilruntime.Must(ctrl.AddToScheme(scheme))
-
-	k8s := fake.NewClientBuilder().WithScheme(scheme).WithObjects(objects...).Build()
-
-	factory := MakeClientsFactory(k8s)
-
-	return k8s, factory
-}
-
-func MakeClientsFactory(k8s client.Client) *clustersmngrfakes.FakeClientsFactory {
-	scheme := runtime.NewScheme()
-	utilruntime.Must(v1.AddToScheme(scheme))
-	utilruntime.Must(ctrl.AddToScheme(scheme))
-
-	clientsPool := &clustersmngrfakes.FakeClientsPool{}
-
-	clientsPool.ClientsReturns(map[string]client.Client{"Default": k8s})
-	clientsPool.ClientReturns(k8s, nil)
-	nsMap := map[string][]v1.Namespace{"Default": {}}
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
-
-	factory := &clustersmngrfakes.FakeClientsFactory{}
-	factory.GetImpersonatedClientReturns(clustersClient, nil)
-
-	return factory
-}
-
-func SetupServer(t *testing.T, fact clustersmngr.ClientsFactory) pb.PipelinesClient {
+func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client, cluster string) pb.PipelinesClient {
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*v1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-ns",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
 	pipeSrv := server.NewPipelinesServer(server.ServerOpts{
-		ClientsFactory: fact,
+		ClustersManager:   fact,
+		ManagementFetcher: mgmtFetcher,
+		Cluster:           cluster,
 	})
 
-	lis := bufconn.Listen(1024 * 1024)
-
-	s := grpc.NewServer()
-
-	pb.RegisterPipelinesServer(s, pipeSrv)
-
-	dialer := func(context.Context, string) (net.Conn, error) {
-		return lis.Dial()
-	}
-
-	go func(tt *testing.T) {
-		if err := s.Serve(lis); err != nil {
-			tt.Error(err)
-		}
-	}(t)
-
-	conn, err := grpc.DialContext(
-		context.Background(),
-		"bufnet",
-		grpc.WithContextDialer(dialer),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Cleanup(func() {
-		s.GracefulStop()
-		conn.Close()
+	conn := grpctesting.Setup(t, func(s *grpc.Server) {
+		pb.RegisterPipelinesServer(s, pipeSrv)
 	})
 
 	return pb.NewPipelinesClient(conn)

@@ -9,8 +9,10 @@ import (
 // templates.
 type Template interface {
 	GetName() string
+	GetNamespace() string
 	GetSpec() TemplateSpec
 	GetAnnotations() map[string]string
+	GetLabels() map[string]string
 	GetObjectKind() schema.ObjectKind
 }
 

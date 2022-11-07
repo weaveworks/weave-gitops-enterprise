@@ -29,14 +29,9 @@ service Pipelines {
     rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse) {
         option (google.api.http) = {
             get : "/v1/pipelines/{name}"
-        }; 
+        };
     }
 
-    rpc GetPipelineStatusForObject(GetPipelineStatusForObjectRequest) returns (GetPipelineStatusForObjectResponse) {
-        option (google.api.http) = {
-            get : "/v1/pipelines/status"
-        }; 
-    }
 }
 
 message ListPipelinesRequest {
@@ -45,6 +40,7 @@ message ListPipelinesRequest {
 
 message ListPipelinesResponse {
     repeated Pipeline pipelines = 1;
+    repeated ListError errors = 2;
 }
 
 message GetPipelineRequest {
@@ -56,13 +52,7 @@ message GetPipelineResponse {
     Pipeline pipeline = 1;
 }
 
-message GetPipelineStatusForObjectRequest {
-    ObjectRef object = 1;
+message ListError {
+    string namespace = 1;
+    string message = 2;
 }
-
-message GetPipelineStatusForObjectResponse {
-    PipelineStatus pipelineStatus = 1;
-}
-
-
-

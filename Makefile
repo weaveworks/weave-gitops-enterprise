@@ -1,4 +1,4 @@
-.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto echo-ldflags
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -7,7 +7,7 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 IMAGE_PREFIX := docker.io/weaveworks/weave-gitops-enterprise-
 IMAGE_TAG := $(shell tools/image-tag)
 GIT_REVISION := $(shell git rev-parse HEAD)
-CORE_REVISION := $(shell grep 'weaveworks/weave-gitops ' $(PWD)/go.mod | cut -d' ' -f2)
+CORE_REVISION := $(shell grep 'weaveworks/weave-gitops ' $(PWD)/go.mod | cut -d' ' -f2 | cut -d '-' -f3)
 VERSION=$(shell git describe --always --match "v*" --abbrev=7)
 WEAVE_GITOPS_VERSION=$(shell git describe --always --match "v*" --abbrev=7 | sed 's/^[^0-9]*//')
 TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -20,10 +20,6 @@ else
 	# darwin doesn't like -static
 	cgo_ldflags=-linkmode external -w
 endif
-
-CLI_LDFLAGS?=-X 'github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) Enterprise Edition, from $(CORE_REVISION)' \
-	  -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
-	  -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_REVISION)
 
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
@@ -59,7 +55,7 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 
 
 cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
-	CGO_ENABLED=0 go build -ldflags "$(CLI_LDFLAGS)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
+	CGO_ENABLED=0 go build -ldflags "$(shell make echo-ldflags)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
 ui-cra/.uptodate: ui-cra/*
@@ -141,6 +137,15 @@ lint:
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
 	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
 
+
+# TODO: improve this, BE/FE are not upgraded to the same exact version,
+# timing could cause it get out of sync occasionally if a npm package is just being published etc.
+update-weave-gitops-main:
+	go get -d github.com/weaveworks/weave-gitops@main
+	go mod tidy
+	$(eval NPM_VERSION := $(shell cd ui-cra && yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | to_entries | sort_by(.value)[-1].key'))
+	cd ui-cra && yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$(NPM_VERSION)
+
 # We select which directory we want to descend into to not execute integration
 # tests here.
 unit-tests-with-coverage: $(GENERATED)
@@ -179,5 +184,14 @@ proto: ## Generate protobuf files
 
 FORCE:
 
-echo-ldflags:
-	@echo "$(CLI_LDFLAGS)"
+
+tools/core-files/Makefile.$(CORE_REVISION):
+	@mkdir -p tools/core-files
+	@curl --silent -o tools/core-files/Makefile.core https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/Makefile
+
+tools/core-files/charts/gitops-server/Chart.yaml: tools/core-files/Makefile.$(CORE_REVISION)
+	@mkdir -p tools/core-files/charts/gitops-server
+	@curl --silent -o tools/core-files/charts/gitops-server/Chart.yaml https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/charts/gitops-server/Chart.yaml
+
+echo-ldflags: tools/core-files/charts/gitops-server/Chart.yaml tools/core-files/Makefile.$(CORE_REVISION)
+	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)"

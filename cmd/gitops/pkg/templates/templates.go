@@ -22,18 +22,19 @@ func (t TemplateKind) String() string {
 }
 
 type CreatePullRequestFromTemplateParams struct {
-	GitProviderToken string
-	TemplateName     string
-	TemplateKind     string
-	ParameterValues  map[string]string
-	RepositoryURL    string
-	HeadBranch       string
-	BaseBranch       string
-	Title            string
-	Description      string
-	CommitMessage    string
-	Credentials      Credentials
-	ProfileValues    []ProfileValues
+	GitProviderToken  string
+	TemplateName      string
+	TemplateNamespace string
+	TemplateKind      string
+	ParameterValues   map[string]string
+	RepositoryURL     string
+	HeadBranch        string
+	BaseBranch        string
+	Title             string
+	Description       string
+	CommitMessage     string
+	Credentials       Credentials
+	ProfileValues     []ProfileValues
 }
 
 // TemplatePullRequester defines the interface that adapters
@@ -61,18 +62,18 @@ func CreatePullRequestFromTemplate(params CreatePullRequestFromTemplateParams, r
 // need to implement in order to return an array of templates.
 type TemplatesRetriever interface {
 	Source() string
-	RetrieveTemplate(name string, kind TemplateKind) (*Template, error)
+	RetrieveTemplate(name string, kind TemplateKind, namespace string) (*Template, error)
 	RetrieveTemplates(kind TemplateKind) ([]Template, error)
 	RetrieveTemplatesByProvider(kind TemplateKind, provider string) ([]Template, error)
-	RetrieveTemplateParameters(kind TemplateKind, name string) ([]TemplateParameter, error)
-	RetrieveTemplateProfiles(name string) ([]Profile, error)
+	RetrieveTemplateParameters(kind TemplateKind, name string, namespace string) ([]TemplateParameter, error)
+	RetrieveTemplateProfiles(name string, namespace string) ([]Profile, error)
 }
 
 // TemplateRenderer defines the interface that adapters
 // need to implement in order to render a template populated
 // with parameter values.
 type TemplateRenderer interface {
-	RenderTemplateWithParameters(kind TemplateKind, name string, parameters map[string]string, creds Credentials) (string, error)
+	RenderTemplateWithParameters(req RenderTemplateRequest) (*RenderTemplateResponse, error)
 }
 
 // CredentialsRetriever defines the interface that adapters
@@ -105,9 +106,10 @@ type Credentials struct {
 }
 
 type ProfileValues struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Values  string `json:"values"`
+	Name      string `json:"name"`
+	Version   string `json:"version"`
+	Values    string `json:"values"`
+	Namespace string `json:"namespace"`
 }
 
 type Profile struct {
@@ -135,9 +137,45 @@ type Maintainer struct {
 	Url   string
 }
 
+type RenderTemplateRequest struct {
+	TemplateName      string            `json:"template_name,omitempty"`
+	Values            map[string]string `json:"values,omitempty"`
+	Credentials       Credentials       `json:"credentials,omitempty"`
+	TemplateKind      TemplateKind      `json:"template_kind,omitempty"`
+	ClusterNamespace  string            `json:"cluster_namespace,omitempty"`
+	Profiles          []ProfileValues   `json:"profiles,omitempty"`
+	TemplateNamespace string            `json:"template_namespace,omitempty"`
+}
+
+type CommitFile struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
+}
+
+type RenderTemplateResponse struct {
+	RenderedTemplate string       `json:"renderedTemplate"`
+	ProfileFiles     []CommitFile `json:"profileFiles"`
+}
+
+func (r *RenderTemplateResponse) String() string {
+	var output strings.Builder
+	output.WriteString(r.RenderedTemplate)
+	for i := range r.ProfileFiles {
+		file := r.ProfileFiles[i]
+		output.WriteString(
+			fmt.Sprintf(
+				"\n---\n# %s\n\n%s",
+				file.Path,
+				file.Content,
+			),
+		)
+	}
+	return output.String()
+}
+
 // GetTemplate uses a TemplatesRetriever adapter to show print template to the console.
-func GetTemplate(name string, kind TemplateKind, r TemplatesRetriever, w io.Writer) error {
-	t, err := r.RetrieveTemplate(name, kind)
+func GetTemplate(name string, kind TemplateKind, namespace string, r TemplatesRetriever, w io.Writer) error {
+	t, err := r.RetrieveTemplate(name, kind, namespace)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
 	}
@@ -209,8 +247,8 @@ func GetTemplatesByProvider(kind TemplateKind, provider string, r TemplatesRetri
 
 // GetTemplateParameters uses a TemplatesRetriever adapter
 // to show a list of parameters for a given template.
-func GetTemplateParameters(kind TemplateKind, name string, r TemplatesRetriever, w io.Writer) error {
-	ps, err := r.RetrieveTemplateParameters(kind, name)
+func GetTemplateParameters(kind TemplateKind, name string, namespace string, r TemplatesRetriever, w io.Writer) error {
+	ps, err := r.RetrieveTemplateParameters(kind, name, namespace)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve parameters for template %q from %q: %w", name, r.Source(), err)
 	}
@@ -244,14 +282,14 @@ func GetTemplateParameters(kind TemplateKind, name string, r TemplatesRetriever,
 
 // RenderTemplate uses a TemplateRenderer adapter to show
 // a template populated with parameter values.
-func RenderTemplateWithParameters(kind TemplateKind, name string, parameters map[string]string, creds Credentials, r TemplateRenderer, w io.Writer) error {
-	t, err := r.RenderTemplateWithParameters(kind, name, parameters, creds)
+func RenderTemplateWithParameters(req RenderTemplateRequest, r TemplateRenderer, w io.Writer) error {
+	t, err := r.RenderTemplateWithParameters(req)
 	if err != nil {
-		return fmt.Errorf("unable to render template %q: %w", name, err)
+		return fmt.Errorf("unable to render template %q: %w", req.TemplateName, err)
 	}
 
-	if t != "" {
-		fmt.Fprint(w, t)
+	if t != nil {
+		fmt.Fprint(w, t.String())
 		return nil
 	}
 
@@ -289,8 +327,8 @@ func GetCredentials(r CredentialsRetriever, w io.Writer) error {
 
 // GetTemplateProfiles uses a TemplatesRetriever adapter
 // to show a list of profiles for a given template.
-func GetTemplateProfiles(name string, r TemplatesRetriever, w io.Writer) error {
-	ps, err := r.RetrieveTemplateProfiles(name)
+func GetTemplateProfiles(name string, namespace string, r TemplatesRetriever, w io.Writer) error {
+	ps, err := r.RetrieveTemplateProfiles(name, namespace)
 	if err != nil {
 		return fmt.Errorf("unable to retrieve profiles for template %q from %q: %w", name, r.Source(), err)
 	}

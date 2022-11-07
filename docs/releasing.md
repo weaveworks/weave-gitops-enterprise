@@ -4,30 +4,121 @@
 
 How to release a new version of weave-gitops-enterprise
 
-## Make sure dependencies are up to date
-
-In particular:
-- weave-gitops
-- cluster-controller
-- cluster-bootstrap-controller
-
-Check [../CONTRIBUTING.md](../CONTRIBUTING.md) for instructions.
-
 ## Prerequisites
 
 Install [GnuPG](https://gnupg.org/) and [generate a GPG key and add it to your Github account](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key).
 
 If you aren't using the GPG suite, you will need to [add the GPG key to your .bashrc / .zshrc](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key).
 
-## Create a tag
+## Checklist
 
-_This may be possible by creating a tag via the releases system in the github UI, please test and update here._
+### Radiate that a release is happening (**30 mins** waiting for objections, but a day or two is better)
+
+Write a message in `#weave-gitops-dev` on slack. Ideally we want to fall into a predicatable release cadence so that the release doesn't come as a surprise to anyone.
+
+Wait and see if any team has an objection like a known release blocking bug.
+
+Sample:
+
+> Hi! We would like to to release WGE v0.9.6, does anyone have any concerns or reasons to delay the release?
+
+### Make sure weave-gitops-enterprise on `main` is green (**30s** to check)
+
+Look for the green tick next to the last commit on [weave-gitops-enterprise](https://github.com/weaveworks/weave-gitops-enterprise)
+
+### Make sure all new OSS commands are included
+
+There is a bot that automatically creates a PR to update the version of OSS used by WGE on every stable release of OSS. However, if there are any new commands introduced in OSS, these need to be added manually by an engineer. Therefore we need to make sure that the new OSS commands are available from WGE CLI too.
+
+### Make sure all new features in the latest weave-gitops core release work
+
+In the past we have released WGE without making sure the new features in Weave GitOps core have been integrated.
+
+Review the release notes of the [latest version of core](https://github.com/weaveworks/weave-gitops/releases) and check the new features listed there work in WGE. If its confusing ask in `#weave-gitops-dev` on slack.
+
+### Make sure dependencies are up to date (**5 mins** to check. **30 mins** to correct versions and wait for green `main`)
+
+In particular:
+- weave-gitops ([releases](https://github.com/weaveworks/weave-gitops/releases))
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/ui-cra/package.json
+- cluster-controller ([releases](https://github.com/weaveworks/cluster-controller/releases))
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/cluster-controller/values.yaml
+- cluster-bootstrap-controller ([releases](https://github.com/weaveworks/cluster-bootstrap-controller/releases))
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
+- policy-agent ([releases](https://github.com/weaveworks/policy-agent/releases))
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
+
+Check [how to update things in ../CONTRIBUTING.md](../CONTRIBUTING.md#how-to-update-the-version-of-weave-gitops) for instructions on how to update properly.
+
+> **Note**
+> **For non-rc.x releases:**
+> None of the above versions should be pinned to a commit hash. They should all be pinned to a release tag.
+
+## Release
+### Create a tag
 
 Tag the new release with an **annotated** and **signed** tag.
 
 ```bash
-git tag -a -s v0.0.6 -m "Weave GitOps Enterprise v0.0.6"
-git push origin v0.0.6
+cd weave-gitops-enterprise
+git checkout main
+git pull
+
+# Make sure your local commit is the same as the head on github
+git log 
+
+# Tag a push an annotated tag
+git tag -a -s v0.9.4 -m "Weave GitOps Enterprise v0.9.4"
+git push origin v0.9.4
 ```
 
-CircleCI will build the new release based on the new tag.
+This will kick off the release process in GitHub actions
+- View progress via the [release action](https://github.com/weaveworks/weave-gitops-enterprise/actions/workflows/release.yaml).
+- The action will generate release notes and publish a release on GitHub
+- A message will be sent to #weave-gitops-dev in slack announcing the release
+
+### Update the release notes with *Dependencies* and *Highlights*
+
+#### Github releases page
+
+If this is a final (non-rc) release, de-select the `This is a pre-release` checkbox.
+
+> **Note**
+> If there are PRs listed here that you are not familiar with, ask in `#weave-gitops-dev` on slack.
+> You can ping another team to ask them to update with highlights from their perspective.
+
+You can use a [previous release](https://github.com/weaveworks/weave-gitops-enterprise/releases) as a template here.
+
+- Edit the new release, copy and paste the **Dependency Versions** section from an older releases. Update any versions that have been changed.
+- Add a **Highlights** section, calling out the significant changes in this new release.
+- Add a **Breaking Changes** section, calling out any breaking changes in this new release.
+- Add a **Known Issues** section, calling out any known issues in this new release.
+
+#### The https://docs.gitops.weave.works/ Enterprise releases page
+
+> **Note**
+> This is for non-rc.x releases only
+
+Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://github.com/weaveworks/weave-gitops/blob/main/website/docs/enterprise/releases.mdx).
+
+- Paste it up the top, keeping previous releases in order.
+- Add the current date under the release version
+
+Make sure to backport the docs changes to the versioned docs. For example when releasing 0.9.5, both these files should be the same:
+- weave-gitops/website/docs/enterprise/releases.mdx
+- weave-gitops/website/versioned_docs/version-0.9.5/enterprise/releases.mdx
+
+### Announce final (non-rc) releases in #weave-gitops on slack
+
+Sample:
+
+> Hi! There is a new release of Weave Gitops Enterprise v0.9.6!
+> - https://github.com/weaveworks/weave-gitops-enterprise/releases/tag/v0.9.6
+> - https://docs.gitops.weave.works/docs/enterprise/releases/
+
+
+### Update this document with any thing that unclear!
+
+Always be improving this document. If you find something that is unclear, or something that could be improved, please update this document and send a PR.

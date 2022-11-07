@@ -1,17 +1,10 @@
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { SectionHeader } from '../../Layout/SectionHeader';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
-import { Alert } from '@material-ui/lab';
-import { LoadingPage } from '@weaveworks/weave-gitops';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
 import ViolationDetails from './ViolationDetails';
-import useClusters from '../../../contexts/Clusters';
-import {
-  useCountPolicyValidations,
-  useGetPolicyValidationDetails,
-} from '../../../contexts/PolicyViolations';
+import { useGetPolicyValidationDetails } from '../../../contexts/PolicyViolations';
 import { Breadcrumb } from '../../Breadcrumbs';
+import { Routes } from '../../../utils/nav';
+import { formatURL } from '@weaveworks/weave-gitops';
 
 const PolicyViolationDetails = ({
   id,
@@ -24,45 +17,39 @@ const PolicyViolationDetails = ({
   source?: string;
   sourcePath?: string;
 }) => {
-  const { count } = useClusters();
-  const policyViolationsCount = useCountPolicyValidations({});
   const { data, error, isLoading } = useGetPolicyValidationDetails({
     clusterName,
     violationId: id,
   });
-  const title = !!source ? data?.violation?.message : data?.violation?.name;
   const headerPath: Breadcrumb[] = !!source
     ? [
-        { label: 'Applications', url: '/applications', count },
+        { label: 'Applications', url: Routes.Applications },
         {
           label: data?.violation?.entity || '',
-          url: `/${sourcePath}/violations?clusterName=${clusterName}&name=${data?.violation?.entity}&namespace=${data?.violation?.namespace}`,
+          url: formatURL(`/${sourcePath}/violations`, {
+            name: data?.violation?.entity,
+            namespace: data?.violation?.namespace,
+            clusterName: clusterName,
+          }),
         },
         { label: data?.violation?.message || '' },
       ]
     : [
-        { label: 'Clusters', url: '/clusters', count },
+        { label: 'Clusters', url: Routes.Clusters },
         {
           label: 'Violation Logs',
-          url: '/clusters/violations',
-          count: policyViolationsCount,
+          url: Routes.PolicyViolations,
         },
         { label: data?.violation?.name || '' },
       ];
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate documentTitle="WeGo · Violation Logs">
-        <SectionHeader className="count-header" path={headerPath} />
-        <ContentWrapper>
-          <Title>{title}</Title>
-          {isLoading && <LoadingPage />}
-          {error && <Alert severity="error">{error.message}</Alert>}
-          {data?.violation && (
-            <ViolationDetails violation={data.violation} source={source} />
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+    <PageTemplate documentTitle="Violation Logs" path={headerPath}>
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        {data?.violation && (
+          <ViolationDetails violation={data.violation} source={source} />
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 

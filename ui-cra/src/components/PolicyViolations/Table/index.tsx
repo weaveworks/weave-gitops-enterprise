@@ -4,8 +4,12 @@ import {
   PolicyValidation,
 } from '../../../cluster-services/cluster_services.pb';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
-import { FilterableTable, filterConfig } from '@weaveworks/weave-gitops';
-import { Link } from 'react-router-dom';
+import {
+  DataTable,
+  filterConfig,
+  formatURL,
+  Link,
+} from '@weaveworks/weave-gitops';
 import Severity from '../../Policies/Severity';
 import moment from 'moment';
 import { TableWrapper } from '../../Shared';
@@ -13,6 +17,7 @@ import { useListPolicyValidations } from '../../../contexts/PolicyViolations';
 import { Alert } from '@material-ui/lab';
 import { LoadingPage } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
+import { Routes } from '../../../utils/nav';
 
 export enum FieldsType {
   policy = 'POLICY',
@@ -29,45 +34,65 @@ export const PolicyViolationsTable: FC<Props> = ({
   tableType = FieldsType.policy,
   sourcePath,
 }) => {
-  const initialFilterState = {
+  const initialPolicyFilter = {
+    ...filterConfig(violations, 'severity'),
+    ...filterConfig(violations, 'clusterName'),
+  };
+  const initialApplicationFilter = {
     ...filterConfig(violations, 'severity'),
   };
   const classes = usePolicyStyle();
+  const defaultFields: Field[] = [
+    {
+      label: 'Severity',
+      value: ({ severity }) => <Severity severity={severity || ''} />,
+      sortValue: ({ severity }) => severity,
+    },
+    {
+      label: 'Violated Policy',
+      value: 'name',
+      textSearchable: true,
+      sortValue: ({ name }) => name,
+    },
+
+    {
+      label: 'Violation Time',
+      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
+      defaultSort: true,
+      sortValue: ({ createdAt }) => {
+        const t = createdAt && new Date(createdAt).getTime();
+        return t * -1;
+      },
+    },
+  ];
   const policyFields: Field[] = [
     {
-      label: 'Name configured in management UI',
+      label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}`}
-          className={classes.link}
+          to={formatURL(Routes.PolicyViolationDetails, {
+            id,
+            clusterName,
+          })}
           data-violation-message={message}
         >
           {message}
         </Link>
       ),
       textSearchable: true,
+      sortValue: ({ message }) => message,
       maxWidth: 650,
-    },
-    {
-      label: 'Severity',
-      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
-    },
-    {
-      label: 'Violated Policy',
-      value: 'name',
     },
     {
       label: 'Cluster',
       value: 'clusterName',
-    },
-    {
-      label: 'Violation Time',
-      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
+      sortValue: ({ clusterName }) => clusterName,
     },
     {
       label: 'Application',
       value: (v: PolicyValidation) => `${v.namespace}/${v.entity}`,
     },
+    ...defaultFields,
   ];
 
   const applicationFields: Field[] = [
@@ -75,7 +100,12 @@ export const PolicyViolationsTable: FC<Props> = ({
       label: 'Message',
       value: ({ message, clusterName, id }: PolicyValidation) => (
         <Link
-          to={`/clusters/violations/details?clusterName=${clusterName}&id=${id}&source=applications&sourcePath=${sourcePath}`}
+          to={formatURL(Routes.PolicyViolationDetails, {
+            id,
+            clusterName,
+            sourcePath,
+            source: 'applications',
+          })}
           className={classes.link}
           data-violation-message={message}
         >
@@ -83,30 +113,25 @@ export const PolicyViolationsTable: FC<Props> = ({
         </Link>
       ),
       textSearchable: true,
+      sortValue: ({ message }) => message,
+      maxWidth: 650,
     },
-    {
-      label: 'Severity',
-      value: (v: PolicyValidation) => <Severity severity={v.severity || ''} />,
-    },
-    {
-      label: 'Violated Policy',
-      value: 'name',
-    },
-    {
-      label: 'Violation Time',
-      value: (v: PolicyValidation) => moment(v.createdAt).fromNow(),
-    },
+    ...defaultFields,
   ];
 
   const fields =
     tableType === FieldsType.policy ? policyFields : applicationFields;
+  const initialFilterState =
+    tableType === FieldsType.policy
+      ? initialPolicyFilter
+      : initialApplicationFilter;
   return (
-    <TableWrapper>
-      <FilterableTable
+    <TableWrapper id="violations-list">
+      <DataTable
         filters={initialFilterState}
         rows={violations}
         fields={fields}
-      ></FilterableTable>
+      ></DataTable>
     </TableWrapper>
   );
 };

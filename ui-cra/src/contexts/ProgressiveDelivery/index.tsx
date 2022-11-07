@@ -65,26 +65,18 @@ export type CanaryParams = {
   clusterName: string;
 };
 
-const GET_CANARY_KEY='get_canary_details'
+const GET_CANARY_KEY = 'get_canary_details';
 export const useGetCanaryDetails = (params: CanaryParams) => {
   const pd = useProgressiveDelivery();
 
   return useQuery<GetCanaryResponse, Error>(
     [PD_QUERY_KEY, GET_CANARY_KEY, params],
     () => pd.GetCanary(params),
+    {
+      refetchInterval: 10000,
+      retry: false,
+    },
   );
-};
-
-const GET_CANARIES_COUNT_KEY='get_canaries_count'
-
-export const useCanariesCount = () => {
-  const pd = useProgressiveDelivery();
-
-  const { data } = useQuery<ListCanariesResponse, Error>(
-    [PD_QUERY_KEY, GET_CANARIES_COUNT_KEY],
-    () => pd.ListCanaries({}),
-  );
-  return data?.canaries?.length;
 };
 
 const CANARY_OBJS_KEY = 'canary_objects';

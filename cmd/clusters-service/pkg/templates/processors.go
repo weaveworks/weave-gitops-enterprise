@@ -3,10 +3,10 @@ package templates
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"regexp"
 	"sort"
 	"strings"
+	"text/template"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,8 +14,11 @@ import (
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
 
+	"github.com/Masterminds/sprig"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
+
+var templateFuncs template.FuncMap = makeTemplateFunctions()
 
 // Processor is a generic template parser/renderer.
 type Processor interface {
@@ -40,6 +43,7 @@ func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
 		return &TemplateProcessor{Processor: NewTextTemplateProcessor(), Template: t}, nil
 
 	}
+
 	return nil, fmt.Errorf("unknown template renderType: %s", t.GetSpec().RenderType)
 }
 
@@ -49,6 +53,12 @@ type TemplateProcessor struct {
 	Processor
 }
 
+// Params returns the set of parameters discovered in the resource templates.
+//
+// These are discovered in the templates, and enriched from the parameters
+// declared on the template.
+//
+// The returned slice is sorted by Name.
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
 	for _, v := range p.GetSpec().ResourceTemplates {
@@ -57,6 +67,19 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 			return nil, fmt.Errorf("failed to get params from template: %w", err)
 		}
 		paramNames.Insert(names...)
+	}
+
+	for k, v := range p.GetAnnotations() {
+		if strings.HasPrefix(k, "capi.weave.works/profile-") {
+			names, err := p.Processor.ParamNames(templates.ResourceTemplate{
+				RawExtension: runtime.RawExtension{
+					Raw: []byte(v),
+				}})
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
+			}
+			paramNames.Insert(names...)
+		}
 	}
 
 	paramsMeta := map[string]Param{}
@@ -84,6 +107,9 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 }
 
 // RenderTemplates renders all the resourceTemplates in the template.
+//
+// TODO: This should return []*unstructured.Unstructured to avoid having to
+// convert back and forth.
 func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
 	params, err := p.Params()
 	if err != nil {
@@ -142,7 +168,7 @@ type TextTemplateProcessor struct {
 }
 
 func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
-	parsed, err := template.New("capi-template").Parse(string(tmpl))
+	parsed, err := template.New("capi-template").Funcs(templateFuncs).Parse(string(tmpl))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -169,34 +195,6 @@ func (p *TextTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]str
 	}
 
 	return variables.List(), nil
-}
-
-func (p TemplateProcessor) AllParamNames() ([]string, error) {
-	paramNames := sets.NewString()
-	for _, v := range p.GetSpec().ResourceTemplates {
-		names, err := p.Processor.ParamNames(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get params from template: %w", err)
-		}
-		paramNames.Insert(names...)
-	}
-
-	for k, v := range p.GetAnnotations() {
-		if strings.HasPrefix(k, "capi.weave.works/profile-") {
-			names, err := p.Processor.ParamNames(templates.ResourceTemplate{RawExtension: runtime.RawExtension{
-				Raw: []byte(v),
-			}})
-			if err != nil {
-				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
-			}
-			paramNames.Insert(names...)
-		}
-	}
-
-	params := paramNames.List()
-	sort.Strings(params)
-
-	return params, nil
 }
 
 // NewEnvsubstTemplateProcessor creates and returns a new
@@ -235,4 +233,15 @@ func (p *EnvsubstTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([
 	variables.Insert(tv...)
 
 	return variables.List(), nil
+}
+
+func makeTemplateFunctions() template.FuncMap {
+	f := sprig.TxtFuncMap()
+	unwanted := []string{
+		"env", "expandenv", "getHostByName", "genPrivateKey", "derivePassword", "sha256sum",
+		"base", "dir", "ext", "clean", "isAbs", "osBase", "osDir", "osExt", "osClean", "osIsAbs"}
+	for _, v := range unwanted {
+		delete(f, v)
+	}
+	return f
 }

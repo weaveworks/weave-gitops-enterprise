@@ -3,14 +3,18 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server"
+	core_server "github.com/weaveworks/weave-gitops/pkg/server"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -20,12 +24,10 @@ type Options struct {
 	Log                          logr.Logger
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
-	ClustersLibrary              clusters.Library
-	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
-	ApplicationsConfig           *server.ApplicationsConfig
+	ApplicationsConfig           *core_server.ApplicationsConfig
 	CoreServerConfig             core.CoreServerConfig
-	ApplicationsOptions          []server.ApplicationsOption
+	ApplicationsOptions          []core_server.ApplicationsOption
 	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
@@ -37,12 +39,18 @@ type Options struct {
 	EntitlementSecretKey         client.ObjectKey
 	HtmlRootPath                 string
 	ClientGetter                 kube.ClientGetter
+	AuthMethods                  map[auth.AuthMethod]bool
 	OIDC                         OIDCAuthenticationOptions
 	TLSCert                      string
 	TLSKey                       string
 	NoTLS                        bool
 	DevMode                      bool
-	ClientsFactory               clustersmngr.ClientsFactory
+	ClustersManager              clustersmngr.ClustersManager
+	ChartsCache                  *helm.HelmChartIndexer
+	KubernetesClientSet          kubernetes.Interface
+	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Cluster                      string
+	Estimator                    estimation.Estimator
 }
 
 type Option func(*Options)
@@ -70,22 +78,6 @@ func WithDiscoveryClient(client discovery.DiscoveryInterface) Option {
 	}
 }
 
-// WithClustersLibrary is used to set the location that contains
-// CAPI templates. Typically this will be a namespace in the cluster.
-func WithClustersLibrary(clustersLibrary clusters.Library) Option {
-	return func(o *Options) {
-		o.ClustersLibrary = clustersLibrary
-	}
-}
-
-// WithTemplateLibrary is used to set the location that contains
-// CAPI templates. Typically this will be a namespace in the cluster.
-func WithTemplateLibrary(templateLibrary templates.Library) Option {
-	return func(o *Options) {
-		o.TemplateLibrary = templateLibrary
-	}
-}
-
 // WithGitProvider is used to set a git provider that makes
 // API calls to GitHub or GitLab.
 func WithGitProvider(gitProvider git.Provider) Option {
@@ -96,7 +88,7 @@ func WithGitProvider(gitProvider git.Provider) Option {
 
 // WithApplicationsConfig is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
+func WithApplicationsConfig(appConfig *core_server.ApplicationsConfig) Option {
 	return func(o *Options) {
 		o.ApplicationsConfig = appConfig
 	}
@@ -104,7 +96,7 @@ func WithApplicationsConfig(appConfig *server.ApplicationsConfig) Option {
 
 // WithApplicationsOptions is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsOptions(appOptions ...server.ApplicationsOption) Option {
+func WithApplicationsOptions(appOptions ...core_server.ApplicationsOption) Option {
 	return func(o *Options) {
 		o.ApplicationsOptions = appOptions
 	}
@@ -191,9 +183,10 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 	}
 }
 
-// WithOIDCConfig is used to set the OIDC configuration.
-func WithOIDCConfig(oidc OIDCAuthenticationOptions) Option {
+// WithAuthConfig is used to set the auth configuration including OIDC
+func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions) Option {
 	return func(o *Options) {
+		o.AuthMethods = authMethods
 		o.OIDC = oidc
 	}
 }
@@ -223,9 +216,43 @@ func WithDevMode(devMode bool) Option {
 	}
 }
 
-// WithClientsFactory defines the clients factory that will be use for cross-cluster queries.
-func WithClientsFactory(factory clustersmngr.ClientsFactory) Option {
+// WithClustersManager defines the clusters manager that will be use for cross-cluster queries.
+func WithClustersManager(factory clustersmngr.ClustersManager) Option {
 	return func(o *Options) {
-		o.ClientsFactory = factory
+		o.ClustersManager = factory
+	}
+}
+
+// WithClustersCache defines the clusters cache that will be use for cross-cluster queries.
+func WithChartsCache(chartCache *helm.HelmChartIndexer) Option {
+	return func(o *Options) {
+		o.ChartsCache = chartCache
+	}
+}
+
+// WithKubernetesClientSet defines the kuberntes client set that will be used for
+func WithKubernetesClientSet(kubernetesClientSet kubernetes.Interface) Option {
+	return func(o *Options) {
+		o.KubernetesClientSet = kubernetesClientSet
+	}
+}
+
+// WithManagemetFetcher defines the mangement fetcher to be used
+func WithManagemetFetcher(fetcher *mgmtfetcher.ManagementCrossNamespacesFetcher) Option {
+	return func(o *Options) {
+		o.ManagementFetcher = fetcher
+	}
+}
+
+// WithManagementCluster is used to set the management cluster name
+func WithManagementCluster(cluster string) Option {
+	return func(o *Options) {
+		o.Cluster = cluster
+	}
+}
+
+func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
+	return func(o *Options) {
+		o.Estimator = estimator
 	}
 }

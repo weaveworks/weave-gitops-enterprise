@@ -3,44 +3,51 @@ package acceptance
 import (
 	"fmt"
 	"path"
-	"strconv"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	. "github.com/sclevine/agouti/matchers"
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
+	"github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
 func installPolicyAgent(clusterName string) {
-	By(fmt.Sprintf("And install cert-manager to %s cluster", clusterName), func() {
-		stdOut, stdErr := runCommandAndReturnStringOutput("helm search repo charts-profile")
+	ginkgo.By(fmt.Sprintf("And install cert-manager to %s cluster", clusterName), func() {
+		stdOut, stdErr := runCommandAndReturnStringOutput("helm search repo profiles-catalog")
 		if stdErr == "" && stdOut == "No results found" {
-			err := runCommandPassThrough("helm", "repo", "add", "charts-profile", "https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-profile/")
-			Expect(err).ShouldNot(HaveOccurred(), "Failed to add profiles repositoy")
+			err := runCommandPassThrough("helm", "repo", "add", "profiles-catalog", "https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages")
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to add profiles repositoy")
 		}
 
-		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "charts-profile/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "0.0.7", "--set", "installCRDs=true")
-		Expect(err).ShouldNot(HaveOccurred(), "Failed to install cer-manager to leaf cluster: "+clusterName)
+		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "profiles-catalog/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "0.0.8", "--set", "installCRDs=true")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install cer-manager to leaf cluster: "+clusterName)
 	})
 
-	By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {
-		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "charts-profile/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.3.x", "--set", "accountId=weaveworks", "--set", "clusterId="+clusterName)
-		Expect(err).ShouldNot(HaveOccurred(), "Failed to install policy agent to leaf cluster: "+clusterName)
+	ginkgo.By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {
+		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "profiles-catalog/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.5.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install policy agent to leaf cluster: "+clusterName)
 	})
 }
 
 func installTestPolicies(clusterName string, policiesYaml string) {
-	By(fmt.Sprintf("Add/Install test Policies to the %s cluster", clusterName), func() {
+	ginkgo.By(fmt.Sprintf("Add/Install test Policies to the %s cluster", clusterName), func() {
 		err := runCommandPassThrough("kubectl", "apply", "-f", policiesYaml)
-		Expect(err).ShouldNot(HaveOccurred(), "Failed to install test policies to cluster:"+clusterName)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install test policies to cluster:"+clusterName)
 	})
 }
 
 func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
-	var _ = Describe("Multi-Cluster Control Plane Policies", func() {
+	var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", func() {
 
-		Context("[UI] Policies can be installed", func() {
+		ginkgo.BeforeEach(func() {
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+
+			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+				loginUser()
+			}
+		})
+
+		ginkgo.Context("[UI] Policies can be installed", func() {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
 			policyName := "Container Image Pull Policy acceptance test"
@@ -51,115 +58,107 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTags := []string{"There is no tags for this policy"}
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
-			It("Verify Policies can be installed  and dashboard is updated accordingly", Label("integration", "policy"), func() {
+			ginkgo.It("Verify Policies can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				installTestPolicies("management", policiesYaml)
 
 				pages.NavigateToPage(webDriver, "Policies")
 				policiesPage := pages.GetPoliciesPage(webDriver)
 
-				By("And wait for policies to be visibe on the dashboard", func() {
-					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
-					Eventually(policiesPage.PolicyHeader).Should(BeVisible())
+				ginkgo.By("And wait for policies to be visibe on the dashboard", func() {
+					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 4
-					Eventually(func(g Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					gomega.Eventually(func(g gomega.Gomega) int {
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := policiesPage.PolicyCount.Text()
-						return count
-
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
-
-					Eventually(func(g Gomega) int {
 						return policiesPage.CountPolicies()
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
 
 				})
 
 				policyInfo := policiesPage.FindPolicyInList(policyName)
-				By(fmt.Sprintf("And verify '%s' policy Name", policyName), func() {
-					Eventually(policyInfo.Name).Should(MatchText(policyName), fmt.Sprintf("Failed to list %s policy in  application table", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Name", policyName), func() {
+					gomega.Eventually(policyInfo.Name).Should(matchers.MatchText(policyName), fmt.Sprintf("Failed to list %s policy in  application table", policyName))
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Category", policyName), func() {
-					Eventually(policyInfo.Category).Should(MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.software-supply-chain", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Category", policyName), func() {
+					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.software-supply-chain", policyName))
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
-					Eventually(policyInfo.Severity).Should(MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: Medium", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
+					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: Medium", policyName))
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
-					Eventually(policyInfo.Cluster).Should(MatchText(policyClusterName), fmt.Sprintf("Failed to have expected %[1]v policy Cluster: %[1]v", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
+					gomega.Eventually(policyInfo.Cluster).Should(matchers.MatchText(policyClusterName), fmt.Sprintf("Failed to have expected %[1]v policy Cluster: %[1]v", policyName))
 				})
 
-				By(fmt.Sprintf("And navigate to '%s' Policy page", policyName), func() {
-					Eventually(policyInfo.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", policyName))
+				ginkgo.By(fmt.Sprintf("And navigate to '%s' Policy page", policyName), func() {
+					gomega.Eventually(policyInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", policyName))
 				})
 
 				policyDetailPage := pages.GetPolicyDetailPage(webDriver)
-				By(fmt.Sprintf("And verify '%s' policy page", policyName), func() {
-					Eventually(policyDetailPage.Header.Text).Should(MatchRegexp(policyName), "Failed to verify dashboard policy name ")
-					Eventually(policyDetailPage.Title.Text).Should(MatchRegexp(policyName), "Failed to verify policy title on policy page")
-					Eventually(policyDetailPage.ID.Text).Should(MatchRegexp(policyID), "Failed to verify policy ID on policy page")
-					Eventually(policyDetailPage.ClusterName.Text).Should(MatchRegexp(policyClusterName), "Failed to verify policy cluster on policy page")
-					Eventually(policyDetailPage.Severity.Text).Should(MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
-					Eventually(policyDetailPage.Category.Text).Should(MatchRegexp(policyCategory), "Failed to verify policy category on policy page")
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy page", policyName), func() {
+					gomega.Eventually(policyDetailPage.Header.Text).Should(gomega.MatchRegexp(policyName), "Failed to verify dashboard policy name ")
+					gomega.Eventually(policyDetailPage.ID.Text).Should(gomega.MatchRegexp(policyID), "Failed to verify policy ID on policy page")
+					gomega.Eventually(policyDetailPage.ClusterName.Text).Should(gomega.MatchRegexp(policyClusterName), "Failed to verify policy cluster on policy page")
+					gomega.Eventually(policyDetailPage.Severity.Text).Should(gomega.MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
+					gomega.Eventually(policyDetailPage.Category.Text).Should(gomega.MatchRegexp(policyCategory), "Failed to verify policy category on policy page")
 
-					Expect(policyDetailPage.GetTags()).Should(ConsistOf(policyTags), "Failed to verify policy Tags on policy page")
-					Expect(policyDetailPage.GetTargetedK8sKind()).Should(ConsistOf(policyTargetedKinds), "Failed to verify policy Targeted K8s Kind on policy page")
+					gomega.Expect(policyDetailPage.GetTags()).Should(gomega.ConsistOf(policyTags), "Failed to verify policy Tags on policy page")
+					gomega.Expect(policyDetailPage.GetTargetedK8sKind()).Should(gomega.ConsistOf(policyTargetedKinds), "Failed to verify policy Targeted K8s Kind on policy page")
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Details", policyName), func() {
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Details", policyName), func() {
 					description := "This Policy is to ensure you are setting a value for your imagePullPolicy."
 					howToSolve := `spec:\s*containers:\s*- imagePullPolicy: <policy>`
 					code := `result = {\s*15\s*"issue detected": true,\s*16\s*"msg": sprintf\("imagePolicyPolicy must be '%v'; found '%v'",\[policy, image_policy\]\),\s*17\s*"violating_key": sprintf\("spec.template.spec.containers\[%v\].imagePullPolicy", \[i]\),\s*18\s*"recommended_value": policy\s*19\s*}`
 
-					Expect(policyDetailPage.Description.Text()).Should(MatchRegexp(description), "Failed to verify policy Description on policy page")
-					Expect(policyDetailPage.HowToSolve.Text()).Should(MatchRegexp(howToSolve), "Failed to verify policy 'How to solve' on policy page")
-					Expect(policyDetailPage.Code.Text()).Should(MatchRegexp(code), "Failed to verify 'Policy Code' on policy page")
+					gomega.Expect(policyDetailPage.Description.Text()).Should(gomega.MatchRegexp(description), "Failed to verify policy Description on policy page")
+					gomega.Expect(policyDetailPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify policy 'How to solve' on policy page")
+					gomega.Expect(policyDetailPage.Code.Text()).Should(gomega.MatchRegexp(code), "Failed to verify 'Policy Code' on policy page")
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy parameters", policyName), func() {
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy parameters", policyName), func() {
 					parameter := policyDetailPage.GetParameter("policy")
-					Expect(parameter.Name.Text()).Should(MatchRegexp(`policy`), "Failed to verify parameter policy 'Name'")
-					Expect(parameter.Type.Text()).Should(MatchRegexp(`string`), "Failed to verify parameter policy 'Type'")
-					Expect(parameter.Value.Text()).Should(MatchRegexp(`Always`), "Failed to verify parameter policy 'Value'")
-					Expect(parameter.Required.Text()).Should(MatchRegexp(`True`), "Failed to verify parameter policy 'Required'")
+					gomega.Expect(parameter.Name.Text()).Should(gomega.MatchRegexp(`policy`), "Failed to verify parameter policy 'Name'")
+					gomega.Expect(parameter.Type.Text()).Should(gomega.MatchRegexp(`string`), "Failed to verify parameter policy 'Type'")
+					gomega.Expect(parameter.Value.Text()).Should(gomega.MatchRegexp(`Always`), "Failed to verify parameter policy 'Value'")
+					gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`True`), "Failed to verify parameter policy 'Required'")
 
 					parameter = policyDetailPage.GetParameter("exclude_namespace")
 					namespaces := "test-systems"
-					Expect(parameter.Name.Text()).Should(MatchRegexp(`exclude_namespace`), "Failed to verify parameter exclude_namespace 'Name'")
-					Expect(parameter.Type.Text()).Should(MatchRegexp(`array`), "Failed to verify parameter exclude_namespace 'Type'")
-					Expect(parameter.Value.Text()).Should(MatchRegexp(namespaces), "Failed to verify parameter exclude_namespace 'Value'")
-					Expect(parameter.Required.Text()).Should(MatchRegexp(`True`), "Failed to verify parameter exclude_namespace 'Required'")
+					gomega.Expect(parameter.Name.Text()).Should(gomega.MatchRegexp(`exclude_namespace`), "Failed to verify parameter exclude_namespace 'Name'")
+					gomega.Expect(parameter.Type.Text()).Should(gomega.MatchRegexp(`array`), "Failed to verify parameter exclude_namespace 'Type'")
+					gomega.Expect(parameter.Value.Text()).Should(gomega.MatchRegexp(namespaces), "Failed to verify parameter exclude_namespace 'Value'")
+					gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`True`), "Failed to verify parameter exclude_namespace 'Required'")
 
 					parameter = policyDetailPage.GetParameter("exclude_label_key")
-					Expect(parameter.Name.Text()).Should(MatchRegexp(`exclude_label_key`), "Failed to verify parameter exclude_label_key 'Name'")
-					Expect(parameter.Type.Text()).Should(MatchRegexp(`string`), "Failed to verify parameter exclude_label_key 'Type'")
-					Expect(parameter.Value.Text()).Should(MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_key 'Value'")
-					Expect(parameter.Required.Text()).Should(MatchRegexp(`False`), "Failed to verify parameter exclude_label_key 'Required'")
+					gomega.Expect(parameter.Name.Text()).Should(gomega.MatchRegexp(`exclude_label_key`), "Failed to verify parameter exclude_label_key 'Name'")
+					gomega.Expect(parameter.Type.Text()).Should(gomega.MatchRegexp(`string`), "Failed to verify parameter exclude_label_key 'Type'")
+					gomega.Expect(parameter.Value.Text()).Should(gomega.MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_key 'Value'")
+					gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_key 'Required'")
 
 					parameter = policyDetailPage.GetParameter("exclude_label_value")
-					Expect(parameter.Name.Text()).Should(MatchRegexp(`exclude_label_value`), "Failed to verify parameter exclude_label_value 'Name'")
-					Expect(parameter.Type.Text()).Should(MatchRegexp(`string`), "Failed to verify parameter exclude_label_value 'Type'")
-					Expect(parameter.Value.Text()).Should(MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_value 'Value'")
-					Expect(parameter.Required.Text()).Should(MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
+					gomega.Expect(parameter.Name.Text()).Should(gomega.MatchRegexp(`exclude_label_value`), "Failed to verify parameter exclude_label_value 'Name'")
+					gomega.Expect(parameter.Type.Text()).Should(gomega.MatchRegexp(`string`), "Failed to verify parameter exclude_label_value 'Type'")
+					gomega.Expect(parameter.Value.Text()).Should(gomega.MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_value 'Value'")
+					gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
 				})
 
-				By("And again navigate to Polisies page via header link", func() {
-					Expect(policiesPage.PolicyHeader.Click()).Should(Succeed(), "Failed to navigate to Policies pages via header link")
+				ginkgo.By("And again navigate to Polisies page via header link", func() {
+					gomega.Expect(policiesPage.PolicyHeader.Click()).Should(gomega.Succeed(), "Failed to navigate to Policies pages via header link")
 					pages.WaitForPageToLoad(webDriver)
 				})
 			})
 		})
 
-		Context("[UI] Policies can be installed on leaf cluster", func() {
+		ginkgo.Context("[UI] Policies can be installed on leaf cluster", func() {
 			var mgmtClusterContext string
 			var leafClusterContext string
 			var leafClusterkubeconfig string
@@ -178,26 +177,26 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTags := []string{"pci-dss", "cis-benchmark", "mitre-attack", "nist800-190", "gdpr", "default"}
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
-			JustBeforeEach(func() {
+			ginkgo.JustBeforeEach(func() {
 
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 			})
 
-			JustAfterEach(func() {
+			ginkgo.JustAfterEach(func() {
 				useClusterContext(mgmtClusterContext)
 
 				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
-				deleteClusters("kind", []string{leafClusterName}, "")
+				deleteCluster("kind", leafClusterName, "")
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 			})
 
-			It("Verify Policies can be installed on leaf cluster and monitored via management cluster dashboard", Label("integration", "policy", "leaf-policy"), func() {
+			ginkgo.It("Verify Policies can be installed on leaf cluster and monitored via management cluster dashboard", ginkgo.Label("integration", "policy", "leaf-policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
@@ -207,122 +206,109 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafClusterNamespace, patSecret)
 				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCuster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
+				gitopsCluster = connectGitopsCluster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
 				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
 
-				By("Verify GitopsCluster status after creating kubeconfig secret", func() {
-					pages.NavigateToPage(webDriver, "Clusters")
-					clustersPage := pages.GetClustersPage(webDriver)
-					pages.WaitForPageToLoad(webDriver)
-					clusterInfo := clustersPage.FindClusterInList(leafClusterName)
-
-					Eventually(clusterInfo.Status, ASSERTION_30SECONDS_TIME_OUT).Should(MatchText("Ready"))
-				})
-
-				By("And add kustomization bases for common resources for leaf cluster)", func() {
-					addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
-				})
+				waitForLeafClusterAvailability(leafClusterName, "Ready")
+				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
 				installTestPolicies("management", policiesYaml)
 				pages.NavigateToPage(webDriver, "Policies")
 				policiesPage := pages.GetPoliciesPage(webDriver)
 
-				By("And wait for policies to be visibe on the dashboard", func() {
+				ginkgo.By("And wait for policies to be visibe on the dashboard", func() {
 					pages.NavigateToPage(webDriver, "Policies")
-					Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
-					Eventually(policiesPage.PolicyHeader).Should(BeVisible())
+					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
 					totalPolicyCount := existingPoliciesCount + 8 // 4 management and 4 leaf policies
-
-					Eventually(func(g Gomega) string {
-						g.Expect(webDriver.Refresh()).ShouldNot(HaveOccurred())
+					gomega.Eventually(func(g gomega.Gomega) int {
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
-						count, _ := policiesPage.PolicyCount.Text()
-						return count
-
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(MatchRegexp(strconv.Itoa(totalPolicyCount)), fmt.Sprintf("Dashboard failed to update with expected policies count: %d", totalPolicyCount))
-
-					Eventually(func(g Gomega) int {
 						return policiesPage.CountPolicies()
-					}, ASSERTION_2MINUTE_TIME_OUT).Should(Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+
+					// Wait for policy page to completely render policy information. Sometimes error appears momentarily due to RBAC reconciliation
+					gomega.Eventually(func(g gomega.Gomega) bool {
+						if !pages.ElementExist(policiesPage.AlertError) {
+							return true
+						}
+						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						return false
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), "Policy page failed to render policies with complete policies information")
 				})
 
-				By(fmt.Sprintf("And filter leaf cluster '%s' policies", leafClusterName), func() {
-					filterID := "clusterName:" + leafClusterNamespace + `/` + leafClusterName
+				ginkgo.By(fmt.Sprintf("And filter leaf cluster '%s' policies", leafClusterName), func() {
+					filterID := "clusterName: " + leafClusterNamespace + `/` + leafClusterName
 					searchPage := pages.GetSearchPage(webDriver)
-					Eventually(searchPage.FilterBtn.Click).Should(Succeed(), "Failed to click filter buttton")
 					searchPage.SelectFilter("cluster", filterID)
-
-					Expect(searchPage.FilterBtn.Click()).Should(Succeed(), "Failed to click filter buttton")
 				})
 
 				policyInfo := policiesPage.FindPolicyInList(policyName)
-				By(fmt.Sprintf("And verify '%s' policy Name", policyName), func() {
-					Eventually(policyInfo.Name).Should(MatchText(policyName), fmt.Sprintf("Failed to list %s policy in  application table", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Name", policyName), func() {
+					gomega.Eventually(policyInfo.Name).Should(matchers.MatchText(policyName), fmt.Sprintf("Failed to list %s policy in  application table", policyName))
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Category", policyName), func() {
-					Eventually(policyInfo.Category).Should(MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.pod-security", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Category", policyName), func() {
+					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.pod-security", policyName))
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
-					Eventually(policyInfo.Severity).Should(MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: Medium", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
+					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: Medium", policyName))
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
-					Eventually(policyInfo.Cluster).Should(MatchText(leafClusterName), fmt.Sprintf("Failed to have expected %[1]v policy Cluster: %[1]v", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
+					gomega.Eventually(policyInfo.Cluster).Should(matchers.MatchText(leafClusterName), fmt.Sprintf("Failed to have expected %[1]v policy Cluster: %[1]v", policyName))
 				})
 
-				By(fmt.Sprintf("And navigate to '%s' Policy page", policyName), func() {
-					Eventually(policyInfo.Name.Click).Should(Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", policyName))
+				ginkgo.By(fmt.Sprintf("And navigate to '%s' Policy page", policyName), func() {
+					gomega.Eventually(policyInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", policyName))
 				})
 
 				policyDetailPage := pages.GetPolicyDetailPage(webDriver)
-				By(fmt.Sprintf("And verify '%s' policy page", policyName), func() {
-					Eventually(policyDetailPage.Header.Text).Should(MatchRegexp(policyName), "Failed to verify dashboard policy name ")
-					Eventually(policyDetailPage.Title.Text).Should(MatchRegexp(policyName), "Failed to verify policy title on policy page")
-					Eventually(policyDetailPage.ID.Text).Should(MatchRegexp(policyID), "Failed to verify policy ID on policy page")
-					Eventually(policyDetailPage.ClusterName.Text).Should(MatchRegexp(leafClusterName), "Failed to verify policy cluster on policy page")
-					Eventually(policyDetailPage.Severity.Text).Should(MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
-					Eventually(policyDetailPage.Category.Text).Should(MatchRegexp(policyCategory), "Failed to verify policy category on policy page")
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy page", policyName), func() {
+					gomega.Eventually(policyDetailPage.Header.Text).Should(gomega.MatchRegexp(policyName), "Failed to verify dashboard policy name ")
+					gomega.Eventually(policyDetailPage.ID.Text).Should(gomega.MatchRegexp(policyID), "Failed to verify policy ID on policy page")
+					gomega.Eventually(policyDetailPage.ClusterName.Text).Should(gomega.MatchRegexp(leafClusterName), "Failed to verify policy cluster on policy page")
+					gomega.Eventually(policyDetailPage.Severity.Text).Should(gomega.MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
+					gomega.Eventually(policyDetailPage.Category.Text).Should(gomega.MatchRegexp(policyCategory), "Failed to verify policy category on policy page")
 
-					Expect(policyDetailPage.GetTags()).Should(ConsistOf(policyTags), "Failed to verify policy Tags on policy page")
-					Expect(policyDetailPage.GetTargetedK8sKind()).Should(ConsistOf(policyTargetedKinds), "Failed to verify policy Targeted K8s Kind on policy page")
+					gomega.Expect(policyDetailPage.GetTags()).Should(gomega.ConsistOf(policyTags), "Failed to verify policy Tags on policy page")
+					gomega.Expect(policyDetailPage.GetTargetedK8sKind()).Should(gomega.ConsistOf(policyTargetedKinds), "Failed to verify policy Targeted K8s Kind on policy page")
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy Details", policyName), func() {
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Details", policyName), func() {
 					description := "This Policy enforces that the securityContext.runAsNonRoot attribute is set to true."
 					howToSolve := `spec:\s*securityContext:\s* runAsNonRoot: true`
 					code := `result = {\s*20\s*"issue detected": true,\s*21\s*"msg": sprintf\("Container missing spec.template.spec.containers\[%v\].securityContext.runAsNonRoot while Pod.*\s*22\s*"violating_key": sprintf\("spec.template.spec.containers\[%v\].securityContext", \[i\]\)`
 
-					Expect(policyDetailPage.Description.Text()).Should(MatchRegexp(description), "Failed to verify policy Description on policy page")
-					Expect(policyDetailPage.HowToSolve.Text()).Should(MatchRegexp(howToSolve), "Failed to verify policy 'How to solve' on policy page")
-					Expect(policyDetailPage.Code.Text()).Should(MatchRegexp(code), "Failed to verify 'Policy Code' on policy page")
+					gomega.Expect(policyDetailPage.Description.Text()).Should(gomega.MatchRegexp(description), "Failed to verify policy Description on policy page")
+					gomega.Expect(policyDetailPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify policy 'How to solve' on policy page")
+					gomega.Expect(policyDetailPage.Code.Text()).Should(gomega.MatchRegexp(code), "Failed to verify 'Policy Code' on policy page")
 				})
 
-				By(fmt.Sprintf("And verify '%s' policy parameters", policyName), func() {
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy parameters", policyName), func() {
 					parameter := policyDetailPage.GetParameter("exclude_namespace")
 					namespaces := "test-systems"
-					Expect(parameter.Name.Text()).Should(MatchRegexp(`exclude_namespace`), "Failed to verify parameter exclude_namespace 'Name'")
-					Expect(parameter.Type.Text()).Should(MatchRegexp(`array`), "Failed to verify parameter exclude_namespace 'Type'")
-					Expect(parameter.Value.Text()).Should(MatchRegexp(namespaces), "Failed to verify parameter exclude_namespace 'Value'")
-					Expect(parameter.Required.Text()).Should(MatchRegexp(`False`), "Failed to verify parameter exclude_namespace 'Required'")
+					gomega.Expect(parameter.Name.Text()).Should(gomega.MatchRegexp(`exclude_namespace`), "Failed to verify parameter exclude_namespace 'Name'")
+					gomega.Expect(parameter.Type.Text()).Should(gomega.MatchRegexp(`array`), "Failed to verify parameter exclude_namespace 'Type'")
+					gomega.Expect(parameter.Value.Text()).Should(gomega.MatchRegexp(namespaces), "Failed to verify parameter exclude_namespace 'Value'")
+					gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_namespace 'Required'")
 
 					parameter = policyDetailPage.GetParameter("exclude_label_key")
-					Expect(parameter.Name.Text()).Should(MatchRegexp(`exclude_label_key`), "Failed to verify parameter exclude_label_key 'Name'")
-					Expect(parameter.Type.Text()).Should(MatchRegexp(`string`), "Failed to verify parameter exclude_label_key 'Type'")
-					Expect(parameter.Value.Text()).Should(MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_key 'Value'")
-					Expect(parameter.Required.Text()).Should(MatchRegexp(`False`), "Failed to verify parameter exclude_label_key 'Required'")
+					gomega.Expect(parameter.Name.Text()).Should(gomega.MatchRegexp(`exclude_label_key`), "Failed to verify parameter exclude_label_key 'Name'")
+					gomega.Expect(parameter.Type.Text()).Should(gomega.MatchRegexp(`string`), "Failed to verify parameter exclude_label_key 'Type'")
+					gomega.Expect(parameter.Value.Text()).Should(gomega.MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_key 'Value'")
+					gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_key 'Required'")
 
 					parameter = policyDetailPage.GetParameter("exclude_label_value")
-					Expect(parameter.Name.Text()).Should(MatchRegexp(`exclude_label_value`), "Failed to verify parameter exclude_label_value 'Name'")
-					Expect(parameter.Type.Text()).Should(MatchRegexp(`string`), "Failed to verify parameter exclude_label_value 'Type'")
-					Expect(parameter.Value.Text()).Should(MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_value 'Value'")
-					Expect(parameter.Required.Text()).Should(MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
+					gomega.Expect(parameter.Name.Text()).Should(gomega.MatchRegexp(`exclude_label_value`), "Failed to verify parameter exclude_label_value 'Name'")
+					gomega.Expect(parameter.Type.Text()).Should(gomega.MatchRegexp(`string`), "Failed to verify parameter exclude_label_value 'Type'")
+					gomega.Expect(parameter.Value.Text()).Should(gomega.MatchRegexp(`undefined`), "Failed to verify parameter exclude_label_value 'Value'")
+					gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
 				})
 
-				By("And again navigate to Polisies page via header link", func() {
-					Expect(policiesPage.PolicyHeader.Click()).Should(Succeed(), "Failed to navigate to Policies pages via header link")
+				ginkgo.By("And again navigate to Polisies page via header link", func() {
+					gomega.Expect(policiesPage.PolicyHeader.Click()).Should(gomega.Succeed(), "Failed to navigate to Policies pages via header link")
 					pages.WaitForPageToLoad(webDriver)
 				})
 			})

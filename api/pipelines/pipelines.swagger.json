@@ -47,48 +47,6 @@
         ]
       }
     },
-    "/v1/pipelines/status": {
-      "get": {
-        "operationId": "Pipelines_GetPipelineStatusForObject",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPipelineStatusForObjectResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "object.kind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "object.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "object.namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Pipelines"
-        ]
-      }
-    },
     "/v1/pipelines/{name}": {
       "get": {
         "operationId": "Pipelines_GetPipeline",
@@ -127,6 +85,17 @@
     }
   },
   "definitions": {
+    "PipelineStatusTargetStatusList": {
+      "type": "object",
+      "properties": {
+        "targetsStatuses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PipelineTargetStatus"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -154,6 +123,20 @@
         }
       }
     },
+    "v1AppRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1ClusterRef": {
       "type": "object",
       "properties": {
@@ -161,6 +144,29 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
           "type": "string"
         }
       }
@@ -187,11 +193,14 @@
         }
       }
     },
-    "v1GetPipelineStatusForObjectResponse": {
+    "v1ListError": {
       "type": "object",
       "properties": {
-        "pipelineStatus": {
-          "$ref": "#/definitions/v1PipelineStatus"
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -203,20 +212,12 @@
           "items": {
             "$ref": "#/definitions/v1Pipeline"
           }
-        }
-      }
-    },
-    "v1ObjectRef": {
-      "type": "object",
-      "properties": {
-        "kind": {
-          "type": "string"
         },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
         }
       }
     },
@@ -228,6 +229,9 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "appRef": {
+          "$ref": "#/definitions/v1AppRef"
         },
         "environments": {
           "type": "array",
@@ -252,7 +256,7 @@
         "environments": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/v1PipelineTargetStatus"
+            "$ref": "#/definitions/PipelineStatusTargetStatusList"
           }
         }
       }
@@ -260,10 +264,10 @@
     "v1PipelineTargetStatus": {
       "type": "object",
       "properties": {
-        "kind": {
-          "type": "string"
+        "clusterRef": {
+          "$ref": "#/definitions/v1ClusterRef"
         },
-        "name": {
+        "namespace": {
           "type": "string"
         },
         "workloads": {
@@ -296,6 +300,18 @@
         },
         "version": {
           "type": "string"
+        },
+        "lastAppliedRevision": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     }

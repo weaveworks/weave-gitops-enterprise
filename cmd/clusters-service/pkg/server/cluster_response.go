@@ -20,6 +20,7 @@ func ToClusterResponse(c *gitopsv1alpha1.GitopsCluster) *capiv1_proto.GitopsClus
 		Annotations: c.Annotations,
 		Labels:      c.Labels,
 		Conditions:  mapConditions(c.Status.Conditions),
+		Type:        c.GetObjectKind().GroupVersionKind().Kind,
 	}
 
 	if c.Spec.CAPIClusterRef != nil {
@@ -79,6 +80,14 @@ func AddCAPIClusters(ctx context.Context, kubeClient client.Client, clusters []*
 				Annotations: capiCluster.GetAnnotations(),
 				Labels:      capiCluster.GetLabels(),
 				Status:      clusterStatus,
+			}
+
+			if capiCluster.Spec.InfrastructureRef != nil {
+				capiClusterRes.InfrastructureRef = &capiv1_proto.CapiClusterInfrastructureRef{
+					ApiVersion: capiCluster.Spec.InfrastructureRef.APIVersion,
+					Kind:       capiCluster.Spec.InfrastructureRef.Kind,
+					Name:       capiCluster.Spec.InfrastructureRef.Name,
+				}
 			}
 
 			cluster.CapiCluster = capiClusterRes

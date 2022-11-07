@@ -1,9 +1,15 @@
 import { FC } from 'react';
-import { BucketDetail, useListSources } from '@weaveworks/weave-gitops';
+import {
+  BucketDetail,
+  Kind,
+  useGetObject,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import { SectionHeader } from '../Layout/SectionHeader';
-import { useApplicationsCount, useSourcesCount } from './utils';
+import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../Templates/Edit/EditButton';
+import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -12,31 +18,41 @@ type Props = {
 };
 
 const WGApplicationsBucket: FC<Props> = props => {
-  const applicationsCount = useApplicationsCount();
-  const { isLoading } = useListSources();
-  const sourcesCount = useSourcesCount();
+  const { name, namespace, clusterName } = props;
+  const {
+    data: bucket,
+    isLoading,
+    error,
+  } = useGetObject<Bucket>(name, namespace, Kind.Bucket, clusterName);
 
   return (
-    <PageTemplate documentTitle="WeGO · Bucket">
-      <SectionHeader
-        path={[
-          {
-            label: 'Applications',
-            url: '/applications',
-            count: applicationsCount,
-          },
-          {
-            label: 'Sources',
-            url: '/sources',
-            count: sourcesCount,
-          },
-          {
-            label: `${props.name}`,
-          },
-        ]}
-      />
-      <ContentWrapper loading={isLoading}>
-        <BucketDetail {...props} />
+    <PageTemplate
+      documentTitle="Bucket"
+      path={[
+        {
+          label: 'Applications',
+          url: Routes.Applications,
+        },
+        {
+          label: 'Sources',
+          url: V2Routes.Sources,
+        },
+        {
+          label: `${props.name}`,
+        },
+      ]}
+    >
+      <ContentWrapper
+        loading={isLoading}
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <BucketDetail
+          bucket={bucket}
+          customActions={[<EditButton resource={bucket} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

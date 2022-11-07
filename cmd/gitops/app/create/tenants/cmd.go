@@ -24,6 +24,7 @@ type tenantCommandFlags struct {
 	fromFile            string
 	export              bool
 	skipPreFlightChecks bool
+	Prune               bool
 }
 
 var flags tenantCommandFlags
@@ -44,7 +45,7 @@ var CreateCommand = &cobra.Command{
 	  # Export tenant resources to stdout
 	  gitops create tenants --from-file tenants.yaml --export
 	`,
-	RunE: createTenantsCmdRunE(),
+	RunE: applyTenantsCmdRunE(),
 }
 
 func init() {
@@ -53,32 +54,32 @@ func init() {
 	CreateCommand.Flags().StringVar(&flags.fromFile, "from-file", "", "the file containing the tenant declarations")
 	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
 	CreateCommand.Flags().BoolVar(&flags.skipPreFlightChecks, "skip-preflight-checks", false, "skip preflight checks before creating resources in cluster")
+	CreateCommand.Flags().BoolVar(&flags.Prune, "prune", false, "prunes resources not needed by the config file")
 
 	cobra.CheckErr(CreateCommand.MarkFlagRequired("from-file"))
 }
 
-func createTenantsCmdRunE() func(*cobra.Command, []string) error {
+func applyTenantsCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var tenants []tenancy.Tenant
+		var tenancyConfig *tenancy.Config
 
 		if flags.fromFile != "" {
-			parsedTenants, err := tenancy.Parse(flags.fromFile)
+			parsed, err := tenancy.Parse(flags.fromFile)
 			if err != nil {
 				return fmt.Errorf("failed to parse tenants file %s for export: %w", flags.fromFile, err)
 			}
-
-			tenants = append(tenants, parsedTenants...)
+			tenancyConfig = parsed
 		}
 
 		if flags.name != "" {
-			tenants = append(tenants, tenancy.Tenant{
+			tenancyConfig.Tenants = append(tenancyConfig.Tenants, tenancy.Tenant{
 				Name:       flags.name,
 				Namespaces: flags.namespaces,
 			})
 		}
 
 		if flags.export {
-			err := tenancy.ExportTenants(tenants, os.Stdout)
+			err := tenancy.ExportTenants(tenancyConfig, os.Stdout)
 			if err != nil {
 				return err
 			}
@@ -99,13 +100,13 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 		}
 
 		if !flags.skipPreFlightChecks {
-			err := preFlightCheck(ctx, tenants, kubeClient)
+			err := preFlightCheck(ctx, tenancyConfig, kubeClient)
 			if err != nil {
 				return fmt.Errorf("preflight check failed with error: %w", err)
 			}
 		}
 
-		err = tenancy.CreateTenants(ctx, tenants, kubeClient, os.Stdout)
+		err = tenancy.ApplyTenants(ctx, tenancyConfig, kubeClient, flags.Prune, os.Stdout)
 		if err != nil {
 			return err
 		}
@@ -114,22 +115,8 @@ func createTenantsCmdRunE() func(*cobra.Command, []string) error {
 	}
 }
 
-func preFlightCheck(ctx context.Context, tenants []tenancy.Tenant, kubeClient *kube.KubeHTTP) error {
-	var hasPolicy bool
-
-	for _, tenant := range tenants {
-		if len(tenant.AllowedRepositories) != 0 || len(tenant.AllowedClusters) != 0 {
-			hasPolicy = true
-			break
-		}
-	}
-
-	if !hasPolicy {
-		return nil
-	}
-
+func preFlightCheck(ctx context.Context, config *tenancy.Config, kubeClient *kube.KubeHTTP) error {
 	crd := &apiextentionsv1.CustomResourceDefinition{}
-
 	err := kubeClient.Get(ctx, client.ObjectKey{Name: policyCRDName}, crd)
 	if err != nil {
 		return err

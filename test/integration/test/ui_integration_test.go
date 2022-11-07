@@ -29,6 +29,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
+	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
@@ -46,9 +47,9 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 )
 
@@ -57,7 +58,7 @@ import (
 //
 
 const capiServerPort = "8000"
-const uiURL = "http://localhost:5000"
+const uiURL = "http://localhost:5001"
 const seleniumURL = "http://localhost:4444/wd/hub"
 
 const entitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -104,26 +105,15 @@ func ListenAndServe(ctx context.Context, srv *http.Server) error {
 func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	t.Helper()
 
-	clientsFactory := &clustersmngrfakes.FakeClientsFactory{}
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
-	clientsFactory.GetServerClientReturns(client, nil)
+	clustersManager.GetServerClientReturns(client, nil)
 
-	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clientsFactory)
+	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
 }
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {
-	templatesLibrary := &templates.CRDLibrary{
-		Log:           logr.Discard(),
-		ClientGetter:  kubefakes.NewFakeClientGetter(cl),
-		CAPINamespace: "default",
-	}
-
-	clustersLibrary := &clusters.CRDLibrary{
-		Log:          logr.Discard(),
-		ClientGetter: kubefakes.NewFakeClientGetter(cl),
-		Namespace:    "default",
-	}
 
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
@@ -140,15 +130,37 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		ClusterConfig: kube.ClusterConfig{},
 	}
 
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*corev1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "flux-system",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(cl), &mgmtfetcherfake.FakeAuthClientGetter{})
+
 	fakeCoreConfig := fakeCoreConfig(t, logr.Discard())
+	clientSet := fakeclientset.NewSimpleClientset()
 
 	viper.SetDefault("capi-clusters-namespace", "default")
 
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
 		app.WithCAPIClustersNamespace("default"),
 		app.WithEntitlementSecretKey(client.ObjectKey{Name: "entitlement", Namespace: "default"}),
-		app.WithTemplateLibrary(templatesLibrary),
-		app.WithClustersLibrary(clustersLibrary),
 		app.WithKubernetesClient(cl),
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithApplicationsConfig(fakeAppsConfig),
@@ -156,12 +168,13 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
 		app.WithCoreConfig(fakeCoreConfig),
-		app.WithOIDCConfig(
-			app.OIDCAuthenticationOptions{
-				TokenDuration: time.Hour,
-			},
+		app.WithAuthConfig(
+			map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
+			app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 		),
 		app.WithRuntimeNamespace("flux-system"),
+		app.WithKubernetesClientSet(clientSet),
+		app.WithManagemetFetcher(mgmtFetcher),
 	)
 }
 

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { getKindRoute } from '../../../../utils/nav';
 import { useCanaryStyle } from '../../CanaryStyles';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
-import CanaryRowHeader from '../../SharedComponent/CanaryRowHeader';
+import RowHeader from '../../../RowHeader';
 import DynamicTable from '../../SharedComponent/DynamicTable';
 
 const DetailsSection = ({
@@ -30,13 +30,13 @@ const DetailsSection = ({
   };
   return (
     <>
-      <CanaryRowHeader rowkey="Cluster" value={canary.clusterName} />
-      <CanaryRowHeader rowkey="Namespace" value={canary.namespace} />
-      <CanaryRowHeader
+      <RowHeader rowkey="Cluster" value={canary.clusterName} />
+      <RowHeader rowkey="Namespace" value={canary.namespace} />
+      <RowHeader
         rowkey="Target"
         value={`${canary.targetReference?.kind}/${canary.targetReference?.name}`}
       />
-      <CanaryRowHeader
+      <RowHeader
         rowkey="Application"
         value={
           automation?.kind && automation?.name ? (
@@ -54,15 +54,15 @@ const DetailsSection = ({
           )
         }
       />
-      <CanaryRowHeader rowkey="Deployment Strategy" value={undefined}>
+      <RowHeader rowkey="Deployment Strategy" value={undefined}>
         {!!canary.deploymentStrategy && (
           <span className={classes.straegyIcon}>
             {canary.deploymentStrategy}{' '}
             {getDeploymentStrategyIcon(canary.deploymentStrategy)}
           </span>
         )}
-      </CanaryRowHeader>
-      <CanaryRowHeader rowkey="Provider" value={canary.provider} />
+      </RowHeader>
+      <RowHeader rowkey="Provider" value={canary.provider} />
 
       <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
         STATUS
