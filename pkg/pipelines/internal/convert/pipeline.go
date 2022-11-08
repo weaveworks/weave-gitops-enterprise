@@ -6,6 +6,7 @@ import (
 )
 
 func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
+
 	r := &pb.Pipeline{
 		Name:      p.Name,
 		Namespace: p.Namespace,
@@ -42,6 +43,5 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 		r.Environments = append(r.Environments, env)
 
 	}
-
 	return r
 }
