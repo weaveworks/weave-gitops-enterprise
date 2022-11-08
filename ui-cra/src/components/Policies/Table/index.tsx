@@ -26,7 +26,6 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   let initialFilterState = {
     ...filterConfig(policies, 'clusterName'),
     ...filterConfig(policies, 'severity'),
-    ...filterConfig(policies, 'modes'),
   };
 
   if (flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true') {
