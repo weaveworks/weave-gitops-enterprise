@@ -31,9 +31,11 @@ type Watcher struct {
 	clientConfig  *rest.Config
 	cache         helm.ChartsCacherWriter
 	valuesFetcher helm.ValuesFetcher
-	useProxy      bool
 	stopFn        context.CancelFunc
 	log           logr.Logger
+
+	// UseProxy is a flag to indicate if the helm watcher should use the proxy
+	UseProxy bool
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
@@ -51,7 +53,8 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		clientConfig:  opts.ClientConfig,
 		cache:         opts.Cache,
 		valuesFetcher: opts.ValuesFetcher,
-		useProxy:      opts.UseProxy,
+		UseProxy:      opts.UseProxy,
+		scheme:        scheme,
 	}, nil
 }
 
@@ -77,7 +80,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 		ClientConfig:  w.clientConfig,
 		Cache:         w.cache,
 		ValuesFetcher: w.valuesFetcher,
-		UseProxy:      w.useProxy,
+		UseProxy:      w.UseProxy,
 		Client:        mgr.GetClient(),
 		Scheme:        w.scheme,
 	}).SetupWithManager(mgr); err != nil {
