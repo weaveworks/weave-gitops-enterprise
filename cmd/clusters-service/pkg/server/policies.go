@@ -219,6 +219,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 	}
 
 	var policies []*capiv1_proto.Policy
+	collectedPolicies := map[string]struct{}{}
 	for clusterName, lists := range listsV2beta2 {
 		for _, l := range lists {
 			list, ok := l.(*pacv2beta2.PolicyList)
@@ -230,8 +231,8 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				if err != nil {
 					return nil, err
 				}
-
 				policies = append(policies, policy)
+				collectedPolicies[getClusterPolicyKey(clusterName, policy.GetName())] = struct{}{}
 			}
 		}
 	}
@@ -242,11 +243,13 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				continue
 			}
 			for i := range list.Items {
+				if _, ok := collectedPolicies[getClusterPolicyKey(clusterName, list.Items[i].GetName())]; ok {
+					continue
+				}
 				policy, err := toPolicyResponseV2beta1(list.Items[i], clusterName)
 				if err != nil {
 					return nil, err
 				}
-
 				policies = append(policies, policy)
 			}
 		}
@@ -297,4 +300,8 @@ func (s *server) GetPolicy(ctx context.Context, m *capiv1_proto.GetPolicyRequest
 	}
 
 	return &capiv1_proto.GetPolicyResponse{Policy: policy}, nil
+}
+
+func getClusterPolicyKey(clusterName, policyId string) string {
+	return fmt.Sprintf("%s.%s", clusterName, policyId)
 }
