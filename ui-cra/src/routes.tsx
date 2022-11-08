@@ -216,7 +216,6 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.Pipelines} component={Pipelines} />
       <Route
-        exact
         path={Routes.PipelineDetails}
         component={withSearchParams(PipelineDetails)}
       />
