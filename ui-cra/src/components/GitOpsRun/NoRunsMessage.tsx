@@ -1,4 +1,4 @@
-import { theme } from '@weaveworks/weave-gitops';
+import { Link, theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 const Message = styled.div`
@@ -29,8 +29,17 @@ const NoRunsMessage = () => {
     <Message>
       <Title>GitOps Run</Title>
       <Body>
-        There are no instances of GitOps Run running on the cluster at the
-        moment
+        There are currently no instances of GitOps run running on the cluster.
+      </Body>
+      <Body>
+        To learn more about GitOps run and how to get started, check out our
+        documentation{' '}
+        <Link
+          href="https://docs.gitops.weave.works/docs/gitops-run/overview/"
+          newTab
+        >
+          here
+        </Link>
       </Body>
     </Message>
   );
