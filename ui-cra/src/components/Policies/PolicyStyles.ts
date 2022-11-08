@@ -61,7 +61,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       overflow: 'scroll',
     },
     severityIcon: {
-      fontSize: theme.fontSizes.small,
+      fontSize: theme.fontSizes.large,
       marginRight: xxs,
     },
     severityLow: {
@@ -136,7 +136,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     labelText: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
+      fontSize: theme.fontSizes.medium,
       color: neutral30,
     },
     parameterWrapper: {
@@ -159,7 +159,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       marginRight: xs,
     },
     modeIcon: {
-      fontSize: theme.fontSizes.medium,
+      fontSize: theme.fontSizes.large,
       marginRight: xxs,
       color: '#0000008a',
     },
