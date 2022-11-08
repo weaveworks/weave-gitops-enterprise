@@ -609,6 +609,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
+			Logger:            args.Log,
 			ClustersManager:   args.ClustersManager,
 			ManagementFetcher: args.ManagementFetcher,
 			Cluster:           args.Cluster,

@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
@@ -35,14 +36,13 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 	err = clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
+	managementClusterName := "cluster1-management"
 	cluster1 := types.NamespacedName{
-		Name:      "cluster1",
-		Namespace: "default",
+		Name: managementClusterName,
 	}
-	clusterName1 := cluster1.String()
 	clusterName2 := "default/cluster2"
 
-	c1 := makeLeafCluster(clusterName1)
+	c1 := makeLeafCluster(managementClusterName)
 	c2 := makeLeafCluster(clusterName2)
 
 	fakeCache := helmfakes.NewFakeChartCache(helmfakes.WithCharts(
@@ -62,7 +62,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 		},
 	))
 
-	ind := indexer.NewClusterHelmIndexerTracker(fakeCache, "", newFakeWatcher)
+	ind := indexer.NewClusterHelmIndexerTracker(fakeCache, managementClusterName, newFakeWatcher)
 	g.Expect(ind.ClusterWatchers).ToNot(BeNil())
 	go func() {
 		err := ind.Start(ctx, clientsFactory, logger)
@@ -79,7 +79,14 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 
 		g.Eventually(func() []string {
 			return clusterNames(ind.ClusterWatchers)
-		}).Should(ConsistOf(clusterName1, clusterName2))
+		}).Should(ConsistOf(managementClusterName, clusterName2))
+
+		// cast to fakeWatcher to check if it is a management cluster
+		fakeWatcher1 := ind.ClusterWatchers[managementClusterName].(*fakeWatcher)
+		g.Expect(fakeWatcher1.isManagementCluster).To(BeTrue())
+
+		fakeWatcher2 := ind.ClusterWatchers[clusterName2].(*fakeWatcher)
+		g.Expect(fakeWatcher2.isManagementCluster).To(BeFalse())
 	})
 
 	t.Run("should remove items when cluster is removed", func(t *testing.T) {
@@ -151,6 +158,24 @@ func TestErroringCache(t *testing.T) {
 	})
 }
 
+func TestNewIndexerSetsUserProxy(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	// Manamgent cluster should not use proxy
+	isManagementCluster := true
+	ind, err := indexer.NewIndexer(nil, types.NamespacedName{Name: "foo", Namespace: "bar"}, isManagementCluster, nil)
+	g.Expect(err).To(BeNil())
+	watcher := ind.(*multiwatcher.Watcher)
+	g.Expect(watcher.UseProxy).To(BeFalse())
+
+	// other clusters should use proxy
+	isManagementCluster = false
+	ind, err = indexer.NewIndexer(nil, types.NamespacedName{Name: "foo", Namespace: "bar"}, isManagementCluster, nil)
+	g.Expect(err).To(BeNil())
+	watcher = ind.(*multiwatcher.Watcher)
+	g.Expect(watcher.UseProxy).To(BeTrue())
+}
+
 func makeLeafCluster(name string) clustersmngr.Cluster {
 	return clustersmngr.Cluster{
 		Name: name,
@@ -167,10 +192,12 @@ func clusterNames(c map[string]indexer.Watcher) []string {
 }
 
 func newFakeWatcher(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (indexer.Watcher, error) {
-	return &fakeWatcher{}, nil
+	return &fakeWatcher{isManagementCluster: isManagementCluster}, nil
 }
 
-type fakeWatcher struct{}
+type fakeWatcher struct {
+	isManagementCluster bool
+}
 
 func (f fakeWatcher) StartWatcher(ctx context.Context, logr logr.Logger) error {
 	return nil

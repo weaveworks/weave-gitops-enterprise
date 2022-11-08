@@ -71,4 +71,5 @@ message Pipeline {
     repeated       Environment environments = 4;
     repeated       Target targets           = 5;
     PipelineStatus status                   = 6;
+    string         yaml                     = 7;
 }
