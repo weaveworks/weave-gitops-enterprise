@@ -250,6 +250,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 
 func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
+
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
 		return nil, err
@@ -292,10 +293,17 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	}
 
 	cluster := createNamespacedName(resourceName, clusterNamespace)
-	content := string(tmplWithValuesAndCredentials[:])
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
+
+	if shouldAddCommonBases(tmpl) {
+		commonKustomization, err := getCommonKustomization(cluster)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues, err)
+		}
+		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
+	}
 
 	if len(msg.Profiles) > 0 {
 		profilesFile, err := generateProfileFiles(
@@ -339,7 +347,19 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 		}
 	}
 
+	content := string(tmplWithValuesAndCredentials)
+
 	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
+}
+
+func shouldAddCommonBases(t apiTemplates.Template) bool {
+	anno := t.GetAnnotations()[templates.AddCommonBasesAnnotation]
+	if anno != "" {
+		return anno == "true"
+	}
+
+	// FIXME: want to phase configuration option out. You can enable per template by adding the annotation
+	return viper.GetString("add-bases-kustomization") != "disabled" && isCAPITemplate(t)
 }
 
 func getCostEstimate(ctx context.Context, estimator estimation.Estimator, tmplWithValues [][]byte) *capiv1_proto.CostEstimate {

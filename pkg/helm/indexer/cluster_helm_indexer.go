@@ -89,7 +89,7 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 			}
 
 			cluster := fetcher.FromClusterName(cl.Name)
-			isManagementCluster := !fetcher.IsManagementCluster(i.ManagementClusterName, cluster)
+			isManagementCluster := fetcher.IsManagementCluster(i.ManagementClusterName, cluster)
 			watcher, err := i.newWatcherFunc(clientConfig, cluster, isManagementCluster, i.Cache)
 			if err != nil {
 				return fmt.Errorf("failed to create indexer for cluster %s: %w", cl.Name, err)
