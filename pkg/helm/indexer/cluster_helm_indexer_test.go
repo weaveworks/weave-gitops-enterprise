@@ -104,18 +104,6 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 		// cache should be empty
 		g.Expect(fakeCache.Charts).To(BeEmpty())
 	})
-
-	t.Run("should set useProxy properly depending on mgnt/not-mgnt", func(t *testing.T) {
-		g := NewGomegaWithT(t)
-		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
-
-		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-
-		g.Eventually(func() []string {
-			return clusterNames(ind.ClusterWatchers)
-		}).Should(ConsistOf(managementClusterName, clusterName2))
-	})
-
 }
 
 func TestErroringCache(t *testing.T) {
