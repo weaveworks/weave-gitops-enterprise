@@ -17,15 +17,15 @@ import {
   applicationsClient,
   theme,
 } from '@weaveworks/weave-gitops';
+import { Pipelines } from './api/pipelines/pipelines.pb';
 import bg from './assets/img/bg.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
+import { GithubAuthProvider } from './contexts/GithubAuth';
+import { PipelinesProvider } from './contexts/Pipelines';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
-import { PipelinesProvider } from './contexts/Pipelines';
-import { Pipelines } from './api/pipelines/pipelines.pb';
-import { GithubAuthProvider } from './contexts/GithubAuth';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
