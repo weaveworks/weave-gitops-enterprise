@@ -300,6 +300,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimationLoading, setCostEstimationLoading] =
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
+  const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   // get the cost estimate feature flag
@@ -364,6 +365,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       .then(data => {
         const { costEstimate } = data;
         setCostEstimate(getFormattedCostEstimate(costEstimate));
+        setCostEstimateMessage(costEstimate?.message || '');
       })
       .catch(err =>
         setNotifications([
@@ -531,6 +533,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 handleCostEstimation={handleCostEstimation}
                 costEstimate={costEstimate}
                 isCostEstimationLoading={costEstimationLoading}
+                costEstimateMessage={costEstimateMessage}
               />
             ) : null}
           </Grid>
@@ -579,6 +582,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     costEstimationLoading,
     handleCostEstimation,
     costEstimate,
+    costEstimateMessage,
     isCredentialEnabled,
     isCostEstimationEnabled,
     isKustomizationsEnabled,
