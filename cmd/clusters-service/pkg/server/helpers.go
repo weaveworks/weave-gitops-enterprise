@@ -19,7 +19,8 @@ func renderTemplateWithValues(t apitemplates.Template, name, namespace string, v
 			"templates.weave.works/template-namespace": viper.GetString("capi-templates-namespace"),
 		}),
 	}
-	if viper.GetString("inject-prune-annotation") != "disabled" && isCAPITemplate(t) {
+
+	if shouldInjectPruneAnnotation(t) {
 		opts = append(opts, templates.InjectPruneAnnotation)
 	}
 
@@ -37,6 +38,16 @@ func renderTemplateWithValues(t apitemplates.Template, name, namespace string, v
 	}
 
 	return templateBits, nil
+}
+
+func shouldInjectPruneAnnotation(t apitemplates.Template) bool {
+	anno := t.GetAnnotations()[templates.InjectPruneAnnotationAnnotation]
+	if anno != "" {
+		return anno == "true"
+	}
+
+	// FIXME: want to phase configuration option out. You can enable per template by adding the annotation
+	return viper.GetString("inject-prune-annotation") != "disabled" && isCAPITemplate(t)
 }
 
 func getProvider(t apitemplates.Template, annotation string) string {

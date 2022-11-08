@@ -1237,6 +1237,9 @@
         },
         "templateNamespace": {
           "type": "string"
+        },
+        "templateKind": {
+          "type": "string"
         }
       }
     },
