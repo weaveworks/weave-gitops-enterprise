@@ -1,6 +1,8 @@
 package estimation
 
 import (
+	"fmt"
+	"net/url"
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -8,14 +10,14 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func mergeStringMaps(origin, update map[string]string) map[string]string {
+func mergeStringMaps(stringMaps ...map[string]string) map[string]string {
 	cloned := map[string]string{}
-	for k, v := range origin {
-		cloned[k] = v
-	}
-	for k, v := range update {
-		if v != "" {
-			cloned[k] = v
+
+	for _, update := range stringMaps {
+		for k, v := range update {
+			if v != "" {
+				cloned[k] = v
+			}
 		}
 	}
 
@@ -67,4 +69,25 @@ func filtersFromMap(items map[string]string) []types.Filter {
 	}
 
 	return filters
+}
+
+func parseFilterAnnotations(annotations string) (map[string]string, error) {
+	resultAnnotations := make(map[string]string)
+
+	parsedAnnot, err := url.ParseQuery(annotations)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range parsedAnnot {
+		if len(v) > 1 {
+			return nil, fmt.Errorf("annotation values cannot contain multiple values for the same key %s: %v", k, &v)
+		}
+		if len(v) < 1 || v[0] == "" {
+			return nil, fmt.Errorf("invalid annotation values, cannot contain empty values %s: %v", k, annotations)
+
+		}
+		resultAnnotations[k] = v[0]
+
+	}
+	return resultAnnotations, nil
 }
