@@ -83,7 +83,7 @@ func parseFilterAnnotations(annotations string) (map[string]string, error) {
 			return nil, fmt.Errorf("annotation values cannot contain multiple values for the same key %s: %v", k, &v)
 		}
 		if len(v) < 1 || v[0] == "" {
-			return nil, fmt.Errorf("invalid annotation values, cannot contain empty values %s: %v", k, &v)
+			return nil, fmt.Errorf("invalid annotation values, cannot contain empty values %s: %v", k, annotations)
 
 		}
 		resultAnnotations[k] = v[0]
