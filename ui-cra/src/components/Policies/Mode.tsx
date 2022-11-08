@@ -11,12 +11,12 @@ function Mode({ modeName }: { modeName: string }) {
           <span className={classes.capitlize}>{modeName}</span>
         </div>
       ) : (
-        modeName.toLocaleLowerCase() === 'admission' ? (
+        modeName.toLocaleLowerCase() === 'admission' && (
           <div className={`${classes.flexStart} ${classes.inlineFlex}`}>
             <Policy className={classes.modeIcon} />
             <span className={classes.capitlize}>Enforce</span>
           </div>
-        ) : '--'
+        )
       )}
     </>
   );
