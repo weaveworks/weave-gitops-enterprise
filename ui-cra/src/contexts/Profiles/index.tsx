@@ -13,7 +13,6 @@ interface ProfilesContext {
   >;
   isLoading: boolean;
   profiles: UpdatedProfile[];
-  error: Error | null;
 }
 
 export const Profiles = createContext<ProfilesContext | null>(null);

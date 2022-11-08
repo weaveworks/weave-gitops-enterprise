@@ -9,6 +9,7 @@ import {
 import styled from 'styled-components';
 import { CloseIconButton } from '../../assets/img/close-icon-button';
 import useClusters from '../../hooks/clusters';
+import useNotifications from '../../contexts/Notifications';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import {
@@ -22,7 +23,7 @@ import {
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import { NotificationData, PRDefaults } from '../../types/custom';
+import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
 import GitAuth from '../GithubAuth/GitAuth';
 
@@ -42,7 +43,7 @@ interface Props {
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
   selectedCapiClusters: ClusterNamespacedName[];
-  onClose: (notification?: NotificationData) => void;
+  onClose: () => void;
   prDefaults: PRDefaults;
 }
 
@@ -55,7 +56,9 @@ export const DeleteClusterDialog: FC<Props> = ({
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+
   const { deleteCreatedClusters, loading } = useClusters();
+  const { setNotifications } = useNotifications();
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
@@ -105,9 +108,9 @@ export const DeleteClusterDialog: FC<Props> = ({
       },
       getProviderToken(formData.provider as GitProvider),
     )
-      .then(response =>
-        cleanUp(
-          {},
+      .then(response => {
+        cleanUp();
+        setNotifications([
           {
             message: {
               component: (
@@ -118,43 +121,31 @@ export const DeleteClusterDialog: FC<Props> = ({
             },
             severity: 'success',
           },
-        ),
-      )
+        ]);
+      })
       .catch(error => {
-        cleanUp(
-          {},
-          {
-            message: { text: error.message },
-            severity: 'error',
-          },
-        );
+        setNotifications([
+          { message: { text: error.message }, severity: 'error' },
+        ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
       });
 
-  const cleanUp = useCallback(
-    (event: any, notification?: NotificationData) => {
-      clearCallbackState();
-      setShowAuthDialog(false);
-      setFormData(prDefaults);
-      onClose(notification);
-    },
-    [onClose, setFormData, prDefaults],
-  );
+  const cleanUp = useCallback(() => {
+    clearCallbackState();
+    setShowAuthDialog(false);
+    setFormData(prDefaults);
+    onClose();
+  }, [onClose, setFormData, prDefaults]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <DeleteClusterWrapper
-        open
-        maxWidth="md"
-        fullWidth
-        onClose={event => cleanUp(event)}
-      >
+      <DeleteClusterWrapper open maxWidth="md" fullWidth onClose={cleanUp}>
         <div id="delete-popup">
           <DialogTitle disableTypography>
             <Typography variant="h5">Create PR to remove clusters</Typography>
-            <CloseIconButton onClick={event => cleanUp(event)} />
+            <CloseIconButton onClick={cleanUp} />
           </DialogTitle>
           <DialogContent>
             {!loading ? (

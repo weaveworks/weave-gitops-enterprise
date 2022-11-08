@@ -1,8 +1,11 @@
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
 import useTemplates from '../../hooks/templates';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
@@ -21,7 +24,6 @@ import TextField from '@material-ui/core/TextField';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import { useHistory } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
-import { NotificationData } from '../../types/custom';
 
 const ActionsWrapper = styled.div`
   display: flex;
@@ -60,7 +62,8 @@ const DocsLink = styled(Link)`
 const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { templates, isLoading, error } = useTemplates();
+  const { templates, isLoading } = useTemplates();
+  const { setNotifications } = useNotifications();
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
@@ -95,6 +98,18 @@ const TemplatesDashboard: FC<{
     [history],
   );
 
+  useEffect(() => {
+    setNotifications(prevState => [
+      ...prevState,
+      {
+        message: {
+          text: location?.state?.notification?.[0]?.message.text,
+        },
+        severity: location?.state?.notification?.[0]?.severity,
+      } as NotificationData,
+    ]);
+  }, [location?.state?.notification, setNotifications]);
+
   return (
     <PageTemplate
       documentTitle="Templates"
@@ -105,21 +120,7 @@ const TemplatesDashboard: FC<{
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-          {
-            message: {
-              text: location.state?.notification?.[0]?.message.text,
-            },
-            severity: location.state?.notification?.[0]?.severity,
-          },
-        ]}
-      >
+      <ContentWrapper loading={isLoading}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <ActionsWrapper id="display-action">
             <ListView

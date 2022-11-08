@@ -26,11 +26,7 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../hooks/clusters';
 import { useListConfig } from '../../hooks/versions';
-import {
-  GitopsClusterEnriched,
-  NotificationData,
-  PRDefaults,
-} from '../../types/custom';
+import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
 import {
   EKSDefault,
@@ -50,7 +46,9 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { openLinkHandler } from '../../utils/link-checker';
-import { stateNotification } from '../../utils/stateNotification';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 import { EditButton } from '../Templates/Edit/EditButton';
 
 interface Size {
@@ -199,23 +197,18 @@ interface FormData {
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { clusters, isLoading, errors } = useClusters();
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const { clusters, isLoading } = useClusters();
+  const { setNotifications } = useNotifications();
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
-  const handleClose = useCallback(
-    (notification?: NotificationData) => {
-      setOpenDeletePR(false);
-      if (notification) {
-        setNotifications([notification]);
-      }
-      setSelectedClusters([]);
-    },
-    [setOpenDeletePR, setSelectedClusters],
-  );
+  const handleClose = useCallback(() => {
+    setOpenDeletePR(false);
+    setSelectedClusters([]);
+  }, [setOpenDeletePR, setSelectedClusters]);
+
   const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
@@ -310,6 +303,18 @@ const MCCP: FC<{
     repositoryURL,
   ]);
 
+  useEffect(() => {
+    setNotifications(prevState => [
+      ...prevState,
+      {
+        message: {
+          text: location?.state?.notification?.[0]?.message.text,
+        },
+        severity: location?.state?.notification?.[0]?.severity,
+      } as NotificationData,
+    ]);
+  }, [location?.state?.notification, setNotifications]);
+
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       setSelectedClusters(
@@ -358,15 +363,7 @@ const MCCP: FC<{
           state: { formData, selectedCapiClusters },
         }}
       >
-        <ContentWrapper
-          notifications={[
-            ...errors,
-            ...notifications,
-            ...(location?.state?.notification
-              ? [stateNotification(location?.state?.notification?.[0])]
-              : []),
-          ]}
-        >
+        <ContentWrapper>
           <div
             style={{
               display: 'flex',

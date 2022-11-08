@@ -16,8 +16,6 @@ import { useListConfig } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core';
 import { openLinkHandler } from '../../utils/link-checker';
 import { Routes } from '../../utils/nav';
-import { NotificationData } from '../../types/custom';
-import { stateNotification } from '../../utils/stateNotification';
 
 interface Size {
   size?: 'small';
@@ -37,9 +35,7 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-const WGApplicationsDashboard: FC<{
-  location?: { state: { notification: NotificationData[] } };
-}> = ({ location }) => {
+const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const history = useHistory();
   const { repoLink } = useListConfig();
@@ -57,14 +53,7 @@ const WGApplicationsDashboard: FC<{
         },
       ]}
     >
-      <ContentWrapper
-        errors={automations?.errors}
-        notifications={[
-          ...(location?.state?.notification
-            ? [stateNotification(location?.state?.notification?.[0])]
-            : []),
-        ]}
-      >
+      <ContentWrapper errors={automations?.errors}>
         <div
           style={{
             display: 'flex',

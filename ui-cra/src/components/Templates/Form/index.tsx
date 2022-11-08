@@ -12,6 +12,7 @@ import {
   CallbackStateContextProvider,
   clearCallbackState,
   getProviderToken,
+  Link,
   LoadingPage,
   theme as weaveTheme,
   useFeatureFlags,
@@ -44,9 +45,7 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
-import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
@@ -56,9 +55,8 @@ import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
-import useNotifications, {
-  NotificationData,
-} from './../../../contexts/Notifications';
+import useNotifications from './../../../contexts/Notifications';
+import { Routes } from '../../../utils/nav';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -273,7 +271,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredentials,
   );
-  const { profiles, isLoading: profilesIsLoading, error } = useProfiles();
+  const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
@@ -408,19 +406,19 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push({
-          pathname: Routes.Clusters,
-          state: {
-            notification: [
-              {
-                message: {
-                  text: `PR created successfully::${response.webUrl}`,
-                },
-                severity: 'success',
-              },
-            ],
+        history.push(Routes.Clusters);
+        setNotifications([
+          {
+            message: {
+              component: (
+                <Link href={response.webUrl} newTab>
+                  PR created successfully.
+                </Link>
+              ),
+            },
+            severity: 'success',
           },
-        });
+        ]);
       })
       .catch(error => {
         setNotifications([
@@ -440,12 +438,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     addCluster,
     formData,
     infraCredential,
-    history,
     setPRPreview,
     template.name,
     template.namespace,
     template.templateKind,
     setNotifications,
+    history,
   ]);
 
   useEffect(() => {
@@ -482,108 +480,94 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <ContentWrapper
-          notifications={[
-            // ...(notification ? [notification] : []),
-            ...(error
-              ? [
-                  {
-                    message: { text: error?.message },
-                    severity: 'error',
-                  } as NotificationData,
-                ]
-              : []),
-          ]}
-        >
-          <FormWrapper>
-            <Grid item xs={12} sm={10} md={10} lg={8}>
-              <CredentialsWrapper>
-                <div className="template-title">
-                  Template: <span>{template.name}</span>
-                </div>
-                {isCredentialEnabled ? (
-                  <Credentials
-                    infraCredential={infraCredential}
-                    setInfraCredential={setInfraCredential}
-                  />
-                ) : null}
-              </CredentialsWrapper>
-              <Divider
-                className={
-                  !isLargeScreen ? classes.divider : classes.largeDivider
-                }
-              />
-              <TemplateFields
-                template={template}
+        <FormWrapper>
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            <CredentialsWrapper>
+              <div className="template-title">
+                Template: <span>{template.name}</span>
+              </div>
+              {isCredentialEnabled ? (
+                <Credentials
+                  infraCredential={infraCredential}
+                  setInfraCredential={setInfraCredential}
+                />
+              ) : null}
+            </CredentialsWrapper>
+            <Divider
+              className={
+                !isLargeScreen ? classes.divider : classes.largeDivider
+              }
+            />
+            <TemplateFields
+              template={template}
+              formData={formData}
+              setFormData={setFormData}
+            />
+          </Grid>
+          {isProfilesEnabled ? (
+            <Profiles
+              isLoading={profilesIsLoading}
+              updatedProfiles={updatedProfiles}
+              setUpdatedProfiles={setUpdatedProfiles}
+            />
+          ) : null}
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            {isKustomizationsEnabled ? (
+              <ApplicationsWrapper
                 formData={formData}
                 setFormData={setFormData}
               />
-            </Grid>
-            {isProfilesEnabled ? (
-              <Profiles
-                isLoading={profilesIsLoading}
-                updatedProfiles={updatedProfiles}
-                setUpdatedProfiles={setUpdatedProfiles}
+            ) : null}
+            {previewLoading ? (
+              <LoadingPage className={classes.previewLoading} />
+            ) : (
+              <div className={classes.previewCta}>
+                <Button
+                  onClick={event => validateFormData(event, handlePRPreview)}
+                >
+                  PREVIEW PR
+                </Button>
+              </div>
+            )}
+          </Grid>
+          {openPreview && PRPreview ? (
+            <Preview
+              openPreview={openPreview}
+              setOpenPreview={setOpenPreview}
+              PRPreview={PRPreview}
+            />
+          ) : null}
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            {isCostEstimationEnabled ? (
+              <CostEstimation
+                handleCostEstimation={handleCostEstimation}
+                costEstimate={costEstimate}
+                isCostEstimationLoading={costEstimationLoading}
               />
             ) : null}
-            <Grid item xs={12} sm={10} md={10} lg={8}>
-              {isKustomizationsEnabled ? (
-                <ApplicationsWrapper
-                  formData={formData}
-                  setFormData={setFormData}
-                />
-              ) : null}
-              {previewLoading ? (
-                <LoadingPage className={classes.previewLoading} />
-              ) : (
-                <div className={classes.previewCta}>
-                  <Button
-                    onClick={event => validateFormData(event, handlePRPreview)}
-                  >
-                    PREVIEW PR
-                  </Button>
-                </div>
-              )}
-            </Grid>
-            {openPreview && PRPreview ? (
-              <Preview
-                openPreview={openPreview}
-                setOpenPreview={setOpenPreview}
-                PRPreview={PRPreview}
-              />
-            ) : null}
-            <Grid item xs={12} sm={10} md={10} lg={8}>
-              {isCostEstimationEnabled ? (
-                <CostEstimation
-                  handleCostEstimation={handleCostEstimation}
-                  costEstimate={costEstimate}
-                  isCostEstimationLoading={costEstimationLoading}
-                />
-              ) : null}
-            </Grid>
-            <Grid item xs={12} sm={10} md={10} lg={8}>
-              <GitOps
-                formData={formData}
-                setFormData={setFormData}
-                showAuthDialog={showAuthDialog}
-                setShowAuthDialog={setShowAuthDialog}
-                setEnableCreatePR={setEnableCreatePR}
-              />
-              {loading ? (
-                <LoadingPage className="create-loading" />
-              ) : (
-                <div className="create-cta">
-                  <Button
-                    onClick={event => validateFormData(event, handleAddCluster)}
-                    disabled={!enableCreatePR}
-                  >
-                    CREATE PULL REQUEST
-                  </Button>
-                </div>
-              )}
-            </Grid>
-          </FormWrapper>
-        </ContentWrapper>
+          </Grid>
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            <GitOps
+              formData={formData}
+              setFormData={setFormData}
+              showAuthDialog={showAuthDialog}
+              setShowAuthDialog={setShowAuthDialog}
+              setEnableCreatePR={setEnableCreatePR}
+            />
+            {loading ? (
+              <LoadingPage className="create-loading" />
+            ) : (
+              <div className="create-cta">
+                <Button
+                  onClick={event => validateFormData(event, handleAddCluster)}
+                  disabled={!enableCreatePR}
+                >
+                  CREATE PULL REQUEST
+                </Button>
+              </div>
+            )}
+          </Grid>
+        </FormWrapper>
       </CallbackStateContextProvider>
     );
   }, [
@@ -611,7 +595,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
-    error,
   ]);
 };
 
@@ -633,7 +616,7 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
                 message: {
                   text: 'No template information is available to create a resource.',
                 },
-                variant: 'danger',
+                severity: 'error',
               },
             ],
           },

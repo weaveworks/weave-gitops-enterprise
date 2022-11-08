@@ -18,13 +18,16 @@ const AlertWrapper = styled(Alert)`
   }
 `;
 
-const Notifications: FC = () => {
-  const { notifications, setNotifications } = useNotifications();
+const Notifications: FC<{ notifications: NotificationData[] }> = ({
+  notifications,
+}) => {
+  const { setNotifications } = useNotifications();
 
   const handleOpen = (n: NotificationData) => {
     const newNotif = notifications.filter(
       notif =>
         (n.message.text !== notif.message.text ||
+          // this won't work for components
           n.message.component !== notif.message.component) &&
         n.severity !== notif.severity,
     );
@@ -45,14 +48,12 @@ const Notifications: FC = () => {
 
   return (
     <>
-      {notifications
-        .filter(n => n.display !== 'bottom')
-        .map((n, index) => {
-          return (
-            (n?.message.text || n?.message.component) &&
-            notificationAlert(n, index)
-          );
-        })}
+      {notifications.map((n, index) => {
+        return (
+          (n?.message.text || n?.message.component) &&
+          notificationAlert(n, index)
+        );
+      })}
     </>
   );
 };

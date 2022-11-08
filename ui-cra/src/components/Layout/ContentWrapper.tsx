@@ -1,13 +1,15 @@
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
-import { NotificationData } from '../../types/custom';
 import { Tooltip } from '../Shared';
 import { AlertListErrors } from './AlertListErrors';
+import useNotifications, {
+  NotificationData,
+} from './../../contexts/Notifications';
+import Notifications from './Notifications';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
 const { white } = theme.colors;
@@ -56,15 +58,6 @@ const HelpLinkWrapper = styled.div`
   }
 `;
 
-const AlertWrapper = styled(Alert)`
-  padding: ${base};
-  margin: 0 ${base} ${base} ${base};
-  border-radius: 10px;
-  div[class*='MuiAlert-action'] {
-    display: inline;
-  }
-`;
-
 interface Props {
   type?: string;
   backgroundColor?: string;
@@ -79,17 +72,17 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
-  notifications,
 }) => {
   const { data, error } = useListVersion();
-  const [allNotifications, setAllNotifications] = useState<NotificationData[]>(
-    [],
-  );
+  const { notifications, setNotifications } = useNotifications();
   const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
+
+  const topNotifications = notifications.filter(n => n.display !== 'bottom');
+  const bottomNotifications = notifications.filter(n => n.display === 'bottom');
 
   if (loading) {
     return (
@@ -113,11 +106,22 @@ export const ContentWrapper: FC<Props> = ({
       }}
     >
       {errors && <AlertListErrors errors={errors} />}
+      <Notifications
+        notifications={[
+          ...topNotifications,
+          {
+            message: { text: entitlement },
+            severity: 'warning',
+          } as NotificationData,
+          { message: { text: error?.message }, severity: 'error' },
+        ]}
+      />
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
         <Content backgroundColor={backgroundColor}>{children}</Content>
       )}
+      <Notifications notifications={bottomNotifications} />
       <HelpLinkWrapper>
         <div>
           Need help? Raise a&nbsp;
