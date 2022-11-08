@@ -18,7 +18,11 @@ function Mode({ modeName }: { modeName: string }) {
         </ModeWrapper>
       );
     default:
-      return <span>-</span>
+      return (
+        <ModeWrapper>
+          <span>{modeName}</span>
+        </ModeWrapper>
+      );
   }
 }
 
