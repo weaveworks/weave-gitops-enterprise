@@ -5,10 +5,7 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { usePolicyStyle } from '../PolicyStyles';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import {
-  generateRowHeaders,
-  SectionRowHeader,
-} from '../../RowHeader';
+import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
 import Mode from '../Mode';
 
@@ -23,7 +20,7 @@ function HeaderSection({
   howToSolve,
   code,
   tenant,
-  modes
+  modes,
 }: Policy) {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
@@ -65,16 +62,14 @@ function HeaderSection({
     {
       rowkey: 'Category',
       value: category,
-    }
-    ,{
+    },
+    {
       rowkey: 'Mode',
-      children: (
-       (modes?.length === 0 || modes === undefined) ?
-        '' 
-        : modes.map((mode:string, index:number) =>(
-          <Mode key={index} modeName={mode}/> 
-        ))
-      ),
+      children: modes?.length
+        ? modes.map((mode: string, index: number) => (
+            <Mode key={index} modeName={mode} />
+          ))
+        : '',
     },
     {
       rowkey: 'Targeted K8s Kind',

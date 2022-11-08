@@ -183,3 +183,18 @@ export const SpaceBetween = styled.div`
   justify-content: space-between;
   align-items: center;
 `;
+
+export const ModeWrapper = styled.div`
+  align-items: center;
+  justify-content: flex-start;
+  display: inline-flex;
+  margin-right: ${xs};
+  svg{
+    color: #0000008a;
+    font-size: 20px;
+    margin-right: 4px;
+  }
+  span{
+    text-transform: capitalize;
+  }
+`;

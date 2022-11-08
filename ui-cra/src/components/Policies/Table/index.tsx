@@ -62,15 +62,15 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           {
             label: 'Category',
             value: 'category',
-          },{
+          },
+          {
             label: 'Mode',
-            value: ({modes}) => (
-              (modes?.length === 0 || modes === undefined) ?
-              '' 
-              : modes.map((mode:string, index:number) =>(
-                <Mode key={index} modeName={mode}/> 
-              ))
-            ),
+            value: ({ modes }) =>
+              modes?.length
+                ? modes.map((mode: string, index: number) => (
+                    <Mode key={index} modeName={mode} />
+                  ))
+                : '',
           },
           ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
             ? [{ label: 'Tenant', value: 'tenant' }]
