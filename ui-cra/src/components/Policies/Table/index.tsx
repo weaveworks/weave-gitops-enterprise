@@ -65,7 +65,9 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           },{
             label: 'Mode',
             value: ({modes}) => (
-              modes?.map((mode:string, index:number) =>(
+              (modes?.length === 0 || modes === undefined) ?
+              '-' 
+              : modes.map((mode:string, index:number) =>(
                 <Mode key={index} modeName={mode}/> 
               ))
             ),
