@@ -231,8 +231,9 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				if err != nil {
 					return nil, err
 				}
+
 				policies = append(policies, policy)
-				collectedPolicies[getClusterPolicyKey(clusterName, policy.GetName())] = struct{}{}
+				collectedPolicies[getClusterPolicyKey(clusterName, list.Items[i].GetName())] = struct{}{}
 			}
 		}
 	}
