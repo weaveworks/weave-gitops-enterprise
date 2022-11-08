@@ -35,11 +35,11 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	if err := c.Get(ctx, s.cluster, client.ObjectKeyFromObject(&p), &p); err != nil {
 		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 	}
+	// client.Get does not always populate TypeMeta field, without this `kind` and
+	// `apiVersion` are not returned in YAML representation.
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+	p.SetGroupVersionKind(ctrl.GroupVersion.WithKind(ctrl.PipelineKind))
 
-	pipelineYaml, err := yaml.Marshal(p)
-	if err != nil {
-		return nil, fmt.Errorf("error marshalling %s pipeline, %w", msg.Name, err)
-	}
 	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
 		Environments: map[string]*pb.PipelineStatus_TargetStatusList{},
@@ -96,10 +96,14 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 				Workloads:  []*pb.WorkloadStatus{ws},
 			})
 		}
-
 	}
 
+	pipelineYaml, err := yaml.Marshal(p)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling %s pipeline, %w", msg.Name, err)
+	}
 	pipelineResp.Yaml = string(pipelineYaml)
+
 	return &pb.GetPipelineResponse{
 		Pipeline: pipelineResp,
 	}, nil
