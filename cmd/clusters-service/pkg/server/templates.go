@@ -249,9 +249,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 }
 
 func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
-	clusterName := msg.ParameterValues["CLUSTER_NAME"]
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
-	resourceName := msg.ParameterValues["RESOURCE_NAME"]
 
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
 	if err != nil {
@@ -281,7 +279,10 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	if err != nil {
 		return nil, err
 	}
-	content := string(tmplWithValuesAndCredentials)
+
+	// FIXME: parse and read from Cluster in yaml template
+	clusterName := msg.ParameterValues["CLUSTER_NAME"]
+	resourceName := msg.ParameterValues["RESOURCE_NAME"]
 
 	if clusterName == "" && resourceName == "" {
 		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
@@ -346,6 +347,8 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 		}
 	}
 
+	content := string(tmplWithValuesAndCredentials)
+
 	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
 }
 
@@ -355,6 +358,7 @@ func shouldAddCommonBases(t apiTemplates.Template) bool {
 		return anno == "true"
 	}
 
+	// FIXME: want to phase configuration option out. You can enable per template by adding the annotation
 	return viper.GetString("add-bases-kustomization") != "disabled" && isCAPITemplate(t)
 }
 

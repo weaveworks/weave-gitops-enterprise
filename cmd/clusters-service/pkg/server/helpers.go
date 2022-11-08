@@ -46,6 +46,7 @@ func shouldInjectPruneAnnotation(t apitemplates.Template) bool {
 		return anno == "true"
 	}
 
+	// FIXME: want to phase configuration option out. You can enable per template by adding the annotation
 	return viper.GetString("inject-prune-annotation") != "disabled" && isCAPITemplate(t)
 }
 
