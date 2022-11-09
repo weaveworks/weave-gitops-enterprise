@@ -461,6 +461,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	var estimator estimation.Estimator
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
 		log.Info("Cost estimation feature flag is enabled")
+		if p.CostEstimationFilters == "" {
+			return fmt.Errorf("cost estimation filters cannot be empty")
+		}
 		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
 		if err != nil {
 			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")

@@ -16,8 +16,8 @@ data:
   CAPI_REPOSITORY_CLUSTERS_PATH: {{ .Values.config.capi.repositoryClustersPath | quote }}
   CAPI_TEMPLATES_REPOSITORY_API_URL: {{ .Values.config.capi.repositoryApiURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
-  COST_ESTIMATION_FILTERS: {{ .Values.config.costEstimation.estimationFilter | quote }}
-  COST_ESTIMATION_API_REGION: {{ .Values.config.costEstimation.apiRegion | quote }}
+  COST_ESTIMATION_FILTERS: {{ (.Values.config.costEstimation).estimationFilter | quote }}
+  COST_ESTIMATION_API_REGION: {{ (.Values.config.costEstimation).apiRegion | quote }}
   USE_K8S_CACHED_CLIENTS: {{.Values.global.useK8sCachedClients | quote }}
   {{- /* build up the support auth methods string, should look like "oidc,user-account" */ -}}
   {{- $authMethods := list }}
