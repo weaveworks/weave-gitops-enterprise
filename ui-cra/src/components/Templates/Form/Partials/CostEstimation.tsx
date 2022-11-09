@@ -1,4 +1,5 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
 import { Button, LoadingPage, theme } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import { validateFormData } from '../../../../utils/form';
@@ -6,8 +7,14 @@ import { validateFormData } from '../../../../utils/form';
 const CostEstimation: FC<{
   costEstimate: string;
   isCostEstimationLoading: boolean;
+  costEstimateMessage: string;
   handleCostEstimation: () => Promise<void>;
-}> = ({ handleCostEstimation, costEstimate, isCostEstimationLoading }) => {
+}> = ({
+  handleCostEstimation,
+  costEstimate,
+  isCostEstimationLoading,
+  costEstimateMessage,
+}) => {
   const useStyles = makeStyles(() =>
     createStyles({
       getEstimationButton: {
@@ -20,54 +27,66 @@ const CostEstimation: FC<{
       previewLoading: {
         padding: theme.spacing.base,
       },
+      errorMessage: {
+        marginTop: theme.spacing.xs,
+        marginRight: theme.spacing.medium,
+        borderRadius: theme.spacing.xxs,
+      },
     }),
   );
   const classes = useStyles();
-  return isCostEstimationLoading ? (
-    <LoadingPage className={classes.previewLoading} />
-  ) : (
-    <div>
+  return (
+    <>
       <h2>Cost Estimation</h2>
-      <Grid container>
-        <Grid item xs={6} sm={6} md={6} lg={6}>
-          <Grid container>
-            <Grid
-              item
-              xs={6}
-              justifyContent="flex-start"
-              alignItems="center"
-              container
-            >
-              <div>Monthly Cost:</div>
-            </Grid>
-            <Grid
-              item
-              xs={6}
-              justifyContent="flex-end"
-              alignItems="center"
-              container
-            >
-              <div className={classes.costWrapper}>{costEstimate}</div>
+      {isCostEstimationLoading ? (
+        <LoadingPage className={classes.previewLoading} />
+      ) : (
+        <Grid alignItems="center" container>
+          <Grid item xs={6} sm={6} md={6} lg={6}>
+            <Grid container>
+              <Grid
+                item
+                xs={6}
+                justifyContent="flex-start"
+                alignItems="center"
+                container
+              >
+                <div>Monthly Cost:</div>
+              </Grid>
+              <Grid
+                item
+                xs={6}
+                justifyContent="flex-end"
+                alignItems="center"
+                container
+              >
+                <div className={classes.costWrapper}>{costEstimate}</div>
+              </Grid>
             </Grid>
           </Grid>
-        </Grid>
-        <Grid
-          item
-          xs={6}
-          justifyContent="flex-end"
-          alignItems="center"
-          container
-        >
-          <Button
-            id="get-estimation"
-            className={classes.getEstimationButton}
-            onClick={event => validateFormData(event, handleCostEstimation)}
+          <Grid
+            item
+            xs={6}
+            justifyContent="flex-end"
+            alignItems="center"
+            container
           >
-            GET ESTIMATION
-          </Button>
+            <Button
+              id="get-estimation"
+              className={classes.getEstimationButton}
+              onClick={event => validateFormData(event, handleCostEstimation)}
+            >
+              GET ESTIMATION
+            </Button>
+          </Grid>
+          {costEstimateMessage && (
+            <Alert className={classes.errorMessage} severity="warning">
+              {costEstimateMessage}
+            </Alert>
+          )}
         </Grid>
-      </Grid>
-    </div>
+      )}
+    </>
   );
 };
 
