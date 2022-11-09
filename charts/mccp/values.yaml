@@ -62,6 +62,17 @@ config:
       enabled: true
     tokenPassthrough:
       enabled: true
+  costEstimation:
+    # estimationFilter: "aws://us-east-1?operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
+    # estimationFilter: "aws://?operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
+    estimationFilter: "operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
+    apiRegion: us-east-1
+
+    # estimationFilter:
+    #   operatingSystem: Linux
+    #   tenancy: Dedicated
+    #   capacitystatus: UnusedCapacityReservation
+    #   operation: RunInstances
 
 tls:
   enabled: true
