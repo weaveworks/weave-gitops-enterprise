@@ -14,6 +14,7 @@ import {
   UpdatedProfile,
 } from '../../types/custom';
 import { maybeFromBase64 } from '../../utils/base64';
+import { formatError } from '../../utils/formatters';
 import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../Notifications';
 import { Profiles } from './index';
@@ -195,16 +196,9 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
 
-  const onError = (error: Error) =>
-    setNotifications(prevState => [
-      ...prevState,
-      { message: { text: error.message }, severity: 'error' },
-    ]);
+  const onError = (error: Error) => setNotifications(formatError(error));
 
-  const { isLoading, data, error } = useQuery<
-    ListChartsForRepositoryResponse,
-    Error
-  >(
+  const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
     [
       'profiles',
       helmRepo.name,
