@@ -1356,7 +1356,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	}
 }
 
-func TestGetFiles(t *testing.T) {
+func TestGetFiles_required_profiles(t *testing.T) {
 	viper.SetDefault("runtime-namespace", "flux-system")
 	ts := httptest.NewServer(makeServeMux(t))
 	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
@@ -1443,6 +1443,8 @@ status: {}
 		},
 	}
 
+	values := base64.StdEncoding.EncodeToString([]byte("foo: bar"))
+	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	files, err := getFiles(
 		context.TODO(),
 		c,
@@ -1453,7 +1455,7 @@ status: {}
 		makeTestTemplateWithProfileAnnotation(
 			templates.RenderTypeEnvsubst,
 			"capi.weave.works/profile-0",
-			"{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"foo: bar\" }",
+			profile,
 		),
 		getFilesRequest,
 		nil)

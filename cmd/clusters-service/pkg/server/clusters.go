@@ -584,42 +584,59 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
 
-	for _, v := range args.profileValues {
-		var requiredProfile *capiv1_proto.TemplateProfile
-		for _, rp := range requiredProfiles {
-			if rp.Name == v.Name && rp.Version == v.Version {
-				requiredProfile = rp
-			} else if rp.Name == v.Name && rp.Version == "" {
-				requiredProfile = rp
-				requiredProfile.Version = v.Version
-			}
-		}
+	profilesIndex := map[string]*capiv1_proto.ProfileValues{}
 
-		editable := (requiredProfile == nil || requiredProfile.Editable)
-		// Check the values and if not editable in the Template Profiles or empty, replace with default values. This should happen before parsing.
-		if !editable || v.Values == "" {
-			if requiredProfile != nil && requiredProfile.Values != "" {
-				v.Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
-			} else {
-				v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
-				if err != nil {
-					return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
+	for _, v := range args.profileValues {
+		profilesIndex[v.Name] = v
+	}
+
+	// add and overwrite the required values of profilesIndex where necessary.
+	for _, v := range requiredProfiles {
+		var requiredProfile *capiv1_proto.TemplateProfile
+		if profilesIndex[v.Name] != nil {
+			if v.Version == profilesIndex[v.Name].Version {
+				requiredProfile = v
+			} else if v.Version == "" {
+				requiredProfile = v
+				requiredProfile.Version = profilesIndex[v.Name].Version
+			}
+
+			editable := (requiredProfile == nil || requiredProfile.Editable)
+			// Check the values and if not editable in the Template Profiles or empty, replace with default values. This should happen before parsing.
+			if !editable || profilesIndex[v.Name].Values == "" {
+				if requiredProfile != nil && requiredProfile.Values != "" {
+					profilesIndex[v.Name].Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
+				} else {
+					profilesIndex[v.Name].Values, err = getDefaultValues(ctx, kubeClient, profilesIndex[v.Name].Name, profilesIndex[v.Name].Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
+					if err != nil {
+						return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
+					}
 				}
 			}
-		}
 
+			// Check the namespace and if empty, use the profile default
+			if profilesIndex[v.Name].Namespace == "" {
+				if requiredProfile != nil && requiredProfile.Namespace != "" {
+					profilesIndex[v.Name].Namespace = requiredProfile.Namespace
+				}
+			}
+		} else {
+			profilesIndex[v.Name] = &capiv1_proto.ProfileValues{
+				Name:      v.Name,
+				Version:   v.Version,
+				Values:    v.Values,
+				Namespace: v.Namespace,
+			}
+		}
+	}
+
+	// fill in any missing defaults
+	for _, v := range profilesIndex {
 		// Check the version and if empty use thr latest version in profile defaults.
 		if v.Version == "" {
 			v.Version, err = getProfileLatestVersion(ctx, v.Name, helmRepo)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
-			}
-		}
-
-		// Check the namespace and if empty, use the profile default
-		if v.Namespace == "" {
-			if requiredProfile != nil && requiredProfile.Namespace != "" {
-				v.Namespace = requiredProfile.Namespace
 			}
 		}
 
