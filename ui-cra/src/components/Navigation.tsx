@@ -18,7 +18,7 @@ import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.sv
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { Routes } from '../utils/nav';
 
-const { xxs, xs, small, base, medium } = theme.spacing;
+const { xxs, xs, small, medium } = theme.spacing;
 const { neutral10, neutral30, neutral40, primary } = theme.colors;
 
 interface SubNavItem {
