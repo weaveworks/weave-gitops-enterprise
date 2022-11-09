@@ -16,6 +16,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
+import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -29,7 +30,6 @@ import {
   AppPRPreview,
   ProfilesIndex,
   ClusterPRPreview,
-  NotificationData,
 } from '../../../types/custom';
 import { validateFormData } from '../../../utils/form';
 import { getGitRepoHTTPSURL } from '../../../utils/formatters';
@@ -72,9 +72,7 @@ const SourceLinkWrapper = styled.div`
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [notification, setNotification] = useState<NotificationData | null>(
-    null,
-  );
+  const { setNotifications } = useNotifications();
   const history = useHistory();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
@@ -263,14 +261,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         setPRPreview(data);
       })
       .catch(err =>
-        setNotification({
-          message: { text: err.message },
-          severity: 'error',
-          display: 'bottom',
-        }),
+        setNotifications([
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [setOpenPreview, getKustomizations]);
+  }, [setOpenPreview, getKustomizations, setNotifications]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -287,32 +287,34 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push({
-          pathname: Routes.Applications,
-          state: {
-            notification: [
-              {
-                message: {
-                  text: `PR created successfully::${response.webUrl}`,
-                },
-                severity: 'success',
-              },
-            ],
+        history.push(Routes.Applications);
+        setNotifications([
+          {
+            message: {
+              component: (
+                <Link href={response.webUrl} newTab>
+                  PR created successfully.
+                </Link>
+              ),
+            },
+            severity: 'success',
           },
-        });
+        ]);
       })
       .catch(error => {
-        setNotification({
-          message: { text: error.message },
-          severity: 'error',
-          display: 'bottom',
-        });
+        setNotifications([
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, getKustomizations]);
+  }, [formData, history, getKustomizations, setNotifications]);
 
   return useMemo(() => {
     return (

@@ -11,7 +11,7 @@ type Props = {
 };
 
 function CanaryDetails({ name, namespace, clusterName }: Props) {
-  const { error, data, isLoading } = useGetCanaryDetails({
+  const { data, isLoading } = useGetCanaryDetails({
     name,
     namespace,
     clusterName,
@@ -32,15 +32,7 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
         { label: name },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-        ]}
-      >
+      <ContentWrapper loading={isLoading}>
         {data?.canary && (
           <CanaryDetailsSection
             canary={data.canary}

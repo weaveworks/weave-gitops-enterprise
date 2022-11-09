@@ -5,7 +5,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { CanaryTable } from './Table';
 
 const ProgressiveDelivery = () => {
-  const { error, data, isLoading } = useListCanaries();
+  const { data, isLoading } = useListCanaries();
 
   return (
     <>
@@ -19,16 +19,7 @@ const ProgressiveDelivery = () => {
           { label: 'Delivery' },
         ]}
       />
-      <ContentWrapper
-        loading={isLoading}
-        errors={data?.errors}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-        ]}
-      >
+      <ContentWrapper loading={isLoading} errors={data?.errors}>
         {data?.canaries && <CanaryTable canaries={data.canaries} />}
       </ContentWrapper>
     </>

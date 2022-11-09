@@ -5,7 +5,7 @@ import { useListPolicyValidations } from '../../contexts/PolicyViolations';
 import { Routes } from '../../utils/nav';
 
 const PoliciesViolations = () => {
-  const { data, isLoading, error } = useListPolicyValidations({});
+  const { data, isLoading } = useListPolicyValidations({});
   return (
     <PageTemplate
       documentTitle="Violation Log"
@@ -16,16 +16,7 @@ const PoliciesViolations = () => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-        ]}
-        errors={data?.errors}
-      >
+      <ContentWrapper loading={isLoading} errors={data?.errors}>
         <PolicyViolationsTable
           violations={data?.violations || []}
           tableType={FieldsType.policy}

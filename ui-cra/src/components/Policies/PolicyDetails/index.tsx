@@ -13,11 +13,12 @@ const PolicyDetails = ({
   clusterName: string;
   id: string;
 }) => {
-  const { data, error, isLoading } = useGetPolicyDetails({
+  const { data, isLoading } = useGetPolicyDetails({
     clusterName,
     policyName: id,
   });
   const policy = data?.policy;
+
   return (
     <PageTemplate
       documentTitle="Policies"
@@ -26,32 +27,20 @@ const PolicyDetails = ({
         { label: data?.policy?.name || '' },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-        ]}
-      >
-        <>
-          <HeaderSection
-            id={policy?.id}
-            clusterName={policy?.clusterName}
-            tags={policy?.tags}
-            severity={policy?.severity}
-            category={policy?.category}
-            targets={policy?.targets}
-            description={policy?.description}
-            howToSolve={policy?.howToSolve}
-            code={policy?.code}
-            tenant={policy?.tenant}
-          ></HeaderSection>
-          <ParametersSection
-            parameters={policy?.parameters}
-          ></ParametersSection>
-        </>
+      <ContentWrapper loading={isLoading}>
+        <HeaderSection
+          id={policy?.id}
+          clusterName={policy?.clusterName}
+          tags={policy?.tags}
+          severity={policy?.severity}
+          category={policy?.category}
+          targets={policy?.targets}
+          description={policy?.description}
+          howToSolve={policy?.howToSolve}
+          code={policy?.code}
+          tenant={policy?.tenant}
+        />
+        <ParametersSection parameters={policy?.parameters} />
       </ContentWrapper>
     </PageTemplate>
   );

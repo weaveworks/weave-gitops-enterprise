@@ -98,17 +98,18 @@ const TemplatesDashboard: FC<{
     [history],
   );
 
-  useEffect(() => {
-    setNotifications(prevState => [
-      ...prevState,
-      {
-        message: {
-          text: location?.state?.notification?.[0]?.message.text,
-        },
-        severity: location?.state?.notification?.[0]?.severity,
-      } as NotificationData,
-    ]);
-  }, [location?.state?.notification, setNotifications]);
+  useEffect(
+    () =>
+      setNotifications([
+        {
+          message: {
+            text: location?.state?.notification?.[0]?.message.text,
+          },
+          severity: location?.state?.notification?.[0]?.severity,
+        } as NotificationData,
+      ]),
+    [location?.state?.notification, setNotifications],
+  );
 
   return (
     <PageTemplate

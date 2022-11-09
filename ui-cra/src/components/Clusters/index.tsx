@@ -303,17 +303,18 @@ const MCCP: FC<{
     repositoryURL,
   ]);
 
-  useEffect(() => {
-    setNotifications(prevState => [
-      ...prevState,
-      {
-        message: {
-          text: location?.state?.notification?.[0]?.message.text,
-        },
-        severity: location?.state?.notification?.[0]?.severity,
-      } as NotificationData,
-    ]);
-  }, [location?.state?.notification, setNotifications]);
+  useEffect(
+    () =>
+      setNotifications([
+        {
+          message: {
+            text: location?.state?.notification?.[0]?.message.text,
+          },
+          severity: location?.state?.notification?.[0]?.severity,
+        } as NotificationData,
+      ]),
+    [location?.state?.notification, setNotifications],
+  );
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {

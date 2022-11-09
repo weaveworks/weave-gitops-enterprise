@@ -100,7 +100,7 @@ interface Props {
 }
 
 const PipelineDetails = ({ name, namespace }: Props) => {
-  const { isLoading, error, data } = useGetPipeline({
+  const { isLoading, data } = useGetPipeline({
     name,
     namespace,
   });
@@ -108,6 +108,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   const environments = data?.pipeline?.environments || [];
   const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
+
   return (
     <PageTemplate
       documentTitle="Pipeline Details"
@@ -125,15 +126,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-        ]}
-      >
+      <ContentWrapper loading={isLoading}>
         <Grid className={classes.gridWrapper} container spacing={4}>
           {environments.map((env, index) => {
             const status = targetsStatuses[env.name!].targetsStatuses || [];

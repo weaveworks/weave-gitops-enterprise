@@ -9,7 +9,7 @@ import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
 const Pipelines = ({ className }: any) => {
-  const { error, data, isLoading } = useListPipelines();
+  const { data, isLoading } = useListPipelines();
 
   const initialFilterState = {
     ...filterConfig(data?.pipelines, 'namespace'),
@@ -26,15 +26,7 @@ const Pipelines = ({ className }: any) => {
         { label: 'Pipelines' },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-        ]}
-      >
+      <ContentWrapper loading={isLoading}>
         {data?.pipelines && (
           <TableWrapper className={className} id="pipelines-list">
             <DataTable

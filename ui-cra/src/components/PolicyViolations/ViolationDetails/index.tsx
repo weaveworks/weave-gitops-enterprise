@@ -17,7 +17,7 @@ const PolicyViolationDetails = ({
   source?: string;
   sourcePath?: string;
 }) => {
-  const { data, error, isLoading } = useGetPolicyValidationDetails({
+  const { data, isLoading } = useGetPolicyValidationDetails({
     clusterName,
     violationId: id,
   });
@@ -44,12 +44,7 @@ const PolicyViolationDetails = ({
       ];
   return (
     <PageTemplate documentTitle="Violation Logs" path={headerPath}>
-      <ContentWrapper
-        loading={isLoading}
-        notifications={[
-          { message: { text: error?.message }, severity: 'error' },
-        ]}
-      >
+      <ContentWrapper loading={isLoading}>
         {data?.violation && (
           <ViolationDetails violation={data.violation} source={source} />
         )}
