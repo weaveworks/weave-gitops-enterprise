@@ -217,7 +217,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     } else {
       clusterAutomations = formData.clusterAutomations.map(
         (kustomization: any) => {
-          console.log('kustomization', kustomization);
           return {
             cluster: {
               name: kustomization.cluster_name,
