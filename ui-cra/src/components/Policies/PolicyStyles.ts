@@ -130,6 +130,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     occurrencesList: {
       paddingLeft: wtheme.spacing(1),
+      marginLeft: xs,
     },
     messageWrape: {
       whiteSpace: 'normal',
