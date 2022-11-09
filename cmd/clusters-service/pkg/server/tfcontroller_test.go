@@ -32,7 +32,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 		{
 			name:   "validation errors",
 			req:    &capiv1_protos.CreateTfControllerPullRequestRequest{},
-			err:    errors.New("rpc error: code = InvalidArgument desc = validation error on the message: 2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
+			err:    errors.New("2 errors occurred:\ntemplate name must be specified\nparameter values must be specified"),
 			dbRows: 0,
 		},
 		{
@@ -54,7 +54,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				CommitMessage:     "Add cluster manifest",
 				TemplateNamespace: "default",
 			},
-			err:    errors.New(`rpc error: code = Internal desc = validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
+			err:    errors.New(`validation error rendering template cluster-template-1, invalid value for metadata.name: "foo bar bad name", a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')`),
 			dbRows: 0,
 		},
 		{
@@ -78,7 +78,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				TemplateNamespace: "default",
 			},
 			dbRows: 0,
-			err:    errors.New(`rpc error: code = Internal desc = failed to access repository under https://github.com/org/repo.git: oops`),
+			err:    errors.New(`rpc error: code = Unauthenticated desc = failed to access repo https://github.com/org/repo.git: oops`),
 		},
 		{
 			name: "create pull request",
