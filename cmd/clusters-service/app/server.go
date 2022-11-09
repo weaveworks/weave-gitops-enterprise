@@ -222,6 +222,10 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
 	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
 
+	// Hide some flags from the help output
+	cmd.Flags().MarkHidden("cost-estimation-filters")
+	cmd.Flags().MarkHidden("cost-estimation-api-region")
+
 	return cmd
 }
 

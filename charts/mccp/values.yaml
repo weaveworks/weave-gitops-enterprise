@@ -62,11 +62,6 @@ config:
       enabled: true
     tokenPassthrough:
       enabled: true
-  costEstimation:
-    # QueryString of filters to apply to cost estimation
-    estimationFilter: "operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
-    # the region used to fetch the pricing data
-    apiRegion: us-east-1
 
 tls:
   enabled: true
