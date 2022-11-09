@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import { muiTheme } from '../../../muiTheme';
 import {
@@ -41,6 +42,7 @@ describe('Applications index test', () => {
       ],
       [CoreClientContextProvider, { api }],
       [MemoryRouter],
+      [NotificationsProvider],
     ]);
   });
   it('renders table rows', async () => {

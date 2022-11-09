@@ -23,22 +23,21 @@ const Notifications: FC<{ notifications: NotificationData[] }> = ({
 }) => {
   const { setNotifications } = useNotifications();
 
-  const handleOpen = (n: NotificationData) => {
-    const newNotif = notifications.filter(
-      notif =>
-        (n.message.text !== notif.message.text ||
-          // this won't work for components
-          n.message.component !== notif.message.component) &&
-        n.severity !== notif.severity,
+  const handleDelete = (n: NotificationData) =>
+    setNotifications(
+      notifications.filter(
+        notif =>
+          (n.message.text !== notif.message.text ||
+            n.message.component !== notif.message.component) &&
+          n.severity !== notif.severity,
+      ),
     );
-    setNotifications(newNotif);
-  };
 
   const notificationAlert = (n: NotificationData, index: number) => {
     return (
       <Box key={index}>
         <Collapse in={true}>
-          <AlertWrapper severity={n?.severity} onClose={() => handleOpen(n)}>
+          <AlertWrapper severity={n?.severity} onClose={() => handleDelete(n)}>
             {n?.message.text} {n?.message.component}
           </AlertWrapper>
         </Collapse>

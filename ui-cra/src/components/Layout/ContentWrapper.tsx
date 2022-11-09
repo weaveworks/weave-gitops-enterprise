@@ -74,7 +74,7 @@ export const ContentWrapper: FC<Props> = ({
   loading,
 }) => {
   const { data, error } = useListVersion();
-  const { notifications, setNotifications } = useNotifications();
+  const { notifications } = useNotifications();
   const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,

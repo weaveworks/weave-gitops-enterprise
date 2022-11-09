@@ -8,21 +8,17 @@ import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import useNotifications from '../../contexts/Notifications';
+import { formatError } from '../../utils/formatters';
 
 const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading, error } = useListSources();
   const { setNotifications } = useNotifications();
 
   useEffect(() => {
-    setNotifications([
-      {
-        message: {
-          text: error?.message,
-        },
-        severity: 'error',
-      },
-    ]);
-  }, [error?.message, setNotifications]);
+    if (error) {
+      setNotifications(formatError(error));
+    }
+  }, [error, setNotifications]);
 
   return (
     <PageTemplate
@@ -38,16 +34,7 @@ const WGApplicationsSources: FC = () => {
         },
       ]}
     >
-      <ContentWrapper
-        errors={sources?.errors}
-        loading={isLoading}
-        notifications={[
-          {
-            message: { text: error?.message },
-            severity: 'error',
-          },
-        ]}
-      >
+      <ContentWrapper errors={sources?.errors} loading={isLoading}>
         {sources && <SourcesTable sources={sources?.result} />}
       </ContentWrapper>
     </PageTemplate>
