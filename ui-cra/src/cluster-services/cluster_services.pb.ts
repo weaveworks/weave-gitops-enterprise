@@ -200,6 +200,7 @@ export type CreatePullRequestRequest = {
   clusterNamespace?: string
   kustomizations?: Kustomization[]
   templateNamespace?: string
+  templateKind?: string
 }
 
 export type CreatePullRequestResponse = {

@@ -1,5 +1,12 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
-import { Flex, formatURL, Link, theme } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  formatURL,
+  Link,
+  RouterTab,
+  SubRouterTabs,
+  theme,
+} from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
@@ -7,6 +14,7 @@ import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
+import YamlView from '../../YamlView';
 import WorkloadStatus from './WorkloadStatus';
 
 const { medium, xs, xxs, large } = theme.spacing;
@@ -108,6 +116,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   const environments = data?.pipeline?.environments || [];
   const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
+  const path = `/applications/pipelines/details`;
 
   return (
     <PageTemplate
@@ -127,81 +136,94 @@ const PipelineDetails = ({ name, namespace }: Props) => {
       ]}
     >
       <ContentWrapper loading={isLoading}>
-        <Grid className={classes.gridWrapper} container spacing={4}>
-          {environments.map((env, index) => {
-            const status = targetsStatuses[env.name!].targetsStatuses || [];
-            return (
-              <Grid
-                item
-                xs
-                key={index}
-                className={classes.gridContainer}
-                id={env.name}
-              >
-                <div className={classes.mbSmall}>
-                  <div className={classes.title}>{env.name}</div>
-                  <div className={classes.subtitle}>
-                    {getTargetsCount(status || [])} Targets
-                  </div>
-                </div>
-                {status.map(target => {
-                  const clusterName = target?.clusterRef?.name
-                    ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
-                    : 'management';
+        <SubRouterTabs rootPath={`${path}/status`}>
+          <RouterTab name="Status" path={`${path}/status`}>
+            <Grid className={classes.gridWrapper} container spacing={4}>
+              {environments.map((env, index) => {
+                const status = targetsStatuses[env.name!].targetsStatuses || [];
+                return (
+                  <Grid
+                    item
+                    xs
+                    key={index}
+                    className={classes.gridContainer}
+                    id={env.name}
+                  >
+                    <div className={classes.mbSmall}>
+                      <div className={classes.title}>{env.name}</div>
+                      <div className={classes.subtitle}>
+                        {getTargetsCount(status || [])} Targets
+                      </div>
+                    </div>
+                    {status.map(target => {
+                      const clusterName = target?.clusterRef?.name
+                        ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
+                        : 'management';
 
-                  return target?.workloads?.map((workload, wrkIndex) => (
-                    <CardContainer key={wrkIndex} role="targeting">
-                      <TargetWrapper className="workloadTarget">
-                        <Title>Cluster</Title>
-                        <ClusterName className="cluster-name">
-                          {target?.clusterRef?.name || clusterName}
-                        </ClusterName>
+                      return target?.workloads?.map((workload, wrkIndex) => (
+                        <CardContainer key={wrkIndex} role="targeting">
+                          <TargetWrapper className="workloadTarget">
+                            <Title>Cluster</Title>
+                            <ClusterName className="cluster-name">
+                              {target?.clusterRef?.name || clusterName}
+                            </ClusterName>
 
-                        <Title>Namespace</Title>
-                        <TargetNamespace className="workload-namespace">
-                          {target?.namespace}
-                        </TargetNamespace>
-                      </TargetWrapper>
-                      <WorkloadWrapper>
-                        <div>
-                          <Link
-                            to={formatURL(
-                              '/helm_release/details',
-                              _.omitBy(
-                                {
-                                  name: workload?.name,
-                                  namespace: target?.namespace,
-                                  clusterName,
-                                },
-                                _.isNull,
-                              ),
-                            )}
-                          >
-                            {workload && <WorkloadStatus workload={workload} />}
-                          </Link>
-                        </div>
-                        <Flex wide between>
-                          <div
-                            style={{ alignSelf: 'flex-end' }}
-                            className={`${classes.subtitle} ${classes.subtitleColor}`}
-                          >
-                            <span>Specification:</span>
-                            <span className={`version`}>
-                              {`v${workload?.version}`}
-                            </span>
-                          </div>
-                          {workload?.lastAppliedRevision && (
-                            <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
-                          )}
-                        </Flex>
-                      </WorkloadWrapper>
-                    </CardContainer>
-                  ));
-                })}
-              </Grid>
-            );
-          })}
-        </Grid>
+                            <Title>Namespace</Title>
+                            <TargetNamespace className="workload-namespace">
+                              {target?.namespace}
+                            </TargetNamespace>
+                          </TargetWrapper>
+                          <WorkloadWrapper>
+                            <div>
+                              <Link
+                                to={formatURL(
+                                  '/helm_release/details',
+                                  _.omitBy(
+                                    {
+                                      name: workload?.name,
+                                      namespace: target?.namespace,
+                                      clusterName,
+                                    },
+                                    _.isNull,
+                                  ),
+                                )}
+                              >
+                                {workload && (
+                                  <WorkloadStatus workload={workload} />
+                                )}
+                              </Link>
+                            </div>
+                            <Flex wide between>
+                              <div
+                                style={{ alignSelf: 'flex-end' }}
+                                className={`${classes.subtitle} ${classes.subtitleColor}`}
+                              >
+                                <span>Specification:</span>
+                                <span className={`version`}>
+                                  {`v${workload?.version}`}
+                                </span>
+                              </div>
+                              {workload?.lastAppliedRevision && (
+                                <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
+                              )}
+                            </Flex>
+                          </WorkloadWrapper>
+                        </CardContainer>
+                      ));
+                    })}
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </RouterTab>
+          <RouterTab name="Yaml" path={`${path}/yaml`}>
+            <YamlView
+              kind="Pipeline"
+              yaml={data?.pipeline?.yaml || ''}
+              object={data?.pipeline || {}}
+            />
+          </RouterTab>
+        </SubRouterTabs>
       </ContentWrapper>
     </PageTemplate>
   );

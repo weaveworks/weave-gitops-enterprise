@@ -430,7 +430,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		clustersmngr.DefaultKubeConfigOptions,
 	)
 
-	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster)
+	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
 	go func() {
 		err := indexer.Start(controllerContext, clustersManager, log)
 		if err != nil {
@@ -609,6 +609,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
+			Logger:            args.Log,
 			ClustersManager:   args.ClustersManager,
 			ManagementFetcher: args.ManagementFetcher,
 			Cluster:           args.Cluster,

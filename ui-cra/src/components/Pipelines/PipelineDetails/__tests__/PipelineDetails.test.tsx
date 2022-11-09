@@ -141,6 +141,8 @@ const res: GetPipelineResponse = {
         },
       },
     },
+    yaml: `apiVersion: pipelines.weave.works/v1alpha1    kind: Pipeline    metadata:      labels:        kustomize.toolkit.fluxcd.io/name: flux-system        kustomize.toolkit.fluxcd.io/namespace: flux-system      name: test      namespace: default    spec:      appRef:        apiVersion: helm.toolkit.fluxcd.io/v2beta1        kind: HelmRelease        name: dex      environments:      - name: dev        targets:        - namespace: dex
+    `,
   },
 };
 
@@ -204,10 +206,10 @@ describe('PipelineDetails', () => {
         if (ts.workloads) {
           const wrks = ts.workloads.map(wrk => ({
             ...wrk,
-            clusterName: ts.clusterRef?.name,
-            mappedClusterName: ts.clusterRef?.namespace
+            clusterName: ts.clusterRef?.name || 'management',
+            mappedClusterName: ts.clusterRef?.name
               ? `${ts.clusterRef?.namespace}/${ts.clusterRef.name}`
-              : '',
+              : 'management',
             namespace: ts.namespace,
           }));
           workloads = [...workloads, ...wrks];
@@ -220,14 +222,10 @@ describe('PipelineDetails', () => {
 
         // Cluster Name
         const clusterNameEle = workloadTarget?.querySelector('.cluster-name');
-        if (workloads![index].clusterName) {
-          checkTextContentToEqual(
-            clusterNameEle,
-            workloads![index].clusterName || '',
-          );
-        } else {
-          elementToBeNull(clusterNameEle);
-        }
+        checkTextContentToEqual(
+          clusterNameEle,
+          workloads![index].clusterName || '',
+        );
 
         // Workload Namespace
         const workloadNamespace = workloadTarget?.querySelector(
@@ -240,14 +238,13 @@ describe('PipelineDetails', () => {
         //Target as a link
         const linkToAutomation = target.querySelector('a');
 
-        if (workloads![index].mappedClusterName) {
-          const href = formatURL('/helm_release/details', {
-            name: workloads![index].name,
-            namespace: workloads![index].namespace,
-            clusterName: workloads![index].mappedClusterName,
-          });
-          linkToExists(linkToAutomation, href);
-        }
+        const href = formatURL('/helm_release/details', {
+          name: workloads![index].name,
+          namespace: workloads![index].namespace,
+          clusterName: workloads![index].mappedClusterName,
+        });
+        expect(linkToAutomation).toHaveAttribute('href', href);
+
         // Workload Last Applied Version
         const lastAppliedRevision = target.querySelector(
           'workloadName > .last-applied-version',
@@ -266,6 +263,28 @@ describe('PipelineDetails', () => {
         expect(workloadVersion).toEqual(`v${workloads![index].version}`);
       });
     });
+  });
+
+  it('renders pipeline Yaml', async () => {
+    const params = res.pipeline;
+    api.GetPipelineReturns = res;
+
+    await act(async () => {
+      const c = wrap(
+        <PipelineDetails
+          name={params?.name || ''}
+          namespace={params?.namespace || ''}
+        />,
+      );
+      render(c);
+    });
+    const yamlTab = screen
+      .getAllByRole('tab')
+      .filter(tabEle => tabEle.textContent === 'Yaml')[0];
+
+    yamlTab.click();
+    const code = document.querySelector('pre')?.textContent?.trimEnd();
+    expect(code).toEqual(params?.yaml?.trimEnd());
   });
 
   describe('snapshots', () => {
@@ -287,9 +306,6 @@ describe('PipelineDetails', () => {
   });
 });
 
-const linkToExists = (element: Element | null, href: string) => {
-  expect(element).toHaveAttribute('href', href);
-};
 const elementToBeNull = (element: Element | null | undefined) => {
   expect(element).toBeNull();
 };

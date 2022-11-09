@@ -17,10 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
 )
 
-var (
-	scheme = runtime.NewScheme()
-)
-
 type Options struct {
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
@@ -30,16 +26,20 @@ type Options struct {
 }
 
 type Watcher struct {
+	scheme        *runtime.Scheme
 	clusterRef    types.NamespacedName
 	clientConfig  *rest.Config
 	cache         helm.ChartsCacherWriter
 	valuesFetcher helm.ValuesFetcher
-	useProxy      bool
 	stopFn        context.CancelFunc
 	log           logr.Logger
+
+	// UseProxy is a flag to indicate if the helm watcher should use the proxy
+	UseProxy bool
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
+	scheme := runtime.NewScheme()
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
@@ -53,7 +53,8 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		clientConfig:  opts.ClientConfig,
 		cache:         opts.Cache,
 		valuesFetcher: opts.ValuesFetcher,
-		useProxy:      opts.UseProxy,
+		UseProxy:      opts.UseProxy,
+		scheme:        scheme,
 	}, nil
 }
 
@@ -64,7 +65,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 	w.stopFn = cancel
 
 	mgr, err := ctrl.NewManager(w.clientConfig, ctrl.Options{
-		Scheme:             scheme,
+		Scheme:             w.scheme,
 		Logger:             w.log,
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
@@ -79,9 +80,9 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 		ClientConfig:  w.clientConfig,
 		Cache:         w.cache,
 		ValuesFetcher: w.valuesFetcher,
-		UseProxy:      w.useProxy,
+		UseProxy:      w.UseProxy,
 		Client:        mgr.GetClient(),
-		Scheme:        scheme,
+		Scheme:        w.scheme,
 	}).SetupWithManager(mgr); err != nil {
 		w.log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err

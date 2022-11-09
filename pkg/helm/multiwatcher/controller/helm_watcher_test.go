@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -22,6 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 )
 
 var (
@@ -73,7 +73,7 @@ var (
 )
 
 func TestReconcile(t *testing.T) {
-	fakeCache := makeFakeCache()
+	fakeCache := helmfakes.NewFakeChartCache()
 	reconciler := setupReconcileAndFakes(
 		makeTestHelmRepo(),
 		&fakeValuesFetcher{repo1Index, nil},
@@ -91,7 +91,7 @@ func TestReconcile(t *testing.T) {
 		Namespace: "test-namespace",
 		Name:      "test-name",
 	}
-	cacheData := fakeCache.charts[clusterRefToString(helmRepo, clusterRef)]
+	cacheData := fakeCache.Charts[helmfakes.ClusterRefToString(helmRepo, clusterRef)]
 	// sort the cache data by name and version
 	sort.Slice(cacheData, func(i, j int) bool {
 		if cacheData[i].Name == cacheData[j].Name {
@@ -117,14 +117,14 @@ func TestReconcileWithMissingHelmRepository(t *testing.T) {
 }
 
 func TestReconcileDelete(t *testing.T) {
-	key := clusterRefToString(
+	key := helmfakes.ClusterRefToString(
 		helm.ObjectReference{
 			Namespace: "test-namespace",
 			Name:      "test-name",
 		},
 		clusterRef,
 	)
-	fakeCache := makeFakeCache(withCharts(key, repo1Charts))
+	fakeCache := helmfakes.NewFakeChartCache(helmfakes.WithCharts(key, repo1Charts))
 	reconciler := setupReconcileAndFakes(
 		makeTestHelmRepo(func(hr *sourcev1.HelmRepository) {
 			newTime := metav1.NewTime(time.Now())
@@ -143,7 +143,7 @@ func TestReconcileDelete(t *testing.T) {
 	assert.NoError(t, err)
 
 	// cache should be empty after delete
-	assert.Equal(t, []helm.Chart(nil), fakeCache.charts[key])
+	assert.Equal(t, []helm.Chart(nil), fakeCache.Charts[key])
 }
 
 func TestReconcileDeletingTheCacheFails(t *testing.T) {
@@ -151,7 +151,9 @@ func TestReconcileDeletingTheCacheFails(t *testing.T) {
 		newTime := metav1.NewTime(time.Now())
 		hr.ObjectMeta.DeletionTimestamp = &newTime
 	})
-	fakeErroringCache := fakeErroringChartCache{deleteError: errors.New("nope")}
+	fakeErroringCache := helmfakes.NewFakeChartCache(func(fc *helmfakes.FakeChartCache) {
+		fc.DeleteError = errors.New("nope")
+	})
 	reconciler := setupReconcileAndFakes(deletedHelmRepo, &fakeValuesFetcher{nil, nil}, fakeErroringCache)
 
 	_, err := reconciler.Reconcile(context.Background(), ctrl.Request{
@@ -174,7 +176,7 @@ func TestReconcileGetChartFails(t *testing.T) {
 			Name:      "test-name",
 		},
 	})
-	assert.EqualError(t, err, "failed to get index file: nope")
+	assert.EqualError(t, err, "nope")
 }
 
 func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetcher, fakeCache helm.ChartsCacherWriter) *HelmWatcherReconciler {
@@ -219,75 +221,6 @@ func makeTestHelmRepo(opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepo
 		opt(repo)
 	}
 	return repo
-}
-
-func makeFakeCache(opts ...func(*fakeChartCache)) fakeChartCache {
-	fc := fakeChartCache{
-		charts: make(map[string][]helm.Chart),
-	}
-	for _, o := range opts {
-		o(&fc)
-	}
-
-	return fc
-}
-
-func withCharts(key string, charts []helm.Chart) func(*fakeChartCache) {
-	return func(fc *fakeChartCache) {
-		fc.charts[key] = charts
-	}
-}
-
-// fake cache implementation
-type fakeChartCache struct {
-	charts map[string][]helm.Chart
-}
-
-func (fc fakeChartCache) AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef helm.ObjectReference) error {
-	k := clusterRefToString(repoRef, clusterRef)
-	fmt.Printf("Adding chart %s to cache with key %s\n", name, k)
-	fc.charts[k] = append(
-		fc.charts[k],
-		helm.Chart{
-			Name:    name,
-			Version: version,
-			Layer:   layer,
-			Kind:    kind,
-		},
-	)
-	return nil
-}
-
-func (fc fakeChartCache) Delete(ctx context.Context, repoRef helm.ObjectReference, clusterRef types.NamespacedName) error {
-	k := clusterRefToString(repoRef, clusterRef)
-	delete(fc.charts, k)
-	return nil
-}
-
-func (fc fakeChartCache) DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error {
-	return errors.New("not implemented")
-}
-
-// fake erroring cache implementation
-type fakeErroringChartCache struct {
-	addError    error
-	deleteError error
-}
-
-func (fc fakeErroringChartCache) AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef helm.ObjectReference) error {
-	return fc.addError
-}
-
-func (fc fakeErroringChartCache) Delete(ctx context.Context, repoRef helm.ObjectReference, clusterRef types.NamespacedName) error {
-	return fc.deleteError
-}
-
-func (fc fakeErroringChartCache) DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error {
-	return errors.New("not implemented")
-}
-
-func clusterRefToString(or helm.ObjectReference, cr types.NamespacedName) string {
-	return fmt.Sprintf("%s_%s_%s_%s_%s", or.Kind, or.Name, or.Namespace, cr.Name, cr.Namespace)
 }
 
 type fakeValuesFetcher struct {
