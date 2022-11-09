@@ -1,0 +1,87 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: ckotzbauer
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: https://ckotzbauer.github.io/helm-charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: sbom-operator
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: sbom-operator
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: ckotzbauer
+        namespace: flux-system
+      version: 0.21.0
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    # Default values for sbom-operator.
+    # This is a YAML-formatted file.
+    # Declare variables to be passed into your templates.
+    image:
+      repository: ghcr.io/ckotzbauer/sbom-operator
+      tag: ""
+      pullPolicy: IfNotPresent
+      pullSecrets: [ ]
+
+    args:
+      targets: configmap
+#      git-author-email: XXX
+#      git-author-name: XXX
+#      git-repository: https://github.com/XXX/XXX
+#      git-path: dev-cluster/sboms
+      verbosity: debug
+#      cron: "0 30 * * * *"
+
+    envVars: { }
+
+    podAnnotations: { }
+
+    jobImageMode: false
+
+    resources: { }
+    #  requests:
+    #    cpu: 500m
+    #    memory: 1Gi
+    #  limits:
+    #    cpu: 100m
+    #    memory: 100Mi
+
+    securityContext:
+      privileged: false
+      runAsUser: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop:
+          - ALL
+
+    serviceAccount:
+      # Specifies whether a ServiceAccount should be created
+      create: true
+
+      # The name of the ServiceAccount to use.
+      # If not set and create is true, a name is generated using the fullname template
+      name:
+
+    nodeSelector: { }
+
+    tolerations: [ ]
+
+    affinity: { }
+
+    extraVolumes: [ ]

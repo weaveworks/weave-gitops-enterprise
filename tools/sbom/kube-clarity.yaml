@@ -1,0 +1,29 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: kubeclarity
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: https://openclarity.github.io/kubeclarity
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: kube-clarity
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: kubeclarity
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: kubeclarity
+        namespace: flux-system
+      version: v2.7.1
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
