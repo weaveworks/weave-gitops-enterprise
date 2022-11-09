@@ -183,10 +183,18 @@ const AppFields: FC<{
     const { value } = event?.target;
 
     let currentAutomation = [...formData.clusterAutomations];
-    currentAutomation[index] = {
-      ...automation,
-      [fieldName as string]: value,
-    };
+    if (fieldName === 'target_namespace' && value === 'flux-system') {
+      currentAutomation[index] = {
+        ...automation,
+        createNamespace: false,
+        [fieldName as string]: value,
+      };
+    } else {
+      currentAutomation[index] = {
+        ...automation,
+        [fieldName as string]: value,
+      };
+    }
 
     setFormData({
       ...formData,
