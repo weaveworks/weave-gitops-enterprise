@@ -42,6 +42,13 @@ type ValuesYaml struct {
 	TextArea *agouti.Selection
 }
 
+type CostEstimation struct {
+	Label    *agouti.Selection
+	Price    *agouti.Selection
+	Message  *agouti.Selection
+	Estimate *agouti.Selection
+}
+
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
@@ -99,4 +106,13 @@ func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
 
 func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
+}
+
+func GetCostEstimation(webDriver *agouti.Page) *CostEstimation {
+	return &CostEstimation{
+		Label:    webDriver.FindByXPath(`//h2[.="Cost Estimation"]`),
+		Price:    webDriver.FindByXPath(`//div[.="Monthly Cost:"]/following-sibling::div`),
+		Message:  webDriver.FindByXPath(`//h2[.="Cost Estimation"]/following-sibling::div//div[contains(@class, "message")]`),
+		Estimate: webDriver.FindByID(`get-estimation`),
+	}
 }

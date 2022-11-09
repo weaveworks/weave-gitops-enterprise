@@ -225,7 +225,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should choose a template from the default table view", func() {
-					templateRow := templatesPage.GetTemplateRow(webDriver, "cluster-template-10")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "cluster-template-10")
+					gomega.Eventually(templateRow.Type).Should(matchers.MatchText(""))
+					gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"))
 					gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
 					gomega.Eventually(templateRow.Description).Should(matchers.MatchText("This is test template 10"))
 					gomega.Expect(templateRow.CreateTemplate).Should(matchers.BeFound())
@@ -261,7 +263,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And User should see message informing user of the invalid template in the cluster - table view", func() {
-					templateRow := templatesPage.GetTemplateRow(webDriver, "cluster-invalid-template-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "cluster-invalid-template-0")
+					gomega.Eventually(templateRow.Type).Should(matchers.MatchText(""))
+					gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"))
 					gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
 					gomega.Eventually(templateRow.Description).Should(matchers.MatchText("Couldn't load template body"))
 					gomega.Expect(templateRow.CreateTemplate).ShouldNot(matchers.BeEnabled())
@@ -315,7 +319,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should choose a template - table view", func() {
-					templateRow := templatesPage.GetTemplateRow(webDriver, "eks-fargate-template-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "eks-fargate-template-0")
 					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -383,6 +387,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
 				_ = deleteFile([]string{downloadedResourcesPath})
+
+				// Namespaces used for kustomization, waiting form there termination
+				reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				waitForNamespaceDeletion([]string{"test-system"})
 			})
 
 			ginkgo.It("Verify pull request can be created for capi template to the management cluster", ginkgo.Label("integration", "git", "browser-logs"), func() {
@@ -957,10 +965,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
 					pullGitRepo(repoAbsolutePath)
-					postgres := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
+					postgres := path.Join(testDataPath, "postgres-manifest.yaml")
 					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", postgres, path.Join(repoAbsolutePath, "apps/postgres")))
 
-					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-manifest.yaml")
+					podinfo := path.Join(testDataPath, "podinfo-manifest.yaml")
 					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
 
 					gitUpdateCommitPush(repoAbsolutePath, "Adding postgres kustomization")
@@ -1237,10 +1245,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
 					pullGitRepo(repoAbsolutePath)
-					postgres := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
+					postgres := path.Join(testDataPath, "postgres-manifest.yaml")
 					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", postgres, path.Join(repoAbsolutePath, "apps/postgres")))
 
-					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-manifest.yaml")
+					podinfo := path.Join(testDataPath, "podinfo-manifest.yaml")
 					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
 
 					gitUpdateCommitPush(repoAbsolutePath, "Adding postgres kustomization")
@@ -1553,7 +1561,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustAfterEach(func() {
 				ginkgo.By("When I apply the valid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testScriptsPath, "entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
@@ -1573,7 +1581,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify cluster service acknowledges the entitlement presences", ginkgo.Label("integration"), func() {
 
 				ginkgo.By("When I delete the entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to delete entitlement secret")
+					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(testScriptsPath, "entitlement-secret.yaml")), "Failed to delete entitlement secret")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
@@ -1586,7 +1594,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the expired entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
@@ -1598,7 +1606,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the invalid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {

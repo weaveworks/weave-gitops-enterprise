@@ -33,8 +33,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] Violations can be seen in management cluster dashboard", func() {
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
-			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "multi-container-manifest.yaml")
+			var policiesYaml string
+			var deploymentYaml string
 
 			policyName := "Containers Running With Privilege Escalation acceptance test"
 			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment multi-container \(2 occurrences\)`
@@ -43,10 +43,14 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationSeverity := "High"
 			violationCategory := "weave.categories.pod-security"
 
+			ginkgo.JustBeforeEach(func() {
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				deploymentYaml = path.Join(testDataPath, "multi-container-manifest.yaml")
+			})
+
 			ginkgo.JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, deploymentYaml)
-
 			})
 
 			ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
@@ -132,13 +136,13 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
+			var policiesYaml string
+			var deploymentYaml string
 			patSecret := "violation-pat"
 			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-violation-kind"
 			leafClusterNamespace := "default"
 
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
-			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
 			policyName := "Container Image Pull Policy acceptance test"
 			violationMsg := "Container Image Pull Policy acceptance test in deployment postgres"
 			violationApplication := "default/postgres"
@@ -146,6 +150,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationCategory := "weave.categories.software-supply-chain"
 
 			ginkgo.JustBeforeEach(func() {
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				deploymentYaml = path.Join(testDataPath, "multi-container-manifest.yaml")
 				existingViolationCount = getViolationsCount()
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")

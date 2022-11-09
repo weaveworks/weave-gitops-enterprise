@@ -56,7 +56,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] Policies can be installed", func() {
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+			var policiesYaml string
 
 			policyName := "Container Image Pull Policy acceptance test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
@@ -68,6 +68,10 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustAfterEach(func() {
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
+			})
+
+			ginkgo.JustBeforeEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
@@ -179,12 +183,12 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
+			var policiesYaml string
 			patSecret := "policy-pat"
 			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-policy-kind"
 			leafClusterNamespace := "default"
 
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 			policyName := "Container Running As Root acceptance test"
 			policyID := "weave.policies.container-running-as-root-acceptance-test"
 			policyMode := `Audit\nEnforce`
@@ -194,7 +198,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustBeforeEach(func() {
-
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")

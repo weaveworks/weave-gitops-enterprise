@@ -38,12 +38,12 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 			// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
-			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
 		})
 
 		ginkgo.AfterEach(ginkgo.OncePerOrdered, func() {
 			// Create the oidc user default roles/rolebindings afte tenant tests completed
-			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
 		})
 
 		ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources", ginkgo.Ordered, func() {
@@ -98,7 +98,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				defer deleteTenants([]string{getTenantYamlPath()})
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 				// Add GitRepository source
 				sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -203,7 +203,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				defer deleteTenants([]string{getTenantYamlPath()})
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 				// Add HelmRepository source
 				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
@@ -364,7 +364,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				// Installing policy-agent to leaf cluster
 				installPolicyAgent(leafCluster.Name)
 				// Installing tenant resources to leaf cluster
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafCluster.Namespace, patSecret)
