@@ -1,7 +1,6 @@
 package estimation
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"sort"
@@ -72,43 +71,10 @@ func filtersFromMap(items map[string]string) []types.Filter {
 	return filters
 }
 
-// Takes a url in the format of aws://region?filters=filter1&filters=filter2
-// returns the region and a map of filters
-func ParseFilterURL(urlString string) (string, map[string]string, error) {
-	u, err := url.Parse(urlString)
-	if err != nil {
-		return "", nil, err
-	}
-
-	queryString := u.RawQuery
-	if u.Scheme == "" {
-		// urlString is just a query string
-		queryString = urlString
-		filters, err := ParseFilterQueryString(queryString)
-		return "us-east-1", filters, err
-	}
-
-	if u.Scheme != "aws" {
-		return "", nil, fmt.Errorf("invalid scheme %s, must be aws://", u.Scheme)
-	}
-	if u.Host == "" {
-		return "", nil, errors.New("missing region must be aws://region")
-	}
-
-	filters, err := ParseFilterQueryString(queryString)
-	return u.Host, filters, err
-}
-
 // ParseFilterQueryString parses a query string into a map of filters.
 // Raises errors if duplicate or empty keys are provided.
 func ParseFilterQueryString(annotations string) (map[string]string, error) {
 	resultAnnotations := make(map[string]string)
-
-	// check if annotation is a URL with a custom scheme or just as query string
-	// isQueryString := true
-	// if u, err := url.Parse(annotations); err == nil && u.Scheme != "" {
-	// 	isQueryString = false
-	// }
 
 	parsedAnnot, err := url.ParseQuery(annotations)
 	if err != nil {

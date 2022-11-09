@@ -133,39 +133,6 @@ func Test_mergeStringMaps(t *testing.T) {
 	}
 }
 
-func Test_ParseFilterURL(t *testing.T) {
-	// check that the region is parsed correctly
-	region, _, err := ParseFilterURL("aws://us-east-1")
-	assert.NoError(t, err)
-	assert.Equal(t, "us-east-1", region)
-
-	// check that if the scheme is something other than aws we raise an error
-	_, _, err = ParseFilterURL("gcp://us-east-1")
-	assert.Error(t, err)
-
-	// check that if the region is empty we raise an error
-	_, _, err = ParseFilterURL("aws://")
-	assert.Error(t, err)
-	assert.Equal(t, "missing region must be aws://region", err.Error())
-
-	// check that the filters are parsed correctly
-	region, filters, err := ParseFilterURL("aws://us-east-1?foo=bar&baz=qux")
-	assert.NoError(t, err)
-	assert.Equal(t, "us-east-1", region)
-	assert.Equal(t, map[string]string{"foo": "bar", "baz": "qux"}, filters)
-
-	// check that the filters are parsed correctly when there is no region
-	_, _, err = ParseFilterURL("aws://?foo=bar&baz=qux")
-	assert.Error(t, err)
-
-	// if the scheme and host are omitted completely we should default to us-east-1
-	region, filters, err = ParseFilterURL("foo=bar&baz=qux")
-	assert.NoError(t, err)
-	assert.Equal(t, "us-east-1", region)
-	assert.Equal(t, map[string]string{"foo": "bar", "baz": "qux"}, filters)
-
-}
-
 func Test_ParseFilterQueryString(t *testing.T) {
 	ParseFilterQueryStringTests := []struct {
 		name        string

@@ -141,6 +141,7 @@ type Params struct {
 	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
+	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -219,6 +220,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
+	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
 
 	return cmd
 }
@@ -291,6 +293,10 @@ func initializeConfig(cmd *cobra.Command) error {
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
 
 	featureflags.SetFromEnv(os.Environ())
+
+	if p.CAPITemplatesNamespace == "" {
+		return errors.New("CAPI templates namespace not set")
+	}
 
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
@@ -445,21 +451,19 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	var estimator estimation.Estimator
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
 		log.Info("Cost estimation feature flag is enabled")
-
-		log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
-		region, filters, err := estimation.ParseFilterURL(p.CostEstimationFilters)
-		if err != nil {
-			return fmt.Errorf("could not parse cost estimation filters: %w", err)
-		}
-		log.Info("Parsed default cost estimation filters", "filters", filters)
-
-		// parse the cost estimation
-		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(region))
+		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
 		if err != nil {
 			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
 		} else {
 			svc := pricing.NewFromConfig(cfg)
 			pricer := estimation.NewAWSPricer(log, svc)
+
+			log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
+			filters, err := estimation.ParseFilterQueryString(p.CostEstimationFilters)
+			if err != nil {
+				return fmt.Errorf("could not parse cost estimation filters: %w", err)
+			}
+			log.Info("Parsed default cost estimation filters", "filters", filters)
 
 			estimator = estimation.NewAWSClusterEstimator(pricer, filters)
 		}
