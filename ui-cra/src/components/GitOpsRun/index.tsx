@@ -6,9 +6,7 @@ import { GitOpsRunTable } from './GitOpsRunTable';
 import NoRunsMessage from './NoRunsMessage';
 
 const GitOpsRun = () => {
-  const sessions = [
-    { name: 'session', cliVersion: '1', portForward: '8000', command: 'do it' },
-  ];
+  const sessions: any[] = [];
   return (
     <PageTemplate
       documentTitle="Run"

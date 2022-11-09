@@ -94,6 +94,10 @@ export const NavItem = styled(NavLink).attrs({
 
     svg {
       fill: ${primary};
+
+      &.gitops-run {
+        stroke: ${primary};
+      }
     }
   }
 `;
@@ -211,7 +215,7 @@ export const Navigation: FC = () => {
     {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,
-      icon: <GitOpsRun />,
+      icon: <GitOpsRun className="gitops-run" />,
       isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_RUN_UI,
     },
     {
