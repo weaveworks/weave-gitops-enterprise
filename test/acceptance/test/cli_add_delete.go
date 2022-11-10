@@ -57,7 +57,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 			templateFiles = []string{}
-			resumeReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
+			reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 		})
 
 		ginkgo.Context("[CLI] When Capi Templates are available in the cluster", func() {
@@ -73,7 +73,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s`,
+				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true`,
 					clusterName, namespace, k8version, controlPlaneMachineCount, workerMachineCount)
 				stdOut, stdErr = runGitopsCommand(cmd)
 
@@ -103,7 +103,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
 				})
 
-				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s,NAMESPACE=%s,KUBERNETES_VERSION=%s,CONTROL_PLANE_MACHINE_COUNT=%s,WORKER_MACHINE_COUNT=%s`,
+				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s,NAMESPACE=%s,KUBERNETES_VERSION=%s,CONTROL_PLANE_MACHINE_COUNT=%s,WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true`,
 					clusterName, namespace, k8version, controlPlaneMachineCount, workerMachineCount)
 				stdOut, stdErr = runGitopsCommand(cmd)
 
@@ -382,12 +382,12 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
 
-				suspendReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
+				reconcile("suspend", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters(capdClusters)
-				resumeReconciliation("git", "flux-system", GITOPS_DEFAULT_NAMESPACE)
+				reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 			})
 
 			ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("capd", "git"), func() {
@@ -413,7 +413,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						}
 					}
 
-					cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 `, clusterName, namespace, k8version) +
+					cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 --set INSTALL_CRDS=true`, clusterName, namespace, k8version) +
 						fmt.Sprintf(`%s --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s"`,
 							profileFlag, prBranch, prTitle, git_repository_url, prCommit, prDescription)
 					stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)

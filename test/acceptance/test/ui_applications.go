@@ -19,6 +19,7 @@ import (
 )
 
 type Application struct {
+	DefaultApp      bool
 	Type            string
 	Chart           string
 	Source          string
@@ -101,19 +102,29 @@ func AddKustomizationApp(application *pages.AddApplication, app Application) {
 		if source, _ := application.Source.Attribute("value"); source != "" {
 			gomega.Expect(source).Should(gomega.MatchRegexp(app.Source), "Application source GitRepository is incorrect")
 		}
+
+		if app.TargetNamespace != GITOPS_DEFAULT_NAMESPACE {
+			gomega.Eventually(application.CreateTargetNamespace.Check).Should(gomega.Succeed(), "Failed to select 'Create target namespace for kustomization'")
+		}
 	})
 }
 
 func AddHelmReleaseApp(profile *pages.ProfileInformation, app Application) {
 	ginkgo.By(fmt.Sprintf("And add %s profile/application from %s HelmRepository", app.Name, app.Chart), func() {
-		gomega.Eventually(profile.Name.Click, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", app.Name))
-		gomega.Eventually(profile.Checkbox.Check).Should(gomega.Succeed(), fmt.Sprintf("Failed to select the %s profile", app.Name))
+		gomega.Eventually(profile.Name.Click, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), fmt.Sprintf("Failed to find %s profile", app.Name))
 
-		gomega.Eventually(profile.Version.Click).Should(gomega.Succeed())
+		if app.DefaultApp {
+			gomega.Eventually(profile.Checkbox).Should(matchers.BeSelected(), fmt.Sprintf("Default profile %s is not selected as default", app.Name))
+		} else {
+			gomega.Eventually(profile.Checkbox).ShouldNot(matchers.BeSelected(), fmt.Sprintf("Profile %s should not be selected as default", app.Name))
+			gomega.Eventually(profile.Checkbox.Check).Should(gomega.Succeed(), fmt.Sprintf("Failed to select the %s profile", app.Name))
+		}
+
+		gomega.Eventually(profile.Version.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select expeted %s profile version", app.Version))
 		gomega.Eventually(pages.GetOption(webDriver, app.Version).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", app.Name, app.Version))
 
 		if app.Layer != "" {
-			gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(app.Layer))
+			gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(app.Layer), fmt.Sprintf("Failed to verify expeted %s profile layer", app.Layer))
 		}
 
 		gomega.Expect(profile.Namespace.SendKeys(app.TargetNamespace)).To(gomega.Succeed())
@@ -123,15 +134,21 @@ func AddHelmReleaseApp(profile *pages.ProfileInformation, app Application) {
 		gomega.Eventually(valuesYaml.Title.Text).Should(gomega.MatchRegexp(app.Name))
 		gomega.Eventually(valuesYaml.TextArea.Text).Should(gomega.MatchRegexp(strings.Split(app.ValuesRegex, ",")[0]))
 
-		text, _ := valuesYaml.TextArea.Text()
-		for i, val := range strings.Split(app.Values, ",") {
-			text = strings.ReplaceAll(text, strings.Split(app.ValuesRegex, ",")[i], val)
+		if app.DefaultApp {
+			// Default profiles values are updated via annotation template parameters
+			gomega.Eventually(valuesYaml.Cancel.Click).Should(gomega.Succeed())
+		} else {
+			// Update values.yaml for the profile
+			text, _ := valuesYaml.TextArea.Text()
+			for i, val := range strings.Split(app.Values, ",") {
+				text = strings.ReplaceAll(text, strings.Split(app.ValuesRegex, ",")[i], val)
+			}
+
+			gomega.Expect(valuesYaml.TextArea.Clear()).To(gomega.Succeed())
+			gomega.Expect(valuesYaml.TextArea.SendKeys(text)).To(gomega.Succeed(), fmt.Sprintf("Failed to change values.yaml for %s profile", app.Name))
+
+			gomega.Eventually(valuesYaml.Save.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to save values.yaml for %s profile", app.Name))
 		}
-
-		gomega.Expect(valuesYaml.TextArea.Clear()).To(gomega.Succeed())
-		gomega.Expect(valuesYaml.TextArea.SendKeys(text)).To(gomega.Succeed(), fmt.Sprintf("Failed to change values.yaml for %s profile", app.Name))
-
-		gomega.Eventually(valuesYaml.Save.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to save values.yaml for %s profile", app.Name))
 	})
 }
 
@@ -348,7 +365,7 @@ func verifyAppViolationsList(violatingApp Application, violationsData Applicatio
 		gomega.Expect(searchPage.Search.SendKeys("\uE007")).Should(gomega.Succeed()) // Send enter key code to do violations search in table
 		gomega.Eventually(func(g gomega.Gomega) int {
 			return ApplicationViolationsList.CountViolations()
-		}).Should(gomega.Equal(1), "There should be '1' Violation Message in the list after search")
+		}).Should(gomega.BeNumerically("~", 1, 2), "There should be '1' Violation Message in the list after search")
 		gomega.Eventually(ApplicationViolationsList.ViolationMessageValue.Text).Should(gomega.MatchRegexp(violationsData.ViolationMessage), "Failed to get the Violation Message Value in App violations List")
 		pages.WaitForPageToLoad(webDriver)
 	})
@@ -430,12 +447,18 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 		gitops := pages.GetGitOps(webDriver)
 		gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
-		pages.ClearFieldValue(gitops.BranchName)
-		gomega.Expect(gitops.BranchName.SendKeys(pullRequest.Branch)).To(gomega.Succeed())
-		pages.ClearFieldValue(gitops.PullRequestTile)
-		gomega.Expect(gitops.PullRequestTile.SendKeys(pullRequest.Title)).To(gomega.Succeed())
-		pages.ClearFieldValue(gitops.CommitMessage)
-		gomega.Expect(gitops.CommitMessage.SendKeys(pullRequest.Message)).To(gomega.Succeed())
+		if pullRequest.Branch != "" {
+			pages.ClearFieldValue(gitops.BranchName)
+			gomega.Expect(gitops.BranchName.SendKeys(pullRequest.Branch)).To(gomega.Succeed())
+		}
+		if pullRequest.Title != "" {
+			pages.ClearFieldValue(gitops.PullRequestTile)
+			gomega.Expect(gitops.PullRequestTile.SendKeys(pullRequest.Title)).To(gomega.Succeed())
+		}
+		if pullRequest.Message != "" {
+			pages.ClearFieldValue(gitops.CommitMessage)
+			gomega.Expect(gitops.CommitMessage.SendKeys(pullRequest.Message)).To(gomega.Succeed())
+		}
 
 		AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 		gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
@@ -491,7 +514,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for Applications page to be rendered", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Equal(1), "There should not be any application in application's table except flux-system")
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Equal(1), "There should not be any application in application's table except flux-system")
 				})
 
 				verifyAppInformation(applicationsPage, fluxSystem, mgmtCluster, "Ready")
@@ -1107,7 +1130,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 			})
-			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation", "management cluster"), func() {
+			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
@@ -1237,7 +1260,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			ginkgo.It("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf cluster"), func() {
+			ginkgo.It("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf-application"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
