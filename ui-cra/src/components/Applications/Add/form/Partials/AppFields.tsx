@@ -187,6 +187,12 @@ const AppFields: FC<{
       ...automation,
       [fieldName as string]: value,
     };
+    if (fieldName === 'target_namespace' && value === 'flux-system') {
+      currentAutomation[index] = {
+        ...currentAutomation[index],
+        createNamespace: false,
+      };
+    }
 
     setFormData({
       ...formData,
@@ -324,23 +330,38 @@ const AppFields: FC<{
         </>
       ) : null}
       {formData.source_type === 'GitRepository' || !clusters ? (
-        <Flex align={true}>
-          <FormControlLabel
-            value="top"
-            control={
-              <Checkbox
-                // Restore default paddingLeft for checkbox that is removed by the global style
-                // mui.FormControlLabel does some negative margin to align the checkbox with the label
-                style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
-                checked={createNamespace}
-                onChange={handleCreateNamespace}
-                inputProps={{ 'aria-label': 'controlled' }}
-                color="primary"
+        <Tooltip
+          title={'flux-system will already exist in the target cluster'}
+          placement="top-start"
+          disabled={
+            formData.clusterAutomations[index].target_namespace !==
+            'flux-system'
+          }
+        >
+          <div>
+            <Flex align={true}>
+              <FormControlLabel
+                value="top"
+                control={
+                  <Checkbox
+                    // Restore default paddingLeft for checkbox that is removed by the global style
+                    // mui.FormControlLabel does some negative margin to align the checkbox with the label
+                    style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
+                    checked={createNamespace}
+                    onChange={handleCreateNamespace}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                    color="primary"
+                    disabled={
+                      formData.clusterAutomations[index].target_namespace ===
+                      'flux-system'
+                    }
+                  />
+                }
+                label="Create target namespace for kustomization"
               />
-            }
-            label="Create target namespace for kustomization"
-          />
-        </Flex>
+            </Flex>
+          </div>
+        </Tooltip>
       ) : null}
     </AppFieldsWrapper>
   );
