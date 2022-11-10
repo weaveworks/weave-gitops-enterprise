@@ -212,25 +212,25 @@ func getAnnotation(annotations map[string]string, key string) string {
 }
 
 func getPolicyValidationParam(raw []byte) ([]*capiv1_proto.PolicyValidationParam, error) {
-	var arr []map[string]interface{}
-	err := json.Unmarshal(raw, &arr)
+	var paramsArr []map[string]interface{}
+	err := json.Unmarshal(raw, &paramsArr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal policy validation parameter, error: %v", err)
 	}
 
 	var parameters []*capiv1_proto.PolicyValidationParam
-	for i := range arr {
+	for i := range paramsArr {
 		param := capiv1_proto.PolicyValidationParam{
-			Name:     arr[i]["name"].(string),
-			Type:     arr[i]["type"].(string),
-			Required: arr[i]["required"].(bool),
+			Name:     paramsArr[i]["name"].(string),
+			Type:     paramsArr[i]["type"].(string),
+			Required: paramsArr[i]["required"].(bool),
 		}
 
-		if val, ok := arr[i]["config_ref"]; ok {
+		if val, ok := paramsArr[i]["config_ref"]; ok {
 			param.ConfigRef = val.(string)
 		}
 
-		val, err := getParamValue(arr[i]["value"])
+		val, err := getParamValue(paramsArr[i]["value"])
 		if err != nil {
 			return nil, err
 		}
