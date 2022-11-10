@@ -27,7 +27,7 @@ spec:
       - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
         value: "true"
 
-    # If the cluster not is configured with IAM roles for service accounts, the following
+    # If the cluster is not configured with IAM roles for service accounts, the following
     # line is required to provide the AWS credentials to the cost estimation service
     extraEnvVarsSecret: "aws-pricing-api-credentials"
 ```
@@ -87,7 +87,7 @@ In both cases the filters should be expressed in the form of a query string.
 
 ## Hiding the cost estimation button on certain templates
 
-You can disabled the cost-estimation button from appearing on certain templates by adding the `templates.weave.works/cost-estimation-enabled: "false"` annotation the `CAPITemplate`.
+You can disable the cost-estimation button from appearing on certain templates by adding the `templates.weave.works/cost-estimation-enabled: "false"` annotation to the `CAPITemplate`.
 
 # Appendix: Available filters
 
