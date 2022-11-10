@@ -9,8 +9,8 @@ const GitOpsRun = () => {
   const sessions: any[] = [];
   return (
     <PageTemplate
-      documentTitle="Run"
-      path={[{ label: 'Run', url: Routes.GitOpsRun }]}
+      documentTitle="GitOps Run"
+      path={[{ label: 'GitOps Run', url: Routes.GitOpsRun }]}
     >
       <ContentWrapper loading={false} errorMessage={undefined}>
         {sessions?.length ? (
