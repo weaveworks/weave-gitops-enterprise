@@ -82,13 +82,13 @@ func createLeafClusterSecret(leafClusterNamespace string, leafClusterkubeconfig 
 }
 
 func waitForLeafClusterAvailability(leafCluster string, status string) {
-	ginkgo.By("Verify GitopsCluster status after creating kubeconfig secret", func() {
+	ginkgo.By("Verify GitopsCluster status after kubeconfig secret creation", func() {
 		pages.NavigateToPage(webDriver, "Clusters")
 		clustersPage := pages.GetClustersPage(webDriver)
 		pages.WaitForPageToLoad(webDriver)
 		clusterInfo := clustersPage.FindClusterInList(leafCluster)
 
-		gomega.Eventually(clusterInfo.Status, ASSERTION_3MINUTE_TIME_OUT).Should(matchers.MatchText(status))
+		gomega.Eventually(clusterInfo.Status, ASSERTION_3MINUTE_TIME_OUT).Should(matchers.MatchText(status), "Failed to have expected leaf Cluster status: Ready")
 	})
 }
 
@@ -171,7 +171,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 			// leafClusterName := "wge-leaf-kind"
 			// leafClusterNamespace := "test-system"
 			ClusterLables := []string{"weave.works/flux: bootstrap", "weave.works/apps: backup"}
-			downloadedKubeconfigPath := getDownloadedKubeconfigPath(leafCluster.Name)
+			downloadedKubeconfigPath := path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", leafCluster.Name))
 
 			ginkgo.JustBeforeEach(func() {
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -188,6 +188,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafCluster.Name, "")
+				deleteNamespace([]string{leafCluster.Namespace})
 			})
 
 			ginkgo.It("Verify a cluster can be connected and dashboard is updated accordingly", ginkgo.Label("kind-gitops-cluster", "integration", "browser-logs"), func() {

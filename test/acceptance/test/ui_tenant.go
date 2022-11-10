@@ -11,8 +11,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func createTenant(tenatDefination string) string {
-	tenantYaml := path.Join("/tmp", "generated-tenant.yaml")
+func getTenantYamlPath() string {
+	return path.Join("/tmp", "generated-tenant.yaml")
+}
+
+func createTenant(tenatDefination string) {
+	tenantYaml := getTenantYamlPath()
 
 	// Export tenants resources to output file (required to delete tenant resources after test completion)
 	_, stdErr := runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
@@ -21,8 +25,6 @@ func createTenant(tenatDefination string) string {
 	// Create tenant resource using default kubeconfig
 	_, stdErr = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s", tenantYaml))
 	gomega.Expect(stdErr).Should(gomega.BeEmpty(), "Failed to create tenant resources")
-
-	return tenantYaml
 }
 
 func deleteTenants(tenantYamls []string) {
@@ -95,8 +97,8 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					Message: "Adding management kustomization Tenant applications",
 				}
 
-				tenantYaml := createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
-				defer deleteTenants([]string{tenantYaml})
+				defer deleteTenants([]string{getTenantYamlPath()})
+				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
 
 				// Add GitRepository source
 				sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -137,6 +139,11 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
+				})
+
+				ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
+					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				})
 
 				ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", podinfo.Name), func() {
@@ -195,8 +202,8 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					Message: "Adding management helm applications",
 				}
 
-				tenantYaml := createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
-				defer deleteTenants([]string{tenantYaml})
+				defer deleteTenants([]string{getTenantYamlPath()})
+				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
 
 				// Add HelmRepository source
 				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
@@ -243,6 +250,11 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
+				})
+
+				ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
+					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				})
 
 				ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", metallb.Name), func() {
@@ -352,7 +364,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				// Installing policy-agent to leaf cluster
 				installPolicyAgent(leafCluster.Name)
 				// Installing tenant resources to leaf cluster
-				_ = createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
 
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafCluster.Namespace, patSecret)
@@ -407,6 +419,13 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
+				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate application availability", func() {
+					useClusterContext(leafClusterContext)
+					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					useClusterContext(mgmtClusterContext)
+				})
+
 				ginkgo.By("And wait for leaf cluster podinfo application to be visibe on the dashboard", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
@@ -416,9 +435,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
 					searchPage := pages.GetSearchPage(webDriver)
-					gomega.Eventually(searchPage.SearchBtn.Click).Should(gomega.Succeed(), "Failed to click search buttton")
-					gomega.Expect(searchPage.Search.SendKeys(podinfo.Name)).Should(gomega.Succeed(), "Failed type application name in search field")
-					gomega.Expect(searchPage.Search.SendKeys("\uE007")).Should(gomega.Succeed()) // send enter key code to do application search in table
+					searchPage.SearchName(podinfo.Name)
 					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
 				})
 

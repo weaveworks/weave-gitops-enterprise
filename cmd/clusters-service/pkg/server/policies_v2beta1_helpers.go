@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/any"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
-func getPolicyParamValueV1(param pacv1.PolicyParameters, policyID string) (*anypb.Any, error) {
+func getPolicyParamValueV2beta1(param pacv2beta1.PolicyParameters, policyID string) (*anypb.Any, error) {
 	if param.Value == nil {
 		return nil, nil
 	}
@@ -65,7 +65,7 @@ func getPolicyParamValueV1(param pacv1.PolicyParameters, policyID string) (*anyp
 	return anyValue, nil
 }
 
-func toPolicyResponseV1(policyCRD pacv1.Policy, clusterName string) (*capiv1_proto.Policy, error) {
+func toPolicyResponseV2beta1(policyCRD pacv2beta1.Policy, clusterName string) (*capiv1_proto.Policy, error) {
 	policySpec := policyCRD.Spec
 
 	var policyLabels []*capiv1_proto.PolicyTargetLabel
@@ -82,12 +82,19 @@ func toPolicyResponseV1(policyCRD pacv1.Policy, clusterName string) (*capiv1_pro
 			Required: param.Required,
 			Type:     param.Type,
 		}
-		value, err := getPolicyParamValueV1(param, policySpec.ID)
+		value, err := getPolicyParamValueV2beta1(param, policySpec.ID)
 		if err != nil {
 			return nil, err
 		}
 		policyParam.Value = value
 		policyParams = append(policyParams, policyParam)
+	}
+	var policyStandards []*capiv1_proto.PolicyStandard
+	for _, standard := range policySpec.Standards {
+		policyStandards = append(policyStandards, &capiv1_proto.PolicyStandard{
+			Id:       standard.ID,
+			Controls: standard.Controls,
+		})
 	}
 	policy := &capiv1_proto.Policy{
 		Name:        policySpec.Name,
@@ -98,6 +105,7 @@ func toPolicyResponseV1(policyCRD pacv1.Policy, clusterName string) (*capiv1_pro
 		Category:    policySpec.Category,
 		Tags:        policySpec.Tags,
 		Severity:    policySpec.Severity,
+		Standards:   policyStandards,
 		Targets: &capiv1_proto.PolicyTargets{
 			Kinds:      policySpec.Targets.Kinds,
 			Namespaces: policySpec.Targets.Namespaces,

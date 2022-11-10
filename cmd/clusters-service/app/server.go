@@ -34,8 +34,8 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
@@ -140,6 +140,8 @@ type Params struct {
 	DevMode                           bool                      `mapstructure:"dev-mode"`
 	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
+	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
+	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -177,6 +179,9 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		},
 	}
 
+	// Have to declare a flag for viper to correctly read and then bind environment variables too
+	// FIXME: why? We don't actually use the flags in helm templates etc.
+	//
 	cmd.Flags().String("entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
 	cmd.Flags().String("entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
 	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
@@ -214,6 +219,18 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
+	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
+	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
+
+	// Hide some flags from the help output
+	err := cmd.Flags().MarkHidden("cost-estimation-filters")
+	if err != nil {
+		log.Error(err, "error marking cost-estimation-filters flag as hidden")
+	}
+	err = cmd.Flags().MarkHidden("cost-estimation-api-region")
+	if err != nil {
+		log.Error(err, "error marking cost-estimation-api-region flag as hidden")
+	}
 
 	return cmd
 }
@@ -379,8 +396,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
-		pacv1.AddToScheme,
 		pacv2beta1.AddToScheme,
+		pacv2beta2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
@@ -407,8 +424,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
-	runtimeUtil.Must(pacv1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(pacv2beta2.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
@@ -444,20 +461,22 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	var estimator estimation.Estimator
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
 		log.Info("Cost estimation feature flag is enabled")
-		cfg, err := awsconfig.LoadDefaultConfig(ctx)
+		if p.CostEstimationFilters == "" {
+			return fmt.Errorf("cost estimation filters cannot be empty")
+		}
+		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
 		if err != nil {
 			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
 		} else {
 			svc := pricing.NewFromConfig(cfg)
 			pricer := estimation.NewAWSPricer(log, svc)
 
-			// FIXME: should come out of the helm values or a configmap etc.
-			filters := map[string]string{
-				"operatingSystem": "Linux",
-				"tenancy":         "Dedicated",
-				"capacitystatus":  "UnusedCapacityReservation",
-				"operation":       "RunInstances",
+			log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
+			filters, err := estimation.ParseFilterQueryString(p.CostEstimationFilters)
+			if err != nil {
+				return fmt.Errorf("could not parse cost estimation filters: %w", err)
 			}
+			log.Info("Parsed default cost estimation filters", "filters", filters)
 
 			estimator = estimation.NewAWSClusterEstimator(pricer, filters)
 		}
