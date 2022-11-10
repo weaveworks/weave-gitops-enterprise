@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 const { xxs, xs, small, medium, base, none } = theme.spacing;
 const { neutral10, neutral20, neutral30, black, primary } = theme.colors;
-
+console.log(theme.colors)
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
@@ -162,7 +162,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     modeIcon: {
       fontSize: theme.fontSizes.large,
       marginRight: xxs,
-      color: '#0000008a',
+      color: neutral30,
     },
   }),
 );
@@ -191,7 +191,7 @@ export const ModeWrapper = styled.div`
   display: inline-flex;
   margin-right: ${xs};
   svg{
-    color: #0000008a;
+    color: ${neutral30};
     font-size: 20px;
     margin-right: 4px;
   }
