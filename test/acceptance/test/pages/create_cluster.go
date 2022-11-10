@@ -42,12 +42,6 @@ type ValuesYaml struct {
 	TextArea *agouti.Selection
 }
 
-type Preview struct {
-	Title *agouti.Selection
-	Text  *agouti.Selection
-	Close *agouti.Selection
-}
-
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
@@ -75,7 +69,6 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 }
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
-	gomega.Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(matchers.BeVisible())
 	return ValuesYaml{
 		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
 		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),
@@ -106,12 +99,4 @@ func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
 
 func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
-}
-
-func GetPreview(webDriver *agouti.Page) Preview {
-	return Preview{
-		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
-		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  code`),
-		Close: webDriver.Find(`div[class*=MuiDialogTitle-root] button`),
-	}
 }
