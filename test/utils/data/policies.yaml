@@ -1,4 +1,4 @@
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   name: weave.policies.container-running-as-root-acceptance-test
@@ -17,6 +17,7 @@ spec:
     ```
     https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   category: weave.categories.pod-security
+  provider: kubernetes
   severity: high
   targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}  
   tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
@@ -100,7 +101,7 @@ spec:
     	kinds[_] = kind
     }
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   name: weave.policies.containers-read-only-root-filesystem-acceptance-test
@@ -121,6 +122,7 @@ spec:
     ```
     https://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems
   category: weave.categories.pod-security
+  provider: kubernetes
   severity: high
   targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
   tags: [mitre-attack, nist800-190]
@@ -176,7 +178,7 @@ spec:
       kinds[_] = kind
     }
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   name: weave.policies.container-image-pull-policy-acceptance-test
@@ -201,6 +203,7 @@ spec:
     ```
     https://kubernetes.io/docs/concepts/configuration/overview/#container-images
   category: weave.categories.software-supply-chain
+  provider: kubernetes
   severity: medium
   targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet,
       StatefulSet, CronJob]}
@@ -256,7 +259,7 @@ spec:
       kinds[_] = kind
     }
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   name: weave.policies.containers-running-with-privilege-escalation-acceptance-test
@@ -282,6 +285,7 @@ spec:
     ```
     https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
   category: weave.categories.pod-security
+  provider: kubernetes
   severity: high
   targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}  
   tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default, soc2-type1]
