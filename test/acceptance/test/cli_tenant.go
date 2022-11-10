@@ -83,7 +83,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.Context("[CLI] When input tenant definition yaml is available", ginkgo.Ordered, func() {
 
 			ginkgo.JustBeforeEach(func() {
-				tenantYaml = path.Join("/tmp", "generated-tenant.yaml")
+				tenantYaml = getTenantYamlPath()
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -154,7 +154,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify tenant can only install the application from allowed repositories", ginkgo.Label("tenant"), func() {
-				tenantYaml = createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
 
 				// Adding not allowed git repository source
 				namespace := "dev-system"
@@ -179,7 +179,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				bootstrapLabel := "bootstrap"
 				leafClusterkubeconfig := "wge-leaf-tenant-kind-kubeconfig"
 
-				tenantYaml = createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
 				createPATSecret(leafCluster.Namespace, patSecret)
 				defer deleteSecret([]string{patSecret}, leafCluster.Namespace)
 				clusterBootstrapCopnfig := createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)

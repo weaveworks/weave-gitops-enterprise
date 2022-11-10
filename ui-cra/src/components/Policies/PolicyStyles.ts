@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 const { xxs, xs, small, medium, base, none } = theme.spacing;
 const { neutral10, neutral20, neutral30, black, primary } = theme.colors;
-
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
@@ -23,7 +22,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       fontWeight: 400,
       fontSize: theme.fontSizes.medium,
       color: black,
-      marginLeft: xs,
+      marginTop: xs,
     },
     chip: {
       background: neutral10,
@@ -61,7 +60,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       overflow: 'scroll',
     },
     severityIcon: {
-      fontSize: theme.fontSizes.small,
+      fontSize: theme.fontSizes.large,
       marginRight: xxs,
     },
     severityLow: {
@@ -130,13 +129,14 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     occurrencesList: {
       paddingLeft: wtheme.spacing(1),
+      marginLeft: xs,
     },
     messageWrape: {
       whiteSpace: 'normal',
     },
     labelText: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
+      fontSize: theme.fontSizes.medium,
       color: neutral30,
     },
     parameterWrapper: {
@@ -153,6 +153,15 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       alignItems: 'start',
       flexDirection: 'column',
       width: '100%',
+    },
+    inlineFlex:{
+      display: 'inline-flex',
+      marginRight: xs,
+    },
+    modeIcon: {
+      fontSize: theme.fontSizes.large,
+      marginRight: xxs,
+      color: neutral30,
     },
   }),
 );
@@ -173,4 +182,19 @@ export const SpaceBetween = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+`;
+
+export const ModeWrapper = styled.div`
+  align-items: center;
+  justify-content: flex-start;
+  display: inline-flex;
+  margin-right: ${xs};
+  svg{
+    color: ${neutral30};
+    font-size: 20px;
+    margin-right: 4px;
+  }
+  span{
+    text-transform: capitalize;
+  }
 `;
