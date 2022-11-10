@@ -22,11 +22,11 @@ type NavbarwebDriver struct {
 func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 	navbar := NavbarwebDriver{
 		Title:        webDriver.Find(`nav div[title="Home"]`),
-		Clusters:     webDriver.Find(`nav a[href="/clusters"]`),
-		Templates:    webDriver.Find(`nav a[href="/templates"]`),
-		Applications: webDriver.Find(`nav a[href="/applications"]`),
-		Policies:     webDriver.Find(`nav a[href="/policies"]`),
-		Violations:   webDriver.Find(`nav a[href="/clusters/violations"]`),
+		Clusters:     webDriver.Find(`nav .nav-items a[href="/clusters"]`),
+		Templates:    webDriver.Find(`nav .nav-items a[href="/templates"]`),
+		Applications: webDriver.Find(`nav .nav-items a[href="/applications"]`),
+		Policies:     webDriver.Find(`nav .nav-items a[href="/policies"]`),
+		Violations:   webDriver.Find(`nav .nav-items a[href="/clusters/violations"]`),
 	}
 
 	return &navbar
