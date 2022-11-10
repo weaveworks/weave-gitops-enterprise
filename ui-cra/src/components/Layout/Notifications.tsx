@@ -10,6 +10,9 @@ import { Box, Collapse } from '@material-ui/core';
 const { base } = theme.spacing;
 
 const AlertWrapper = styled(Alert)`
+  .MuiAlert-standardSuccess {
+    color: red;
+  }
   padding: ${base};
   margin: 0 ${base} ${base} ${base};
   border-radius: 10px;

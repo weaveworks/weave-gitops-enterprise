@@ -6,7 +6,10 @@ import {
   createStyles,
   makeStyles,
   IconButton,
+  Box,
+  Collapse,
 } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
 import {
   ArrowBackIosOutlined,
   ArrowForwardIosOutlined,
@@ -47,9 +50,13 @@ const useAlertStyles = makeStyles(() =>
   }),
 );
 
-const AlertWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
+const AlertWrapper = styled(Alert)`
+  .MuiAlert-action {
+    display: inline;
+  }
+  // display: flex;
+  // justify-content: space-between;
+  // align-items: center;
   padding: ${base} ${medium};
   margin: 0 ${base} ${base} ${base};
   border-radius: 10px;
@@ -94,53 +101,96 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
     return null;
   }
 
-  return show ? (
-    <AlertWrapper id="alert-list-errors">
-      {!!filteredErrors[index] && (
-        <AlertList>
-          <>
-            <FlexCenter>
-              <ErrorIcon className={classes.alertIcon} />
-              <div className={classes.errorMessage} data-testid="error-message">
-                {filteredErrors[index].clusterName}:&nbsp;
-                {filteredErrors[index].message}
-              </div>
-            </FlexCenter>
+  return (
+    <Box id="alert-list-errors">
+      <Collapse in={show}>
+        {!!filteredErrors[index] && (
+          <AlertWrapper severity="error" onClose={() => setShow(false)}>
+            <AlertList>
+              <FlexCenter>
+                <ErrorIcon className={classes.alertIcon} />
+                <div
+                  className={classes.errorMessage}
+                  data-testid="error-message"
+                >
+                  {filteredErrors[index].clusterName}:&nbsp;
+                  {filteredErrors[index].message}
+                </div>
+              </FlexCenter>
+              <FlexCenter>
+                <Button
+                  disabled={index === 0}
+                  className={classes.navigationBtn}
+                  data-testid="prevError"
+                  onClick={() => setIndex(currIndex => currIndex - 1)}
+                >
+                  <ArrowBackIosOutlined className={classes.arrowIcon} />
+                </Button>
+                <span className={classes.errosCount} data-testid="errorsCount">
+                  {filteredErrors.length}
+                </span>
+                <Button
+                  disabled={filteredErrors.length === index + 1}
+                  className={classes.navigationBtn}
+                  id="nextError"
+                  data-testid="nextError"
+                  onClick={() => setIndex(currIndex => currIndex + 1)}
+                >
+                  <ArrowForwardIosOutlined className={classes.arrowIcon} />
+                </Button>
+              </FlexCenter>
+            </AlertList>
+          </AlertWrapper>
+        )}
+      </Collapse>
+    </Box>
+  );
+  // show ? (
+  // <AlertWrapper id="alert-list-errors">
+  //   {!!filteredErrors[index] && (
+  //       <>
+  //         <FlexCenter>
+  //           <ErrorIcon className={classes.alertIcon} />
+  //           <div className={classes.errorMessage} data-testid="error-message">
+  //             {filteredErrors[index].clusterName}:&nbsp;
+  //             {filteredErrors[index].message}
+  //           </div>
+  //         </FlexCenter>
 
-            <FlexCenter>
-              <Button
-                disabled={index === 0}
-                className={classes.navigationBtn}
-                data-testid="prevError"
-                onClick={() => setIndex(currIndex => currIndex - 1)}
-              >
-                <ArrowBackIosOutlined className={classes.arrowIcon} />
-              </Button>
-              <span className={classes.errosCount} data-testid="errorsCount">
-                {filteredErrors.length}
-              </span>
-              <Button
-                disabled={filteredErrors.length === index + 1}
-                className={classes.navigationBtn}
-                id="nextError"
-                data-testid="nextError"
-                onClick={() => setIndex(currIndex => currIndex + 1)}
-              >
-                <ArrowForwardIosOutlined className={classes.arrowIcon} />
-              </Button>
-            </FlexCenter>
-          </>
-        </AlertList>
-      )}
-      <IconButton
-        style={{
-          paddingTop: 0,
-          paddingRight: 0,
-        }}
-        onClick={() => setShow(false)}
-      >
-        <Close />
-      </IconButton>
-    </AlertWrapper>
-  ) : null;
+  //         <FlexCenter>
+  //           <Button
+  //             disabled={index === 0}
+  //             className={classes.navigationBtn}
+  //             data-testid="prevError"
+  //             onClick={() => setIndex(currIndex => currIndex - 1)}
+  //           >
+  //             <ArrowBackIosOutlined className={classes.arrowIcon} />
+  //           </Button>
+  //           <span className={classes.errosCount} data-testid="errorsCount">
+  //             {filteredErrors.length}
+  //           </span>
+  //           <Button
+  //             disabled={filteredErrors.length === index + 1}
+  //             className={classes.navigationBtn}
+  //             id="nextError"
+  //             data-testid="nextError"
+  //             onClick={() => setIndex(currIndex => currIndex + 1)}
+  //           >
+  //             <ArrowForwardIosOutlined className={classes.arrowIcon} />
+  //           </Button>
+  //         </FlexCenter>
+  //       </>
+  //   )}
+  //   <IconButton
+  //     style={{
+  //       paddingTop: 0,
+  //       paddingRight: 0,
+  //     }}
+  //     onClick={() => setShow(false)}
+  //   >
+  //     <Close />
+  //   </IconButton>
+  // </AlertWrapper>
+
+  // ) : null;
 };
