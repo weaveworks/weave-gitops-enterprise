@@ -9,12 +9,14 @@ import (
 )
 
 type ClusterInformation struct {
-	Checkbox   *agouti.Selection
-	Name       *agouti.Selection
-	Dashboards *agouti.Selection
-	Type       *agouti.Selection
-	Namespace  *agouti.Selection
-	Status     *agouti.Selection
+	Checkbox    *agouti.Selection
+	Name        *agouti.Selection
+	Dashboards  *agouti.Selection
+	Type        *agouti.Selection
+	Namespace   *agouti.Selection
+	Status      *agouti.Selection
+	Message     *agouti.Selection
+	EditCluster *agouti.Selection
 }
 
 type ClusterStatus struct {
@@ -72,12 +74,14 @@ func WaitForPageToLoad(webDriver *agouti.Page) {
 func (c ClustersPage) FindClusterInList(clusterName string) *ClusterInformation {
 	cluster := c.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
 	return &ClusterInformation{
-		Checkbox:   cluster.FindByXPath(`td[1]`).Find("input"),
-		Name:       cluster.FindByXPath(`td[2]`),
-		Dashboards: cluster.FindByXPath(`td[3]`),
-		Type:       cluster.FindByXPath(`td[4]//*[@role="img"]`),
-		Namespace:  cluster.FindByXPath(`td[5]`),
-		Status:     cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
+		Checkbox:    cluster.FindByXPath(`td[1]`).Find("input"),
+		Name:        cluster.FindByXPath(`td[2]`),
+		Dashboards:  cluster.FindByXPath(`td[3]`),
+		Type:        cluster.FindByXPath(`td[4]//*[@role="img"]`),
+		Namespace:   cluster.FindByXPath(`td[5]`),
+		Status:      cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
+		Message:     cluster.FindByXPath(`td[7]`),
+		EditCluster: cluster.FindByXPath(`td[8]//button`),
 	}
 }
 

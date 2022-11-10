@@ -4,7 +4,7 @@ metadata:
   name: cluster-template-development-{{.Count}}
   namespace: default
   annotations:
-    capi.weave.works/profile-1: '{"name": "metallb", "version": "0.0.2", "values": "prometheus.namespace: ${NAMESPACE}"}'
+    capi.weave.works/profile-1: '{"name": "cert-manager", "values": "installCRDs: ${INSTALL_CRDS}"}'
 spec:
   description: This is the std. CAPD template {{.Count}}
   params:
@@ -21,6 +21,9 @@ spec:
       options: ["1", "2", "3"]
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
+    - name: INSTALL_CRDS
+      description: Install crds for cert-manager
+      options: ["true", "false"]
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
