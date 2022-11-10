@@ -95,7 +95,7 @@ The following are out of scope for the cost estimation feature and may produce e
 
 - EKS clusters, managed and unmanaged
 - Auto Scaling groups of spot EC2 instances
-- CAPI ClusterClasse
+- CAPI ClusterClasses
 
 Things that are ignored and are not included in the estimate:
 
