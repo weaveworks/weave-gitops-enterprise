@@ -140,6 +140,8 @@ type Params struct {
 	DevMode                           bool                      `mapstructure:"dev-mode"`
 	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
+	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
+	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -177,6 +179,9 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		},
 	}
 
+	// Have to declare a flag for viper to correctly read and then bind environment variables too
+	// FIXME: why? We don't actually use the flags in helm templates etc.
+	//
 	cmd.Flags().String("entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
 	cmd.Flags().String("entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
 	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
@@ -214,6 +219,18 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
+	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
+	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
+
+	// Hide some flags from the help output
+	err := cmd.Flags().MarkHidden("cost-estimation-filters")
+	if err != nil {
+		log.Error(err, "error marking cost-estimation-filters flag as hidden")
+	}
+	err = cmd.Flags().MarkHidden("cost-estimation-api-region")
+	if err != nil {
+		log.Error(err, "error marking cost-estimation-api-region flag as hidden")
+	}
 
 	return cmd
 }
@@ -444,20 +461,22 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	var estimator estimation.Estimator
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
 		log.Info("Cost estimation feature flag is enabled")
-		cfg, err := awsconfig.LoadDefaultConfig(ctx)
+		if p.CostEstimationFilters == "" {
+			return fmt.Errorf("cost estimation filters cannot be empty")
+		}
+		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
 		if err != nil {
 			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
 		} else {
 			svc := pricing.NewFromConfig(cfg)
 			pricer := estimation.NewAWSPricer(log, svc)
 
-			// FIXME: should come out of the helm values or a configmap etc.
-			filters := map[string]string{
-				"operatingSystem": "Linux",
-				"tenancy":         "Dedicated",
-				"capacitystatus":  "UnusedCapacityReservation",
-				"operation":       "RunInstances",
+			log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
+			filters, err := estimation.ParseFilterQueryString(p.CostEstimationFilters)
+			if err != nil {
+				return fmt.Errorf("could not parse cost estimation filters: %w", err)
 			}
+			log.Info("Parsed default cost estimation filters", "filters", filters)
 
 			estimator = estimation.NewAWSClusterEstimator(pricer, filters)
 		}

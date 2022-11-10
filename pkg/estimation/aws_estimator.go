@@ -332,7 +332,7 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 			additionalFilters := map[string]string{}
 			annotations := u.GetAnnotations()
 			if annot, ok := annotations["templates.weave.works/estimation-filters"]; ok {
-				additionalFilters, err = parseFilterAnnotations(annot)
+				additionalFilters, err = ParseFilterQueryString(annot)
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse estimation-filters annotations %q: %w", u.GetName(), err)
 				}
