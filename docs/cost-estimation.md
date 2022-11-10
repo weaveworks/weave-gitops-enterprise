@@ -89,6 +89,24 @@ In both cases the filters should be expressed in the form of a query string.
 
 You can disable the cost-estimation button from appearing on certain templates by adding the `templates.weave.works/cost-estimation-enabled: "false"` annotation to the `CAPITemplate`.
 
+## Things that are out of scope
+
+The following are out of scope for the cost estimation feature and may produce errors or inaccurate estimates if you try to estimate templates that use them:
+
+- EKS clusters, managed and unmanaged
+- Auto Scaling groups of spot EC2 instances
+- CAPI ClusterClasse
+
+Things that are ignored and are not included in the estimate:
+
+- Other cluster resources like:
+  - NAT gateways
+  - Load balancers
+  - Databases
+  - Storage
+  - etc
+- MachinePool `minSize` and `maxSize` are ignored, the estimate is based on the number of `replicas`
+
 # Appendix: Available filters
 
 This is a list of the available filters.
