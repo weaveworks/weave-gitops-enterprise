@@ -183,6 +183,9 @@ function setup {
 
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
   
+   # Wait for cluster to settle
+  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
+  
   # Install ingress-nginx for tls termination 
   helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
     --namespace ingress-nginx --create-namespace \
@@ -221,15 +224,16 @@ function setup {
       aws ec2 create-key-pair --key-name weave-gitops-pesto --region us-east-1 --output text > ~/.ssh/weave-gitops-pesto.pem
     fi
     clusterctl init --infrastructure aws
+    kubectl wait --for=condition=Ready --timeout=300s -n capa-system --all pod 
   elif [ "$CAPI_PROVIDER" == "capg" ]; then
     export GCP_B64ENCODED_CREDENTIALS=$( echo ${GCP_SA_KEY} | base64 | tr -d '\n' )
     clusterctl init --infrastructure gcp
+    kubectl wait --for=condition=Ready --timeout=300s -n capg-system --all pod 
   else
-    clusterctl init --infrastructure docker    
+    clusterctl init --infrastructure docker   
+    kubectl wait --for=condition=Ready --timeout=300s -n capd-system --all pod 
   fi
 
-  # Wait for cluster to settle
-  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A
 
   exit 0
