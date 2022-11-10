@@ -141,6 +141,11 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
+				ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
+					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				})
+
 				ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", podinfo.Name), func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
@@ -245,6 +250,11 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
 					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
+				})
+
+				ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
+					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				})
 
 				ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", metallb.Name), func() {
@@ -409,6 +419,13 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
+				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate application availability", func() {
+					useClusterContext(leafClusterContext)
+					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					useClusterContext(mgmtClusterContext)
+				})
+
 				ginkgo.By("And wait for leaf cluster podinfo application to be visibe on the dashboard", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
@@ -418,9 +435,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
 					searchPage := pages.GetSearchPage(webDriver)
-					gomega.Eventually(searchPage.SearchBtn.Click).Should(gomega.Succeed(), "Failed to click search buttton")
-					gomega.Expect(searchPage.Search.SendKeys(podinfo.Name)).Should(gomega.Succeed(), "Failed type application name in search field")
-					gomega.Expect(searchPage.Search.SendKeys("\uE007")).Should(gomega.Succeed()) // send enter key code to do application search in table
+					searchPage.SearchName(podinfo.Name)
 					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
 				})
 
