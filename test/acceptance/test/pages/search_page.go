@@ -45,3 +45,9 @@ func (s SearchPage) SelectFilter(filterType string, filterID string) {
 
 	gomega.Expect(s.FilterBtn.Click()).Should(gomega.Succeed(), "Failed to close filter dialog")
 }
+
+func (s SearchPage) SearchName(searchWord string) {
+	gomega.Eventually(s.SearchBtn.Click).Should(gomega.Succeed(), "Failed to click search buttton")
+	gomega.Expect(s.Search.SendKeys(searchWord)).Should(gomega.Succeed(), "Failed to type violation name in search field")
+	gomega.Expect(s.Search.SendKeys("\uE007")).Should(gomega.Succeed()) // send enter key code to do application search in table
+}

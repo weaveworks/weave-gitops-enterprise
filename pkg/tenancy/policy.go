@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
@@ -44,7 +44,7 @@ func validatePolicyRepoKind(kind string) error {
 	return fmt.Errorf("invalid repository kind: %s", kind)
 }
 
-func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs, ociURLs []string) ([]pacv2beta1.PolicyParameters, error) {
+func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs, ociURLs []string) ([]pacv2beta2.PolicyParameters, error) {
 	gitBytes, err := json.Marshal(gitURLs)
 	if err != nil {
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
@@ -65,7 +65,7 @@ func generatePolicyRepoParams(gitURLs, bucketEndpoints, helmURLs, ociURLs []stri
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
 	}
 
-	return []pacv2beta1.PolicyParameters{
+	return []pacv2beta2.PolicyParameters{
 		{
 			Name: "git_urls",
 			Type: "array",

@@ -10,7 +10,7 @@ import (
 
 	"github.com/fluxcd/pkg/runtime/patch"
 	"github.com/hashicorp/go-multierror"
-	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -33,7 +33,7 @@ var (
 	namespaceTypeMeta      = typeMeta("Namespace", "v1")
 	serviceAccountTypeMeta = typeMeta("ServiceAccount", "v1")
 	roleBindingTypeMeta    = typeMeta("RoleBinding", "rbac.authorization.k8s.io/v1")
-	policyTypeMeta         = typeMeta(pacv2beta1.PolicyKind, pacv2beta1.GroupVersion.String())
+	policyTypeMeta         = typeMeta(pacv2beta2.PolicyKind, pacv2beta2.GroupVersion.String())
 	roleTypeMeta           = typeMeta("Role", "rbac.authorization.k8s.io/v1")
 )
 
@@ -265,8 +265,8 @@ func upsert(ctx context.Context, kubeClient client.Client, obj client.Object, ou
 
 			fmt.Fprintf(out, "%s updated\n", objectID)
 		}
-	case *pacv2beta1.Policy:
-		existingPolicy := existing.(*pacv2beta1.Policy)
+	case *pacv2beta2.Policy:
+		existingPolicy := existing.(*pacv2beta2.Policy)
 
 		var changed bool
 
@@ -534,22 +534,23 @@ func newRole(name, namespace string, labels map[string]string, rules []rbacv1.Po
 	}
 }
 
-func newAllowedRepositoriesPolicy(tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) (*pacv2beta1.Policy, error) {
+func newAllowedRepositoriesPolicy(tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) (*pacv2beta2.Policy, error) {
 	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-repositories", tenantName)
-	policy := &pacv2beta1.Policy{
+	policy := &pacv2beta2.Policy{
 		TypeMeta: policyTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   policyName,
 			Labels: labels,
 		},
-		Spec: pacv2beta1.PolicySpec{
+		Spec: pacv2beta2.PolicySpec{
 			ID:          policyName,
 			Name:        fmt.Sprintf("%s allowed repositories", tenantName),
 			Category:    "weave.categories.tenancy",
 			Severity:    "high",
 			Description: "Controls the allowed repositories to be used as sources",
-			Standards:   []pacv2beta1.PolicyStandard{},
-			Targets: pacv2beta1.PolicyTargets{
+			Standards:   []pacv2beta2.PolicyStandard{},
+			Provider:    pacv2beta2.PolicyKubernetesProvider,
+			Targets: pacv2beta2.PolicyTargets{
 				Labels:     []map[string]string{},
 				Kinds:      policyRepoKinds,
 				Namespaces: namespaces,
@@ -584,7 +585,7 @@ func newAllowedRepositoriesPolicy(tenantName string, namespaces []string, allowe
 	return policy, nil
 }
 
-func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) (*pacv2beta1.Policy, error) {
+func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) (*pacv2beta2.Policy, error) {
 	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-clusters", tenantName)
 
 	var clusterSecrets []string
@@ -598,27 +599,28 @@ func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClu
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
 	}
 
-	policy := &pacv2beta1.Policy{
+	policy := &pacv2beta2.Policy{
 		TypeMeta: policyTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   policyName,
 			Labels: labels,
 		},
-		Spec: pacv2beta1.PolicySpec{
+		Spec: pacv2beta2.PolicySpec{
 			ID:          policyName,
 			Name:        fmt.Sprintf("%s allowed clusters", tenantName),
 			Category:    "weave.categories.tenancy",
 			Severity:    "high",
 			Description: "Controls the allowed clusters to be added",
-			Standards:   []pacv2beta1.PolicyStandard{},
-			Targets: pacv2beta1.PolicyTargets{
+			Standards:   []pacv2beta2.PolicyStandard{},
+			Targets: pacv2beta2.PolicyTargets{
 				Labels:     []map[string]string{},
 				Kinds:      []string{policyClustersKind, policyKustomizationKind},
 				Namespaces: namespaces,
 			},
-			Code: clusterPolicyCode,
-			Tags: []string{"tenancy"},
-			Parameters: []pacv2beta1.PolicyParameters{
+			Code:     clusterPolicyCode,
+			Tags:     []string{"tenancy"},
+			Provider: pacv2beta2.PolicyKubernetesProvider,
+			Parameters: []pacv2beta2.PolicyParameters{
 				{
 					Name: "cluster_secrets",
 					Type: "array",
@@ -633,7 +635,7 @@ func newAllowedClustersPolicy(tenantName string, namespaces []string, allowedClu
 	return policy, nil
 }
 
-func newAllowedApplicationDeployPolicy(tenantName, serviceAccountName string, namespaces []string, labels map[string]string) (*pacv2beta1.Policy, error) {
+func newAllowedApplicationDeployPolicy(tenantName, serviceAccountName string, namespaces []string, labels map[string]string) (*pacv2beta2.Policy, error) {
 	policyName := fmt.Sprintf("weave.policies.tenancy.%s-allowed-application-deploy", tenantName)
 
 	namespacesBytes, err := json.Marshal(namespaces)
@@ -646,27 +648,28 @@ func newAllowedApplicationDeployPolicy(tenantName, serviceAccountName string, na
 		return nil, fmt.Errorf("error while setting policy parameters values: %w", err)
 	}
 
-	policy := &pacv2beta1.Policy{
+	policy := &pacv2beta2.Policy{
 		TypeMeta: policyTypeMeta,
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   policyName,
 			Labels: labels,
 		},
-		Spec: pacv2beta1.PolicySpec{
+		Spec: pacv2beta2.PolicySpec{
 			ID:          policyName,
 			Name:        fmt.Sprintf("%s allowed application deploy", tenantName),
 			Category:    "weave.categories.tenancy",
 			Severity:    "high",
 			Description: "Determines which helm release and kustomization can be used in a tenant",
-			Standards:   []pacv2beta1.PolicyStandard{},
-			Targets: pacv2beta1.PolicyTargets{
+			Standards:   []pacv2beta2.PolicyStandard{},
+			Targets: pacv2beta2.PolicyTargets{
 				Labels:     []map[string]string{},
 				Kinds:      []string{policyHelmReleaseKind, policyKustomizationKind},
 				Namespaces: namespaces,
 			},
-			Code: applicationPolicyCode,
-			Tags: []string{"tenancy"},
-			Parameters: []pacv2beta1.PolicyParameters{
+			Code:     applicationPolicyCode,
+			Tags:     []string{"tenancy"},
+			Provider: pacv2beta2.PolicyKubernetesProvider,
+			Parameters: []pacv2beta2.PolicyParameters{
 				{
 					Name: "namespaces",
 					Type: "array",

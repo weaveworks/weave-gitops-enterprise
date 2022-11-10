@@ -11,14 +11,15 @@ type AddApplicationPage struct {
 }
 
 type AddApplication struct {
-	Name              *agouti.Selection
-	Namespace         *agouti.Selection
-	TargetNamespace   *agouti.Selection
-	Path              *agouti.Selection
-	Source            *agouti.Selection
-	Cluster           *agouti.Selection
-	RemoveApplication *agouti.Selection
-	SourceHref        *agouti.Selection
+	Name                  *agouti.Selection
+	Namespace             *agouti.Selection
+	TargetNamespace       *agouti.Selection
+	Path                  *agouti.Selection
+	Source                *agouti.Selection
+	Cluster               *agouti.Selection
+	RemoveApplication     *agouti.Selection
+	SourceHref            *agouti.Selection
+	CreateTargetNamespace *agouti.Selection
 }
 
 type GitOps struct {
@@ -47,14 +48,15 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 	}
 
 	return &AddApplication{
-		Name:              app.Find(`[id="KUSTOMIZATION NAME-input"]`),
-		Namespace:         app.Find(`[id="KUSTOMIZATION NAMESPACE-input"]`),
-		TargetNamespace:   app.Find(`[id="TARGET NAMESPACE-input"]`),
-		Path:              app.Find(`[id="SELECT PATH-input"]`),
-		Source:            app.Find(`[id="SELECT SOURCE-input"]`),
-		Cluster:           app.Find(`[id="SELECT CLUSTER-input"]`),
-		RemoveApplication: app.Find(`button#remove-application`),
-		SourceHref:        webDriver.First(`div a[class*="Link"]`),
+		Name:                  app.Find(`[id="KUSTOMIZATION NAME-input"]`),
+		Namespace:             app.Find(`[id="KUSTOMIZATION NAMESPACE-input"]`),
+		TargetNamespace:       app.Find(`[id="TARGET NAMESPACE-input"]`),
+		Path:                  app.Find(`[id="SELECT PATH-input"]`),
+		Source:                app.Find(`[id="SELECT SOURCE-input"]`),
+		Cluster:               app.Find(`[id="SELECT CLUSTER-input"]`),
+		RemoveApplication:     app.Find(`button#remove-application`),
+		CreateTargetNamespace: app.First(`input[type="checkbox"]`),
+		SourceHref:            webDriver.First(`div a[class*="Link"]`),
 	}
 }
 

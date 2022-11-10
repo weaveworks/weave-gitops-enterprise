@@ -52,7 +52,7 @@ subjects:
   name: foo-tenant
   namespace: foo-ns
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   creationTimestamp: null
@@ -99,6 +99,7 @@ spec:
     required: false
     type: string
     value: foo-tenant
+  provider: kubernetes
   severity: high
   standards: []
   tags:
@@ -110,6 +111,7 @@ spec:
     labels: []
     namespaces:
     - foo-ns
+status: {}
 ---
 apiVersion: v1
 kind: Namespace
@@ -295,7 +297,7 @@ subjects:
   kind: Group
   name: bar-group
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   creationTimestamp: null
@@ -343,6 +345,7 @@ spec:
     required: false
     type: string
     value: bar-tenant
+  provider: kubernetes
   severity: high
   standards: []
   tags:
@@ -355,8 +358,9 @@ spec:
     namespaces:
     - bar-ns
     - foobar-ns
+status: {}
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   creationTimestamp: null
@@ -439,6 +443,7 @@ spec:
     type: array
     value:
     - oci://ghcr.io/testreg/testrepo
+  provider: kubernetes
   severity: high
   standards: []
   tags:
@@ -453,8 +458,9 @@ spec:
     namespaces:
     - bar-ns
     - foobar-ns
+status: {}
 ---
-apiVersion: pac.weave.works/v2beta1
+apiVersion: pac.weave.works/v2beta2
 kind: Policy
 metadata:
   creationTimestamp: null
@@ -501,6 +507,7 @@ spec:
     value:
     - cluster-1-kubeconfig
     - cluster-2-kubeconfig
+  provider: kubernetes
   severity: high
   standards: []
   tags:
@@ -513,4 +520,5 @@ spec:
     namespaces:
     - bar-ns
     - foobar-ns
+status: {}
 ---

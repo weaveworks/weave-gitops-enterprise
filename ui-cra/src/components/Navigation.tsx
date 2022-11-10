@@ -236,7 +236,7 @@ export const Navigation: FC = () => {
           <img src={WeaveGitOps} alt="Home" />
         </Link>
       </div>
-      <Box className={classes.root} bgcolor={theme.colors.white}>
+      <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
         {NavItems(navItems)}
       </Box>
     </>
