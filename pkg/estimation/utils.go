@@ -71,7 +71,15 @@ func filtersFromMap(items map[string]string) []types.Filter {
 	return filters
 }
 
-func parseFilterAnnotations(annotations string) (map[string]string, error) {
+// ParseFilterQueryString parses a query string into a map of filters.
+// Raises errors if duplicate or empty keys are provided.
+// Good:
+//   - "foo=bar&ewq=dsa" -> {"foo": "bar", "ewq": "dsa"}
+//
+// Bad:
+//   - "foo=bar&foo=dsa" -> "duplicate key: foo"
+//   - "foo=bar&" -> "empty key"
+func ParseFilterQueryString(annotations string) (map[string]string, error) {
 	resultAnnotations := make(map[string]string)
 
 	parsedAnnot, err := url.ParseQuery(annotations)

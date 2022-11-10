@@ -167,6 +167,14 @@ export type PolicyValidationOccurrence = {
   message?: string
 }
 
+export type PolicyValidationParam = {
+  name?: string
+  type?: string
+  value?: GoogleProtobufAny.Any
+  required?: boolean
+  configRef?: string
+}
+
 export type PolicyValidation = {
   id?: string
   message?: string
@@ -183,6 +191,7 @@ export type PolicyValidation = {
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
   policyId?: string
+  parameters?: PolicyValidationParam[]
 }
 
 export type CreatePullRequestRequest = {
@@ -512,6 +521,7 @@ export type Policy = {
   createdAt?: string
   clusterName?: string
   tenant?: string
+  modes?: string[]
 }
 
 export type ObjectRef = {

@@ -1,6 +1,11 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
-import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  Link,
+  theme,
+  useFeatureFlags,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
@@ -101,6 +106,8 @@ const useStyles = makeStyles({
   },
   logo: {
     padding: `calc(${medium} - ${xxs})`,
+    paddingTop: `${medium}`,
+    paddingBottom: `17px`,
   },
 });
 
@@ -225,9 +232,11 @@ export const Navigation: FC = () => {
   return (
     <>
       <div title="Home" className={classes.logo}>
-        <img src={WeaveGitOps} alt="Home" />
+        <Link to={Routes.Clusters}>
+          <img src={WeaveGitOps} alt="Home" />
+        </Link>
       </div>
-      <Box className={classes.root} bgcolor={theme.colors.white}>
+      <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
         {NavItems(navItems)}
       </Box>
     </>

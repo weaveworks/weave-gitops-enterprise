@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -909,7 +909,7 @@ func Test_newAllowedRepositoriesPolicy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedParams := []pacv2beta1.PolicyParameters{
+	expectedParams := []pacv2beta2.PolicyParameters{
 		{
 			Name: "git_urls",
 			Value: &apiextensionsv1.JSON{
@@ -969,7 +969,7 @@ func Test_newAllowedClustersPolicy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedParams := []pacv2beta1.PolicyParameters{
+	expectedParams := []pacv2beta2.PolicyParameters{
 		{
 			Name: "cluster_secrets",
 			Value: &apiextensionsv1.JSON{
@@ -1010,7 +1010,7 @@ func Test_newAllowedApplicationDeployPolicy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expectedParams := []pacv2beta1.PolicyParameters{
+	expectedParams := []pacv2beta2.PolicyParameters{
 		{
 			Name: "namespaces",
 			Value: &apiextensionsv1.JSON{
@@ -1053,7 +1053,7 @@ func newFakeClient(t *testing.T, objs ...runtime.Object) client.Client {
 		t.Fatal(err)
 	}
 
-	if err := pacv2beta1.AddToScheme(scheme); err != nil {
+	if err := pacv2beta2.AddToScheme(scheme); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1138,11 +1138,11 @@ func verifyRoles(rb ...*rbacv1.Role) func(t *testing.T, cl client.Client) {
 	}
 }
 
-func verifyPolicies(expected ...*pacv2beta1.Policy) func(t *testing.T, cl client.Client) {
+func verifyPolicies(expected ...*pacv2beta2.Policy) func(t *testing.T, cl client.Client) {
 	return func(t *testing.T, cl client.Client) {
 		sort.Slice(expected, func(i, j int) bool { return expected[i].GetName() < expected[j].GetName() })
 
-		policies := pacv2beta1.PolicyList{}
+		policies := pacv2beta2.PolicyList{}
 
 		if err := cl.List(context.TODO(), &policies); err != nil {
 			t.Fatal(err)
@@ -1186,7 +1186,7 @@ func makeTestTenant(t *testing.T, options ...func(*Tenant)) Tenant {
 	return *tenant
 }
 
-func testNewAllowedReposPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta1.Policy {
+func testNewAllowedReposPolicy(t *testing.T, tenantName string, namespaces []string, allowedRepositories []AllowedRepository, labels map[string]string) *pacv2beta2.Policy {
 	t.Helper()
 
 	p, err := newAllowedRepositoriesPolicy(tenantName, namespaces, allowedRepositories, labels)
@@ -1197,7 +1197,7 @@ func testNewAllowedReposPolicy(t *testing.T, tenantName string, namespaces []str
 	return p
 }
 
-func testNewAllowedClustersPolicy(t *testing.T, tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) *pacv2beta1.Policy {
+func testNewAllowedClustersPolicy(t *testing.T, tenantName string, namespaces []string, allowedClusters []AllowedCluster, labels map[string]string) *pacv2beta2.Policy {
 	t.Helper()
 
 	p, err := newAllowedClustersPolicy(tenantName, namespaces, allowedClusters, labels)
@@ -1208,7 +1208,7 @@ func testNewAllowedClustersPolicy(t *testing.T, tenantName string, namespaces []
 	return p
 }
 
-func testNewAllowedApplicationDeploy(t *testing.T, tenantName, serviceAccountName string, namespaces []string, labels map[string]string) *pacv2beta1.Policy {
+func testNewAllowedApplicationDeploy(t *testing.T, tenantName, serviceAccountName string, namespaces []string, labels map[string]string) *pacv2beta2.Policy {
 	t.Helper()
 	p, err := newAllowedApplicationDeployPolicy(tenantName, serviceAccountName, namespaces, labels)
 	if err != nil {

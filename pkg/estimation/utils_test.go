@@ -133,8 +133,8 @@ func Test_mergeStringMaps(t *testing.T) {
 	}
 }
 
-func Test_parseFilterAnnotations(t *testing.T) {
-	parseFilterAnnotationsTests := []struct {
+func Test_ParseFilterQueryString(t *testing.T) {
+	ParseFilterQueryStringTests := []struct {
 		name        string
 		annotations string
 		expected    map[string]string
@@ -174,10 +174,10 @@ func Test_parseFilterAnnotations(t *testing.T) {
 		},
 	}
 
-	for _, tt := range parseFilterAnnotationsTests {
+	for _, tt := range ParseFilterQueryStringTests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			res, err := parseFilterAnnotations(tt.annotations)
+			res, err := ParseFilterQueryString(tt.annotations)
 			if err != nil {
 				assert.ErrorContains(t, err, tt.expectedErr)
 			} else {
