@@ -6,18 +6,30 @@ import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import { Box, Collapse } from '@material-ui/core';
+import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
+import { ReactComponent as SuccessIcon } from '../../assets/img/success-icon.svg';
+import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
 
-const { base } = theme.spacing;
+const { xs, base, small } = theme.spacing;
 
-const AlertWrapper = styled(Alert)`
-  .MuiAlert-standardSuccess {
-    color: red;
+const BoxWrapper = styled(Box)`
+  // .MuiAlert-standardError {
+  //   background-color: pink;
+  // }
+  .MuiAlert-root {
+    padding: ${base};
+    margin: 0 ${base} ${base} ${base};
+    border-radius: ${xs};
   }
-  padding: ${base};
-  margin: 0 ${base} ${base} ${base};
-  border-radius: 10px;
-  div[class*='MuiAlert-action'] {
+  .MuiAlert-action {
     display: inline;
+    // based on prop
+    color: #d58572;
+  }
+  .MuiAlert-icon {
+    .MuiSvgIcon-root {
+      display: none;
+    }
   }
 `;
 
@@ -36,15 +48,29 @@ const Notifications: FC<{ notifications: NotificationData[] }> = ({
       ),
     );
 
+  const getIcon = (severity?: string) => {
+    switch (severity) {
+      case 'error':
+        return <ErrorIcon />;
+      case 'success':
+        return <SuccessIcon />;
+      case 'warning':
+        return <WarningIcon />;
+      default:
+        return;
+    }
+  };
+
   const notificationAlert = (n: NotificationData, index: number) => {
     return (
-      <Box key={index}>
+      <BoxWrapper key={index}>
         <Collapse in={true}>
-          <AlertWrapper severity={n?.severity} onClose={() => handleDelete(n)}>
+          <Alert severity={n?.severity} onClose={() => handleDelete(n)}>
+            {getIcon(n?.severity)}
             {n?.message.text} {n?.message.component}
-          </AlertWrapper>
+          </Alert>
         </Collapse>
-      </Box>
+      </BoxWrapper>
     );
   };
 

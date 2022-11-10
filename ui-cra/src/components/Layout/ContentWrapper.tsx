@@ -121,7 +121,9 @@ export const ContentWrapper: FC<Props> = ({
       ) : (
         <Content backgroundColor={backgroundColor}>{children}</Content>
       )}
-      <Notifications notifications={bottomNotifications} />
+      <div style={{ paddingTop: base }}>
+        <Notifications notifications={bottomNotifications} />
+      </div>
       <HelpLinkWrapper>
         <div>
           Need help? Raise a&nbsp;

@@ -5,7 +5,6 @@ import {
   Button,
   createStyles,
   makeStyles,
-  IconButton,
   Box,
   Collapse,
 } from '@material-ui/core';
@@ -13,11 +12,9 @@ import Alert from '@material-ui/lab/Alert';
 import {
   ArrowBackIosOutlined,
   ArrowForwardIosOutlined,
-  Close,
 } from '@material-ui/icons';
 import { uniqBy, sortBy } from 'lodash';
 import styled from 'styled-components';
-
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 
 const { base, medium, xs, xxs } = theme.spacing;
@@ -39,6 +36,7 @@ const useAlertStyles = makeStyles(() =>
     },
     alertIcon: {
       marginRight: xs,
+      width: '48px',
     },
     errorMessage: {
       fontSize: base,
@@ -46,23 +44,27 @@ const useAlertStyles = makeStyles(() =>
     arrowIcon: {
       fontSize: '18px',
       fontWeight: 400,
+      color: '#D58572',
     },
   }),
 );
 
 const AlertWrapper = styled(Alert)`
-  .MuiAlert-action {
-    display: inline;
-  }
-  // display: flex;
-  // justify-content: space-between;
-  // align-items: center;
   padding: ${base} ${medium};
   margin: 0 ${base} ${base} ${base};
-  border-radius: 10px;
   background: #eecec7;
+  border-radius: ${xs} !important;
+  .MuiAlert-action {
+    display: inline;
+    color: #d58572;
+  }
   .MuiIconButton-root:hover {
     background-color: #eecec7;
+  }
+  .MuiAlert-icon {
+    .MuiSvgIcon-root {
+      display: none;
+    }
   }
 `;
 
@@ -145,52 +147,4 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
       </Collapse>
     </Box>
   );
-  // show ? (
-  // <AlertWrapper id="alert-list-errors">
-  //   {!!filteredErrors[index] && (
-  //       <>
-  //         <FlexCenter>
-  //           <ErrorIcon className={classes.alertIcon} />
-  //           <div className={classes.errorMessage} data-testid="error-message">
-  //             {filteredErrors[index].clusterName}:&nbsp;
-  //             {filteredErrors[index].message}
-  //           </div>
-  //         </FlexCenter>
-
-  //         <FlexCenter>
-  //           <Button
-  //             disabled={index === 0}
-  //             className={classes.navigationBtn}
-  //             data-testid="prevError"
-  //             onClick={() => setIndex(currIndex => currIndex - 1)}
-  //           >
-  //             <ArrowBackIosOutlined className={classes.arrowIcon} />
-  //           </Button>
-  //           <span className={classes.errosCount} data-testid="errorsCount">
-  //             {filteredErrors.length}
-  //           </span>
-  //           <Button
-  //             disabled={filteredErrors.length === index + 1}
-  //             className={classes.navigationBtn}
-  //             id="nextError"
-  //             data-testid="nextError"
-  //             onClick={() => setIndex(currIndex => currIndex + 1)}
-  //           >
-  //             <ArrowForwardIosOutlined className={classes.arrowIcon} />
-  //           </Button>
-  //         </FlexCenter>
-  //       </>
-  //   )}
-  //   <IconButton
-  //     style={{
-  //       paddingTop: 0,
-  //       paddingRight: 0,
-  //     }}
-  //     onClick={() => setShow(false)}
-  //   >
-  //     <Close />
-  //   </IconButton>
-  // </AlertWrapper>
-
-  // ) : null;
 };
