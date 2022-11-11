@@ -10,14 +10,12 @@ const CostEstimation: FC<{
   costEstimateMessage: string;
   handleCostEstimation: () => Promise<void>;
   setFormError: Dispatch<React.SetStateAction<any>>;
-  formData: any;
 }> = ({
   handleCostEstimation,
   costEstimate,
   isCostEstimationLoading,
   costEstimateMessage,
   setFormError,
-  formData,
 }) => {
   const useStyles = makeStyles(() =>
     createStyles({

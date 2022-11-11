@@ -542,7 +542,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 isCostEstimationLoading={costEstimationLoading}
                 costEstimateMessage={costEstimateMessage}
                 setFormError={setFormError}
-                formData={formData}
               />
             ) : null}
           </Grid>
