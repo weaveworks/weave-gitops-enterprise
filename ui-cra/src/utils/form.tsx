@@ -12,7 +12,7 @@ import {
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
-import React, { FC } from 'react';
+import React, { Dispatch, FC } from 'react';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -179,16 +179,20 @@ export const Select: FC<SelectProps> = ({
   </FormControl>
 );
 
-export const validateFormData = (event: any, onSubmit: any) => {
-  const { form } = event.currentTarget;
-  const isValid = form?.reportValidity();
-  event.preventDefault();
-  if (isValid) {
+export const validateFormData = (
+  event: any,
+  onSubmit: any,
+  setFormError: Dispatch<React.SetStateAction<any>>,
+) => {
+  const requiredButEmptyInputs = Array.from(
+    document.forms['form' as unknown as number].querySelectorAll(
+      'input[required]',
+    ),
+  ).filter(input => (input as HTMLInputElement).value === '');
+
+  if (requiredButEmptyInputs.length === 0) {
     onSubmit();
   } else {
-    const invalid: HTMLElement | null = form.querySelector(':invalid');
-    if (invalid) {
-      invalid.focus();
-    }
+    setFormError((requiredButEmptyInputs[0] as HTMLInputElement).name);
   }
 };

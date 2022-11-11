@@ -77,6 +77,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+  const [formError, setFormError] = useState<string | null>(null);
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -331,7 +332,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper>
-              <FormWrapper>
+              <FormWrapper name="form" noValidate>
                 <Grid container>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
                     {formData.clusterAutomations.map(
@@ -385,7 +386,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       <div className="preview-cta">
                         <Button
                           onClick={event =>
-                            validateFormData(event, handlePRPreview)
+                            validateFormData(
+                              event,
+                              handlePRPreview,
+                              setFormError,
+                            )
                           }
                         >
                           PREVIEW PR
@@ -407,7 +412,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       <div className="create-cta">
                         <Button
                           onClick={event =>
-                            validateFormData(event, handleAddApplication)
+                            validateFormData(
+                              event,
+                              handleAddApplication,
+                              setFormError,
+                            )
                           }
                           disabled={!enableCreatePR}
                         >

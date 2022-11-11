@@ -76,6 +76,8 @@ const FormWrapper = styled.form`
   .create-loading {
     padding: ${({ theme }) => theme.spacing.base};
   }
+
+  // target MuiFocused for the underlining
 `;
 
 const CredentialsWrapper = styled.div`
@@ -302,6 +304,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // get the cost estimate feature flag
   const { data: featureFlagsData } = useFeatureFlags();
@@ -458,6 +461,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setCostEstimate('00.00 USD');
   }, [formData.parameterValues]);
 
+  console.log(formError);
+
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -470,7 +475,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper>
+        <FormWrapper name="form" noValidate>
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper>
               <div className="template-title">
@@ -513,7 +518,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className={classes.previewCta}>
                 <Button
-                  onClick={event => validateFormData(event, handlePRPreview)}
+                  onClick={event =>
+                    validateFormData(event, handlePRPreview, setFormError)
+                  }
                 >
                   PREVIEW PR
                 </Button>
@@ -534,6 +541,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 costEstimate={costEstimate}
                 isCostEstimationLoading={costEstimationLoading}
                 costEstimateMessage={costEstimateMessage}
+                setFormError={setFormError}
+                formData={formData}
               />
             ) : null}
           </Grid>
@@ -550,7 +559,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className="create-cta">
                 <Button
-                  onClick={event => validateFormData(event, handleAddCluster)}
+                  onClick={event =>
+                    validateFormData(event, handleAddCluster, setFormError)
+                  }
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
