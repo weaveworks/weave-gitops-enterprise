@@ -20,7 +20,8 @@ spec:
         # QueryString of filters to apply to cost estimation
         estimationFilter: "operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
         # the region used to fetch the pricing data, us-east-1 or ap-south-1 are publicly documented
-        # as the only regions that support the pricing API
+        # as the only regions that support the pricing API.
+        # In the TopSecret region this is documented as only being available in the eastern region us-iso-east-1.
         apiRegion: us-east-1
 
     extraEnvVars:
