@@ -71,7 +71,6 @@ function setup {
   fi
   
   helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
-  helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
   helm repo add cert-manager https://charts.jetstack.io
   helm repo update  
@@ -80,7 +79,7 @@ function setup {
   helm upgrade --install \
     cert-manager cert-manager/cert-manager \
     --namespace cert-manager --create-namespace \
-    --version v1.9.1 \
+    --version v1.10.0 \
     --set installCRDs=true
   kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
 
@@ -249,9 +248,8 @@ function reset {
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
   kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works
-  # Delete policy agent
   kubectl delete ValidatingWebhookConfiguration policy-agent
-  kubectl delete namespaces policy-system  
+  kubectl delete namespaces flux-system
   # Delete capi provider
   if [ "$CAPI_PROVIDER" == "capa" ]; then
     clusterctl delete --infrastructure aws

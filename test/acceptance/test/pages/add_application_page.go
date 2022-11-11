@@ -56,7 +56,7 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 		Cluster:               app.Find(`[id="SELECT CLUSTER-input"]`),
 		RemoveApplication:     app.Find(`button#remove-application`),
 		CreateTargetNamespace: app.First(`input[type="checkbox"]`),
-		SourceHref:            webDriver.First(`div a[class*="Link"]`),
+		SourceHref:            app.FindByXPath(`div[contains(@class, "MuiGrid-container")]/div[2]`),
 	}
 }
 

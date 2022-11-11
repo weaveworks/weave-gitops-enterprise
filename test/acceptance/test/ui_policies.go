@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/onsi/ginkgo/v2"
@@ -13,19 +14,26 @@ import (
 
 func installPolicyAgent(clusterName string) {
 	ginkgo.By(fmt.Sprintf("And install cert-manager to %s cluster", clusterName), func() {
-		stdOut, stdErr := runCommandAndReturnStringOutput("helm search repo profiles-catalog")
-		if stdErr == "" && stdOut == "No results found" {
-			err := runCommandPassThrough("helm", "repo", "add", "profiles-catalog", "https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages")
-			gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to add profiles repositoy")
+		stdOut, _ := runCommandAndReturnStringOutput("helm search repo cert-manager")
+		if !strings.Contains(stdOut, `cert-manager/cert-manager`) {
+			err := runCommandPassThrough("helm", "repo", "add", "cert-manager", "https://charts.jetstack.io")
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to add cert-manage repositoy")
 		}
 
-		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "profiles-catalog/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "0.0.8", "--set", "installCRDs=true")
+		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "cert-manager/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "1.10.0", "--set", "installCRDs=true")
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install cer-manager to leaf cluster: "+clusterName)
 	})
 
 	ginkgo.By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {
-		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "profiles-catalog/weave-policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "0.5.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
+		stdOut, _ := runCommandAndReturnStringOutput("helm search repo policy-agent")
+		if !strings.Contains(stdOut, `policy-agent/policy-agent`) {
+			err := runCommandPassThrough("helm", "repo", "add", "policy-agent", "https://weaveworks.github.io/policy-agent")
+			gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to add policy-agent repositoy")
+		}
+
+		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "policy-agent/policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "2.0.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install policy agent to leaf cluster: "+clusterName)
+		_ = runCommandPassThrough("kubectl", "wait", "--for=condition=Ready", "--timeout=60s", "--namespace", "policy-system", "pod", "-l", "name=policy-agent")
 	})
 }
 
@@ -53,6 +61,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyName := "Container Image Pull Policy acceptance test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			policyClusterName := "management"
+			policyMode := `Audit\nEnforce`
 			policySeverity := "Medium"
 			policyCategory := "weave.categories.software-supply-chain"
 			policyTags := []string{"There is no tags for this policy"}
@@ -90,8 +99,13 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.software-supply-chain", policyName))
 				})
 
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Mode", policyName), func() {
+					logger.Info(policyInfo.Mode.Text())
+					gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(policyMode), fmt.Sprintf("Failed to have expected %s Policy Mode: %s", policyName, policyMode))
+				})
+
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
-					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: Medium", policyName))
+					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: %s", policyName, policySeverity))
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
@@ -109,6 +123,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyDetailPage.ClusterName.Text).Should(gomega.MatchRegexp(policyClusterName), "Failed to verify policy cluster on policy page")
 					gomega.Eventually(policyDetailPage.Severity.Text).Should(gomega.MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
 					gomega.Eventually(policyDetailPage.Category.Text).Should(gomega.MatchRegexp(policyCategory), "Failed to verify policy category on policy page")
+					gomega.Eventually(policyDetailPage.Mode.Text).Should(gomega.MatchRegexp(policyMode), "Failed to verify policy mode on policy page")
 
 					gomega.Expect(policyDetailPage.GetTags()).Should(gomega.ConsistOf(policyTags), "Failed to verify policy Tags on policy page")
 					gomega.Expect(policyDetailPage.GetTargetedK8sKind()).Should(gomega.ConsistOf(policyTargetedKinds), "Failed to verify policy Targeted K8s Kind on policy page")
@@ -172,6 +187,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 			policyName := "Container Running As Root acceptance test"
 			policyID := "weave.policies.container-running-as-root-acceptance-test"
+			policyMode := `Audit\nEnforce`
 			policySeverity := "High"
 			policyCategory := "weave.categories.pod-security"
 			policyTags := []string{"pci-dss", "cis-benchmark", "mitre-attack", "nist800-190", "gdpr", "default"}
@@ -252,8 +268,12 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.pod-security", policyName))
 				})
 
-				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
-					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: Medium", policyName))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy policyMode", policyName), func() {
+					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Mode: %s", policyName, policyMode))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Mode", policyName), func() {
+					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: %s", policyName, policySeverity))
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
@@ -271,6 +291,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyDetailPage.ClusterName.Text).Should(gomega.MatchRegexp(leafClusterName), "Failed to verify policy cluster on policy page")
 					gomega.Eventually(policyDetailPage.Severity.Text).Should(gomega.MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
 					gomega.Eventually(policyDetailPage.Category.Text).Should(gomega.MatchRegexp(policyCategory), "Failed to verify policy category on policy page")
+					gomega.Eventually(policyDetailPage.Mode.Text).Should(gomega.MatchRegexp(policyMode), "Failed to verify policy mode on policy page")
 
 					gomega.Expect(policyDetailPage.GetTags()).Should(gomega.ConsistOf(policyTags), "Failed to verify policy Tags on policy page")
 					gomega.Expect(policyDetailPage.GetTargetedK8sKind()).Should(gomega.ConsistOf(policyTargetedKinds), "Failed to verify policy Targeted K8s Kind on policy page")
