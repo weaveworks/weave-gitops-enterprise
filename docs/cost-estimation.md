@@ -83,7 +83,8 @@ Estimation filters are configured both via:
      costEstimation:
        estimationFilter: "operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
    ```
-2. _(optional)_ over-ride the global defaults on a per-template basis with the `weave.works/cost-estimation-filter` annotation on the `Cluster` resource in the template.
+2. _(optional)_ over-ride the global defaults on a per-template basis with the `weave.works/cost-estimation-filter` annotation on the `Cluster` resource in the template. Its important to put the annotation on the `Cluster` resource inside the template and not the `CAPITemplate` itself.
+
    ```yaml
    apiVersion: cluster.x-k8s.io/v1beta1
    kind: Cluster
@@ -209,6 +210,7 @@ spec:
       kind: Cluster
       metadata:
         name: "${CLUSTER_NAME}"
+        # Important to add the estimation filters annotation HERE and NOT on the CAPITemplate
         annotations:
           "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
       spec:
