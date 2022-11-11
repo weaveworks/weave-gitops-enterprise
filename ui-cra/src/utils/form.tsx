@@ -8,7 +8,7 @@ import {
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
   InputBase as MuiInputBase,
-  FormHelperText,
+  FormHelperText as MuiFormHelperText,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
@@ -54,9 +54,18 @@ const InputLabel = withStyles(() => ({
   },
 }))(MuiInputLabel);
 
+const FormHelperText = withStyles(() => ({
+  error: {
+    color: 'red',
+  },
+}))(MuiFormHelperText);
+
 const InputBase = withStyles(() => ({
   inputMultiline: {
     padding: '10px',
+  },
+  error: {
+    borderBottom: '2px solid red',
   },
 }))(MuiInputBase);
 
@@ -79,6 +88,7 @@ interface InputProps extends PickedInputProps {
   description?: string;
   required?: boolean;
   name?: string;
+  error?: boolean;
 }
 
 export const Input: FC<InputProps> = ({
@@ -96,31 +106,39 @@ export const Input: FC<InputProps> = ({
   description,
   required,
   name,
-}) => (
-  <FormControl id={`${label}-group`} className={className}>
-    {label && (
-      <InputLabel htmlFor={`${label}-input`} shrink>
-        {label}
-      </InputLabel>
-    )}
-    <InputBase
-      name={name}
-      autoFocus={autoFocus}
-      defaultValue={defaultValue}
-      disabled={disabled}
-      id={`${label}-input`}
-      onChange={onChange}
-      placeholder={placeholder}
-      type={type}
-      value={value}
-      multiline={multiline}
-      rows={rows}
-      inputProps={{ maxLength: 256 }}
-      required={required}
-    />
-    <FormHelperText>{description}</FormHelperText>
-  </FormControl>
-);
+  error,
+}) => {
+  console.log(error);
+  return (
+    <FormControl id={`${label}-group`} className={className}>
+      {label && (
+        <InputLabel htmlFor={`${label}-input`} shrink>
+          {label}
+        </InputLabel>
+      )}
+      <InputBase
+        className={className}
+        name={name}
+        autoFocus={autoFocus}
+        defaultValue={defaultValue}
+        disabled={disabled}
+        id={`${label}-input`}
+        onChange={onChange}
+        placeholder={placeholder}
+        type={type}
+        value={value}
+        multiline={multiline}
+        rows={rows}
+        inputProps={{ maxLength: 256 }}
+        required={required}
+        error={error}
+      />
+      <FormHelperText>
+        {!error ? description : 'Please fill this field in.'}
+      </FormHelperText>
+    </FormControl>
+  );
+};
 
 // FIXME: what sure what the type should be to export correctly!
 export const Divider: any = withStyles((theme: Theme) => ({
@@ -193,6 +211,7 @@ export const validateFormData = (
   if (requiredButEmptyInputs.length === 0) {
     onSubmit();
   } else {
+    (requiredButEmptyInputs[0] as HTMLInputElement).focus();
     setFormError((requiredButEmptyInputs[0] as HTMLInputElement).name);
   }
 };

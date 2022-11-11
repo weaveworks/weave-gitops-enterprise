@@ -15,7 +15,8 @@ const TemplateFields: FC<{
   template: TemplateEnriched;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-}> = ({ template, formData, setFormData }) => {
+  formError: string;
+}> = ({ template, formData, setFormData, formError }) => {
   const UNEDITABLE_FIELDS = template.parameters
     ?.filter(param => Boolean(param.editable))
     .map(param => param.name);
@@ -36,6 +37,8 @@ const TemplateFields: FC<{
       },
     });
   };
+
+  console.log(formError, 'CLUSTER_NAME', parameterValues['CLUSTER_NAME']);
 
   return (
     <TemplateFieldsWrapper>
@@ -70,6 +73,10 @@ const TemplateFields: FC<{
               onChange={handleFormData}
               description={param.description}
               disabled={isEditing && UNEDITABLE_FIELDS?.includes(name)}
+              error={
+                formError === name &&
+                parameterValues[name] === (undefined || '')
+              }
             />
           );
       })}

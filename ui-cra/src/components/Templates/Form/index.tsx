@@ -76,8 +76,6 @@ const FormWrapper = styled.form`
   .create-loading {
     padding: ${({ theme }) => theme.spacing.base};
   }
-
-  // target MuiFocused for the underlining
 `;
 
 const CredentialsWrapper = styled.div`
@@ -304,7 +302,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string>('');
 
   // get the cost estimate feature flag
   const { data: featureFlagsData } = useFeatureFlags();
@@ -497,6 +495,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               template={template}
               formData={formData}
               setFormData={setFormData}
+              formError={formError}
             />
           </Grid>
           {isProfilesEnabled ? (
@@ -597,6 +596,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
+    formError,
   ]);
 };
 
