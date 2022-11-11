@@ -1042,6 +1042,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
+        style="padding-top: 16px;"
+      />
+      <div
         class="c32"
       >
         <div>
