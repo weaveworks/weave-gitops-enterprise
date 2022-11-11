@@ -73,8 +73,8 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		PullRequestDesc: webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
 		GitCredentials:  webDriver.Find(`div.auth-message`),
 		CreatePR:        webDriver.FindByButton(`CREATE PULL REQUEST`),
-		SuccessBar:      webDriver.FindByXPath(`//div[@class="MuiAlert-message"]//*[contains(text(), "Success")]/parent::node()`),
+		SuccessBar:      webDriver.FindByXPath(`//div[@class="MuiAlert-standardSuccess"]`),
 		PRLinkBar:       webDriver.FindByXPath(`//div[@class="MuiAlert-message"]//*[contains(text(), "PR created")]/parent::node()`),
-		ErrorBar:        webDriver.FindByXPath(`//div[@class="MuiAlert-message"]//*[contains(text(), "Error")]/parent::node()`),
+		ErrorBar:        webDriver.FindByXPath(`//div[@class="MuiAlert-standardError"]`),
 	}
 }
