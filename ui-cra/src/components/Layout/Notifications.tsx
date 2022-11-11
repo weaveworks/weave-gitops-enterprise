@@ -7,29 +7,46 @@ import useNotifications, {
 } from '../../contexts/Notifications';
 import { Box, Collapse } from '@material-ui/core';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
-import { ReactComponent as SuccessIcon } from '../../assets/img/success-icon.svg';
-import { ReactComponent as WarningIcon } from '../../assets/img/warning-icon.svg';
+import { ReactComponent as SuccessIcon } from '../../assets/img/success.svg';
+import { ReactComponent as WarningIcon } from '../../assets/img/warning.svg';
 
-const { xs, base, small } = theme.spacing;
+const { xs, base } = theme.spacing;
 
-const BoxWrapper = styled(Box)`
-  // .MuiAlert-standardError {
-  //   background-color: pink;
-  // }
+const BoxWrapper = styled(Box)<{ severity: string }>`
   .MuiAlert-root {
-    padding: ${base};
     margin: 0 ${base} ${base} ${base};
     border-radius: ${xs};
   }
   .MuiAlert-action {
     display: inline;
-    // based on prop
-    color: #d58572;
+    color: ${props => {
+      if (props.severity === 'error') return '#d58572';
+      else if (props.severity === 'warning') return theme.colors.feedbackLight;
+      else if (props.severity === 'success') return theme.colors.success;
+      else return 'transparent';
+    }};
   }
   .MuiAlert-icon {
     .MuiSvgIcon-root {
       display: none;
     }
+  }
+  .MuiAlert-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    svg {
+      margin-right: ${xs};
+    }
+  }
+  .MuiAlert-standardError {
+    background-color: #eecec7;
+  }
+  .MuiAlert-standardSuccess {
+    background-color: #c9ebd7;
+  }
+  .MuiAlert-standardWarning {
+    background-color: #fce6d2;
   }
 `;
 
@@ -63,7 +80,7 @@ const Notifications: FC<{ notifications: NotificationData[] }> = ({
 
   const notificationAlert = (n: NotificationData, index: number) => {
     return (
-      <BoxWrapper key={index}>
+      <BoxWrapper key={index} severity={n?.severity || ''}>
         <Collapse in={true}>
           <Alert severity={n?.severity} onClose={() => handleDelete(n)}>
             {getIcon(n?.severity)}

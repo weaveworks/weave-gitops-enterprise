@@ -17,7 +17,7 @@ import { uniqBy, sortBy } from 'lodash';
 import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 
-const { base, medium, xs, xxs } = theme.spacing;
+const { xxl, base, xs, xxs } = theme.spacing;
 const { neutral00 } = theme.colors;
 
 const useAlertStyles = makeStyles(() =>
@@ -36,7 +36,7 @@ const useAlertStyles = makeStyles(() =>
     },
     alertIcon: {
       marginRight: xs,
-      width: '48px',
+      width: xxl,
     },
     errorMessage: {
       fontSize: base,
@@ -49,11 +49,12 @@ const useAlertStyles = makeStyles(() =>
   }),
 );
 
-const AlertWrapper = styled(Alert)`
-  padding: ${base} ${medium};
-  margin: 0 ${base} ${base} ${base};
-  background: #eecec7;
-  border-radius: ${xs} !important;
+const BoxWrapper = styled(Box)`
+  .MuiAlert-root {
+    margin: 0 ${base} ${base} ${base};
+    background: #eecec7;
+    border-radius: ${xs};
+  }
   .MuiAlert-action {
     display: inline;
     color: #d58572;
@@ -66,12 +67,11 @@ const AlertWrapper = styled(Alert)`
       display: none;
     }
   }
-`;
-
-const AlertList = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  .MuiAlert-message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 `;
 
 const FlexCenter = styled.div`
@@ -104,47 +104,42 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   }
 
   return (
-    <Box id="alert-list-errors">
+    <BoxWrapper id="alert-list-errors">
       <Collapse in={show}>
         {!!filteredErrors[index] && (
-          <AlertWrapper severity="error" onClose={() => setShow(false)}>
-            <AlertList>
-              <FlexCenter>
-                <ErrorIcon className={classes.alertIcon} />
-                <div
-                  className={classes.errorMessage}
-                  data-testid="error-message"
-                >
-                  {filteredErrors[index].clusterName}:&nbsp;
-                  {filteredErrors[index].message}
-                </div>
-              </FlexCenter>
-              <FlexCenter>
-                <Button
-                  disabled={index === 0}
-                  className={classes.navigationBtn}
-                  data-testid="prevError"
-                  onClick={() => setIndex(currIndex => currIndex - 1)}
-                >
-                  <ArrowBackIosOutlined className={classes.arrowIcon} />
-                </Button>
-                <span className={classes.errosCount} data-testid="errorsCount">
-                  {filteredErrors.length}
-                </span>
-                <Button
-                  disabled={filteredErrors.length === index + 1}
-                  className={classes.navigationBtn}
-                  id="nextError"
-                  data-testid="nextError"
-                  onClick={() => setIndex(currIndex => currIndex + 1)}
-                >
-                  <ArrowForwardIosOutlined className={classes.arrowIcon} />
-                </Button>
-              </FlexCenter>
-            </AlertList>
-          </AlertWrapper>
+          <Alert severity="error" onClose={() => setShow(false)}>
+            <FlexCenter>
+              <ErrorIcon className={classes.alertIcon} />
+              <div className={classes.errorMessage} data-testid="error-message">
+                {filteredErrors[index].clusterName}:&nbsp;
+                {filteredErrors[index].message}
+              </div>
+            </FlexCenter>
+            <FlexCenter>
+              <Button
+                disabled={index === 0}
+                className={classes.navigationBtn}
+                data-testid="prevError"
+                onClick={() => setIndex(currIndex => currIndex - 1)}
+              >
+                <ArrowBackIosOutlined className={classes.arrowIcon} />
+              </Button>
+              <span className={classes.errosCount} data-testid="errorsCount">
+                {filteredErrors.length}
+              </span>
+              <Button
+                disabled={filteredErrors.length === index + 1}
+                className={classes.navigationBtn}
+                id="nextError"
+                data-testid="nextError"
+                onClick={() => setIndex(currIndex => currIndex + 1)}
+              >
+                <ArrowForwardIosOutlined className={classes.arrowIcon} />
+              </Button>
+            </FlexCenter>
+          </Alert>
         )}
       </Collapse>
-    </Box>
+    </BoxWrapper>
   );
 };
