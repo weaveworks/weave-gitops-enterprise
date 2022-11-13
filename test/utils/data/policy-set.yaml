@@ -1,0 +1,25 @@
+apiVersion: pac.weave.works/v2beta2
+kind: PolicySet
+metadata:
+    name: policy-set-001
+spec:
+    name: policy-set-001
+    mode: admission
+    filters:
+        ids:
+        - weave.policies.containers-running-with-privilege-escalation-acceptance-test
+        - weave.policies.container-running-as-root-acceptance-test
+        - weave.policies.container-image-pull-policy-acceptance-test
+---
+apiVersion: pac.weave.works/v2beta2
+kind: PolicySet
+metadata:
+    name: policy-set-002
+spec:
+    name: policy-set-002
+    mode: audit
+    filters:
+        ids:
+        - weave.policies.container-image-pull-policy-acceptance-test
+        - weave.policies.container-running-as-root-acceptance-test
+        - weave.policies.containers-read-only-root-filesystem-acceptance-test

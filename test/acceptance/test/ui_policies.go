@@ -44,6 +44,13 @@ func installTestPolicies(clusterName string, policiesYaml string) {
 	})
 }
 
+func installPolicySet(clusterName string, policySetYaml string) {
+	ginkgo.By(fmt.Sprintf("Add/Install Policy Set to the %s cluster", clusterName), func() {
+		err := runCommandPassThrough("kubectl", "apply", "-f", policySetYaml)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install policy set to cluster:"+clusterName)
+	})
+}
+
 func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", func() {
 
@@ -57,6 +64,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.Context("[UI] Policies can be installed", func() {
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+			policySetYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-set.yaml")
 
 			policyName := "Container Image Pull Policy acceptance test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
@@ -68,12 +76,15 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustAfterEach(func() {
+				_ = gitopsTestRunner.KubectlDelete([]string{}, policySetYaml)
+
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
-			ginkgo.It("Verify Policies can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+			ginkgo.FIt("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				installTestPolicies("management", policiesYaml)
+				installPolicySet("management", policySetYaml)
 
 				pages.NavigateToPage(webDriver, "Policies")
 				policiesPage := pages.GetPoliciesPage(webDriver)
@@ -81,7 +92,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And wait for policies to be visibe on the dashboard", func() {
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
-					totalPolicyCount := existingPoliciesCount + 4
+					totalPolicyCount := existingPoliciesCount + 5
 					gomega.Eventually(func(g gomega.Gomega) int {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
@@ -99,9 +110,34 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.software-supply-chain", policyName))
 				})
 
-				ginkgo.By(fmt.Sprintf("And verify '%s' policy Mode", policyName), func() {
+				ginkgo.By("And verify policy Mode", func() {
 					logger.Info(policyInfo.Mode.Text())
-					gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(policyMode), fmt.Sprintf("Failed to have expected %s Policy Mode: %s", policyName, policyMode))
+					switch policyName {
+					case "Container Running As Root acceptance test":
+						policyMode = "Audit\nEnforce"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Audit\nEnforce"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+
+					case "Container Image Pull Policy acceptance test":
+						policyMode = "Audit\nEnforce"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Audit\nEnforce"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+
+					case "Containers Running With Privilege Escalation acceptance test":
+						policyMode = "Enforce"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Enforce"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+
+					case "Containers Read Only Root Filesystem acceptance test":
+						policyMode = "Audit"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Audit"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+
+					case "Containers Minimum Replica Count acceptance test":
+						policyMode = "-"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("-"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+
+					default:
+						fmt.Printf("Failed to get Policy Mode for '%s'", policyName)
+
+					}
+					//gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(policyMode), fmt.Sprintf("Failed to have expected %s Policy Mode: %s", policyName, policyMode))
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
