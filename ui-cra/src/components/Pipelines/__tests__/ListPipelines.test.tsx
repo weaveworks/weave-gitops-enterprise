@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { Router } from 'react-router-dom';
 import Pipelines from '..';
 import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
@@ -7,6 +8,7 @@ import {
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
+import { createMemoryHistory } from 'history';
 
 const pipelines = {
   pipelines: [
@@ -120,6 +122,27 @@ describe('ListPipelines', () => {
 
     filterTable.testSearchTableByValue(search, searchedRows);
     filterTable.clearSearchByVal(search);
+  });
+
+  it('create pipeline btn', async () => {
+    const history = createMemoryHistory();
+    api.ListPipelinesReturns = pipelines;
+    await act(async () => {
+      const c = wrap(
+        <Router history={history}>
+          <Pipelines />
+        </Router>,
+      );
+      render(c);
+    });
+    expect(await screen.findByText('CREATE A PIPELINE')).toBeTruthy();
+
+    const createBtn = await screen.findByTestId('create-pipeline');
+    fireEvent.click(createBtn);
+    const expectedUrl = `${history.location.pathname}${history.location.search}`;
+    expect(expectedUrl).toEqual(
+      '/templates?filters=templateType%3A%20pipeline',
+    );
   });
 });
 
