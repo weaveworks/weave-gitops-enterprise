@@ -6,7 +6,69 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import PolicyDetails from '../PolicyDetails';
-
+import { parseValue } from '../PolicyDetails/PolicyUtilis';
+const MockPolicyResponse = {
+  policy: {
+    name: 'Containers Sharing Host PID',
+    id: 'weave.policies.containers-sharing-host-pid',
+    code: '1package weave.advisor.podSecurity.deny_shared_host_pid',
+    description:
+      'This Policy allows check if sharing host PID namespace with the container should be allowed or not.',
+    howToSolve:
+      'Match the shared resource with either true or false, as set in your constraint.',
+    category: 'weave.categories.pod-security',
+    tags: ['cis-benchmark', 'nist800-190', 'gdpr', 'default'],
+    severity: 'high',
+    standards: [],
+    gitCommit: '',
+    parameters: [
+      {
+        name: 'resource_enabled',
+        type: 'boolean',
+        value: {
+          '@type': 'type.googleapis.com/google.protobuf.BoolValue',
+          value: false,
+        },
+        required: true,
+      },
+      {
+        name: 'exclude_namespace',
+        type: 'string',
+        value: null,
+        required: false,
+      },
+      {
+        name: 'exclude_label_key',
+        type: 'string',
+        value: null,
+        required: false,
+      },
+      {
+        name: 'exclude_label_value',
+        type: 'string',
+        value: null,
+        required: false,
+      },
+    ],
+    targets: {
+      kinds: [
+        'Deployment',
+        'Job',
+        'ReplicationController',
+        'ReplicaSet',
+        'DaemonSet',
+        'StatefulSet',
+        'CronJob',
+      ],
+      labels: [],
+      namespaces: [],
+    },
+    createdAt: '2022-08-31T16:46:14Z',
+    clusterName: 'management',
+    tenant: '',
+    modes: ['audit', 'admission'],
+  },
+};
 describe('ListPolicViolations', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PolicyClientMock;
@@ -19,271 +81,117 @@ describe('ListPolicViolations', () => {
     ]);
   });
   it('renders get policy details', async () => {
-    api.GetPolicyReturns = {
-      policy: {
-        name: 'Container Block Sysctls',
-        id: 'weave.policies.container-block-sysctl',
-        code: 'test policyCode',
-        description: 'test description',
-        howToSolve: 'test howToSolve',
-        category: 'weave.categories.pod-security',
-        tags: [
-          'pci-dss',
-          'cis-benchmark',
-          'mitre-attack',
-          'nist800-190',
-          'gdpr',
-          'default',
-        ],
-        severity: 'high',
-        standards: [
-          {
-            id: 'weave.standards.pci-dss',
-            controls: [
-              'weave.controls.pci-dss.2.2.4',
-              'weave.controls.pci-dss.2.2.5',
-            ],
-          },
-          {
-            id: 'weave.standards.cis-benchmark',
-            controls: ['weave.controls.cis-benchmark.5.2.6'],
-          },
-          {
-            id: 'weave.standards.mitre-attack',
-            controls: ['weave.controls.mitre-attack.4.1'],
-          },
-          {
-            id: 'weave.standards.nist-800-190',
-            controls: ['weave.controls.nist-800-190.3.3.1'],
-          },
-          {
-            id: 'weave.standards.gdpr',
-            controls: [
-              'weave.controls.gdpr.24',
-              'weave.controls.gdpr.25',
-              'weave.controls.gdpr.32',
-            ],
-          },
-        ],
-        gitCommit: '',
-        parameters: [
-          {
-            name: 'exclude_namespace',
-            type: 'string',
-            value: {
-              '@type': 'type.googleapis.com/google.protobuf.StringValue',
-              value: 'kube-system',
-            },
-            required: false,
-          },
-          {
-            name: 'exclude_label_key',
-            type: 'string',
-            value: null,
-            required: false,
-          },
-          {
-            name: 'exclude_label_value',
-            type: 'string',
-            value: null,
-            required: false,
-          },
-        ],
-        targets: {
-          kinds: [
-            'Deployment',
-            'Job',
-            'ReplicationController',
-            'ReplicaSet',
-            'DaemonSet',
-            'StatefulSet',
-            'CronJob',
-          ],
-          labels: [],
-          namespaces: [],
-        },
-        createdAt: '2022-08-24T11:11:56Z',
-        clusterName: 'default/tw-cluster-2',
-        tenant: '',
-      },
-    };
+    const policy = MockPolicyResponse.policy;
+    api.GetPolicyReturns = MockPolicyResponse;
 
     await act(async () => {
-      const c = wrap(
-        <PolicyDetails
-          clusterName=""
-          id="weave.policies.container-block-sysctl"
-        />,
-      );
+      const c = wrap(<PolicyDetails clusterName="" id={policy.id} />);
       render(c);
     });
 
-    expect(await screen.findByText('Container Block Sysctls')).toBeTruthy();
+    expect(await screen.findByText(policy.name)).toBeTruthy();
 
     // Details
-    expect(screen.getByTestId('Policy ID')).toHaveTextContent(
-      'weave.policies.container-block-sysctl',
-    );
+    expect(screen.getByTestId('Policy ID')).toHaveTextContent(policy.id);
 
     expect(screen.queryByTestId('Tenant')).toBeNull();
-    
+
     expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
-      'default/tw-cluster-2',
+      policy.clusterName,
     );
 
-    expect(screen.getByTestId('Severity')).toHaveTextContent('high');
-    expect(screen.getByTestId('Category')).toHaveTextContent(
-      'weave.categories.pod-security',
-    );
+    expect(screen.getByTestId('Severity')).toHaveTextContent(policy.severity);
+    expect(screen.getByTestId('Category')).toHaveTextContent(policy.category);
     // Tags
     const tags = document.querySelectorAll('#policy-details-header-tags span');
-    expect(tags).toHaveLength(6);
+    expect(tags).toHaveLength(policy.tags.length);
 
-     // Targeted K8s Kind
-     const kinds = document.querySelectorAll('#policy-details-header-kinds span');
-     expect(kinds).toHaveLength(7);
+    // Targeted K8s Kind
+    const kinds = document.querySelectorAll(
+      '#policy-details-header-kinds span',
+    );
+    expect(kinds).toHaveLength(policy.targets.kinds.length);
 
     // description
-    expect(screen.getByTestId('description')).toHaveTextContent(
-      'test description',
+    const desc = document.querySelector(
+      'div[data-testid="description"] > .editor',
     );
+    expect(desc).toHaveTextContent(policy.description);
 
     // how to solve
-    expect(screen.getByTestId('howToSolve')).toHaveTextContent(
-      'test howToSolve',
-    );
+    expect(
+      document.querySelector('div[data-testid="howToSolve"] > .editor'),
+    ).toHaveTextContent(policy.howToSolve);
 
     // policyCode
-    expect(screen.getByTestId('policyCode')).toHaveTextContent(
-      'test policyCode',
-    );
+    expect(
+      document.querySelector('div[data-testid="policyCode"] code'),
+    ).toHaveTextContent(policy.code);
+
+    // Parameters
+    policy.parameters.forEach(parameter => {
+      const paramWrapper = document.getElementById(parameter.name);
+      // Name
+      ValidateParameter(paramWrapper, 'Parameter Name', parameter.name);
+      // Type
+      ValidateParameter(paramWrapper, 'Parameter Type', parameter.type);
+      // Value
+      ValidateParameter(paramWrapper, 'Value', parseValue(parameter));
+      // Required
+      ValidateParameter(
+        paramWrapper,
+        'Required',
+        parameter.required ? 'True' : 'False',
+      );
+    });
   });
 
   it('renders missing details value', async () => {
-    api.GetPolicyReturns = {
-      policy: {
-        name: 'Container Block Sysctls',
-        id: '',
-        code: 'test policyCode',
-        description: 'test description',
-        howToSolve: 'test howToSolve',
-        category: '',
-        tags: [
-         
-        ],
-        severity: 'high',
-        standards: [
-          {
-            id: 'weave.standards.pci-dss',
-            controls: [
-              'weave.controls.pci-dss.2.2.4',
-              'weave.controls.pci-dss.2.2.5',
-            ],
-          },
-          {
-            id: 'weave.standards.cis-benchmark',
-            controls: ['weave.controls.cis-benchmark.5.2.6'],
-          },
-          {
-            id: 'weave.standards.mitre-attack',
-            controls: ['weave.controls.mitre-attack.4.1'],
-          },
-          {
-            id: 'weave.standards.nist-800-190',
-            controls: ['weave.controls.nist-800-190.3.3.1'],
-          },
-          {
-            id: 'weave.standards.gdpr',
-            controls: [
-              'weave.controls.gdpr.24',
-              'weave.controls.gdpr.25',
-              'weave.controls.gdpr.32',
-            ],
-          },
-        ],
-        gitCommit: '',
-        parameters: [
-          {
-            name: 'exclude_namespace',
-            type: 'string',
-            value: {
-              '@type': 'type.googleapis.com/google.protobuf.StringValue',
-              value: 'kube-system',
-            },
-            required: false,
-          },
-          {
-            name: 'exclude_label_key',
-            type: 'string',
-            value: null,
-            required: false,
-          },
-          {
-            name: 'exclude_label_value',
-            type: 'string',
-            value: null,
-            required: false,
-          },
-        ],
-        targets: {
-          kinds: [
-           
-          ],
-          labels: [],
-          namespaces: [],
-        },
-        createdAt: '2022-08-24T11:11:56Z',
-        clusterName: '',
-        tenant: '',
-      },
-    };
+    const policy = MockPolicyResponse.policy;
+    policy.tags = [];
+    policy.severity = '';
+    policy.category = '';
+    policy.targets.kinds = [];
+    api.GetPolicyReturns = { policy };
 
     await act(async () => {
-      const c = wrap(
-        <PolicyDetails
-          clusterName=""
-          id="weave.policies.container-block-sysctl"
-        />,
-      );
+      const c = wrap(<PolicyDetails clusterName="" id={policy.id} />);
       render(c);
     });
 
-    expect(await screen.findByText('Container Block Sysctls')).toBeTruthy();
+    expect(await screen.findByText(policy.name)).toBeTruthy();
 
     // Details
-    expect(screen.getByTestId('Policy ID')).toHaveTextContent(
-      '--',
-    );
-    
-    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
-      '--',
-    );
+    expect(screen.getByTestId('Severity')).toHaveTextContent('Severity :');
 
-    expect(screen.getByTestId('Category')).toHaveTextContent(
-      '--',
-    );
+    expect(screen.getByTestId('Category')).toHaveTextContent('--');
     // Tags
     expect(screen.getByTestId('Tags')).toHaveTextContent(
       'There is no tags for this policy',
     );
-     // Targeted K8s Kind
-     expect(screen.getByTestId('Targeted K8s Kind')).toHaveTextContent(
+    // Targeted K8s Kind
+    expect(screen.getByTestId('Targeted K8s Kind')).toHaveTextContent(
       'There is no kinds for this policy',
-    );
-    
-    // description
-    expect(screen.getByTestId('description')).toHaveTextContent(
-      'test description',
-    );
-
-    // how to solve
-    expect(screen.getByTestId('howToSolve')).toHaveTextContent(
-      'test howToSolve',
-    );
-
-    // policyCode
-    expect(screen.getByTestId('policyCode')).toHaveTextContent(
-      'test policyCode',
     );
   });
 });
+
+const ValidateParameter = (
+  paramElement: HTMLElement | null,
+  key: string,
+  value: string | unknown,
+) => {
+  const parameterNameWrapper = paramElement?.querySelector(
+    `div[data-testid="${key}"]`,
+  );
+  const label = parameterNameWrapper?.querySelector('.label');
+  const body1 = parameterNameWrapper?.querySelector('.body1');
+  expect(label?.textContent).toEqual(key);
+
+  // Handel ChipWrapper of the Parsing Value 
+  if (body1?.textContent === 'undefined') {
+    expect(body1?.textContent).toEqual(`${(value as Element)?.textContent}`);
+  } else {
+    expect(body1?.textContent).toEqual(value);
+  }
+};
