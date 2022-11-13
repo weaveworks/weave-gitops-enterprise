@@ -15,6 +15,7 @@ type PoliciesPage struct {
 type PolicyInformation struct {
 	Name     *agouti.Selection
 	Category *agouti.Selection
+	Mode     *agouti.Selection
 	Tenant   *agouti.Selection
 	Severity *agouti.Selection
 	Cluster  *agouti.Selection
@@ -28,6 +29,7 @@ type PolicyDetailPage struct {
 	Tags            *agouti.MultiSelection
 	Severity        *agouti.Selection
 	Category        *agouti.Selection
+	Mode            *agouti.Selection
 	TargetedK8sKind *agouti.MultiSelection
 	Description     *agouti.Selection
 	HowToSolve      *agouti.Selection
@@ -47,10 +49,11 @@ func (p PoliciesPage) FindPolicyInList(policyName string) *PolicyInformation {
 	return &PolicyInformation{
 		Name:     policy.FindByXPath(`td[1]//a`),
 		Category: policy.FindByXPath(`td[2]`),
-		Tenant:   policy.FindByXPath(`td[3]`),
-		Severity: policy.FindByXPath(`td[4]`),
-		Cluster:  policy.FindByXPath(`td[5]`),
-		Age:      policy.FindByXPath(`td[6]`),
+		Mode:     policy.FindByXPath(`td[3]`),
+		Tenant:   policy.FindByXPath(`td[4]`),
+		Severity: policy.FindByXPath(`td[5]`),
+		Cluster:  policy.FindByXPath(`td[6]`),
+		Age:      policy.FindByXPath(`td[7]`),
 	}
 }
 
@@ -84,6 +87,7 @@ func GetPolicyDetailPage(webDriver *agouti.Page) *PolicyDetailPage {
 		Tags:            webDriver.All(`div[data-testid="Tags"] span`),
 		Severity:        webDriver.Find(`div[data-testid="Severity"]`),
 		Category:        webDriver.Find(`div[data-testid="Category"]`),
+		Mode:            webDriver.Find(`div[data-testid="Mode"]`),
 		TargetedK8sKind: webDriver.All(`div[data-testid="Targeted K8s Kind"] span`),
 		Description:     webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
 		HowToSolve:      webDriver.FindByXPath(`//div[text()="How to solve:"]/following-sibling::*[1]`),
