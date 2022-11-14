@@ -56,7 +56,7 @@ const InputLabel = withStyles(() => ({
 
 const FormHelperText = withStyles(() => ({
   error: {
-    color: 'red',
+    color: '#9F3119',
   },
 }))(MuiFormHelperText);
 
@@ -65,7 +65,7 @@ const InputBase = withStyles(() => ({
     padding: '10px',
   },
   error: {
-    borderBottom: '2px solid red',
+    borderBottom: '2px solid #9F3119',
   },
 }))(MuiInputBase);
 
@@ -108,7 +108,6 @@ export const Input: FC<InputProps> = ({
   name,
   error,
 }) => {
-  console.log(error);
   return (
     <FormControl id={`${label}-group`} className={className}>
       {label && (
@@ -133,7 +132,7 @@ export const Input: FC<InputProps> = ({
         required={required}
         error={error}
       />
-      <FormHelperText>
+      <FormHelperText error={error}>
         {!error ? description : 'Please fill this field in.'}
       </FormHelperText>
     </FormControl>

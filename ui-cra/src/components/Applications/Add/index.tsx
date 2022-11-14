@@ -77,7 +77,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string>('');
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -346,6 +346,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                             setFormData={setFormData}
                             allowSelectCluster
                             clusterName={clusterName}
+                            formError={formError}
                           />
                         );
                       },
@@ -447,6 +448,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     previewLoading,
     clusterName,
     enableCreatePR,
+    formError,
   ]);
 };
 

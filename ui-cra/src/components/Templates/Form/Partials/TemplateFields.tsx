@@ -75,7 +75,8 @@ const TemplateFields: FC<{
               disabled={isEditing && UNEDITABLE_FIELDS?.includes(name)}
               error={
                 formError === name &&
-                parameterValues[name] === (undefined || '')
+                (parameterValues[name] === undefined ||
+                  parameterValues[name] === '')
               }
             />
           );
