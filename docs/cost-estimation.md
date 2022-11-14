@@ -20,7 +20,8 @@ spec:
         # QueryString of filters to apply to cost estimation
         estimationFilter: "operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
         # the region used to fetch the pricing data, us-east-1 or ap-south-1 are publicly documented
-        # as the only regions that support the pricing API
+        # as the only regions that support the pricing API.
+        # In the TopSecret region this is documented as only being available in the eastern region us-iso-east-1.
         apiRegion: us-east-1
 
     extraEnvVars:
@@ -44,6 +45,15 @@ kubectl create secret generic aws-pricing-api-credentials \
 ### Permissions
 
 The cost estimation service requires the `AWSPriceListServiceFullAccess` policy attached to the user or role used to access the pricing API.
+
+### Rollout
+
+After updating the `HelmRelease`, commit, push, reconcile and restart:
+
+- `git commit -am "Enable cost estimation"`
+- `git push`
+- `flux reconcile kustomization --with-source flux-system`
+- `kubectl -n flux-system rollout restart deploy/weave-gitops-enterprise-mccp-cluster-service`
 
 ## Estimation
 
@@ -73,7 +83,8 @@ Estimation filters are configured both via:
      costEstimation:
        estimationFilter: "operatingSystem=Linux&tenancy=Dedicated&capacityStatus=UnusedCapacityReservation&operation=RunInstances"
    ```
-2. _(optional)_ over-ride the global defaults on a per-template basis with the `weave.works/cost-estimation-filter` annotation on the `Cluster` resource in the template.
+2. _(optional)_ over-ride the global defaults on a per-template basis with the `weave.works/cost-estimation-filter` annotation on the `Cluster` resource in the template. Its important to put the annotation on the `Cluster` resource inside the template and not the `CAPITemplate` itself.
+
    ```yaml
    apiVersion: cluster.x-k8s.io/v1beta1
    kind: Cluster
@@ -106,6 +117,206 @@ Things that are ignored and are not included in the estimate:
   - Storage
   - etc
 - MachinePool `minSize` and `maxSize` are ignored, the estimate is based on the number of `replicas`
+
+# Appendix 1: Example CAPA template with COST_ESTIMATION param for debugging
+
+```yaml
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: capa-cluster-template
+  namespace: default
+  annotations:
+    # Disable apps/profiles for a more compact demo
+    "templates.weave.works/profiles-enabled": "false"
+    "templates.weave.works/kustomizations-enabled": "false"
+    "templates.weave.works/credentials-enabled": "false"
+spec:
+  description: A base CAPA templated imported from github.com/kubernetes-sigs/cluster-api-provider-aws
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+    - name: COST_ESTIMATION_FILTERS
+      description: "(Optional) DEBUG: Query string of extra filters to use when estimating costs."
+      required: false
+    - name: AWS_SSH_KEY_NAME
+      description: AWS SSH key name
+      default: default
+    - name: KUBERNETES_VERSION
+      description: Kubernetes version
+      options: ["v1.22.1", "v1.23.2"]
+      default: v1.23.2
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      description: Number of control planes
+      options:
+        - "3"
+        - "5"
+      default: "3"
+    - name: AWS_CONTROL_PLANE_MACHINE_TYPE
+      description: Machine type
+      options:
+        - t3.medium
+        - t3.large
+      default: t3.medium
+    - name: WORKER_MACHINE_COUNT
+      description: Number of control planes
+      options:
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+      default: "3"
+    - name: AWS_NODE_MACHINE_TYPE
+      description: Machine type
+      options:
+        - t3.nano
+        - t3.micro
+        - t3.small
+        - t3.medium
+        - t3.large
+        - t3.xlarge
+        - t3.2xlarge
+      default: t3.micro
+    - name: AWS_REGION
+      description: AWS Region
+      options:
+        - us-east-2
+        - us-east-1
+        - us-west-1
+        - us-west-2
+        - af-south-1
+        - ap-east-1
+        - ap-south-1
+        - ap-northeast-3
+        - ap-northeast-2
+        - ap-southeast-1
+        - ap-southeast-2
+        - ap-northeast-1
+        - ca-central-1
+        - eu-central-1
+        - eu-west-1
+        - eu-west-2
+        - eu-south-1
+        - eu-west-3
+        - eu-north-1
+        - me-south-1
+        - sa-east-1
+      default: eu-west-1
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      kind: Cluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+        # Important to add the estimation filters annotation HERE and NOT on the CAPITemplate
+        annotations:
+          "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
+      spec:
+        clusterNetwork:
+          pods:
+            cidrBlocks: ["192.168.0.0/16"]
+        infrastructureRef:
+          apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+          kind: AWSCluster
+          name: "${CLUSTER_NAME}"
+        controlPlaneRef:
+          kind: KubeadmControlPlane
+          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+          name: "${CLUSTER_NAME}-control-plane"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+      kind: AWSCluster
+      metadata:
+        name: "${CLUSTER_NAME}"
+      spec:
+        region: "${AWS_REGION}"
+        sshKeyName: "${AWS_SSH_KEY_NAME}"
+    - kind: KubeadmControlPlane
+      apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+      spec:
+        replicas: ${CONTROL_PLANE_MACHINE_COUNT}
+        machineTemplate:
+          infrastructureRef:
+            kind: AWSMachineTemplate
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+            name: "${CLUSTER_NAME}-control-plane"
+        kubeadmConfigSpec:
+          initConfiguration:
+            nodeRegistration:
+              name: "{{ ds.meta_data.local_hostname }}"
+              kubeletExtraArgs:
+                cloud-provider: aws
+          clusterConfiguration:
+            apiServer:
+              extraArgs:
+                cloud-provider: aws
+            controllerManager:
+              extraArgs:
+                cloud-provider: aws
+          joinConfiguration:
+            nodeRegistration:
+              name: "{{ ds.meta_data.local_hostname }}"
+              kubeletExtraArgs:
+                cloud-provider: aws
+        version: "${KUBERNETES_VERSION}"
+    - kind: AWSMachineTemplate
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+      spec:
+        template:
+          spec:
+            instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
+            iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
+            sshKeyName: "${AWS_SSH_KEY_NAME}"
+    - apiVersion: cluster.x-k8s.io/v1beta1
+      kind: MachineDeployment
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+      spec:
+        clusterName: "${CLUSTER_NAME}"
+        replicas: ${WORKER_MACHINE_COUNT}
+        selector:
+          matchLabels:
+        template:
+          spec:
+            clusterName: "${CLUSTER_NAME}"
+            version: "${KUBERNETES_VERSION}"
+            bootstrap:
+              configRef:
+                name: "${CLUSTER_NAME}-md-0"
+                apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+                kind: KubeadmConfigTemplate
+            infrastructureRef:
+              name: "${CLUSTER_NAME}-md-0"
+              apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+              kind: AWSMachineTemplate
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+      kind: AWSMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+      spec:
+        template:
+          spec:
+            instanceType: "${AWS_NODE_MACHINE_TYPE}"
+            iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
+            sshKeyName: "${AWS_SSH_KEY_NAME}"
+    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+      kind: KubeadmConfigTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
+      spec:
+        template:
+          spec:
+            joinConfiguration:
+              nodeRegistration:
+                name: "{{ ds.meta_data.local_hostname }}"
+                kubeletExtraArgs:
+                  cloud-provider: aws
+```
 
 # Appendix: Available filters
 
