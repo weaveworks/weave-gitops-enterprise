@@ -69,6 +69,42 @@ const SourceLinkWrapper = styled.div`
   overflow-x: auto;
 `;
 
+function getInitialData(callbackState: any, random: string) {
+  let defaultFormData = {
+    url: '',
+    provider: '',
+    branchName: `add-application-branch-${random}`,
+    title: 'Add application',
+    commitMessage: 'Add application',
+    pullRequestDescription: 'This PR adds a new application',
+    clusterAutomations: [
+      {
+        name: '',
+        namespace: '',
+        target_namespace: '',
+        cluster_name: '',
+        cluster_namespace: '',
+        cluster: '',
+        cluster_isControlPlane: false,
+        createNamespace: false,
+        path: '',
+        source_name: '',
+        source_namespace: '',
+        source: '',
+        source_type: '',
+        source_url: '',
+        source_branch: '',
+      },
+    ],
+  };
+
+  const initialFormData = {
+    ...defaultFormData,
+    ...callbackState?.state?.formData,
+  };
+  return { initialFormData };
+}
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -106,34 +142,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const callbackState = useCallbackState();
 
-  let initialFormData = {
-    url: '',
-    provider: '',
-    branchName: `add-application-branch-${random}`,
-    title: 'Add application',
-    commitMessage: 'Add application',
-    pullRequestDescription: 'This PR adds a new application',
-    clusterAutomations: [
-      {
-        name: '',
-        namespace: '',
-        target_namespace: '',
-        cluster_name: '',
-        cluster_namespace: '',
-        cluster: '',
-        cluster_isControlPlane: false,
-        createNamespace: false,
-        path: '',
-        source_name: '',
-        source_namespace: '',
-        source: '',
-        source_type: '',
-        source_url: '',
-        source_branch: '',
-      },
-    ],
-    ...callbackState?.state?.formData,
-  };
+  const { initialFormData } = getInitialData(callbackState, random);
 
   const [formData, setFormData] = useState<any>(initialFormData);
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
@@ -406,6 +415,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       showAuthDialog={showAuthDialog}
                       setShowAuthDialog={setShowAuthDialog}
                       setEnableCreatePR={setEnableCreatePR}
+                      formError={formError}
                     />
                     {loading ? (
                       <LoadingPage className="create-loading" />

@@ -38,8 +38,6 @@ const TemplateFields: FC<{
     });
   };
 
-  console.log(formError, 'CLUSTER_NAME', parameterValues['CLUSTER_NAME']);
-
   return (
     <TemplateFieldsWrapper>
       {template.parameters?.map((param, index) => {

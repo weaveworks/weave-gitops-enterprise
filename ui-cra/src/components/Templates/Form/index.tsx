@@ -459,8 +459,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setCostEstimate('00.00 USD');
   }, [formData.parameterValues]);
 
-  console.log(formError);
-
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -551,6 +549,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
+              formError={formError}
             />
             {loading ? (
               <LoadingPage className="create-loading" />

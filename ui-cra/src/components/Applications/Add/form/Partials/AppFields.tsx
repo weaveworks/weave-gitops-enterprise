@@ -220,6 +220,8 @@ const AppFields: FC<{
     });
   };
 
+  console.log('error:', formError);
+
   return (
     <AppFieldsWrapper>
       {!!clusters && (
