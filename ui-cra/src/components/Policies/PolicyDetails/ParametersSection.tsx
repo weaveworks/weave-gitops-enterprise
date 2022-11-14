@@ -14,11 +14,11 @@ function ParametersSection({ parameters }: Policy) {
         {parameters?.map((parameter: PolicyParam) => (
           <ParameterWrapper key={parameter.name} id={parameter.name}>
             <ParameterCell
-              label="Parameter Name"
+              label="Name"
               value={parameter.name}
             ></ParameterCell>
             <ParameterCell
-              label="Parameter Type"
+              label="Type"
               value={parameter.type}
             ></ParameterCell>
             <ParameterCell

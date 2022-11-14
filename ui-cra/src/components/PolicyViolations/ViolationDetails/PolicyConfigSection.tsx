@@ -17,7 +17,7 @@ function PolicyConfigSection({ parameters }: IViolationDetailsProps) {
       {parameters?.map(parameter => (
         <ParameterWrapper key={parameter.name} id={parameter.name}>
           <ParameterCell
-            label="Parameter Name"
+            label="Name"
             value={parameter.name}
           ></ParameterCell>
           <ParameterCell

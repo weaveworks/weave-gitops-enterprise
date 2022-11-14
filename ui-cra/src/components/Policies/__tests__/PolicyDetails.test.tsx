@@ -94,7 +94,9 @@ describe('ListPolicViolations', () => {
     // Details
     expect(screen.getByTestId('Policy ID')).toHaveTextContent(policy.id);
 
-    expect(screen.queryByTestId('Tenant')).toBeNull();
+    expect(screen.queryByTestId('Tenant')).toHaveTextContent(
+      policy.tenant || '--',
+    );
 
     expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
       policy.clusterName,
@@ -132,9 +134,9 @@ describe('ListPolicViolations', () => {
     policy.parameters.forEach(parameter => {
       const paramWrapper = document.getElementById(parameter.name);
       // Name
-      ValidateParameter(paramWrapper, 'Parameter Name', parameter.name);
+      ValidateParameter(paramWrapper, 'Name', parameter.name);
       // Type
-      ValidateParameter(paramWrapper, 'Parameter Type', parameter.type);
+      ValidateParameter(paramWrapper, 'Type', parameter.type);
       // Value
       ValidateParameter(paramWrapper, 'Value', parseValue(parameter));
       // Required
@@ -188,7 +190,7 @@ const ValidateParameter = (
   const body1 = parameterNameWrapper?.querySelector('.body1');
   expect(label?.textContent).toEqual(key);
 
-  // Handel ChipWrapper of the Parsing Value 
+  // Handel ChipWrapper of the Parsing Value
   if (body1?.textContent === 'undefined') {
     expect(body1?.textContent).toEqual(`${(value as Element)?.textContent}`);
   } else {
