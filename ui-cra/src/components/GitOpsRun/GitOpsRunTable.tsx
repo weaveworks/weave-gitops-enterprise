@@ -13,7 +13,7 @@ export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
   };
 
   return (
-    <TableWrapper id="policy-list">
+    <TableWrapper id="gitopsRun-list">
       <DataTable
         key={sessions?.length}
         filters={initialFilterState}
