@@ -307,11 +307,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const { data: featureFlagsData } = useFeatureFlags();
 
   const isCredentialEnabled =
-    annotations?.['templates.weave.works/credentials-enabled'] !== 'false';
+    annotations?.['templates.weave.works/credentials-enabled'] === 'true';
   const isProfilesEnabled =
-    annotations?.['templates.weave.works/profiles-enabled'] !== 'false';
+    annotations?.['templates.weave.works/profiles-enabled'] === 'true';
   const isKustomizationsEnabled =
-    annotations?.['templates.weave.works/kustomizations-enabled'] !== 'false';
+    annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
   const isCostEstimationEnabled =
     featureFlagsData?.flags?.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
