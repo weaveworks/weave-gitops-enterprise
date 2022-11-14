@@ -187,7 +187,16 @@ service ClustersService {
         get : "/v1/charts/jobs/{job_id}",
       };
     }
+
+  
+  // ListWorkspaces list workspaces available on all clusters
+  rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces"
+    };
+  }
 }
+
 
 message ListTemplatesRequest {
   string provider = 1;
@@ -797,4 +806,21 @@ message GetChartsJobResponse {
   // This is the base64 encoded version of the raw values data.
   string values = 1;
   string error = 2;
+}
+
+message WorkspaceItem {
+  string name = 1;
+  string clusterName = 2;
+  repeated string namespaces = 3;
+}
+
+message ListWorkspacesRequest{
+  Pagination pagination = 1;
+}
+
+message ListWorkspacesResponse{
+  repeated WorkspaceItem workspaces = 1;
+  int32 total = 2;
+  string nextPageToken = 3;
+  repeated ListError errors = 4;
 }

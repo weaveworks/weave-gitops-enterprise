@@ -590,6 +590,23 @@ export type GetChartsJobResponse = {
   error?: string
 }
 
+export type WorkspaceItem = {
+  name?: string
+  clusterName?: string
+  namespaces?: string[]
+}
+
+export type ListWorkspacesRequest = {
+  pagination?: Pagination
+}
+
+export type ListWorkspacesResponse = {
+  workspaces?: WorkspaceItem[]
+  total?: number
+  nextPageToken?: string
+  errors?: ListError[]
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -659,5 +676,8 @@ export class ClustersService {
   }
   static GetChartsJob(req: GetChartsJobRequest, initReq?: fm.InitReq): Promise<GetChartsJobResponse> {
     return fm.fetchReq<GetChartsJobRequest, GetChartsJobResponse>(`/v1/charts/jobs/${req["jobId"]}?${fm.renderURLSearchParams(req, ["jobId"])}`, {...initReq, method: "GET"})
+  }
+  static ListWorkspaces(req: ListWorkspacesRequest, initReq?: fm.InitReq): Promise<ListWorkspacesResponse> {
+    return fm.fetchReq<ListWorkspacesRequest, ListWorkspacesResponse>(`/v1/workspaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

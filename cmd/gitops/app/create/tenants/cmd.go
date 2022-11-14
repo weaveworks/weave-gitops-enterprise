@@ -7,7 +7,6 @@ import (
 
 	"github.com/spf13/cobra"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
-	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/tenancy"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 
