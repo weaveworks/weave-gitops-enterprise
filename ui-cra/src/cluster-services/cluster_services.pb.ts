@@ -590,7 +590,7 @@ export type GetChartsJobResponse = {
   error?: string
 }
 
-export type WorkspaceItem = {
+export type Workspace = {
   name?: string
   clusterName?: string
   namespaces?: string[]
@@ -601,7 +601,7 @@ export type ListWorkspacesRequest = {
 }
 
 export type ListWorkspacesResponse = {
-  workspaces?: WorkspaceItem[]
+  workspaces?: Workspace[]
   total?: number
   nextPageToken?: string
   errors?: ListError[]
@@ -651,10 +651,30 @@ export type GetWorkspaceResponse = {
   name?: string
   clusterName?: string
   namespaces?: string[]
-  serviceAccounts?: WorkspaceServiceAccount[]
-  roles?: WorkspaceRole[]
-  roleBindings?: WorkspaceRoleBinding[]
-  policies?: WorkspacePolicy[]
+}
+
+export type GetWorkspaceRolesResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceRole[]
+}
+
+export type GetWorkspaceRoleBindingsResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceRoleBinding[]
+}
+
+export type GetWorkspaceServiceAccountsResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceServiceAccount[]
+}
+
+export type GetWorkspacePoliciesResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspacePolicy[]
 }
 
 export class ClustersService {
@@ -732,5 +752,17 @@ export class ClustersService {
   }
   static GetWorkspace(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceResponse> {
     return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/workspaces/${req["workspaceName"]}?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceRoles(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRolesResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRolesResponse>(`/v1/workspaces/${req["workspaceName"]}/roles?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceRoleBindings(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRoleBindingsResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRoleBindingsResponse>(`/v1/workspaces/${req["workspaceName"]}/rolebindings?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceServiceAccounts(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceServiceAccountsResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceServiceAccountsResponse>(`/v1/workspaces/${req["workspaceName"]}/serviceaccounts?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspacePolicies(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspacePoliciesResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/workspaces/${req["workspaceName"]}/policies?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
 }

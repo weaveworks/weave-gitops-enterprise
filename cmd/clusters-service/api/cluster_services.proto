@@ -195,10 +195,34 @@ service ClustersService {
       get : "/v1/workspaces"
     };
   }
-   // ListWorkspaces list workspaces available on all clusters
+   // GetWorkspace get workspace details
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (google.api.http) = {
       get : "/v1/workspaces/{workspaceName}"
+    };
+  }
+   // GetWorkspaceRoles list workspace roles
+   rpc GetWorkspaceRoles(GetWorkspaceRequest) returns (GetWorkspaceRolesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/roles"
+    };
+  }
+   // GetWorkspaceRoleBindings list workspace role bindings
+   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest) returns (GetWorkspaceRoleBindingsResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/rolebindings"
+    };
+  }
+   // GetWorkspaceServiceAccounts list workspace service accounts
+   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest) returns (GetWorkspaceServiceAccountsResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/serviceaccounts"
+    };
+  }
+  // GetWorkspacePolicies list workspace service accounts
+  rpc GetWorkspacePolicies(GetWorkspaceRequest) returns (GetWorkspacePoliciesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/policies"
     };
   }
 }
@@ -814,7 +838,7 @@ message GetChartsJobResponse {
   string error = 2;
 }
 
-message WorkspaceItem {
+message Workspace {
   string name = 1;
   string clusterName = 2;
   repeated string namespaces = 3;
@@ -825,7 +849,7 @@ message ListWorkspacesRequest{
 }
 
 message ListWorkspacesResponse{
-  repeated WorkspaceItem workspaces = 1;
+  repeated Workspace workspaces = 1;
   int32 total = 2;
   string nextPageToken = 3;
   repeated ListError errors = 4;
@@ -875,8 +899,28 @@ message GetWorkspaceResponse{
   string name = 1;
   string clusterName = 2;
   repeated string namespaces = 3;
-  repeated WorkspaceServiceAccount serviceAccounts = 4;
-  repeated WorkspaceRole roles = 5;
-  repeated WorkspaceRoleBinding roleBindings = 6;
-  repeated WorkspacePolicy policies = 7;
+}
+
+message GetWorkspaceRolesResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspaceRole objects = 3;
+}
+
+message GetWorkspaceRoleBindingsResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspaceRoleBinding objects = 3;
+}
+
+message GetWorkspaceServiceAccountsResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspaceServiceAccount objects = 3;
+}
+
+message GetWorkspacePoliciesResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspacePolicy objects = 3;
 }

@@ -928,13 +928,161 @@
     },
     "/v1/workspaces/{workspaceName}": {
       "get": {
-        "summary": "ListWorkspaces list workspaces available on all clusters",
+        "summary": "GetWorkspace get workspace details",
         "operationId": "ClustersService_GetWorkspace",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
               "$ref": "#/definitions/v1GetWorkspaceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/policies": {
+      "get": {
+        "summary": "GetWorkspacePolicies list workspace service accounts",
+        "operationId": "ClustersService_GetWorkspacePolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspacePoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/rolebindings": {
+      "get": {
+        "summary": "GetWorkspaceRoleBindings list workspace role bindings",
+        "operationId": "ClustersService_GetWorkspaceRoleBindings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRoleBindingsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/roles": {
+      "get": {
+        "summary": "GetWorkspaceRoles list workspace roles",
+        "operationId": "ClustersService_GetWorkspaceRoles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRolesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/serviceaccounts": {
+      "get": {
+        "summary": "GetWorkspaceServiceAccounts list workspace service accounts",
+        "operationId": "ClustersService_GetWorkspaceServiceAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceServiceAccountsResponse"
             }
           },
           "default": {
@@ -1566,6 +1714,23 @@
         }
       }
     },
+    "v1GetWorkspacePoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspacePolicy"
+          }
+        }
+      }
+    },
     "v1GetWorkspaceResponse": {
       "type": "object",
       "properties": {
@@ -1580,29 +1745,56 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v1GetWorkspaceRoleBindingsResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
         },
-        "serviceAccounts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1WorkspaceServiceAccount"
-          }
+        "clusterName": {
+          "type": "string"
         },
-        "roles": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1WorkspaceRole"
-          }
-        },
-        "roleBindings": {
+        "objects": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1WorkspaceRoleBinding"
           }
+        }
+      }
+    },
+    "v1GetWorkspaceRolesResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
         },
-        "policies": {
+        "clusterName": {
+          "type": "string"
+        },
+        "objects": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1WorkspacePolicy"
+            "$ref": "#/definitions/v1WorkspaceRole"
+          }
+        }
+      }
+    },
+    "v1GetWorkspaceServiceAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspaceServiceAccount"
           }
         }
       }
@@ -1910,7 +2102,7 @@
         "workspaces": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1WorkspaceItem"
+            "$ref": "#/definitions/v1Workspace"
           }
         },
         "total": {
@@ -2416,7 +2608,7 @@
         }
       }
     },
-    "v1WorkspaceItem": {
+    "v1Workspace": {
       "type": "object",
       "properties": {
         "name": {
