@@ -195,6 +195,12 @@ service ClustersService {
       get : "/v1/workspaces"
     };
   }
+   // ListWorkspaces list workspaces available on all clusters
+   rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}"
+    };
+  }
 }
 
 
@@ -823,4 +829,54 @@ message ListWorkspacesResponse{
   int32 total = 2;
   string nextPageToken = 3;
   repeated ListError errors = 4;
+}
+
+message WorkspaceRoleRule {
+  repeated string groups = 1;
+  repeated string resources = 2;
+  repeated string verbs = 3;
+}
+
+message WorkspaceRole {
+  string name = 1;
+  string namespace = 2;
+  repeated WorkspaceRoleRule rules = 3;
+  string manifest = 4;
+  string timestamp = 5;
+}
+
+message WorkspaceRoleBinding {
+  string name = 1;
+  string namespace = 2;
+  string manifest = 3;
+  string timestamp = 4;
+}
+
+message WorkspaceServiceAccount {
+  string name = 1;
+  string namespace = 2;
+  string timestamp = 3;
+}
+
+message WorkspacePolicy {
+  string id = 1;
+  string name = 2;
+  string category = 4;
+  string severity = 5;
+  string timestamp = 6;
+}
+
+message GetWorkspaceRequest{
+  string clusterName = 1;
+  string workspaceName = 2;
+}
+
+message GetWorkspaceResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated string namespaces = 3;
+  repeated WorkspaceServiceAccount serviceAccounts = 4;
+  repeated WorkspaceRole roles = 5;
+  repeated WorkspaceRoleBinding roleBindings = 6;
+  repeated WorkspacePolicy policies = 7;
 }

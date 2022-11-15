@@ -607,6 +607,56 @@ export type ListWorkspacesResponse = {
   errors?: ListError[]
 }
 
+export type WorkspaceRoleRule = {
+  groups?: string[]
+  resources?: string[]
+  verbs?: string[]
+}
+
+export type WorkspaceRole = {
+  name?: string
+  namespace?: string
+  rules?: WorkspaceRoleRule[]
+  manifest?: string
+  timestamp?: string
+}
+
+export type WorkspaceRoleBinding = {
+  name?: string
+  namespace?: string
+  manifest?: string
+  timestamp?: string
+}
+
+export type WorkspaceServiceAccount = {
+  name?: string
+  namespace?: string
+  timestamp?: string
+}
+
+export type WorkspacePolicy = {
+  id?: string
+  name?: string
+  category?: string
+  severity?: string
+  timestamp?: string
+}
+
+export type GetWorkspaceRequest = {
+  clusterName?: string
+  workspaceName?: string
+}
+
+export type GetWorkspaceResponse = {
+  name?: string
+  clusterName?: string
+  namespaces?: string[]
+  serviceAccounts?: WorkspaceServiceAccount[]
+  roles?: WorkspaceRole[]
+  roleBindings?: WorkspaceRoleBinding[]
+  policies?: WorkspacePolicy[]
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -679,5 +729,8 @@ export class ClustersService {
   }
   static ListWorkspaces(req: ListWorkspacesRequest, initReq?: fm.InitReq): Promise<ListWorkspacesResponse> {
     return fm.fetchReq<ListWorkspacesRequest, ListWorkspacesResponse>(`/v1/workspaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspace(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/workspaces/${req["workspaceName"]}?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
 }

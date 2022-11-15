@@ -72,6 +72,8 @@ type ClustersServiceClient interface {
 	GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error)
 	// ListWorkspaces list workspaces available on all clusters
 	ListWorkspaces(ctx context.Context, in *ListWorkspacesRequest, opts ...grpc.CallOption) (*ListWorkspacesResponse, error)
+	// ListWorkspaces list workspaces available on all clusters
+	GetWorkspace(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -298,6 +300,15 @@ func (c *clustersServiceClient) ListWorkspaces(ctx context.Context, in *ListWork
 	return out, nil
 }
 
+func (c *clustersServiceClient) GetWorkspace(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceResponse, error) {
+	out := new(GetWorkspaceResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetWorkspace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -355,6 +366,8 @@ type ClustersServiceServer interface {
 	GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error)
 	// ListWorkspaces list workspaces available on all clusters
 	ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error)
+	// ListWorkspaces list workspaces available on all clusters
+	GetWorkspace(context.Context, *GetWorkspaceRequest) (*GetWorkspaceResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -433,6 +446,9 @@ func (UnimplementedClustersServiceServer) GetChartsJob(context.Context, *GetChar
 }
 func (UnimplementedClustersServiceServer) ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListWorkspaces not implemented")
+}
+func (UnimplementedClustersServiceServer) GetWorkspace(context.Context, *GetWorkspaceRequest) (*GetWorkspaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkspace not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -879,6 +895,24 @@ func _ClustersService_ListWorkspaces_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_GetWorkspace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkspaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetWorkspace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetWorkspace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetWorkspace(ctx, req.(*GetWorkspaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -981,6 +1015,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListWorkspaces",
 			Handler:    _ClustersService_ListWorkspaces_Handler,
+		},
+		{
+			MethodName: "GetWorkspace",
+			Handler:    _ClustersService_GetWorkspace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -197,7 +197,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: gitops-namespaces-reader
+  name: gitops-workspaces-reader
   labels:
     {{- include "mccp.labels" . | nindent 4 }}
     {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
@@ -205,5 +205,11 @@ metadata:
     {{- end }}
 rules:
   - apiGroups: [""]
-    resources: ["namespaces"]
+    resources: ["namespaces", "serviceaccounts"]
+    verbs: ["get", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list"]
+  - apiGroups: ["pac.weave.works"]
+    resources: ["policies"]
     verbs: ["get", "list"]
