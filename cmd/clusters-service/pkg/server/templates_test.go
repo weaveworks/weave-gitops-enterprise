@@ -19,7 +19,7 @@ import (
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	templates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -652,11 +652,11 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templatesv1.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: false,
 					})
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
@@ -681,12 +681,12 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templatesv1.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: true, // Default being set overrides this field
 						Default:  "foo",
 					})
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
@@ -731,7 +731,7 @@ func TestRenderTemplate(t *testing.T) {
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-1"
 					ct.Spec.Description = "this is test template 1"
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -779,7 +779,7 @@ func TestRenderTemplate(t *testing.T) {
 			templateKind:     gapiv1.Kind,
 			clusterState: []runtime.Object{
 				makeClusterTemplateWithProvider(t, "AWSCluster", func(gt *gapiv1.GitOpsTemplate) {
-					gt.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					gt.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
@@ -801,11 +801,11 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.Spec.RenderType = "templating"
-					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templatesv1.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: false,
 					})
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
@@ -1334,24 +1334,87 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 }
 
 func TestGetProfilesFromTemplate(t *testing.T) {
-	annotations := map[string]string{
-		"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
-		"capi.weave.works/profile-1": "{\"name\": \"external-dns\", \"version\": \"0.0.8\", \"editable\": true }",
-		"capi.weave.works/profile-2": "{\"name\": \"cert-manager\", \"version\": \"2.0.1\"}",
-	}
+	t.Run("base case", func(t *testing.T) {
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
+			"capi.weave.works/profile-1": "{\"name\": \"external-dns\", \"version\": \"0.0.8\", \"editable\": true }",
+			"capi.weave.works/profile-2": "{\"name\": \"cert-manager\", \"version\": \"2.0.1\"}",
+		}
 
-	expected := []*capiv1_protos.TemplateProfile{
-		{Name: "cert-manager", Version: "2.0.1"},
-		{Name: "external-dns", Version: "0.0.8", Editable: true},
-		{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
-	}
+		expected := []*capiv1_protos.TemplateProfile{
+			{Name: "cert-manager", Version: "2.0.1"},
+			{Name: "external-dns", Version: "0.0.8", Editable: true},
+			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
+		}
 
-	result, err := getProfilesFromTemplate(annotations)
-	assert.NoError(t, err)
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+		})
+		result, err := getProfilesFromTemplate(tm)
 
-	if diff := cmp.Diff(expected, result, protocmp.Transform()); diff != "" {
-		t.Fatalf("template params didn't match expected:\n%s", diff)
-	}
+		assert.NoError(t, err)
+
+		if diff := cmp.Diff(expected, result, protocmp.Transform()); diff != "" {
+			t.Fatalf("template params didn't match expected:\n%s", diff)
+		}
+	})
+
+	t.Run("missing name", func(t *testing.T) {
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
+		}
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+		})
+		_, err := getProfilesFromTemplate(tm)
+		assert.Error(t, err)
+		assert.Equal(t, "profile name is required", err.Error())
+	})
+
+	t.Run("bad json", func(t *testing.T) {
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"",
+		}
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+		})
+		_, err := getProfilesFromTemplate(tm)
+		assert.Error(t, err)
+		assert.Equal(t, "failed to unmarshal profiles: unexpected end of JSON input", err.Error())
+	})
+
+	t.Run("profiles in template.spec.profiles overrides profiles specified in the annotations", func(t *testing.T) {
+		// base annotations
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
+			"capi.weave.works/profile-1": "{\"name\": \"external-dns\", \"version\": \"0.0.7\", \"editable\": true }",
+		}
+
+		// profiles in template.spec.profiles
+		profiles := []templatesv1.Profile{
+			{Name: "cert-manager", Version: "2.0.1"},
+			{Name: "external-dns", Version: "0.0.8", Editable: true},
+		}
+
+		expected := []*capiv1_protos.TemplateProfile{
+			// spec
+			{Name: "cert-manager", Version: "2.0.1"},
+			{Name: "external-dns", Version: "0.0.8", Editable: true},
+			// annotations
+			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
+		}
+
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+			c.Spec.Profiles = profiles
+		})
+
+		result, err := getProfilesFromTemplate(tm)
+		// no error
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+
+	})
 }
 
 func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) *capiv1.CAPITemplate {
@@ -1365,7 +1428,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 		}
 	  }`
 	return makeCAPITemplate(t, append(opts, func(c *capiv1.CAPITemplate) {
-		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
+		c.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
 				RawExtension: rawExtension(basicRaw),
 			},
@@ -1385,7 +1448,7 @@ func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...f
 	  }`
 	defaultOpts := []func(template *gapiv1.GitOpsTemplate){
 		func(c *gapiv1.GitOpsTemplate) {
-			c.Spec.ResourceTemplates = []templates.ResourceTemplate{
+			c.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 				{
 					RawExtension: rawExtension(basicRaw),
 				},

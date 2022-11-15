@@ -44,6 +44,8 @@ type TemplateSpec struct {
 	// descriptions.
 	Params []TemplateParam `json:"params,omitempty"` // Described above
 
+	Profiles []Profile `json:"profiles,omitempty"`
+
 	// ResourceTemplates are a set of templates for resources that are generated
 	// from this Template.
 	ResourceTemplates []ResourceTemplate `json:"resourcetemplates,omitempty"`
@@ -64,6 +66,23 @@ type TemplateParam struct {
 	// Default specifies the default value for the parameter
 	// +optional
 	Default string `json:"default,omitempty"`
+}
+
+// Profile is the set of values that control the default and required values
+// of a profile in a template.
+// +kubebuilder:object:generate=true
+type Profile struct {
+	Name string `json:"name"`
+	// Default version to select
+	Version string `json:"version"`
+	// Which default namespace to install the profile into
+	TargetNamespace string `json:"targetNamespace,omitempty"`
+	// If true the profile will always be installed
+	Required bool `json:"required,omitempty"`
+	// If true you can change the values and version of the profile
+	Editable bool `json:"editable,omitempty"`
+	// Values.yaml blob
+	Values runtime.RawExtension `json:"values,omitempty"`
 }
 
 // ResourceTemplate describes a resource to create.

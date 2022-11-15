@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	apiTemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -39,7 +39,7 @@ type GetFilesReturn struct {
 	CostEstimate       *capiv1_proto.CostEstimate
 }
 
-func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind string) (apiTemplates.Template, error) {
+func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind string) (templatesv1.Template, error) {
 	if namespace == "" {
 		return nil, errors.New("need to specify template namespace")
 	}
@@ -192,7 +192,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
 	}
 
-	profiles, err := getProfilesFromTemplate(t.Annotations)
+	profiles, err := getProfilesFromTemplate(tm)
 	if err != nil {
 		return nil, fmt.Errorf("error getting profiles from template %v, %v", msg.TemplateName, err)
 	}
@@ -248,7 +248,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
 }
 
-func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
+func (s *server) getFiles(ctx context.Context, tmpl templatesv1.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
@@ -352,7 +352,7 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
 }
 
-func shouldAddCommonBases(t apiTemplates.Template) bool {
+func shouldAddCommonBases(t templatesv1.Template) bool {
 	anno := t.GetAnnotations()[templates.AddCommonBasesAnnotation]
 	if anno != "" {
 		return anno == "true"
@@ -406,19 +406,40 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	return templates
 }
 
-func getProfilesFromTemplate(annotations map[string]string) ([]*capiv1_proto.TemplateProfile, error) {
-	profiles := []*capiv1_proto.TemplateProfile{}
-	for k, v := range annotations {
+func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {
+	profilesIndex := map[string]*capiv1_proto.TemplateProfile{}
+	for k, v := range tl.GetAnnotations() {
 		if strings.Contains(k, "capi.weave.works/profile-") {
 			profile := capiv1_proto.TemplateProfile{}
 			err := json.Unmarshal([]byte(v), &profile)
 			if err != nil {
-				return profiles, fmt.Errorf("failed to unmarshal profiles: %w", err)
+				return nil, fmt.Errorf("failed to unmarshal profiles: %w", err)
 			}
-			profiles = append(profiles, &profile)
+			if profile.Name == "" {
+				return nil, fmt.Errorf("profile name is required")
+			}
+
+			profilesIndex[profile.Name] = &profile
 		}
 	}
 
+	// Override anything that was still in the index with the profiles from the spec
+	for _, v := range tl.GetSpec().Profiles {
+		profile := capiv1_proto.TemplateProfile{
+			Name:      v.Name,
+			Version:   v.Version,
+			Editable:  v.Editable,
+			Namespace: v.TargetNamespace,
+			Values:    string(v.Values.Raw),
+		}
+
+		profilesIndex[profile.Name] = &profile
+	}
+
+	profiles := []*capiv1_proto.TemplateProfile{}
+	for _, v := range profilesIndex {
+		profiles = append(profiles, v)
+	}
 	sort.Slice(profiles, func(i, j int) bool { return profiles[i].Name < profiles[j].Name })
 
 	return profiles, nil

@@ -67,6 +67,35 @@ spec:
                   - name
                   type: object
                 type: array
+              profiles:
+                items:
+                  description: Profile is the set of values that control the default
+                    and required values of a profile in a template.
+                  properties:
+                    editable:
+                      description: If true you can change the values and version of
+                        the profile
+                      type: boolean
+                    name:
+                      type: string
+                    required:
+                      description: If true the profile will always be installed
+                      type: boolean
+                    targetNamespace:
+                      description: Which default namespace to install the profile
+                        into
+                      type: string
+                    values:
+                      description: Values.yaml blob
+                      type: object
+                    version:
+                      description: Default version to select
+                      type: string
+                  required:
+                  - name
+                  - version
+                  type: object
+                type: array
               renderType:
                 default: envsubst
                 description: RenderType specifies which templating language to use
