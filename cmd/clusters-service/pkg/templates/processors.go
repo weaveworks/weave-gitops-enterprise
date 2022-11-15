@@ -87,7 +87,8 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		paramsMeta[v] = Param{Name: v}
 	}
 
-	for _, v := range p.GetSpec().Params {
+	declaredParams := p.GetSpec().Params
+	for _, v := range declaredParams {
 		if m, ok := paramsMeta[v.Name]; ok {
 			m.Description = v.Description
 			m.Options = v.Options
@@ -101,7 +102,25 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 	for _, v := range paramsMeta {
 		params = append(params, v)
 	}
-	sort.Slice(params, func(i, j int) bool { return params[i].Name < params[j].Name })
+
+	paramOrders := map[string]int{}
+	for i, v := range declaredParams {
+		paramOrders[v.Name] = i
+	}
+	sort.Slice(params, func(i, j int) bool {
+		iOrder, iExists := paramOrders[params[i].Name]
+		jOrder, jExists := paramOrders[params[j].Name]
+		switch {
+		case iExists && jExists:
+			return iOrder < jOrder
+		case !iExists && !jExists:
+			return params[i].Name < params[j].Name
+		case iExists:
+			return true
+		default:
+			return false
+		}
+	})
 
 	return params, nil
 }
