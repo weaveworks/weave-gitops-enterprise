@@ -574,20 +574,6 @@ func TestRender_unknown_parameter(t *testing.T) {
 	assert.ErrorContains(t, err, "missing required parameter: CLUSTER_NAME")
 }
 
-func writeMultiDoc(t *testing.T, objs [][]byte) string {
-	t.Helper()
-	var out bytes.Buffer
-	for _, v := range objs {
-		if _, err := out.Write([]byte("---\n")); err != nil {
-			t.Fatal(err)
-		}
-		if _, err := out.Write(v); err != nil {
-			t.Fatal(err)
-		}
-	}
-	return out.String()
-}
-
 func TestInjectLabels(t *testing.T) {
 	raw := []byte(`
 apiVersion: cluster.x-k8s.io/v1alpha3
@@ -672,4 +658,18 @@ metadata:
 	if diff := cmp.Diff(want, converted); diff != "" {
 		t.Fatalf("failed to convert to unstructured:\n%s", diff)
 	}
+}
+
+func writeMultiDoc(t *testing.T, objs [][]byte) string {
+	t.Helper()
+	var out bytes.Buffer
+	for _, v := range objs {
+		if _, err := out.Write([]byte("---\n")); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := out.Write(v); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return out.String()
 }
