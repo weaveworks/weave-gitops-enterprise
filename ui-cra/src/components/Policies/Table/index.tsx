@@ -17,7 +17,7 @@ import Mode from '../Mode';
 interface Props {
   policies: Policy[];
 }
-
+ 
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
