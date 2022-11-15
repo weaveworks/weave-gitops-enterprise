@@ -35,7 +35,7 @@ const Pipelines = ({ className }: any) => {
         { label: 'Pipelines' },
       ]}
     >
-      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+      <ContentWrapper loading={isLoading}>
         <Button
           data-testid="create-pipeline"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}

@@ -414,7 +414,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
