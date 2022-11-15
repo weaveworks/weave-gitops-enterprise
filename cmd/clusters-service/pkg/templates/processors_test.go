@@ -15,19 +15,19 @@ var _ Processor = (*EnvsubstTemplateProcessor)(nil)
 func TestNewProcessorForTemplate(t *testing.T) {
 	processorTests := []struct {
 		renderType string
+		template   *gapiv1.GitOpsTemplate
 		want       interface{}
 		wantErr    string
 	}{
 		{renderType: templates.RenderTypeEnvsubst, want: NewEnvsubstTemplateProcessor()},
 		{renderType: "", want: NewEnvsubstTemplateProcessor()},
-		{renderType: templates.RenderTypeTemplating, want: NewTextTemplateProcessor()},
+		{renderType: templates.RenderTypeTemplating, want: NewTextTemplateProcessor(nil)},
 		{renderType: "unknown", wantErr: "unknown template renderType: unknown"},
 	}
 
 	for _, tt := range processorTests {
 		t.Run("processor for "+tt.renderType, func(t *testing.T) {
 			v, err := NewProcessorForTemplate(&gapiv1.GitOpsTemplate{Spec: templates.TemplateSpec{RenderType: tt.renderType}})
-
 			if err != nil {
 				if tt.wantErr == "" {
 					t.Fatal(err)
@@ -38,8 +38,45 @@ func TestNewProcessorForTemplate(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(tt.want, v.Processor) {
-				t.Fatalf("got %T, want %T", v, tt.want)
+			if reflect.TypeOf(v.Processor) != reflect.TypeOf(tt.want) {
+				t.Fatalf("got %T, want %T", v.Processor, tt.want)
+			}
+		})
+	}
+}
+
+func TestProcessor_RenderTemplates(t *testing.T) {
+	paramTests := []struct {
+		filename string
+		params   map[string]string
+		want     string
+	}{
+		{
+			filename: "testdata/text-template4.yaml",
+			params: map[string]string{
+				"CLUSTER_NAME":                "testing",
+				"NAMESPACE":                   "testing",
+				"CONTROL_PLANE_MACHINE_COUNT": "5",
+				"KUBERNETES_VERSION":          "1.2.5",
+			},
+			want: "---\napiVersion: controlplane.cluster.x-k8s.io/v1beta1\nkind: KubeadmControlPlane\nmetadata:\n  name: testing-control-plane\n  namespace: testing\nspec:\n  machineTemplate:\n    infrastructureRef:\n      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1\n      kind: DockerMachineTemplate\n      name: testing-control-plane\n      namespace: testing\n  replicas: 5\n  version: 1.2.5\n",
+		},
+	}
+
+	for _, tt := range paramTests {
+		t.Run(tt.filename, func(t *testing.T) {
+			c := parseCAPITemplateFromFile(t, tt.filename)
+			proc, err := NewProcessorForTemplate(c)
+			if err != nil {
+				t.Fatal(err)
+			}
+			result, err := proc.RenderTemplates(tt.params)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Logf("%s", writeMultiDoc(t, result))
+			if diff := cmp.Diff(tt.want, writeMultiDoc(t, result)); diff != "" {
+				t.Fatalf("failed to render templates:\n%s", diff)
 			}
 		})
 	}
