@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/tenancy"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 
@@ -94,7 +95,7 @@ func applyTenantsCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("could not create default config: %w", err)
 		}
 
-		kubeClient, err := kube.NewKubeHTTPClientWithConfig(config, contextName, pacv2beta1.AddToScheme)
+		kubeClient, err := kube.NewKubeHTTPClientWithConfig(config, contextName, pacv2beta1.AddToScheme, pacv2beta2.AddToScheme)
 		if err != nil {
 			return fmt.Errorf("failed to create kube client: %w", err)
 		}
