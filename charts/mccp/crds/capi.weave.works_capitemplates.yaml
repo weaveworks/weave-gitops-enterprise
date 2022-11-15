@@ -78,16 +78,17 @@ spec:
                       type: boolean
                     name:
                       type: string
-                    required:
-                      description: If true the profile will always be installed
-                      type: boolean
-                    targetNamespace:
+                    namespace:
                       description: Which default namespace to install the profile
                         into
                       type: string
+                    required:
+                      description: If true the profile will always be installed
+                      type: boolean
                     values:
                       description: Values.yaml blob
                       type: object
+                      x-kubernetes-preserve-unknown-fields: true
                     version:
                       description: Default version to select
                       type: string

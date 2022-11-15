@@ -25,6 +25,7 @@ spec:
       default: "1"
   profiles:
     - name: cert-manager
+      namespace: cert-manager
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster

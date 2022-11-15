@@ -76,13 +76,21 @@ type Profile struct {
 	// Default version to select
 	Version string `json:"version,omitempty"`
 	// Which default namespace to install the profile into
-	TargetNamespace string `json:"targetNamespace,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
 	// If true the profile will always be installed
 	Required bool `json:"required,omitempty"`
 	// If true you can change the values and version of the profile
 	Editable bool `json:"editable,omitempty"`
 	// Values.yaml blob
-	Values runtime.RawExtension `json:"values,omitempty"`
+	Values ProfileValues `json:"values,omitempty"`
+}
+
+// ProfileValues describes the values for a profile.
+// +kubebuilder:skipversion
+// +kubebuilder:pruning:PreserveUnknownFields
+// +kubebuilder:object:generate=true
+type ProfileValues struct {
+	runtime.RawExtension `json:",inline"`
 }
 
 // ResourceTemplate describes a resource to create.

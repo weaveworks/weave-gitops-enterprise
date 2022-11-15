@@ -19,6 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
 type GetFilesRequest struct {
@@ -425,12 +426,17 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 
 	// Override anything that was still in the index with the profiles from the spec
 	for _, v := range tl.GetSpec().Profiles {
+		valuesYaml, err := yaml.Marshal(v.Values)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal values.yaml: %w", err)
+		}
+
 		profile := capiv1_proto.TemplateProfile{
 			Name:      v.Name,
 			Version:   v.Version,
 			Editable:  v.Editable,
-			Namespace: v.TargetNamespace,
-			Values:    string(v.Values.Raw),
+			Namespace: v.Namespace,
+			Values:    string(valuesYaml),
 		}
 
 		profilesIndex[profile.Name] = &profile
