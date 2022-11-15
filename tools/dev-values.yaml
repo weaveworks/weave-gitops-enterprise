@@ -18,9 +18,12 @@ enableTerraformUI: true
 
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
-    value: "true"
+    value: ""
 
 extraEnvVarsSecret: ""
+
+# Turns on UI elements for GitOps Run
+enableRunUI: true
 
 # Re-clarify capiEnabled
 global:

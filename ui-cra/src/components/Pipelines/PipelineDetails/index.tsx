@@ -108,7 +108,7 @@ interface Props {
 }
 
 const PipelineDetails = ({ name, namespace }: Props) => {
-  const { isLoading, error, data } = useGetPipeline({
+  const { isLoading, data } = useGetPipeline({
     name,
     namespace,
   });
@@ -135,7 +135,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         },
       ]}
     >
-      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+      <ContentWrapper loading={isLoading}>
         <SubRouterTabs rootPath={`${path}/status`}>
           <RouterTab name="Status" path={`${path}/status`}>
             <Grid className={classes.gridWrapper} container spacing={4}>

@@ -1,15 +1,23 @@
 import { FC, useEffect, useState } from 'react';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { theme } from '@weaveworks/weave-gitops';
-import { Button, createStyles, makeStyles } from '@material-ui/core';
-import ArrowBackIosOutlined from '@material-ui/icons/ArrowBackIosOutlined';
-import ArrowForwardIosOutlined from '@material-ui/icons/ArrowForwardIosOutlined';
+import {
+  Button,
+  createStyles,
+  makeStyles,
+  Box,
+  Collapse,
+} from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
+import {
+  ArrowBackIosOutlined,
+  ArrowForwardIosOutlined,
+} from '@material-ui/icons';
 import { uniqBy, sortBy } from 'lodash';
 import styled from 'styled-components';
-
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 
-const { base, medium, xs, xxs } = theme.spacing;
+const { xxl, base, xs, xxs } = theme.spacing;
 const { neutral00 } = theme.colors;
 
 const useAlertStyles = makeStyles(() =>
@@ -17,7 +25,7 @@ const useAlertStyles = makeStyles(() =>
     navigationBtn: {
       padding: 0,
       minWidth: 'auto',
-      margin:0,
+      margin: 0,
     },
     errosCount: {
       background: '#D58572',
@@ -28,6 +36,7 @@ const useAlertStyles = makeStyles(() =>
     },
     alertIcon: {
       marginRight: xs,
+      width: xxl,
     },
     errorMessage: {
       fontSize: base,
@@ -35,19 +44,36 @@ const useAlertStyles = makeStyles(() =>
     arrowIcon: {
       fontSize: '18px',
       fontWeight: 400,
+      color: '#D58572',
     },
   }),
 );
 
-const AlertWrapper = styled.div`
-  padding: ${base} ${medium};
-  margin: 0 ${base} ${base} ${base};
-  border-radius: 10px;
-  background: #eecec7;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+const BoxWrapper = styled(Box)`
+  .MuiAlert-root {
+    margin: 0 ${base} ${base} ${base};
+    background: #eecec7;
+    border-radius: ${xs};
+  }
+  .MuiAlert-action {
+    display: inline;
+    color: #d58572;
+  }
+  .MuiIconButton-root:hover {
+    background-color: #eecec7;
+  }
+  .MuiAlert-icon {
+    .MuiSvgIcon-root {
+      display: none;
+    }
+  }
+  .MuiAlert-message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 `;
+
 const FlexCenter = styled.div`
   display: flex;
   justify-content: center;
@@ -57,6 +83,7 @@ const FlexCenter = styled.div`
 export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   const [index, setIndex] = useState<number>(0);
   const [filteredErrors, setFilteredErrors] = useState<ListError[]>([]);
+  const [show, setShow] = useState<boolean>(true);
 
   const classes = useAlertStyles();
 
@@ -77,41 +104,42 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   }
 
   return (
-    <AlertWrapper id="alert-list-errors">
-      {!!filteredErrors[index] && (
-        <>
-          <FlexCenter>
-            <ErrorIcon className={classes.alertIcon} />
-            <div className={classes.errorMessage} data-testid="error-message">
-              {filteredErrors[index].clusterName}:&nbsp;
-              {filteredErrors[index].message}
-            </div>
-          </FlexCenter>
-
-          <FlexCenter>
-            <Button
-              disabled={index === 0}
-              className={classes.navigationBtn}
-              data-testid="prevError"
-              onClick={() => setIndex(currIndex => currIndex - 1)}
-            >
-              <ArrowBackIosOutlined className={classes.arrowIcon} />
-            </Button>
-            <span className={classes.errosCount} data-testid="errorsCount">
-              {filteredErrors.length}
-            </span>
-            <Button
-              disabled={filteredErrors.length === index + 1}
-              className={classes.navigationBtn}
-              id="nextError"
-              data-testid="nextError"
-              onClick={() => setIndex(currIndex => currIndex + 1)}
-            >
-              <ArrowForwardIosOutlined className={classes.arrowIcon} />
-            </Button>
-          </FlexCenter>
-        </>
-      )}
-    </AlertWrapper>
+    <BoxWrapper id="alert-list-errors">
+      <Collapse in={show}>
+        {!!filteredErrors[index] && (
+          <Alert severity="error" onClose={() => setShow(false)}>
+            <FlexCenter>
+              <ErrorIcon className={classes.alertIcon} />
+              <div className={classes.errorMessage} data-testid="error-message">
+                {filteredErrors[index].clusterName}:&nbsp;
+                {filteredErrors[index].message}
+              </div>
+            </FlexCenter>
+            <FlexCenter>
+              <Button
+                disabled={index === 0}
+                className={classes.navigationBtn}
+                data-testid="prevError"
+                onClick={() => setIndex(currIndex => currIndex - 1)}
+              >
+                <ArrowBackIosOutlined className={classes.arrowIcon} />
+              </Button>
+              <span className={classes.errosCount} data-testid="errorsCount">
+                {filteredErrors.length}
+              </span>
+              <Button
+                disabled={filteredErrors.length === index + 1}
+                className={classes.navigationBtn}
+                id="nextError"
+                data-testid="nextError"
+                onClick={() => setIndex(currIndex => currIndex + 1)}
+              >
+                <ArrowForwardIosOutlined className={classes.arrowIcon} />
+              </Button>
+            </FlexCenter>
+          </Alert>
+        )}
+      </Collapse>
+    </BoxWrapper>
   );
 };
