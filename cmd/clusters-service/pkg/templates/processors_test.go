@@ -58,12 +58,12 @@ func TestProcessor_Params(t *testing.T) {
 			filename: "testdata/template2.yaml",
 			want: []Param{
 				{
-					Name:    "AWS_NODE_MACHINE_TYPE",
-					Options: []string{"big", "small"},
-				},
-				{
 					Name:        "AWS_SSH_KEY_NAME",
 					Description: "A description",
+				},
+				{
+					Name:    "AWS_NODE_MACHINE_TYPE",
+					Options: []string{"big", "small"},
 				},
 				{
 					Name: "CLUSTER_NAME",
@@ -91,13 +91,13 @@ func TestProcessor_Params(t *testing.T) {
 					Options:     []string{},
 				},
 				{
-					Name: "S3_BUCKET_NAME",
-				},
-				{
 					Name:        "TEST_VALUE",
 					Description: "boolean string",
 					Required:    false,
 					Options:     []string{"true", "false"},
+				},
+				{
+					Name: "S3_BUCKET_NAME",
 				},
 			},
 		},
@@ -110,10 +110,9 @@ func TestProcessor_Params(t *testing.T) {
 					Required:    true,
 				},
 				{
-					Name:        "CONTROL_PLANE_MACHINE_COUNT",
-					Description: "Number of control planes",
+					Name:        "NAMESPACE",
+					Description: "Namespace to create the cluster in",
 					Required:    false,
-					Options:     []string{"1", "2", "3"},
 				},
 				{
 					Name:        "KUBERNETES_VERSION",
@@ -122,9 +121,10 @@ func TestProcessor_Params(t *testing.T) {
 					Options:     []string{"1.19.11", "1.21.1", "1.22.0", "1.23.3"},
 				},
 				{
-					Name:        "NAMESPACE",
-					Description: "Namespace to create the cluster in",
+					Name:        "CONTROL_PLANE_MACHINE_COUNT",
+					Description: "Number of control planes",
 					Required:    false,
+					Options:     []string{"1", "2", "3"},
 				},
 				{
 					Name:        "WORKER_MACHINE_COUNT",
