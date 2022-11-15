@@ -30,6 +30,9 @@ enablePipelines: false
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
 
+# Turns on UI elements for GitOps Run
+enableRunUI: false
+
 config:
   cluster:
     name: management

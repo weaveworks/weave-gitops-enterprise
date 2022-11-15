@@ -27,7 +27,6 @@ import {
   ProfileValues,
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import useTemplates from '../../../hooks/templates';
@@ -46,7 +45,6 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
-import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
@@ -57,6 +55,8 @@ import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
+import useNotifications from './../../../contexts/Notifications';
+import { Routes } from '../../../utils/nav';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -259,6 +259,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
+  const { setNotifications } = useNotifications();
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -288,7 +289,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
-  const { setNotifications } = useNotifications();
   const authRedirectPage = resource
     ? `/resources/${resource?.name}/edit`
     : `/templates/${template?.name}/create`;
@@ -334,7 +334,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       })
       .catch(err =>
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]),
       )
       .finally(() => setPreviewLoading(false));
@@ -343,11 +347,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setOpenPreview,
     renderTemplate,
     infraCredential,
-    setNotifications,
     template.name,
     template.namespace,
     template.templateKind,
     updatedProfiles,
+    setNotifications,
   ]);
 
   const handleCostEstimation = useCallback(() => {
@@ -369,7 +373,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       })
       .catch(err =>
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]),
       )
       .finally(() => setCostEstimationLoading(false));
@@ -377,11 +385,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formData,
     renderTemplate,
     infraCredential,
-    setNotifications,
     template.name,
     template.templateKind,
     template.namespace,
     updatedProfiles,
+    setNotifications,
   ]);
 
   const handleAddCluster = useCallback(() => {
@@ -406,17 +414,22 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(error => {
         setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
@@ -428,12 +441,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     addCluster,
     formData,
     infraCredential,
-    history,
-    setNotifications,
     setPRPreview,
     template.name,
     template.namespace,
     template.templateKind,
+    setNotifications,
+    history,
   ]);
 
   useEffect(() => {
@@ -608,7 +621,7 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
                 message: {
                   text: 'No template information is available to create a resource.',
                 },
-                variant: 'danger',
+                severity: 'error',
               },
             ],
           },

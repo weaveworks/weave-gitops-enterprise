@@ -1,9 +1,10 @@
+/* eslint-disable */
 import 'styled-components';
-
 export namespace colors {
   const black: string;
   const white: string;
   const primary: string;
+  const primary05: string;
   const primaryLight: string;
   const primary10: string;
   const primary20: string;
