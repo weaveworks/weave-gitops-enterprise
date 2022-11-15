@@ -528,10 +528,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						g.Expect(err).Should(gomega.Succeed())
 					}, ASSERTION_1MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
 					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
-					fileList, _ := getArchiveFileList("/Users/saeed/Downloads/resources.zip")
+					fileList, _ := getArchiveFileList(path.Join(os.Getenv("HOME"), "Downloads", "resources.zip"))
 
 					previewResources := []string{
 						"cluster_definition.yaml",
+						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "clusters-bases-kustomization.yaml"),
 						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "profiles.yaml"),
 						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")),
 						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")),

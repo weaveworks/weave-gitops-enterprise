@@ -1,4 +1,12 @@
-import { DataTable, filterConfig, formatURL } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  Icon,
+  IconType,
+  DataTable,
+  filterConfig,
+  formatURL,
+} from '@weaveworks/weave-gitops';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
@@ -14,6 +22,7 @@ const Pipelines = ({ className }: any) => {
   const initialFilterState = {
     ...filterConfig(data?.pipelines, 'namespace'),
   };
+  const history = useHistory();
 
   return (
     <PageTemplate
@@ -26,7 +35,16 @@ const Pipelines = ({ className }: any) => {
         { label: 'Pipelines' },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+        <Button
+          data-testid="create-pipeline"
+          startIcon={<Icon type={IconType.AddIcon} size="base" />}
+          onClick={() =>
+            history.push(`/templates?filters=templateType%3A%20pipeline`)
+          }
+        >
+          CREATE A PIPELINE
+        </Button>
         {data?.pipelines && (
           <TableWrapper className={className} id="pipelines-list">
             <DataTable

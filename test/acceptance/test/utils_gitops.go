@@ -210,7 +210,7 @@ func runGitopsCommand(cmd string, timeout ...time.Duration) (stdOut, stdErr stri
 		case OidcUserLogin:
 			authFlag = fmt.Sprintf("--kubeconfig=%s", userCredentials.UserKubeconfig)
 		default:
-			gomega.Expect(fmt.Errorf("error: Provided authento=ication type '%s' is not supported for CLI", userCredentials.UserType))
+			gomega.Expect(fmt.Errorf("error: Provided authentication type '%s' is not supported for CLI", userCredentials.UserType))
 		}
 	}
 

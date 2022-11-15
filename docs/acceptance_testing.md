@@ -141,7 +141,7 @@ You must configure the gitlab oath application with redirect url as below. It is
 	`kind delete clusters --all`
 - Create a new clean kind cluster.
 
-	`kind create cluster  --config test/utils/data/local-kind-config.yaml`
+	`./test/utils/scripts/mgmt-cluster-setup.sh kind  $(pwd) mgmt-kind`
 
 - ***Automatic installation:*** Test frame work automatically installs the  core and enterprise controllers and setup the management cluster along with required repository, resources, secrets and entitlements etc. Any subsequent test runs will skip the management cluster setup and starts the test execution straight away. You need to recreate the kind cluster in case you want to install new enterprise version/release for testing.
 
