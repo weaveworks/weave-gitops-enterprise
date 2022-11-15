@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	k8sFields "k8s.io/apimachinery/pkg/fields"
 	k8sLabels "k8s.io/apimachinery/pkg/labels"
@@ -119,8 +120,14 @@ func (s *server) GetPolicyValidation(ctx context.Context, m *capiv1_proto.GetPol
 	if len(validationsList.Validations) == 0 {
 		return nil, fmt.Errorf("no policy violation found with id %s and cluster: %s", m.ViolationId, m.ClusterName)
 	}
+	violation := validationsList.Validations[0]
+	violationYaml, err := yaml.Marshal(violation.ViolatingEntity)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling violation Entity, %w", err)
+	}
+	violation.ViolatingEntity = string(violationYaml)
 	return &capiv1_proto.GetPolicyValidationResponse{
-		Violation: validationsList.Validations[0],
+		Violation: violation,
 	}, nil
 }
 
