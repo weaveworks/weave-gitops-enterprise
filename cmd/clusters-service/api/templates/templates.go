@@ -74,7 +74,7 @@ type TemplateParam struct {
 type Profile struct {
 	Name string `json:"name"`
 	// Default version to select
-	Version string `json:"version"`
+	Version string `json:"version,omitempty"`
 	// Which default namespace to install the profile into
 	TargetNamespace string `json:"targetNamespace,omitempty"`
 	// If true the profile will always be installed

@@ -23,6 +23,8 @@ spec:
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
       default: "1"
+  profiles:
+    - name: cert-manager
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster

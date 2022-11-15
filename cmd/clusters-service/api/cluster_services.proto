@@ -542,6 +542,7 @@ message Template {
   string template_kind = 8;
   map<string, string> labels = 9;
   string namespace = 10;
+  repeated TemplateProfile profiles = 11;
 }
 
 message Parameter {

@@ -148,7 +148,13 @@ func TestToTemplate(t *testing.T) {
 				Annotations: map[string]string{
 					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: ${INSTALL_CRDS}"}`,
 				},
-
+				Profiles: []*capiv1_protos.TemplateProfile{
+					{
+						Name:    "cert-manager",
+						Version: "0.0.7",
+						Values:  "installCRDs: ${INSTALL_CRDS}",
+					},
+				},
 				Parameters: []*capiv1_protos.Parameter{
 					{
 						Name: "INSTALL_CRDS",
@@ -166,7 +172,7 @@ func TestToTemplate(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "foo",
 					Annotations: map[string]string{
-						"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}}"}`,
+						"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}"}`,
 					},
 				},
 				Spec: templatesv1.TemplateSpec{
@@ -178,9 +184,15 @@ func TestToTemplate(t *testing.T) {
 				Provider:     "",
 				TemplateKind: "CAPITemplate",
 				Annotations: map[string]string{
-					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}}"}`,
+					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}"}`,
 				},
-
+				Profiles: []*capiv1_protos.TemplateProfile{
+					{
+						Name:    "cert-manager",
+						Version: "0.0.7",
+						Values:  "installCRDs: {{ .params.INSTALL_CRDS }}",
+					},
+				},
 				Parameters: []*capiv1_protos.Parameter{
 					{
 						Name: "INSTALL_CRDS",

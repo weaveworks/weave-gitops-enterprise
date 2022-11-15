@@ -2230,6 +2230,12 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateProfile"
+          }
         }
       }
     },

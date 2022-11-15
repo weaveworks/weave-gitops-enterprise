@@ -340,6 +340,7 @@ export type Template = {
   templateKind?: string
   labels?: {[key: string]: string}
   namespace?: string
+  profiles?: TemplateProfile[]
 }
 
 export type Parameter = {
