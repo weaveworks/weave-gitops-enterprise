@@ -18,7 +18,7 @@ enableTerraformUI: true
 
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
-    value: "true"
+    value: ""
 
 extraEnvVarsSecret: ""
 
