@@ -9,7 +9,7 @@ const CostEstimation: FC<{
   isCostEstimationLoading: boolean;
   costEstimateMessage: string;
   handleCostEstimation: () => Promise<void>;
-  setFormError: Dispatch<React.SetStateAction<any>>;
+  setFormError: Dispatch<React.SetStateAction<string>>;
 }> = ({
   handleCostEstimation,
   costEstimate,

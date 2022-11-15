@@ -116,7 +116,6 @@ export const Input: FC<InputProps> = ({
         </InputLabel>
       )}
       <InputBase
-        className={className}
         name={name}
         autoFocus={autoFocus}
         defaultValue={defaultValue}
@@ -210,7 +209,8 @@ export const validateFormData = (
   if (requiredButEmptyInputs.length === 0) {
     onSubmit();
   } else {
-    (requiredButEmptyInputs[0] as HTMLInputElement).focus();
-    setFormError((requiredButEmptyInputs[0] as HTMLInputElement).name);
+    const [firstEmpty] = requiredButEmptyInputs;
+    (firstEmpty as HTMLInputElement).focus();
+    setFormError((firstEmpty as HTMLInputElement).name);
   }
 };

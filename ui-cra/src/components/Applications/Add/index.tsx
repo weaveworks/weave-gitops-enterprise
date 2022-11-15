@@ -102,6 +102,7 @@ function getInitialData(callbackState: any, random: string) {
     ...defaultFormData,
     ...callbackState?.state?.formData,
   };
+
   return { initialFormData };
 }
 
