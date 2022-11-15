@@ -65,6 +65,10 @@ exports[`Applications index test snapshots loading 1`] = `
   margin-left: 4px;
 }
 
+.c7 img {
+  width: 24px;
+}
+
 .c11 svg {
   fill: !important;
   height: 16px;
@@ -85,6 +89,10 @@ exports[`Applications index test snapshots loading 1`] = `
 
 .c11 .c15 {
   margin-left: 4px;
+}
+
+.c11 img {
+  width: 16px;
 }
 
 .c10.MuiButton-root {
@@ -620,6 +628,10 @@ exports[`Applications index test snapshots success 1`] = `
   margin-left: 4px;
 }
 
+.c7 img {
+  width: 24px;
+}
+
 .c11 svg {
   fill: !important;
   height: 16px;
@@ -640,6 +652,10 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c11 .c33 {
   margin-left: 4px;
+}
+
+.c11 img {
+  width: 16px;
 }
 
 .c26 svg {
@@ -665,6 +681,10 @@ exports[`Applications index test snapshots success 1`] = `
   color: #737373;
 }
 
+.c26 img {
+  width: 24px;
+}
+
 .c32 svg {
   fill: #d8d8d8 !important;
   height: 16px;
@@ -686,6 +706,10 @@ exports[`Applications index test snapshots success 1`] = `
 .c32 .c33 {
   margin-left: 4px;
   color: #d8d8d8;
+}
+
+.c32 img {
+  width: 16px;
 }
 
 .c10.MuiButton-root {

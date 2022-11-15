@@ -121,6 +121,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
   margin-left: 4px;
 }
 
+.c9 img {
+  width: 24px;
+}
+
 .c28 svg {
   fill: #BC381D !important;
   height: 16px;
@@ -142,6 +146,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
 .c28 .c14 {
   margin-left: 4px;
   color: #BC381D;
+}
+
+.c28 img {
+  width: 16px;
 }
 
 .c27 .c8 .c14 {
