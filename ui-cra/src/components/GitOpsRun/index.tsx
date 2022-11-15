@@ -8,7 +8,7 @@ const GitOpsRun = () => {
   const sessions: any[] = [];
   return (
     <PageTemplate documentTitle="GitOps Run" path={[{ label: 'GitOps Run' }]}>
-      <ContentWrapper loading={false} errorMessage={undefined}>
+      <ContentWrapper loading={false}>
         {sessions?.length ? (
           <GitOpsRunTable sessions={sessions} />
         ) : (

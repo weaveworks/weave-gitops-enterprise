@@ -117,9 +117,9 @@ const AppRoutes = () => {
       />
       <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
       <Route
-        component={() => (
+        component={(props: any) => (
           <CoreWrapper>
-            <WGApplicationsDashboard />
+            <WGApplicationsDashboard {...props} />
           </CoreWrapper>
         )}
         exact

@@ -17,7 +17,7 @@ import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
 
 const Pipelines = ({ className }: any) => {
-  const { error, data, isLoading } = useListPipelines();
+  const { data, isLoading } = useListPipelines();
 
   const initialFilterState = {
     ...filterConfig(data?.pipelines, 'namespace'),
@@ -35,7 +35,7 @@ const Pipelines = ({ className }: any) => {
         { label: 'Pipelines' },
       ]}
     >
-      <ContentWrapper loading={isLoading} errorMessage={error?.message}>
+      <ContentWrapper loading={isLoading}>
         <Button
           data-testid="create-pipeline"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}

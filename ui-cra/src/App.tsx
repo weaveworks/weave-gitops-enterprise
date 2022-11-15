@@ -69,6 +69,7 @@ const GlobalStyle = createGlobalStyle`
 
   a {
     text-decoration: none;
+    color:  ${theme.colors.primary10};
   }
 
   ::-webkit-scrollbar-track {
