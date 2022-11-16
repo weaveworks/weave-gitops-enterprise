@@ -85,6 +85,13 @@ func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomiza
 	return kustomization
 }
 
+func installPolicyConfig(clusterName string, policyConfigYaml string) {
+	ginkgo.By(fmt.Sprintf("Add/Install Policy config to the %s cluster", clusterName), func() {
+		err := runCommandPassThrough("kubectl", "apply", "-f", policyConfigYaml)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install policy Config to cluster:"+clusterName)
+	})
+}
+
 func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
 	ginkgo.By("And navigate to Applicartions page via header link", func() {
 		gomega.Expect(applicationsPage.ApplicationHeader.Click()).Should(gomega.Succeed(), "Failed to navigate to Applications pages via header link")
@@ -420,6 +427,37 @@ func verifyAppViolationsDetailsPage(clusterName string, violatingApp Application
 		gomega.Expect(appViolationsDetialsPage.ViolatingEntityValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get violating entity value on App violations details page")
 	})
 
+}
+
+func verifyPolicyConfigInViolationsDetails(policyName string, violationMsg string) {
+
+	appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
+
+	gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation details page of violation '%s'", violationMsg))
+
+	ViolationsDetialsPage := pages.GetApplicationViolationsDetailsPage(webDriver)
+
+	ginkgo.By(fmt.Sprintf("And verify '%s' parameters values", policyName), func() {
+		parameter := ViolationsDetialsPage.GetViolationsParameters("replica_count")
+		gomega.Expect(parameter.ParameterName.Text()).Should(gomega.MatchRegexp(`replica_count`), "Failed to verify `replica_count` parameter 'Name'")
+		gomega.Expect(parameter.ParameterValue.Text()).Should(gomega.MatchRegexp(`4`), "Failed to verify `replica_count` parameter 'Value'")
+		gomega.Expect(parameter.PolicyConfigName.Text()).Should(gomega.MatchRegexp(`policy-config-001`), "Failed to verify `replica_count` parameter Policy Config 'Name'")
+
+		parameter = ViolationsDetialsPage.GetViolationsParameters("exclude_namespace")
+		gomega.Expect(parameter.ParameterName.Text()).Should(gomega.MatchRegexp(`exclude_namespace`), "Failed to verify `exclude_namespace` parameter 'Name'")
+		gomega.Expect(parameter.ParameterValue.Text()).Should(gomega.MatchRegexp(`-`), "Failed to verify `exclude_namespace` parameter 'Value'")
+		gomega.Expect(parameter.PolicyConfigName.Text()).Should(gomega.MatchRegexp(`-`), "Failed to verify `exclude_namespace` parameter Policy Config 'Name'")
+
+		parameter = ViolationsDetialsPage.GetViolationsParameters("exclude_label_key")
+		gomega.Expect(parameter.ParameterName.Text()).Should(gomega.MatchRegexp(`exclude_label_key`), "Failed to verify `exclude_label_key` parameter'Name'")
+		gomega.Expect(parameter.ParameterValue.Text()).Should(gomega.MatchRegexp(`undefined`), "Failed to verify `exclude_label_key` parameter 'Value'")
+		gomega.Expect(parameter.PolicyConfigName.Text()).Should(gomega.MatchRegexp(`-`), "Failed to verify `exclude_label_key` parameter Policy Config 'Name'")
+
+		parameter = ViolationsDetialsPage.GetViolationsParameters("exclude_label_value")
+		gomega.Expect(parameter.ParameterName.Text()).Should(gomega.MatchRegexp(`exclude_label_value`), "Failed to verify `exclude_label_value` parameter 'Name'")
+		gomega.Expect(parameter.ParameterValue.Text()).Should(gomega.MatchRegexp(`undefined`), "Failed to verify `exclude_label_value` parameter 'Value'")
+		gomega.Expect(parameter.PolicyConfigName.Text()).Should(gomega.MatchRegexp(`-`), "Failed to verify `exclude_label_value` parameter Policy Config 'Name'")
+	})
 }
 
 func verifyDeleteApplication(applicationsPage *pages.ApplicationsPage, existingAppCount int, appName, appKustomization string) {
@@ -1226,6 +1264,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			// Just specify policies yaml path
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
+			// Just specify policy config yaml path
+			policyConfigYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-config.yaml")
+
 			// Just specify the violated application info to create it
 			appNameSpace := "test-kustomization"
 			appTargetNamespace := "test-system"
@@ -1239,8 +1280,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.JustBeforeEach(func() {
 				createNamespace([]string{appNameSpace, appTargetNamespace})
 
+				// Install the policy agent to the management cluster
+				// installPolicyAgent(mgmtCluster.Name)
+
 				// Add/Install test Policies to the management cluster
 				installTestPolicies(mgmtCluster.Name, policiesYaml)
+
+				// Add/Install Policy config to the management cluster
+				installPolicyConfig(mgmtCluster.Name, policyConfigYaml)
+
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -1249,10 +1297,14 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					return getApplicationCount()
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 
+				// Delete the Policy config
+				_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
+
+				// Delete the test Policieis
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
 			})
-			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.FIt("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
@@ -1323,6 +1375,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				verifyAppViolationsList(podinfo, appViolations)
 				verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo, appViolations)
+				verifyPolicyConfigInViolationsDetails("Containers Minimum Replica Count acceptance test", `Containers Minimum Replica Count acceptance test in deployment podinfo \(1 occurrences\)`)
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 
 			})

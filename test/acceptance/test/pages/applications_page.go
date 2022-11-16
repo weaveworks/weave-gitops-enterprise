@@ -122,6 +122,13 @@ type ApplicationViolationsDetailsPage struct {
 	HowToSolveValue      *agouti.Selection
 	ViolatingEntity      *agouti.Selection
 	ViolatingEntityValue *agouti.Selection
+	ParametersValues     *agouti.MultiSelection
+}
+
+type ApplicationViolationsParametersFields struct {
+	ParameterName    *agouti.Selection
+	ParameterValue   *agouti.Selection
+	PolicyConfigName *agouti.Selection
 }
 
 func (a ApplicationsPage) FindApplicationInList(applicationName string) *ApplicationInformation {
@@ -290,4 +297,20 @@ func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationVio
 		ViolatingEntity:      webDriver.FindByXPath(`//div[text()="Violating Entity:"]`),
 		ViolatingEntityValue: webDriver.FindByXPath(`//div[text()="Violating Entity:"]/following-sibling::*[1]`),
 	}
+}
+
+func (a ApplicationViolationsDetailsPage) GetViolationsParameters(parameterName string) *ApplicationViolationsParametersFields {
+	parametersCount, _ := a.ParametersValues.Count()
+	parameterFields := ApplicationViolationsParametersFields{}
+
+	for i := 0; i < parametersCount; i++ {
+		if paramName, _ := a.ParametersValues.At(i).FindByXPath(`div[1]/span[2]`).Text(); paramName == parameterName {
+			parameterFields = ApplicationViolationsParametersFields{
+				ParameterName:    a.ParametersValues.At(i).FindByXPath(`div[1]/span[2]`),
+				ParameterValue:   a.ParametersValues.At(i).FindByXPath(`div[2]/span[2]`),
+				PolicyConfigName: a.ParametersValues.At(i).FindByXPath(`div[3]/span[2]`),
+			}
+		}
+	}
+	return &parameterFields
 }

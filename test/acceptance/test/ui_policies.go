@@ -81,7 +81,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
-			ginkgo.FIt("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+			ginkgo.It("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				installTestPolicies("management", policiesYaml)
 				installPolicySet("management", policySetYaml)
@@ -110,28 +110,28 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.software-supply-chain", policyName))
 				})
 
-				ginkgo.By("And verify policy Mode", func() {
+				ginkgo.By("And verify different policy Modes", func() {
 					logger.Info(policyInfo.Mode.Text())
 					switch policyName {
 					case "Container Running As Root acceptance test":
-						policyMode = "Audit\nEnforce"
-						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Audit\nEnforce"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+						expectedPolicyMode := "Audit\nEnforce"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(expectedPolicyMode), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, expectedPolicyMode))
 
 					case "Container Image Pull Policy acceptance test":
-						policyMode = "Audit\nEnforce"
-						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Audit\nEnforce"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+						expectedPolicyMode := "Audit\nEnforce"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(expectedPolicyMode), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, expectedPolicyMode))
 
 					case "Containers Running With Privilege Escalation acceptance test":
-						policyMode = "Enforce"
-						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Enforce"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+						expectedPolicyMode := "Enforce"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(expectedPolicyMode), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, expectedPolicyMode))
 
 					case "Containers Read Only Root Filesystem acceptance test":
-						policyMode = "Audit"
-						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("Audit"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+						expectedPolicyMode := "Audit"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(expectedPolicyMode), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, expectedPolicyMode))
 
 					case "Containers Minimum Replica Count acceptance test":
-						policyMode = "-"
-						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText("-"), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
+						expectedPolicyMode := "-"
+						gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(expectedPolicyMode), fmt.Sprintf("Policy '%s' doesn't have the expected policy Mode: %s", policyName, policyMode))
 
 					default:
 						fmt.Printf("Failed to get Policy Mode for '%s'", policyName)
