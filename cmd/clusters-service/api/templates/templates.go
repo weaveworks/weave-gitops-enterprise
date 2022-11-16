@@ -82,7 +82,7 @@ type Profile struct {
 	// If true you can change the values and version of the profile
 	Editable bool `json:"editable,omitempty"`
 	// Values.yaml blob
-	Values ProfileValues `json:"values,omitempty"`
+	Values *ProfileValues `json:"values,omitempty"`
 }
 
 // ProfileValues describes the values for a profile.
