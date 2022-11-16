@@ -45,6 +45,9 @@ func reduceEstimates(estimates map[string]*CostEstimate) *CostEstimate {
 			total += v.Low
 			currencies.Insert(v.Currency)
 		}
+		if len(currencies) == 0 {
+			return total, ""
+		}
 		return total, currencies.List()[0]
 	}(estimates)
 	highs := func(m map[string]*CostEstimate) float32 {

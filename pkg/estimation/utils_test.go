@@ -24,6 +24,14 @@ func Test_reduceClusterEstimates(t *testing.T) {
 	}
 }
 
+func Test_reduceEmptyEstimates(t *testing.T) {
+	reduced := reduceEstimates(map[string]*CostEstimate{})
+	want := &CostEstimate{Low: 0, High: 0, Currency: ""}
+	if diff := cmp.Diff(want, reduced); diff != "" {
+		t.Fatalf("failed to reduce:\n%s", diff)
+	}
+}
+
 func Test_mergeStringMaps(t *testing.T) {
 	mergeMapsTests := []struct {
 		name     string
