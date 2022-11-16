@@ -35,7 +35,7 @@ export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
   Canaries = '/applications/delivery',
-  CanaryDetails = '/applications/delivery/:id',
+  CanaryDetails = '/applications/canary_details',
   Pipelines = '/applications/pipelines',
   PipelineDetails = '/applications/pipelines/details',
 
