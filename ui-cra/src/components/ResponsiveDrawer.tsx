@@ -31,6 +31,7 @@ import AppRoutes from '../routes';
 import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
+import { Resolver } from '../utils/link-resolver';
 
 const drawerWidth = 220;
 
@@ -166,18 +167,13 @@ const App = () => {
   );
 };
 
-// FIXME: remove this when core fixes requiring a linkResolver function
-const resolver = (path: string, params?: any) => {
-  return path;
-};
-
 const ResponsiveDrawer = () => {
   return (
     <AuthContextProvider>
       <EnterpriseClientProvider api={ClustersService}>
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
-            <LinkResolverProvider resolver={resolver}>
+            <LinkResolverProvider resolver={Resolver}>
               <Switch>
                 <Route
                   component={() => (
