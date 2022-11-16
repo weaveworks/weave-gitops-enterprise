@@ -111,6 +111,8 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And verify different policy Modes", func() {
+					gomega.Eventually(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred(), "Failed to get the updated modes for the policy list")
+					pages.WaitForPageToLoad(webDriver)
 					logger.Info(policyInfo.Mode.Text())
 					switch policyName {
 					case "Container Running As Root acceptance test":

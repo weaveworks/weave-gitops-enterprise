@@ -93,7 +93,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			ginkgo.FIt("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
+			ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
 				existingViolationCount := getViolationsCount()
 
 				installTestPolicies("management", policiesYaml)
