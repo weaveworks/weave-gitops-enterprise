@@ -647,6 +647,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				prCommit := "First capd capi template"
 
 				gitops := pages.GetGitOps(webDriver)
+				messages := pages.GetMessages(webDriver)
 				ginkgo.By("And set GitOps values for pull request", func() {
 					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
@@ -662,15 +663,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 
-					if pages.ElementExist(gitops.ErrorBar) {
-						gomega.Expect(gitops.ErrorBar.Click()).To(gomega.Succeed())
+					if pages.ElementExist(messages.Error) {
+						gomega.Expect(messages.Close.Click()).To(gomega.Succeed())
 					}
 
-					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
+					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed(), "Failed to click 'CREATE PULL REQUEST' button")
 				})
 
 				ginkgo.By("Then I should not see pull request to be created", func() {
-					gomega.Eventually(gitops.ErrorBar).Should(matchers.MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
+					gomega.Eventually(messages.Error).Should(matchers.MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
 				})
 			})
 		})
@@ -972,7 +973,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				ginkgo.By("And User should choose a template", func() {
@@ -1201,8 +1202,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("Then I should see a toast with a link to the deletion PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
+					messages := pages.GetMessages(webDriver)
+					gomega.Eventually(messages.Success, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText("PR created successfully"), "Failed to create pull request to delete capi cluster")
 				})
 
 				var deletePRUrl string
@@ -1252,7 +1253,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				ginkgo.By("And User should choose a template", func() {
@@ -1526,9 +1527,18 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					}
 					loginUser()
-					found, _ := pages.GetEntitelment(webDriver, typeEntitelment).Visible()
-					return found
-
+					messages := pages.GetMessages(webDriver)
+					switch typeEntitelment {
+					case "expired":
+						if errMsg, _ := messages.Warning.Text(); strings.Contains(errMsg, "Your entitlement for Weave GitOps Enterprise has expired") {
+							return true
+						}
+					case "invalid", "missing":
+						if errMsg, _ := messages.Error.Text(); strings.Contains(errMsg, "No entitlement was found for Weave GitOps Enterprise") {
+							return true
+						}
+					}
+					return false
 				}
 
 				gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())

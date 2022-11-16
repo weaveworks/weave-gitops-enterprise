@@ -468,14 +468,15 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 	})
 
 	gitops := pages.GetGitOps(webDriver)
+	messages := pages.GetMessages(webDriver)
 	ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
 		gomega.Eventually(func(g gomega.Gomega) {
 			g.Expect(gitops.CreatePR.Click()).Should(gomega.Succeed())
-			g.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
+			g.Eventually(messages.Success, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("PR created successfully"))
 		}, ASSERTION_2MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to create pull request")
 	})
 
-	prUrl, _ = gitops.PRLinkBar.Attribute("href")
+	prUrl, _ = messages.Success.Find("a").Attribute("href")
 	return prUrl
 }
 
@@ -648,7 +649,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				defer cleanGitRepository(appKustomization)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles")
+					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -1007,7 +1008,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
 					existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 				})
 
@@ -1040,7 +1040,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate application availability", func() {
+				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
 					useClusterContext(leafClusterContext)
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
@@ -1136,7 +1136,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				useClusterContext(mgmtClusterContext)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts ")
 				})
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -1178,7 +1178,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate cluster availability", func() {
+				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
 					useClusterContext(leafClusterContext)
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
@@ -1456,7 +1456,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
 				})
 
-				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate cluster availability", func() {
+				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
 					useClusterContext(leafClusterContext)
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")

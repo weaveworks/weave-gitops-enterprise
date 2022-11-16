@@ -190,7 +190,7 @@ func waitForGitopsResources(ctx context.Context, resourcePath string, timeout ti
 			return false, nil
 		}
 
-		return regexp.MatchString(strings.ToLower(fmt.Sprintf(`%s[\\"]+`, parseUrl.Path)), strings.ToLower(string(bodyBytes)))
+		return regexp.MatchString(strings.ToLower(fmt.Sprintf(`%s[\\"]+`, strings.Split(parseUrl.Path, "/")[0])), strings.ToLower(string(bodyBytes)))
 	}, waitCtx.Done())
 }
 
