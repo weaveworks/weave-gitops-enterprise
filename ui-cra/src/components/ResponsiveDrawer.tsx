@@ -168,7 +168,6 @@ const App = () => {
 
 // FIXME: remove this when core fixes requiring a linkResolver function
 const resolver = (path: string, params?: any) => {
-  console.log({ path, params });
   return path;
 };
 
