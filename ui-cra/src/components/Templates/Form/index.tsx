@@ -404,7 +404,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     return addCluster(
       payload,
       getProviderToken(formData.provider as GitProvider),
-      template.templateKind,
     )
       .then(response => {
         setPRPreview(null);
@@ -444,7 +443,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setPRPreview,
     template.name,
     template.namespace,
-    template.templateKind,
     setNotifications,
     history,
   ]);
