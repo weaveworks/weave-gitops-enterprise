@@ -31,7 +31,7 @@ import AppRoutes from '../routes';
 import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
-import { Resolver } from '../utils/link-resolver';
+import { resolver } from '../utils/link-resolver';
 
 const drawerWidth = 220;
 
@@ -173,7 +173,7 @@ const ResponsiveDrawer = () => {
       <EnterpriseClientProvider api={ClustersService}>
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
-            <LinkResolverProvider resolver={Resolver}>
+            <LinkResolverProvider resolver={resolver}>
               <Switch>
                 <Route
                   component={() => (
