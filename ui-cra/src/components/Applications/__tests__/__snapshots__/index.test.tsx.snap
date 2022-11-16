@@ -1522,7 +1522,7 @@ exports[`Applications index test snapshots success 1`] = `
                             <h2
                               class=""
                             >
-                              Type
+                              Kind
                             </h2>
                           </span>
                           <span
@@ -2097,14 +2097,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-50 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-42 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-44 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-51"
+                                    class="PrivateSwitchBase-input-45"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="type"
