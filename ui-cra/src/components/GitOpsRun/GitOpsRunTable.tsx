@@ -8,8 +8,18 @@ interface Props {
 
 export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
   let initialFilterState = {
-    ...filterConfig(sessions, 'cliVersion'),
-    ...filterConfig(sessions, 'portForward'),
+    ...filterConfig(
+      sessions,
+      'CLI Version',
+      session =>
+        session.obj.metadata.annotations['run.weave.works/cli-version'],
+    ),
+    ...filterConfig(
+      sessions,
+      'Port Forward',
+      session =>
+        session.obj.metadata.annotations['run.weave.works/port-forward'],
+    ),
   };
 
   return (
@@ -19,10 +29,22 @@ export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
         filters={initialFilterState}
         rows={sessions}
         fields={[
-          { label: 'Name', value: 'name' },
-          { label: 'CLI Version', value: 'cliVersion' },
-          { label: 'Port Forward', value: 'portForward' },
-          { label: 'Command', value: 'command' },
+          { label: 'Name', value: 'name', textSearchable: true },
+          {
+            label: 'CLI Version',
+            value: ({ obj }) =>
+              obj.metadata.annotations['run.weave.works/cli-version'],
+          },
+          {
+            label: 'Port Forward',
+            value: ({ obj }) =>
+              obj.metadata.annotations['run.weave.works/port-forward'],
+          },
+          {
+            label: 'Command',
+            value: ({ obj }) =>
+              obj.metadata.annotations['run.weave.works/command'],
+          },
         ]}
       />
     </TableWrapper>
