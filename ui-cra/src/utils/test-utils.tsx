@@ -164,6 +164,7 @@ export class CoreClientMock {
   GetFeatureFlagsReturns: { flags: { [x: string]: string } } = {
     flags: {
       WEAVE_GITOPS_FEATURE_CLUSTER: 'true',
+      WEAVE_GITOPS_FEATURE_TENANCY: 'true',
     },
   };
   ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
@@ -457,6 +458,16 @@ export class TestFilterableTable {
 
   testSearchTableByValue(searchValue: string, rowValues: Array<Array<string>>) {
     const { rows } = this.searchTableByValue(searchValue);
+    expect(rows).toHaveLength(rowValues.length);
+    rowValues.forEach((row, index) => {
+      const tds = rows![index].querySelectorAll('td');
+      this.testRowValues(tds, row);
+    });
+  }
+
+  testSorthTableByColumn(columnName: string, rowValues: Array<Array<string>>) {
+   this.sortTableByColumn(columnName);
+    const { rows } = this.getTableInfo();
     expect(rows).toHaveLength(rowValues.length);
     rowValues.forEach((row, index) => {
       const tds = rows![index].querySelectorAll('td');
