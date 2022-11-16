@@ -186,12 +186,24 @@ function setup {
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
   
   # Install ingress-nginx for tls termination 
-  helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-    --namespace ingress-nginx --create-namespace \
-    --version 4.0.18 \
-    --set controller.service.type=NodePort \
-    --set controller.service.nodePorts.https=${UI_NODEPORT} \
-    --set controller.extraArgs.v=4
+  command="helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx --create-namespace \
+            --version 4.4.0 \
+            --set controller.service.type=NodePort \
+            --set controller.service.nodePorts.https=30080 \
+            --set controller.extraArgs.v=4"  
+  # When policy-agent ValidatingWebhook service has not fully started up, admission controller call to matching validating webhook fails.
+  # Retrying few times gives enough time for ValidatingWebhook service to become available
+  for i in {0..5}
+  do
+    echo "Attempt installing ingress-nginx: $(($i+1))"
+    eval $command
+    if [ $? -ne 0 ]; then
+    sleep 3
+    else          
+      break    
+    fi  
+  done  
   kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
   
   cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
