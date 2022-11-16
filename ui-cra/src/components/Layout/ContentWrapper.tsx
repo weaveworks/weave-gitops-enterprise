@@ -1,17 +1,18 @@
+import React, { FC } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
-import { createStyles, makeStyles } from '@material-ui/styles';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
-import { FC, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useListVersion } from '../../hooks/versions';
 import { Tooltip } from '../Shared';
-import useNotifications from './../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
+import useNotifications, {
+  NotificationData,
+} from './../../contexts/Notifications';
+import Notifications from './Notifications';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
-const { feedbackLight, white } = theme.colors;
+const { white } = theme.colors;
 
 export const Title = styled.h2`
   margin-top: 0px;
@@ -57,25 +58,12 @@ const HelpLinkWrapper = styled.div`
   }
 `;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    alertWrapper: {
-      padding: base,
-      margin: `0 ${base} ${base} ${base}`,
-      borderRadius: '10px',
-    },
-    warning: {
-      backgroundColor: feedbackLight,
-    },
-  }),
-);
-
 interface Props {
   type?: string;
   backgroundColor?: string;
   errors?: ListError[];
   loading?: boolean;
-  errorMessage?: string;
+  notifications?: NotificationData[];
 }
 
 export const ContentWrapper: FC<Props> = ({
@@ -84,24 +72,17 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
-  errorMessage,
 }) => {
-  const classes = useStyles();
-  const { setNotifications } = useNotifications();
   const { data, error } = useListVersion();
+  const { notifications } = useNotifications();
   const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
 
-  useEffect(() => {
-    if (error) {
-      setNotifications([
-        { message: { text: error?.message }, variant: 'danger' },
-      ]);
-    }
-  }, [error, setNotifications]);
+  const topNotifications = notifications.filter(n => n.display !== 'bottom');
+  const bottomNotifications = notifications.filter(n => n.display === 'bottom');
 
   if (loading) {
     return (
@@ -112,13 +93,7 @@ export const ContentWrapper: FC<Props> = ({
       </Box>
     );
   }
-  if (errorMessage) {
-    return (
-      <Alert severity="error" className={classes.alertWrapper}>
-        {errorMessage}
-      </Alert>
-    );
-  }
+
   return (
     <div
       style={{
@@ -130,20 +105,25 @@ export const ContentWrapper: FC<Props> = ({
         overflowX: 'scroll',
       }}
     >
-      {entitlement && (
-        <Alert
-          className={`${classes.alertWrapper} ${classes.warning}`}
-          severity="warning"
-        >
-          {entitlement}
-        </Alert>
-      )}
       {errors && <AlertListErrors errors={errors} />}
+      <Notifications
+        notifications={[
+          ...topNotifications,
+          {
+            message: { text: entitlement },
+            severity: 'warning',
+          } as NotificationData,
+          { message: { text: error?.message }, severity: 'error' },
+        ]}
+      />
       {type === 'WG' ? (
         <WGContent>{children}</WGContent>
       ) : (
         <Content backgroundColor={backgroundColor}>{children}</Content>
       )}
+      <div style={{ paddingTop: base }}>
+        <Notifications notifications={bottomNotifications} />
+      </div>
       <HelpLinkWrapper>
         <div>
           Need help? Raise a&nbsp;

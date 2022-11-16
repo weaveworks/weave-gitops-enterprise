@@ -115,17 +115,18 @@ export const DeleteClusterDialog: FC<Props> = ({
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(error => {
         setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
+          { message: { text: error.message }, severity: 'error' },
         ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);

@@ -1,6 +1,9 @@
 load('ext://restart_process', 'docker_build_with_restart')
 load('ext://helm_remote', 'helm_remote')
 
+if os.getenv('MANUAL_MODE'):
+   trigger_mode(TRIGGER_MODE_MANUAL)
+
 if not os.path.exists("./charts/mccp/charts"):
    # Download chart deps on first run. This command is slow, so you'd have to
    # re-run it yourself if you upgrade the chart
