@@ -14,6 +14,7 @@ import {
   AuthContextProvider,
   coreClient,
   CoreClientContextProvider,
+  LinkResolverProvider,
   SignIn,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -165,29 +166,37 @@ const App = () => {
   );
 };
 
+// FIXME: remove this when core fixes requiring a linkResolver function
+const resolver = (path: string, params?: any) => {
+  console.log({ path, params });
+  return path;
+};
+
 const ResponsiveDrawer = () => {
   return (
     <AuthContextProvider>
       <EnterpriseClientProvider api={ClustersService}>
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
-            <Switch>
-              <Route
-                component={() => (
-                  <SignInWrapper>
-                    <SignIn />
-                  </SignInWrapper>
-                )}
-                exact={true}
-                path="/sign_in"
-              />
-              <Route path="*">
-                {/* Check we've got a logged in user otherwise redirect back to signin */}
-                <AuthCheck>
-                  <App />
-                </AuthCheck>
-              </Route>
-            </Switch>
+            <LinkResolverProvider resolver={resolver}>
+              <Switch>
+                <Route
+                  component={() => (
+                    <SignInWrapper>
+                      <SignIn />
+                    </SignInWrapper>
+                  )}
+                  exact={true}
+                  path="/sign_in"
+                />
+                <Route path="*">
+                  {/* Check we've got a logged in user otherwise redirect back to signin */}
+                  <AuthCheck>
+                    <App />
+                  </AuthCheck>
+                </Route>
+              </Switch>
+            </LinkResolverProvider>
           </TerraformProvider>
         </CoreClientContextProvider>
       </EnterpriseClientProvider>
