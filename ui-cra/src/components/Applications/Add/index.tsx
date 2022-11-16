@@ -72,8 +72,8 @@ const SourceLinkWrapper = styled.div`
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const history = useHistory();
   const { setNotifications } = useNotifications();
+  const history = useHistory();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
@@ -262,11 +262,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       })
       .catch(err =>
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [setOpenPreview, setNotifications, getKustomizations]);
+  }, [setOpenPreview, getKustomizations, setNotifications]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -289,24 +293,29 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(error => {
         setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, setNotifications, getKustomizations]);
+  }, [formData, history, getKustomizations, setNotifications]);
 
   return useMemo(() => {
     return (

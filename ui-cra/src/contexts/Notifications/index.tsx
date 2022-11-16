@@ -2,7 +2,8 @@ import { createContext, Dispatch, useContext } from 'react';
 
 export interface NotificationData {
   message: { text?: string; component?: JSX.Element };
-  variant: 'success' | 'danger';
+  severity?: 'success' | 'error' | 'warning' | 'info';
+  display?: 'top' | 'bottom';
 }
 
 type NotificationContext = {
