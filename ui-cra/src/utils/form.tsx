@@ -9,10 +9,13 @@ import {
   SelectProps as MuiSelectProps,
   InputBase as MuiInputBase,
   FormHelperText as MuiFormHelperText,
+  InputAdornment,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
 import React, { Dispatch, FC } from 'react';
+import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -54,13 +57,13 @@ const InputLabel = withStyles(() => ({
   },
 }))(MuiInputLabel);
 
-const FormHelperText = withStyles(() => ({
-  error: {
-    color: '#9F3119',
-  },
-}))(MuiFormHelperText);
-
 const InputBase = withStyles(() => ({
+  root: {
+    border: '1px solid #d8d8d8',
+  },
+  input: {
+    border: 'none',
+  },
   inputMultiline: {
     padding: '10px',
   },
@@ -127,13 +130,27 @@ export const Input: FC<InputProps> = ({
         value={value}
         multiline={multiline}
         rows={rows}
-        inputProps={{ maxLength: 256 }}
+        inputProps={{
+          maxLength: 256,
+        }}
+        endAdornment={
+          <InputAdornment
+            position="end"
+            style={{ paddingRight: weaveTheme.spacing.small }}
+          >
+            {error ? <ErrorIcon /> : null}
+          </InputAdornment>
+        }
         required={required}
         error={error}
       />
-      <FormHelperText error={error}>
+      <MuiFormHelperText
+        style={{
+          color: error ? '#9F3119' : weaveTheme.colors.neutral30,
+        }}
+      >
         {!error ? description : 'Please fill this field in.'}
-      </FormHelperText>
+      </MuiFormHelperText>
     </FormControl>
   );
 };
@@ -191,7 +208,7 @@ export const Select: FC<SelectProps> = ({
           </MenuItem>
         ))}
     </MuiSelect>
-    <FormHelperText>{description}</FormHelperText>
+    <MuiFormHelperText>{description}</MuiFormHelperText>
   </FormControl>
 );
 
