@@ -80,7 +80,7 @@ const GitOps: FC<{
         onChange={handleChangeBranchName}
         error={
           formError === 'branch_name' &&
-          (branchName === undefined || branchName === '' || branchName === null)
+          (branchName === undefined || branchName === '')
         }
       />
       <Input
