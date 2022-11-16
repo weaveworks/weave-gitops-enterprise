@@ -407,7 +407,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     return addResource(
       payload,
       getProviderToken(formData.provider as GitProvider),
-      template.templateKind,
     )
       .then(response => {
         setPRPreview(null);
