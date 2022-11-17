@@ -16,11 +16,7 @@ const GitOpsRun = () => {
   });
   return (
     <PageTemplate documentTitle="GitOps Run" path={[{ label: 'GitOps Run' }]}>
-      <ContentWrapper
-        loading={isLoading}
-        errorMessage={error?.message}
-        errors={sessions?.errors}
-      >
+      <ContentWrapper loading={isLoading} errors={sessions?.errors}>
         {sessions?.objects?.length ? (
           <GitOpsRunTable sessions={sessions.objects} />
         ) : (
