@@ -1,29 +1,37 @@
 import { VerifiedUser, Policy } from '@material-ui/icons';
-import { ModeWrapper } from './PolicyStyles';
+import { ModeWrapper, usePolicyStyle } from './PolicyStyles';
 
-function Mode({ modeName }: { modeName: string }) {
+function Mode({ modeName, showName }: { modeName: string; showName: boolean }) {
   switch (modeName.toLocaleLowerCase()) {
     case 'audit':
-      return (
-        <ModeWrapper>
-          <Policy />
-          <span>{modeName}</span>
-        </ModeWrapper>
-      );
+      return ModeTooltip('audit', showName, <Policy />);
     case 'admission':
-      return (
-        <ModeWrapper>
-          <VerifiedUser />
-          <span>Enforce</span>
-        </ModeWrapper>
-      );
+      return ModeTooltip('enforce', showName, <VerifiedUser />);
+
     default:
       return (
         <ModeWrapper>
-          <span>{modeName}</span>
+          <span>-</span>
         </ModeWrapper>
       );
   }
 }
+
+const ModeTooltip = (mode: string, showName: boolean, icon: any) => {
+  return (
+    <>
+      {!showName ? (
+        <ModeWrapper>
+          <span title={mode}>{icon}</span>
+        </ModeWrapper>
+      ) : (
+        <ModeWrapper>
+          {icon}
+          <span>{mode}</span>
+        </ModeWrapper>
+      )}
+    </>
+  );
+};
 
 export default Mode;

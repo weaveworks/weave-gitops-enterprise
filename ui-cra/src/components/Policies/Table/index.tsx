@@ -17,7 +17,7 @@ import Mode from '../Mode';
 interface Props {
   policies: Policy[];
 }
- 
+
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
@@ -26,6 +26,8 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   let initialFilterState = {
     ...filterConfig(policies, 'clusterName'),
     ...filterConfig(policies, 'severity'),
+    ...filterConfig(policies, 'enforce'),
+    ...filterConfig(policies, 'audit'),
   };
 
   if (flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true') {
@@ -34,6 +36,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
       ...filterConfig(policies, 'tenant'),
     };
   }
+
   return (
     <TableWrapper id="policy-list">
       <DataTable
@@ -64,13 +67,12 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             value: 'category',
           },
           {
-            label: 'Mode',
-            value: ({ modes }) =>
-              modes?.length
-                ? modes.map((mode: string, index: number) => (
-                    <Mode key={index} modeName={mode} />
-                  ))
-                : '',
+            label: 'Enforce',
+            value: ({ enforce }) => <Mode modeName={enforce? 'admission': ''} showName={false} />,
+          },
+          {
+            label: 'Audit',
+            value: ({ audit }) => <Mode modeName={audit} showName={false}/>,
           },
           ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
             ? [{ label: 'Tenant', value: 'tenant' }]

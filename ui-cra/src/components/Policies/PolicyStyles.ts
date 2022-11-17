@@ -162,7 +162,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       fontSize: theme.fontSizes.large,
       marginRight: xxs,
       color: neutral30,
-    },
+    }
   }),
 );
 

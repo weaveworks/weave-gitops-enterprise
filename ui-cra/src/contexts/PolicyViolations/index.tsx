@@ -17,10 +17,19 @@ const LIST_POLICIES_QUERY_KEY = 'list-policy';
 export function useListListPolicies(req: ListPoliciesRequest) {
   const { api } = useContext(EnterpriseClientContext);
 
-  return useQuery<ListPoliciesResponse, Error>(
+  const allData = useQuery<ListPoliciesResponse, Error>(
     [LIST_POLICIES_QUERY_KEY, req],
     () => api.ListPolicies(req),
   );
+  const updateModes = allData?.data?.policies?.map(policy => {
+    let audit = '';
+    let enforce = '';
+    if (policy.modes?.includes('audit')) audit = 'audit';
+    if (policy.modes?.includes('admission')) enforce = 'enforce';
+    return policy = {...policy, 'audit': audit, 'enforce': enforce}
+  });
+  if(allData?.data?.policies) allData.data.policies = updateModes
+  return allData
 }
 const GET_POLICY_QUERY_KEY = 'get-policy-details';
 
