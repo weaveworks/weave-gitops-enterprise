@@ -130,8 +130,13 @@ func (fc FakeChartCache) UpdateValuesYaml(ctx context.Context, clusterRef types.
 	return nil
 }
 
-func (fc FakeChartCache) GetLatestVersion(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, name string) (string, error) {
-	charts, ok := fc.Charts[ClusterRefToString(repoRef, clusterRef)]
+func (fc FakeChartCache) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
+	repoObjRef := helm.ObjectReference{
+		Name:      repoRef.Name,
+		Namespace: repoRef.Namespace,
+	}
+
+	charts, ok := fc.Charts[ClusterRefToString(repoObjRef, clusterRef)]
 	if !ok {
 		return "", errors.New("no charts found")
 	}
@@ -153,13 +158,18 @@ func (fc FakeChartCache) GetLatestVersion(ctx context.Context, clusterRef types.
 	return sorted[0], nil
 }
 
-func (fc FakeChartCache) GetLayer(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (string, error) {
-	charts, ok := fc.Charts[ClusterRefToString(repoRef, clusterRef)]
+func (fc FakeChartCache) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
+	repoObjRef := helm.ObjectReference{
+		Name:      repoRef.Name,
+		Namespace: repoRef.Namespace,
+	}
+
+	charts, ok := fc.Charts[ClusterRefToString(repoObjRef, clusterRef)]
 	if !ok {
 		return "", errors.New("no charts found")
 	}
 	for _, c := range charts {
-		if c.Name == chart.Name && c.Version == chart.Version {
+		if c.Name == name && c.Version == version {
 			return c.Layer, nil
 		}
 	}
