@@ -388,7 +388,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				cleanGitRepository(clusterPath)
 				_ = deleteFile([]string{downloadedResourcesPath})
 
-				// Namespaces used for kustomization, waiting form there termination
+				// Namespaces used for kustomization, waiting for them to terminate
 				reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				waitForNamespaceDeletion([]string{"test-system"})
 			})

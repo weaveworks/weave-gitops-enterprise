@@ -113,6 +113,14 @@ func SetDefaultUIURL(url string) {
 	test_ui_url = url
 }
 
+func SetTestDataPath(dataPath string) {
+	testDataPath = path.Join(getCheckoutRepoPath(), dataPath)
+}
+
+func SetTestScriptPath(srciptPath string) {
+	testScriptsPath = path.Join(getCheckoutRepoPath(), srciptPath)
+}
+
 func SetSeleniumServiceUrl(url string) {
 	selenium_service_url = url
 }
