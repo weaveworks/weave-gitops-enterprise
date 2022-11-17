@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -32,6 +33,7 @@ import (
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 )
@@ -327,4 +329,23 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 		o(event)
 	}
 	return event
+}
+
+func testNewFakeChartCache(t *testing.T, clusterRef types.NamespacedName, repoRef helm.ObjectReference, charts []helm.Chart) helmfakes.FakeChartCache {
+	fc := helmfakes.NewFakeChartCache(helmfakes.WithCharts(
+		helmfakes.ClusterRefToString(
+			repoRef,
+			clusterRef,
+		),
+		charts,
+	))
+
+	return fc
+}
+
+func nsn(name, namespace string) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
 }

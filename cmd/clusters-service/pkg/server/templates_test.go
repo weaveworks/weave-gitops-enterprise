@@ -18,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -1198,9 +1197,17 @@ status: {}
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
+			fakeCache := testNewFakeChartCache(t,
+				nsn(tt.req.Values["CLUSTER_NAME"], tt.req.Values["NAMESPACE"]),
+				helm.ObjectReference{
+					Name:      "weaveworks-charts",
+					Namespace: "default",
+				},
+				[]helm.Chart{})
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
 				namespace:    "default",
+				chartsCache:  fakeCache,
 			})
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
@@ -1437,13 +1444,16 @@ status: {}
 				High: 2,
 			},
 		},
-		Cluster: types.NamespacedName{
-			Namespace: "ns-foo",
-			Name:      "cluster-foo",
-		},
+		Cluster: nsn("cluster-foo", "ns-foo"),
 	}
 
-	var fakeChartCache helm.ChartsCacheReader
+	fakeChartCache := testNewFakeChartCache(t,
+		nsn("cluster-foo", "ns-foo"),
+		helm.ObjectReference{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		},
+		[]helm.Chart{})
 	values := base64.StdEncoding.EncodeToString([]byte("foo: bar"))
 	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	files, err := getFiles(
