@@ -138,9 +138,14 @@ func CheckClusterService(capiEndpointURL string) {
 	}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed())
 }
 
+type Request struct {
+	Path string
+	Body []byte
+}
+
 // Wait until we get a good looking response from /v1/<resource>
 // Ignore all errors (connection refused, 500s etc)
-func waitForGitopsResources(ctx context.Context, resourcePath string, timeout time.Duration, timeoutCtx ...time.Duration) error {
+func waitForGitopsResources(ctx context.Context, request Request, timeout time.Duration, timeoutCtx ...time.Duration) error {
 	contextTimeout := ASSERTION_5MINUTE_TIME_OUT
 	if len(timeoutCtx) > 0 {
 		contextTimeout = timeoutCtx[0]
@@ -169,13 +174,17 @@ func waitForGitopsResources(ctx context.Context, resourcePath string, timeout ti
 			return false, nil
 		}
 		// fetch gitops resource
-		resp, err = client.Get(test_ui_url + "/v1/" + resourcePath)
+		if request.Body != nil {
+			resp, err = client.Post(test_ui_url+"/v1/"+request.Path, "application/json", bytes.NewReader(request.Body))
+		} else {
+			resp, err = client.Get(test_ui_url + "/v1/" + request.Path)
+		}
 		if err != nil {
-			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", resourcePath, err)
+			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", request.Path, err)
 			return false, nil
 		}
 		if resp.StatusCode != http.StatusOK {
-			logger.Tracef("wrong status from %s (waiting for a ok, retrying): %v", resourcePath, resp.StatusCode)
+			logger.Tracef("wrong status from %s (waiting for a ok, retrying): %v", request.Path, resp.StatusCode)
 			return false, nil
 		}
 
@@ -184,9 +193,9 @@ func waitForGitopsResources(ctx context.Context, resourcePath string, timeout ti
 			return false, nil
 		}
 
-		parseUrl, err := url.Parse(resourcePath)
+		parseUrl, err := url.Parse(request.Path)
 		if err != nil {
-			logger.Errorf("failed to parse URL: %v", resourcePath)
+			logger.Errorf("failed to parse URL: %v", request.Path)
 			return false, nil
 		}
 
