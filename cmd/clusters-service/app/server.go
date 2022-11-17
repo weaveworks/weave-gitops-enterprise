@@ -485,6 +485,13 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}
 
+	coreCfg, err := core_core.NewCoreConfig(
+		log, rest, clusterName, clustersManager,
+	)
+	if err != nil {
+		return err
+	}
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(p.HelmRepoName),
@@ -496,9 +503,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithApplicationsConfig(appsConfig),
-		WithCoreConfig(core_core.NewCoreConfig(
-			log, rest, clusterName, clustersManager,
-		)),
+		WithCoreConfig(coreCfg),
 		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",

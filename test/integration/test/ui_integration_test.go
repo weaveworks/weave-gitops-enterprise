@@ -110,7 +110,12 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
 	clustersManager.GetServerClientReturns(client, nil)
 
-	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	cfg, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return cfg
 }
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {

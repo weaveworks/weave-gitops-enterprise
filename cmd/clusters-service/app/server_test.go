@@ -67,12 +67,14 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/objects?kind=Kustomization", port))
+	res, err := client.Post(fmt.Sprintf("https://localhost:%s/v1/objects", port), "application/json", bytes.NewBuffer([]byte(`{"kind": "Kustomization"}`)))
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
 	if res.StatusCode != http.StatusOK {
-		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
+		buf := make([]byte, 1024)
+		_, _ = res.Body.Read(buf)
+		t.Fatalf("expected status code to be %d but got %d instead: %v", http.StatusOK, res.StatusCode, string(buf))
 	}
 	res, err = client.Get(fmt.Sprintf("https://localhost:%s/v1/pineapples", port))
 	if err != nil {
@@ -241,7 +243,11 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	clustersManager.GetImpersonatedClientReturns(client, nil)
 	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	coreConfig, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return coreConfig
 }
 
