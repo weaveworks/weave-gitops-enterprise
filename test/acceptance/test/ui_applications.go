@@ -51,10 +51,12 @@ type PullRequest struct {
 }
 
 type ApplicationViolations struct {
-	PolicyName        string
-	ViolationMessage  string
-	ViolationSeverity string
-	ViolationCategory string
+	PolicyName               string
+	ViolationMessage         string
+	ViolationSeverity        string
+	ViolationCategory        string
+	ConfigPolicy             string
+	PolicyConfigViolationMsg string
 }
 
 func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace string) (kustomization string) {
@@ -431,9 +433,6 @@ func verifyAppViolationsDetailsPage(clusterName string, violatingApp Application
 
 func verifyPolicyConfigInAppViolationsDetails(policyName string, violationMsg string) {
 
-	// Declare application details page variable
-	//appDetailPage := pages.GetApplicationsDetailPage(webDriver, violatingApp.Type)
-
 	ginkgo.By("Navigate back to Violations list", func() {
 
 		gomega.Eventually(webDriver.Back).ShouldNot(gomega.HaveOccurred(), "Failed to navigate back to violations list")
@@ -453,10 +452,10 @@ func verifyPolicyConfigInAppViolationsDetails(policyName string, violationMsg st
 		gomega.Expect(parameter.ParameterValue.Text()).Should(gomega.MatchRegexp(`4`), "Failed to verify `replica_count` parameter 'Value'")
 		gomega.Expect(parameter.PolicyConfigName.Text()).Should(gomega.MatchRegexp(`policy-config-001`), "Failed to verify `replica_count` parameter Policy Config 'Name'")
 
-		parameter = ViolationsDetialsPage.GetPolicyConfigViolationsParameters("exclude_namespace")
-		gomega.Expect(parameter.ParameterName.Text()).Should(gomega.MatchRegexp(`exclude_namespace`), "Failed to verify `exclude_namespace` parameter 'Name'")
-		gomega.Expect(parameter.ParameterValue.Text()).Should(gomega.MatchRegexp(`-`), "Failed to verify `exclude_namespace` parameter 'Value'")
-		gomega.Expect(parameter.PolicyConfigName.Text()).Should(gomega.MatchRegexp(`-`), "Failed to verify `exclude_namespace` parameter Policy Config 'Name'")
+		parameter = ViolationsDetialsPage.GetPolicyConfigViolationsParameters("exclude_namespaces")
+		gomega.Expect(parameter.ParameterName.Text()).Should(gomega.MatchRegexp(`exclude_namespaces`), "Failed to verify `exclude_namespaces` parameter 'Name'")
+		gomega.Expect(parameter.ParameterValue.Text()).Should(gomega.MatchRegexp(`undefined`), "Failed to verify `exclude_namespaces` parameter 'Value'")
+		gomega.Expect(parameter.PolicyConfigName.Text()).Should(gomega.MatchRegexp(`-`), "Failed to verify `exclude_namespaces` parameter 'Value'")
 
 		parameter = ViolationsDetialsPage.GetPolicyConfigViolationsParameters("exclude_label_key")
 		gomega.Expect(parameter.ParameterName.Text()).Should(gomega.MatchRegexp(`exclude_label_key`), "Failed to verify `exclude_label_key` parameter'Name'")
@@ -1382,7 +1381,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				verifyAppViolationsList(podinfo, appViolations)
 				verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo, appViolations)
-				verifyPolicyConfigInAppViolationsDetails("Containers Minimum Replica Count acceptance test", `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`)
+				verifyPolicyConfigInAppViolationsDetails(appViolations.ConfigPolicy, appViolations.PolicyConfigViolationMsg)
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 
 			})
