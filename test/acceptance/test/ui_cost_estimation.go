@@ -129,9 +129,9 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Now modify cluster for new estimated cost
-				awsRegion = "eu-central-1"
+				awsRegion = "ca-central-1"
 				workerMachineCount = "5"
-				expectedCost = 599 // for 3 control plane + 5 worker node in eu-central-1
+				expectedCost = 574 // for 3 control plane + 5 worker node in ca-central-1
 				parameters = []TemplateField{
 					{
 						Name:   "AWS_REGION",
@@ -153,7 +153,7 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 					re := regexp.MustCompile(`\d+`)
 					priceTxt, _ := costEstimation.Price.Text()
 					price, _ := strconv.ParseFloat(re.FindAllString(priceTxt, -1)[0], 32)
-					gomega.Expect(price).Should(gomega.BeNumerically("~", expectedCost, 10), fmt.Sprintf("Cluster stimated cost should not exceeds the expected threshold boundaries: %d <=> %d", expectedCost-10, expectedCost+10))
+					gomega.Expect(price).Should(gomega.BeNumerically("~", expectedCost, 10), fmt.Sprintf("Cluster estimated cost should not exceeds the expected threshold boundaries: %d <=> %d", expectedCost-10, expectedCost+10))
 				})
 			})
 

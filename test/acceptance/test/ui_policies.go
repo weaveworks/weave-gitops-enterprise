@@ -61,17 +61,17 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyName := "Container Image Pull Policy acceptance test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			policyClusterName := "management"
-			policyMode := `Audit\nEnforce`
+			policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
 			policySeverity := "Medium"
 			policyCategory := "weave.categories.software-supply-chain"
 			policyTags := []string{"There is no tags for this policy"}
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
-			ginkgo.JustAfterEach(func() {
+			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies.yaml")
 			})
 
-			ginkgo.JustBeforeEach(func() {
+			ginkgo.JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
@@ -191,7 +191,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 			policyName := "Container Running As Root acceptance test"
 			policyID := "weave.policies.container-running-as-root-acceptance-test"
-			policyMode := `Audit\nEnforce`
+			policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
 			policySeverity := "High"
 			policyCategory := "weave.categories.pod-security"
 			policyTags := []string{"pci-dss", "cis-benchmark", "mitre-attack", "nist800-190", "gdpr", "default"}

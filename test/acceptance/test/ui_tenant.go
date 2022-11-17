@@ -107,6 +107,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-kustomization.yaml", mgmtCluster.Name, podinfo.Name, podinfo.Namespace)
 				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
 				defer cleanGitRepository(appKustomization)
+				defer cleanGitRepository(fmt.Sprintf("./clusters/%s/%s-namespace.yaml", mgmtCluster.Name, podinfo.TargetNamespace))
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				pages.NavigateToPage(webDriver, "Applications")
@@ -290,7 +291,6 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
-			var appDir string
 			existingAppCount := 0
 			patSecret := "application-pat"
 			bootstrapLabel := "bootstrap"
@@ -311,7 +311,6 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				createNamespace([]string{appNameSpace, appTargetNamespace})
-				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafCluster.Name, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -325,7 +324,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafCluster.Name, "")
-				cleanGitRepository(appDir)
+				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
 				deleteNamespace([]string{leafCluster.Namespace})
 			})
 

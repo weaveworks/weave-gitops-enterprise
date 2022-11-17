@@ -7,7 +7,7 @@ metadata:
     templates.weave.works/cost-estimation-enabled: "true"
     templates.weave.works/profiles-enabled: "false"
     templates.weave.works/kustomizations-enabled: "false"
-    templates.weave.works/credentials-enabled: "false"
+    templates.weave.works/credentials-enabled: "true"
 
 spec:
   description: This is the std. CAPA template {{.Count}}

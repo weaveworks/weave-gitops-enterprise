@@ -791,6 +791,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
 				defer cleanGitRepository(appKustomization)
+				defer cleanGitRepository(fmt.Sprintf("./clusters/%s/%s-namespace.yaml", mgmtCluster.Name, podinfo.TargetNamespace))
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				existingAppCount = getApplicationCount()
@@ -915,7 +916,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
-			var appDir string
 			var existingAppCount int
 			patSecret := "application-pat"
 			bootstrapLabel := "bootstrap"
@@ -931,7 +931,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 				existingAppCount = getApplicationCount()
-				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafCluster.Name, "")
 				createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -946,7 +945,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafCluster.Name, "")
-				cleanGitRepository(appDir)
+				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
 				deleteNamespace([]string{leafCluster.Namespace})
 
 			})
@@ -1334,7 +1333,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
-			var appDir string
+			var appSourcePath string
 			var existingAppCount int
 			var policiesYaml string
 			patSecret := "application-violations-pat"
@@ -1356,7 +1355,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				policiesYaml = path.Join(testDataPath, "policies.yaml")
 				// Get the count of existing applications before deploying new application
 				existingAppCount = getApplicationCount()
-				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 
 				createCluster("kind", leafCluster.Name, "")
@@ -1380,8 +1378,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafCluster.Name, "")
-
-				cleanGitRepository(appDir)
+				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
+				cleanGitRepository(appSourcePath)
 
 				deleteNamespace([]string{leafCluster.Namespace})
 
@@ -1396,7 +1394,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					Namespace:       appNameSpace,
 					TargetNamespace: appTargetNamespace,
 					Source:          "flux-system",
-					Path:            "./apps/podinfo",
+					Path:            "./apps/podinfo-app-violations-manifest",
 					SyncInterval:    "30s",
 				}
 				// App Violations data
@@ -1439,14 +1437,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				useClusterContext(mgmtClusterContext)
 
-				ginkgo.By("Add Application/Kustomization manifests to leaf cluster's repository main branch", func() {
-					pullGitRepo(repoAbsolutePath)
-					podinfoPath := path.Join(testDataPath, "podinfo-app-violations-manifest.yaml")
-					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfoPath, path.Join(repoAbsolutePath, "apps/podinfo"))
-					err := runCommandPassThrough("sh", "-c", createCommand)
-					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
-					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-				})
+				appSourcePath = addKustomizationManifests([]string{"podinfo-app-violations-manifest.yaml"})
 
 				ginkgo.By("Install kustomization Application on leaf cluster", func() {
 					pullGitRepo(repoAbsolutePath)
