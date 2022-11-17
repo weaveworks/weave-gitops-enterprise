@@ -6,12 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/adapter"
+	fc "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,7 +24,7 @@ import (
 func TestListTerraformObjects(t *testing.T) {
 	ctx := context.Background()
 
-	client, k8s := setup(t)
+	client, k8s, _, _ := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -40,9 +44,33 @@ func TestListTerraformObjects(t *testing.T) {
 	assert.Equal(t, o.Namespace, obj.Namespace)
 }
 
+func TestListTerraformObjects_NoTFCRD(t *testing.T) {
+	ctx := context.Background()
+
+	client, k8s, fc, crd := setup(t)
+
+	crd.IsAvailableReturns = false
+
+	fc.ClusteredListReturns(clustersmngr.ClusteredListError{Errors: []clustersmngr.ListError{{
+		Cluster: "some-cluster",
+		Err:     errors.New("some error"),
+	}}})
+
+	obj := &tfctrl.Terraform{}
+	obj.Name = "my-obj"
+	obj.Namespace = "default"
+
+	assert.NoError(t, k8s.Create(context.Background(), obj))
+
+	res, err := client.ListTerraformObjects(ctx, &pb.ListTerraformObjectsRequest{})
+	assert.NoError(t, err)
+
+	assert.Len(t, res.Errors, 0, "should not have had errors")
+}
+
 func TestGetTerraformObject(t *testing.T) {
 	ctx := context.Background()
-	client, k8s := setup(t)
+	client, k8s, _, _ := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -84,7 +112,7 @@ status:
 
 func TestSyncTerraformObject(t *testing.T) {
 	ctx := context.Background()
-	client, k8s := setup(t)
+	client, k8s, _, _ := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -128,7 +156,7 @@ func TestSyncTerraformObject(t *testing.T) {
 
 func TestSuspendTerraformObject(t *testing.T) {
 	ctx := context.Background()
-	client, k8s := setup(t)
+	client, k8s, _, _ := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -156,10 +184,42 @@ func TestSuspendTerraformObject(t *testing.T) {
 
 }
 
-func setup(t *testing.T) (pb.TerraformClient, client.Client) {
+type fakeCRDFetcher struct {
+	IsAvailableReturns           bool
+	IsAvailableOnClustersReturns map[string]bool
+}
+
+func (f fakeCRDFetcher) IsAvailable(clusterName string, crdName string) bool {
+	return f.IsAvailableReturns
+}
+
+func (f fakeCRDFetcher) IsAvailableOnClusters(crdName string) map[string]bool {
+	if f.IsAvailableOnClustersReturns != nil {
+		return f.IsAvailableOnClustersReturns
+	}
+
+	return map[string]bool{crdName: true}
+}
+
+func (f fakeCRDFetcher) UpdateCRDList() {
+
+}
+
+func setup(t *testing.T) (pb.TerraformClient, client.Client, *fc.FakeClient, *fakeCRDFetcher) {
 	k8s, factory := grpctesting.MakeFactoryWithObjects()
+	c := &fc.FakeClient{}
+
+	pool := &clustersmngrfakes.FakeClientsPool{}
+	pool.ClientsReturns(map[string]client.Client{"Default": k8s})
+	c.ClientsPoolReturns(pool)
+
+	factory.GetServerClientReturns(c, nil)
+
+	cr := &fakeCRDFetcher{IsAvailableReturns: true}
 	opts := terraform.ServerOpts{
+		Logger:         logr.Discard(),
 		ClientsFactory: factory,
+		CRDFetcher:     cr,
 	}
 	srv := terraform.NewTerraformServer(opts)
 
@@ -167,7 +227,7 @@ func setup(t *testing.T) (pb.TerraformClient, client.Client) {
 		pb.RegisterTerraformServer(s, srv)
 	})
 
-	return pb.NewTerraformClient(conn), k8s
+	return pb.NewTerraformClient(conn), k8s, c, cr
 }
 
 func simulateReconcile(ctx context.Context, k client.Client, name types.NamespacedName, o client.Object) error {

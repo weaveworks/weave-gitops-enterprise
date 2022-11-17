@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/progressive-delivery/pkg/services/crd"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/adapter"
@@ -25,6 +26,7 @@ type ServerOpts struct {
 	logr.Logger
 	ClientsFactory clustersmngr.ClustersManager
 	Scheme         *k8sruntime.Scheme
+	CRDFetcher     crd.Fetcher
 }
 
 type server struct {
@@ -33,6 +35,7 @@ type server struct {
 	log     logr.Logger
 	clients clustersmngr.ClustersManager
 	scheme  *k8sruntime.Scheme
+	crd     crd.Fetcher
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -46,6 +49,7 @@ func NewTerraformServer(opts ServerOpts) pb.TerraformServer {
 		log:     opts.Logger,
 		clients: opts.ClientsFactory,
 		scheme:  opts.Scheme,
+		crd:     opts.CRDFetcher,
 	}
 }
 
@@ -79,10 +83,16 @@ func (s *server) ListTerraformObjects(ctx context.Context, msg *pb.ListTerraform
 		var errs clustersmngr.ClusteredListError
 
 		if !errors.As(err, &errs) {
-			return nil, fmt.Errorf("terraform clustered list: %w", errs)
+			return nil, fmt.Errorf("converting to ClusteredListError: %w", errs)
 		}
 
 		for _, e := range errs.Errors {
+			if !s.crd.IsAvailable(e.Cluster, tfctrl.GroupVersion.Group) {
+				// Skip reporting an error if a leaf cluster does not have the tf-controller CRD installed.
+				// It is valid for leaf clusters to not have tf installed.
+				s.log.Info("tf-controller crd not present on cluster, skipping error", "cluster", e.Cluster)
+				continue
+			}
 
 			listErrors = append(listErrors, &pb.TerraformListError{
 				ClusterName: e.Cluster,

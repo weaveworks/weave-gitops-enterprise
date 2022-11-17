@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/progressive-delivery/pkg/services/crd"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -52,6 +53,7 @@ type Options struct {
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Cluster                      string
 	Estimator                    estimation.Estimator
+	CRDFetcher                   crd.Fetcher
 }
 
 type Option func(*Options)
@@ -255,5 +257,11 @@ func WithManagementCluster(cluster string) Option {
 func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
 	return func(o *Options) {
 		o.Estimator = estimator
+	}
+}
+
+func WithCRDFetcher(c crd.Fetcher) Option {
+	return func(o *Options) {
+		o.CRDFetcher = c
 	}
 }
