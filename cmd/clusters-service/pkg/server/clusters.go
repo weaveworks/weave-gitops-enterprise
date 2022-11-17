@@ -797,23 +797,6 @@ func getClusterProfilesPath(cluster types.NamespacedName) string {
 	)
 }
 
-// getProfileLatestVersion returns the latest profile version if not given
-func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev1.HelmRepository) (string, error) {
-	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
-	version := ""
-	if err != nil {
-		return "", fmt.Errorf("cannot scan for profiles: %w", err)
-	}
-
-	for _, p := range ps {
-		if p.Name == name {
-			version = p.AvailableVersions[len(p.AvailableVersions)-1]
-		}
-	}
-
-	return version, nil
-}
-
 // ParseValues takes a YAML encoded values string and returns a struct
 func ParseValues(v []byte) (map[string]interface{}, error) {
 	vals := map[string]interface{}{}
