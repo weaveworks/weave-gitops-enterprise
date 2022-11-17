@@ -288,7 +288,7 @@ const AppFields: FC<{
             label="KUSTOMIZATION NAME"
             value={name}
             onChange={event => handleFormData(event, 'name')}
-            error={formError === 'name' && (name === undefined || name === '')}
+            error={formError === 'name' && !name}
           />
           <Input
             className="form-section"
@@ -297,10 +297,7 @@ const AppFields: FC<{
             placeholder={DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE}
             value={namespace}
             onChange={event => handleFormData(event, 'namespace')}
-            error={
-              formError === 'namespace' &&
-              (namespace === undefined || namespace === '')
-            }
+            error={formError === 'namespace' && !namespace}
           />
           <Input
             className="form-section"
@@ -309,10 +306,7 @@ const AppFields: FC<{
             description="OPTIONAL If omitted all resources must specify a namespace"
             value={target_namespace}
             onChange={event => handleFormData(event, 'target_namespace')}
-            error={
-              formError === 'target_namespace' &&
-              (target_namespace === undefined || target_namespace === '')
-            }
+            error={formError === 'target_namespace' && !target_namespace}
           />
           <Input
             className="form-section"
@@ -322,7 +316,7 @@ const AppFields: FC<{
             value={path}
             onChange={event => handleFormData(event, 'path')}
             description="Path within the git repository to read yaml files"
-            error={formError === 'path' && (path === undefined || path === '')}
+            error={formError === 'path' && !path}
           />
           {!clusters && (
             <Tooltip

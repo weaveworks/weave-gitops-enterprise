@@ -78,10 +78,7 @@ const GitOps: FC<{
         placeholder={branchName}
         value={branchName}
         onChange={handleChangeBranchName}
-        error={
-          formError === 'branch_name' &&
-          (branchName === undefined || branchName === '')
-        }
+        error={formError === 'branch_name' && !branchName}
       />
       <Input
         className="form-section"
@@ -91,10 +88,7 @@ const GitOps: FC<{
         placeholder={pullRequestTitle}
         value={pullRequestTitle}
         onChange={handleChangePullRequestTitle}
-        error={
-          formError === 'pull_request_title' &&
-          (pullRequestTitle === undefined || pullRequestTitle === '')
-        }
+        error={formError === 'pull_request_title' && !pullRequestTitle}
       />
       <Input
         className="form-section"
@@ -104,10 +98,7 @@ const GitOps: FC<{
         placeholder={commitMessage}
         value={commitMessage}
         onChange={handleChangeCommitMessage}
-        error={
-          formError === 'commit_message' &&
-          (commitMessage === undefined || commitMessage === '')
-        }
+        error={formError === 'commit_message' && !commitMessage}
       />
       <Input
         className="form-section"
@@ -118,9 +109,7 @@ const GitOps: FC<{
         value={pullRequestDescription}
         onChange={handleChangePRDescription}
         error={
-          formError === 'pull_request_description' &&
-          (pullRequestDescription === undefined ||
-            pullRequestDescription === '')
+          formError === 'pull_request_description' && !pullRequestDescription
         }
       />
       <GitAuth

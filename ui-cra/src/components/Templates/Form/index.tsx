@@ -521,6 +521,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <ApplicationsWrapper
                 formData={formData}
                 setFormData={setFormData}
+                formError={formError}
               />
             ) : null}
             {previewLoading ? (
