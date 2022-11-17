@@ -20,6 +20,7 @@ import (
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -29,7 +30,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/helm/pkg/chartutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
@@ -57,10 +57,10 @@ var (
 )
 
 type generateProfileFilesParams struct {
-	helmRepository         types.NamespacedName
-	helmRepositoryCacheDir string
-	profileValues          []*capiv1_proto.ProfileValues
-	parameterValues        map[string]string
+	helmRepository  types.NamespacedName
+	chartsCache     helm.ChartsCacheReader
+	profileValues   []*capiv1_proto.ProfileValues
+	parameterValues map[string]string
 }
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
@@ -163,7 +163,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		client,
 		s.log,
 		s.estimator,
-		s.helmRepositoryCacheDir,
+		s.chartsCache,
 		s.profileHelmRepositoryName,
 		tmpl,
 		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
@@ -565,13 +565,6 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		Spec: helmRepo.Spec,
 	}
 
-	sourceRef := helmv2.CrossNamespaceObjectReference{
-		APIVersion: helmRepo.TypeMeta.APIVersion,
-		Kind:       helmRepo.TypeMeta.Kind,
-		Name:       helmRepo.ObjectMeta.Name,
-		Namespace:  helmRepo.ObjectMeta.Namespace,
-	}
-
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
@@ -591,53 +584,46 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	}
 
 	// add and overwrite the required values of profilesIndex where necessary.
-	for _, v := range requiredProfiles {
-		var requiredProfile *capiv1_proto.TemplateProfile
-		if profilesIndex[v.Name] != nil {
-			if v.Version == profilesIndex[v.Name].Version {
-				requiredProfile = v
-			} else if v.Version == "" {
-				requiredProfile = v
-				requiredProfile.Version = profilesIndex[v.Name].Version
+	for _, requiredProfile := range requiredProfiles {
+		p := profilesIndex[requiredProfile.Name]
+		// Required profile has been added by the user
+		if p != nil {
+			if !requiredProfile.Editable {
+				p.Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
 			}
-
-			editable := (requiredProfile == nil || requiredProfile.Editable)
-			// Check the values and if not editable in the Template Profiles or empty, replace with default values. This should happen before parsing.
-			if !editable || profilesIndex[v.Name].Values == "" {
-				if requiredProfile != nil && requiredProfile.Values != "" {
-					profilesIndex[v.Name].Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
-				} else {
-					profilesIndex[v.Name].Values, err = getDefaultValues(ctx, kubeClient, profilesIndex[v.Name].Name, profilesIndex[v.Name].Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
-					if err != nil {
-						return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
-					}
-				}
+			if p.Namespace == "" {
+				p.Namespace = requiredProfile.Namespace
 			}
-
-			// Check the namespace and if empty, use the profile default
-			if profilesIndex[v.Name].Namespace == "" {
-				if requiredProfile != nil && requiredProfile.Namespace != "" {
-					profilesIndex[v.Name].Namespace = requiredProfile.Namespace
-				}
+			if p.Version == "" {
+				p.Version = requiredProfile.Version
 			}
 		} else {
-			profilesIndex[v.Name] = &capiv1_proto.ProfileValues{
-				Name:      v.Name,
-				Version:   v.Version,
-				Values:    v.Values,
-				Namespace: v.Namespace,
+			profilesIndex[requiredProfile.Name] = &capiv1_proto.ProfileValues{
+				Name:      requiredProfile.Name,
+				Version:   requiredProfile.Version,
+				Values:    requiredProfile.Values,
+				Namespace: requiredProfile.Namespace,
 			}
 		}
+
 	}
 
-	// fill in any missing defaults
 	for _, v := range profilesIndex {
-		// Check the version and if empty use thr latest version in profile defaults.
+		// Check the version and if empty use the latest version in profile defaults.
 		if v.Version == "" {
+			//
+			// FIXME: read version from the cache
+			// args.chartsCache.GetLatestVersion(v.Name, cluster, args.helmRepository)
+			//
 			v.Version, err = getProfileLatestVersion(ctx, v.Name, helmRepo)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
 			}
+		}
+
+		if v.Layer == "" {
+			// FIXME: read layer from the cache if its there
+			// args.chartsCache.GetLayer(v.Name, cluster, args.helmRepository)
 		}
 
 		decoded, err := base64.StdEncoding.DecodeString(v.Values)
@@ -810,23 +796,6 @@ func getClusterProfilesPath(cluster types.NamespacedName) string {
 		getClusterDirPath(cluster),
 		profiles.ManifestFileName,
 	)
-}
-
-// getProfileLatestVersion returns the default profile values if not given
-func getDefaultValues(ctx context.Context, kubeClient client.Client, name, version, helmRepositoryCacheDir string, sourceRef helmv2.CrossNamespaceObjectReference, helmRepo *sourcev1.HelmRepository) (string, error) {
-	ref := &charts.ChartReference{Chart: name, Version: version, SourceRef: sourceRef}
-	cc := charts.NewHelmChartClient(kubeClient, viper.GetString("runtime-namespace"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
-	if err := cc.UpdateCache(ctx); err != nil {
-		return "", fmt.Errorf("failed to update Helm cache: %w", err)
-	}
-	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
-	if err != nil {
-		return "", fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
-	}
-	// Base64 encode the content of values.yaml and assign it
-	values := base64.StdEncoding.EncodeToString(bs)
-
-	return values, nil
 }
 
 // getProfileLatestVersion returns the latest profile version if not given

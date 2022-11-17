@@ -18,6 +18,7 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -231,7 +232,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		client,
 		s.log,
 		s.estimator,
-		s.helmRepositoryCacheDir,
+		s.chartsCache,
 		s.profileHelmRepositoryName,
 		tm,
 		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
@@ -264,7 +265,7 @@ func getFiles(
 	client client.Client,
 	log logr.Logger,
 	estimator estimation.Estimator,
-	helmRepositoryCacheDir,
+	chartsCache helm.ChartsCacheReader,
 	profileHelmRepositoryName string,
 	tmpl apiTemplates.Template,
 	msg GetFilesRequest,
@@ -331,10 +332,10 @@ func getFiles(
 			cluster,
 			client,
 			generateProfileFilesParams{
-				helmRepository:         createNamespacedName(profileHelmRepositoryName, viper.GetString("runtime-namespace")),
-				helmRepositoryCacheDir: helmRepositoryCacheDir,
-				profileValues:          msg.Profiles,
-				parameterValues:        msg.ParameterValues,
+				helmRepository:  createNamespacedName(profileHelmRepositoryName, viper.GetString("runtime-namespace")),
+				chartsCache:     chartsCache,
+				profileValues:   msg.Profiles,
+				parameterValues: msg.ParameterValues,
 			},
 		)
 		if err != nil {

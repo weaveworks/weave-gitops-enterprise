@@ -580,8 +580,7 @@ spec:
   interval: 1m0s
   upgrade:
     crds: CreateReplace
-  values:
-    favoriteDrink: coffee
+  values: {}
 status: {}
 `,
 				},
@@ -689,8 +688,7 @@ spec:
   targetNamespace: test-system
   upgrade:
     crds: CreateReplace
-  values:
-    favoriteDrink: coffee
+  values: {}
 status: {}
 `,
 				},

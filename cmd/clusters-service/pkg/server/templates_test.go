@@ -25,6 +25,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
@@ -1151,8 +1152,7 @@ spec:
   targetNamespace: test-system
   upgrade:
     crds: CreateReplace
-  values:
-    favoriteDrink: coffee
+  values: {}
 status: {}
 `,
 					},
@@ -1443,6 +1443,7 @@ status: {}
 		},
 	}
 
+	var fakeChartCache helm.ChartsCacheReader
 	values := base64.StdEncoding.EncodeToString([]byte("foo: bar"))
 	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	files, err := getFiles(
@@ -1450,7 +1451,7 @@ status: {}
 		c,
 		log,
 		testEstimator,
-		"base",
+		fakeChartCache,
 		"weaveworks-charts",
 		makeTestTemplateWithProfileAnnotation(
 			templates.RenderTypeEnvsubst,
