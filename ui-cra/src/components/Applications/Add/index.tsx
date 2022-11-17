@@ -69,12 +69,47 @@ const SourceLinkWrapper = styled.div`
   overflow-x: auto;
 `;
 
-function getInitialData(callbackState: any, random: string) {
+interface FormData {
+  url: string;
+  provider: string;
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+  pullRequestDescription: string;
+  source_name: string;
+  source_namespace: string;
+  source: string;
+  source_type: string;
+  source_url: string;
+  source_branch: string;
+  clusterAutomations: {
+    name: string;
+    namespace: string;
+    target_namespace: string;
+    cluster_name: string;
+    cluster_namespace: string;
+    cluster: string;
+    cluster_isControlPlane: boolean;
+    createNamespace: boolean;
+    path: string;
+    source_name: string;
+    source_namespace: string;
+    source: string;
+    source_type: string;
+    source_url: string;
+    source_branch: string;
+  }[];
+}
+
+function getInitialData(
+  callbackState: { state: { formData: FormData } },
+  random: string,
+) {
   let defaultFormData = {
     url: '',
     provider: '',
     branchName: `add-application-branch-${random}`,
-    title: 'Add application',
+    pullRequestTitle: 'Add application',
     commitMessage: 'Add application',
     pullRequestDescription: 'This PR adds a new application',
     clusterAutomations: [
@@ -145,7 +180,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const { initialFormData } = getInitialData(callbackState, random);
 
-  const [formData, setFormData] = useState<any>(initialFormData);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
@@ -154,6 +189,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     ClusterPRPreview | AppPRPreview | null
   >(null);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+
+  console.log(formData);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -369,7 +406,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                 <Grid container>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
                     {formData.clusterAutomations.map(
-                      (automation: ClusterAutomation, index: number) => {
+                      (
+                        automation: FormData['clusterAutomations'][0],
+                        index: number,
+                      ) => {
                         return (
                           <AppFields
                             context="app"

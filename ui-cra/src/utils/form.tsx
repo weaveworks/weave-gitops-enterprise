@@ -141,7 +141,7 @@ export const Input: FC<InputProps> = ({
             position="end"
             style={{ paddingRight: weaveTheme.spacing.small }}
           >
-            {error ? <ErrorIcon /> : null}
+            {error && <ErrorIcon />}
           </InputAdornment>
         }
         required={required}

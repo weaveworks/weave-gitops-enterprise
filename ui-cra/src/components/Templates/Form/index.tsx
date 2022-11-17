@@ -481,15 +481,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       switch (submitType) {
         case 'PR Preview':
           return handlePRPreview;
-        case 'Create cluster':
-          return handleAddCluster;
+        case 'Create resource':
+          return handleAddResource;
         case 'Get cost estimation':
           return handleCostEstimation;
         default:
           return;
       }
     },
-    [handleAddCluster, handleCostEstimation, handlePRPreview],
+    [handleAddResource, handleCostEstimation, handlePRPreview],
   );
 
   return useMemo(() => {
@@ -601,7 +601,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <div className="create-cta">
                 <Button
                   type="submit"
-                  onClick={() => setSubmitType('Create cluster')}
+                  onClick={() => setSubmitType('Create resource')}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
