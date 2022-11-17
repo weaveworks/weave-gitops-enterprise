@@ -182,7 +182,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			ginkgo.FIt("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
+			ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
 				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
 				installPolicyAgent(leafClusterName)

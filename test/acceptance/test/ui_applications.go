@@ -330,6 +330,7 @@ func verifyAppViolationsList(violatingApp Application, violationsData Applicatio
 	ginkgo.By("And check violations are visible in the Application Violations List", func() {
 
 		gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+		pages.WaitForPageToLoad(webDriver)
 		gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
 		appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
 		gomega.Eventually(appViolationsMsg.AppViolationsMsg.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(violationsData.ViolationMessage), fmt.Sprintf("Failed to list '%s' violation in '%s' vioilations list", violationsData.ViolationMessage, violatingApp.Name))
@@ -358,7 +359,7 @@ func verifyAppViolationsList(violatingApp Application, violationsData Applicatio
 	// Checking that the Violations can be filtered in the application violation list.
 	ginkgo.By("And Violations can be filtered by Severity", func() {
 		ApplicationViolationsList := pages.GetApplicationViolationsList(webDriver)
-		filterID := "severity: high"
+		filterID := "severity: medium"
 		searchPage := pages.GetSearchPage(webDriver)
 		searchPage.SelectFilter("severity", filterID)
 		gomega.Eventually(ApplicationViolationsList.CountViolations).Should(gomega.BeNumerically("~", 2, 4), "The number of selected violations for high severity should be equal two")
@@ -1270,6 +1271,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			// Count of existing applications before deploying new application
 			var existingAppCount int
 
+			var downloadedResourcesPath string
+
 			// Just specify policies yaml path
 			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
@@ -1287,14 +1290,16 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			}
 
 			ginkgo.JustBeforeEach(func() {
+				downloadedResourcesPath = path.Join(os.Getenv("HOME"), "Downloads", "resources.zip")
+				// Application target namespace is created by the kustomization 'Add Application' UI
 				createNamespace([]string{appNameSpace, appTargetNamespace})
+				_ = deleteFile([]string{downloadedResourcesPath})
 
 				// Add/Install test Policies to the management cluster
 				installTestPolicies(mgmtCluster.Name, policiesYaml)
 
 				// Add/Install Policy config to the management cluster
 				installPolicyConfig(mgmtCluster.Name, policyConfigYaml)
-
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -1308,9 +1313,12 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				// Delete the test Policieis
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+
 				deleteNamespace([]string{appNameSpace, appTargetNamespace})
+				_ = deleteFile([]string{downloadedResourcesPath})
 			})
-			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
+
+			ginkgo.FIt("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
@@ -1318,65 +1326,56 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					DeploymentName:  "podinfo",
 					Namespace:       appNameSpace,
 					TargetNamespace: appTargetNamespace,
-					Source:          "flux-system",
-					Path:            "./apps/podinfo",
+					Source:          "app-violations-podinfo",
+					Path:            "./kustomize",
 					SyncInterval:    "30s",
 				}
+
 				// App Violations data
 				appViolations := ApplicationViolations{
-					PolicyName:        "Container Running As Root acceptance test",
-					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`,
-					ViolationSeverity: "High",
-					ViolationCategory: "weave.categories.pod-security",
+					PolicyName:               "Container Image Pull Policy acceptance test",
+					ViolationMessage:         `Container Image Pull Policy acceptance test in deployment podinfo (1 occurrences)`,
+					ViolationSeverity:        "Medium",
+					ViolationCategory:        "weave.categories.software-supply-chain",
+					ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
+					PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
 				}
+
+				sourceURL := "https://github.com/stefanprodan/podinfo"
+				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 
 				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				existingAppCount = getApplicationCount()
 
-				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, GITOPS_DEFAULT_NAMESPACE, podinfo.TargetNamespace)
+				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)
+				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
 				defer cleanGitRepository(appDir)
 
 				pages.NavigateToPage(webDriver, "Applications")
 				// Declare application page variable
 				applicationsPage := pages.GetApplicationsPage(webDriver)
 
-				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch", func() {
-					pullGitRepo(repoAbsolutePath)
-					podinfoPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-app-violations-manifest.yaml")
-					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfoPath, path.Join(repoAbsolutePath, "apps/podinfo"))
-					err := runCommandPassThrough("sh", "-c", createCommand)
-					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
-					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-				})
+				ginkgo.By("And add Kustomization & GitRepository Source manifests pointing to podinfo repository’s master branch)", func() {
 
-				ginkgo.By("Install kustomization Application on management cluster", func() {
 					pullGitRepo(repoAbsolutePath)
-					command := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir))
-					err := runCommandPassThrough("sh", "-c", command)
-					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", command)
+					err := runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
+					gomega.Expect(err).Should(gomega.BeNil(), "Failed to add kustomization file for '%s'", podinfo.Name)
 					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-				})
-
-				ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
-					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				})
 
 				ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
 					totalAppCount := existingAppCount + 1
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be '%d' application enteries in application table", totalAppCount))
+					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
 				})
 
 				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
 
 				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
-
-				ginkgo.By(fmt.Sprintf("And navigate to '%s' application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' application detail page", podinfo.Name))
-
+				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
+					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
 				})
 
 				verifyAppViolationsList(podinfo, appViolations)
@@ -1460,10 +1459,12 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				}
 				// App Violations data
 				appViolations := ApplicationViolations{
-					PolicyName:        "Container Running As Root acceptance test",
-					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`,
-					ViolationSeverity: "High",
-					ViolationCategory: "weave.categories.pod-security",
+					PolicyName:               "Container Image Pull Policy acceptance test",
+					ViolationMessage:         `Container Image Pull Policy acceptance test in deployment podinfo (1 occurrences)`,
+					ViolationSeverity:        "Medium",
+					ViolationCategory:        "weave.categories.software-supply-chain",
+					ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
+					PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
 				}
 				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 				appDir := fmt.Sprintf("./clusters/%s/%s/podinfo", leafCluster.Namespace, leafCluster.Name)
