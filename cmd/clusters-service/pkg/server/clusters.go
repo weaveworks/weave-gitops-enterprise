@@ -609,21 +609,20 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	}
 
 	for _, v := range profilesIndex {
-		// Check the version and if empty use the latest version in profile defaults.
+		// Check the version and if empty read the latest version from cache.
 		if v.Version == "" {
-			//
-			// FIXME: read version from the cache
-			// args.chartsCache.GetLatestVersion(v.Name, cluster, args.helmRepository)
-			//
-			v.Version, err = getProfileLatestVersion(ctx, v.Name, helmRepo)
+			v.Version, err = args.chartsCache.GetLatestVersion(ctx, cluster, args.helmRepository, v.Name)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
 			}
 		}
 
+		// Check the version and if empty read the layer from cache.
 		if v.Layer == "" {
-			// FIXME: read layer from the cache if its there
-			// args.chartsCache.GetLayer(v.Name, cluster, args.helmRepository)
+			v.Layer, err = args.chartsCache.GetLayer(ctx, cluster, args.helmRepository, v.Name, v.Version)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve layer of profile: %w", err)
+			}
 		}
 
 		decoded, err := base64.StdEncoding.DecodeString(v.Values)
