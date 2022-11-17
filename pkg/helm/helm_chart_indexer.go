@@ -248,7 +248,7 @@ AND cluster_name = $3 AND cluster_namespace = $4`
 }
 
 // GetLatestVersion returns the latest version of a chart in a repo and cluster.
-func (i *HelmChartIndexer) GetLatestVersion(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, name string) (string, error) {
+func (i *HelmChartIndexer) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
 	sqlStatement := `
 SELECT version FROM helm_charts
 WHERE name = $1
@@ -278,7 +278,7 @@ AND cluster_name = $4 AND cluster_namespace = $5`
 }
 
 // GetLayer returns the layer of a chart in a repo and cluster.
-func (i *HelmChartIndexer) GetLayer(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, name, version string) (string, error) {
+func (i *HelmChartIndexer) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
 	sqlStatement := `
 SELECT layer FROM helm_charts
 WHERE name = $1 AND version = $2
