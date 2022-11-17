@@ -1,10 +1,12 @@
 package acceptance
 
 import (
+	"archive/zip"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -414,10 +416,6 @@ func DumpBrowserLogs(console bool, network bool) {
 	}
 }
 
-func getDownloadedKubeconfigPath(clusterName string) string {
-	return path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", clusterName))
-}
-
 // utility functions
 func deleteFile(name []string) error {
 	for _, name := range name {
@@ -469,4 +467,46 @@ func copyFile(sourceFile, destination string) error {
 	}
 
 	return nil
+}
+
+func getMimeType(archiveFile string) (string, error) {
+	file, err := os.Open(archiveFile)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	buf := make([]byte, 512)
+	_, err = file.Read(buf)
+	if err != nil {
+		return "", err
+	}
+
+	mimeType := http.DetectContentType(buf)
+	return mimeType, nil
+}
+
+func getArchiveFileList(archiveFile string) ([]string, error) {
+	mimeType, err := getMimeType(archiveFile)
+	if err != nil {
+		return []string{}, err
+	}
+
+	fileList := []string{}
+	switch mimeType {
+	case "application/zip":
+		archive, err := zip.OpenReader(archiveFile)
+		if err != nil {
+			panic(err)
+		}
+		defer archive.Close()
+
+		for _, f := range archive.File {
+			if f.FileInfo().IsDir() {
+				continue
+			}
+			fileList = append(fileList, f.Name)
+		}
+	}
+	return fileList, nil
 }

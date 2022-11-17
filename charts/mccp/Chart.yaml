@@ -29,10 +29,10 @@ dependencies:
     repository: "file://../cluster-controller"
     condition: cluster-controller.enabled
   - name: policy-agent
-    version: "2.0.0"
+    version: "2.1.1"
     repository: "https://weaveworks.github.io/policy-agent"
     condition: policy-agent.enabled
   - name: pipeline-controller
-    version: "0.0.9"
+    version: "0.0.11"
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: enablePipelines

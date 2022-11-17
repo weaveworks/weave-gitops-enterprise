@@ -71,7 +71,6 @@ function setup {
   fi
   
   helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
-  helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
   helm repo add cert-manager https://charts.jetstack.io
   helm repo update  
@@ -80,7 +79,7 @@ function setup {
   helm upgrade --install \
     cert-manager cert-manager/cert-manager \
     --namespace cert-manager --create-namespace \
-    --version v1.9.1 \
+    --version v1.10.0 \
     --set installCRDs=true
   kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
 
@@ -183,13 +182,28 @@ function setup {
 
   helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
   
+   # Wait for cluster to settle
+  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
+  
   # Install ingress-nginx for tls termination 
-  helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-    --namespace ingress-nginx --create-namespace \
-    --version 4.0.18 \
-    --set controller.service.type=NodePort \
-    --set controller.service.nodePorts.https=${UI_NODEPORT} \
-    --set controller.extraArgs.v=4
+  command="helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx --create-namespace \
+            --version 4.4.0 \
+            --set controller.service.type=NodePort \
+            --set controller.service.nodePorts.https=30080 \
+            --set controller.extraArgs.v=4"  
+  # When policy-agent ValidatingWebhook service has not fully started up, admission controller call to matching validating webhook fails.
+  # Retrying few times gives enough time for ValidatingWebhook service to become available
+  for i in {0..5}
+  do
+    echo "Attempt installing ingress-nginx: $(($i+1))"
+    eval $command
+    if [ $? -ne 0 ]; then
+    sleep 3
+    else          
+      break    
+    fi  
+  done  
   kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
   
   cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
@@ -221,15 +235,16 @@ function setup {
       aws ec2 create-key-pair --key-name weave-gitops-pesto --region us-east-1 --output text > ~/.ssh/weave-gitops-pesto.pem
     fi
     clusterctl init --infrastructure aws
+    kubectl wait --for=condition=Ready --timeout=300s -n capa-system --all pod 
   elif [ "$CAPI_PROVIDER" == "capg" ]; then
     export GCP_B64ENCODED_CREDENTIALS=$( echo ${GCP_SA_KEY} | base64 | tr -d '\n' )
     clusterctl init --infrastructure gcp
+    kubectl wait --for=condition=Ready --timeout=300s -n capg-system --all pod 
   else
-    clusterctl init --infrastructure docker    
+    clusterctl init --infrastructure docker   
+    kubectl wait --for=condition=Ready --timeout=300s -n capd-system --all pod 
   fi
 
-  # Wait for cluster to settle
-  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A
 
   exit 0
@@ -245,9 +260,8 @@ function reset {
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
   kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works
-  # Delete policy agent
   kubectl delete ValidatingWebhookConfiguration policy-agent
-  kubectl delete namespaces policy-system  
+  kubectl delete namespaces flux-system
   # Delete capi provider
   if [ "$CAPI_PROVIDER" == "capa" ]; then
     clusterctl delete --infrastructure aws

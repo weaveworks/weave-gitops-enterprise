@@ -97,7 +97,7 @@ function HeaderSection({
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
-          className={classes.editor}
+          className={`editor ${classes.editor}`}
         />
       </div>
 
@@ -105,7 +105,7 @@ function HeaderSection({
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
-          className={classes.editor}
+          className={`editor ${classes.editor}`}
           remarkPlugins={[remarkGfm]}
         />
       </div>

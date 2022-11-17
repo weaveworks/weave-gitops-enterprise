@@ -12,6 +12,8 @@ import {
   ListEventsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../EnterpriseClient';
+import { formatError } from '../../utils/formatters';
+import useNotifications from './../../contexts/Notifications';
 
 interface Props {
   api: typeof ProgressiveDeliveryService;
@@ -68,6 +70,8 @@ export type CanaryParams = {
 const GET_CANARY_KEY = 'get_canary_details';
 export const useGetCanaryDetails = (params: CanaryParams) => {
   const pd = useProgressiveDelivery();
+  const { setNotifications } = useNotifications();
+  const onError = (error: Error) => setNotifications(formatError(error));
 
   return useQuery<GetCanaryResponse, Error>(
     [PD_QUERY_KEY, GET_CANARY_KEY, params],
@@ -75,6 +79,7 @@ export const useGetCanaryDetails = (params: CanaryParams) => {
     {
       refetchInterval: 10000,
       retry: false,
+      onError,
     },
   );
 };
@@ -82,11 +87,16 @@ export const useGetCanaryDetails = (params: CanaryParams) => {
 const CANARY_OBJS_KEY = 'canary_objects';
 export const useListFlaggerObjects = (params: CanaryParams) => {
   const pd = useProgressiveDelivery();
+  const { setNotifications } = useNotifications();
+  const onError = (error: Error) => setNotifications(formatError(error));
 
   return useQuery<ListCanaryObjectsResponse, Error>(
     [PD_QUERY_KEY, CANARY_OBJS_KEY, params],
     () => {
       return pd.ListCanaryObjects(params);
+    },
+    {
+      onError,
     },
   );
 };
@@ -95,8 +105,14 @@ const EVENTS_QUERY_KEY = 'events';
 
 export function useListEvents(req: ListEventsRequest) {
   const { api } = useContext(EnterpriseClientContext);
+  const { setNotifications } = useNotifications();
+  const onError = (error: Error) => setNotifications(formatError(error));
 
-  return useQuery<ListEventsResponse, Error>([EVENTS_QUERY_KEY, req], () =>
-    api.ListEvents(req),
+  return useQuery<ListEventsResponse, Error>(
+    [EVENTS_QUERY_KEY, req],
+    () => api.ListEvents(req),
+    {
+      onError,
+    },
   );
 }

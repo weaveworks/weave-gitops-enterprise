@@ -4,9 +4,9 @@ dependencies:
   version: 1.0.0
 - name: policy-agent
   repository: https://weaveworks.github.io/policy-agent
-  version: 2.0.0
+  version: 2.1.1
 - name: pipeline-controller
   repository: oci://ghcr.io/weaveworks/charts
-  version: 0.0.9
-digest: sha256:a6c9d9f8eb652e9351837b7e185dcfc5fb9fe0b1336f075bd163d52f62e12e85
-generated: "2022-11-09T10:51:46.886861408+02:00"
+  version: 0.0.11
+digest: sha256:ce2948ccc2b323ebbb5bf83f59667e7a90cb806437df6d21bc8a1367969d82be
+generated: "2022-11-15T11:28:34.265935806+02:00"

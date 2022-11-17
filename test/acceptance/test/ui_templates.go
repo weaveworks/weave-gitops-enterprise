@@ -372,10 +372,17 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] When Capi Template is available in the cluster", func() {
+			var downloadedResourcesPath string
+
+			ginkgo.JustBeforeEach(func() {
+				downloadedResourcesPath = path.Join(os.Getenv("HOME"), "Downloads", "resources.zip")
+				_ = deleteFile([]string{downloadedResourcesPath})
+			})
 
 			ginkgo.JustAfterEach(func() {
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
+				_ = deleteFile([]string{downloadedResourcesPath})
 			})
 
 			ginkgo.It("Verify pull request can be created for capi template to the management cluster", ginkgo.Label("integration", "git", "browser-logs"), func() {
@@ -387,8 +394,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				navigateToTemplatesGrid(webDriver)
 
+				templateName := "cluster-template-development-0"
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
+					templateTile := pages.GetTemplateTile(webDriver, templateName)
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -399,8 +407,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				// Parameter values
-				clusterName := "quick-capd-cluster"
-				namespace := "quick-capi"
+				leafCluster := ClusterConfig{
+					Type:      "capi",
+					Name:      "quick-capd-cluster",
+					Namespace: "quick-capi",
+				}
 				k8Version := "1.22.0"
 				controlPlaneMachineCount := "3"
 				workerMachineCount := "3"
@@ -408,12 +419,12 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				var parameters = []TemplateField{
 					{
 						Name:   "CLUSTER_NAME",
-						Value:  clusterName,
+						Value:  leafCluster.Name,
 						Option: "",
 					},
 					{
 						Name:   "NAMESPACE",
-						Value:  namespace,
+						Value:  leafCluster.Namespace,
 						Option: "",
 					},
 					{
@@ -440,10 +451,25 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				setParameterValues(createPage, parameters)
 
+				sourceHRUrl := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
+				certManager := Application{
+					DefaultApp:      true,
+					Type:            "helm_release",
+					Chart:           "weaveworks-charts",
+					Name:            "cert-manager",
+					Namespace:       GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: "cert-manager",
+					Version:         "0.0.8",
+					Values:          `installCRDs: \${INSTALL_CRDS}`,
+					Layer:           "layer-0",
+				}
+				profile := createPage.GetProfileInList(certManager.Name)
+				AddHelmReleaseApp(profile, certManager)
+
 				podinfo := Application{
 					Name:            "podinfo",
 					Namespace:       GITOPS_DEFAULT_NAMESPACE,
-					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: "test-system",
 					Source:          "flux-system",
 					Path:            "apps/podinfo",
 				}
@@ -454,7 +480,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				postgres := Application{
 					Name:            "postgres",
 					Namespace:       GITOPS_DEFAULT_NAMESPACE,
-					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
+					TargetNamespace: "test-system",
 					Path:            "apps/postgres",
 				}
 				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
@@ -462,14 +488,57 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				AddKustomizationApp(application, postgres)
 				gomega.Expect(application.RemoveApplication.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to remove application no. %d", 2))
 
+				pages.ScrollWindow(webDriver, 0, 500)
+				preview := pages.GetPreview(webDriver)
 				ginkgo.By("Then I should preview the PR", func() {
-					preview := pages.GetPreview(webDriver)
 					gomega.Eventually(func(g gomega.Gomega) {
 						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
 						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
 
 					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
+				})
+
+				ginkgo.By("Then verify preview tab lists", func() {
+					// Verify cluster definition preview
+					gomega.Eventually(preview.GetPreviewTab("Cluster Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'CLUSTER DEFINATION' preview tab")
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*templates.weave.works/template-name: %s`, templateName)))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*templates.weave.works/template-namespace: default`))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*capiClusterRef`, leafCluster.Name, leafCluster.Namespace)))
+
+					// Verify profiles preview
+					gomega.Eventually(preview.GetPreviewTab("Profiles").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*url: %s`, certManager.Chart, GITOPS_DEFAULT_NAMESPACE, sourceHRUrl)))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, certManager.Name, certManager.Namespace)))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s[\s\w\d./:-]*installCRDs: true`, certManager.Name, certManager.Chart, certManager.Version, certManager.TargetNamespace)))
+
+					// Verify kustomizations preview
+					gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
+				})
+
+				ginkgo.By("And verify downloaded preview resources", func() {
+					// verify download prview resources
+					gomega.Eventually(func(g gomega.Gomega) {
+						g.Expect(preview.Download.Click()).Should(gomega.Succeed())
+						_, err := os.Stat(downloadedResourcesPath)
+						g.Expect(err).Should(gomega.Succeed())
+					}, ASSERTION_1MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
 					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+					fileList, _ := getArchiveFileList(path.Join(os.Getenv("HOME"), "Downloads", "resources.zip"))
+
+					previewResources := []string{
+						"cluster_definition.yaml",
+						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "clusters-bases-kustomization.yaml"),
+						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "profiles.yaml"),
+						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")),
+						path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")),
+					}
+					gomega.Expect(len(fileList)).Should(gomega.Equal(len(previewResources)), "Failed to verify expected number of downloaded preview resources")
+					gomega.Expect(fileList).Should(gomega.ContainElements(previewResources), "Failed to verify downloaded preview resources files")
 				})
 
 				pullRequest := PullRequest{
@@ -489,14 +558,20 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And the manifests are present in the cluster config repository", func() {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 					pullGitRepo(repoAbsolutePath)
-					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, namespace, clusterName+".yaml"))
+					_, err := os.Stat(path.Join(repoAbsolutePath, clusterPath, leafCluster.Namespace, leafCluster.Name+".yaml"))
 					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Cluster config can not be found.")
 
-					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", namespace, clusterName, podinfo.Name+"-"+podinfo.Namespace+"-kustomization.yaml"))
-					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Cluster kustomizations are found when expected to be deleted.")
+					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name, "profiles.yaml"))
+					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "profiles.yaml can not be found.")
 
-					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", namespace, clusterName, postgres.Name+"-"+postgres.Namespace+"-kustomization.yaml"))
-					gomega.Expect(err).Should(gomega.MatchError(os.ErrNotExist), "Cluster kustomizations are found when expected to be deleted.")
+					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")))
+					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "target namespace.yaml can not be found.")
+
+					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")))
+					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "podinfo kustomization.yaml are found when expected to be deleted.")
+
+					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{postgres.Name, postgres.Namespace, "kustomization.yaml"}, "-")))
+					gomega.Expect(err).Should(gomega.MatchError(os.ErrNotExist), "postgress kustomization is found when expected to be deleted.")
 				})
 			})
 
@@ -572,6 +647,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				prCommit := "First capd capi template"
 
 				gitops := pages.GetGitOps(webDriver)
+				messages := pages.GetMessages(webDriver)
 				ginkgo.By("And set GitOps values for pull request", func() {
 					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
 
@@ -587,15 +663,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 
-					if pages.ElementExist(gitops.ErrorBar) {
-						gomega.Expect(gitops.ErrorBar.Click()).To(gomega.Succeed())
+					if pages.ElementExist(messages.Error) {
+						gomega.Expect(messages.Close.Click()).To(gomega.Succeed())
 					}
 
-					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
+					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed(), "Failed to click 'CREATE PULL REQUEST' button")
 				})
 
 				ginkgo.By("Then I should not see pull request to be created", func() {
-					gomega.Eventually(gitops.ErrorBar).Should(matchers.MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
+					gomega.Eventually(messages.Error).Should(matchers.MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
 				})
 			})
 		})
@@ -850,7 +926,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 				capdCluster = ClusterConfig{"capd", "ui-end-to-end-capd-cluster-" + strings.ToLower(RandString(6)), clusterNamespace[gitProviderEnv.Type]}
-				downloadedKubeconfigPath = getDownloadedKubeconfigPath(capdCluster.Name)
+				downloadedKubeconfigPath = path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", capdCluster.Name))
 				_ = deleteFile([]string{downloadedKubeconfigPath})
 
 				createNamespace([]string{capdCluster.Namespace})
@@ -897,7 +973,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				ginkgo.By("And User should choose a template", func() {
@@ -1015,8 +1091,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
+					gomega.Eventually(preview.GetPreviewTab("Cluster Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'CLUSTER DEFINATION' preview tab")
 					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
 					gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
+					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*capiClusterRef`, leafCluster.Name, leafCluster.Namespace)))
+
+					gomega.Eventually(preview.GetPreviewTab("Profiles").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
+					gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
+
 					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
@@ -1061,11 +1143,11 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						g.Expect(clusterStatus.KubeConfigButton.Click()).To(gomega.Succeed())
 						_, err := os.Stat(downloadedKubeconfigPath)
 						g.Expect(err).Should(gomega.Succeed())
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to download kubeconfig for capd cluster")
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to download kubeconfig for capd cluster")
 				})
 
 				ginkgo.By("And I verify cluster infrastructure for the CAPD capi cluster", func() {
-					clusterInfra := pages.GertClusterInfrastructure(webDriver)
+					clusterInfra := pages.GetClusterInfrastructure(webDriver)
 					gomega.Expect(clusterInfra.Kind.Text()).To(gomega.MatchRegexp(`DockerCluster`), "Failed to verify CAPD infarstructure provider")
 				})
 
@@ -1120,8 +1202,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("Then I should see a toast with a link to the deletion PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
+					messages := pages.GetMessages(webDriver)
+					gomega.Eventually(messages.Success, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.MatchText("PR created successfully"), "Failed to create pull request to delete capi cluster")
 				})
 
 				var deletePRUrl string
@@ -1171,7 +1253,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				ginkgo.By("And User should choose a template", func() {
@@ -1307,7 +1389,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						g.Expect(clusterStatus.KubeConfigButton.Click()).To(gomega.Succeed())
 						_, err := os.Stat(downloadedKubeconfigPath)
 						g.Expect(err).Should(gomega.Succeed())
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to download kubeconfig for capd cluster")
+					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to download kubeconfig for capd cluster")
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify that %s capd cluster kubeconfig is correct", leafCluster.Name), func() {
@@ -1396,7 +1478,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				ginkgo.By("Then force reconcile flux-system to immediately start cluster provisioning", func() {
+				ginkgo.By("Then force reconcile flux-system to immediately start cluster modification take effect", func() {
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				})
@@ -1445,9 +1527,18 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					}
 					loginUser()
-					found, _ := pages.GetEntitelment(webDriver, typeEntitelment).Visible()
-					return found
-
+					messages := pages.GetMessages(webDriver)
+					switch typeEntitelment {
+					case "expired":
+						if errMsg, _ := messages.Warning.Text(); strings.Contains(errMsg, "Your entitlement for Weave GitOps Enterprise has expired") {
+							return true
+						}
+					case "invalid", "missing":
+						if errMsg, _ := messages.Error.Text(); strings.Contains(errMsg, "No entitlement was found for Weave GitOps Enterprise") {
+							return true
+						}
+					}
+					return false
 				}
 
 				gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())

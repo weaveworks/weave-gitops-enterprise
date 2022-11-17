@@ -15,7 +15,6 @@ import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
 import { ResourceRef } from '../../api/terraform/types.pb';
-import useNotifications from '../../contexts/Notifications';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,
@@ -27,6 +26,7 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import YamlView from '../YamlView';
+import useNotifications from './../../contexts/Notifications';
 
 type Props = {
   className?: string;
@@ -39,11 +39,10 @@ function TerraformObjectDetail({ className, ...params }: Props) {
   const { path } = useRouteMatch();
   const [syncing, setSyncing] = useState(false);
   const [suspending, setSuspending] = useState(false);
-  const { setNotifications } = useNotifications();
-
-  const { data, isLoading, error } = useGetTerraformObjectDetail(params);
+  const { data, isLoading } = useGetTerraformObjectDetail(params);
   const sync = useSyncTerraformObject(params);
   const toggleSuspend = useToggleSuspendTerraformObject(params);
+  const { setNotifications } = useNotifications();
 
   const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
 
@@ -55,13 +54,16 @@ function TerraformObjectDetail({ className, ...params }: Props) {
         setNotifications([
           {
             message: { text: 'Sync successful' },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(err => {
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err?.message },
+            severity: 'error',
+          },
         ]);
       })
       .finally(() => setSyncing(false));
@@ -81,13 +83,13 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 object?.name
               }`,
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(err => {
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          { message: { text: err.message }, severity: 'error' },
         ]);
       })
       .finally(() => setSuspending(false));
@@ -111,7 +113,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
         },
       ]}
     >
-      <ContentWrapper errors={error ? [error] : []} loading={isLoading}>
+      <ContentWrapper loading={isLoading}>
         <div className={className}>
           <Box paddingBottom={3}>
             <KubeStatusIndicator conditions={object?.conditions || []} />

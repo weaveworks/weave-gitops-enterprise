@@ -12,7 +12,7 @@ const useTemplates = () => {
   const { api } = useContext(EnterpriseClientContext);
 
   const onError = (error: Error) =>
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
+    setNotifications([{ message: { text: error.message }, severity: 'error' }]);
 
   const { isLoading, data } = useQuery<ListTemplatesResponse, Error>(
     'templates',

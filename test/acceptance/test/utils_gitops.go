@@ -190,7 +190,7 @@ func waitForGitopsResources(ctx context.Context, resourcePath string, timeout ti
 			return false, nil
 		}
 
-		return regexp.MatchString(strings.ToLower(fmt.Sprintf(`%s[\\"]+`, parseUrl.Path)), strings.ToLower(string(bodyBytes)))
+		return regexp.MatchString(strings.ToLower(fmt.Sprintf(`%s[\\"]+`, strings.Split(parseUrl.Path, "/")[0])), strings.ToLower(string(bodyBytes)))
 	}, waitCtx.Done())
 }
 
@@ -210,7 +210,7 @@ func runGitopsCommand(cmd string, timeout ...time.Duration) (stdOut, stdErr stri
 		case OidcUserLogin:
 			authFlag = fmt.Sprintf("--kubeconfig=%s", userCredentials.UserKubeconfig)
 		default:
-			gomega.Expect(fmt.Errorf("error: Provided authento=ication type '%s' is not supported for CLI", userCredentials.UserType))
+			gomega.Expect(fmt.Errorf("error: Provided authentication type '%s' is not supported for CLI", userCredentials.UserType))
 		}
 	}
 
