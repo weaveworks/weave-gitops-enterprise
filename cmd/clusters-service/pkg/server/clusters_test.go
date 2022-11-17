@@ -482,111 +482,111 @@ func TestCreatePullRequest(t *testing.T) {
 			},
 			expected: "https://github.com/org/repo/pull/1",
 		},
-		// 		{
-		// 			name: "default profile values",
-		// 			clusterState: []runtime.Object{
-		// 				makeCAPITemplate(t),
-		// 			},
-		// 			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
-		// 			req: &capiv1_protos.CreatePullRequestRequest{
-		// 				TemplateName: "cluster-template-1",
-		// 				ParameterValues: map[string]string{
-		// 					"CLUSTER_NAME": "dev",
-		// 					"NAMESPACE":    "default",
-		// 				},
-		// 				RepositoryUrl:     "https://github.com/org/repo.git",
-		// 				HeadBranch:        "feature-01",
-		// 				BaseBranch:        "main",
-		// 				Title:             "New Cluster",
-		// 				Description:       "Creates a cluster through a CAPI template",
-		// 				CommitMessage:     "Add cluster manifest",
-		// 				TemplateNamespace: "default",
-		// 				Values: []*capiv1_protos.ProfileValues{
-		// 					{
-		// 						Name:    "demo-profile",
-		// 						Version: "0.0.1",
-		// 						Values:  base64.StdEncoding.EncodeToString([]byte(``)),
-		// 					},
-		// 				},
-		// 			},
-		// 			committedFiles: []*capiv1_protos.CommitFile{
-		// 				{
-		// 					Path: "clusters/my-cluster/clusters/default/dev.yaml",
-		// 					Content: `apiVersion: fooversion
-		// kind: fookind
-		// metadata:
-		//   annotations:
-		//     capi.weave.works/display-name: ClusterName
-		//     kustomize.toolkit.fluxcd.io/prune: disabled
-		//     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-		//       Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"default"},"commit_message":"Add
-		//       cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}],"template_namespace":"default","template_kind":"CAPITemplate"}'
-		//   labels:
-		//     templates.weave.works/template-name: cluster-template-1
-		//     templates.weave.works/template-namespace: default
-		//   name: dev
-		//   namespace: default
-		// `,
-		// 				},
-		// 				{
-		// 					Path: "clusters/default/dev/clusters-bases-kustomization.yaml",
-		// 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-		// kind: Kustomization
-		// metadata:
-		//   creationTimestamp: null
-		//   name: clusters-bases-kustomization
-		//   namespace: flux-system
-		// spec:
-		//   interval: 10m0s
-		//   path: clusters/bases
-		//   prune: true
-		//   sourceRef:
-		//     kind: GitRepository
-		//     name: flux-system
-		// status: {}
-		// `,
-		// 				},
-		// 				{
-		// 					Path: "clusters/default/dev/profiles.yaml",
-		// 					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
-		// kind: HelmRepository
-		// metadata:
-		//   creationTimestamp: null
-		//   name: weaveworks-charts
-		//   namespace: default
-		// spec:
-		//   interval: 10m0s
-		//   url: http://127.0.0.1:{{ .Port }}/charts
-		// status: {}
-		// ---
-		// apiVersion: helm.toolkit.fluxcd.io/v2beta1
-		// kind: HelmRelease
-		// metadata:
-		//   creationTimestamp: null
-		//   name: demo-profile
-		//   namespace: flux-system
-		// spec:
-		//   chart:
-		//     spec:
-		//       chart: demo-profile
-		//       sourceRef:
-		//         apiVersion: source.toolkit.fluxcd.io/v1beta2
-		//         kind: HelmRepository
-		//         name: weaveworks-charts
-		//         namespace: default
-		//       version: 0.0.1
-		//   install:
-		//     crds: CreateReplace
-		//   interval: 1m0s
-		//   upgrade:
-		//     crds: CreateReplace
-		//   values: {}
-		// status: {}
-		// `,
-		// 				},
-		// 			},
-		// 			expected: "https://github.com/org/repo/pull/1",
-		// 		},
+		{
+			name: "default profile values",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
+				Values: []*capiv1_protos.ProfileValues{
+					{
+						Name:    "demo-profile",
+						Version: "0.0.1",
+						Values:  base64.StdEncoding.EncodeToString([]byte(``)),
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/my-cluster/clusters/default/dev.yaml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
+      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"default"},"commit_message":"Add
+      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: dev
+  namespace: default
+`,
+				},
+				{
+					Path: "clusters/default/dev/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/default/dev/profiles.yaml",
+					Content: `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: default
+spec:
+  interval: 10m0s
+  url: http://127.0.0.1:{{ .Port }}/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: demo-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: default
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values: {}
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
 		{
 			name: "specify profile namespace and cluster namespace",
 			clusterState: []runtime.Object{
