@@ -130,6 +130,42 @@ func (fc FakeChartCache) UpdateValuesYaml(ctx context.Context, clusterRef types.
 	return nil
 }
 
+func (fc FakeChartCache) GetLatestVersion(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, name string) (string, error) {
+	charts, ok := fc.Charts[ClusterRefToString(repoRef, clusterRef)]
+	if !ok {
+		return "", errors.New("no charts found")
+	}
+	var versions []string
+	for _, c := range charts {
+		if c.Name == name {
+			versions = append(versions, c.Version)
+		}
+	}
+	if len(versions) == 0 {
+		return "", errors.New("no charts found")
+	}
+	// sort by version
+	sorted, err := helm.ReverseSemVerSort(versions)
+	if err != nil {
+		return "", err
+	}
+	// return the latest version
+	return sorted[0], nil
+}
+
+func (fc FakeChartCache) GetLayer(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (string, error) {
+	charts, ok := fc.Charts[ClusterRefToString(repoRef, clusterRef)]
+	if !ok {
+		return "", errors.New("no charts found")
+	}
+	for _, c := range charts {
+		if c.Name == chart.Name && c.Version == chart.Version {
+			return c.Layer, nil
+		}
+	}
+	return "", nil
+}
+
 func ChartRefToString(or helm.ObjectReference, cr types.NamespacedName, c helm.Chart) string {
 	return fmt.Sprintf("%s_%s_%s_%s_%s_%s_%s", or.Kind, or.Name, or.Namespace, cr.Name, cr.Namespace, c.Name, c.Version)
 }
