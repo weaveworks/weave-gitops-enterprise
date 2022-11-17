@@ -92,9 +92,11 @@ interface InputProps extends PickedInputProps {
   required?: boolean;
   name?: string;
   error?: boolean;
+  ref?: any;
 }
 
 export const Input: FC<InputProps> = ({
+  ref,
   autoFocus,
   defaultValue,
   disabled,
@@ -132,6 +134,7 @@ export const Input: FC<InputProps> = ({
         rows={rows}
         inputProps={{
           maxLength: 256,
+          ref,
         }}
         endAdornment={
           <InputAdornment
@@ -216,13 +219,13 @@ export const validateFormData = (
   event: any,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
+  setSubmitType: Dispatch<React.SetStateAction<string>>,
 ) => {
-  const requiredButEmptyInputs = Array.from(
-    document.forms['form' as unknown as number].querySelectorAll(
-      'input[required]',
-    ),
-  ).filter(input => (input as HTMLInputElement).value === '');
-
+  event.preventDefault();
+  const requiredButEmptyInputs = Array.from(event.target).filter(
+    (element: any) =>
+      element.type === 'text' && element.required && element.value === '',
+  );
   if (requiredButEmptyInputs.length === 0) {
     onSubmit();
   } else {
@@ -230,4 +233,5 @@ export const validateFormData = (
     (firstEmpty as HTMLInputElement).focus();
     setFormError((firstEmpty as HTMLInputElement).name);
   }
+  setSubmitType('');
 };

@@ -328,6 +328,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       .finally(() => setLoading(false));
   }, [formData, history, getKustomizations, setNotifications]);
 
+  const [submitType, setSubmitType] = useState<string>('');
+
   return useMemo(() => {
     return (
       <ThemeProvider theme={localEEMuiTheme}>
@@ -351,7 +353,19 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper>
-              <FormWrapper name="form" noValidate>
+              <FormWrapper
+                noValidate
+                onSubmit={event =>
+                  validateFormData(
+                    event,
+                    submitType === 'PR Preview'
+                      ? handlePRPreview
+                      : handleAddApplication,
+                    setFormError,
+                    setSubmitType,
+                  )
+                }
+              >
                 <Grid container>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
                     {formData.clusterAutomations.map(
@@ -405,13 +419,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     ) : (
                       <div className="preview-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(
-                              event,
-                              handlePRPreview,
-                              setFormError,
-                            )
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('PR Preview')}
                         >
                           PREVIEW PR
                         </Button>
@@ -432,13 +441,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     ) : (
                       <div className="create-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(
-                              event,
-                              handleAddApplication,
-                              setFormError,
-                            )
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('Create app')}
                           disabled={!enableCreatePR}
                         >
                           CREATE PULL REQUEST
@@ -469,6 +473,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     clusterName,
     enableCreatePR,
     formError,
+    submitType,
   ]);
 };
 

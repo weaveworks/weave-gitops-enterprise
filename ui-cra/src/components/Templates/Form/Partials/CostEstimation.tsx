@@ -2,7 +2,6 @@ import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { Button, LoadingPage, theme } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
-import { validateFormData } from '../../../../utils/form';
 
 const CostEstimation: FC<{
   costEstimate: string;
@@ -10,12 +9,12 @@ const CostEstimation: FC<{
   costEstimateMessage: string;
   handleCostEstimation: () => Promise<void>;
   setFormError: Dispatch<React.SetStateAction<string>>;
+  setSubmitType: Dispatch<React.SetStateAction<string>>;
 }> = ({
-  handleCostEstimation,
   costEstimate,
   isCostEstimationLoading,
   costEstimateMessage,
-  setFormError,
+  setSubmitType,
 }) => {
   const useStyles = makeStyles(() =>
     createStyles({
@@ -75,10 +74,9 @@ const CostEstimation: FC<{
           >
             <Button
               id="get-estimation"
+              type="submit"
               className={classes.getEstimationButton}
-              onClick={event =>
-                validateFormData(event, handleCostEstimation, setFormError)
-              }
+              onClick={() => setSubmitType('Get cost estimation')}
             >
               GET ESTIMATION
             </Button>

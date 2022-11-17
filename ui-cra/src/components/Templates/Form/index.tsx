@@ -472,6 +472,24 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setCostEstimate('00.00 USD');
   }, [formData.parameterValues]);
 
+  const [submitType, setSubmitType] = useState<string>('');
+
+  const getSubmitFunction = useCallback(
+    (submitType?: string) => {
+      switch (submitType) {
+        case 'PR Preview':
+          return handlePRPreview;
+        case 'Create cluster':
+          return handleAddCluster;
+        case 'Get cost estimation':
+          return handleCostEstimation;
+        default:
+          return;
+      }
+    },
+    [handleAddCluster, handleCostEstimation, handlePRPreview],
+  );
+
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -484,7 +502,17 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper name="form" noValidate>
+        <FormWrapper
+          noValidate
+          onSubmit={event =>
+            validateFormData(
+              event,
+              getSubmitFunction(submitType),
+              setFormError,
+              setSubmitType,
+            )
+          }
+        >
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper>
               <div className="template-title">
@@ -529,9 +557,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className={classes.previewCta}>
                 <Button
-                  onClick={event =>
-                    validateFormData(event, handlePRPreview, setFormError)
-                  }
+                  type="submit"
+                  onClick={() => setSubmitType('PR Preview')}
                 >
                   PREVIEW PR
                 </Button>
@@ -553,6 +580,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 isCostEstimationLoading={costEstimationLoading}
                 costEstimateMessage={costEstimateMessage}
                 setFormError={setFormError}
+                setSubmitType={setSubmitType}
               />
             ) : null}
           </Grid>
@@ -570,9 +598,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className="create-cta">
                 <Button
-                  onClick={event =>
-                    validateFormData(event, handleAddCluster, setFormError)
-                  }
+                  type="submit"
+                  onClick={() => setSubmitType('Create cluster')}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
@@ -595,8 +622,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
-    handlePRPreview,
-    handleAddCluster,
     updatedProfiles,
     previewLoading,
     loading,
@@ -610,6 +635,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isKustomizationsEnabled,
     isProfilesEnabled,
     formError,
+    submitType,
+    getSubmitFunction,
   ]);
 };
 

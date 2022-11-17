@@ -58,7 +58,7 @@ const TemplateFields: FC<{
               description={param.description}
             />
           );
-        } else
+        } else {
           return (
             <Input
               key={index}
@@ -74,6 +74,7 @@ const TemplateFields: FC<{
               error={formError === name && !parameterValues[name]}
             />
           );
+        }
       })}
     </TemplateFieldsWrapper>
   );
