@@ -1,6 +1,7 @@
 import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { TableWrapper } from '../Shared';
+import CommandCell from './CommandCell';
 
 interface Props {
   sessions: any[];
@@ -42,8 +43,17 @@ export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           },
           {
             label: 'Command',
-            value: ({ obj }) =>
+            value: ({ obj }) => (
+              <CommandCell
+                command={obj.metadata.annotations['run.weave.works/command']}
+              />
+            ),
+            sortValue: ({ obj }) =>
               obj.metadata.annotations['run.weave.works/command'],
+          },
+          {
+            label: 'Creation Timestamp',
+            value: ({ obj }) => obj.metadata.creationTimestamp,
           },
         ]}
       />
