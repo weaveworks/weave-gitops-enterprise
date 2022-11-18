@@ -389,6 +389,9 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },

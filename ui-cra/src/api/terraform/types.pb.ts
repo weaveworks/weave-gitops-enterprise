@@ -35,6 +35,7 @@ export type TerraformObject = {
   inventory?: ResourceRef[]
   conditions?: Condition[]
   suspended?: boolean
+  type?: string
 }
 
 export type Pagination = {

@@ -39,6 +39,8 @@ message TerraformObject {
     repeated Condition conditions  = 11;
 
     bool suspended = 12;
+
+    string type = 13;
 }
 
 message Pagination {

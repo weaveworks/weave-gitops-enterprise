@@ -8,6 +8,8 @@ import { Tooltip } from '../../Shared';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Routes } from '../../../utils/nav';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { TerraformObject } from '../../../api/terraform/types.pb';
 
 const EditWrapper = styled(Button)`
   span {
@@ -16,22 +18,27 @@ const EditWrapper = styled(Button)`
 `;
 
 export const EditButton: React.FC<{
-  resource: GitopsClusterEnriched | Automation | Source;
+  resource:
+    | GitopsClusterEnriched
+    | Automation
+    | Source
+    | TerraformObject
+    | Pipeline;
 }> = ({ resource }) => {
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
 
   const link =
-    resource.type !== 'GitopsCluster'
+    resource.type === ('GitopsCluster' || 'TerraformObject' || 'Pipeline')
       ? formatURL(Routes.EditResource, {
           name: resource.name,
           namespace: resource.namespace,
           kind: resource.type,
-          clusterName: (resource as Automation | Source).clusterName,
         })
       : formatURL(Routes.EditResource, {
           name: resource.name,
           namespace: resource.namespace,
           kind: resource.type,
+          clusterName: (resource as Automation | Source).clusterName,
         });
 
   return (

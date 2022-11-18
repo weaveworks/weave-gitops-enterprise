@@ -55,6 +55,7 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 		Inventory:            inv,
 		Conditions:           conditions,
 		Suspended:            tf.Spec.Suspend,
+		Type:                 tf.GetObjectKind().GroupVersionKind().Kind,
 	}
 }
 

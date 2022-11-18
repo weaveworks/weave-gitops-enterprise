@@ -1,4 +1,6 @@
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { TerraformObject } from '../../../api/terraform/types.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
 
 export const maybeParseJSON = (data: string) => {
@@ -11,7 +13,12 @@ export const maybeParseJSON = (data: string) => {
 };
 
 export const getCreateRequestAnnotation = (
-  resource: GitopsClusterEnriched | Automation | Source,
+  resource:
+    | GitopsClusterEnriched
+    | Automation
+    | Source
+    | TerraformObject
+    | Pipeline,
 ) => {
   let annotation;
   if (resource.type === 'GitopsCluster') {

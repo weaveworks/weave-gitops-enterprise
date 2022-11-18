@@ -9,13 +9,17 @@ import {
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
-import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
+import {
+  Pipeline,
+  PipelineTargetStatus,
+} from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import YamlView from '../../YamlView';
 import WorkloadStatus from './WorkloadStatus';
+import { EditButton } from './../../../components/Templates/Edit/EditButton';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -206,6 +210,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                               {workload?.lastAppliedRevision && (
                                 <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
                               )}
+                              <EditButton
+                                resource={data?.pipeline || ({} as Pipeline)}
+                              />
                             </Flex>
                           </WorkloadWrapper>
                         </CardContainer>
