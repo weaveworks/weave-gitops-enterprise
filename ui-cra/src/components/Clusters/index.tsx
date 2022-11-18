@@ -25,9 +25,6 @@ import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../hooks/clusters';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
 import { useListConfig } from '../../hooks/versions';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
@@ -49,6 +46,9 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import { openLinkHandler } from '../../utils/link-checker';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 import { EditButton } from '../Templates/Edit/EditButton';
 
 interface Size {
@@ -198,17 +198,17 @@ const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
   const { clusters, isLoading } = useClusters();
-  const notification = location.state?.notification;
+  const { setNotifications } = useNotifications();
   const [selectedClusters, setSelectedClusters] = useState<
     ClusterNamespacedName[]
   >([]);
-  const { setNotifications } = useNotifications();
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const handleClose = useCallback(() => {
     setOpenDeletePR(false);
     setSelectedClusters([]);
   }, [setOpenDeletePR, setSelectedClusters]);
+
   const { data, repoLink } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
@@ -226,12 +226,6 @@ const MCCP: FC<{
     Math.random().toString(36).substring(7),
   );
   const classes = useStyles();
-
-  useEffect(() => {
-    if (notification) {
-      setNotifications(notification);
-    }
-  }, [notification, setNotifications]);
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -308,6 +302,19 @@ const MCCP: FC<{
     selectedClusters,
     repositoryURL,
   ]);
+
+  useEffect(
+    () =>
+      setNotifications([
+        {
+          message: {
+            text: location?.state?.notification?.[0]?.message.text,
+          },
+          severity: location?.state?.notification?.[0]?.severity,
+        } as NotificationData,
+      ]),
+    [location?.state?.notification, setNotifications],
+  );
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {

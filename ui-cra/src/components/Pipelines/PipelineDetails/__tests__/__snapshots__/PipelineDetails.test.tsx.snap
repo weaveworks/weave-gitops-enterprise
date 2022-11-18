@@ -385,7 +385,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-43"
+          class="makeStyles-path-39"
           style="align-items: center;"
         >
           <div
@@ -393,7 +393,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-46"
+              class="makeStyles-link-42"
               href="/applications"
             >
               Applications
@@ -401,15 +401,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-43"
+          class="makeStyles-path-39"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-44"
+            class="makeStyles-divider-40"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-45"
+              class="MuiSvgIcon-root makeStyles-iconDivider-41"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -423,7 +423,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-46"
+              class="makeStyles-link-42"
               href="/applications/pipelines"
             >
               Pipelines
@@ -431,15 +431,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-43"
+          class="makeStyles-path-39"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-44"
+            class="makeStyles-divider-40"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-45"
+              class="MuiSvgIcon-root makeStyles-iconDivider-41"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -449,7 +449,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </svg>
           </div>
           <span
-            class="c4 makeStyles-labelLink-47"
+            class="c4 makeStyles-labelLink-43"
             title="podinfo-02"
           >
             podinfo-02
@@ -566,7 +566,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
               </div>
               <span
-                class="PrivateTabIndicator-root-51 PrivateTabIndicator-colorPrimary-52 MuiTabs-indicator"
+                class="PrivateTabIndicator-root-45 PrivateTabIndicator-colorPrimary-46 MuiTabs-indicator"
                 style="left: 0px; width: 0px;"
               />
             </div>
@@ -575,22 +575,22 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="c17"
           />
           <div
-            class="MuiGrid-root makeStyles-gridWrapper-38 MuiGrid-container MuiGrid-spacing-xs-4"
+            class="MuiGrid-root makeStyles-gridWrapper-34 MuiGrid-container MuiGrid-spacing-xs-4"
           >
             <div
-              class="MuiGrid-root makeStyles-gridContainer-37 MuiGrid-item MuiGrid-grid-xs-true"
+              class="MuiGrid-root makeStyles-gridContainer-33 MuiGrid-item MuiGrid-grid-xs-true"
               id="dev"
             >
               <div
-                class="makeStyles-mbSmall-41"
+                class="makeStyles-mbSmall-37"
               >
                 <div
-                  class="makeStyles-title-39"
+                  class="makeStyles-title-35"
                 >
                   dev
                 </div>
                 <div
-                  class="makeStyles-subtitle-40"
+                  class="makeStyles-subtitle-36"
                 >
                   1
                    Targets
@@ -682,7 +682,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c30"
                   >
                     <div
-                      class="makeStyles-subtitle-40 makeStyles-subtitleColor-42"
+                      class="makeStyles-subtitle-36 makeStyles-subtitleColor-38"
                       style="align-self: flex-end;"
                     >
                       <span>
@@ -704,19 +704,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
               </div>
             </div>
             <div
-              class="MuiGrid-root makeStyles-gridContainer-37 MuiGrid-item MuiGrid-grid-xs-true"
+              class="MuiGrid-root makeStyles-gridContainer-33 MuiGrid-item MuiGrid-grid-xs-true"
               id="test"
             >
               <div
-                class="makeStyles-mbSmall-41"
+                class="makeStyles-mbSmall-37"
               >
                 <div
-                  class="makeStyles-title-39"
+                  class="makeStyles-title-35"
                 >
                   test
                 </div>
                 <div
-                  class="makeStyles-subtitle-40"
+                  class="makeStyles-subtitle-36"
                 >
                   2
                    Targets
@@ -808,7 +808,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c30"
                   >
                     <div
-                      class="makeStyles-subtitle-40 makeStyles-subtitleColor-42"
+                      class="makeStyles-subtitle-36 makeStyles-subtitleColor-38"
                       style="align-self: flex-end;"
                     >
                       <span>
@@ -909,7 +909,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c30"
                   >
                     <div
-                      class="makeStyles-subtitle-40 makeStyles-subtitleColor-42"
+                      class="makeStyles-subtitle-36 makeStyles-subtitleColor-38"
                       style="align-self: flex-end;"
                     >
                       <span>
@@ -926,19 +926,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
               </div>
             </div>
             <div
-              class="MuiGrid-root makeStyles-gridContainer-37 MuiGrid-item MuiGrid-grid-xs-true"
+              class="MuiGrid-root makeStyles-gridContainer-33 MuiGrid-item MuiGrid-grid-xs-true"
               id="prod"
             >
               <div
-                class="makeStyles-mbSmall-41"
+                class="makeStyles-mbSmall-37"
               >
                 <div
-                  class="makeStyles-title-39"
+                  class="makeStyles-title-35"
                 >
                   prod
                 </div>
                 <div
-                  class="makeStyles-subtitle-40"
+                  class="makeStyles-subtitle-36"
                 >
                   1
                    Targets
@@ -1030,7 +1030,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c30"
                   >
                     <div
-                      class="makeStyles-subtitle-40 makeStyles-subtitleColor-42"
+                      class="makeStyles-subtitle-36 makeStyles-subtitleColor-38"
                       style="align-self: flex-end;"
                     >
                       <span>
@@ -1049,6 +1049,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
       </div>
+      <div
+        style="padding-top: 16px;"
+      />
       <div
         class="c32"
       >
