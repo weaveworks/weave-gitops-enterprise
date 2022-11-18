@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
-import { ResourceRef } from '../../api/terraform/types.pb';
+import { ResourceRef, TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,
@@ -27,6 +27,7 @@ import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import YamlView from '../YamlView';
 import useNotifications from './../../contexts/Notifications';
+import { EditButton } from './../Templates/Edit/EditButton';
 
 type Props = {
   className?: string;
@@ -161,6 +162,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                       ['Suspended', object?.suspended ? 'True' : 'False'],
                     ]}
                   />
+                  <EditButton resource={object || ({} as TerraformObject)} />
                 </Box>
                 <Box style={{ width: '100%' }}>
                   <TableWrapper>

@@ -21,6 +21,7 @@ export const getCreateRequestAnnotation = (
     | Pipeline,
 ) => {
   let annotation;
+  // check how to and p are structured and update
   if (resource.type === 'GitopsCluster') {
     annotation = (resource as GitopsClusterEnriched)?.annotations?.[
       'templates.weave.works/create-request'
