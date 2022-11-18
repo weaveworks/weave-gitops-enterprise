@@ -25,7 +25,7 @@ serviceAccount:
 listOCIRepositories: false
 
 # Turns on pipelines features if set to true. This includes the UI elements.
-enablePipelines: false
+enablePipelines: true
 
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
