@@ -72,12 +72,12 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 			// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
-			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
 		})
 
 		ginkgo.AfterEach(ginkgo.OncePerOrdered, func() {
 			// Create the oidc user default roles/rolebindings after tenant tests completed
-			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
 		})
 
 		ginkgo.Context("[CLI] When input tenant definition yaml is available", ginkgo.Ordered, func() {
@@ -95,7 +95,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify a single tenant resources can be exported", ginkgo.Label("tenant"), func() {
-				tenatDefination := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "single-tenant.yaml")
+				tenatDefination := path.Join(testDataPath, "tenancy", "single-tenant.yaml")
 
 				// verify tenants resources are exported to terminal
 				stdOut, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export`, tenatDefination))
@@ -114,7 +114,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify global service account reconciliation by tenant", ginkgo.Label("tenant"), func() {
-				tenatDefination := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "single-tenant-sa.yaml")
+				tenatDefination := path.Join(testDataPath, "tenancy", "single-tenant-sa.yaml")
 
 				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
 				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
@@ -126,7 +126,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify global service account reconciliation by tenant with deployment RBAC", ginkgo.Label("tenant"), func() {
-				tenatDefination := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "single-tenant-deployment-sa.yaml")
+				tenatDefination := path.Join(testDataPath, "tenancy", "single-tenant-deployment-sa.yaml")
 
 				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
 				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
@@ -139,7 +139,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify creating tenant resource using kubeconfig ", ginkgo.Label("tenant"), func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, tenantYaml)
-				tenatDefination := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml")
+				tenatDefination := path.Join(testDataPath, "tenancy", "multiple-tenant.yaml")
 
 				// Export tenants resources to output file (required to delete tenant resources after test completion)
 				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
@@ -154,7 +154,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify tenant can only install the application from allowed repositories", ginkgo.Label("tenant"), func() {
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 				// Adding not allowed git repository source
 				namespace := "dev-system"
@@ -179,7 +179,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				bootstrapLabel := "bootstrap"
 				leafClusterkubeconfig := "wge-leaf-tenant-kind-kubeconfig"
 
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 				createPATSecret(leafCluster.Namespace, patSecret)
 				defer deleteSecret([]string{patSecret}, leafCluster.Namespace)
 				clusterBootstrapCopnfig := createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
@@ -188,7 +188,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				}()
 
 				ginkgo.By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", leafCluster.Name), func() {
-					contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/gitops-cluster.yaml"))
+					contents, err := ioutil.ReadFile(path.Join(testDataPath, "gitops-cluster.yaml"))
 					gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
 
 					t := template.Must(template.New("gitops-cluster").Parse(string(contents)))

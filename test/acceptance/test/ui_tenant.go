@@ -38,12 +38,12 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 			// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
-			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
 		})
 
 		ginkgo.AfterEach(ginkgo.OncePerOrdered, func() {
 			// Create the oidc user default roles/rolebindings afte tenant tests completed
-			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
 		})
 
 		ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources", ginkgo.Ordered, func() {
@@ -98,7 +98,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				defer deleteTenants([]string{getTenantYamlPath()})
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 				// Add GitRepository source
 				sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -107,6 +107,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-kustomization.yaml", mgmtCluster.Name, podinfo.Name, podinfo.Namespace)
 				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
 				defer cleanGitRepository(appKustomization)
+				defer cleanGitRepository(fmt.Sprintf("./clusters/%s/%s-namespace.yaml", mgmtCluster.Name, podinfo.TargetNamespace))
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				pages.NavigateToPage(webDriver, "Applications")
@@ -203,7 +204,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				defer deleteTenants([]string{getTenantYamlPath()})
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 				// Add HelmRepository source
 				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
@@ -290,7 +291,6 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
-			var appDir string
 			existingAppCount := 0
 			patSecret := "application-pat"
 			bootstrapLabel := "bootstrap"
@@ -311,7 +311,6 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				createNamespace([]string{appNameSpace, appTargetNamespace})
-				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafCluster.Name, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -325,7 +324,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafCluster.Name, "")
-				cleanGitRepository(appDir)
+				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
 				deleteNamespace([]string{leafCluster.Namespace})
 			})
 
@@ -364,7 +363,7 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 				// Installing policy-agent to leaf cluster
 				installPolicyAgent(leafCluster.Name)
 				// Installing tenant resources to leaf cluster
-				createTenant(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "tenancy", "multiple-tenant.yaml"))
+				createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafCluster.Namespace, patSecret)

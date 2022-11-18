@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"text/template"
 	"time"
 
@@ -135,7 +136,7 @@ func (b RealGitopsTestRunner) TimeTravelToAlertsResolved() error {
 }
 
 func (b RealGitopsTestRunner) ResetControllers(controllers string) {
-	scriptPath := path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "wego-enterprise.sh")
+	scriptPath := path.Join(testScriptsPath, "wego-enterprise.sh")
 	_ = runCommandPassThrough(scriptPath, "reset_controllers", controllers)
 }
 
@@ -280,7 +281,6 @@ func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace st
 }
 
 func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
-	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
 		// CAPA installs the AWS identity crds
 		if capi_provider != "capa" {
@@ -314,7 +314,6 @@ func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string)
 }
 
 func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string) {
-	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
 		ginkgo.By("Delete AWS identities and CRD", func() {
 			// Identity crds are installed as part of CAPA installation
@@ -337,7 +336,7 @@ func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string)
 // This function generates multiple capitemplate files from a single capitemplate to be used as test data
 func generateTestCapiTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
 	// Read input capitemplate
-	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test", "utils", "data", templateFile))
+	contents, err := ioutil.ReadFile(path.Join(testDataPath, templateFile))
 
 	if err != nil {
 		return templateFiles, err
@@ -355,7 +354,7 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 	for i := 0; i < templateCount; i++ {
 		input := TemplateInput{i}
 
-		fileName := fmt.Sprintf("%s%d", templateFile, i)
+		fileName := fmt.Sprintf("%s%d", filepath.Base(templateFile), i)
 
 		f, err := os.Create(path.Join("/tmp", fileName))
 		if err != nil {

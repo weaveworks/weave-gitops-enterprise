@@ -200,8 +200,7 @@ jobs:
           key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-      - name: setup aws credentials
-        if: ${{ inputs.management-cluster-kind == 'eks' }}
+      - name: setup aws credentials        
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}

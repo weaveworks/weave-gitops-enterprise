@@ -311,11 +311,13 @@ func TestMccpUI(t *testing.T) {
 	// WKP-UI can be a bit slow
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 
-	// Load up the acceptance suite suite
+	// Load up the acceptance test suite
 	mccpRunner := acceptancetest.DatabaseGitopsTestRunner{Client: cl}
 
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
+	acceptancetest.SetTestDataPath(path.Join("test", "utils", "data"))
+	acceptancetest.SetTestScriptPath(path.Join("test", "utils", "scripts"))
 	acceptancetest.DescribeSpecsUi(mccpRunner)
 
 	BeforeSuite(func() {

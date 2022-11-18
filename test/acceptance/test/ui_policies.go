@@ -56,16 +56,20 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] Policies can be installed", func() {
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+			var policiesYaml string
 
 			policyName := "Container Image Pull Policy acceptance test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			policyClusterName := "management"
-			policyMode := `Audit\nEnforce`
+			policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
 			policySeverity := "Medium"
 			policyCategory := "weave.categories.software-supply-chain"
 			policyTags := []string{"There is no tags for this policy"}
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
+
+			ginkgo.JustBeforeEach(func() {
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
+			})
 
 			ginkgo.JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
@@ -179,22 +183,22 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
+			var policiesYaml string
 			patSecret := "policy-pat"
 			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-policy-kind"
 			leafClusterNamespace := "default"
 
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 			policyName := "Container Running As Root acceptance test"
 			policyID := "weave.policies.container-running-as-root-acceptance-test"
-			policyMode := `Audit\nEnforce`
+			policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
 			policySeverity := "High"
 			policyCategory := "weave.categories.pod-security"
 			policyTags := []string{"pci-dss", "cis-benchmark", "mitre-attack", "nist800-190", "gdpr", "default"}
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustBeforeEach(func() {
-
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")

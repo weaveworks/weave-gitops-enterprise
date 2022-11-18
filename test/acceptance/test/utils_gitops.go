@@ -296,7 +296,7 @@ func deleteSecret(kubeconfigSecrets []string, nameSpace string) {
 func createCluster(clusterType string, clusterName string, configFile string) {
 	if clusterType == "kind" {
 		if configFile != "" {
-			configFile = "--config " + path.Join(getCheckoutRepoPath(), "test/utils/data", configFile)
+			configFile = "--config " + path.Join(testDataPath, configFile)
 		}
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf("kind create cluster --name %s --image=kindest/node:v1.23.4 %s", clusterName, configFile))
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
@@ -384,7 +384,7 @@ func createPATSecret(clusterNamespace string, patSecret string) {
 
 func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet string) {
 	ginkgo.By(fmt.Sprintf("Add ClusterResourceSet resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/calico-crs.yaml"))
+		contents, err := ioutil.ReadFile(path.Join(testDataPath, "calico-crs.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read calico-crs template yaml")
 
 		t := template.Must(template.New("cluster-resource-set").Parse(string(contents)))
@@ -413,7 +413,7 @@ func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet
 
 func createCRSConfigmap(clusterName string, nameSpace string) (configmap string) {
 	ginkgo.By(fmt.Sprintf("Add ClusterResourceSet configmap resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/calico-crs-configmap.yaml"))
+		contents, err := ioutil.ReadFile(path.Join(testDataPath, "calico-crs-configmap.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read calico-crs-configmap template yaml")
 
 		t := template.Must(template.New("crs-configmap").Parse(string(contents)))
@@ -441,7 +441,7 @@ func createCRSConfigmap(clusterName string, nameSpace string) (configmap string)
 }
 
 func createClusterBootstrapConfig(clusterName string, nameSpace string, bootstrapLabel string, patSecret string) (bootstrapConfig string) {
-	tmplConfig := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "gitops-cluster-bootstrap-config.yaml")
+	tmplConfig := path.Join(testDataPath, "gitops-cluster-bootstrap-config.yaml")
 	bootstrapConfig = path.Join("/tmp", nameSpace+"-gitops-cluster-bootstrap-config.yaml")
 
 	ginkgo.By(fmt.Sprintf("Add ClusterBootstrapConfig resource for %s cluster to management cluster", clusterName), func() {
@@ -466,7 +466,7 @@ func createClusterBootstrapConfig(clusterName string, nameSpace string, bootstra
 
 func connectGitopsCluster(clusterName string, nameSpace string, bootstrapLabel string, kubeconfigSecret string) (gitopsCluster string) {
 	ginkgo.By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/gitops-cluster.yaml"))
+		contents, err := ioutil.ReadFile(path.Join(testDataPath, "gitops-cluster.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
 
 		t := template.Must(template.New("gitops-cluster").Parse(string(contents)))
@@ -522,7 +522,6 @@ func deleteSource(sourceType, sourceName, namespace, kubeconfig string) {
 func addKustomizationBases(clusterType, clusterName, clusterNamespace string) {
 	ginkgo.By("And add kustomization bases for common resources for leaf cluster", func() {
 		repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
-		checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 		leafClusterPath := path.Join(repoAbsolutePath, "clusters", clusterNamespace, clusterName)
 		clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
 
@@ -535,13 +534,13 @@ func addKustomizationBases(clusterType, clusterName, clusterNamespace string) {
 		gomega.Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", clusterName))
 
 		if clusterType != "capi" {
-			gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
+			gomega.Expect(copyFile(path.Join(testDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
 		}
 
 		gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
-		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
-		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
-		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(testDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(testDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(testDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
 
 		gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
 	})
