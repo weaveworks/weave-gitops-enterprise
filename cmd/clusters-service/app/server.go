@@ -445,9 +445,14 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
 	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
+	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
+		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+		fetchers = append(fetchers, sessionFetcher)
+	}
 
 	clustersManager := clustersmngr.NewClustersManager(
-		[]clustersmngr.ClusterFetcher{scf, gcf},
+		fetchers,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 	)
