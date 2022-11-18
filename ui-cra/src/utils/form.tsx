@@ -92,11 +92,9 @@ interface InputProps extends PickedInputProps {
   required?: boolean;
   name?: string;
   error?: boolean;
-  ref?: any;
 }
 
 export const Input: FC<InputProps> = ({
-  ref,
   autoFocus,
   defaultValue,
   disabled,
@@ -134,7 +132,6 @@ export const Input: FC<InputProps> = ({
         rows={rows}
         inputProps={{
           maxLength: 256,
-          ref,
         }}
         endAdornment={
           <InputAdornment
