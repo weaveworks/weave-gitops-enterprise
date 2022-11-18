@@ -1,4 +1,4 @@
-package v1alpha1
+package v1alpha2
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,15 +10,16 @@ const Kind = "GitOpsTemplate"
 
 // GitOpsTemplate is the Schema for the GitOpsTemplate API
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type GitOpsTemplate struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec templates.TemplateSpecV1 `json:"spec,omitempty"`
+	Spec templates.TemplateSpec `json:"spec,omitempty"`
 }
 
 func (t GitOpsTemplate) GetSpec() templates.TemplateSpec {
-	return templates.ConvertV1SpecToSpec(t.Spec)
+	return t.Spec
 }
 
 // GitOpsTemplateList contains a list of GitOpsTemplate

@@ -47,6 +47,9 @@ type TemplateSpec struct {
 	// ResourceTemplates are a set of templates for resources that are generated
 	// from this Template.
 	ResourceTemplates []ResourceTemplate `json:"resourcetemplates,omitempty"`
+
+	// TestField is purely here to ensure that our conversions are working.
+	TestField string `json:"testField,omitempty"`
 }
 
 // TemplateParam is a parameter that can be templated into a struct.
