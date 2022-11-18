@@ -137,7 +137,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Clusters")
 
 				ginkgo.By("And wait for  good looking response from /v1/clusters", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "clusters", POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/clusters")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: "clusters"}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/clusters")
 				})
 
 				clustersPage := pages.GetClustersPage(webDriver)

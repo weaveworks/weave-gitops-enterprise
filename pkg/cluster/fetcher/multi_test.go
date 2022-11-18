@@ -6,26 +6,21 @@ import (
 	"testing"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestMultiFetcher(t *testing.T) {
-	config := &rest.Config{
-		Host:        "my-host",
-		BearerToken: "my-token",
-	}
-
 	g := NewGomegaWithT(t)
 
 	clusterName := "gitops-cluster"
@@ -219,19 +214,21 @@ func TestMultiFetcher(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.context, func(t *testing.T) {
-			cg := kubefakes.NewFakeClientGetter(makeClient(t, g, tt.clusterObjects...))
-
-			fetcher, err := fetcher.NewMultiClusterFetcher(logr.Discard(), config, cg, "default", "management")
+			scheme, err := kube.CreateScheme()
 			g.Expect(err).NotTo(HaveOccurred())
+			client := makeClient(t, g, tt.clusterObjects...)
+			cluster := new(clusterfakes.FakeCluster)
+			cluster.GetNameReturns("management")
+			cluster.GetServerClientReturns(client, nil)
+
+			fetcher := fetcher.NewMultiClusterFetcher(testr.New(t), cluster, "default", scheme, false)
 
 			clusters, err := fetcher.Fetch(context.TODO())
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(clusters).To(HaveLen(tt.expectedCount))
 
-			g.Expect(clusters[0].Name).To(Equal("management"))
-			g.Expect(clusters[0].Server).To(Equal(config.Host))
-			g.Expect(clusters[0].BearerToken).To(Equal(config.BearerToken))
+			g.Expect(clusters[0].GetName()).To(Equal("management"))
 		})
 	}
 }
