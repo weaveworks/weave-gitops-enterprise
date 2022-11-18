@@ -190,8 +190,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   >(null);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
-  console.log(formData);
-
   useEffect(() => {
     setUpdatedProfiles({
       ..._.keyBy(profiles, 'name'),
