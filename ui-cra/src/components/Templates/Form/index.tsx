@@ -27,8 +27,8 @@ import {
   ProfileValues,
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import useProfiles from '../../../contexts/Profiles';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
+import useProfiles from '../../../hooks/profiles';
+
 import useTemplates from '../../../hooks/templates';
 import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -271,7 +271,25 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredentials,
   );
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+
+  // get the cost estimate feature flag
+  const { data: featureFlagsData } = useFeatureFlags();
+
+  const isCredentialEnabled =
+    annotations?.['templates.weave.works/credentials-enabled'] === 'true';
+  const isProfilesEnabled =
+    annotations?.['templates.weave.works/profiles-enabled'] === 'true';
+  const isKustomizationsEnabled =
+    annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
+  const isCostEstimationEnabled =
+    featureFlagsData?.flags?.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
+    annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
+
+  const { profiles, isLoading: profilesIsLoading } = useProfiles(
+    isProfilesEnabled,
+    template,
+    resource || undefined,
+  );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
@@ -302,19 +320,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-
-  // get the cost estimate feature flag
-  const { data: featureFlagsData } = useFeatureFlags();
-
-  const isCredentialEnabled =
-    annotations?.['templates.weave.works/credentials-enabled'] === 'true';
-  const isProfilesEnabled =
-    annotations?.['templates.weave.works/profiles-enabled'] === 'true';
-  const isKustomizationsEnabled =
-    annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
-  const isCostEstimationEnabled =
-    featureFlagsData?.flags?.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
-    annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
@@ -632,9 +637,7 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <ProfilesProvider cluster={resource || undefined} template={template}>
-        <ResourceForm template={template} resource={resource || undefined} />
-      </ProfilesProvider>
+      <ResourceForm template={template} resource={resource || undefined} />
     </ThemeProvider>
   );
 };

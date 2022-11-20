@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListChartsForRepositoryResponse,
@@ -35,10 +35,151 @@ interface AnnotationData {
   }[];
 }
 
+const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
+  return profiles.find(p => p.name === name)?.layer;
+};
+
+const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
+  const annotations = Object.entries(template?.annotations || {});
+  const defaultProfiles: UpdatedProfile[] = [];
+  for (const [key, value] of annotations) {
+    if (key.includes('capi.weave.works/profile')) {
+      const data = maybeParseJSON(value);
+      if (data) {
+        const { name, version, values, editable, namespace } = data;
+        defaultProfiles.push({
+          name,
+          editable,
+          values: [
+            { version: version || '', yaml: values || '', selected: false },
+          ],
+          required: true,
+          selected: true,
+          layer: getProfileLayer(profiles, name),
+          namespace,
+        });
+      }
+    }
+  }
+  return defaultProfiles;
+};
+
+const toUpdatedProfiles = (profiles?: RepositoryChart[]): UpdatedProfile[] => {
+  const accumulator: UpdatedProfile[] = [];
+  profiles?.flatMap(profile =>
+    profile.versions?.forEach(version => {
+      const profileName = accumulator.find(p => p.name === profile.name);
+      const value = {
+        version,
+        yaml: '',
+        selected: false,
+      };
+      if (profileName) {
+        profileName.values.push(value);
+      } else {
+        accumulator.push({
+          name: profile.name!,
+          values: [value],
+          required: false,
+          layer: profile.layer,
+        });
+      }
+    }),
+  );
+  return accumulator;
+};
+
+const setVersionAndValuesFromTemplate = (
+  profiles: UpdatedProfile[],
+  template: TemplateEnriched,
+) => {
+  // get default / required profiles for the active template
+  let defaultProfiles = getDefaultProfiles(template, profiles);
+
+  // get the optional profiles by excluding the default profiles from the /v1/profiles response
+  const optionalProfiles =
+    profiles.filter(
+      profile =>
+        !defaultProfiles.find(
+          p =>
+            profile.name === p.name &&
+            profile.values.map(value => value.version === p.values[0].version)
+              .length !== 0,
+        ),
+    ) || [];
+
+  // populate default profiles versions with those from initial profiles where they are missing
+  defaultProfiles = defaultProfiles.map(defaultProfile => {
+    if (defaultProfile.values[0].version === '') {
+      defaultProfile.values =
+        profiles?.find(
+          optionalProfile => optionalProfile.name === defaultProfile.name,
+        )?.values || [];
+    }
+    return defaultProfile;
+  });
+
+  return [...optionalProfiles, ...defaultProfiles];
+};
+
+const setVersionAndValuesFromCluster = (
+  profiles: UpdatedProfile[],
+  clusterData: AnnotationData,
+) => {
+  const profilesIndex = _.keyBy(profiles, 'name');
+
+  let clusterProfiles: ProfilesIndex = {};
+  if (clusterData?.values) {
+    for (let clusterDataProfile of clusterData.values) {
+      const profile = profilesIndex[clusterDataProfile.name!];
+      if (profile) {
+        clusterProfiles[clusterDataProfile.name!] = {
+          ...profile,
+          selected: true,
+          namespace: clusterDataProfile.namespace!,
+          // find our version, select it and overwrite the values
+          values: profile.values.map(v =>
+            v.version === clusterDataProfile.version
+              ? {
+                  ...v,
+                  selected: true,
+                  yaml: maybeFromBase64(clusterDataProfile.values!),
+                }
+              : v,
+          ),
+        };
+      }
+    }
+  }
+
+  return _.sortBy(
+    Object.values({
+      ...profilesIndex,
+      ...clusterProfiles,
+    }),
+    'name',
+  );
+};
+
+const mergeClusterAndTemplate = (
+  data: ListChartsForRepositoryResponse | undefined,
+  template: TemplateEnriched | undefined,
+  clusterData: AnnotationData,
+) => {
+  let profiles = toUpdatedProfiles(data?.charts);
+  if (template) {
+    profiles = setVersionAndValuesFromTemplate(profiles, template);
+  }
+  if (clusterData) {
+    profiles = setVersionAndValuesFromCluster(profiles, clusterData);
+  }
+  return profiles;
+};
+
 const useProfiles = (
   enabled: boolean,
-  template: TemplateEnriched,
-  cluster: GitopsClusterEnriched,
+  template: TemplateEnriched | undefined,
+  cluster: GitopsClusterEnriched | undefined,
 ) => {
   // const [loading, setLoading] = useState<boolean>(false);
   const [helmRepo, setHelmRepo] = useState<{
@@ -50,170 +191,6 @@ const useProfiles = (
   const { setNotifications } = useNotifications();
 
   const { api } = useContext(EnterpriseClientContext);
-
-  const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
-    return profiles.find(p => p.name === name)?.layer;
-  };
-
-  const getDefaultProfiles = useCallback(
-    (template: Template, profiles: UpdatedProfile[]) => {
-      const annotations = Object.entries(template?.annotations || {});
-      const defaultProfiles: UpdatedProfile[] = [];
-      for (const [key, value] of annotations) {
-        if (key.includes('capi.weave.works/profile')) {
-          const data = maybeParseJSON(value);
-          if (data) {
-            const { name, version, values, editable, namespace } = data;
-            defaultProfiles.push({
-              name,
-              editable,
-              values: [
-                { version: version || '', yaml: values || '', selected: false },
-              ],
-              required: true,
-              selected: true,
-              layer: getProfileLayer(profiles, name),
-              namespace,
-            });
-          }
-        }
-      }
-      return defaultProfiles;
-    },
-    [],
-  );
-
-  const toUpdatedProfiles = useCallback(
-    (profiles?: RepositoryChart[]): UpdatedProfile[] => {
-      const accumulator: UpdatedProfile[] = [];
-      profiles?.flatMap(profile =>
-        profile.versions?.forEach(version => {
-          const profileName = accumulator.find(p => p.name === profile.name);
-          const value = {
-            version,
-            yaml: '',
-            selected: false,
-          };
-          if (profileName) {
-            profileName.values.push(value);
-          } else {
-            accumulator.push({
-              name: profile.name!,
-              values: [value],
-              required: false,
-              layer: profile.layer,
-            });
-          }
-        }),
-      );
-      return accumulator;
-    },
-    [],
-  );
-
-  const setVersionAndValuesFromTemplate = useCallback(
-    (profiles: UpdatedProfile[], template: TemplateEnriched) => {
-      // get default / required profiles for the active template
-      let defaultProfiles = getDefaultProfiles(template, profiles);
-
-      // get the optional profiles by excluding the default profiles from the /v1/profiles response
-      const optionalProfiles =
-        profiles.filter(
-          profile =>
-            !defaultProfiles.find(
-              p =>
-                profile.name === p.name &&
-                profile.values.map(
-                  value => value.version === p.values[0].version,
-                ).length !== 0,
-            ),
-        ) || [];
-
-      // populate default profiles versions with those from initial profiles where they are missing
-      defaultProfiles = defaultProfiles.map(defaultProfile => {
-        if (defaultProfile.values[0].version === '') {
-          defaultProfile.values =
-            profiles?.find(
-              optionalProfile => optionalProfile.name === defaultProfile.name,
-            )?.values || [];
-        }
-        return defaultProfile;
-      });
-
-      return [...optionalProfiles, ...defaultProfiles];
-    },
-    [getDefaultProfiles],
-  );
-
-  const setVersionAndValuesFromCluster = useCallback(
-    (profiles: UpdatedProfile[], clusterData: AnnotationData) => {
-      const profilesIndex = _.keyBy(profiles, 'name');
-
-      let clusterProfiles: ProfilesIndex = {};
-      if (clusterData?.values) {
-        for (let clusterDataProfile of clusterData.values) {
-          const profile = profilesIndex[clusterDataProfile.name!];
-          if (profile) {
-            clusterProfiles[clusterDataProfile.name!] = {
-              ...profile,
-              selected: true,
-              namespace: clusterDataProfile.namespace!,
-              // find our version, select it and overwrite the values
-              values: profile.values.map(v =>
-                v.version === clusterDataProfile.version
-                  ? {
-                      ...v,
-                      selected: true,
-                      yaml: maybeFromBase64(clusterDataProfile.values!),
-                    }
-                  : v,
-              ),
-            };
-          }
-        }
-      }
-
-      return _.sortBy(
-        Object.values({
-          ...profilesIndex,
-          ...clusterProfiles,
-        }),
-        'name',
-      );
-    },
-    [],
-  );
-
-  const mergeClusterAndTemplate = useCallback(
-    (
-      data: ListChartsForRepositoryResponse | undefined,
-      template: TemplateEnriched | undefined,
-      clusterData: AnnotationData,
-    ) => {
-      let profiles = toUpdatedProfiles(data?.charts);
-      if (template) {
-        profiles = setVersionAndValuesFromTemplate(profiles, template);
-      }
-      if (clusterData) {
-        profiles = setVersionAndValuesFromCluster(profiles, clusterData);
-      }
-      return profiles;
-    },
-    [
-      setVersionAndValuesFromCluster,
-      setVersionAndValuesFromTemplate,
-      toUpdatedProfiles,
-    ],
-  );
-
-  // const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
-  //   const { setNotifications } = useNotifications();
-  //   const [helmRepo, setHelmRepo] = useState<{
-  //     name: string;
-  //     namespace: string;
-  //     clusterName: string;
-  //     clusterNamespace: string;
-  //   }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
 
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
@@ -243,6 +220,7 @@ const useProfiles = (
       }),
     {
       onError,
+      enabled,
     },
   );
 
@@ -253,7 +231,7 @@ const useProfiles = (
         template,
         maybeParseJSON(clusterData || ''),
       ),
-    [data, template, clusterData, mergeClusterAndTemplate],
+    [data, template, clusterData],
   );
 
   return {

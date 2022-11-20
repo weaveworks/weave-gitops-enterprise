@@ -23,7 +23,8 @@ import {
   GetValuesForChartResponse,
 } from '../../../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../../../../contexts/EnterpriseClient';
-import useProfiles from '../../../../contexts/Profiles';
+import useProfiles from '../../../../hooks/profiles';
+
 import { UpdatedProfile } from '../../../../types/custom';
 import { Loader } from '../../../Loader';
 
@@ -49,7 +50,7 @@ const ChartValuesDialog: FC<{
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
 
-  const { helmRepo } = useProfiles();
+  const { helmRepo } = useProfiles(true, undefined, undefined);
 
   const {
     isLoading: jobLoading,
