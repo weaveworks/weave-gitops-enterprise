@@ -621,11 +621,26 @@ export type WorkspaceRole = {
   timestamp?: string
 }
 
+export type WorkspaceRoleBindingRoleRef = {
+  apiGroup?: string
+  kind?: string
+  name?: string
+}
+
+export type WorkspaceRoleBindingSubject = {
+  apiGroup?: string
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
 export type WorkspaceRoleBinding = {
   name?: string
   namespace?: string
   manifest?: string
   timestamp?: string
+  role?: WorkspaceRoleBindingRoleRef
+  subjects?: WorkspaceRoleBindingSubject[]
 }
 
 export type WorkspaceServiceAccount = {

@@ -103,6 +103,10 @@ func (s *server) GetWorkspace(ctx context.Context, req *capiv1_proto.GetWorkspac
 		return nil, fmt.Errorf("failed to list workspace namespaces, error: %s", err)
 	}
 
+	if len(list.Items) == 0 {
+		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+	}
+
 	var namespaces []string
 	for i := range list.Items {
 		namespaces = append(namespaces, list.Items[i].Name)
@@ -170,7 +174,22 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
 			Timestamp: list.Items[i].CreationTimestamp.String(),
+			Role: &capiv1_proto.WorkspaceRoleBindingRoleRef{
+				ApiGroup: list.Items[i].RoleRef.APIGroup,
+				Kind:     list.Items[i].RoleRef.Kind,
+				Name:     list.Items[i].RoleRef.Kind,
+			},
 		}
+
+		for _, subject := range list.Items[i].Subjects {
+			roleBinding.Subjects = append(roleBinding.Subjects, &capiv1_proto.WorkspaceRoleBindingSubject{
+				ApiGroup:  subject.APIGroup,
+				Kind:      subject.Kind,
+				Name:      subject.Name,
+				Namespace: subject.Namespace,
+			})
+		}
+
 		yml, err := k8sObjectToYaml(&list.Items[i])
 		if err != nil {
 			return nil, err
@@ -268,6 +287,7 @@ func (s *server) listWorkspaceResources(ctx context.Context, req *capiv1_proto.G
 	if err != nil {
 		return fmt.Errorf("error getting impersonating client: %w", err)
 	}
+
 	opts := []client.ListOption{
 		client.MatchingLabels{tenantLabel: req.WorkspaceName},
 	}

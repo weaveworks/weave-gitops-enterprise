@@ -2682,6 +2682,46 @@
         },
         "timestamp": {
           "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/v1WorkspaceRoleBindingRoleRef"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspaceRoleBindingSubject"
+          }
+        }
+      }
+    },
+    "v1WorkspaceRoleBindingRoleRef": {
+      "type": "object",
+      "properties": {
+        "apiGroup": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleBindingSubject": {
+      "type": "object",
+      "properties": {
+        "apiGroup": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },

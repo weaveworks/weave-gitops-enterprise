@@ -869,11 +869,26 @@ message WorkspaceRole {
   string timestamp = 5;
 }
 
+message WorkspaceRoleBindingRoleRef {
+  string apiGroup = 1;
+  string kind = 2;
+  string name = 3;
+}
+
+message WorkspaceRoleBindingSubject {
+  string apiGroup = 1;
+  string kind = 2;
+  string name = 3;
+  string namespace = 4;
+}
+
 message WorkspaceRoleBinding {
   string name = 1;
   string namespace = 2;
   string manifest = 3;
   string timestamp = 4;
+  WorkspaceRoleBindingRoleRef role = 5;
+  repeated WorkspaceRoleBindingSubject subjects = 6;
 }
 
 message WorkspaceServiceAccount {
