@@ -60,7 +60,7 @@ const AppFields: FC<{
   allowSelectCluster,
   clusterName,
 }) => {
-  const { profiles, setHelmRepo } = useProfiles(true, undefined, undefined);
+  const { setHelmRepo } = useProfiles(true, undefined, undefined);
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
   const { createNamespace } = automation;
