@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
-import Mode from '../Mode';
+import ListMode from '../Mode';
 
 function HeaderSection({
   id,
@@ -25,6 +25,9 @@ function HeaderSection({
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
+  const indexOfAdmission = modes? modes.indexOf('admission') : -1
+  if( indexOfAdmission !== -1 && modes) modes[indexOfAdmission] = 'enforce'
+
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
@@ -67,7 +70,7 @@ function HeaderSection({
       rowkey: 'Mode',
       children: modes?.length
         ? modes.map((mode: string, index: number) => (
-            <Mode key={index} modeName={mode} showName={true} />
+            <ListMode key={index} modeName={mode} />
           ))
         : '',
     },
