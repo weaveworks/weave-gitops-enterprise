@@ -2,7 +2,7 @@ import React, { FC, Dispatch, useEffect, useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import _ from 'lodash';
-import useProfiles from '../../../../../contexts/Profiles';
+import useProfiles from '../../../../../hooks/profiles';
 import { Input, Select } from '../../../../../utils/form';
 import {
   ListSubheader,
@@ -60,7 +60,7 @@ const AppFields: FC<{
   allowSelectCluster,
   clusterName,
 }) => {
-  const { setHelmRepo } = useProfiles();
+  const { profiles, setHelmRepo } = useProfiles(true, undefined, undefined);
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
   const { createNamespace } = automation;

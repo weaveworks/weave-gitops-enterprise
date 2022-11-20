@@ -21,10 +21,9 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
-import useProfiles from '../../../contexts/Profiles';
+import useProfiles from '../../../hooks/profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import {
   AppPRPreview,
@@ -135,7 +134,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   };
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+  const { profiles, isLoading: profilesIsLoading } = useProfiles(
+    true,
+    undefined,
+    undefined,
+  );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -450,8 +453,4 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   ]);
 };
 
-export default ({ ...rest }) => (
-  <ProfilesProvider>
-    <AddApplication {...rest} />
-  </ProfilesProvider>
-);
+export default ({ ...rest }) => <AddApplication {...rest} />;
