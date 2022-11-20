@@ -228,6 +228,7 @@ const toPayload = (
   infraCredential: any,
   templateName: string,
   templateNamespace: string,
+  templateKind: string,
   updatedProfiles: ProfilesIndex,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
@@ -238,10 +239,11 @@ const toPayload = (
     commitMessage: formData.commitMessage,
     credentials: infraCredential,
     templateName,
-    templateNamespace: templateNamespace,
+    templateNamespace,
     parameterValues,
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
+    templateKind,
   };
 };
 
@@ -254,7 +256,7 @@ interface ResourceFormProps {
 const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
-  const { renderTemplate, addCluster } = useTemplates();
+  const { renderTemplate, addResource } = useTemplates();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
@@ -397,19 +399,19 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setNotifications,
   ]);
 
-  const handleAddCluster = useCallback(() => {
+  const handleAddResource = useCallback(() => {
     const payload = toPayload(
       formData,
       infraCredential,
       template.name,
       template.namespace!,
+      template.templateKind,
       updatedProfiles,
     );
     setLoading(true);
-    return addCluster(
+    return addResource(
       payload,
       getProviderToken(formData.provider as GitProvider),
-      template.templateKind,
     )
       .then(response => {
         setPRPreview(null);
@@ -443,7 +445,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       .finally(() => setLoading(false));
   }, [
     updatedProfiles,
-    addCluster,
+    addResource,
     formData,
     infraCredential,
     setPRPreview,
@@ -568,7 +570,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className="create-cta">
                 <Button
-                  onClick={event => validateFormData(event, handleAddCluster)}
+                  onClick={event => validateFormData(event, handleAddResource)}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
@@ -592,7 +594,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     showAuthDialog,
     setUpdatedProfiles,
     handlePRPreview,
-    handleAddCluster,
+    handleAddResource,
     updatedProfiles,
     previewLoading,
     loading,

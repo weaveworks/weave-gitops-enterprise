@@ -15,13 +15,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
 var (
@@ -228,10 +228,10 @@ type fakeValuesFetcher struct {
 	getIndexFileError error
 }
 
-func (f *fakeValuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
+func (f *fakeValuesFetcher) GetIndexFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
 	return f.indexFile, f.getIndexFileError
 }
 
-func (f *fakeValuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, c helm.Chart, useProxy bool) ([]byte, error) {
+func (f *fakeValuesFetcher) GetValuesFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, c helm.Chart, useProxy bool) ([]byte, error) {
 	return nil, nil
 }

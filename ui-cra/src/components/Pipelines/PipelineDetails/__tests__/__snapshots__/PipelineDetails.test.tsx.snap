@@ -96,7 +96,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #BC381D;
+  color: #BC3B1D;
 }
 
 .c9 svg {
@@ -126,7 +126,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c28 svg {
-  fill: #BC381D !important;
+  fill: #BC3B1D !important;
   height: 16px;
   width: 16px;
 }
@@ -145,7 +145,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 .c28 .c14 {
   margin-left: 4px;
-  color: #BC381D;
+  color: #BC3B1D;
 }
 
 .c28 img {
@@ -663,7 +663,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                   </svg>
                                   <span
                                     class="c14 c29"
-                                    color="alert"
+                                    color="alertOriginal"
                                   >
                                     Not Ready
                                   </span>
@@ -789,7 +789,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                   </svg>
                                   <span
                                     class="c14 c29"
-                                    color="alert"
+                                    color="alertOriginal"
                                   >
                                     Not Ready
                                   </span>
@@ -890,7 +890,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                   </svg>
                                   <span
                                     class="c14 c29"
-                                    color="alert"
+                                    color="alertOriginal"
                                   >
                                     Not Ready
                                   </span>
@@ -1011,7 +1011,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                   </svg>
                                   <span
                                     class="c14 c29"
-                                    color="alert"
+                                    color="alertOriginal"
                                   >
                                     Not Ready
                                   </span>

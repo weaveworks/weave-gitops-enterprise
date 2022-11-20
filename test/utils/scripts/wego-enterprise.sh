@@ -80,6 +80,7 @@ function setup {
     cert-manager cert-manager/cert-manager \
     --namespace cert-manager --create-namespace \
     --version v1.10.0 \
+    --wait \
     --set installCRDs=true
   kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
 
@@ -141,6 +142,11 @@ function setup {
   --from-literal=clientID=${DEX_CLIENT_ID} \
   --from-literal=clientSecret=${DEX_CLIENT_SECRET}
 
+  #  Create aws cost estimate pricing secret
+  kubectl create secret generic aws-pricing --namespace=flux-system \
+  --from-literal="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+  --from-literal="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+
   kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml 
 
   # Choosing weave-gitops-enterprise chart version to install
@@ -169,6 +175,13 @@ function setup {
   helmArgs+=( --set "policy-agent.enabled=true" )
   helmArgs+=( --set "policy-agent.config.accountId=weaveworks" )
   helmArgs+=( --set "policy-agent.config.clusterId=${MANAGEMENT_CLUSTER_CNAME}" )
+  helmArgs+=( --set "features.progressiveDelivery.enabled=true" )
+  # Enabling cost estimation
+  helmArgs+=( --set "config.costEstimation.estimationFilter=operatingSystem=Linux" )
+  helmArgs+=( --set "config.costEstimation.apiRegion=us-east-1" )
+  helmArgs+=( --set "extraEnvVars[0].name=WEAVE_GITOPS_FEATURE_COST_ESTIMATION" )
+  helmArgs+=( --set-string "extraEnvVars[0].value=true" )
+  helmArgs+=( --set "extraEnvVarsSecret=aws-pricing" )
  
   if [ ! -z $WEAVE_GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
@@ -180,7 +193,7 @@ function setup {
     kubectl create configmap ssh-config --namespace flux-system --from-file=./known_hosts
   fi
 
-  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
+  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system --wait ${helmArgs[@]}
   
    # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
@@ -189,6 +202,7 @@ function setup {
   command="helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
             --namespace ingress-nginx --create-namespace \
             --version 4.4.0 \
+            --wait \
             --set controller.service.type=NodePort \
             --set controller.service.nodePorts.https=30080 \
             --set controller.extraArgs.v=4"  
