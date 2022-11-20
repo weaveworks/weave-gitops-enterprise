@@ -7,7 +7,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
-import ListMode from '../Mode';
+import { mapPolicyMode } from '../Mode';
+import Mode from '../Mode';
 
 function HeaderSection({
   id,
@@ -25,8 +26,6 @@ function HeaderSection({
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-  const indexOfAdmission = modes? modes.indexOf('admission') : -1
-  if( indexOfAdmission !== -1 && modes) modes[indexOfAdmission] = 'enforce'
 
   const defaultHeaders: Array<SectionRowHeader> = [
     {
@@ -68,11 +67,8 @@ function HeaderSection({
     },
     {
       rowkey: 'Mode',
-      children: modes?.length
-        ? modes.map((mode: string, index: number) => (
-            <ListMode key={index} modeName={mode} />
-          ))
-        : '',
+      children: <Mode modeName={mapPolicyMode(modes || [])} />
+        
     },
     {
       rowkey: 'Targeted K8s Kind',

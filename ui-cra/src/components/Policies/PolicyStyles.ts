@@ -188,7 +188,7 @@ export const ModeWrapper = styled.div`
   align-items: center;
   justify-content: flex-start;
   display: inline-flex;
-  margin-right: ${xs};
+  margin-right: ${small};
   svg{
     color: ${neutral30};
     font-size: 20px;

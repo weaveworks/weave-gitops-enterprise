@@ -12,7 +12,7 @@ import Severity from '../Severity';
 import moment from 'moment';
 import { TableWrapper } from '../../Shared';
 import { Routes } from '../../../utils/nav';
-import Mode from '../Mode';
+import Mode, { mapPolicyMode } from '../Mode';
 
 interface CustomPolicy extends Policy {
   mode?: string;
@@ -26,11 +26,9 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-  policies.forEach(policy => {
-    const indexOfAdmission = policy.modes ? policy.modes.indexOf('admission') : -1;
-    if (indexOfAdmission !== -1 && policy.modes) policy.modes[indexOfAdmission] = 'enforce';
 
-    policy.mode = policy.modes?.join(' ') || '';
+  policies.forEach((policy) => {
+    policy.mode = mapPolicyMode(policy.modes || [])
   });
 
   let initialFilterState = {
@@ -45,7 +43,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
       ...filterConfig(policies, 'tenant'),
     };
   }
-
+console.log(policies.map(p=>p.mode))
   return (
     <TableWrapper id="policy-list">
       <DataTable
@@ -77,7 +75,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           },
           {
             label: 'Mode',
-            value: ({ mode }) => <Mode modeName={mode} />,
+            value: ({ mode }) => mode? <Mode modeName={mode} /> : '',
           },
           ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
             ? [{ label: 'Tenant', value: 'tenant' }]

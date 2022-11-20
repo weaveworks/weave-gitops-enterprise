@@ -1,5 +1,5 @@
 import { VerifiedUser, Policy } from '@material-ui/icons';
-import { ModeWrapper, usePolicyStyle } from './PolicyStyles';
+import { ModeWrapper } from './PolicyStyles';
 
 export function ListMode({ modeName }: { modeName: string }) {
   switch (modeName.toLocaleLowerCase()) {
@@ -36,4 +36,13 @@ function Mode({ modeName }: { modeName: string }) {
     </>
   );
 }
+
+export function mapPolicyMode(modes: string[]): string {
+ return modes?.sort().reduce((prev, next) => {
+    const nextVal = next === 'admission' ? 'enforce' : next;
+    console.log('prev',prev,'next', nextVal)
+    return prev ? prev + ' ' + nextVal :nextVal;
+  }, '')
+}
+
 export default Mode;
