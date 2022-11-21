@@ -24,6 +24,15 @@ func Test_reduceClusterEstimates(t *testing.T) {
 	}
 }
 
+func Test_reduceClusterEstimates_with_no_data(t *testing.T) {
+	estimates := map[string]*CostEstimate{}
+	reduced := reduceEstimates(estimates)
+
+	if reduced != nil {
+		t.Fatalf("got %v, want nil", reduced)
+	}
+}
+
 func Test_mergeStringMaps(t *testing.T) {
 	mergeMapsTests := []struct {
 		name     string

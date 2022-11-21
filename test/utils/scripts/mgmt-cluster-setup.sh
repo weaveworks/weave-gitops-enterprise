@@ -130,6 +130,7 @@ function setup_kind {
   export CLUSTER_NAME=${args[2]}
 
   kind create cluster --name $CLUSTER_NAME --image=kindest/node:v1.23.4 --config ${args[1]}/test/utils/data/local-kind-config.yaml
+  kubectl wait --for=condition=Ready --timeout=120s -n kube-system pods --all
   kubectl get pods -A
   exit 0
 }

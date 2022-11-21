@@ -102,7 +102,6 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     tableHead: {
       borderBottom: `1px solid ${neutral20}`,
     },
-
     normalRow: {
       borderBottom: `1px solid ${neutral20}`,
     },
@@ -139,22 +138,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       fontSize: theme.fontSizes.medium,
       color: neutral30,
     },
-    parameterWrapper: {
-      border: `1px solid ${neutral20}`,
-      boxSizing: 'border-box',
-      borderRadius: xxs,
-      padding: base,
-      display: 'flex',
-      marginBottom: base,
-      marginTop: base,
-    },
-    parameterInfo: {
-      display: 'flex',
-      alignItems: 'start',
-      flexDirection: 'column',
-      width: '100%',
-    },
-    inlineFlex:{
+    inlineFlex: {
       display: 'inline-flex',
       marginRight: xs,
     },
@@ -165,6 +149,30 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     }
   }),
 );
+export const ParameterWrapper = styled.div`
+  border: 1px solid ${neutral20};
+  box-sizing: border-box;
+  border-radius: ${xxs};
+  padding: ${base};
+  display: flex;
+  margin-bottom: ${base};
+  margin-top: ${base};
+`;
+export const ParameterInfo = styled.div`
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  width: 100%;
+  font-weight: 400;
+  font-size: ${theme.fontSizes.medium};
+  .label {
+    color: ${neutral30};
+  }
+  .body1 {
+    color: black;
+    margin-top: ${xs};
+  }
+`;
 
 export const LinkWrapper = styled(Link)`
   color: ${primary};
@@ -188,13 +196,13 @@ export const ModeWrapper = styled.div`
   align-items: center;
   justify-content: flex-start;
   display: inline-flex;
-  margin-right: ${small};
-  svg{
+  margin-right: ${xs};
+  svg {
     color: ${neutral30};
     font-size: 20px;
     margin-right: 4px;
   }
-  span{
+  span {
     text-transform: capitalize;
   }
 `;

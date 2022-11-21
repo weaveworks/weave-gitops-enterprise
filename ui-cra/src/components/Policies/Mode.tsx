@@ -13,7 +13,6 @@ function Mode({ modeName, showName }: IModeProps) {
       return ModeTooltip('audit', showName? showName : false, <Policy />);
     case 'admission':
       return ModeTooltip('enforce', showName? showName : false, <VerifiedUser />);
-
     default:
       return (
         <ModeWrapper>

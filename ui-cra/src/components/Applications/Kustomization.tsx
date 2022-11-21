@@ -1,6 +1,8 @@
 import {
+  formatURL,
   Kind,
   KustomizationDetail,
+  LinkResolverProvider,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
@@ -18,6 +20,19 @@ type Props = {
   namespace: string;
   clusterName: string;
 };
+
+function resolveLink(obj: string, params: any) {
+  switch (obj) {
+    case 'Canary':
+      return formatURL(Routes.CanaryDetails, params);
+
+    case 'Pipeline':
+      return formatURL(Routes.PipelineDetails, params);
+
+    default:
+      return null;
+  }
+}
 
 const WGApplicationsKustomization: FC<Props> = ({
   name,
@@ -74,11 +89,22 @@ const WGApplicationsKustomization: FC<Props> = ({
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <KustomizationDetail
-          kustomization={kustomization}
-          customActions={[<EditButton resource={kustomization} />]}
-          customTabs={customTabs}
-        />
+        <LinkResolverProvider
+          resolver={(obj, params) => {
+            const resolved = resolveLink(obj, {
+              clusterName: params.clusterName,
+              namespace: params.namespace,
+              name: params.name,
+            });
+            return resolved || obj;
+          }}
+        >
+          <KustomizationDetail
+            kustomization={kustomization}
+            customActions={[<EditButton resource={kustomization} />]}
+            customTabs={customTabs}
+          />
+        </LinkResolverProvider>
       </ContentWrapper>
     </PageTemplate>
   );

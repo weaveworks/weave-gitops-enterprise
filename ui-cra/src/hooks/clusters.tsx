@@ -26,7 +26,7 @@ const useClusters = () => {
     ) {
       setNotifications([
         ...notifications,
-        { message: { text: error.message }, variant: 'danger' },
+        { message: { text: error?.message }, severity: 'error' },
       ]);
     }
   };
@@ -95,7 +95,7 @@ const useClusters = () => {
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
           setNotifications([
-            { message: { text: err.message }, variant: 'danger' },
+            { message: { text: err?.message }, severity: 'error' },
           ]),
         );
     },
