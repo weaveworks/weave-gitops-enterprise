@@ -32,6 +32,8 @@ func (s *server) ListWorkspaces(ctx context.Context, m *capiv1_proto.ListWorkspa
 					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
 				}
 			}
+		} else {
+			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %v", err)
 		}
 	}
 
