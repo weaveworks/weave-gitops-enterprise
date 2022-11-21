@@ -163,15 +163,6 @@ const AppFields: FC<{
       source: value,
       clusterAutomations: currentAutomation,
     });
-
-    if (obj?.kind === 'HelmRepository' && setHelmRepo) {
-      setHelmRepo({
-        name: obj?.metadata?.name,
-        namespace: obj?.metadata?.namespace,
-        clusterName: currentAutomation[index].cluster_name,
-        clusterNamespace: currentAutomation[index].cluster_namespace,
-      });
-    }
   };
 
   const handleFormData = (

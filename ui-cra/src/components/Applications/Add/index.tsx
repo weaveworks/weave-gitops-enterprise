@@ -21,7 +21,10 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import {
+  ClusterAutomation,
+  RepositoryRef,
+} from '../../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
 import useProfiles from '../../../hooks/profiles';
 import { useCallbackState } from '../../../utils/callback-state';
@@ -76,12 +79,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
-  const [helmRepo, setHelmRepo] = useState<{
-    name: string;
-    namespace: string;
-    clusterName: string;
-    clusterNamespace: string;
-  }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -140,6 +137,18 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   };
 
   const [formData, setFormData] = useState<any>(initialFormData);
+  const firstAuto = formData.clusterAutomations[0];
+  const helmRepo: RepositoryRef = useMemo(() => {
+    return {
+      name: firstAuto.source_name,
+      namespace: firstAuto.source_namespace,
+      cluster: {
+        name: firstAuto.cluster_name,
+        namespace: firstAuto.cluster_namespace,
+      },
+    };
+  }, [firstAuto]);
+
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
     true,
     undefined,
@@ -364,7 +373,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                             setFormData={setFormData}
                             allowSelectCluster
                             clusterName={clusterName}
-                            setHelmRepo={setHelmRepo}
                           />
                         );
                       },
