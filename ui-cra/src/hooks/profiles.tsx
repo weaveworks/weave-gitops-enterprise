@@ -233,7 +233,6 @@ const useProfiles = (
 
   return {
     isLoading,
-    helmRepo,
     profiles,
   };
 };
