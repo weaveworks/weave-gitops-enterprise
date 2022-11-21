@@ -51,7 +51,7 @@ func (s *server) ListWorkspaces(ctx context.Context, m *capiv1_proto.ListWorkspa
 		return &v1.NamespaceList{}
 	})
 	if err := clustersClient.ClusteredList(ctx, namespaces, false, opts...); err != nil {
-		return nil, fmt.Errorf("failed to list service accounts, error: %v", err)
+		return nil, fmt.Errorf("failed to list namespaces, error: %v", err)
 	}
 
 	continueToken = namespaces.GetContinue()
@@ -274,10 +274,10 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 
 func validateRequest(req *capiv1_proto.GetWorkspaceRequest) error {
 	if req.ClusterName == "" {
-		return fmt.Errorf("required cluster name")
+		return fmt.Errorf("cluster name is required")
 	}
 	if req.WorkspaceName == "" {
-		return fmt.Errorf("required workspace name")
+		return fmt.Errorf("workspace name is required")
 	}
 	return nil
 }
