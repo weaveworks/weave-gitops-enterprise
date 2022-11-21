@@ -21,7 +21,7 @@ func installPolicyAgent(clusterName string) {
 		}
 
 		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "cert-manager/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "1.10.0", "--set", "installCRDs=true")
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install cer-manager to leaf cluster: "+clusterName)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install cert-manager to leaf cluster: "+clusterName)
 	})
 
 	ginkgo.By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {

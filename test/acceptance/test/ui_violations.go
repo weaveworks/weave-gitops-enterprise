@@ -200,9 +200,14 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
+				// installTestPolicies(leafClusterName, policiesYaml)
+				// // Add/Install Policy config to leaf cluster
+				// installPolicyConfig(leafClusterName, policyConfigYaml)
+				// installViolatingDeployment(leafClusterName, deploymentYaml)
+
 				installTestPolicies("management", policiesYaml)
 				// Add/Install Policy config to management cluster
-				installPolicyConfig(leafClusterName, policyConfigYaml)
+				installPolicyConfig("management", policyConfigYaml)
 				installViolatingDeployment("management", deploymentYaml)
 
 				pages.NavigateToPage(webDriver, "Violations")
@@ -216,7 +221,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return violationsPage.CountViolations()
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table , but found %d", totalViolationCount, existingViolationCount))
+						// Time increased from 3 mins to 5 mins because I noticed that the leaf cluster violations appeared in the dashboard after 4 mins of generating the violations.
+					}, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table , but found %d", totalViolationCount, existingViolationCount))
 
 				})
 

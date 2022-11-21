@@ -388,7 +388,7 @@ spec:
     - name: replica_count
       type: integer
       required: true
-      value: 2
+      value: 1
     - name: exclude_namespaces
       type: array
       required: false

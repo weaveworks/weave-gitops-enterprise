@@ -1318,7 +1318,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{downloadedResourcesPath})
 			})
 
-			ginkgo.FIt("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
