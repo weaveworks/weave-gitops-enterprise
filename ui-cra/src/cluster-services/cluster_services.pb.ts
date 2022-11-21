@@ -506,8 +506,6 @@ export type PolicyStandard = {
 }
 
 export type Policy = {
-  enforce?: string
-  audit?: string
   name?: string
   id?: string
   code?: string

@@ -7,7 +7,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
-import { mapPolicyMode } from '../Mode';
 import Mode from '../Mode';
 
 function HeaderSection({
@@ -67,7 +66,7 @@ function HeaderSection({
     },
     {
       rowkey: 'Mode',
-      children: <Mode modeName={mapPolicyMode(modes || [])} />
+      children: (modes?.map((mode)=><Mode modeName={mode} showName/>))
         
     },
     {
