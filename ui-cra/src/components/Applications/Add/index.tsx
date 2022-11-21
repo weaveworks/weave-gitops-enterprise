@@ -76,6 +76,12 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+  const [helmRepo, setHelmRepo] = useState<{
+    name: string;
+    namespace: string;
+    clusterName: string;
+    clusterNamespace: string;
+  }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -138,6 +144,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     true,
     undefined,
     undefined,
+    helmRepo,
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
@@ -357,6 +364,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                             setFormData={setFormData}
                             allowSelectCluster
                             clusterName={clusterName}
+                            setHelmRepo={setHelmRepo}
                           />
                         );
                       },
@@ -388,6 +396,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       isLoading={profilesIsLoading}
                       updatedProfiles={updatedProfiles}
                       setUpdatedProfiles={setUpdatedProfiles}
+                      helmRepo={helmRepo}
                     />
                   ) : null}
                   <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -450,6 +459,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     previewLoading,
     clusterName,
     enableCreatePR,
+    helmRepo,
   ]);
 };
 

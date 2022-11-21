@@ -21,9 +21,9 @@ import {
   ClusterNamespacedName,
   GetChartsJobResponse,
   GetValuesForChartResponse,
+  RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../../../../contexts/EnterpriseClient';
-import useProfiles from '../../../../hooks/profiles';
 
 import { UpdatedProfile } from '../../../../types/custom';
 import { Loader } from '../../../Loader';
@@ -46,11 +46,19 @@ const ChartValuesDialog: FC<{
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
   onSave: () => void;
   onClose: () => void;
-}> = ({ profile, yaml, version, cluster, onChange, onSave, onClose }) => {
+  helmRepo: RepositoryRef;
+}> = ({
+  profile,
+  yaml,
+  version,
+  cluster,
+  onChange,
+  onSave,
+  onClose,
+  helmRepo,
+}) => {
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
-
-  const { helmRepo } = useProfiles(true, undefined, undefined);
 
   const {
     isLoading: jobLoading,

@@ -2,7 +2,6 @@ import React, { FC, Dispatch, useEffect, useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import _ from 'lodash';
-import useProfiles from '../../../../../hooks/profiles';
 import { Input, Select } from '../../../../../utils/form';
 import {
   ListSubheader,
@@ -53,14 +52,15 @@ const AppFields: FC<{
   allowSelectCluster: boolean;
   context?: string;
   clusterName?: string;
+  setHelmRepo?: Dispatch<React.SetStateAction<any>>;
 }> = ({
   formData,
   setFormData,
   index = 0,
   allowSelectCluster,
   clusterName,
+  setHelmRepo,
 }) => {
-  const { setHelmRepo } = useProfiles(true, undefined, undefined);
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
   const { createNamespace } = automation;
@@ -164,7 +164,7 @@ const AppFields: FC<{
       clusterAutomations: currentAutomation,
     });
 
-    if (obj?.kind === 'HelmRepository') {
+    if (obj?.kind === 'HelmRepository' && setHelmRepo) {
       setHelmRepo({
         name: obj?.metadata?.name,
         namespace: obj?.metadata?.namespace,

@@ -41,6 +41,7 @@ import {
 import { utf8_to_b64 } from '../../../utils/base64';
 import { useCallbackState } from '../../../utils/callback-state';
 import {
+  DEFAULT_PROFILE_REPO,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
@@ -291,6 +292,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isProfilesEnabled,
     template,
     resource || undefined,
+    DEFAULT_PROFILE_REPO,
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
@@ -519,6 +521,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               isLoading={profilesIsLoading}
               updatedProfiles={updatedProfiles}
               setUpdatedProfiles={setUpdatedProfiles}
+              helmRepo={DEFAULT_PROFILE_REPO}
             />
           ) : null}
           <Grid item xs={12} sm={10} md={10} lg={8}>

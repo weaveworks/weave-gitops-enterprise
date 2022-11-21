@@ -1,9 +1,10 @@
 import _ from 'lodash';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useMemo } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListChartsForRepositoryResponse,
   RepositoryChart,
+  RepositoryRef,
   Template,
 } from '../cluster-services/cluster_services.pb';
 import { maybeParseJSON } from '../components/Templates/Form/utils';
@@ -180,14 +181,10 @@ const useProfiles = (
   enabled: boolean,
   template: TemplateEnriched | undefined,
   cluster: GitopsClusterEnriched | undefined,
+  helmRepo: RepositoryRef,
 ) => {
   // const [loading, setLoading] = useState<boolean>(false);
-  const [helmRepo, setHelmRepo] = useState<{
-    name: string;
-    namespace: string;
-    clusterName: string;
-    clusterNamespace: string;
-  }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
+
   const { setNotifications } = useNotifications();
 
   const { api } = useContext(EnterpriseClientContext);
@@ -202,18 +199,18 @@ const useProfiles = (
       'profiles',
       helmRepo.name,
       helmRepo.namespace,
-      helmRepo.clusterName,
-      helmRepo.clusterNamespace,
+      helmRepo.cluster?.name,
+      helmRepo.cluster?.namespace,
     ],
     () =>
       api.ListChartsForRepository({
         repository: {
           name: helmRepo.name || 'weaveworks-charts',
           namespace: helmRepo.namespace || 'flux-system',
-          cluster: helmRepo.clusterName
+          cluster: helmRepo.cluster
             ? {
-                name: helmRepo.clusterName,
-                namespace: helmRepo.clusterNamespace,
+                name: helmRepo.cluster?.name,
+                namespace: helmRepo.cluster?.namespace,
               }
             : { name: 'management' },
         },
@@ -237,7 +234,6 @@ const useProfiles = (
   return {
     isLoading,
     helmRepo,
-    setHelmRepo,
     profiles,
   };
 };
