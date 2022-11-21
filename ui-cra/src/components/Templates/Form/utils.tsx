@@ -3,6 +3,8 @@ import { Pipeline } from '../../../api/pipelines/types.pb';
 import { TerraformObject } from '../../../api/terraform/types.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
 
+const yamlConverter = require('js-yaml');
+
 export const maybeParseJSON = (data: string) => {
   try {
     return JSON.parse(data);
@@ -19,17 +21,28 @@ export const getCreateRequestAnnotation = (
     | Source
     | TerraformObject
     | Pipeline,
+  yaml?: string,
 ) => {
-  let annotation;
-  // check how to and p are structured and update
-  if (resource.type === 'GitopsCluster') {
-    annotation = (resource as GitopsClusterEnriched)?.annotations?.[
-      'templates.weave.works/create-request'
-    ];
-  } else {
-    annotation = (resource as Automation | Source)?.obj?.metadata
-      ?.annotations?.['templates.weave.works/create-request'];
-  }
+  const getAnnotation = (resourceType: string) => {
+    switch (resourceType) {
+      case 'GitopsCluster':
+        return (resource as GitopsClusterEnriched)?.annotations?.[
+          'templates.weave.works/create-request'
+        ];
+      case 'Source':
+      case 'Automation':
+        return (resource as Automation | Source)?.obj?.metadata?.annotations?.[
+          'templates.weave.works/create-request'
+        ];
+      case 'Terraform':
+      case 'Pipeline':
+        return yamlConverter.load(yaml).metadata.annotations[
+          'templates.weave.works/create-request'
+        ];
+      default:
+        return;
+    }
+  };
 
-  return maybeParseJSON(annotation || '');
+  return maybeParseJSON(getAnnotation(resource.type || ''));
 };

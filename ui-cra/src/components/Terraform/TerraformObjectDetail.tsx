@@ -139,6 +139,12 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   {object?.suspended ? 'Resume' : 'Suspend'}
                 </Button>
               </Box>
+              <Box paddingLeft={1}>
+                <EditButton
+                  resource={object || ({} as TerraformObject)}
+                  yaml={yaml}
+                />
+              </Box>
             </Flex>
           </Box>
 
@@ -162,7 +168,6 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                       ['Suspended', object?.suspended ? 'True' : 'False'],
                     ]}
                   />
-                  <EditButton resource={object || ({} as TerraformObject)} />
                 </Box>
                 <Box style={{ width: '100%' }}>
                   <TableWrapper>

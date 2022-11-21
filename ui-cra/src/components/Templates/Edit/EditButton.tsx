@@ -24,11 +24,14 @@ export const EditButton: React.FC<{
     | Source
     | TerraformObject
     | Pipeline;
-}> = ({ resource }) => {
-  const disabled = !Boolean(getCreateRequestAnnotation(resource));
+  yaml?: string;
+}> = ({ resource, yaml }) => {
+  const disabled = !Boolean(getCreateRequestAnnotation(resource, yaml));
 
   const link =
-    resource.type === ('GitopsCluster' || 'TerraformObject' || 'Pipeline')
+    resource.type === 'GitopsCluster' ||
+    resource.type === 'Terraform' ||
+    resource.type === 'Pipeline'
       ? formatURL(Routes.EditResource, {
           name: resource.name,
           namespace: resource.namespace,
