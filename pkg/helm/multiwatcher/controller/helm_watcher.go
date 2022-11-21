@@ -7,13 +7,13 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	helmwatcher "github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
@@ -23,7 +23,7 @@ type HelmWatcherReconciler struct {
 
 	UseProxy      bool
 	ClusterRef    types.NamespacedName
-	ClientConfig  *rest.Config
+	Cluster       cluster.Cluster
 	Cache         helm.ChartsCacherWriter
 	ValuesFetcher helm.ValuesFetcher
 }
@@ -57,7 +57,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
-	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.ClientConfig, types.NamespacedName{
+	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.Cluster, types.NamespacedName{
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
 	}, r.UseProxy)
