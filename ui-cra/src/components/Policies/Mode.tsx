@@ -1,6 +1,6 @@
 
 import { VerifiedUser, Policy } from '@material-ui/icons';
-import { ModeWrapper, usePolicyStyle } from './PolicyStyles';
+import { ModeWrapper } from './PolicyStyles';
 
 interface IModeProps {
   modeName: string,
