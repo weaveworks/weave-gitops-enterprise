@@ -63,17 +63,18 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 }
 
 type serverOptions struct {
-	clusterState    []runtime.Object
-	namespace       string
-	provider        git.Provider
-	ns              string
-	clustersManager clustersmngr.ClustersManager
-	capiEnabled     bool
-	chartsCache     helm.ChartsCacheReader
-	chartJobs       *helm.Jobs
-	valuesFetcher   helm.ValuesFetcher
-	cluster         string
-	estimator       estimation.Estimator
+	clusterState          []runtime.Object
+	namespace             string
+	provider              git.Provider
+	ns                    string
+	profileHelmRepository *types.NamespacedName
+	clustersManager       clustersmngr.ClustersManager
+	capiEnabled           bool
+	chartsCache           helm.ChartsCacheReader
+	chartJobs             *helm.Jobs
+	valuesFetcher         helm.ValuesFetcher
+	cluster               string
+	estimator             estimation.Estimator
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -107,24 +108,35 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 		o.estimator = estimation.NilEstimator()
 	}
 
+	if o.profileHelmRepository == nil {
+		o.profileHelmRepository = &types.NamespacedName{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		}
+	}
+
+	if o.cluster == "" {
+		o.cluster = "management"
+	}
+
 	return NewClusterServer(
 		ServerOpts{
-			Logger:                    logr.Discard(),
-			ClustersManager:           o.clustersManager,
-			GitProvider:               o.provider,
-			ClientGetter:              kubefakes.NewFakeClientGetter(c),
-			DiscoveryClient:           dc,
-			ClustersNamespace:         o.ns,
-			ProfileHelmRepositoryName: "weaveworks-charts",
-			HelmRepositoryCacheDir:    t.TempDir(),
-			CAPIEnabled:               o.capiEnabled,
-			RestConfig:                &rest.Config{},
-			ChartJobs:                 o.chartJobs,
-			ChartsCache:               o.chartsCache,
-			ValuesFetcher:             o.valuesFetcher,
-			ManagementFetcher:         mgmtFetcher,
-			Cluster:                   o.cluster,
-			Estimator:                 o.estimator,
+			Logger:                 logr.Discard(),
+			ClustersManager:        o.clustersManager,
+			GitProvider:            o.provider,
+			ClientGetter:           kubefakes.NewFakeClientGetter(c),
+			DiscoveryClient:        dc,
+			ClustersNamespace:      o.ns,
+			ProfileHelmRepository:  *o.profileHelmRepository,
+			HelmRepositoryCacheDir: t.TempDir(),
+			CAPIEnabled:            o.capiEnabled,
+			RestConfig:             &rest.Config{},
+			ChartJobs:              o.chartJobs,
+			ChartsCache:            o.chartsCache,
+			ValuesFetcher:          o.valuesFetcher,
+			ManagementFetcher:      mgmtFetcher,
+			Cluster:                o.cluster,
+			Estimator:              o.estimator,
 		},
 	)
 }

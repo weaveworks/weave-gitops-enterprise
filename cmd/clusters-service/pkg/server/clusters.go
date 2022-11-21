@@ -57,10 +57,11 @@ var (
 )
 
 type generateProfileFilesParams struct {
-	helmRepository  types.NamespacedName
-	chartsCache     helm.ChartsCacheReader
-	profileValues   []*capiv1_proto.ProfileValues
-	parameterValues map[string]string
+	helmRepositoryCluster types.NamespacedName
+	helmRepository        types.NamespacedName
+	chartsCache           helm.ChartsCacheReader
+	profileValues         []*capiv1_proto.ProfileValues
+	parameterValues       map[string]string
 }
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
@@ -164,7 +165,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		s.log,
 		s.estimator,
 		s.chartsCache,
-		s.profileHelmRepositoryName,
+		types.NamespacedName{Name: s.cluster},
+		s.profileHelmRepository,
 		tmpl,
 		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
 		msg,
@@ -601,7 +603,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			profilesIndex[requiredProfile.Name] = &capiv1_proto.ProfileValues{
 				Name:      requiredProfile.Name,
 				Version:   requiredProfile.Version,
-				Values:    requiredProfile.Values,
+				Values:    base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values)),
 				Namespace: requiredProfile.Namespace,
 			}
 		}
@@ -611,15 +613,16 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	for _, v := range profilesIndex {
 		// Check the version and if empty read the latest version from cache.
 		if v.Version == "" {
-			v.Version, err = args.chartsCache.GetLatestVersion(ctx, cluster, args.helmRepository, v.Name)
+			v.Version, err = args.chartsCache.GetLatestVersion(ctx, args.helmRepositoryCluster, args.helmRepository, v.Name)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
 			}
 		}
 
 		// Check the version and if empty read the layer from cache.
+		fmt.Println("Layer", v.Layer, "Version", v.Version)
 		if v.Layer == "" {
-			v.Layer, err = args.chartsCache.GetLayer(ctx, cluster, args.helmRepository, v.Name, v.Version)
+			v.Layer, err = args.chartsCache.GetLayer(ctx, args.helmRepositoryCluster, args.helmRepository, v.Name, v.Version)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve layer of profile: %w", err)
 			}

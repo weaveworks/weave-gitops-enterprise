@@ -34,6 +34,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/yaml"
 
@@ -883,7 +884,6 @@ status: {}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			viper.SetDefault("runtime-namespace", "default")
 			// setup
 			ts := httptest.NewServer(makeServeMux(t))
 			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
@@ -892,7 +892,7 @@ status: {}
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			fakeCache := testNewFakeChartCache(t,
-				nsn(tt.req.ParameterValues["CLUSTER_NAME"], tt.req.ParameterValues["NAMESPACE"]),
+				nsn("management", ""),
 				helm.ObjectReference{
 					Name:      "weaveworks-charts",
 					Namespace: "default",
@@ -900,10 +900,11 @@ status: {}
 				[]helm.Chart{})
 
 			s := createServer(t, serverOptions{
-				clusterState: tt.clusterState,
-				namespace:    "default",
-				provider:     tt.provider,
-				chartsCache:  fakeCache,
+				profileHelmRepository: &types.NamespacedName{Name: "weaveworks-charts", Namespace: "default"},
+				clusterState:          tt.clusterState,
+				namespace:             "default",
+				provider:              tt.provider,
+				chartsCache:           fakeCache,
 			})
 
 			// request
@@ -1465,7 +1466,8 @@ func TestGenerateProfileFiles(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		c,
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
+			helmRepository:        nsn("testing", "test-ns"),
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
@@ -1519,7 +1521,7 @@ status: {}
 
 func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		helm.ObjectReference{
 			Name:      "testing",
 			Namespace: "test-ns",
@@ -1536,7 +1538,8 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		c,
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
+			helmRepository:        nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
@@ -1590,7 +1593,7 @@ status: {}
 
 func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		helm.ObjectReference{
 			Name:      "testing",
 			Namespace: "test-ns",
@@ -1604,10 +1607,11 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 			"capi.weave.works/profile-0",
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\", \"editable\": true }",
 		),
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		c,
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
+			helmRepository:        nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
@@ -1660,7 +1664,7 @@ status: {}
 }
 func TestGenerateProfileFiles_with_templates(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		helm.ObjectReference{
 			Name:      "testing",
 			Namespace: "test-ns",
@@ -1678,7 +1682,8 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		c,
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
+			helmRepository:        nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
@@ -1732,7 +1737,7 @@ status: {}
 
 func TestGenerateProfileFilesWithLayers(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		helm.ObjectReference{
 			Name:      "testing",
 			Namespace: "test-ns",
@@ -1745,7 +1750,8 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		c,
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
+			helmRepository:        nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
@@ -1834,7 +1840,7 @@ status: {}
 
 func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		helm.ObjectReference{
 			Name:      "testing",
 			Namespace: "test-ns",
@@ -1853,7 +1859,8 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		c,
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
+			helmRepository:        nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
@@ -1907,14 +1914,14 @@ status: {}
 
 func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		helm.ObjectReference{
 			Name:      "testing",
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
 	c := createClient(t, makeTestHelmRepository("base"))
-	values := base64.StdEncoding.EncodeToString([]byte("foo: defaultFoo"))
+	values := []byte("foo: defaultFoo")
 	profile := fmt.Sprintf("{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	file, err := generateProfileFiles(
 		context.TODO(),
@@ -1926,7 +1933,10 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		c,
 		generateProfileFilesParams{
-			helmRepository:  nsn("testing", "test-ns"),
+			helmRepository: nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{
+				Name: "management",
+			},
 			profileValues:   []*capiv1_protos.ProfileValues{},
 			parameterValues: map[string]string{},
 			chartsCache:     fakeCache,
@@ -1974,7 +1984,7 @@ status: {}
 
 func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
-		nsn("cluster-foo", "ns-foo"),
+		nsn("management", ""),
 		helm.ObjectReference{
 			Name:      "testing",
 			Namespace: "test-ns",
@@ -1993,7 +2003,8 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		c,
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
+			helmRepository:        nsn("testing", "test-ns"),
+			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",

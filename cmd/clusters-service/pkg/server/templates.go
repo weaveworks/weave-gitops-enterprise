@@ -233,7 +233,8 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		s.log,
 		s.estimator,
 		s.chartsCache,
-		s.profileHelmRepositoryName,
+		types.NamespacedName{Name: s.cluster},
+		s.profileHelmRepository,
 		tm,
 		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
 		nil,
@@ -266,7 +267,8 @@ func getFiles(
 	log logr.Logger,
 	estimator estimation.Estimator,
 	chartsCache helm.ChartsCacheReader,
-	profileHelmRepositoryName string,
+	profileHelmRepositoryCluster types.NamespacedName,
+	profileHelmRepository types.NamespacedName,
 	tmpl apiTemplates.Template,
 	msg GetFilesRequest,
 	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
@@ -332,10 +334,11 @@ func getFiles(
 			cluster,
 			client,
 			generateProfileFilesParams{
-				helmRepository:  createNamespacedName(profileHelmRepositoryName, viper.GetString("runtime-namespace")),
-				chartsCache:     chartsCache,
-				profileValues:   msg.Profiles,
-				parameterValues: msg.ParameterValues,
+				helmRepositoryCluster: profileHelmRepositoryCluster,
+				helmRepository:        profileHelmRepository,
+				chartsCache:           chartsCache,
+				profileValues:         msg.Profiles,
+				parameterValues:       msg.ParameterValues,
 			},
 		)
 		if err != nil {

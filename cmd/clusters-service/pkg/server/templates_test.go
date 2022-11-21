@@ -18,6 +18,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -1185,7 +1186,6 @@ status: {}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.Reset()
-			viper.SetDefault("runtime-namespace", "default")
 			viper.SetDefault("add-bases-kustomization", "disabled")
 			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
@@ -1198,7 +1198,7 @@ status: {}
 			})
 			tt.clusterState = append(tt.clusterState, hr)
 			fakeCache := testNewFakeChartCache(t,
-				nsn(tt.req.Values["CLUSTER_NAME"], tt.req.Values["NAMESPACE"]),
+				nsn("management", ""),
 				helm.ObjectReference{
 					Name:      "weaveworks-charts",
 					Namespace: "default",
@@ -1208,6 +1208,10 @@ status: {}
 				clusterState: tt.clusterState,
 				namespace:    "default",
 				chartsCache:  fakeCache,
+				profileHelmRepository: &types.NamespacedName{
+					Name:      "weaveworks-charts",
+					Namespace: "default",
+				},
 			})
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
@@ -1454,7 +1458,7 @@ status: {}
 			Namespace: "flux-system",
 		},
 		[]helm.Chart{})
-	values := base64.StdEncoding.EncodeToString([]byte("foo: bar"))
+	values := []byte("foo: bar")
 	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	files, err := getFiles(
 		context.TODO(),
@@ -1462,7 +1466,8 @@ status: {}
 		log,
 		testEstimator,
 		fakeChartCache,
-		"weaveworks-charts",
+		types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
+		types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"},
 		makeTestTemplateWithProfileAnnotation(
 			templates.RenderTypeEnvsubst,
 			"capi.weave.works/profile-0",

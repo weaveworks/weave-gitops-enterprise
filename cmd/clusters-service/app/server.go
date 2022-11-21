@@ -59,6 +59,7 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
@@ -484,7 +485,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
-		WithProfileHelmRepository(p.HelmRepoName),
+		WithProfileHelmRepository(types.NamespacedName{Name: p.HelmRepoName, Namespace: p.HelmRepoNamespace}),
 		WithEntitlementSecretKey(client.ObjectKey{
 			Name:      p.EntitlementSecretName,
 			Namespace: p.EntitlementSecretNamespace,
@@ -573,22 +574,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		server.ServerOpts{
-			Logger:                    args.Log,
-			ClustersManager:           args.CoreServerConfig.ClustersManager,
-			GitProvider:               args.GitProvider,
-			ClientGetter:              args.ClientGetter,
-			DiscoveryClient:           args.DiscoveryClient,
-			ClustersNamespace:         args.CAPIClustersNamespace,
-			ProfileHelmRepositoryName: args.ProfileHelmRepository,
-			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
-			CAPIEnabled:               args.CAPIEnabled,
-			ChartJobs:                 helm.NewJobs(),
-			ChartsCache:               args.ChartsCache,
-			ValuesFetcher:             helm.NewValuesFetcher(),
-			RestConfig:                args.CoreServerConfig.RestCfg,
-			ManagementFetcher:         args.ManagementFetcher,
-			Cluster:                   args.Cluster,
-			Estimator:                 estimator,
+			Logger:                 args.Log,
+			ClustersManager:        args.CoreServerConfig.ClustersManager,
+			GitProvider:            args.GitProvider,
+			ClientGetter:           args.ClientGetter,
+			DiscoveryClient:        args.DiscoveryClient,
+			ClustersNamespace:      args.CAPIClustersNamespace,
+			ProfileHelmRepository:  args.ProfileHelmRepository,
+			HelmRepositoryCacheDir: args.HelmRepositoryCacheDirectory,
+			CAPIEnabled:            args.CAPIEnabled,
+			ChartJobs:              helm.NewJobs(),
+			ChartsCache:            args.ChartsCache,
+			ValuesFetcher:          helm.NewValuesFetcher(),
+			RestConfig:             args.CoreServerConfig.RestCfg,
+			ManagementFetcher:      args.ManagementFetcher,
+			Cluster:                args.Cluster,
+			Estimator:              estimator,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
