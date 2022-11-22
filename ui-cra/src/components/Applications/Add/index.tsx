@@ -21,10 +21,12 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import {
+  ClusterAutomation,
+  RepositoryRef,
+} from '../../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
-import useProfiles from '../../../contexts/Profiles';
+import useProfiles from '../../../hooks/profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import {
   AppPRPreview,
@@ -180,8 +182,25 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const { initialFormData } = getInitialData(callbackState, random);
 
-  const [formData, setFormData] = useState<FormData>(initialFormData);
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+  const [formData, setFormData] = useState<any>(initialFormData);
+  const firstAuto = formData.clusterAutomations[0];
+  const helmRepo: RepositoryRef = useMemo(() => {
+    return {
+      name: firstAuto.source_name,
+      namespace: firstAuto.source_namespace,
+      cluster: {
+        name: firstAuto.cluster_name,
+        namespace: firstAuto.cluster_namespace,
+      },
+    };
+  }, [firstAuto]);
+
+  const { profiles, isLoading: profilesIsLoading } = useProfiles(
+    true,
+    undefined,
+    undefined,
+    helmRepo,
+  );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -449,6 +468,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       isLoading={profilesIsLoading}
                       updatedProfiles={updatedProfiles}
                       setUpdatedProfiles={setUpdatedProfiles}
+                      helmRepo={helmRepo}
                     />
                   ) : null}
                   <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -510,13 +530,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     previewLoading,
     clusterName,
     enableCreatePR,
+    helmRepo,
     formError,
     submitType,
   ]);
 };
 
-export default ({ ...rest }) => (
-  <ProfilesProvider>
-    <AddApplication {...rest} />
-  </ProfilesProvider>
-);
+export default ({ ...rest }) => <AddApplication {...rest} />;
