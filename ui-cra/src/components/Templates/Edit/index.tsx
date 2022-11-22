@@ -3,6 +3,12 @@ import { Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import {
+  GetTerraformObjectResponse,
+  Terraform,
+} from '../../../api/terraform/terraform.pb';
+import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { GitopsClusterEnriched } from '../../../types/custom';
@@ -13,11 +19,18 @@ import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 
 const EditResource: FC<{
-  resource: GitopsClusterEnriched | Automation | Source;
+  resource:
+    | GitopsClusterEnriched
+    | Automation
+    | Source
+    | GetTerraformObjectResponse
+    | Pipeline;
 }> = ({ resource }) => {
   const { getTemplate } = useTemplates();
 
   const templateName = getCreateRequestAnnotation(resource)?.template_name;
+
+  console.log(getCreateRequestAnnotation(resource));
 
   if (!templateName) {
     return (
@@ -59,10 +72,30 @@ const EditResourcePage: FC<Props> = props => {
     namespace,
     kind as Kind,
     clusterName,
-    { enabled: kind !== 'GitopsCluster' },
+    {
+      enabled:
+        kind !== 'GitopsCluster' && kind !== 'Terraform' && kind !== 'Pipeline',
+    },
   );
+
   const { getCluster } = useClusters();
   const cluster = getCluster(name);
+
+  const { data } = useGetTerraformObjectDetail({
+    name,
+    namespace,
+    clusterName,
+  });
+  // const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
+
+  // console.log(object);
+
+  // const editableResource =
+  // kind === 'GitopsCluster'
+  // ? (cluster as GitopsClusterEnriched)
+  // : (resource as Automation | Source)
+
+  // send data for Terraform
 
   return (
     <PageTemplate
@@ -73,7 +106,7 @@ const EditResourcePage: FC<Props> = props => {
           label:
             kind === 'GitopsCluster'
               ? cluster?.name || ''
-              : resource?.name || '',
+              : resource?.name || data?.object?.name || '',
         },
       ]}
     >
@@ -83,11 +116,12 @@ const EditResourcePage: FC<Props> = props => {
             <Title>Edit resource</Title>
           </Grid>
           <EditResource
-            resource={
-              kind === 'GitopsCluster'
-                ? (cluster as GitopsClusterEnriched)
-                : (resource as Automation | Source)
-            }
+            // resource={
+            //   kind === 'GitopsCluster'
+            //     ? (cluster as GitopsClusterEnriched)
+            //     : (resource as Automation | Source)
+            // }
+            resource={data || {}}
           />
         </Grid>
       </ContentWrapper>

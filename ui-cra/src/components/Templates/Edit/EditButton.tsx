@@ -9,7 +9,7 @@ import { GitopsClusterEnriched } from '../../../types/custom';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Routes } from '../../../utils/nav';
 import { Pipeline } from '../../../api/pipelines/types.pb';
-import { TerraformObject } from '../../../api/terraform/types.pb';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 
 const EditWrapper = styled(Button)`
   span {
@@ -22,31 +22,60 @@ export const EditButton: React.FC<{
     | GitopsClusterEnriched
     | Automation
     | Source
-    | TerraformObject
+    | GetTerraformObjectResponse
     | Pipeline;
-  yaml?: string;
-}> = ({ resource, yaml }) => {
-  const disabled = !Boolean(getCreateRequestAnnotation(resource, yaml));
+}> = ({ resource }) => {
+  const disabled = !Boolean(getCreateRequestAnnotation(resource));
 
-  const link =
-    resource.type === 'GitopsCluster' ||
-    resource.type === 'Terraform' ||
-    resource.type === 'Pipeline'
-      ? formatURL(Routes.EditResource, {
-          name: resource.name,
-          namespace: resource.namespace,
-          kind: resource.type,
-        })
-      : formatURL(Routes.EditResource, {
-          name: resource.name,
-          namespace: resource.namespace,
-          kind: resource.type,
+  const type =
+    (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
+    (resource as GetTerraformObjectResponse)?.object?.type ||
+    '';
+
+  const getLink = (
+    resource:
+      | GitopsClusterEnriched
+      | Automation
+      | Source
+      | GetTerraformObjectResponse
+      | Pipeline,
+    type: string,
+  ) => {
+    switch (type) {
+      case 'GitopsCluster':
+        return formatURL(Routes.EditResource, {
+          name: (resource as GitopsClusterEnriched).name,
+          namespace: (resource as GitopsClusterEnriched).namespace,
+          kind: (resource as GitopsClusterEnriched).type,
+        });
+      case 'Source':
+      case 'Automation':
+        return formatURL(Routes.EditResource, {
+          name: (resource as Automation | Source).name,
+          namespace: (resource as Automation | Source).namespace,
+          kind: (resource as Automation | Source).type,
           clusterName: (resource as Automation | Source).clusterName,
         });
+      case 'Terraform':
+        return formatURL(Routes.EditResource, {
+          name: (resource as GetTerraformObjectResponse)?.object?.name,
+          namespace: (resource as GetTerraformObjectResponse)?.object
+            ?.namespace,
+          clusterName: (resource as GetTerraformObjectResponse)?.object
+            ?.clusterName,
+        });
+      // add case for Pipeline
+      default:
+        return '';
+    }
+  };
 
   return (
-    <Link to={link} style={{ pointerEvents: disabled ? 'none' : 'all' }}>
-      <Tooltip title={`Edit ${resource.type}`} placement="top">
+    <Link
+      to={getLink(resource, type)}
+      style={{ pointerEvents: disabled ? 'none' : 'all' }}
+    >
+      <Tooltip title={`Edit ${type}`} placement="top">
         <div>
           <EditWrapper
             disabled={disabled}

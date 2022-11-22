@@ -13,7 +13,10 @@ import {
 import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
-import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
+import {
+  GetTerraformObjectResponse,
+  Terraform,
+} from '../../api/terraform/terraform.pb';
 import { ResourceRef, TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
@@ -141,8 +144,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
               </Box>
               <Box paddingLeft={1}>
                 <EditButton
-                  resource={object || ({} as TerraformObject)}
-                  yaml={yaml}
+                  resource={data || ({} as GetTerraformObjectResponse)}
                 />
               </Box>
             </Flex>

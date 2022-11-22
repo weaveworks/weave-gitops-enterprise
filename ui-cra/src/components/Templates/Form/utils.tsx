@@ -1,5 +1,6 @@
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { Pipeline } from '../../../api/pipelines/types.pb';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { TerraformObject } from '../../../api/terraform/types.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
 
@@ -19,12 +20,24 @@ export const getCreateRequestAnnotation = (
     | GitopsClusterEnriched
     | Automation
     | Source
-    | TerraformObject
+    | GetTerraformObjectResponse
     | Pipeline,
-  yaml?: string,
 ) => {
-  const getAnnotation = (resourceType: string) => {
-    switch (resourceType) {
+  const type =
+    (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
+    (resource as GetTerraformObjectResponse)?.object?.type ||
+    '';
+
+  const getAnnotation = (
+    resource:
+      | GitopsClusterEnriched
+      | Automation
+      | Source
+      | GetTerraformObjectResponse
+      | Pipeline,
+    type: string,
+  ) => {
+    switch (type) {
       case 'GitopsCluster':
         return (resource as GitopsClusterEnriched)?.annotations?.[
           'templates.weave.works/create-request'
@@ -35,14 +48,19 @@ export const getCreateRequestAnnotation = (
           'templates.weave.works/create-request'
         ];
       case 'Terraform':
-      case 'Pipeline':
-        return yamlConverter.load(yaml).metadata.annotations[
-          'templates.weave.works/create-request'
-        ];
+        return yamlConverter.load((resource as GetTerraformObjectResponse).yaml)
+          .metadata.annotations['templates.weave.works/create-request'];
+      // add case for Pipeline
       default:
-        return;
+        return '';
     }
   };
 
-  return maybeParseJSON(getAnnotation(resource.type || ''));
+  console.log(type);
+  console.log(
+    yamlConverter.load((resource as GetTerraformObjectResponse).yaml).metadata
+      .annotations['templates.weave.works/create-request'],
+  );
+
+  return maybeParseJSON(getAnnotation(resource, type));
 };
