@@ -29,10 +29,8 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   const flags = data?.flags || {};
 
   policies.forEach((policy) => {
-    policy.modes?.forEach(mode => {
-      if (mode === 'audit') policy.audit = mode;
-      if (mode === 'admission') policy.enforce = 'enforce';
-    });
+    policy.audit = policy.modes?.includes('audit') ? 'audit' : ''
+    policy.enforce = policy.modes?.includes('admission') ? 'enforce' : ''
   });
 
   let initialFilterState = {
@@ -79,7 +77,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           },
           {
             label: 'Audit',
-            value: ({ audit }) => <Mode modeName={audit || ''}/>,
+            value: ({ audit }) => <Mode modeName={audit}/>,
           },
           {
             label: 'Enforce',
