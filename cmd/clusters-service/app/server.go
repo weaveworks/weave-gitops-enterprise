@@ -70,8 +70,10 @@ import (
 
 	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	pd "github.com/weaveworks/progressive-delivery/pkg/server"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	capiv2 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	gapiv2 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -300,8 +302,10 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+//+kubebuilder:webhook:path=/mutate-v1alpha1-capi-template,mutating=true,failurePolicy=fail,groups=capi.weave.works,resources=capitemplates,verbs=create;update,versions=v1alpha1;v1alpha2,name=capi.weave.works,sideEffects=None,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/mutate-v1alpha1-gitops-template,mutating=true,failurePolicy=fail,groups=clustertemplates.weave.works,resources=gitopstemplates,verbs=create;update,versions=v1alpha1;v1alpha2,name=clustertemplates.weave.works,sideEffects=None,admissionReviewVersions=v1
 
+func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
 	featureflags.SetFromEnv(os.Environ())
 
 	if p.CAPITemplatesNamespace == "" {
@@ -311,14 +315,16 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
-		gapiv1.AddToScheme,
 		sourcev1.AddToScheme,
+		gapiv1.AddToScheme,
+		gapiv2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		authv1.AddToScheme,
 	}
 
 	if p.CAPIEnabled {
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
+		schemeBuilder = append(schemeBuilder, capiv2.AddToScheme)
 	}
 
 	err := schemeBuilder.AddToScheme(scheme)
@@ -396,11 +402,13 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
+		capiv2.AddToScheme,
 		pacv2beta1.AddToScheme,
 		pacv2beta2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
+		gapiv2.AddToScheme,
 		pipelinev1alpha1.AddToScheme,
 	)
 
@@ -479,6 +487,20 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			log.Info("Parsed default cost estimation filters", "filters", filters)
 
 			estimator = estimation.NewAWSClusterEstimator(pricer, filters)
+		}
+	}
+
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		mgr, err := ctrl.NewManager(kubeClientConfig, ctrl.Options{
+			Scheme: scheme,
+			Port:   9443,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create a controller manager: %w", err)
+		}
+
+		if err = (&capiv2.CAPITemplate{}).SetupWebhookWithManager(mgr); err != nil {
+			return fmt.Errorf("failed to setup webhook: %w", err)
 		}
 	}
 
