@@ -19,7 +19,6 @@ const listPoliciesResponse = {
       createdAt: '2022-08-30T11:23:57Z',
       clusterName: 'default/tw-cluster-2',
       tenant: '',
-      modes: ['audit'],
     },
     {
       category: 'weave.categories.organizational-standards',
@@ -29,7 +28,6 @@ const listPoliciesResponse = {
       createdAt: '2022-07-30T11:23:55Z',
       clusterName: 'test-dev',
       tenant: 'dev-team',
-      modes: ['audit', 'admission'],
     },
     {
       category: 'weave.categories.access-control',
@@ -39,7 +37,6 @@ const listPoliciesResponse = {
       createdAt: '2022-08-30T11:23:58Z',
       clusterName: 'default/tw-cluster-2',
       tenant: '',
-      modes: [],
     },
   ],
   total: 3,
