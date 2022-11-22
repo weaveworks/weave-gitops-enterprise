@@ -13,11 +13,8 @@ import {
 import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
-import {
-  GetTerraformObjectResponse,
-  Terraform,
-} from '../../api/terraform/terraform.pb';
-import { ResourceRef, TerraformObject } from '../../api/terraform/types.pb';
+import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
+import { ResourceRef } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,

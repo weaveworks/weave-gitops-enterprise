@@ -57,6 +57,7 @@ import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -137,14 +138,24 @@ const useStyles = makeStyles(theme =>
 );
 
 function getInitialData(
-  resource: GitopsClusterEnriched | Automation | Source | undefined,
+  resource:
+    | GitopsClusterEnriched
+    | Automation
+    | Source
+    | GetTerraformObjectResponse
+    | undefined,
   callbackState: any,
   random: string,
   templateName: string,
 ) {
   const resourceData = resource && getCreateRequestAnnotation(resource);
 
-  const resourceName = resource?.name || resourceData?.objects?.[0].name;
+  console.log(resourceData);
+
+  const resourceName =
+    (resource as GitopsClusterEnriched | Automation | Source)?.name ||
+    (resource as GetTerraformObjectResponse)?.object?.name ||
+    resourceData?.objects?.[0].name;
   const defaultFormData = {
     url: '',
     provider: '',

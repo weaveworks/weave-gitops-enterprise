@@ -1,7 +1,6 @@
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
-import { TerraformObject } from '../../../api/terraform/types.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
 
 const yamlConverter = require('js-yaml');
@@ -28,6 +27,13 @@ export const getCreateRequestAnnotation = (
     (resource as GetTerraformObjectResponse)?.object?.type ||
     '';
 
+  console.log(
+    type,
+    (resource as Automation | Source)?.obj?.metadata?.annotations?.[
+      'templates.weave.works/create-request'
+    ],
+  );
+
   const getAnnotation = (
     resource:
       | GitopsClusterEnriched
@@ -42,8 +48,13 @@ export const getCreateRequestAnnotation = (
         return (resource as GitopsClusterEnriched)?.annotations?.[
           'templates.weave.works/create-request'
         ];
-      case 'Source':
-      case 'Automation':
+      case 'GitRepository':
+      case 'Bucket':
+      case 'HelmRepository':
+      case 'HelmChart':
+      case 'Kustomization':
+      case 'HelmRelease':
+      case 'OCIRepository':
         return (resource as Automation | Source)?.obj?.metadata?.annotations?.[
           'templates.weave.works/create-request'
         ];
@@ -55,12 +66,6 @@ export const getCreateRequestAnnotation = (
         return '';
     }
   };
-
-  console.log(type);
-  console.log(
-    yamlConverter.load((resource as GetTerraformObjectResponse).yaml).metadata
-      .annotations['templates.weave.works/create-request'],
-  );
 
   return maybeParseJSON(getAnnotation(resource, type));
 };

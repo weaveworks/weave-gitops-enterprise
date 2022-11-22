@@ -4,10 +4,7 @@ import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
 import { Pipeline } from '../../../api/pipelines/types.pb';
-import {
-  GetTerraformObjectResponse,
-  Terraform,
-} from '../../../api/terraform/terraform.pb';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
@@ -29,8 +26,6 @@ const EditResource: FC<{
   const { getTemplate } = useTemplates();
 
   const templateName = getCreateRequestAnnotation(resource)?.template_name;
-
-  console.log(getCreateRequestAnnotation(resource));
 
   if (!templateName) {
     return (
@@ -60,8 +55,8 @@ const EditResource: FC<{
 type Props = {
   name: string;
   namespace: string;
-  kind: string;
   clusterName: string;
+  kind?: string;
 };
 
 const EditResourcePage: FC<Props> = props => {
@@ -74,7 +69,14 @@ const EditResourcePage: FC<Props> = props => {
     clusterName,
     {
       enabled:
-        kind !== 'GitopsCluster' && kind !== 'Terraform' && kind !== 'Pipeline',
+        kind ===
+        ('GitRepository' ||
+          'Bucket' ||
+          'HelmRepository' ||
+          'HelmChart' ||
+          'Kustomization' ||
+          'HelmRelease' ||
+          'OCIRepository'),
     },
   );
 
@@ -86,16 +88,16 @@ const EditResourcePage: FC<Props> = props => {
     namespace,
     clusterName,
   });
-  // const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
 
-  // console.log(object);
-
-  // const editableResource =
-  // kind === 'GitopsCluster'
-  // ? (cluster as GitopsClusterEnriched)
-  // : (resource as Automation | Source)
-
-  // send data for Terraform
+  const getEditableResource = () => {
+    if (data) {
+      return data;
+    }
+    if (kind === 'GitopsCluster') {
+      return cluster;
+    }
+    return resource;
+  };
 
   return (
     <PageTemplate
@@ -115,14 +117,7 @@ const EditResourcePage: FC<Props> = props => {
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <Title>Edit resource</Title>
           </Grid>
-          <EditResource
-            // resource={
-            //   kind === 'GitopsCluster'
-            //     ? (cluster as GitopsClusterEnriched)
-            //     : (resource as Automation | Source)
-            // }
-            resource={data || {}}
-          />
+          <EditResource resource={getEditableResource() || {}} />
         </Grid>
       </ContentWrapper>
     </PageTemplate>

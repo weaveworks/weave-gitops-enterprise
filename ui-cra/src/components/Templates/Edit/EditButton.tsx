@@ -48,8 +48,13 @@ export const EditButton: React.FC<{
           namespace: (resource as GitopsClusterEnriched).namespace,
           kind: (resource as GitopsClusterEnriched).type,
         });
-      case 'Source':
-      case 'Automation':
+      case 'GitRepository':
+      case 'Bucket':
+      case 'HelmRepository':
+      case 'HelmChart':
+      case 'Kustomization':
+      case 'HelmRelease':
+      case 'OCIRepository':
         return formatURL(Routes.EditResource, {
           name: (resource as Automation | Source).name,
           namespace: (resource as Automation | Source).namespace,
