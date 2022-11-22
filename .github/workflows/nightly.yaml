@@ -9,6 +9,7 @@ jobs:
     uses: ./.github/workflows/build.yaml
     with:
       helmrepo: "charts-v3"
+      gitops_platforms: '["ubuntu-latest", "macOS-latest"]'
     secrets:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
