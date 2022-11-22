@@ -69,14 +69,87 @@ const SourceLinkWrapper = styled.div`
   overflow-x: auto;
 `;
 
+interface FormData {
+  url: string;
+  provider: string;
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+  pullRequestDescription: string;
+  source_name: string;
+  source_namespace: string;
+  source: string;
+  source_type: string;
+  source_url: string;
+  source_branch: string;
+  clusterAutomations: {
+    name: string;
+    namespace: string;
+    target_namespace: string;
+    cluster_name: string;
+    cluster_namespace: string;
+    cluster: string;
+    cluster_isControlPlane: boolean;
+    createNamespace: boolean;
+    path: string;
+    source_name: string;
+    source_namespace: string;
+    source: string;
+    source_type: string;
+    source_url: string;
+    source_branch: string;
+  }[];
+}
+
+function getInitialData(
+  callbackState: { state: { formData: FormData } },
+  random: string,
+) {
+  let defaultFormData = {
+    url: '',
+    provider: '',
+    branchName: `add-application-branch-${random}`,
+    pullRequestTitle: 'Add application',
+    commitMessage: 'Add application',
+    pullRequestDescription: 'This PR adds a new application',
+    clusterAutomations: [
+      {
+        name: '',
+        namespace: '',
+        target_namespace: '',
+        cluster_name: '',
+        cluster_namespace: '',
+        cluster: '',
+        cluster_isControlPlane: false,
+        createNamespace: false,
+        path: '',
+        source_name: '',
+        source_namespace: '',
+        source: '',
+        source_type: '',
+        source_url: '',
+        source_branch: '',
+      },
+    ],
+  };
+
+  const initialFormData = {
+    ...defaultFormData,
+    ...callbackState?.state?.formData,
+  };
+
+  return { initialFormData };
+}
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const history = useHistory();
   const { setNotifications } = useNotifications();
+  const history = useHistory();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+  const [formError, setFormError] = useState<string>('');
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -105,36 +178,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const callbackState = useCallbackState();
 
-  let initialFormData = {
-    url: '',
-    provider: '',
-    branchName: `add-application-branch-${random}`,
-    title: 'Add application',
-    commitMessage: 'Add application',
-    pullRequestDescription: 'This PR adds a new application',
-    clusterAutomations: [
-      {
-        name: '',
-        namespace: '',
-        target_namespace: '',
-        cluster_name: '',
-        cluster_namespace: '',
-        cluster: '',
-        cluster_isControlPlane: false,
-        createNamespace: false,
-        path: '',
-        source_name: '',
-        source_namespace: '',
-        source: '',
-        source_type: '',
-        source_url: '',
-        source_branch: '',
-      },
-    ],
-    ...callbackState?.state?.formData,
-  };
+  const { initialFormData } = getInitialData(callbackState, random);
 
-  const [formData, setFormData] = useState<any>(initialFormData);
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const { profiles, isLoading: profilesIsLoading } = useProfiles();
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
@@ -262,11 +308,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       })
       .catch(err =>
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [setOpenPreview, setNotifications, getKustomizations]);
+  }, [setOpenPreview, getKustomizations, setNotifications]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -289,24 +339,31 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(error => {
         setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, setNotifications, getKustomizations]);
+  }, [formData, history, getKustomizations, setNotifications]);
+
+  const [submitType, setSubmitType] = useState<string>('');
 
   return useMemo(() => {
     return (
@@ -331,11 +388,26 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper>
-              <FormWrapper>
+              <FormWrapper
+                noValidate
+                onSubmit={event =>
+                  validateFormData(
+                    event,
+                    submitType === 'PR Preview'
+                      ? handlePRPreview
+                      : handleAddApplication,
+                    setFormError,
+                    setSubmitType,
+                  )
+                }
+              >
                 <Grid container>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
                     {formData.clusterAutomations.map(
-                      (automation: ClusterAutomation, index: number) => {
+                      (
+                        automation: FormData['clusterAutomations'][0],
+                        index: number,
+                      ) => {
                         return (
                           <AppFields
                             context="app"
@@ -345,6 +417,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                             setFormData={setFormData}
                             allowSelectCluster
                             clusterName={clusterName}
+                            formError={formError}
                           />
                         );
                       },
@@ -384,9 +457,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     ) : (
                       <div className="preview-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(event, handlePRPreview)
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('PR Preview')}
                         >
                           PREVIEW PR
                         </Button>
@@ -400,15 +472,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       showAuthDialog={showAuthDialog}
                       setShowAuthDialog={setShowAuthDialog}
                       setEnableCreatePR={setEnableCreatePR}
+                      formError={formError}
                     />
                     {loading ? (
                       <LoadingPage className="create-loading" />
                     ) : (
                       <div className="create-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(event, handleAddApplication)
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('Create app')}
                           disabled={!enableCreatePR}
                         >
                           CREATE PULL REQUEST
@@ -438,6 +510,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     previewLoading,
     clusterName,
     enableCreatePR,
+    formError,
+    submitType,
   ]);
 };
 

@@ -1,11 +1,11 @@
-import React, { FC, useCallback, useState, useEffect } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
+import useTemplates from '../../hooks/templates';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
-import useTemplates from '../../hooks/templates';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
@@ -64,7 +64,6 @@ const TemplatesDashboard: FC<{
 }> = ({ location }) => {
   const { templates, isLoading } = useTemplates();
   const { setNotifications } = useNotifications();
-  const notification = location.state?.notification;
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
@@ -99,11 +98,18 @@ const TemplatesDashboard: FC<{
     [history],
   );
 
-  useEffect(() => {
-    if (notification) {
-      setNotifications(notification);
-    }
-  }, [notification, setNotifications]);
+  useEffect(
+    () =>
+      setNotifications([
+        {
+          message: {
+            text: location?.state?.notification?.[0]?.message.text,
+          },
+          severity: location?.state?.notification?.[0]?.severity,
+        } as NotificationData,
+      ]),
+    [location?.state?.notification, setNotifications],
+  );
 
   return (
     <PageTemplate

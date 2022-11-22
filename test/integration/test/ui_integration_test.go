@@ -110,7 +110,12 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
 	clustersManager.GetServerClientReturns(client, nil)
 
-	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	cfg, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return cfg
 }
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {
@@ -311,11 +316,13 @@ func TestMccpUI(t *testing.T) {
 	// WKP-UI can be a bit slow
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 
-	// Load up the acceptance suite suite
+	// Load up the acceptance test suite
 	mccpRunner := acceptancetest.DatabaseGitopsTestRunner{Client: cl}
 
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
+	acceptancetest.SetTestDataPath(path.Join("test", "utils", "data"))
+	acceptancetest.SetTestScriptPath(path.Join("test", "utils", "scripts"))
 	acceptancetest.DescribeSpecsUi(mccpRunner)
 
 	BeforeSuite(func() {

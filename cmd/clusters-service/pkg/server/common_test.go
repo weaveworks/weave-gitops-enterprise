@@ -6,7 +6,7 @@ import (
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -18,6 +18,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
@@ -108,7 +110,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 
 	return NewClusterServer(
 		ServerOpts{
-			Logger:                    logr.Discard(),
+			Logger:                    testr.New(t),
 			ClustersManager:           o.clustersManager,
 			GitProvider:               o.provider,
 			ClientGetter:              kubefakes.NewFakeClientGetter(c),
@@ -144,6 +146,9 @@ func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) *clus
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeCluster := &clusterfakes.FakeCluster{}
+	fakeCluster.GetNameReturns("management")
+	fakeFactory.GetClustersReturns([]cluster.Cluster{fakeCluster})
 	return fakeFactory
 }
 

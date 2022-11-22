@@ -27,7 +27,6 @@ import {
   ProfileValues,
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import useNotifications from '../../../contexts/Notifications';
 import useProfiles from '../../../contexts/Profiles';
 import ProfilesProvider from '../../../contexts/Profiles/Provider';
 import useTemplates from '../../../hooks/templates';
@@ -46,7 +45,6 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
-import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
@@ -57,6 +55,8 @@ import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
+import useNotifications from './../../../contexts/Notifications';
+import { Routes } from '../../../utils/nav';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -228,6 +228,7 @@ const toPayload = (
   infraCredential: any,
   templateName: string,
   templateNamespace: string,
+  templateKind: string,
   updatedProfiles: ProfilesIndex,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
@@ -238,10 +239,11 @@ const toPayload = (
     commitMessage: formData.commitMessage,
     credentials: infraCredential,
     templateName,
-    templateNamespace: templateNamespace,
+    templateNamespace,
     parameterValues,
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
+    templateKind,
   };
 };
 
@@ -254,11 +256,12 @@ interface ResourceFormProps {
 const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
-  const { renderTemplate, addCluster } = useTemplates();
+  const { renderTemplate, addResource } = useTemplates();
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
+  const { setNotifications } = useNotifications();
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -288,7 +291,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
-  const { setNotifications } = useNotifications();
   const authRedirectPage = resource
     ? `/resources/${resource?.name}/edit`
     : `/templates/${template?.name}/create`;
@@ -302,6 +304,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const [formError, setFormError] = useState<string>('');
 
   // get the cost estimate feature flag
   const { data: featureFlagsData } = useFeatureFlags();
@@ -334,7 +337,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       })
       .catch(err =>
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]),
       )
       .finally(() => setPreviewLoading(false));
@@ -343,11 +350,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setOpenPreview,
     renderTemplate,
     infraCredential,
-    setNotifications,
     template.name,
     template.namespace,
     template.templateKind,
     updatedProfiles,
+    setNotifications,
   ]);
 
   const handleCostEstimation = useCallback(() => {
@@ -369,7 +376,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       })
       .catch(err =>
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]),
       )
       .finally(() => setCostEstimationLoading(false));
@@ -377,26 +388,26 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formData,
     renderTemplate,
     infraCredential,
-    setNotifications,
     template.name,
     template.templateKind,
     template.namespace,
     updatedProfiles,
+    setNotifications,
   ]);
 
-  const handleAddCluster = useCallback(() => {
+  const handleAddResource = useCallback(() => {
     const payload = toPayload(
       formData,
       infraCredential,
       template.name,
       template.namespace!,
+      template.templateKind,
       updatedProfiles,
     );
     setLoading(true);
-    return addCluster(
+    return addResource(
       payload,
       getProviderToken(formData.provider as GitProvider),
-      template.templateKind,
     )
       .then(response => {
         setPRPreview(null);
@@ -406,17 +417,22 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(error => {
         setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
@@ -425,15 +441,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       .finally(() => setLoading(false));
   }, [
     updatedProfiles,
-    addCluster,
+    addResource,
     formData,
     infraCredential,
-    history,
-    setNotifications,
     setPRPreview,
     template.name,
     template.namespace,
     template.templateKind,
+    setNotifications,
+    history,
   ]);
 
   useEffect(() => {
@@ -458,6 +474,24 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setCostEstimate('00.00 USD');
   }, [formData.parameterValues]);
 
+  const [submitType, setSubmitType] = useState<string>('');
+
+  const getSubmitFunction = useCallback(
+    (submitType?: string) => {
+      switch (submitType) {
+        case 'PR Preview':
+          return handlePRPreview;
+        case 'Create resource':
+          return handleAddResource;
+        case 'Get cost estimation':
+          return handleCostEstimation;
+        default:
+          return;
+      }
+    },
+    [handleAddResource, handleCostEstimation, handlePRPreview],
+  );
+
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -470,7 +504,17 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper>
+        <FormWrapper
+          noValidate
+          onSubmit={event =>
+            validateFormData(
+              event,
+              getSubmitFunction(submitType),
+              setFormError,
+              setSubmitType,
+            )
+          }
+        >
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper>
               <div className="template-title">
@@ -492,6 +536,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               template={template}
               formData={formData}
               setFormData={setFormData}
+              formError={formError}
             />
           </Grid>
           {isProfilesEnabled ? (
@@ -506,6 +551,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <ApplicationsWrapper
                 formData={formData}
                 setFormData={setFormData}
+                formError={formError}
               />
             ) : null}
             {previewLoading ? (
@@ -513,7 +559,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className={classes.previewCta}>
                 <Button
-                  onClick={event => validateFormData(event, handlePRPreview)}
+                  type="submit"
+                  onClick={() => setSubmitType('PR Preview')}
                 >
                   PREVIEW PR
                 </Button>
@@ -534,6 +581,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 costEstimate={costEstimate}
                 isCostEstimationLoading={costEstimationLoading}
                 costEstimateMessage={costEstimateMessage}
+                setFormError={setFormError}
+                setSubmitType={setSubmitType}
               />
             ) : null}
           </Grid>
@@ -544,13 +593,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
+              formError={formError}
             />
             {loading ? (
               <LoadingPage className="create-loading" />
             ) : (
               <div className="create-cta">
                 <Button
-                  onClick={event => validateFormData(event, handleAddCluster)}
+                  type="submit"
+                  onClick={() => setSubmitType('Create resource')}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
@@ -573,8 +624,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
-    handlePRPreview,
-    handleAddCluster,
     updatedProfiles,
     previewLoading,
     loading,
@@ -587,6 +636,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
+    formError,
+    submitType,
+    getSubmitFunction,
   ]);
 };
 
@@ -608,7 +660,7 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
                 message: {
                   text: 'No template information is available to create a resource.',
                 },
-                variant: 'danger',
+                severity: 'error',
               },
             ],
           },

@@ -12,14 +12,13 @@ import (
 	"github.com/google/go-cmp/cmp"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/repo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/rest"
 )
 
 var defaultClusterState = []runtime.Object{
@@ -210,16 +209,13 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			fakeClustersManager := makeTestClustersManager(t, tt.clusterState...)
-			fakeClustersManager.GetClustersReturns([]clustersmngr.Cluster{
-				{Name: "management"},
-			})
+			clusterMngr := makeTestClustersManager(t, tt.clusterState...)
 			s := createServer(t, serverOptions{
 				chartsCache:     tt.fc,
 				chartJobs:       helm.NewJobs(),
 				valuesFetcher:   &fakeValuesFetcher{},
 				cluster:         "management",
-				clustersManager: fakeClustersManager,
+				clustersManager: clusterMngr,
 			})
 
 			response, err := s.GetValuesForChart(context.TODO(), tt.request)
@@ -239,6 +235,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 			})
 
 			if err != nil {
+				t.Log(clusterMngr.Invocations())
 				t.Fatalf("error on JobPoll: %s: %v", err, jobResponse)
 			}
 
@@ -418,10 +415,10 @@ func chartRefToString(or helm.ObjectReference, cr types.NamespacedName, c helm.C
 type fakeValuesFetcher struct {
 }
 
-func (f *fakeValuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
+func (f *fakeValuesFetcher) GetIndexFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
 	return nil, nil
 }
 
-func (f *fakeValuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, c helm.Chart, useProxy bool) ([]byte, error) {
+func (f *fakeValuesFetcher) GetValuesFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, c helm.Chart, useProxy bool) ([]byte, error) {
 	return []byte("this:\n  is:\n    a: value"), nil
 }

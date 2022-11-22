@@ -14,7 +14,7 @@ function Mode({ modeName }: { modeName: string }) {
       return (
         <ModeWrapper>
           <VerifiedUser />
-          <span>Enforce</span>
+          <span>enforce</span>
         </ModeWrapper>
       );
     default:

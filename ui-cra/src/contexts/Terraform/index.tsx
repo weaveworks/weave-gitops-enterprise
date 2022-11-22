@@ -5,8 +5,10 @@ import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
-  Terraform
+  Terraform,
 } from '../../api/terraform/terraform.pb';
+import { formatError } from '../../utils/formatters';
+import useNotifications from './../../contexts/Notifications';
 
 const TerraformContext = React.createContext<typeof Terraform>(
   {} as typeof Terraform,
@@ -58,10 +60,13 @@ export function useGetTerraformObjectDetail({
   clusterName,
 }: DetailParams) {
   const tf = useTerraform();
+  const { setNotifications } = useNotifications();
+  const onError = (error: Error) => setNotifications(formatError(error));
 
   return useQuery<GetTerraformObjectResponse, RequestError>(
     [TERRAFORM_KEY, clusterName, namespace, name],
     () => tf.GetTerraformObject({ name, namespace, clusterName }),
+    { onError },
   );
 }
 

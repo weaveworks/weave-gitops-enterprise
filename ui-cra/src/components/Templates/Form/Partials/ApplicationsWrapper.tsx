@@ -24,7 +24,8 @@ const useStyles = makeStyles(() =>
 export const ApplicationsWrapper: FC<{
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-}> = ({ formData, setFormData }) => {
+  formError: string;
+}> = ({ formData, setFormData, formError }) => {
   const classes = useStyles();
 
   const handleAddApplication = () => {
@@ -52,6 +53,7 @@ export const ApplicationsWrapper: FC<{
                   formData={formData}
                   setFormData={setFormData}
                   allowSelectCluster={false}
+                  formError={formError}
                 />
               </Grid>
               <Grid
