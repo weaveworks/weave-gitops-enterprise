@@ -19,6 +19,8 @@ const listPoliciesResponse = {
       createdAt: '2022-08-30T11:23:57Z',
       clusterName: 'default/tw-cluster-2',
       tenant: '',
+      audit:'audit',
+      enforce: ''
     },
     {
       category: 'weave.categories.organizational-standards',
@@ -28,15 +30,8 @@ const listPoliciesResponse = {
       createdAt: '2022-07-30T11:23:55Z',
       clusterName: 'test-dev',
       tenant: 'dev-team',
-    },
-    {
-      category: 'weave.categories.access-control',
-      name: 'Rbac Protect Cluster Admin Clusterrolebindings',
-      id: 'weave.policies.rbac-protect-cluster-admin-clusterrolebindings',
-      severity: 'high',
-      createdAt: '2022-08-30T11:23:58Z',
-      clusterName: 'default/tw-cluster-2',
-      tenant: '',
+      audit:'',
+      enforce: 'enforce'
     },
   ],
   total: 3,
@@ -46,10 +41,8 @@ const mappedPolicies = (policies: Array<any>) => {
   return policies.map(e => [
     e.name,
     e.category,
-    e.modes.reduce((prev: string, nex: string) => {
-      const mode = nex.toLocaleLowerCase() === 'admission' ? 'enforce' : nex;
-      return prev + mode;
-    }, '') || '-',
+    e.audit || '-',
+    e.enforce || '-',
     e.tenant || '-',
     e.severity,
     e.clusterName,
@@ -131,7 +124,8 @@ describe('ListPolicies', () => {
       [
         'Policy Name',
         'Category',
-        'Mode',
+        'Audit',
+        'Enforce',
         'Tenant',
         'Severity',
         'Cluster',
