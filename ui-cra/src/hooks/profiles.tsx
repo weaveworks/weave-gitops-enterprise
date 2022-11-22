@@ -183,8 +183,6 @@ const useProfiles = (
   cluster: GitopsClusterEnriched | undefined,
   helmRepo: RepositoryRef,
 ) => {
-  // const [loading, setLoading] = useState<boolean>(false);
-
   const { setNotifications } = useNotifications();
 
   const { api } = useContext(EnterpriseClientContext);
