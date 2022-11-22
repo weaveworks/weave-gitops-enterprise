@@ -16,13 +16,21 @@ const GitOps: FC<{
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
+  formError?: string;
 }> = ({
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
   setEnableCreatePR,
+  formError,
 }) => {
+  const {
+    branchName,
+    pullRequestTitle,
+    commitMessage,
+    pullRequestDescription,
+  } = formData;
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setFormData((prevState: any) => ({
@@ -65,34 +73,44 @@ const GitOps: FC<{
       <Input
         className="form-section"
         required
+        name="branch_name"
         label="CREATE BRANCH"
-        placeholder={formData.branchName}
-        value={formData.branchName}
+        placeholder={branchName}
+        value={branchName}
         onChange={handleChangeBranchName}
+        error={formError === 'branch_name' && !branchName}
       />
       <Input
         className="form-section"
         required
+        name="pull_request_title"
         label="PULL REQUEST TITLE"
-        placeholder={formData.pullRequestTitle}
-        value={formData.pullRequestTitle}
+        placeholder={pullRequestTitle}
+        value={pullRequestTitle}
         onChange={handleChangePullRequestTitle}
+        error={formError === 'pull_request_title' && !pullRequestTitle}
       />
       <Input
         className="form-section"
         required
+        name="commit_message"
         label="COMMIT MESSAGE"
-        placeholder={formData.commitMessage}
-        value={formData.commitMessage}
+        placeholder={commitMessage}
+        value={commitMessage}
         onChange={handleChangeCommitMessage}
+        error={formError === 'commit_message' && !commitMessage}
       />
       <Input
         className="form-section"
         required
+        name="pull_request_description"
         label="PULL REQUEST DESCRIPTION"
-        placeholder={formData.pullRequestDescription}
-        value={formData.pullRequestDescription}
+        placeholder={pullRequestDescription}
+        value={pullRequestDescription}
         onChange={handleChangePRDescription}
+        error={
+          formError === 'pull_request_description' && !pullRequestDescription
+        }
       />
       <GitAuth
         formData={formData}

@@ -304,6 +304,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const [formError, setFormError] = useState<string>('');
 
   // get the cost estimate feature flag
   const { data: featureFlagsData } = useFeatureFlags();
@@ -473,6 +474,24 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setCostEstimate('00.00 USD');
   }, [formData.parameterValues]);
 
+  const [submitType, setSubmitType] = useState<string>('');
+
+  const getSubmitFunction = useCallback(
+    (submitType?: string) => {
+      switch (submitType) {
+        case 'PR Preview':
+          return handlePRPreview;
+        case 'Create resource':
+          return handleAddResource;
+        case 'Get cost estimation':
+          return handleCostEstimation;
+        default:
+          return;
+      }
+    },
+    [handleAddResource, handleCostEstimation, handlePRPreview],
+  );
+
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -485,7 +504,17 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper>
+        <FormWrapper
+          noValidate
+          onSubmit={event =>
+            validateFormData(
+              event,
+              getSubmitFunction(submitType),
+              setFormError,
+              setSubmitType,
+            )
+          }
+        >
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper>
               <div className="template-title">
@@ -507,6 +536,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               template={template}
               formData={formData}
               setFormData={setFormData}
+              formError={formError}
             />
           </Grid>
           {isProfilesEnabled ? (
@@ -521,6 +551,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <ApplicationsWrapper
                 formData={formData}
                 setFormData={setFormData}
+                formError={formError}
               />
             ) : null}
             {previewLoading ? (
@@ -528,7 +559,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className={classes.previewCta}>
                 <Button
-                  onClick={event => validateFormData(event, handlePRPreview)}
+                  type="submit"
+                  onClick={() => setSubmitType('PR Preview')}
                 >
                   PREVIEW PR
                 </Button>
@@ -549,6 +581,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 costEstimate={costEstimate}
                 isCostEstimationLoading={costEstimationLoading}
                 costEstimateMessage={costEstimateMessage}
+                setFormError={setFormError}
+                setSubmitType={setSubmitType}
               />
             ) : null}
           </Grid>
@@ -559,13 +593,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
+              formError={formError}
             />
             {loading ? (
               <LoadingPage className="create-loading" />
             ) : (
               <div className="create-cta">
                 <Button
-                  onClick={event => validateFormData(event, handleAddResource)}
+                  type="submit"
+                  onClick={() => setSubmitType('Create resource')}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
@@ -588,8 +624,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
-    handlePRPreview,
-    handleAddResource,
     updatedProfiles,
     previewLoading,
     loading,
@@ -602,6 +636,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
+    formError,
+    submitType,
+    getSubmitFunction,
   ]);
 };
 

@@ -212,6 +212,7 @@ func verifyAppDetails(app Application, cluster ClusterConfig) {
 			gomega.Eventually(details.AttemptedRevision.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Last Attempted Version", app.Name))
 
 		} else {
+			gomega.Eventually(details.Kind.Text).Should(gomega.MatchRegexp(cases.Title(language.English, cases.NoLower).String(app.Type)), fmt.Sprintf("Failed to verify %s kind", app.Name))
 			gomega.Eventually(details.Source.Text).Should(gomega.MatchRegexp("GitRepository/"+app.Name), fmt.Sprintf("Failed to verify %s Source", app.Name))
 			gomega.Eventually(details.AppliedRevision.Text).Should(gomega.MatchRegexp("master"), fmt.Sprintf("Failed to verify %s AppliedRevision", app.Name))
 			gomega.Eventually(details.Path.Text).Should(gomega.MatchRegexp(app.Path), fmt.Sprintf("Failed to verify %s Path", app.Name))
