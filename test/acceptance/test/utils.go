@@ -42,6 +42,8 @@ var (
 	capi_endpoint_url    string
 	test_ui_url          string
 	artifacts_base_dir   string
+	testScriptsPath      string
+	testDataPath         string
 
 	webDriver *agouti.Page
 )
@@ -91,6 +93,7 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribePolicies(gitopsTestRunner)
 	DescribeViolations(gitopsTestRunner)
 	DescribeTenants(gitopsTestRunner)
+	DescribeCostEstimation(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -108,6 +111,14 @@ func GetWebDriver() *agouti.Page {
 
 func SetDefaultUIURL(url string) {
 	test_ui_url = url
+}
+
+func SetTestDataPath(dataPath string) {
+	testDataPath = path.Join(getCheckoutRepoPath(), dataPath)
+}
+
+func SetTestScriptPath(srciptPath string) {
+	testScriptsPath = path.Join(getCheckoutRepoPath(), srciptPath)
 }
 
 func SetSeleniumServiceUrl(url string) {
@@ -157,6 +168,8 @@ func SetupTestEnvironment() {
 	gitops_bin_path = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	capi_provider = GetEnv("CAPI_PROVIDER", "capd")
 	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
+	testScriptsPath = path.Join(getCheckoutRepoPath(), "test", "utils", "scripts")
+	testDataPath = path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 
 	gitProviderEnv = initGitProviderData()
 	git_repository_url = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)

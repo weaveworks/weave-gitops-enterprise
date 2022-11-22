@@ -1522,7 +1522,7 @@ exports[`Applications index test snapshots success 1`] = `
                             <h2
                               class=""
                             >
-                              Type
+                              Kind
                             </h2>
                           </span>
                           <span
