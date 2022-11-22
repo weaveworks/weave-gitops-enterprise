@@ -53,6 +53,7 @@ const AppFields: FC<{
   context?: string;
   clusterName?: string;
   setHelmRepo?: Dispatch<React.SetStateAction<any>>;
+  formError?: string;
 }> = ({
   formData,
   setFormData,
@@ -60,9 +61,12 @@ const AppFields: FC<{
   allowSelectCluster,
   clusterName,
   setHelmRepo,
+  formError,
 }) => {
   const { data } = useListSources();
   const automation = formData.clusterAutomations[index];
+  const { cluster, source, name, namespace, target_namespace, path } =
+    formData.clusterAutomations[index];
   const { createNamespace } = automation;
   const history = useHistory();
   const location = useLocation();
@@ -216,7 +220,7 @@ const AppFields: FC<{
             name="cluster_name"
             required={true}
             label="SELECT CLUSTER"
-            value={formData.clusterAutomations[index].cluster || ''}
+            value={cluster || ''}
             onChange={handleSelectCluster}
             defaultValue={''}
             description="select target cluster"
@@ -237,7 +241,7 @@ const AppFields: FC<{
             name="source"
             required={true}
             label="SELECT SOURCE"
-            value={formData.clusterAutomations[index].source || ''}
+            value={source || ''}
             onChange={handleSelectSource}
             defaultValue={''}
             description="The name and type of source"
@@ -273,33 +277,37 @@ const AppFields: FC<{
             required={true}
             name="name"
             label="KUSTOMIZATION NAME"
-            value={formData.clusterAutomations[index].name}
+            value={name}
             onChange={event => handleFormData(event, 'name')}
+            error={formError === 'name' && !name}
           />
           <Input
             className="form-section"
             name="namespace"
             label="KUSTOMIZATION NAMESPACE"
             placeholder={DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE}
-            value={formData.clusterAutomations[index].namespace}
+            value={namespace}
             onChange={event => handleFormData(event, 'namespace')}
+            error={formError === 'namespace' && !namespace}
           />
           <Input
             className="form-section"
             name="target_namespace"
             label="TARGET NAMESPACE"
             description="OPTIONAL If omitted all resources must specify a namespace"
-            value={formData.clusterAutomations[index].target_namespace}
+            value={target_namespace}
             onChange={event => handleFormData(event, 'target_namespace')}
+            error={formError === 'target_namespace' && !target_namespace}
           />
           <Input
             className="form-section"
             required={true}
             name="path"
             label="SELECT PATH"
-            value={formData.clusterAutomations[index].path}
+            value={path}
             onChange={event => handleFormData(event, 'path')}
             description="Path within the git repository to read yaml files"
+            error={formError === 'path' && !path}
           />
           {!clusters && (
             <Tooltip
@@ -324,10 +332,7 @@ const AppFields: FC<{
         <Tooltip
           title={'flux-system will already exist in the target cluster'}
           placement="top-start"
-          disabled={
-            formData.clusterAutomations[index].target_namespace !==
-            'flux-system'
-          }
+          disabled={target_namespace !== 'flux-system'}
         >
           <div>
             <Flex align={true}>
@@ -342,10 +347,7 @@ const AppFields: FC<{
                     onChange={handleCreateNamespace}
                     inputProps={{ 'aria-label': 'controlled' }}
                     color="primary"
-                    disabled={
-                      formData.clusterAutomations[index].target_namespace ===
-                      'flux-system'
-                    }
+                    disabled={target_namespace === 'flux-system'}
                   />
                 }
                 label="Create target namespace for kustomization"
