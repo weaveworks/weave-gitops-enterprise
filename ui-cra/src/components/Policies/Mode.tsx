@@ -7,12 +7,12 @@ interface IModeProps {
   showName?: boolean 
 }
 
-function Mode({ modeName, showName }: IModeProps) {
+function Mode({ modeName, showName = false }: IModeProps) {
   switch (modeName.toLocaleLowerCase()) {
     case 'audit':
-      return ModeTooltip('audit', showName? showName : false, <Policy />);
+      return ModeTooltip('audit', showName, <Policy />);
     case 'admission':
-      return ModeTooltip('enforce', showName? showName : false, <VerifiedUser />);
+      return ModeTooltip('enforce', showName, <VerifiedUser />);
     default:
       return (
         <ModeWrapper>
