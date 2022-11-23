@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
@@ -17,6 +18,7 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -220,8 +222,19 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
-	files, err := s.getFiles(
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error getting client: %v", err)
+	}
+
+	files, err := getFiles(
 		ctx,
+		client,
+		s.log,
+		s.estimator,
+		s.chartsCache,
+		types.NamespacedName{Name: s.cluster},
+		s.profileHelmRepository,
 		tm,
 		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
 		nil,
@@ -248,7 +261,17 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
 }
 
-func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg GetFilesRequest, createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
+func getFiles(
+	ctx context.Context,
+	client client.Client,
+	log logr.Logger,
+	estimator estimation.Estimator,
+	chartsCache helm.ChartsCacheReader,
+	profileHelmRepositoryCluster types.NamespacedName,
+	profileHelmRepository types.NamespacedName,
+	tmpl apiTemplates.Template,
+	msg GetFilesRequest,
+	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
@@ -268,14 +291,9 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 	}
 
 	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
-	costEstimate := getCostEstimate(ctx, s.estimator, tmplWithValues)
+	costEstimate := getCostEstimate(ctx, estimator, tmplWithValues)
 
-	client, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
+	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
 	if err != nil {
 		return nil, err
 	}
@@ -296,7 +314,6 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
-
 	if shouldAddCommonBases(tmpl) {
 		commonKustomization, err := getCommonKustomization(cluster)
 		if err != nil {
@@ -305,17 +322,23 @@ func (s *server) getFiles(ctx context.Context, tmpl apiTemplates.Template, msg G
 		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
 	}
 
-	if len(msg.Profiles) > 0 {
+	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
+	}
+
+	if len(msg.Profiles) > 0 || len(requiredProfiles) > 0 {
 		profilesFile, err := generateProfileFiles(
 			ctx,
 			tmpl,
 			cluster,
 			client,
 			generateProfileFilesParams{
-				helmRepository:         createNamespacedName(s.profileHelmRepositoryName, viper.GetString("runtime-namespace")),
-				helmRepositoryCacheDir: s.helmRepositoryCacheDir,
-				profileValues:          msg.Profiles,
-				parameterValues:        msg.ParameterValues,
+				helmRepositoryCluster: profileHelmRepositoryCluster,
+				helmRepository:        profileHelmRepository,
+				chartsCache:           chartsCache,
+				profileValues:         msg.Profiles,
+				parameterValues:       msg.ParameterValues,
 			},
 		)
 		if err != nil {

@@ -45,7 +45,7 @@ func TestBuildCache(t *testing.T) {
 						},
 						{
 							Verbs:     []string{"get", "list"},
-							APIGroups: []string{"capi.weave.works", "clustertemplates.weave.works"},
+							APIGroups: []string{"capi.weave.works", "templates.weave.works"},
 							Resources: []string{"capitemplates", "gitopstemplates"},
 						},
 					},
