@@ -10,7 +10,6 @@ import (
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/repo"
