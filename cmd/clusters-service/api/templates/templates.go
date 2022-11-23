@@ -77,12 +77,24 @@ type Profile struct {
 	Version string `json:"version,omitempty"`
 	// Which default namespace to install the profile into
 	Namespace string `json:"namespace,omitempty"`
+	// Layer, overrides the default layer
+	Layer string `json:"layer,omitempty"`
 	// If true the profile will always be installed
 	Required bool `json:"required,omitempty"`
 	// If true you can change the values and version of the profile
 	Editable bool `json:"editable,omitempty"`
 	// Values.yaml blob
 	Values *ProfileValues `json:"values,omitempty"`
+	// Spec, HelmReleaseSpec that can be overridden
+	Spec *ProfileSpec `json:"spec,omitempty"`
+}
+
+// ProfileSpec is the HelmRelease.spec that can be overridden
+// +kubebuilder:skipversion
+// +kubebuilder:object:generate=true
+// +kubebuilder:pruning:PreserveUnknownFields
+type ProfileSpec struct {
+	runtime.RawExtension `json:",inline"`
 }
 
 // ProfileValues describes the values for a profile.

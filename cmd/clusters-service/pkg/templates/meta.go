@@ -29,7 +29,7 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 
 	var objects []Object
 	for _, v := range s.GetSpec().ResourceTemplates {
-		params, err := processor.ParamNames(v)
+		params, err := processor.ParamNames(v.Raw)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse params in template: %w", err)
 		}

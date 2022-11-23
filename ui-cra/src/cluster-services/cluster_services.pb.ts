@@ -358,6 +358,8 @@ export type TemplateProfile = {
   editable?: boolean
   values?: string
   namespace?: string
+  required?: boolean
+  spec?: string
 }
 
 export type TemplateObject = {

@@ -613,20 +613,19 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			}
 		}
 
-		decoded, err := base64.StdEncoding.DecodeString(v.Values)
+		values, err := RenderAndParseValues(v, *tmplProcessor, args.parameterValues)
 		if err != nil {
-			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+			return nil, fmt.Errorf("cannot render and parse values of profile %s: %w", v.Name, err)
 		}
 
-		data, err := tmplProcessor.Render(decoded, args.parameterValues)
-		if err != nil {
-			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+		spec := []byte{}
+		if requiredProfile != nil {
+			spec, err = tmplProcessor.Render([]byte(requiredProfile.Spec), args.parameterValues)
+			if err != nil {
+				return nil, fmt.Errorf("cannot render spec of profile %s: %w", v.Name, err)
+			}
 		}
 
-		parsed, err := ParseValues(data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
-		}
 		installs = append(installs, charts.ChartInstall{
 			Ref: charts.ChartReference{
 				Chart:   v.Name,
@@ -637,8 +636,9 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 					Kind:      "HelmRepository",
 				},
 			},
+			Spec:      string(spec),
 			Layer:     v.Layer,
-			Values:    parsed,
+			Values:    values,
 			Namespace: v.Namespace,
 		})
 	}
@@ -817,6 +817,25 @@ func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev
 	}
 
 	return version, nil
+}
+
+func RenderAndParseValues(v *capiv1_proto.ProfileValues, tmplProcessor templates.TemplateProcessor, parameterValues map[string]string) (map[string]interface{}, error) {
+	decoded, err := base64.StdEncoding.DecodeString(v.Values)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+	}
+
+	data, err := tmplProcessor.Render(decoded, parameterValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+	}
+
+	parsed, err := ParseValues(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
+	}
+
+	return parsed, nil
 }
 
 // ParseValues takes a YAML encoded values string and returns a struct

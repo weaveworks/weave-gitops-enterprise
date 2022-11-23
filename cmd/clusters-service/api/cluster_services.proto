@@ -560,6 +560,8 @@ message TemplateProfile {
   bool editable = 3;
   string values = 4;
   string namespace = 5;
+  bool required = 6;
+  string spec = 7;
 }
 
 message TemplateObject {

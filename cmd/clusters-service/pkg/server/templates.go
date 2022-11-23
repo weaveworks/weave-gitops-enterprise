@@ -426,21 +426,27 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 
 	// Override anything that was still in the index with the profiles from the spec
 	for _, v := range tl.GetSpec().Profiles {
-		values := ""
-		if v.Values != nil {
-			valuesBytes, err := yaml.Marshal(v.Values)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal values.yaml: %w", err)
-			}
-			values = string(valuesBytes)
-		}
-
 		profile := capiv1_proto.TemplateProfile{
 			Name:      v.Name,
 			Version:   v.Version,
 			Editable:  v.Editable,
 			Namespace: v.Namespace,
-			Values:    values,
+		}
+
+		if v.Values != nil {
+			valuesBytes, err := yaml.Marshal(v.Values)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal profile.values for %s: %w", v.Name, err)
+			}
+			profile.Values = string(valuesBytes)
+		}
+
+		if v.Spec != nil {
+			valuesBytes, err := yaml.Marshal(v.Values)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Name, err)
+			}
+			profile.Spec = string(valuesBytes)
 		}
 
 		profilesIndex[profile.Name] = &profile

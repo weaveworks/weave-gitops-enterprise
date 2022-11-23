@@ -76,6 +76,9 @@ spec:
                       description: If true you can change the values and version of
                         the profile
                       type: boolean
+                    layer:
+                      description: Layer, overrides the default layer
+                      type: string
                     name:
                       type: string
                     namespace:
@@ -85,6 +88,10 @@ spec:
                     required:
                       description: If true the profile will always be installed
                       type: boolean
+                    spec:
+                      description: Spec, HelmReleaseSpec that can be overridden
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
                     values:
                       description: Values.yaml blob
                       type: object

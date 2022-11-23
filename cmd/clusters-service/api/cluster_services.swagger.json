@@ -2279,6 +2279,12 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "spec": {
+          "type": "string"
         }
       }
     }

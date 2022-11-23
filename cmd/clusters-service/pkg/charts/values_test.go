@@ -2,6 +2,7 @@ package charts
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -279,6 +280,20 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 				}),
 			},
 		},
+		{
+			name: "install with spec",
+			installs: []ChartInstall{
+				{Spec: makeTestHelmReleaseSpec(t, func(hr map[string]interface{}) {
+					hr["Interval"] = metav1.Duration{Duration: 42 * time.Hour}
+				}), Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr), Namespace: "test-system"}},
+			want: []*helmv2.HelmRelease{
+				makeTestHelmRelease("test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", func(hr *helmv2.HelmRelease) {
+					hr.Spec.TargetNamespace = "test-system"
+					hr.Spec.Install.CreateNamespace = true
+					hr.Spec.Interval = metav1.Duration{Duration: 42 * time.Hour}
+				}),
+			},
+		},
 	}
 
 	for _, tt := range layeredTests {
@@ -300,6 +315,21 @@ func makeTestChartReference(name, version string, hr *sourcev1.HelmRepository) C
 		Version:   version,
 		SourceRef: referenceForRepository(hr),
 	}
+}
+
+func makeTestHelmReleaseSpec(t *testing.T, opts ...func(map[string]interface{})) string {
+	spec := map[string]interface{}{}
+
+	for _, opt := range opts {
+		opt(spec)
+	}
+
+	b, err := json.Marshal(spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return string(b)
 }
 
 func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {

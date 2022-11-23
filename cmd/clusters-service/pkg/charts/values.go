@@ -263,6 +263,13 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 					LayerLabel: layer.name,
 				}
 			}
+			if install.Spec != "" {
+				err := json.Unmarshal([]byte(install.Spec), &hr.Spec)
+				if err != nil {
+					return nil, fmt.Errorf("failed to unmarshal spec for chart %s: %w", install.Ref.Chart, err)
+				}
+			}
+
 			releases = append(releases, &hr)
 		}
 	}
@@ -304,4 +311,6 @@ type ChartInstall struct {
 	Layer     string
 	Values    map[string]interface{}
 	Namespace string
+	// Spec is a RawExtension.Raw field that contains the raw JSON data
+	Spec string
 }
