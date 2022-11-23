@@ -59,7 +59,7 @@ import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
-import { getLink, getType } from '../Edit/EditButton';
+import { getLink } from '../Edit/EditButton';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -304,8 +304,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
-  const type = getType(resource);
-  const editLink = getLink(resource, type);
+  const editLink = getLink(resource);
   const authRedirectPage = resource
     ? editLink
     : `/templates/${template?.name}/create`;
@@ -627,6 +626,7 @@ interface Props {
 }
 
 const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
+  console.log(resource);
   if (!template) {
     return (
       <Redirect

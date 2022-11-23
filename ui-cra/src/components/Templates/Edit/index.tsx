@@ -1,6 +1,5 @@
 import Grid from '@material-ui/core/Grid';
 import { Kind, useGetObject } from '@weaveworks/weave-gitops';
-import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
 import { useGetPipeline } from '../../../contexts/Pipelines';
@@ -18,8 +17,6 @@ const EditResource: FC<{
   resource: Resource;
 }> = ({ resource }) => {
   const { getTemplate } = useTemplates();
-
-  console.log('Am I getting here?');
 
   const templateName = getCreateRequestAnnotation(resource)?.template_name;
 
@@ -97,10 +94,10 @@ const EditResourcePage: FC<Props> = props => {
   );
 
   const getEditableResource = () => {
-    console.log(kind, resource);
     switch (kind) {
       case 'Terraform':
-        return tfData;
+        // remove type before merging, only using it to work with demo-01
+        return { ...tfData, type: 'Terraform' };
       case 'Pipeline':
         // remove type before merging, only using it to work with demo-01
         return { ...pipelineData?.pipeline, type: 'Pipeline' };

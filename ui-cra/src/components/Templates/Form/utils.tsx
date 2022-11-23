@@ -16,13 +16,8 @@ export const maybeParseJSON = (data: string) => {
 };
 
 export const getCreateRequestAnnotation = (resource: Resource) => {
-  const type =
-    (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
-    (resource as GetTerraformObjectResponse)?.object?.type ||
-    '';
-
-  const getAnnotation = (resource: Resource, type: string) => {
-    switch (type) {
+  const getAnnotation = (resource: Resource) => {
+    switch (resource.type) {
       case 'GitopsCluster':
         return (resource as GitopsClusterEnriched)?.annotations?.[
           'templates.weave.works/create-request'
@@ -39,12 +34,13 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
         ];
       case 'Terraform':
       case 'Pipeline':
-        return yamlConverter.load((resource as GetTerraformObjectResponse).yaml)
-          .metadata.annotations['templates.weave.works/create-request'];
+        return yamlConverter.load(
+          (resource as GetTerraformObjectResponse | Pipeline).yaml,
+        ).metadata.annotations['templates.weave.works/create-request'];
       default:
         return '';
     }
   };
 
-  return maybeParseJSON(getAnnotation(resource, type));
+  return maybeParseJSON(getAnnotation(resource));
 };

@@ -53,11 +53,13 @@ const Pipelines = ({ className }: any) => {
               fields={[
                 {
                   label: 'Pipeline Name',
-                  value: ({ name, namespace }: Pipeline) => (
+                  value: ({ name, namespace, type }: Pipeline) => (
                     <LinkWrapper
                       to={formatURL(Routes.PipelineDetails, {
                         name,
                         namespace,
+                        // update with type - testing only
+                        kind: 'Pipeline', // type ,
                       })}
                     >
                       {name}

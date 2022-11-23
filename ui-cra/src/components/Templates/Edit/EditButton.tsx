@@ -18,14 +18,14 @@ export type Resource =
   | GetTerraformObjectResponse
   | Pipeline;
 
-export const getLink = (resource: Resource, type: string) => {
-  switch (type) {
+export const getLink = (resource: Resource) => {
+  switch (resource.type) {
     case 'GitopsCluster':
     case 'Pipeline':
       return formatURL(Routes.EditResource, {
         name: (resource as GitopsClusterEnriched | Pipeline).name,
         namespace: (resource as GitopsClusterEnriched | Pipeline).namespace,
-        kind: (resource as GitopsClusterEnriched | Pipeline).type,
+        kind: resource.type,
       });
     case 'GitRepository':
     case 'Bucket':
@@ -37,14 +37,14 @@ export const getLink = (resource: Resource, type: string) => {
       return formatURL(Routes.EditResource, {
         name: (resource as Automation | Source).name,
         namespace: (resource as Automation | Source).namespace,
-        kind: (resource as Automation | Source).type,
+        kind: resource.type,
         clusterName: (resource as Automation | Source).clusterName,
       });
     case 'Terraform':
       return formatURL(Routes.EditResource, {
         name: (resource as GetTerraformObjectResponse)?.object?.name,
         namespace: (resource as GetTerraformObjectResponse)?.object?.namespace,
-        kind: (resource as GetTerraformObjectResponse)?.object?.type,
+        kind: resource.type,
         clusterName: (resource as GetTerraformObjectResponse)?.object
           ?.clusterName,
       });
@@ -52,11 +52,6 @@ export const getLink = (resource: Resource, type: string) => {
       return '';
   }
 };
-
-export const getType = (resource: Resource) =>
-  (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
-  (resource as GetTerraformObjectResponse)?.object?.type ||
-  '';
 
 const EditWrapper = styled(Button)`
   span {
@@ -69,13 +64,13 @@ export const EditButton: React.FC<{
   className?: string;
 }> = ({ resource, className }) => {
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
+  const link = getLink(resource);
 
-  const type = getType(resource);
-  const link = getLink(resource, type);
+  console.log(link);
 
   return (
     <Link to={link} style={{ pointerEvents: disabled ? 'none' : 'all' }}>
-      <Tooltip title={`Edit ${type}`} placement="top">
+      <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div className={className}>
           <EditWrapper
             disabled={disabled}

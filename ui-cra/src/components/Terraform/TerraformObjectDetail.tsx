@@ -110,6 +110,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             name: object?.name,
             namespace: object?.namespace,
             clusterName: object?.clusterName,
+            // update with type - testing only
+            kind: 'Terraform', // object?.type,
           }),
         },
       ]}
@@ -141,7 +143,11 @@ function TerraformObjectDetail({ className, ...params }: Props) {
               </Box>
               <Box paddingLeft={1}>
                 <EditButton
-                  resource={data || ({} as GetTerraformObjectResponse)}
+                  // remove type before merging, only using it to work with demo-01
+                  resource={
+                    { ...data, type: 'Terraform' } ||
+                    ({} as GetTerraformObjectResponse)
+                  }
                 />
               </Box>
             </Flex>
