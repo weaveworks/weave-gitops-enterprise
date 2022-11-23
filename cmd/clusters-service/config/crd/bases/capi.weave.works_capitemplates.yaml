@@ -77,13 +77,10 @@ spec:
                         the profile
                       type: boolean
                     layer:
-                      description: Layer, overrides the default layer
+                      description: Layer, overrides the default layer provided in
+                        the Helm Repository
                       type: string
                     name:
-                      type: string
-                    namespace:
-                      description: Which default namespace to install the profile
-                        into
                       type: string
                     required:
                       description: If true the profile will always be installed
@@ -92,8 +89,11 @@ spec:
                       description: Spec, HelmReleaseSpec that can be overridden
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
+                    targetNamespace:
+                      description: The default target namespace for this profile
+                      type: string
                     values:
-                      description: Values.yaml blob
+                      description: Values.yaml
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     version:

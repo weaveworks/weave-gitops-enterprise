@@ -318,6 +318,7 @@ func makeTestChartReference(name, version string, hr *sourcev1.HelmRepository) C
 }
 
 func makeTestHelmReleaseSpec(t *testing.T, opts ...func(map[string]interface{})) string {
+	t.Helper()
 	spec := map[string]interface{}{}
 
 	for _, opt := range opts {

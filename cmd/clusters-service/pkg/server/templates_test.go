@@ -1426,7 +1426,51 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		// no error
 		assert.NoError(t, err)
 		assert.Equal(t, expected, result)
+	})
 
+	t.Run("All the fields are loaded properly from template.profiles", func(t *testing.T) {
+		profiles := []templatesv1.Profile{
+			{
+				Name:    "k8s-rbac-permissions",
+				Version: "0.0.8",
+				Spec: &templatesv1.ProfileSpec{
+					RawExtension: runtime.RawExtension{
+						Raw: []byte(`{ "interval": "${INTERVAL}" }`),
+					},
+				},
+				Values: &templatesv1.ProfileValues{
+					RawExtension: runtime.RawExtension{
+						Raw: []byte(`{ "adminGroups": "weaveworks" }`),
+					},
+				},
+				Layer:           "layer-foo",
+				TargetNamespace: "foo-ns",
+				Editable:        true,
+				Required:        true,
+			},
+		}
+
+		expected := []*capiv1_protos.TemplateProfile{
+			{
+				Name:      "k8s-rbac-permissions",
+				Version:   "0.0.8",
+				Editable:  true,
+				Spec:      "interval: ${INTERVAL}\n",
+				Values:    "adminGroups: weaveworks\n",
+				Layer:     "layer-foo",
+				Namespace: "foo-ns",
+				Required:  true,
+			},
+		}
+
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Spec.Profiles = profiles
+		})
+
+		result, err := getProfilesFromTemplate(tm)
+		// no error
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
 	})
 }
 

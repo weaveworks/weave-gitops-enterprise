@@ -75,15 +75,15 @@ type Profile struct {
 	Name string `json:"name"`
 	// Default version to select
 	Version string `json:"version,omitempty"`
-	// Which default namespace to install the profile into
-	Namespace string `json:"namespace,omitempty"`
-	// Layer, overrides the default layer
+	// The default target namespace for this profile
+	TargetNamespace string `json:"targetNamespace,omitempty"`
+	// Layer, overrides the default layer provided in the Helm Repository
 	Layer string `json:"layer,omitempty"`
 	// If true the profile will always be installed
 	Required bool `json:"required,omitempty"`
 	// If true you can change the values and version of the profile
 	Editable bool `json:"editable,omitempty"`
-	// Values.yaml blob
+	// Values.yaml
 	Values *ProfileValues `json:"values,omitempty"`
 	// Spec, HelmReleaseSpec that can be overridden
 	Spec *ProfileSpec `json:"spec,omitempty"`

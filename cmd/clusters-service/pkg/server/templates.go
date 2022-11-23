@@ -452,8 +452,10 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 		profile := capiv1_proto.TemplateProfile{
 			Name:      v.Name,
 			Version:   v.Version,
+			Namespace: v.TargetNamespace,
+			Layer:     v.Layer,
+			Required:  v.Required,
 			Editable:  v.Editable,
-			Namespace: v.Namespace,
 		}
 
 		if v.Values != nil {
@@ -465,7 +467,7 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 		}
 
 		if v.Spec != nil {
-			valuesBytes, err := yaml.Marshal(v.Values)
+			valuesBytes, err := yaml.Marshal(v.Spec)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Name, err)
 			}
