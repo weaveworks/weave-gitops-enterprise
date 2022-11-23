@@ -241,14 +241,14 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 		"metadata":{
 		   "name":"${RESOURCE_NAME}",
 		   "annotations":{
-			  "clustertemplates.weave.works/display-name":"ClusterName"
+			  "templates.weave.works/display-name":"ClusterName"
 		   }
 		}
 	 }`
 	ct := &gapiv1.GitOpsTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       gapiv1.Kind,
-			APIVersion: "clustertemplates.weave.works/v1alpha1",
+			APIVersion: "templates.weave.works/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",

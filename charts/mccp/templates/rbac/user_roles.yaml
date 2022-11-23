@@ -79,7 +79,7 @@ rules:
   - apiGroups: ["capi.weave.works"]
     resources: ["capitemplates"]
     verbs: ["get", "watch", "list"]
-  - apiGroups: ["clustertemplates.weave.works"]
+  - apiGroups: ["templates.weave.works"]
     resources: ["gitopstemplates"]
     verbs: ["get", "watch", "list"]
 ---
