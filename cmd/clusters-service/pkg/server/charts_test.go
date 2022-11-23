@@ -2,9 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
-	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -12,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"google.golang.org/protobuf/testing/protocmp"
 	"helm.sh/helm/v3/pkg/repo"
@@ -33,7 +31,7 @@ var defaultClusterState = []runtime.Object{
 func TestListChartsForRepository(t *testing.T) {
 	testCases := []struct {
 		name         string
-		fc           *fakeChartCache
+		fc           helm.ChartsCache
 		clusterState []runtime.Object
 		request      *protos.ListChartsForRepositoryRequest
 		want         *protos.ListChartsForRepositoryResponse
@@ -52,9 +50,9 @@ func TestListChartsForRepository(t *testing.T) {
 				Kind: "chart",
 			},
 			clusterState: defaultClusterState,
-			fc: newFakeChartCache(
-				cachedCharts(
-					clusterRefToString(
+			fc: helmfakes.NewFakeChartCache(
+				helmfakes.WithCharts(
+					helmfakes.ClusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "management"},
 					), []helm.Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "postgres", Version: "1.0.2", Kind: "chart"}})),
@@ -79,9 +77,9 @@ func TestListChartsForRepository(t *testing.T) {
 				Kind: "chart",
 			},
 			clusterState: defaultClusterState,
-			fc: newFakeChartCache(
-				cachedCharts(
-					clusterRefToString(
+			fc: helmfakes.NewFakeChartCache(
+				helmfakes.WithCharts(
+					helmfakes.ClusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "management"},
 					), []helm.Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "redis", Version: "1.0.2", Kind: "chart"}})),
@@ -105,9 +103,9 @@ func TestListChartsForRepository(t *testing.T) {
 				Kind: "chart",
 			},
 			clusterState: defaultClusterState,
-			fc: newFakeChartCache(
-				cachedCharts(
-					clusterRefToString(
+			fc: helmfakes.NewFakeChartCache(
+				helmfakes.WithCharts(
+					helmfakes.ClusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "not-bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "management"},
 					), []helm.Chart{{Name: "redis", Version: "1.0.1"}, {Name: "postgres", Version: "1.0.2"}})),
@@ -129,9 +127,9 @@ func TestListChartsForRepository(t *testing.T) {
 				Kind: "profile",
 			},
 			clusterState: defaultClusterState,
-			fc: newFakeChartCache(
-				cachedCharts(
-					clusterRefToString(
+			fc: helmfakes.NewFakeChartCache(
+				helmfakes.WithCharts(
+					helmfakes.ClusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "management"},
 					),
@@ -171,7 +169,7 @@ func TestListChartsForRepository(t *testing.T) {
 func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 	testCases := []struct {
 		name         string
-		fc           *fakeChartCache
+		fc           helm.ChartsCacheReader
 		clusterState []runtime.Object
 		request      *protos.GetValuesForChartRequest
 		want         *protos.GetChartsJobResponse
@@ -191,9 +189,9 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 				Version: "1.0.1",
 			},
 			clusterState: defaultClusterState,
-			fc: newFakeChartCache(
-				cachedCharts(
-					clusterRefToString(
+			fc: helmfakes.NewFakeChartCache(
+				helmfakes.WithCharts(
+					helmfakes.ClusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "management"},
 					),
@@ -261,7 +259,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 func TestGetValuesForChartCached(t *testing.T) {
 	testCases := []struct {
 		name         string
-		fc           *fakeChartCache
+		fc           helm.ChartsCacheReader
 		clusterState []runtime.Object
 		request      *protos.GetValuesForChartRequest
 		want         *protos.GetChartsJobResponse
@@ -281,15 +279,15 @@ func TestGetValuesForChartCached(t *testing.T) {
 				Version: "1.0.1",
 			},
 			clusterState: defaultClusterState,
-			fc: newFakeChartCache(
-				cachedCharts(
-					clusterRefToString(
+			fc: helmfakes.NewFakeChartCache(
+				helmfakes.WithCharts(
+					helmfakes.ClusterRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "management"},
 					),
 					[]helm.Chart{{Name: "redis", Version: "1.0.1"}}),
-				cachedValues(
-					chartRefToString(
+				helmfakes.WithValues(
+					helmfakes.ChartRefToString(
 						helm.ObjectReference{Kind: "HelmRepository", Name: "bitnami-charts", Namespace: "demo"},
 						types.NamespacedName{Name: "management"},
 						helm.Chart{Name: "redis", Version: "1.0.1"}),
@@ -336,80 +334,6 @@ func TestGetValuesForChartCached(t *testing.T) {
 			}
 		})
 	}
-}
-
-func cachedCharts(key string, charts []helm.Chart) func(*fakeChartCache) {
-	return func(fc *fakeChartCache) {
-		fc.charts[key] = charts
-	}
-}
-
-func cachedValues(key string, chart []byte) func(*fakeChartCache) {
-	return func(fc *fakeChartCache) {
-		fc.chartValues[key] = []byte(base64.StdEncoding.EncodeToString(chart))
-	}
-}
-
-func newFakeChartCache(opts ...func(*fakeChartCache)) *fakeChartCache {
-	fc := &fakeChartCache{
-		charts:      make(map[string][]helm.Chart),
-		chartValues: make(map[string][]byte),
-	}
-	for _, o := range opts {
-		o(fc)
-	}
-
-	return fc
-}
-
-type fakeChartCache struct {
-	charts      map[string][]helm.Chart
-	chartValues map[string][]byte
-}
-
-func (fc fakeChartCache) ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, kind string) ([]helm.Chart, error) {
-	charts, ok := fc.charts[clusterRefToString(repoRef, clusterRef)]
-	if !ok {
-		return nil, errors.New("no charts found")
-	}
-	// filter by kind
-	var filtered []helm.Chart
-	for _, c := range charts {
-		if c.Kind == kind {
-			filtered = append(filtered, c)
-		}
-	}
-	return filtered, nil
-}
-func (fc fakeChartCache) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (bool, error) {
-	charts, ok := fc.charts[clusterRefToString(repoRef, clusterRef)]
-	if !ok {
-		return false, nil
-	}
-	for _, c := range charts {
-		if c.Name == chart.Name && c.Version == chart.Version {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-func (fc fakeChartCache) GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) ([]byte, error) {
-	if values, ok := fc.chartValues[chartRefToString(repoRef, clusterRef, chart)]; ok {
-		return values, nil
-	}
-	return nil, nil
-}
-func (fc fakeChartCache) UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart, valuesYaml []byte) error {
-	fc.chartValues[chartRefToString(repoRef, clusterRef, chart)] = valuesYaml
-	return nil
-}
-
-func clusterRefToString(or helm.ObjectReference, cr types.NamespacedName) string {
-	return fmt.Sprintf("%s_%s_%s_%s_%s", or.Kind, or.Name, or.Namespace, cr.Name, cr.Namespace)
-}
-
-func chartRefToString(or helm.ObjectReference, cr types.NamespacedName, c helm.Chart) string {
-	return fmt.Sprintf("%s_%s_%s_%s_%s_%s_%s", or.Kind, or.Name, or.Namespace, cr.Name, cr.Namespace, c.Name, c.Version)
 }
 
 type fakeValuesFetcher struct {

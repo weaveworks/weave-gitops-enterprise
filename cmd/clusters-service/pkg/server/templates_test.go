@@ -8,7 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -16,12 +18,14 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
 	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
@@ -1148,8 +1152,7 @@ spec:
   targetNamespace: test-system
   upgrade:
     crds: CreateReplace
-  values:
-    favoriteDrink: coffee
+  values: {}
 status: {}
 `,
 					},
@@ -1183,7 +1186,6 @@ status: {}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.Reset()
-			viper.SetDefault("runtime-namespace", "default")
 			viper.SetDefault("add-bases-kustomization", "disabled")
 			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
@@ -1195,10 +1197,21 @@ status: {}
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
+			fakeCache := testNewFakeChartCache(t,
+				nsn("management", ""),
+				helm.ObjectReference{
+					Name:      "weaveworks-charts",
+					Namespace: "default",
+				},
+				[]helm.Chart{})
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
 				namespace:    "default",
-				hr:           hr,
+				chartsCache:  fakeCache,
+				profileHelmRepository: &types.NamespacedName{
+					Name:      "weaveworks-charts",
+					Namespace: "default",
+				},
 			})
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
@@ -1415,6 +1428,120 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		assert.Equal(t, expected, result)
 
 	})
+}
+
+func TestGetFiles_required_profiles(t *testing.T) {
+	viper.SetDefault("runtime-namespace", "flux-system")
+	ts := httptest.NewServer(makeServeMux(t))
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+		hr.SetName("weaveworks-charts")
+		hr.SetNamespace("flux-system")
+	})
+	fmt.Println("hr", hr.GetName(), hr.GetNamespace())
+	c := createClient(t, hr)
+
+	log := logr.Discard()
+	testEstimator := testEstimator{low: 1, high: 2, currency: "USD"}
+	getFilesRequest := GetFilesRequest{
+		ClusterNamespace: "ns-foo",
+		ParameterValues: map[string]string{
+			"CLUSTER_NAME": "cluster-foo",
+			"NAMESPACE":    "ns-foo",
+		},
+		Credentials: &capiv1_protos.Credential{
+			Group:     "",
+			Version:   "",
+			Kind:      "",
+			Name:      "",
+			Namespace: "",
+		},
+		Profiles:       []*capiv1_protos.ProfileValues{},
+		Kustomizations: []*capiv1_protos.Kustomization{},
+	}
+
+	path := "ns-foo/cluster-foo/profiles.yaml"
+	templateContent := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: {{ .URL }}/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: demo-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: flux-system
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+status: {}
+`
+	content := simpleTemplate(t, templateContent, struct{ URL string }{URL: ts.URL})
+	expected := &GetFilesReturn{
+		ProfileFiles: []gitprovider.CommitFile{
+			{
+				Path:    &path,
+				Content: &content,
+			},
+		},
+		CostEstimate: &capiv1_protos.CostEstimate{
+			Currency: "USD",
+			Range: &capiv1_protos.CostEstimate_Range{
+				Low:  1,
+				High: 2,
+			},
+		},
+		Cluster: nsn("cluster-foo", "ns-foo"),
+	}
+
+	fakeChartCache := testNewFakeChartCache(t,
+		nsn("cluster-foo", "ns-foo"),
+		helm.ObjectReference{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		},
+		[]helm.Chart{})
+	values := []byte("foo: bar")
+	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
+	files, err := getFiles(
+		context.TODO(),
+		c,
+		log,
+		testEstimator,
+		fakeChartCache,
+		types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
+		types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"},
+		makeTestTemplateWithProfileAnnotation(
+			templatesv1.RenderTypeEnvsubst,
+			"capi.weave.works/profile-0",
+			profile,
+		),
+		getFilesRequest,
+		nil)
+	assert.NoError(t, err)
+	if diff := cmp.Diff(expected, files, protocmp.Transform()); diff != "" {
+		t.Fatalf("files did not match:\n%s", diff)
+	}
 }
 
 func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*capiv1.CAPITemplate)) *capiv1.CAPITemplate {

@@ -3,6 +3,17 @@ kind: CAPITemplate
 metadata:
   name: cluster-template-development
   namespace: default
+  annotations:
+    capi.weave.works/profile-0: |
+      {
+        "name": "cert-manager",
+        "namespace": "cert-manager"
+      }
+    capi.weave.works/profile-1: |
+      {
+        "name": "ingress-nginx",
+        "namespace": "ingress-nginx"
+      }
 spec:
   description: A simple CAPD template
   params:

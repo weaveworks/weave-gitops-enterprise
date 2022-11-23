@@ -10,7 +10,7 @@ import (
 
 const (
 	// DisplayNameAnnotation is the annotation used for labeling template resources
-	GitOpsTemplateNameAnnotation = "clustertemplates.weave.works/display-name"
+	GitOpsTemplateNameAnnotation = "templates.weave.works/display-name"
 	CAPIDisplayNameAnnotation    = "capi.weave.works/display-name"
 	// CostEstimationAnnotation is to signal we should try and estimate the cost of a template when rendering it
 	CostEstimationAnnotation        = "templates.weave.works/cost-estimation-enabled"
