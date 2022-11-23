@@ -42,20 +42,21 @@ const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
 
 const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
   const defaultProfiles: UpdatedProfile[] =
-    template.profiles?.map(profile => ({
-      ...profile,
-      name: profile.name!,
-      values: [
-        {
-          version: profile.version || '',
-          yaml: profile.values || '',
-          selected: false,
-        },
-      ],
-      required: true,
-      selected: true,
-      layer: getProfileLayer(profiles, profile.name!),
-    })) || [];
+    template.profiles?.map(
+      profile =>
+        ({
+          ...profile,
+          values: [
+            {
+              version: profile.version || '',
+              yaml: profile.values || '',
+              selected: false,
+            },
+          ],
+          selected: true,
+          layer: profile.layer || getProfileLayer(profiles, profile.name!),
+        } as UpdatedProfile),
+    ) || [];
 
   return defaultProfiles;
 };

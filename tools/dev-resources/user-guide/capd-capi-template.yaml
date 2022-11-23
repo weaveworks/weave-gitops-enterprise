@@ -4,6 +4,7 @@ metadata:
   name: cluster-template-development
   namespace: default
   annotations:
+    templates.weave.works/profiles-enabled: "true"
     capi.weave.works/profile-0: |
       {
         "name": "cert-manager",
@@ -36,7 +37,12 @@ spec:
       default: "1"
   profiles:
     - name: cert-manager
-      namespace: cert-manager
+      targetNamespace: cert-manager
+      version: 0.0.8
+      spec:
+        install:
+          remediation:
+            retries: 3
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster

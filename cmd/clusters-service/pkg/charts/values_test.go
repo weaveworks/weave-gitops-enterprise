@@ -2,7 +2,6 @@ package charts
 
 import (
 	"context"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -325,7 +324,7 @@ func makeTestHelmReleaseSpec(t *testing.T, opts ...func(map[string]interface{}))
 		opt(spec)
 	}
 
-	b, err := json.Marshal(spec)
+	b, err := yaml.Marshal(spec)
 	if err != nil {
 		t.Fatal(err)
 	}

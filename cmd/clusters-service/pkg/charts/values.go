@@ -18,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -264,7 +265,7 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 				}
 			}
 			if install.Spec != "" {
-				err := json.Unmarshal([]byte(install.Spec), &hr.Spec)
+				err := yaml.Unmarshal([]byte(install.Spec), &hr.Spec)
 				if err != nil {
 					return nil, fmt.Errorf("failed to unmarshal spec for chart %s: %w", install.Ref.Chart, err)
 				}
