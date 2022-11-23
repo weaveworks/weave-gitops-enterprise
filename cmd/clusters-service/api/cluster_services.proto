@@ -562,6 +562,7 @@ message TemplateProfile {
   string namespace = 5;
   bool required = 6;
   string spec = 7;
+  string layer = 8;
 }
 
 message TemplateObject {

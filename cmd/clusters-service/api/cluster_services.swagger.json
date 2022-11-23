@@ -2285,6 +2285,9 @@
         },
         "spec": {
           "type": "string"
+        },
+        "layer": {
+          "type": "string"
         }
       }
     }

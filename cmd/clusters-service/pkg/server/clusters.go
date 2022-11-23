@@ -626,6 +626,10 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			}
 		}
 
+		if requiredProfile != nil && requiredProfile.Layer != "" {
+			v.Layer = requiredProfile.Layer
+		}
+
 		installs = append(installs, charts.ChartInstall{
 			Ref: charts.ChartReference{
 				Chart:   v.Name,

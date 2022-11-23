@@ -360,6 +360,7 @@ export type TemplateProfile = {
   namespace?: string
   required?: boolean
   spec?: string
+  layer?: string
 }
 
 export type TemplateObject = {
