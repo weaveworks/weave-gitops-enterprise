@@ -57,6 +57,9 @@ const useStyles = makeStyles(() =>
     subtitleColor: {
       color: neutral30,
     },
+    editButton: {
+      paddingBottom: theme.spacing.small,
+    },
   }),
 );
 const TargetWrapper = styled.div`
@@ -140,6 +143,11 @@ const PipelineDetails = ({ name, namespace }: Props) => {
       ]}
     >
       <ContentWrapper loading={isLoading}>
+        <EditButton
+          className={classes.editButton}
+          // remove type before merging, only using it to work with demo-01
+          resource={{ ...data?.pipeline, type: 'Pipeline' } || ({} as Pipeline)}
+        />
         <SubRouterTabs rootPath={`${path}/status`}>
           <RouterTab name="Status" path={`${path}/status`}>
             <Grid className={classes.gridWrapper} container spacing={4}>
@@ -210,9 +218,6 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                               {workload?.lastAppliedRevision && (
                                 <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
                               )}
-                              <EditButton
-                                resource={data?.pipeline || ({} as Pipeline)}
-                              />
                             </Flex>
                           </WorkloadWrapper>
                         </CardContainer>

@@ -58,6 +58,7 @@ import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+import { Pipeline } from '../../../api/pipelines/types.pb';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -143,6 +144,7 @@ function getInitialData(
     | Automation
     | Source
     | GetTerraformObjectResponse
+    | Pipeline
     | undefined,
   callbackState: any,
   random: string,
@@ -150,10 +152,9 @@ function getInitialData(
 ) {
   const resourceData = resource && getCreateRequestAnnotation(resource);
 
-  console.log(resourceData);
-
   const resourceName =
-    (resource as GitopsClusterEnriched | Automation | Source)?.name ||
+    (resource as GitopsClusterEnriched | Automation | Source | Pipeline)
+      ?.name ||
     (resource as GetTerraformObjectResponse)?.object?.name ||
     resourceData?.objects?.[0].name;
   const defaultFormData = {

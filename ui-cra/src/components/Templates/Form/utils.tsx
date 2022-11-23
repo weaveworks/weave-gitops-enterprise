@@ -22,17 +22,12 @@ export const getCreateRequestAnnotation = (
     | GetTerraformObjectResponse
     | Pipeline,
 ) => {
+  console.log(resource);
+
   const type =
     (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
     (resource as GetTerraformObjectResponse)?.object?.type ||
     '';
-
-  console.log(
-    type,
-    (resource as Automation | Source)?.obj?.metadata?.annotations?.[
-      'templates.weave.works/create-request'
-    ],
-  );
 
   const getAnnotation = (
     resource:
@@ -59,9 +54,9 @@ export const getCreateRequestAnnotation = (
           'templates.weave.works/create-request'
         ];
       case 'Terraform':
+      case 'Pipeline':
         return yamlConverter.load((resource as GetTerraformObjectResponse).yaml)
           .metadata.annotations['templates.weave.works/create-request'];
-      // add case for Pipeline
       default:
         return '';
     }

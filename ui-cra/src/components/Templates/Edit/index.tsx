@@ -5,6 +5,7 @@ import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+import { useGetPipeline } from '../../../contexts/Pipelines';
 import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
@@ -23,9 +24,13 @@ const EditResource: FC<{
     | GetTerraformObjectResponse
     | Pipeline;
 }> = ({ resource }) => {
+  console.log(resource);
+
   const { getTemplate } = useTemplates();
 
   const templateName = getCreateRequestAnnotation(resource)?.template_name;
+
+  console.log(templateName);
 
   if (!templateName) {
     return (
@@ -38,7 +43,7 @@ const EditResource: FC<{
                 message: {
                   text: 'No edit information is available for this resource.',
                 },
-                variant: 'danger',
+                severity: 'error',
               },
             ],
           },
@@ -89,9 +94,18 @@ const EditResourcePage: FC<Props> = props => {
     clusterName,
   });
 
+  const { data: pipeline } = useGetPipeline({
+    name,
+    namespace,
+  });
+
   const getEditableResource = () => {
     if (data) {
       return data;
+    }
+    if (pipeline) {
+      // remove type before merging, only using it to work with demo-01
+      return { ...pipeline.pipeline, type: 'Pipeline' };
     }
     if (kind === 'GitopsCluster') {
       return cluster;
@@ -108,7 +122,10 @@ const EditResourcePage: FC<Props> = props => {
           label:
             kind === 'GitopsCluster'
               ? cluster?.name || ''
-              : resource?.name || data?.object?.name || '',
+              : resource?.name ||
+                data?.object?.name ||
+                pipeline?.pipeline?.name ||
+                '',
         },
       ]}
     >

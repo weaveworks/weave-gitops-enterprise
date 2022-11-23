@@ -24,7 +24,8 @@ export const EditButton: React.FC<{
     | Source
     | GetTerraformObjectResponse
     | Pipeline;
-}> = ({ resource }) => {
+  className?: string;
+}> = ({ resource, className }) => {
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
 
   const type =
@@ -69,7 +70,11 @@ export const EditButton: React.FC<{
           clusterName: (resource as GetTerraformObjectResponse)?.object
             ?.clusterName,
         });
-      // add case for Pipeline
+      case 'Pipeline':
+        return formatURL(Routes.EditResource, {
+          name: (resource as Pipeline)?.name,
+          namespace: (resource as Pipeline)?.namespace,
+        });
       default:
         return '';
     }
@@ -81,7 +86,7 @@ export const EditButton: React.FC<{
       style={{ pointerEvents: disabled ? 'none' : 'all' }}
     >
       <Tooltip title={`Edit ${type}`} placement="top">
-        <div>
+        <div className={className}>
           <EditWrapper
             disabled={disabled}
             startIcon={<EditIcon fontSize="small" />}
