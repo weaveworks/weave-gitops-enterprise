@@ -30,8 +30,10 @@ func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	return &templatesPage
 }
 
-type TemplateRecord struct {
+type TemplateInformation struct {
 	Name             string
+	Type             *agouti.Selection
+	Namespace        *agouti.Selection
 	Provider         *agouti.Selection
 	Description      *agouti.Selection
 	CreateTemplate   *agouti.Selection
@@ -39,9 +41,9 @@ type TemplateRecord struct {
 	ErrorDescription *agouti.Selection
 }
 
-func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateRecord {
+func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateInformation {
 	tileNode := webDriver.Find(fmt.Sprintf(`[data-template-name="%s"]`, templateName))
-	return &TemplateRecord{
+	return &TemplateInformation{
 		Name:             templateName,
 		Description:      tileNode.Find(`P[class^=MuiTypography-root]`),
 		CreateTemplate:   tileNode.Find(`#create-cluster`),
@@ -65,18 +67,18 @@ func (t TemplatesPage) CountTemplateRows() int {
 	return count
 }
 
-func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
+func (t TemplatesPage) GetTemplateInformation(webDriver *agouti.Page, templateName string) *TemplateInformation {
 	rowCount, _ := t.TemplatesList.Count()
 	for i := 0; i < rowCount; i++ {
 		tileRow := t.TemplatesList.At(i).FindByXPath(fmt.Sprintf(`//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
 		if count, _ := tileRow.Count(); count == 1 {
-			return &TemplateRecord{
-				Name:             templateName,
-				Provider:         tileRow.FindByXPath(`td[4]`),
-				Description:      tileRow.FindByXPath(`td[5]`),
-				CreateTemplate:   tileRow.FindByXPath(`td[6]//button[@id="create-cluster"]`),
-				ErrorHeader:      tileRow.Find(`.template-error-header`),
-				ErrorDescription: tileRow.Find(`.template-error-description`),
+			return &TemplateInformation{
+				Name:           templateName,
+				Type:           tileRow.FindByXPath(`td[2]`),
+				Namespace:      tileRow.FindByXPath(`td[3]`),
+				Provider:       tileRow.FindByXPath(`td[4]`),
+				Description:    tileRow.FindByXPath(`td[5]`),
+				CreateTemplate: tileRow.FindByXPath(`td[6]//button[@id="create-cluster"]`),
 			}
 		}
 	}

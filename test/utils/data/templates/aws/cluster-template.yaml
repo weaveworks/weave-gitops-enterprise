@@ -1,36 +1,50 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capa-template-development-{{.Count}}
+  name: capa-cluster-template-{{.Count}}
   namespace: default
+  annotations:    
+    templates.weave.works/cost-estimation-enabled: "true"
+    templates.weave.works/profiles-enabled: "false"
+    templates.weave.works/kustomizations-enabled: "false"
+    templates.weave.works/credentials-enabled: "false"
+
 spec:
   description: This is the std. CAPA template {{.Count}}
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
+      required: true
     - name: NAMESPACE
       description: Namespace to create the cluster in.
+      required: true
     - name: AWS_REGION
       description: AWS Region to create cluster
       options: ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "af-south-1", "ap-east-1", "ap-south-1", "ap-northeast-3", "ap-northeast-2", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ca-central-1", "eu-central-1", "eu-west-1", "eu-west-2", "eu-south-1", "eu-west-3", "eu-north-1", "me-south-1", "sa-east-1"]
     - name: AWS_SSH_KEY_NAME
       description: AWS ssh key name
       options: ["weave-gitops-pesto"]
+      required: false
     - name: KUBERNETES_VERSION
       description: The version of Kubernetes to use.
-      options: ["v1.21.1", "v1.22.0", "1.23.3"]
+      options: ["v1.21.1", "v1.22.0", "v1.23.3"]
     - name: AWS_CONTROL_PLANE_MACHINE_TYPE
       description: Control plane machine instane type.
       options: ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge"]
+      default: t3.large
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
       options: ["1", "2", "3", "4", "5"]
     - name: AWS_NODE_MACHINE_TYPE
       description: Node machine instane type.
       options: ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge"]
+      default: t3.large
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
       options: ["1", "2", "3", "4", "5", "6", "7"]
+    - name: COST_ESTIMATION_FILTERS
+      description: "(Optional) DEBUG: Query string of extra filters to use when estimating costs."
+      required: false
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
@@ -47,6 +61,8 @@ spec:
       metadata:
         name: "${CLUSTER_NAME}"
         namespace: "${NAMESPACE}"
+        annotations:
+          "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
         labels:
           cni: calico
       spec:
