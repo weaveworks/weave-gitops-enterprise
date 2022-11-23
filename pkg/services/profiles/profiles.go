@@ -59,8 +59,8 @@ func (s *ProfilesSvc) discoverHelmRepository(ctx context.Context, r ProfilesRetr
 	}
 
 	return types.NamespacedName{
-		Name:      availableProfile.HelmRepository.Name,
-		Namespace: availableProfile.HelmRepository.Namespace,
+		Name:      availableProfile.Repository.Name,
+		Namespace: availableProfile.Repository.Namespace,
 	}, version, nil
 }
 

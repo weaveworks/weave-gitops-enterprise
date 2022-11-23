@@ -13,9 +13,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"k8s.io/client-go/rest"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -598,13 +598,14 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	return string(b), nil
 }
 
-func (c *HTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
-	endpoint := "/v1/profiles"
+func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) ([]profiles.Profile, error) {
+	endpoint := "/v1/charts/list"
 
-	result := &pb.GetProfilesResponse{}
+	result := []profiles.Profile{}
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
+		SetBody(req).
 		SetResult(result).
 		Get(endpoint)
 

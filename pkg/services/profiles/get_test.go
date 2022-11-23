@@ -13,7 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
@@ -68,7 +67,7 @@ var _ = Describe("Get Profile(s)", func() {
 		It("prints the available profiles", func() {
 			client := NewFakeHTTPClient(getProfilesResp, nil)
 
-			Expect(profilesSvc.Get(context.TODO(), client, buffer)).To(Succeed())
+			Expect(profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})).To(Succeed())
 
 			Expect(string(buffer.Contents())).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
 podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
@@ -79,7 +78,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			It("errors", func() {
 				client := NewFakeHTTPClient("not=json", nil)
 
-				err := profilesSvc.Get(context.TODO(), client, buffer)
+				err := profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})
 				Expect(err).To(MatchError(ContainSubstring("failed to unmarshal response")))
 			})
 		})
@@ -88,7 +87,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			It("errors", func() {
 				client := NewFakeHTTPClient("", fmt.Errorf("nope"))
 
-				err := profilesSvc.Get(context.TODO(), client, buffer)
+				err := profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})
 				Expect(err).To(MatchError("unable to retrieve profiles from \"Fake Client\": nope"))
 			})
 		})
@@ -97,7 +96,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			It("errors", func() {
 				client := NewFakeHTTPClient("", &errors.StatusError{ErrStatus: metav1.Status{Code: http.StatusNotFound}})
 
-				err := profilesSvc.Get(context.TODO(), client, buffer)
+				err := profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})
 				Expect(err).To(MatchError("unable to retrieve profiles from \"Fake Client\": status code 404"))
 			})
 		})
@@ -122,7 +121,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 
 			profile, version, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(len(profile.AvailableVersions)).NotTo(BeZero())
+			Expect(len(profile.Versions)).NotTo(BeZero())
 			Expect(version).To(Equal("6.0.1"))
 		})
 
@@ -205,12 +204,12 @@ func (c *FakeHTTPClient) Source() string {
 	return "Fake Client"
 }
 
-func (c *FakeHTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
+func (c *FakeHTTPClient) RetrieveProfiles(req profiles.GetOptions) ([]profiles.Profile, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
 
-	result := &pb.GetProfilesResponse{}
+	result := []profiles.Profile{}
 	data := []byte(c.data)
 
 	err := json.Unmarshal(data, &result)
