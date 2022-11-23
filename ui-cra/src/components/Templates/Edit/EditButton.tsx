@@ -66,8 +66,6 @@ export const EditButton: React.FC<{
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
   const link = getLink(resource);
 
-  console.log(link);
-
   return (
     <Link to={link} style={{ pointerEvents: disabled ? 'none' : 'all' }}>
       <Tooltip title={`Edit ${resource.type}`} placement="top">

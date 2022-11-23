@@ -626,7 +626,6 @@ interface Props {
 }
 
 const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
-  console.log(resource);
   if (!template) {
     return (
       <Redirect

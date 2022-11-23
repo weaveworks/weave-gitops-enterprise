@@ -16,7 +16,7 @@ import { Resource } from './EditButton';
 const EditResource: FC<{
   resource: Resource;
 }> = ({ resource }) => {
-  const { getTemplate } = useTemplates();
+  const { getTemplate, templates } = useTemplates();
 
   const templateName = getCreateRequestAnnotation(resource)?.template_name;
 
