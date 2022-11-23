@@ -130,6 +130,7 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 			DiscoveryClient:        dc,
 			ClustersNamespace:      o.ns,
 			HelmRepositoryCacheDir: t.TempDir(),
+			ProfileHelmRepository:  *o.profileHelmRepository,
 			CAPIEnabled:            o.capiEnabled,
 			RestConfig:             &rest.Config{},
 			ChartJobs:              o.chartJobs,
