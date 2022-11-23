@@ -21,10 +21,11 @@ export type Resource =
 export const getLink = (resource: Resource, type: string) => {
   switch (type) {
     case 'GitopsCluster':
+    case 'Pipeline':
       return formatURL(Routes.EditResource, {
-        name: (resource as GitopsClusterEnriched).name,
-        namespace: (resource as GitopsClusterEnriched).namespace,
-        kind: (resource as GitopsClusterEnriched).type,
+        name: (resource as GitopsClusterEnriched | Pipeline).name,
+        namespace: (resource as GitopsClusterEnriched | Pipeline).namespace,
+        kind: (resource as GitopsClusterEnriched | Pipeline).type,
       });
     case 'GitRepository':
     case 'Bucket':
@@ -43,13 +44,9 @@ export const getLink = (resource: Resource, type: string) => {
       return formatURL(Routes.EditResource, {
         name: (resource as GetTerraformObjectResponse)?.object?.name,
         namespace: (resource as GetTerraformObjectResponse)?.object?.namespace,
+        kind: (resource as GetTerraformObjectResponse)?.object?.type,
         clusterName: (resource as GetTerraformObjectResponse)?.object
           ?.clusterName,
-      });
-    case 'Pipeline':
-      return formatURL(Routes.EditResource, {
-        name: (resource as Pipeline)?.name,
-        namespace: (resource as Pipeline)?.namespace,
       });
     default:
       return '';
