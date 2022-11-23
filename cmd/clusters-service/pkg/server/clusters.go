@@ -620,7 +620,6 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		}
 
 		// Check the version and if empty read the layer from cache.
-		fmt.Println("Layer", v.Layer, "Version", v.Version)
 		if v.Layer == "" {
 			v.Layer, err = args.chartsCache.GetLayer(ctx, args.helmRepositoryCluster, args.helmRepository, v.Name, v.Version)
 			if err != nil {
