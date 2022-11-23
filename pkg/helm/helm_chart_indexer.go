@@ -271,7 +271,7 @@ AND cluster_name = $4 AND cluster_namespace = $5`
 	}
 
 	if len(versions) == 0 {
-		return "hi", nil
+		return "", nil
 	}
 
 	sorted, err := ReverseSemVerSort(versions)

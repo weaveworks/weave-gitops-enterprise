@@ -301,7 +301,7 @@ func TestGetLatestVersion(t *testing.T) {
 
 	version, err := indexer.GetLatestVersion(context.TODO(),
 		nsn("cluster1", "clusters"),
-		nsn("foo-charts", "HelmRepository"),
+		nsn("foo-charts", "team-ns"),
 		"nginx")
 	assert.NoError(t, err)
 	assert.Equal(t, "1.0.3", version)
@@ -320,7 +320,7 @@ func TestGetLatestVersion_NotFound(t *testing.T) {
 
 	version, err := indexer.GetLatestVersion(context.TODO(),
 		nsn("cluster1", "clusters"),
-		nsn("foo-charts", "HelmRepository"),
+		nsn("foo-charts", "team-ns"),
 		"redis")
 	assert.NoError(t, err)
 	assert.Equal(t, "", version)
@@ -339,7 +339,7 @@ func TestGetLayer(t *testing.T) {
 
 	layer, err := indexer.GetLayer(context.TODO(),
 		nsn("cluster1", "clusters"),
-		nsn("foo-charts", "HelmRepository"),
+		nsn("foo-charts", "team-ns"),
 		"nginx",
 		"1.0.1")
 	assert.NoError(t, err)
@@ -359,7 +359,7 @@ func TestGetLayer_NotFound(t *testing.T) {
 
 	layer, err := indexer.GetLayer(context.TODO(),
 		nsn("cluster1", "clusters"),
-		nsn("foo-charts", "HelmRepository"),
+		nsn("foo-charts", "team-ns"),
 		"redis",
 		"1.0.1")
 	assert.NoError(t, err)
