@@ -96,8 +96,9 @@ type ApplicationViolationsList struct {
 
 // AppViolationsMsgInList contains the violation's message element
 type AppViolationsMsgInList struct {
-	AppViolationsMsg          *agouti.Selection
-	PolicyConfigViolationsMsg *agouti.Selection
+	AppViolationMessage *agouti.Selection
+	//AppViolationsMsg          *agouti.Selection
+	//PolicyConfigViolationsMsg *agouti.Selection
 }
 
 // ApplicationViolationsDetailsPage contains all the fields in the app violations details page
@@ -249,7 +250,7 @@ func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolations
 	applicationViolationsList := ApplicationViolationsList{
 		ViolationList:             webDriver.First(`table tbody`),
 		ViolationMessage:          webDriver.FindByXPath(`//h2[normalize-space()='Message']`),
-		ViolationMessageValue:     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		ViolationMessageValue:     webDriver.FirstByXPath(`//td[1]//a`),
 		Severity:                  webDriver.FindByXPath(`(//h2[normalize-space()='Severity'])[1]`),
 		SeverityValue:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		SeverityIcon:              webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root jss55 jss58'])[1]`),
@@ -267,10 +268,11 @@ func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolations
 }
 
 // GetAppViolationsMsgInList returns the violation's message field which we need to press it to open the app violations detail page
-func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
+func GetAppViolationsMsgInList(webDriver *agouti.Page, policyName string) *AppViolationsMsgInList {
 	return &AppViolationsMsgInList{
-		AppViolationsMsg:          webDriver.FirstByXPath(`//td[1]//a`),
-		PolicyConfigViolationsMsg: webDriver.FirstByXPath(`//a[contains(@data-violation-message,'Containers Minimum Replica Count acceptance test')]`),
+		//AppViolationsMsg:          webDriver.FirstByXPath(`//td[1]//a`),
+		//PolicyConfigViolationsMsg: webDriver.FirstByXPath(`//a[contains(@data-violation-message,'Containers Minimum Replica Count acceptance test')]`),
+		AppViolationMessage: webDriver.FirstByXPath(fmt.Sprintf(`//a[contains(@data-violation-message,'%s')]`, policyName)),
 	}
 }
 

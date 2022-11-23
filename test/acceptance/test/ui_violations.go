@@ -200,11 +200,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
-				// installTestPolicies(leafClusterName, policiesYaml)
-				// // Add/Install Policy config to leaf cluster
-				// installPolicyConfig(leafClusterName, policyConfigYaml)
-				// installViolatingDeployment(leafClusterName, deploymentYaml)
-
 				installTestPolicies("management", policiesYaml)
 				// Add/Install Policy config to management cluster
 				installPolicyConfig("management", policyConfigYaml)
