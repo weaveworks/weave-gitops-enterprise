@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -32,7 +33,7 @@ type Options struct {
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	RuntimeNamespace             string
-	ProfileHelmRepository        string
+	ProfileHelmRepository        types.NamespacedName
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	CAPIEnabled                  bool
@@ -129,9 +130,9 @@ func WithRuntimeNamespace(RuntimeNamespace string) Option {
 // WithProfileHelmRepository is used to set the name of the Flux
 // HelmRepository object that will be inspected for Helm charts
 // that include the profile annotation.
-func WithProfileHelmRepository(name string) Option {
+func WithProfileHelmRepository(repo types.NamespacedName) Option {
 	return func(o *Options) {
-		o.ProfileHelmRepository = name
+		o.ProfileHelmRepository = repo
 	}
 }
 
