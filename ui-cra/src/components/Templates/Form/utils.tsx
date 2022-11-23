@@ -2,6 +2,7 @@ import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
+import { Resource } from '../Edit/EditButton';
 
 const yamlConverter = require('js-yaml');
 
@@ -14,30 +15,13 @@ export const maybeParseJSON = (data: string) => {
   }
 };
 
-export const getCreateRequestAnnotation = (
-  resource:
-    | GitopsClusterEnriched
-    | Automation
-    | Source
-    | GetTerraformObjectResponse
-    | Pipeline,
-) => {
-  console.log(resource);
-
+export const getCreateRequestAnnotation = (resource: Resource) => {
   const type =
     (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
     (resource as GetTerraformObjectResponse)?.object?.type ||
     '';
 
-  const getAnnotation = (
-    resource:
-      | GitopsClusterEnriched
-      | Automation
-      | Source
-      | GetTerraformObjectResponse
-      | Pipeline,
-    type: string,
-  ) => {
+  const getAnnotation = (resource: Resource, type: string) => {
     switch (type) {
       case 'GitopsCluster':
         return (resource as GitopsClusterEnriched)?.annotations?.[

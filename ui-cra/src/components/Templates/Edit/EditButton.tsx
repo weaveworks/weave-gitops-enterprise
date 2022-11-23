@@ -11,6 +11,56 @@ import { Routes } from '../../../utils/nav';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 
+export type Resource =
+  | GitopsClusterEnriched
+  | Automation
+  | Source
+  | GetTerraformObjectResponse
+  | Pipeline;
+
+export const getLink = (resource: Resource, type: string) => {
+  switch (type) {
+    case 'GitopsCluster':
+      return formatURL(Routes.EditResource, {
+        name: (resource as GitopsClusterEnriched).name,
+        namespace: (resource as GitopsClusterEnriched).namespace,
+        kind: (resource as GitopsClusterEnriched).type,
+      });
+    case 'GitRepository':
+    case 'Bucket':
+    case 'HelmRepository':
+    case 'HelmChart':
+    case 'Kustomization':
+    case 'HelmRelease':
+    case 'OCIRepository':
+      return formatURL(Routes.EditResource, {
+        name: (resource as Automation | Source).name,
+        namespace: (resource as Automation | Source).namespace,
+        kind: (resource as Automation | Source).type,
+        clusterName: (resource as Automation | Source).clusterName,
+      });
+    case 'Terraform':
+      return formatURL(Routes.EditResource, {
+        name: (resource as GetTerraformObjectResponse)?.object?.name,
+        namespace: (resource as GetTerraformObjectResponse)?.object?.namespace,
+        clusterName: (resource as GetTerraformObjectResponse)?.object
+          ?.clusterName,
+      });
+    case 'Pipeline':
+      return formatURL(Routes.EditResource, {
+        name: (resource as Pipeline)?.name,
+        namespace: (resource as Pipeline)?.namespace,
+      });
+    default:
+      return '';
+  }
+};
+
+export const getType = (resource: Resource) =>
+  (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
+  (resource as GetTerraformObjectResponse)?.object?.type ||
+  '';
+
 const EditWrapper = styled(Button)`
   span {
     margin-right: 0px;
@@ -18,73 +68,16 @@ const EditWrapper = styled(Button)`
 `;
 
 export const EditButton: React.FC<{
-  resource:
-    | GitopsClusterEnriched
-    | Automation
-    | Source
-    | GetTerraformObjectResponse
-    | Pipeline;
+  resource: Resource;
   className?: string;
 }> = ({ resource, className }) => {
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
 
-  const type =
-    (resource as GitopsClusterEnriched | Automation | Source | Pipeline).type ||
-    (resource as GetTerraformObjectResponse)?.object?.type ||
-    '';
-
-  const getLink = (
-    resource:
-      | GitopsClusterEnriched
-      | Automation
-      | Source
-      | GetTerraformObjectResponse
-      | Pipeline,
-    type: string,
-  ) => {
-    switch (type) {
-      case 'GitopsCluster':
-        return formatURL(Routes.EditResource, {
-          name: (resource as GitopsClusterEnriched).name,
-          namespace: (resource as GitopsClusterEnriched).namespace,
-          kind: (resource as GitopsClusterEnriched).type,
-        });
-      case 'GitRepository':
-      case 'Bucket':
-      case 'HelmRepository':
-      case 'HelmChart':
-      case 'Kustomization':
-      case 'HelmRelease':
-      case 'OCIRepository':
-        return formatURL(Routes.EditResource, {
-          name: (resource as Automation | Source).name,
-          namespace: (resource as Automation | Source).namespace,
-          kind: (resource as Automation | Source).type,
-          clusterName: (resource as Automation | Source).clusterName,
-        });
-      case 'Terraform':
-        return formatURL(Routes.EditResource, {
-          name: (resource as GetTerraformObjectResponse)?.object?.name,
-          namespace: (resource as GetTerraformObjectResponse)?.object
-            ?.namespace,
-          clusterName: (resource as GetTerraformObjectResponse)?.object
-            ?.clusterName,
-        });
-      case 'Pipeline':
-        return formatURL(Routes.EditResource, {
-          name: (resource as Pipeline)?.name,
-          namespace: (resource as Pipeline)?.namespace,
-        });
-      default:
-        return '';
-    }
-  };
+  const type = getType(resource);
+  const link = getLink(resource, type);
 
   return (
-    <Link
-      to={getLink(resource, type)}
-      style={{ pointerEvents: disabled ? 'none' : 'all' }}
-    >
+    <Link to={link} style={{ pointerEvents: disabled ? 'none' : 'all' }}>
       <Tooltip title={`Edit ${type}`} placement="top">
         <div className={className}>
           <EditWrapper
