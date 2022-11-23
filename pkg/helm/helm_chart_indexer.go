@@ -260,21 +260,26 @@ AND cluster_name = $4 AND cluster_namespace = $5`
 		return "", fmt.Errorf("failed to query database: %w", err)
 	}
 	defer rows.Close()
-	if !rows.Next() {
-		return "", nil
-	} else {
-		var versions []string
-		if err := rows.Scan(&versions); err != nil {
+
+	var versions []string
+	for rows.Next() {
+		var version string
+		if err := rows.Scan(&version); err != nil {
 			return "", fmt.Errorf("failed to scan database: %w", err)
 		}
-
-		sorted, err := ReverseSemVerSort(versions)
-		if err != nil {
-			return "", fmt.Errorf("retrieving latest version %s: %w", name, err)
-		}
-
-		return sorted[0], nil
+		versions = append(versions, version)
 	}
+
+	if len(versions) == 0 {
+		return "hi", nil
+	}
+
+	sorted, err := ReverseSemVerSort(versions)
+	if err != nil {
+		return "", fmt.Errorf("retrieving latest version %s: %w", name, err)
+	}
+
+	return sorted[0], nil
 }
 
 // GetLayer returns the layer of a chart in a repo and cluster.
