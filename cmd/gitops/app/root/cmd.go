@@ -19,6 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -113,6 +114,7 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options))
+	rootCmd.AddCommand(set.SetCommand(options))
 
 	return rootCmd
 }
