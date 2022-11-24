@@ -22,6 +22,7 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/analytics"
 	analyticsconfig "github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -93,9 +94,7 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 				os.Exit(1)
 			}
 
-			var gitopsConfig *analyticsconfig.GitopsCLIConfig
-
-			gitopsConfig, err = analyticsconfig.GetConfig(false)
+			gitopsConfig, err := analyticsconfig.GetConfig(false)
 			if err != nil {
 				seed := time.Now().UnixNano()
 
@@ -105,6 +104,10 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 				}
 
 				_ = analyticsconfig.SaveConfig(gitopsConfig)
+			}
+
+			if gitopsConfig.Analytics {
+				_ = analytics.TrackCommand(cmd, gitopsConfig.UserID)
 			}
 		},
 	}
