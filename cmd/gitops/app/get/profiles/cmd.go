@@ -35,6 +35,18 @@ func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Comman
 		Example: `
 	# Get all profiles
 	gitops get profiles
+
+	# Get all profiles for a specific cluster
+	gitops get profiles --cluster-name <cluster-name> --cluster-namespace <cluster-namespace>
+
+	# Get all profiles for a specific repository
+	gitops get profiles --repo-name <repo-name> --repo-namespace <repo-namespace> --repo-kind <repo-kind>
+
+	# Get all profiles for a specific repository and cluster
+	gitops get profiles --repo-name <repo-name> --repo-namespace <repo-namespace> --repo-kind <repo-kind> --cluster-name <cluster-name> --cluster-namespace <cluster-namespace>
+
+	# Get all profiles for a specific repository, cluster and kind
+	gitops get profiles --repo-name <repo-name> --repo-namespace <repo-namespace> --repo-kind <repo-kind> --cluster-name <cluster-name> --cluster-namespace <cluster-namespace> --kind <kind>
 	`,
 		PreRunE: getProfilesCmdPreRunE(&opts.Endpoint),
 		RunE:    getProfilesCmdRunE(opts, client),
