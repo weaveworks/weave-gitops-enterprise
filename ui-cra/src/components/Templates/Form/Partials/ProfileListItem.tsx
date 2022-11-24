@@ -9,7 +9,10 @@ import React, {
   useState,
 } from 'react';
 import styled from 'styled-components';
-import { ClusterNamespacedName } from '../../../../cluster-services/cluster_services.pb';
+import {
+  ClusterNamespacedName,
+  RepositoryRef,
+} from '../../../../cluster-services/cluster_services.pb';
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
@@ -24,7 +27,8 @@ const ProfilesListItem: FC<{
   profile: UpdatedProfile;
   context?: string;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
-}> = ({ profile, cluster, setUpdatedProfiles }) => {
+  helmRepo: RepositoryRef;
+}> = ({ profile, cluster, setUpdatedProfiles, helmRepo }) => {
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
@@ -163,6 +167,7 @@ const ProfilesListItem: FC<{
           onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => setOpenYamlPreview(false)}
+          helmRepo={helmRepo}
         />
       )}
     </>

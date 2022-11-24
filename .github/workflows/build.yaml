@@ -7,6 +7,11 @@ on:
         description: "Which helm repo to push to"
         required: true
         type: string
+      gitops_platforms:
+        description: "Platforms for gitops compilation - JSON string e.g '[\"ubuntu-latest\", \"macOS-latest\"]'"
+        required: false
+        default: '["ubuntu-latest"]'
+        type: string
     secrets:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: { required: true }
       WGE_DOCKER_IO_USER: { required: true }
@@ -190,7 +195,7 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]    
+        os: ${{ fromJSON(inputs.gitops_platforms) }}
     steps:
     - name: Install Go
       uses: actions/setup-go@v3.3.1
@@ -227,7 +232,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
     - name: Publish gitops binary to s3 
-      if: ${{ (github.ref_name == 'main') && (github.event_name == 'push') }}
+      if: ${{ (github.ref_name == 'main') && (github.event_name == 'schedule') }}
       run: |
-        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}
         aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}

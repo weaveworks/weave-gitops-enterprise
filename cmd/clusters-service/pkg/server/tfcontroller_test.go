@@ -119,7 +119,6 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				clusterState: tt.clusterState,
 				namespace:    "default",
 				provider:     tt.provider,
-				hr:           hr,
 			})
 
 			// request

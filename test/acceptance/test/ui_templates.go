@@ -40,7 +40,7 @@ func setParameterValues(createPage *pages.CreateCluster, parameters []TemplateFi
 				return visible
 			}
 			gomega.Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(gomega.BeTrue(), fmt.Sprintf("Failed to select parameter option '%s'", parameters[i].Name))
-			gomega.Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(gomega.Succeed())
+			gomega.Eventually(pages.GetOption(webDriver, parameters[i].Option).Click).Should(gomega.Succeed())
 		} else {
 			field := createPage.GetTemplateParameter(webDriver, parameters[i].Name).Field
 			pages.ClearFieldValue(field)
