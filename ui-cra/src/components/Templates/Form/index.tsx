@@ -324,7 +324,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
-  const editLink = getLink(resource);
+  const editLink = resource && getLink(resource);
   const authRedirectPage = resource
     ? editLink
     : `/templates/${template?.name}/create`;
