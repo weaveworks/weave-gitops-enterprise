@@ -316,48 +316,6 @@ func verifyAppSourcePage(applicationInfo *pages.ApplicationInformation, app Appl
 	})
 }
 
-func verifyCreateViolatingApp(cluster ClusterConfig, violatingApp Application) {
-	// Count of existing applications before deploying new application
-	var existingAppCount int
-
-	sourceURL := "https://github.com/stefanprodan/podinfo"
-	addSource("git", violatingApp.Source, violatingApp.Namespace, sourceURL, "master", "")
-
-	appDir := fmt.Sprintf("./clusters/%s/podinfo", cluster.Name)
-	repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-	existingAppCount = getApplicationCount()
-
-	appKustomization := createGitKustomization(violatingApp.Name, violatingApp.Namespace, violatingApp.Path, violatingApp.Source, violatingApp.Namespace, violatingApp.TargetNamespace)
-	defer deleteSource("git", violatingApp.Source, violatingApp.Namespace, "")
-	defer cleanGitRepository(appDir)
-
-	pages.NavigateToPage(webDriver, "Applications")
-	// Declare application page variable
-	applicationsPage := pages.GetApplicationsPage(webDriver)
-	ginkgo.By("And add Kustomization & GitRepository Source manifests pointing to podinfo repository’s master branch)", func() {
-
-		pullGitRepo(repoAbsolutePath)
-		err := runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
-		gomega.Expect(err).Should(gomega.BeNil(), "Failed to add kustomization file for '%s'", violatingApp.Name)
-		gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-	})
-
-	ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
-		gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-		totalAppCount := existingAppCount + 1
-		gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-	})
-
-	verifyAppInformation(applicationsPage, violatingApp, cluster, "Ready")
-
-	applicationInfo := applicationsPage.FindApplicationInList(violatingApp.Name)
-
-	ginkgo.By(fmt.Sprintf("And navigate to %s application page", violatingApp.Name), func() {
-		gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", violatingApp.Name))
-	})
-}
-
 func verifyAppViolationsList(violatingApp Application, violationsData ApplicationViolations) {
 
 	// Declare application details page variable
@@ -1528,7 +1486,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
 					PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
 				}
-				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 				appDir := fmt.Sprintf("./clusters/%s/%s/podinfo", leafCluster.Namespace, leafCluster.Name)
 
 				defer cleanGitRepository(appDir)
@@ -1625,8 +1582,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
 					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
 				})
-
-				verifyAppSourcePage(applicationInfo, podinfo)
 
 				verifyAppViolationsList(podinfo, appViolations)
 				verifyAppViolationsDetailsPage(leafCluster.Name, podinfo, appViolations)
