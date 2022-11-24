@@ -56,13 +56,13 @@ func init() {
 	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
 	CreateCommand.Flags().BoolVar(&flags.skipPreFlightChecks, "skip-preflight-checks", false, "skip preflight checks before creating resources in cluster")
 	CreateCommand.Flags().BoolVar(&flags.Prune, "prune", false, "prunes resources not needed by the config file")
-
-	cobra.CheckErr(CreateCommand.MarkFlagRequired("from-file"))
 }
 
 func applyTenantsCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		var tenancyConfig *tenancy.Config
+		var tenancyConfigObj tenancy.Config
+		tenancyConfig = &tenancyConfigObj
 
 		if flags.fromFile != "" {
 			parsed, err := tenancy.Parse(flags.fromFile)
