@@ -21,10 +21,12 @@ import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/ap
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import {
+  ClusterAutomation,
+  RepositoryRef,
+} from '../../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
-import useProfiles from '../../../contexts/Profiles';
+import useProfiles from '../../../hooks/profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import {
   AppPRPreview,
@@ -69,6 +71,78 @@ const SourceLinkWrapper = styled.div`
   overflow-x: auto;
 `;
 
+interface FormData {
+  url: string;
+  provider: string;
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+  pullRequestDescription: string;
+  source_name: string;
+  source_namespace: string;
+  source: string;
+  source_type: string;
+  source_url: string;
+  source_branch: string;
+  clusterAutomations: {
+    name: string;
+    namespace: string;
+    target_namespace: string;
+    cluster_name: string;
+    cluster_namespace: string;
+    cluster: string;
+    cluster_isControlPlane: boolean;
+    createNamespace: boolean;
+    path: string;
+    source_name: string;
+    source_namespace: string;
+    source: string;
+    source_type: string;
+    source_url: string;
+    source_branch: string;
+  }[];
+}
+
+function getInitialData(
+  callbackState: { state: { formData: FormData } },
+  random: string,
+) {
+  let defaultFormData = {
+    url: '',
+    provider: '',
+    branchName: `add-application-branch-${random}`,
+    pullRequestTitle: 'Add application',
+    commitMessage: 'Add application',
+    pullRequestDescription: 'This PR adds a new application',
+    clusterAutomations: [
+      {
+        name: '',
+        namespace: '',
+        target_namespace: '',
+        cluster_name: '',
+        cluster_namespace: '',
+        cluster: '',
+        cluster_isControlPlane: false,
+        createNamespace: false,
+        path: '',
+        source_name: '',
+        source_namespace: '',
+        source: '',
+        source_type: '',
+        source_url: '',
+        source_branch: '',
+      },
+    ],
+  };
+
+  const initialFormData = {
+    ...defaultFormData,
+    ...callbackState?.state?.formData,
+  };
+
+  return { initialFormData };
+}
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -77,6 +151,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const { data } = useListConfig();
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
+  const [formError, setFormError] = useState<string>('');
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -105,37 +180,27 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const callbackState = useCallbackState();
 
-  let initialFormData = {
-    url: '',
-    provider: '',
-    branchName: `add-application-branch-${random}`,
-    title: 'Add application',
-    commitMessage: 'Add application',
-    pullRequestDescription: 'This PR adds a new application',
-    clusterAutomations: [
-      {
-        name: '',
-        namespace: '',
-        target_namespace: '',
-        cluster_name: '',
-        cluster_namespace: '',
-        cluster: '',
-        cluster_isControlPlane: false,
-        createNamespace: false,
-        path: '',
-        source_name: '',
-        source_namespace: '',
-        source: '',
-        source_type: '',
-        source_url: '',
-        source_branch: '',
-      },
-    ],
-    ...callbackState?.state?.formData,
-  };
+  const { initialFormData } = getInitialData(callbackState, random);
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+  const firstAuto = formData.clusterAutomations[0];
+  const helmRepo: RepositoryRef = useMemo(() => {
+    return {
+      name: firstAuto.source_name,
+      namespace: firstAuto.source_namespace,
+      cluster: {
+        name: firstAuto.cluster_name,
+        namespace: firstAuto.cluster_namespace,
+      },
+    };
+  }, [firstAuto]);
+
+  const { profiles, isLoading: profilesIsLoading } = useProfiles(
+    true,
+    undefined,
+    undefined,
+    helmRepo,
+  );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -317,6 +382,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       .finally(() => setLoading(false));
   }, [formData, history, getKustomizations, setNotifications]);
 
+  const [submitType, setSubmitType] = useState<string>('');
+
   return useMemo(() => {
     return (
       <ThemeProvider theme={localEEMuiTheme}>
@@ -340,11 +407,26 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper>
-              <FormWrapper>
+              <FormWrapper
+                noValidate
+                onSubmit={event =>
+                  validateFormData(
+                    event,
+                    submitType === 'PR Preview'
+                      ? handlePRPreview
+                      : handleAddApplication,
+                    setFormError,
+                    setSubmitType,
+                  )
+                }
+              >
                 <Grid container>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
                     {formData.clusterAutomations.map(
-                      (automation: ClusterAutomation, index: number) => {
+                      (
+                        automation: FormData['clusterAutomations'][0],
+                        index: number,
+                      ) => {
                         return (
                           <AppFields
                             context="app"
@@ -354,6 +436,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                             setFormData={setFormData}
                             allowSelectCluster
                             clusterName={clusterName}
+                            formError={formError}
                           />
                         );
                       },
@@ -385,6 +468,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       isLoading={profilesIsLoading}
                       updatedProfiles={updatedProfiles}
                       setUpdatedProfiles={setUpdatedProfiles}
+                      helmRepo={helmRepo}
                     />
                   ) : null}
                   <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -393,9 +477,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     ) : (
                       <div className="preview-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(event, handlePRPreview)
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('PR Preview')}
                         >
                           PREVIEW PR
                         </Button>
@@ -409,15 +492,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       showAuthDialog={showAuthDialog}
                       setShowAuthDialog={setShowAuthDialog}
                       setEnableCreatePR={setEnableCreatePR}
+                      formError={formError}
                     />
                     {loading ? (
                       <LoadingPage className="create-loading" />
                     ) : (
                       <div className="create-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(event, handleAddApplication)
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('Create app')}
                           disabled={!enableCreatePR}
                         >
                           CREATE PULL REQUEST
@@ -447,11 +530,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     previewLoading,
     clusterName,
     enableCreatePR,
+    helmRepo,
+    formError,
+    submitType,
   ]);
 };
 
-export default ({ ...rest }) => (
-  <ProfilesProvider>
-    <AddApplication {...rest} />
-  </ProfilesProvider>
-);
+export default ({ ...rest }) => <AddApplication {...rest} />;

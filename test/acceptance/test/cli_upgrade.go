@@ -119,7 +119,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I install the entitlement for cluster upgrade", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testScriptsPath, "entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("And secure access to dashboard for dex users", func() {
@@ -181,7 +181,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should install rolebindings for default enterprise roles'", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 				})
 
 				ginkgo.By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {

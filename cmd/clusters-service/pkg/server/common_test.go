@@ -6,10 +6,11 @@ import (
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -18,6 +19,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
@@ -32,6 +35,7 @@ import (
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 )
@@ -61,18 +65,18 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 }
 
 type serverOptions struct {
-	clusterState    []runtime.Object
-	namespace       string
-	provider        git.Provider
-	ns              string
-	hr              *sourcev1.HelmRepository
-	clustersManager clustersmngr.ClustersManager
-	capiEnabled     bool
-	chartsCache     helm.ChartsCacheReader
-	chartJobs       *helm.Jobs
-	valuesFetcher   helm.ValuesFetcher
-	cluster         string
-	estimator       estimation.Estimator
+	clusterState          []runtime.Object
+	namespace             string
+	provider              git.Provider
+	ns                    string
+	profileHelmRepository *types.NamespacedName
+	clustersManager       clustersmngr.ClustersManager
+	capiEnabled           bool
+	chartsCache           helm.ChartsCacheReader
+	chartJobs             *helm.Jobs
+	valuesFetcher         helm.ValuesFetcher
+	cluster               string
+	estimator             estimation.Estimator
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -106,24 +110,35 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 		o.estimator = estimation.NilEstimator()
 	}
 
+	if o.profileHelmRepository == nil {
+		o.profileHelmRepository = &types.NamespacedName{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		}
+	}
+
+	if o.cluster == "" {
+		o.cluster = "management"
+	}
+
 	return NewClusterServer(
 		ServerOpts{
-			Logger:                    logr.Discard(),
-			ClustersManager:           o.clustersManager,
-			GitProvider:               o.provider,
-			ClientGetter:              kubefakes.NewFakeClientGetter(c),
-			DiscoveryClient:           dc,
-			ClustersNamespace:         o.ns,
-			ProfileHelmRepositoryName: "weaveworks-charts",
-			HelmRepositoryCacheDir:    t.TempDir(),
-			CAPIEnabled:               o.capiEnabled,
-			RestConfig:                &rest.Config{},
-			ChartJobs:                 o.chartJobs,
-			ChartsCache:               o.chartsCache,
-			ValuesFetcher:             o.valuesFetcher,
-			ManagementFetcher:         mgmtFetcher,
-			Cluster:                   o.cluster,
-			Estimator:                 o.estimator,
+			Logger:                 testr.New(t),
+			ClustersManager:        o.clustersManager,
+			GitProvider:            o.provider,
+			ClientGetter:           kubefakes.NewFakeClientGetter(c),
+			DiscoveryClient:        dc,
+			ClustersNamespace:      o.ns,
+			HelmRepositoryCacheDir: t.TempDir(),
+			ProfileHelmRepository:  *o.profileHelmRepository,
+			CAPIEnabled:            o.capiEnabled,
+			RestConfig:             &rest.Config{},
+			ChartJobs:              o.chartJobs,
+			ChartsCache:            o.chartsCache,
+			ValuesFetcher:          o.valuesFetcher,
+			ManagementFetcher:      mgmtFetcher,
+			Cluster:                o.cluster,
+			Estimator:              o.estimator,
 		},
 	)
 }
@@ -144,6 +159,9 @@ func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) *clus
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeCluster := &clusterfakes.FakeCluster{}
+	fakeCluster.GetNameReturns("management")
+	fakeFactory.GetClustersReturns([]cluster.Cluster{fakeCluster})
 	return fakeFactory
 }
 
@@ -223,14 +241,14 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 		"metadata":{
 		   "name":"${RESOURCE_NAME}",
 		   "annotations":{
-			  "clustertemplates.weave.works/display-name":"ClusterName"
+			  "templates.weave.works/display-name":"ClusterName"
 		   }
 		}
 	 }`
 	ct := &gapiv1.GitOpsTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       gapiv1.Kind,
-			APIVersion: "clustertemplates.weave.works/v1alpha1",
+			APIVersion: "templates.weave.works/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",
@@ -328,4 +346,23 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 		o(event)
 	}
 	return event
+}
+
+func testNewFakeChartCache(t *testing.T, clusterRef types.NamespacedName, repoRef helm.ObjectReference, charts []helm.Chart) helmfakes.FakeChartCache {
+	fc := helmfakes.NewFakeChartCache(helmfakes.WithCharts(
+		helmfakes.ClusterRefToString(
+			repoRef,
+			clusterRef,
+		),
+		charts,
+	))
+
+	return fc
+}
+
+func nsn(name, namespace string) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
 }

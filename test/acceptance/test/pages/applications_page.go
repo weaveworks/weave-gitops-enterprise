@@ -41,6 +41,7 @@ type ApplicationDetailPage struct {
 }
 
 type ApplicationDetail struct {
+	Kind              *agouti.Selection
 	Source            *agouti.Selection
 	Chart             *agouti.Selection
 	ChartVersion      *agouti.Selection
@@ -190,7 +191,8 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 	reconcileDetails := webDriver.FindByXPath(`//div[contains(@class, "ReconciledObjectsTable")]//table/tbody//td[2][.="Deployment"]/ancestor::tr`)
 
 	return &ApplicationDetail{
-		Source:            autoDetails.FindByXPath(`tr[1]/td[2]`),
+		Kind:              autoDetails.FindByXPath(`tr[contains(.,"Kind:")]/td[2]`),
+		Source:            autoDetails.FindByXPath(`tr[contains(.,"Source:")]/td[2]`),
 		Chart:             autoDetails.FindByXPath(`tr[contains(.,"Chart:")]/td[2]`),
 		ChartVersion:      autoDetails.FindByXPath(`tr[contains(.,"Chart Version")]/td[2]`),
 		AppliedRevision:   autoDetails.FindByXPath(`tr[contains(.,"Applied Revision")]/td[2]`),

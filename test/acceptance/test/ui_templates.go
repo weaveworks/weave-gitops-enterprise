@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -39,7 +40,7 @@ func setParameterValues(createPage *pages.CreateCluster, parameters []TemplateFi
 				return visible
 			}
 			gomega.Eventually(selectOption, ASSERTION_DEFAULT_TIME_OUT).Should(gomega.BeTrue(), fmt.Sprintf("Failed to select parameter option '%s'", parameters[i].Name))
-			gomega.Expect(pages.GetOption(webDriver, parameters[i].Option).Click()).To(gomega.Succeed())
+			gomega.Eventually(pages.GetOption(webDriver, parameters[i].Option).Click).Should(gomega.Succeed())
 		} else {
 			field := createPage.GetTemplateParameter(webDriver, parameters[i].Name).Field
 			pages.ClearFieldValue(field)
@@ -61,6 +62,22 @@ func selectCredentials(createPage *pages.CreateCluster, credentialName string, c
 		return strings.Contains(credentialText, credentialName)
 	}
 	gomega.Eventually(selectCredential, ASSERTION_30SECONDS_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue())
+}
+
+func addKustomizationManifests(manifestYamls []string) string {
+	manifestPath := "./apps"
+	ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
+		repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+		pullGitRepo(repoAbsolutePath)
+
+		for _, yaml := range manifestYamls {
+			manifest := path.Join(testDataPath, yaml)
+			_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", manifest, path.Join(repoAbsolutePath, manifestPath, strings.TrimSuffix(filepath.Base(yaml), filepath.Ext(yaml)))))
+		}
+
+		gitUpdateCommitPush(repoAbsolutePath, "Adding application kustomization manifests")
+	})
+	return manifestPath
 }
 
 func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
@@ -85,7 +102,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.Context("[UI] When no Capi Templates are available in the cluster", func() {
 			ginkgo.It("Verify template page renders no capiTemplate", ginkgo.Label("integration"), func() {
 				ginkgo.By("And wait for  good looking response from /v1/templates", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "templates", POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/templates")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: "templates"}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/templates")
 				})
 
 				navigateToTemplatesGrid(webDriver)
@@ -225,7 +242,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should choose a template from the default table view", func() {
-					templateRow := templatesPage.GetTemplateRow(webDriver, "cluster-template-10")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "cluster-template-10")
+					gomega.Eventually(templateRow.Type).Should(matchers.MatchText(""))
+					gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"))
 					gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
 					gomega.Eventually(templateRow.Description).Should(matchers.MatchText("This is test template 10"))
 					gomega.Expect(templateRow.CreateTemplate).Should(matchers.BeFound())
@@ -261,7 +280,9 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And User should see message informing user of the invalid template in the cluster - table view", func() {
-					templateRow := templatesPage.GetTemplateRow(webDriver, "cluster-invalid-template-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "cluster-invalid-template-0")
+					gomega.Eventually(templateRow.Type).Should(matchers.MatchText(""))
+					gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"))
 					gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
 					gomega.Eventually(templateRow.Description).Should(matchers.MatchText("Couldn't load template body"))
 					gomega.Expect(templateRow.CreateTemplate).ShouldNot(matchers.BeEnabled())
@@ -315,7 +336,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should choose a template - table view", func() {
-					templateRow := templatesPage.GetTemplateRow(webDriver, "eks-fargate-template-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "eks-fargate-template-0")
 					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -670,7 +691,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed(), "Failed to click 'CREATE PULL REQUEST' button")
 				})
 
-				ginkgo.By("Then I should not see pull request to be created", func() {
+				ginkgo.By("Then I should not see pull request error creation message", func() {
 					gomega.Eventually(messages.Error).Should(matchers.MatchText(fmt.Sprintf(`unable to create pull request.+unable to create new branch "%s"`, branchName)))
 				})
 			})
@@ -679,13 +700,13 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
 			ginkgo.It("Verify no credentials exists in management cluster", ginkgo.Label("integration", "git"), func() {
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/aws/cluster-template-eks.yaml")
 				})
 
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
+					templateTile := pages.GetTemplateTile(webDriver, "capa-cluster-template-eks-0")
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -915,6 +936,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			var crsConfigmap string
 			var downloadedKubeconfigPath string
 			var capdCluster ClusterConfig
+			var appSourcePath string
 
 			clusterNamespace := map[string]string{
 				GitProviderGitLab: "capi-test-system",
@@ -946,7 +968,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				reconcile("suspend", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 				// Force clean the repository directory for subsequent tests
 				cleanGitRepository(clusterPath)
-				cleanGitRepository(path.Join("./clusters", capdCluster.Namespace, capdCluster.Name))
+				cleanGitRepository(path.Join("./clusters", capdCluster.Namespace))
+				cleanGitRepository(appSourcePath)
 				// Force delete capicluster incase delete PR fails to delete to free resources
 				removeGitopsCapiClusters([]ClusterConfig{capdCluster})
 				reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
@@ -954,17 +977,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("smoke", "integration", "capd", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-
-				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
-					pullGitRepo(repoAbsolutePath)
-					postgres := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", postgres, path.Join(repoAbsolutePath, "apps/postgres")))
-
-					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-manifest.yaml")
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
-
-					gitUpdateCommitPush(repoAbsolutePath, "Adding postgres kustomization")
-				})
+				appSourcePath = addKustomizationManifests([]string{"postgres-manifest.yaml", "podinfo-manifest.yaml"})
 
 				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
@@ -973,7 +986,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				ginkgo.By("And User should choose a template", func() {
@@ -1065,7 +1078,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Name:            "postgres",
 					Namespace:       GITOPS_DEFAULT_NAMESPACE,
 					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
-					Path:            "apps/postgres",
+					Path:            "apps/postgres-manifest",
 				}
 				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 				application := pages.GetAddApplication(webDriver, 1)
@@ -1076,7 +1089,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Name:            "podinfo",
 					Namespace:       GITOPS_DEFAULT_NAMESPACE,
 					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
-					Path:            "apps/podinfo",
+					Path:            "apps/podinfo-manifest",
 				}
 				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 				application = pages.GetAddApplication(webDriver, 2)
@@ -1234,17 +1247,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify CAPI cluster resource can be modified/edited", ginkgo.Label("integration", "capd", "git"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-
-				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch)", func() {
-					pullGitRepo(repoAbsolutePath)
-					postgres := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", postgres, path.Join(repoAbsolutePath, "apps/postgres")))
-
-					podinfo := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "podinfo-manifest.yaml")
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfo, path.Join(repoAbsolutePath, "apps/podinfo")))
-
-					gitUpdateCommitPush(repoAbsolutePath, "Adding postgres kustomization")
-				})
+				appSourcePath = addKustomizationManifests([]string{"postgres-manifest.yaml", "podinfo-manifest.yaml"})
 
 				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
@@ -1253,7 +1256,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				ginkgo.By("And User should choose a template", func() {
@@ -1344,7 +1347,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Name:            "postgres",
 					Namespace:       GITOPS_DEFAULT_NAMESPACE,
 					TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
-					Path:            "apps/postgres",
+					Path:            "apps/postgres-manifest",
 				}
 				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 				application := pages.GetAddApplication(webDriver, 1)
@@ -1464,7 +1467,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					Name:            "podinfo",
 					Namespace:       GITOPS_DEFAULT_NAMESPACE,
 					TargetNamespace: "test-system",
-					Path:            "apps/podinfo",
+					Path:            "apps/podinfo-manifest",
 				}
 				gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 				application = pages.GetAddApplication(webDriver, 1)
@@ -1553,7 +1556,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustAfterEach(func() {
 				ginkgo.By("When I apply the valid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testScriptsPath, "entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
@@ -1573,7 +1576,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify cluster service acknowledges the entitlement presences", ginkgo.Label("integration"), func() {
 
 				ginkgo.By("When I delete the entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to delete entitlement secret")
+					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(testScriptsPath, "entitlement-secret.yaml")), "Failed to delete entitlement secret")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
@@ -1586,7 +1589,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the expired entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
@@ -1598,7 +1601,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the invalid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {

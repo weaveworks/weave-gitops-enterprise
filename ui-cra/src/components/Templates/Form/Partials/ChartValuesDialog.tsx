@@ -21,10 +21,12 @@ import {
   ClusterNamespacedName,
   GetChartsJobResponse,
   GetValuesForChartResponse,
+  RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../../../../contexts/EnterpriseClient';
-import useProfiles from '../../../../contexts/Profiles';
+
 import { UpdatedProfile } from '../../../../types/custom';
+import { DEFAULT_PROFILE_REPO } from '../../../../utils/config';
 import { Loader } from '../../../Loader';
 
 const xs = weaveTheme.spacing.xs;
@@ -45,11 +47,19 @@ const ChartValuesDialog: FC<{
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
   onSave: () => void;
   onClose: () => void;
-}> = ({ profile, yaml, version, cluster, onChange, onSave, onClose }) => {
+  helmRepo: RepositoryRef;
+}> = ({
+  profile,
+  yaml,
+  version,
+  cluster,
+  onChange,
+  onSave,
+  onClose,
+  helmRepo,
+}) => {
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
-
-  const { helmRepo } = useProfiles();
 
   const {
     isLoading: jobLoading,
@@ -60,9 +70,9 @@ const ChartValuesDialog: FC<{
     () =>
       api.GetValuesForChart({
         repository: {
-          cluster: cluster || { name: 'management' },
-          name: helmRepo.name || 'weaveworks-charts',
-          namespace: helmRepo.namespace || 'flux-system',
+          cluster: cluster || DEFAULT_PROFILE_REPO.cluster,
+          name: helmRepo.name || DEFAULT_PROFILE_REPO.name,
+          namespace: helmRepo.namespace || DEFAULT_PROFILE_REPO.namespace,
         },
         name: profile.name,
         version,

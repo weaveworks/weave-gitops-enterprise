@@ -27,8 +27,8 @@ import {
   ProfileValues,
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
-import useProfiles from '../../../contexts/Profiles';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
+import useProfiles from '../../../hooks/profiles';
+
 import useTemplates from '../../../hooks/templates';
 import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -41,6 +41,7 @@ import {
 import { utf8_to_b64 } from '../../../utils/base64';
 import { useCallbackState } from '../../../utils/callback-state';
 import {
+  DEFAULT_PROFILE_REPO,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
@@ -273,7 +274,26 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredentials,
   );
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+
+  // get the cost estimate feature flag
+  const { data: featureFlagsData } = useFeatureFlags();
+
+  const isCredentialEnabled =
+    annotations?.['templates.weave.works/credentials-enabled'] === 'true';
+  const isProfilesEnabled =
+    annotations?.['templates.weave.works/profiles-enabled'] === 'true';
+  const isKustomizationsEnabled =
+    annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
+  const isCostEstimationEnabled =
+    featureFlagsData?.flags?.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
+    annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
+
+  const { profiles, isLoading: profilesIsLoading } = useProfiles(
+    isProfilesEnabled,
+    template,
+    resource || undefined,
+    DEFAULT_PROFILE_REPO,
+  );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => {
@@ -304,19 +324,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-
-  // get the cost estimate feature flag
-  const { data: featureFlagsData } = useFeatureFlags();
-
-  const isCredentialEnabled =
-    annotations?.['templates.weave.works/credentials-enabled'] !== 'false';
-  const isProfilesEnabled =
-    annotations?.['templates.weave.works/profiles-enabled'] !== 'false';
-  const isKustomizationsEnabled =
-    annotations?.['templates.weave.works/kustomizations-enabled'] !== 'false';
-  const isCostEstimationEnabled =
-    featureFlagsData?.flags?.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
-    annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
+  const [formError, setFormError] = useState<string>('');
 
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
@@ -473,6 +481,24 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setCostEstimate('00.00 USD');
   }, [formData.parameterValues]);
 
+  const [submitType, setSubmitType] = useState<string>('');
+
+  const getSubmitFunction = useCallback(
+    (submitType?: string) => {
+      switch (submitType) {
+        case 'PR Preview':
+          return handlePRPreview;
+        case 'Create resource':
+          return handleAddResource;
+        case 'Get cost estimation':
+          return handleCostEstimation;
+        default:
+          return;
+      }
+    },
+    [handleAddResource, handleCostEstimation, handlePRPreview],
+  );
+
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -485,7 +511,17 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper>
+        <FormWrapper
+          noValidate
+          onSubmit={event =>
+            validateFormData(
+              event,
+              getSubmitFunction(submitType),
+              setFormError,
+              setSubmitType,
+            )
+          }
+        >
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper>
               <div className="template-title">
@@ -507,6 +543,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               template={template}
               formData={formData}
               setFormData={setFormData}
+              formError={formError}
             />
           </Grid>
           {isProfilesEnabled ? (
@@ -514,6 +551,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               isLoading={profilesIsLoading}
               updatedProfiles={updatedProfiles}
               setUpdatedProfiles={setUpdatedProfiles}
+              helmRepo={DEFAULT_PROFILE_REPO}
             />
           ) : null}
           <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -521,6 +559,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <ApplicationsWrapper
                 formData={formData}
                 setFormData={setFormData}
+                formError={formError}
               />
             ) : null}
             {previewLoading ? (
@@ -528,7 +567,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             ) : (
               <div className={classes.previewCta}>
                 <Button
-                  onClick={event => validateFormData(event, handlePRPreview)}
+                  type="submit"
+                  onClick={() => setSubmitType('PR Preview')}
                 >
                   PREVIEW PR
                 </Button>
@@ -549,6 +589,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 costEstimate={costEstimate}
                 isCostEstimationLoading={costEstimationLoading}
                 costEstimateMessage={costEstimateMessage}
+                setFormError={setFormError}
+                setSubmitType={setSubmitType}
               />
             ) : null}
           </Grid>
@@ -559,13 +601,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
+              formError={formError}
             />
             {loading ? (
               <LoadingPage className="create-loading" />
             ) : (
               <div className="create-cta">
                 <Button
-                  onClick={event => validateFormData(event, handleAddResource)}
+                  type="submit"
+                  onClick={() => setSubmitType('Create resource')}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
@@ -588,8 +632,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
-    handlePRPreview,
-    handleAddResource,
     updatedProfiles,
     previewLoading,
     loading,
@@ -602,6 +644,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
+    formError,
+    submitType,
+    getSubmitFunction,
   ]);
 };
 
@@ -634,9 +679,7 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <ProfilesProvider cluster={resource || undefined} template={template}>
-        <ResourceForm template={template} resource={resource || undefined} />
-      </ProfilesProvider>
+      <ResourceForm template={template} resource={resource || undefined} />
     </ThemeProvider>
   );
 };

@@ -1,23 +1,40 @@
 import _ from 'lodash';
-import { FC, useContext, useMemo, useState } from 'react';
+import { useContext, useMemo } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListChartsForRepositoryResponse,
   RepositoryChart,
+  RepositoryRef,
   Template,
-} from '../../cluster-services/cluster_services.pb';
-import { maybeParseJSON } from '../../components/Templates/Form/utils';
+} from '../cluster-services/cluster_services.pb';
+import { maybeParseJSON } from '../components/Templates/Form/utils';
+import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import {
   GitopsClusterEnriched,
   ProfilesIndex,
   TemplateEnriched,
   UpdatedProfile,
-} from '../../types/custom';
-import { maybeFromBase64 } from '../../utils/base64';
-import { formatError } from '../../utils/formatters';
-import { EnterpriseClientContext } from '../EnterpriseClient';
-import useNotifications from './../Notifications';
-import { Profiles } from './index';
+} from '../types/custom';
+import { maybeFromBase64 } from '../utils/base64';
+import { formatError } from '../utils/formatters';
+import useNotifications from '../contexts/Notifications';
+
+interface AnnotationData {
+  commit_message: string;
+  credentials: Credential;
+  description: string;
+  head_branch: string;
+  parameter_values: { [key: string]: string };
+  template_name: string;
+  title: string;
+  values: {
+    name: string;
+    selected: boolean;
+    namespace: string;
+    values: string;
+    version: string;
+  }[];
+}
 
 const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
   return profiles.find(p => p.name === name)?.layer;
@@ -106,28 +123,6 @@ const setVersionAndValuesFromTemplate = (
   return [...optionalProfiles, ...defaultProfiles];
 };
 
-interface Props {
-  template?: TemplateEnriched;
-  cluster?: GitopsClusterEnriched;
-}
-
-interface AnnotationData {
-  commit_message: string;
-  credentials: Credential;
-  description: string;
-  head_branch: string;
-  parameter_values: { [key: string]: string };
-  template_name: string;
-  title: string;
-  values: {
-    name: string;
-    selected: boolean;
-    namespace: string;
-    values: string;
-    version: string;
-  }[];
-}
-
 const setVersionAndValuesFromCluster = (
   profiles: UpdatedProfile[],
   clusterData: AnnotationData,
@@ -182,14 +177,13 @@ const mergeClusterAndTemplate = (
   return profiles;
 };
 
-const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
+const useProfiles = (
+  enabled: boolean,
+  template: TemplateEnriched | undefined,
+  cluster: GitopsClusterEnriched | undefined,
+  helmRepo: RepositoryRef,
+) => {
   const { setNotifications } = useNotifications();
-  const [helmRepo, setHelmRepo] = useState<{
-    name: string;
-    namespace: string;
-    clusterName: string;
-    clusterNamespace: string;
-  }>({ name: '', namespace: '', clusterName: '', clusterNamespace: '' });
 
   const { api } = useContext(EnterpriseClientContext);
 
@@ -203,24 +197,25 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
       'profiles',
       helmRepo.name,
       helmRepo.namespace,
-      helmRepo.clusterName,
-      helmRepo.clusterNamespace,
+      helmRepo.cluster?.name,
+      helmRepo.cluster?.namespace,
     ],
     () =>
       api.ListChartsForRepository({
         repository: {
           name: helmRepo.name || 'weaveworks-charts',
           namespace: helmRepo.namespace || 'flux-system',
-          cluster: helmRepo.clusterName
+          cluster: helmRepo.cluster
             ? {
-                name: helmRepo.clusterName,
-                namespace: helmRepo.clusterNamespace,
+                name: helmRepo.cluster?.name,
+                namespace: helmRepo.cluster?.namespace,
               }
             : { name: 'management' },
         },
       }),
     {
       onError,
+      enabled,
     },
   );
 
@@ -234,18 +229,9 @@ const ProfilesProvider: FC<Props> = ({ template, cluster, children }) => {
     [data, template, clusterData],
   );
 
-  return (
-    <Profiles.Provider
-      value={{
-        isLoading,
-        helmRepo,
-        setHelmRepo,
-        profiles,
-      }}
-    >
-      {children}
-    </Profiles.Provider>
-  );
+  return {
+    isLoading,
+    profiles,
+  };
 };
-
-export default ProfilesProvider;
+export default useProfiles;

@@ -46,9 +46,18 @@ func (v ViolationsPage) FindViolationInList(violationMsg string) *ViolationInfor
 	}
 }
 
-func (v ViolationsPage) CountViolations() int {
-	violations := v.ViolationList.All("tr")
-	count, _ := violations.Count()
+func (v ViolationsPage) CountViolations(clusterName ...string) int {
+	count := 0
+
+	if len(clusterName) > 0 {
+		violations := v.ViolationList.AllByXPath(fmt.Sprintf(`//tr//td[contains(.,"%s")]`, clusterName[0]))
+
+		count, _ = violations.Count()
+	} else {
+		violations := v.ViolationList.All("tr")
+		count, _ = violations.Count()
+	}
+
 	return count
 }
 
