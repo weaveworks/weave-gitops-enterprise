@@ -255,7 +255,7 @@ func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolations
 		SeverityValue:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		SeverityIcon:              webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root jss55 jss58'])[1]`),
 		ViolatedPolicy:            webDriver.FindByXPath(`(//h2[normalize-space()='Violated Policy'])[1]`),
-		ViolatedPolicyValue:       webDriver.FindByXPath(`//tbody/tr[1]/td[1]/span[1]`),
+		ViolatedPolicyValue:       webDriver.FindByXPath(`//tbody/tr[1]/td[3]/span[1]`),
 		ViolationTime:             webDriver.FindByXPath(`(//h2[normalize-space()='Violation Time'])[1]`),
 		ViolationTimeValue:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
 		ViolationTimeValueSorting: webDriver.FindByXPath(`(//*[name()='path'])[25]`),
