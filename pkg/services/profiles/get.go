@@ -12,7 +12,7 @@ import (
 
 type ProfilesRetriever interface {
 	Source() string
-	RetrieveProfiles(GetOptions) ([]Profile, error)
+	RetrieveProfiles(GetOptions) (Profiles, error)
 }
 
 type GetOptions struct {
@@ -45,6 +45,10 @@ type Profile struct {
 	Repository RepositoryRef `json:"repository,omitempty"`
 }
 
+type Profiles struct {
+	Profiles []Profile `json:"profiles,omitempty"`
+}
+
 func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer, opts GetOptions) error {
 
 	profiles, err := r.RetrieveProfiles(opts)
@@ -56,7 +60,7 @@ func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer,
 		return fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
 
-	printProfiles(profiles, w)
+	printProfiles(profiles.Profiles, w)
 
 	return nil
 }
@@ -72,7 +76,7 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts 
 
 	var version string
 
-	for _, p := range profilesList {
+	for _, p := range profilesList.Profiles {
 		if p.Name == opts.Name {
 			if len(p.Versions) == 0 {
 				return Profile{}, "", fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)

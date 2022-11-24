@@ -598,10 +598,10 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	return string(b), nil
 }
 
-func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) ([]profiles.Profile, error) {
+func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profiles, error) {
 	endpoint := "/v1/charts/list"
 
-	result := []profiles.Profile{}
+	result := profiles.Profiles{}
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
@@ -610,11 +610,11 @@ func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) ([]profiles.Profi
 		Get(endpoint)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
+		return result, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
 	}
 
 	if res.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+		return result, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
 	return result, nil

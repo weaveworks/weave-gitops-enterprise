@@ -18,37 +18,26 @@ import (
 )
 
 const getProfilesResp = `{
-  "profiles": [
-    {
-      "name": "podinfo",
-      "home": "https://github.com/stefanprodan/podinfo",
-      "sources": [
-        "https://github.com/stefanprodan/podinfo"
-      ],
-      "description": "Podinfo Helm chart for Kubernetes",
-      "keywords": [],
-      "maintainers": [
-        {
-          "name": "stefanprodan",
-          "email": "stefanprodan@users.noreply.github.com",
-          "url": ""
-        }
-      ],
-      "icon": "",
-      "annotations": {},
-      "kubeVersion": ">=1.19.0-0",
-      "helmRepository": {
-		  "name": "podinfo",
-		  "namespace": "weave-system"
-	  },
-      "availableVersions": [
-        "6.0.0",
-        "6.0.1"
-      ]
-    }
-  ]
-}
-`
+	"profiles": [
+		{
+			"name": "podinfo",
+			"versions": [
+				"6.0.0",
+				"6.0.1"
+			],
+			"layer": "default",
+			"repository": {
+				"name": "weaveworks-charts",
+				"namespace": "flux-system",
+				"kind": "HelmRepository",
+				"cluster": {
+					"name": "dev",
+					"namespace": "default"
+				}
+			}
+		}
+	]
+}`
 
 var _ = Describe("Get Profile(s)", func() {
 	var (
@@ -69,8 +58,8 @@ var _ = Describe("Get Profile(s)", func() {
 
 			Expect(profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})).To(Succeed())
 
-			Expect(string(buffer.Contents())).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
-podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
+			Expect(string(buffer.Contents())).To(Equal(`NAME	AVAILABLE_VERSIONS	LAYER
+podinfo	6.0.0,6.0.1	default
 `))
 		})
 
@@ -170,14 +159,20 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 				"profiles": [
 				  {
 					"name": "podinfo",
-					"helmRepository": {
-						"name": "",
-						"namespace": ""
-					},
-					"availableVersions": [
+					"versions": [
 					  "6.0.0",
 					  "6.0.1"
-					]
+					],
+					"layer": "default",
+					"repository": {
+						"name": "",
+						"namespace": "",
+						"kind": "HelmRepository",
+						"cluster": {
+							"name": "dev",
+							"namespace": "default"
+						}
+					}
 				  }
 				]
 			  }
@@ -204,17 +199,17 @@ func (c *FakeHTTPClient) Source() string {
 	return "Fake Client"
 }
 
-func (c *FakeHTTPClient) RetrieveProfiles(req profiles.GetOptions) ([]profiles.Profile, error) {
+func (c *FakeHTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profiles, error) {
 	if c.err != nil {
-		return nil, c.err
+		return profiles.Profiles{}, c.err
 	}
 
-	result := []profiles.Profile{}
+	result := profiles.Profiles{}
 	data := []byte(c.data)
 
 	err := json.Unmarshal(data, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response")
+		return profiles.Profiles{}, fmt.Errorf("failed to unmarshal response")
 	}
 
 	return result, nil
