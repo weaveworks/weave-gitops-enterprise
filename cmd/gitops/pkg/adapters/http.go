@@ -63,7 +63,7 @@ func (c *HTTPClient) ConfigureClientWithOptions(opts *config.Options, out io.Wri
 
 	c.baseURI = u
 
-	c.client = c.client.SetHostURL(u.String()).
+	c.client = c.client.SetBaseURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if r.StatusCode() >= http.StatusInternalServerError {
 				fmt.Fprintf(out, "Server error: %s\n", r.Body())
