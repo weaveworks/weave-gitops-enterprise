@@ -10,7 +10,11 @@ import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading, error } = useListFluxRuntimeObjects();
-  const { data: crds, isLoading: crdsLoading, error: crdsError } = useListFluxCrds();
+  const {
+    data: crds,
+    isLoading: crdsLoading,
+    error: crdsError,
+  } = useListFluxCrds();
 
   const errors = _.compact([
     ...(data?.errors || []),
@@ -25,12 +29,11 @@ const WGApplicationsFluxRuntime: FC = () => {
       path={[
         {
           label: 'Flux Runtime',
-          url: '/flux_runtime',
         },
       ]}
     >
       <ContentWrapper errors={errors} loading={isLoading || crdsLoading}>
-        <FluxRuntime deployments={data?.deployments} crds={crds?.crds} />
+        <FluxRuntime deployments={data?.deployments} crds={crds?.crds} supportMultipleFlux/>
       </ContentWrapper>
     </PageTemplate>
   );
