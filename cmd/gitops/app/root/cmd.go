@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -21,6 +22,8 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/analytics"
+	analyticsconfig "github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"k8s.io/client-go/rest"
@@ -89,6 +92,22 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 				os.Exit(1)
+			}
+
+			gitopsConfig, err := analyticsconfig.GetConfig(false)
+			if err != nil {
+				seed := time.Now().UnixNano()
+
+				gitopsConfig = &analyticsconfig.GitopsCLIConfig{
+					UserID:    analyticsconfig.GenerateUserID(10, seed),
+					Analytics: true,
+				}
+
+				_ = analyticsconfig.SaveConfig(gitopsConfig)
+			}
+
+			if gitopsConfig.Analytics {
+				_ = analytics.TrackCommand(cmd, gitopsConfig.UserID)
 			}
 		},
 	}
