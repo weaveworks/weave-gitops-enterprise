@@ -35,8 +35,8 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
       case 'Terraform':
       case 'Pipeline':
         return yamlConverter.load(
-          (resource as GetTerraformObjectResponse | Pipeline).yaml,
-        ).metadata.annotations['templates.weave.works/create-request'];
+          (resource as GetTerraformObjectResponse | Pipeline)?.yaml,
+        )?.metadata?.annotations?.['templates.weave.works/create-request'];
       default:
         return '';
     }

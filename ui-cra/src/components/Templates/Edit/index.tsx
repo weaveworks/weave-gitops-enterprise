@@ -16,7 +16,7 @@ import { Resource } from './EditButton';
 const EditResource: FC<{
   resource: Resource;
 }> = ({ resource }) => {
-  const { getTemplate, templates } = useTemplates();
+  const { getTemplate } = useTemplates();
 
   const templateName = getCreateRequestAnnotation(resource)?.template_name;
 
@@ -55,6 +55,7 @@ type Props = {
 const EditResourcePage: FC<Props> = props => {
   const { isLoading: isTemplateLoading } = useTemplates();
   const { name, namespace, kind, clusterName } = props;
+
   const { data: resource, isLoading } = useGetObject(
     name,
     namespace,
@@ -62,14 +63,7 @@ const EditResourcePage: FC<Props> = props => {
     clusterName,
     {
       enabled:
-        kind ===
-        ('GitRepository' ||
-          'Bucket' ||
-          'HelmRepository' ||
-          'HelmChart' ||
-          'Kustomization' ||
-          'HelmRelease' ||
-          'OCIRepository'),
+        kind !== 'GitopsCluster' && kind !== 'Terraform' && kind !== 'Pipeline',
     },
   );
 

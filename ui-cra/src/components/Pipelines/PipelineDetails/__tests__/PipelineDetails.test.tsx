@@ -143,6 +143,7 @@ const res: GetPipelineResponse = {
     },
     yaml: `apiVersion: pipelines.weave.works/v1alpha1    kind: Pipeline    metadata:      labels:        kustomize.toolkit.fluxcd.io/name: flux-system        kustomize.toolkit.fluxcd.io/namespace: flux-system      name: test      namespace: default    spec:      appRef:        apiVersion: helm.toolkit.fluxcd.io/v2beta1        kind: HelmRelease        name: dex      environments:      - name: dev        targets:        - namespace: dex
     `,
+    type: 'Pipeline',
   },
 };
 
@@ -187,6 +188,10 @@ describe('PipelineDetails', () => {
 
     // Breadcrumbs
     const breadcrumbs = screen.queryAllByRole('heading');
+
+    console.log('breadcrumbs');
+    console.log(breadcrumbs);
+
     expect(breadcrumbs[0].textContent).toEqual('Applications');
     expect(breadcrumbs[1].textContent).toEqual('Pipelines');
     expect(await screen.findByText('podinfo-02')).toBeTruthy();
