@@ -16,37 +16,36 @@ type ProfilesRetriever interface {
 }
 
 type GetOptions struct {
-	Name       string
-	Version    string
-	Cluster    string
-	Namespace  string
-	Writer     io.Writer
-	Port       string
-	Kind       string        `json:"kind,omitempty"`
-	Repository RepositoryRef `json:"repository,omitempty"`
+	Name      string
+	Version   string
+	Cluster   string
+	Namespace string
+	Writer    io.Writer
+	Port      string
+	Kind      string `json:"kind,omitempty"`
+	RepositoryRef
 }
 
 type RepositoryRef struct {
-	Name      string     `json:"name,omitempty"`
-	Namespace string     `json:"namespace,omitempty"`
-	Kind      string     `json:"kind,omitempty"`
-	Cluster   ClusterRef `json:"cluster,omitempty"`
+	Name      string `json:"repository.name,omitempty"`
+	Namespace string `json:"repository.namespace,omitempty"`
+	Kind      string `json:"repository.kind,omitempty"`
+	ClusterRef
 }
 
 type ClusterRef struct {
-	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
+	Name      string `json:"repository.cluster.name,omitempty"`
+	Namespace string `json:"repository.cluster.namespace,omitempty"`
 }
 
 type Profile struct {
-	Name       string        `json:"name,omitempty"`
-	Versions   []string      `json:"versions,omitempty"`
-	Layer      string        `json:"layer,omitempty"`
-	Repository RepositoryRef `json:"repository,omitempty"`
+	Name     string   `json:"name,omitempty"`
+	Versions []string `json:"versions,omitempty"`
+	Layer    string   `json:"layer,omitempty"`
 }
 
 type Profiles struct {
-	Profiles []Profile `json:"profiles,omitempty"`
+	Charts []Profile `json:"charts,omitempty"`
 }
 
 func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer, opts GetOptions) error {
@@ -60,7 +59,7 @@ func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer,
 		return fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
 
-	printProfiles(profiles.Profiles, w)
+	printProfiles(profiles.Charts, w)
 
 	return nil
 }
@@ -76,7 +75,7 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts 
 
 	var version string
 
-	for _, p := range profilesList.Profiles {
+	for _, p := range profilesList.Charts {
 		if p.Name == opts.Name {
 			if len(p.Versions) == 0 {
 				return Profile{}, "", fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
@@ -97,10 +96,6 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts 
 				}
 
 				version = opts.Version
-			}
-
-			if p.Repository.Name == "" || p.Repository.Namespace == "" {
-				return Profile{}, "", fmt.Errorf("HelmRepository's name or namespace is empty")
 			}
 
 			return p, version, nil

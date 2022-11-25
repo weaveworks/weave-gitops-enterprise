@@ -55,7 +55,7 @@ func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Comman
 	cmd.Flags().StringVar(&flags.RepoName, "repo-name", "weaveworks-charts", "Name of the repository")
 	cmd.Flags().StringVar(&flags.RepoNamespace, "repo-namespace", "flux-system", "Namespace of the repository")
 	cmd.Flags().StringVar(&flags.RepoKind, "repo-kind", "", "Kind of the repository")
-	cmd.Flags().StringVar(&flags.ClusterName, "cluster-name", "", "Name of the cluster")
+	cmd.Flags().StringVar(&flags.ClusterName, "cluster-name", "management", "Name of the cluster")
 	cmd.Flags().StringVar(&flags.ClusterNamespace, "cluster-namespace", "", "Namespace of the cluster")
 	cmd.Flags().StringVar(&flags.Kind, "kind", "", "Kind of the profile")
 
@@ -85,11 +85,11 @@ func getProfilesCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 
 		opts := profiles.GetOptions{
 			Kind: flags.Kind,
-			Repository: profiles.RepositoryRef{
+			RepositoryRef: profiles.RepositoryRef{
 				Name:      flags.RepoName,
 				Namespace: flags.RepoNamespace,
 				Kind:      flags.RepoKind,
-				Cluster: profiles.ClusterRef{
+				ClusterRef: profiles.ClusterRef{
 					Name:      flags.ClusterName,
 					Namespace: flags.ClusterNamespace,
 				},

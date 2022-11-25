@@ -38,7 +38,13 @@ func (s *ProfilesSvc) Add(ctx context.Context, r ProfilesRetriever, gitProvider 
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	helmRepo, version, err := s.discoverHelmRepository(ctx, r, GetOptions{
+	// FIXME: should come from flags
+	helmRepo := types.NamespacedName{
+		Name:      "weaveworks-charts",
+		Namespace: "flux-system",
+	}
+
+	version, err := s.discoverHelmRepository(ctx, r, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,

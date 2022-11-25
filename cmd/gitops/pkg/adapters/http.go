@@ -3,6 +3,7 @@ package adapters
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -603,10 +604,15 @@ func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profile
 
 	result := profiles.Profiles{}
 
+	queryParams, err := toQueryParams(req)
+	if err != nil {
+		return result, fmt.Errorf("unable to convert request to query params: %w", err)
+	}
+
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
-		SetBody(req).
-		SetResult(result).
+		SetQueryParams(queryParams).
+		SetResult(&result).
 		Get(endpoint)
 
 	if err != nil {
@@ -618,6 +624,24 @@ func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profile
 	}
 
 	return result, nil
+}
+
+// toQueryParams converts a profiles.GetOptions struct into a map of query parameters.
+func toQueryParams(req profiles.GetOptions) (map[string]string, error) {
+	queryParams := map[string]string{}
+
+	// Encode the req into a query string
+	b, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal request: %w", err)
+	}
+
+	err = json.Unmarshal(b, &queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal request: %w", err)
+	}
+
+	return queryParams, nil
 }
 
 // DeleteClusters deletes CAPI cluster using its name
