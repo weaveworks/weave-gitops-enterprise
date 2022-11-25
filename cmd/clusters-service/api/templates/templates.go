@@ -86,14 +86,14 @@ type Profile struct {
 	// Values.yaml
 	Values *ProfileValues `json:"values,omitempty"`
 	// Spec, HelmReleaseSpec that can be overridden
-	Spec *ProfileSpec `json:"spec,omitempty"`
+	ProfileTemplate *ProfileTemplate `json:"profileTemplate,omitempty"`
 }
 
-// ProfileSpec is the HelmRelease.spec that can be overridden
+// ProfileTemplate is the HelmRelease.spec that can be overridden
 // +kubebuilder:skipversion
 // +kubebuilder:object:generate=true
 // +kubebuilder:pruning:PreserveUnknownFields
-type ProfileSpec struct {
+type ProfileTemplate struct {
 	runtime.RawExtension `json:",inline"`
 }
 

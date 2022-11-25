@@ -359,7 +359,7 @@ export type TemplateProfile = {
   values?: string
   namespace?: string
   required?: boolean
-  spec?: string
+  profileTemplate?: string
   layer?: string
 }
 

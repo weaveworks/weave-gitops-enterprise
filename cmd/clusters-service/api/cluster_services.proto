@@ -561,7 +561,7 @@ message TemplateProfile {
   string values = 4;
   string namespace = 5;
   bool required = 6;
-  string spec = 7;
+  string profileTemplate = 7;
   string layer = 8;
 }
 

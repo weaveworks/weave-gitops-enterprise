@@ -1433,9 +1433,9 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 			{
 				Name:    "k8s-rbac-permissions",
 				Version: "0.0.8",
-				Spec: &templatesv1.ProfileSpec{
+				ProfileTemplate: &templatesv1.ProfileTemplate{
 					RawExtension: runtime.RawExtension{
-						Raw: []byte(`{ "interval": "${INTERVAL}" }`),
+						Raw: []byte(`{ "spec": { "interval": "${INTERVAL}" } }`),
 					},
 				},
 				Values: &templatesv1.ProfileValues{
@@ -1452,14 +1452,14 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 
 		expected := []*capiv1_protos.TemplateProfile{
 			{
-				Name:      "k8s-rbac-permissions",
-				Version:   "0.0.8",
-				Editable:  true,
-				Spec:      "interval: ${INTERVAL}\n",
-				Values:    "adminGroups: weaveworks\n",
-				Layer:     "layer-foo",
-				Namespace: "foo-ns",
-				Required:  true,
+				Name:            "k8s-rbac-permissions",
+				Version:         "0.0.8",
+				Editable:        true,
+				ProfileTemplate: "spec:\n  interval: ${INTERVAL}\n",
+				Values:          "adminGroups: weaveworks\n",
+				Layer:           "layer-foo",
+				Namespace:       "foo-ns",
+				Required:        true,
 			},
 		}
 

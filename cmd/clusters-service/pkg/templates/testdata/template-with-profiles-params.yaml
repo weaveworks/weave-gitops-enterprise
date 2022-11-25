@@ -12,8 +12,9 @@ spec:
       version: 0.0.8
       values:
         testing: ${TEST_PARAMETER}
-      spec:
-        interval: "${INTERVAL}"
+      profileTemplate:
+        spec:
+          interval: "${INTERVAL}"
     - name: foo
   resourcetemplates:
     - apiVersion: cluster.x-k8s.io/v1alpha3

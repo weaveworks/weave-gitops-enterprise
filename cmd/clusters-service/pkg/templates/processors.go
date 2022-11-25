@@ -87,8 +87,8 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 	}
 
 	for _, profile := range p.GetSpec().Profiles {
-		if profile.Spec != nil {
-			names, err := p.Processor.ParamNames(profile.Spec.Raw)
+		if profile.ProfileTemplate != nil {
+			names, err := p.Processor.ParamNames(profile.ProfileTemplate.Raw)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Name, err)
 			}

@@ -2283,7 +2283,7 @@
         "required": {
           "type": "boolean"
         },
-        "spec": {
+        "profileTemplate": {
           "type": "string"
         },
         "layer": {

@@ -282,8 +282,10 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 		{
 			name: "install with spec",
 			installs: []ChartInstall{
-				{Spec: makeTestHelmReleaseSpec(t, func(hr map[string]interface{}) {
-					hr["Interval"] = metav1.Duration{Duration: 42 * time.Hour}
+				{ProfileTemplate: makeTestHelmReleaseSpec(t, func(hr map[string]interface{}) {
+					hr["Spec"] = map[string]interface{}{
+						"Interval": metav1.Duration{Duration: 42 * time.Hour},
+					}
 				}), Layer: "", Values: emptyValues, Ref: makeTestChartReference("test-chart", "0.0.1", hr), Namespace: "test-system"}},
 			want: []*helmv2.HelmRelease{
 				makeTestHelmRelease("test-chart", "testing", hr.GetNamespace(), "test-chart", "0.0.1", func(hr *helmv2.HelmRelease) {

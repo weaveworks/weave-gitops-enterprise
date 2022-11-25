@@ -466,12 +466,12 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 			profile.Values = string(valuesBytes)
 		}
 
-		if v.Spec != nil {
-			valuesBytes, err := yaml.Marshal(v.Spec)
+		if v.ProfileTemplate != nil {
+			profileTemplateBytes, err := yaml.Marshal(v.ProfileTemplate)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Name, err)
 			}
-			profile.Spec = string(valuesBytes)
+			profile.ProfileTemplate = string(profileTemplateBytes)
 		}
 
 		profilesIndex[profile.Name] = &profile

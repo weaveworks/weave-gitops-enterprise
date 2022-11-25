@@ -639,10 +639,10 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			return nil, fmt.Errorf("cannot render and parse values of profile %s: %w", v.Name, err)
 		}
 
-		spec := []byte{}
+		profileTemplate := []byte{}
 		requiredProfile := requiredProfilesIndex[v.Name]
 		if requiredProfile != nil {
-			spec, err = tmplProcessor.Render([]byte(requiredProfile.Spec), args.parameterValues)
+			profileTemplate, err = tmplProcessor.Render([]byte(requiredProfile.ProfileTemplate), args.parameterValues)
 			if err != nil {
 				return nil, fmt.Errorf("cannot render spec of profile %s: %w", v.Name, err)
 			}
@@ -658,10 +658,10 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 					Kind:      "HelmRepository",
 				},
 			},
-			Spec:      string(spec),
-			Layer:     v.Layer,
-			Values:    values,
-			Namespace: v.Namespace,
+			ProfileTemplate: string(profileTemplate),
+			Layer:           v.Layer,
+			Values:          values,
+			Namespace:       v.Namespace,
 		})
 	}
 
