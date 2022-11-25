@@ -233,12 +233,18 @@ func (p *TextTemplateProcessor) templateDelims() (string, string) {
 	return "{{", "}}"
 }
 
-var paramsRE = regexp.MustCompile(`{{.*\.params\.([A-Za-z0-9_]+).*}}`)
-
 func (p *TextTemplateProcessor) ParamNames(raw []byte) ([]string, error) {
 	b, err := yaml.JSONToYAML(raw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+	}
+
+	left, right := p.templateDelims()
+	paramsString := regexp.QuoteMeta(left) + `.*\.params\.([A-Za-z0-9_]+).*` + regexp.QuoteMeta(right)
+
+	paramsRE, err := regexp.Compile(paramsString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse parameters using regexp %q: %w", paramsString, err)
 	}
 	result := paramsRE.FindAllSubmatch(b, -1)
 	variables := sets.NewString()
