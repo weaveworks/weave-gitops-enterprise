@@ -24,20 +24,22 @@ type ProfilesService interface {
 }
 
 type Options struct {
-	Name         string
-	Cluster      string
-	ConfigRepo   string
-	Version      string
-	ProfilesPort string
-	Namespace    string
-	Kubeconfig   string
-	AutoMerge    bool
-	HeadBranch   string
-	BaseBranch   string
-	Message      string
-	Title        string
-	Description  string
-	Endpoint     string
+	Name              string
+	Cluster           string
+	ConfigRepo        string
+	Version           string
+	ProfilesPort      string
+	Namespace         string
+	Kubeconfig        string
+	AutoMerge         bool
+	HeadBranch        string
+	BaseBranch        string
+	Message           string
+	Title             string
+	Description       string
+	Endpoint          string
+	HelmRepoName      string
+	HelmRepoNamespace string
 }
 
 type ProfilesSvc struct {
