@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.0
 	github.com/stretchr/testify v1.8.0
-	github.com/weaveworks/weave-gitops v0.10.2-rc.1.0.20221124113154-c005e1abfbe9
+	github.com/weaveworks/weave-gitops v0.11.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -52,7 +52,7 @@ require (
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.3.0
 	github.com/spf13/viper v1.12.0
-	github.com/weaveworks/cluster-controller v1.4.0
+	github.com/weaveworks/cluster-controller v1.4.1
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
