@@ -26,15 +26,6 @@ Sample:
 
 Look for the green tick next to the last commit on [weave-gitops-enterprise](https://github.com/weaveworks/weave-gitops-enterprise)
 
-### Make sure the installation docs are updated for the upcoming version
-
-The following pages reference the version:
-- https://docs.gitops.weave.works/docs/installation/weave-gitops/#gitops-cli
-- https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise/#install-cli
-- https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise/#5-configure-and-commit
-
-Ensure that the versions referenced in the instructions for downloading the CLI and the version used in the WGE Helm release example, match the upcoming version.
-
 ### Make sure all new OSS commands are included
 
 There is a bot that automatically creates a PR to update the version of OSS used by WGE on every stable release of OSS. However, if there are any new commands introduced in OSS, these need to be added manually by an engineer. Therefore we need to make sure that the new OSS commands are available from WGE CLI too.
@@ -88,7 +79,7 @@ This will kick off the release process in GitHub actions
 - The action will generate release notes and publish a release on GitHub
 - A message will be sent to #weave-gitops-dev in slack announcing the release
 
-### Update the release notes with *Dependencies* and *Highlights*
+### Update release notes with *Dependencies* and *Highlights* and ensure the user guide references the new version
 
 #### Github releases page
 
@@ -118,6 +109,14 @@ Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Kno
 Make sure to backport the docs changes to the versioned docs. For example when releasing 0.9.5, both these files should be the same:
 - weave-gitops/website/docs/enterprise/releases.mdx
 - weave-gitops/website/versioned_docs/version-0.9.5/enterprise/releases.mdx
+
+#### Make sure the installation docs are updated for the upcoming version
+
+The following pages reference the version:
+- https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise/#install-cli
+- https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise/#5-configure-and-commit
+
+Ensure that the version referenced in the instructions for downloading the CLI and the version used in the WGE Helm release example, match the upcoming version.
 
 ### Announce final (non-rc) releases in #weave-gitops on slack
 
