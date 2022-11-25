@@ -553,7 +553,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{downloadedResourcesPath})
 			})
 
-			ginkgo.It("Verify application with annotations/metadata can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "application", "browser-logs"), func() {
+			ginkgo.It("Verify application with annotations/metadata can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "application"), func() {
 
 				podinfo := Application{
 					Type:            "kustomization",
@@ -611,7 +611,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 			})
 
-			ginkgo.It("Verify application can be installed from HelmRepository source and dashboard is updated accordingly", ginkgo.Label("integration", "application", "browser-logs"), func() {
+			ginkgo.It("Verify application can be installed from HelmRepository source and dashboard is updated accordingly", ginkgo.Label("integration", "application"), func() {
 				metallb := Application{
 					Type:            "helm_release",
 					Chart:           "weaveworks-charts",
@@ -756,7 +756,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
 			})
 
-			ginkgo.It("Verify application can be installed from GitRepository source and dashboard is updated accordingly", ginkgo.Label("integration", "application", "browser-logs"), func() {
+			ginkgo.It("Verify application can be installed from GitRepository source and dashboard is updated accordingly", ginkgo.Label("integration", "application"), func() {
 				podinfo := Application{
 					Type:            "kustomization",
 					Name:            "my-podinfo",
