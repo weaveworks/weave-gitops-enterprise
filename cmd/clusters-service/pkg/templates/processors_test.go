@@ -182,6 +182,15 @@ func TestProcessor_Params(t *testing.T) {
 				},
 			},
 		},
+		{
+			filename: "testdata/template-with-alt-annotation-params.yaml",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+				},
+			},
+		},
 	}
 
 	for _, tt := range paramTests {

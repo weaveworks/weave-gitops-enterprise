@@ -70,7 +70,7 @@ func addProfileCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*
 	return func(cmd *cobra.Command, args []string) error {
 		log := logger.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
-		factory := services.NewFactory(fluxClient, log.Logger)
+		factory := services.NewFactory(fluxClient, log.L())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
 		err := client.ConfigureClientWithOptions(opts, os.Stdout)
