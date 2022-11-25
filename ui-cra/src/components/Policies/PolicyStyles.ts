@@ -4,7 +4,16 @@ import { theme } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 const { xxs, xs, small, medium, base, none } = theme.spacing;
-const { neutral10, neutral20, neutral30, black, primary } = theme.colors;
+const {
+  neutral10,
+  neutral20,
+  neutral30,
+  black,
+  primary,
+  primary20,
+  feedbackDark,
+  alertDark,
+} = theme.colors;
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
@@ -64,13 +73,13 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       marginRight: xxs,
     },
     severityLow: {
-      color: '#006B8E',
+      color: primary20,
     },
     severityMedium: {
-      color: '#8A460A',
+      color: feedbackDark,
     },
     severityHigh: {
-      color: '#9F3119',
+      color: alertDark,
     },
     column: {
       flexDirection: 'column',
