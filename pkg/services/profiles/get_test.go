@@ -18,7 +18,7 @@ import (
 )
 
 const getProfilesResp = `{
-	"profiles": [
+	"charts": [
 		{
 			"name": "podinfo",
 			"versions": [
@@ -123,7 +123,7 @@ podinfo	6.0.0,6.0.1	default
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"profiles": [
+				"charts": [
 				  {
 					"name": "foo"
 				  }
@@ -139,7 +139,7 @@ podinfo	6.0.0,6.0.1	default
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"profiles": [
+				"charts": [
 				  {
 					"name": "podinfo",
 					"availableVersions": [
@@ -152,36 +152,6 @@ podinfo	6.0.0,6.0.1	default
 			client := NewFakeHTTPClient(badProfileResp, nil)
 			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
-		})
-
-		It("fails if the available profile's HelmRepository name or namespace are empty", func() {
-			badProfileResp := `{
-				"profiles": [
-				  {
-					"name": "podinfo",
-					"versions": [
-					  "6.0.0",
-					  "6.0.1"
-					],
-					"layer": "default",
-					"repository": {
-						"name": "",
-						"namespace": "",
-						"kind": "HelmRepository",
-						"cluster": {
-							"name": "dev",
-							"namespace": "default"
-						}
-					}
-				  }
-				]
-			  }
-			  `
-
-			client := NewFakeHTTPClient(badProfileResp, nil)
-
-			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
-			Expect(err).To(MatchError("HelmRepository's name or namespace is empty"))
 		})
 	})
 })
