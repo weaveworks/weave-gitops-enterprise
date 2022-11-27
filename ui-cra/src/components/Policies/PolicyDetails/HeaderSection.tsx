@@ -25,7 +25,6 @@ function HeaderSection({
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
   const flags = data?.flags || {};
-
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
@@ -65,9 +64,12 @@ function HeaderSection({
       value: category,
     },
     {
-      rowkey: 'Mode',
-      children: (modes?.map((mode, index)=><Mode key={index} modeName={mode} showName/>))
-        
+      rowkey: 'Modee',
+      children: modes?.length
+        ? modes.map((mode, index) => (
+            <Mode key={index} modeName={mode} showName />
+          ))
+        : '',
     },
     {
       rowkey: 'Targeted K8s Kind',
