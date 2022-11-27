@@ -143,7 +143,7 @@ func (s *server) ListPolicies(ctx context.Context, m *capiv1_proto.ListPoliciesR
 				}
 			}
 		} else {
-			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %v", err)
+			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %w", err)
 		}
 	}
 

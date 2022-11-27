@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
@@ -33,7 +34,7 @@ func (s *server) ListWorkspaces(ctx context.Context, m *capiv1_proto.ListWorkspa
 				}
 			}
 		} else {
-			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %v", err)
+			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %w", err)
 		}
 	}
 
@@ -53,7 +54,7 @@ func (s *server) ListWorkspaces(ctx context.Context, m *capiv1_proto.ListWorkspa
 		return &v1.NamespaceList{}
 	})
 	if err := clustersClient.ClusteredList(ctx, namespaces, false, opts...); err != nil {
-		return nil, fmt.Errorf("failed to list namespaces, error: %v", err)
+		return nil, fmt.Errorf("failed to list namespaces, error: %w", err)
 	}
 
 	continueToken = namespaces.GetContinue()
@@ -102,7 +103,7 @@ func (s *server) GetWorkspace(ctx context.Context, req *capiv1_proto.GetWorkspac
 
 	var list v1.NamespaceList
 	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
-		return nil, fmt.Errorf("failed to list workspace namespaces, error: %s", err)
+		return nil, fmt.Errorf("failed to list workspace namespaces, error: %w", err)
 	}
 
 	if len(list.Items) == 0 {
@@ -128,7 +129,7 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 
 	var list rbacv1.RoleList
 	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
-		return nil, fmt.Errorf("failed to list workspace roles, error: %s", err)
+		return nil, fmt.Errorf("failed to list workspace roles, error: %w", err)
 	}
 
 	var roles []*capiv1_proto.WorkspaceRole
@@ -167,7 +168,7 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 
 	var list rbacv1.RoleBindingList
 	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
-		return nil, fmt.Errorf("failed to list workspace role bindings, error: %s", err)
+		return nil, fmt.Errorf("failed to list workspace role bindings, error: %w", err)
 	}
 
 	var roleBindings []*capiv1_proto.WorkspaceRoleBinding
@@ -214,7 +215,7 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 
 	var list v1.ServiceAccountList
 	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
-		return nil, fmt.Errorf("failed to list workspace service accounts, error: %s", err)
+		return nil, fmt.Errorf("failed to list workspace service accounts, error: %w", err)
 	}
 
 	var serviceAccounts []*capiv1_proto.WorkspaceServiceAccount
@@ -244,7 +245,7 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
 		var list pacv2beta1.PolicyList
 		if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
-			return nil, fmt.Errorf("failed to list workspace policies, error: %s", err)
+			return nil, fmt.Errorf("failed to list workspace policies, error: %w", err)
 		}
 		for i := range list.Items {
 			policies = append(policies, &capiv1_proto.WorkspacePolicy{
@@ -276,10 +277,10 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 
 func validateRequest(req *capiv1_proto.GetWorkspaceRequest) error {
 	if req.ClusterName == "" {
-		return fmt.Errorf("cluster name is required")
+		return errors.New("cluster name is required")
 	}
 	if req.WorkspaceName == "" {
-		return fmt.Errorf("workspace name is required")
+		return errors.New("workspace name is required")
 	}
 	return nil
 }
@@ -303,7 +304,7 @@ func k8sObjectToYaml(obj client.Object) (string, error) {
 	var buf bytes.Buffer
 	serializer := json.NewYAMLSerializer(json.DefaultMetaFactory, nil, nil)
 	if err := serializer.Encode(obj, &buf); err != nil {
-		return "", fmt.Errorf("failed to serialize object, error: %v", err)
+		return "", fmt.Errorf("failed to serialize object, error: %w", err)
 	}
 	return buf.String(), nil
 }
