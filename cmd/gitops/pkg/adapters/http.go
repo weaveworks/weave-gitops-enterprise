@@ -3,6 +3,7 @@ package adapters
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,9 +14,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"k8s.io/client-go/rest"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -598,25 +599,49 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	return string(b), nil
 }
 
-func (c *HTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
-	endpoint := "/v1/profiles"
+func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profiles, error) {
+	endpoint := "/v1/charts/list"
 
-	result := &pb.GetProfilesResponse{}
+	result := profiles.Profiles{}
+
+	queryParams, err := toQueryParams(req)
+	if err != nil {
+		return result, fmt.Errorf("unable to convert request to query params: %w", err)
+	}
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
-		SetResult(result).
+		SetQueryParams(queryParams).
+		SetResult(&result).
 		Get(endpoint)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
+		return result, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
 	}
 
 	if res.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+		return result, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
 	return result, nil
+}
+
+// toQueryParams converts a profiles.GetOptions struct into a map of query parameters.
+func toQueryParams(req profiles.GetOptions) (map[string]string, error) {
+	queryParams := map[string]string{}
+
+	// Encode the req into a query string
+	b, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal request: %w", err)
+	}
+
+	err = json.Unmarshal(b, &queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal request: %w", err)
+	}
+
+	return queryParams, nil
 }
 
 // DeleteClusters deletes CAPI cluster using its name
