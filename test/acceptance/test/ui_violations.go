@@ -33,10 +33,9 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] Violations can be seen in management cluster dashboard", func() {
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
-			// Just specify policy config yaml path
-			policyConfigYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-config.yaml")
-			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "multi-container-manifest.yaml")
+			var policiesYaml string
+			var deploymentYaml string
+			var policyConfigYaml string
 
 			policyName := "Containers Running With Privilege Escalation acceptance test"
 			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment multi-container \(2 occurrences\)`
@@ -48,8 +47,9 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
-				deploymentYaml = path.Join(testDataPath, "multi-container-manifest.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+				policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
+				deploymentYaml = path.Join(testDataPath, "deployments/multi-container-manifest.yaml")
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -63,7 +63,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
 				existingViolationCount := getViolationsCount()
-
 				installTestPolicies("management", policiesYaml)
 				// Add/Install Policy config to management cluster
 				installPolicyConfig("management", policyConfigYaml)
@@ -149,15 +148,12 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			var gitopsCluster string
 			var policiesYaml string
 			var deploymentYaml string
+			var policyConfigYaml string
 			patSecret := "violation-pat"
 			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-violation-kind"
 			leafClusterNamespace := "default"
 
-			policiesYaml = path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
-			// Just specify policy config yaml path
-			policyConfigYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-config.yaml")
-			deploymentYaml = path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
 			policyName := "Container Image Pull Policy acceptance test"
 			violationMsg := "Container Image Pull Policy acceptance test in deployment postgres"
 			violationApplication := "default/postgres"
@@ -167,8 +163,9 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
-				deploymentYaml = path.Join(testDataPath, "postgres-manifest.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+				policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
+				deploymentYaml = path.Join(testDataPath, "deployments/postgres-manifest.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -232,14 +229,12 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And wait for violations to be visibe on the dashboard", func() {
 					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
 
-					totalViolationCount := existingViolationCount + 2 + 2 // 2 management and 2 leaf violation
+					leafViolationCount := 2 // 2 leaf cluster violation
 					gomega.Eventually(func(g gomega.Gomega) int {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
-						return violationsPage.CountViolations()
-						// Time increased from 3 mins to 5 mins because I noticed that the leaf cluster violations appeared in the dashboard after 4 mins of generating the violations.
-					}, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table , but found %d", totalViolationCount, existingViolationCount))
-
+						return violationsPage.CountViolations(leafClusterNamespace + `/` + leafClusterName)
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(leafViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", leafViolationCount))
 				})
 
 				ginkgo.By(fmt.Sprintf("And add filter leaf cluster '%s' violations", leafClusterName), func() {

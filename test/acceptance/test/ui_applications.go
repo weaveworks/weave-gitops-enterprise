@@ -1400,14 +1400,15 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var appSourcePath string
 			var existingAppCount int
 			var policiesYaml string
+			var policyConfigYaml string
 			patSecret := "application-violations-pat"
 			bootstrapLabel := "bootstrap"
 
 			// Just specify policies yaml path
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+			policiesYaml = path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 
 			// Just specify policy config yaml path
-			policyConfigYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-config.yaml")
+			policyConfigYaml = path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-config.yaml")
 
 			// Just specify the violated application info to create it
 			appNameSpace := "test-kustomization"
