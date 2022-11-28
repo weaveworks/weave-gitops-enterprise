@@ -36,6 +36,44 @@ spec:
             description: TemplateSpec defines the base template spec needs for CAPI
               or Terraform Templates.
             properties:
+              charts:
+                items:
+                  description: Chart is the set of values that control the default
+                    and required values of a chart/profile in a template.
+                  properties:
+                    editable:
+                      description: If true you can change the values and version of
+                        the chart/profile
+                      type: boolean
+                    layer:
+                      description: Layer, overrides the default layer provided in
+                        the Helm Repository
+                      type: string
+                    name:
+                      description: Name of the chart/profile
+                      type: string
+                    required:
+                      description: If true the chart/profile will always be installed
+                      type: boolean
+                    targetNamespace:
+                      description: Shortcut for template.spec.targetNamespace
+                      type: string
+                    template:
+                      description: Template for the HelmRelease, merged with the default
+                        template
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    values:
+                      description: Shortcut for template.spec.values
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    version:
+                      description: Default version to select
+                      type: string
+                  required:
+                  - name
+                  type: object
+                type: array
               description:
                 description: Description is used to describe the purpose of this template
                   for user information.
@@ -63,42 +101,6 @@ spec:
                       description: Required indicates whether the param must contain
                         a non-empty value
                       type: boolean
-                  required:
-                  - name
-                  type: object
-                type: array
-              profiles:
-                items:
-                  description: Profile is the set of values that control the default
-                    and required values of a profile in a template.
-                  properties:
-                    editable:
-                      description: If true you can change the values and version of
-                        the profile
-                      type: boolean
-                    layer:
-                      description: Layer, overrides the default layer provided in
-                        the Helm Repository
-                      type: string
-                    name:
-                      type: string
-                    profileTemplate:
-                      description: Spec, HelmReleaseSpec that can be overridden
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    required:
-                      description: If true the profile will always be installed
-                      type: boolean
-                    targetNamespace:
-                      description: The default target namespace for this profile
-                      type: string
-                    values:
-                      description: Values.yaml
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    version:
-                      description: Default version to select
-                      type: string
                   required:
                   - name
                   type: object

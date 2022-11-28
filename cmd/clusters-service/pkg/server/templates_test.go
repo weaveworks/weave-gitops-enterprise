@@ -1404,7 +1404,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		}
 
 		// profiles in template.spec.profiles
-		profiles := []templatesv1.Profile{
+		profiles := []templatesv1.Chart{
 			{Name: "cert-manager", Version: "2.0.1"},
 			{Name: "external-dns", Version: "0.0.8", Editable: true},
 		}
@@ -1419,7 +1419,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 			c.Annotations = annotations
-			c.Spec.Profiles = profiles
+			c.Spec.Charts = profiles
 		})
 
 		result, err := getProfilesFromTemplate(tm)
@@ -1429,16 +1429,16 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	})
 
 	t.Run("All the fields are loaded properly from template.profiles", func(t *testing.T) {
-		profiles := []templatesv1.Profile{
+		profiles := []templatesv1.Chart{
 			{
 				Name:    "k8s-rbac-permissions",
 				Version: "0.0.8",
-				ProfileTemplate: &templatesv1.ProfileTemplate{
+				HelmReleaseTemplate: &templatesv1.HelmReleaseTemplate{
 					RawExtension: runtime.RawExtension{
 						Raw: []byte(`{ "spec": { "interval": "${INTERVAL}" } }`),
 					},
 				},
-				Values: &templatesv1.ProfileValues{
+				Values: &templatesv1.HelmReleaseValues{
 					RawExtension: runtime.RawExtension{
 						Raw: []byte(`{ "adminGroups": "weaveworks" }`),
 					},
@@ -1464,7 +1464,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		}
 
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
-			c.Spec.Profiles = profiles
+			c.Spec.Charts = profiles
 		})
 
 		result, err := getProfilesFromTemplate(tm)

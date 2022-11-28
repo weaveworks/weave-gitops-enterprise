@@ -44,7 +44,7 @@ type TemplateSpec struct {
 	// descriptions.
 	Params []TemplateParam `json:"params,omitempty"` // Described above
 
-	Profiles []Profile `json:"profiles,omitempty"`
+	Charts []Chart `json:"charts,omitempty"`
 
 	// ResourceTemplates are a set of templates for resources that are generated
 	// from this Template.
@@ -68,40 +68,41 @@ type TemplateParam struct {
 	Default string `json:"default,omitempty"`
 }
 
-// Profile is the set of values that control the default and required values
-// of a profile in a template.
+// Chart is the set of values that control the default and required values
+// of a chart/profile in a template.
 // +kubebuilder:object:generate=true
-type Profile struct {
+type Chart struct {
+	// Name of the chart/profile
 	Name string `json:"name"`
 	// Default version to select
 	Version string `json:"version,omitempty"`
-	// The default target namespace for this profile
+	// Shortcut for template.spec.targetNamespace
 	TargetNamespace string `json:"targetNamespace,omitempty"`
 	// Layer, overrides the default layer provided in the Helm Repository
 	Layer string `json:"layer,omitempty"`
-	// If true the profile will always be installed
+	// If true the chart/profile will always be installed
 	Required bool `json:"required,omitempty"`
-	// If true you can change the values and version of the profile
+	// If true you can change the values and version of the chart/profile
 	Editable bool `json:"editable,omitempty"`
-	// Values.yaml
-	Values *ProfileValues `json:"values,omitempty"`
-	// Spec, HelmReleaseSpec that can be overridden
-	ProfileTemplate *ProfileTemplate `json:"profileTemplate,omitempty"`
+	// Shortcut for template.spec.values
+	Values *HelmReleaseValues `json:"values,omitempty"`
+	// Template for the HelmRelease, merged with the default template
+	HelmReleaseTemplate *HelmReleaseTemplate `json:"template,omitempty"`
 }
 
-// ProfileTemplate is the HelmRelease.spec that can be overridden
+// HelmReleaseTemplate is the HelmRelease.spec that can be overridden
 // +kubebuilder:skipversion
 // +kubebuilder:object:generate=true
 // +kubebuilder:pruning:PreserveUnknownFields
-type ProfileTemplate struct {
+type HelmReleaseTemplate struct {
 	runtime.RawExtension `json:",inline"`
 }
 
-// ProfileValues describes the values for a profile.
+// HelmReleaseValues describes the values for a profile.
 // +kubebuilder:skipversion
 // +kubebuilder:pruning:PreserveUnknownFields
 // +kubebuilder:object:generate=true
-type ProfileValues struct {
+type HelmReleaseValues struct {
 	runtime.RawExtension `json:",inline"`
 }
 
