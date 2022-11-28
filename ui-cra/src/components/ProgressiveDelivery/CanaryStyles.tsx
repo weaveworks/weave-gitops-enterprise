@@ -26,7 +26,7 @@ export const useCanaryStyle = makeStyles(() =>
       alignItems: 'center',
     },
     colorGreen: {
-      color: theme.colors.success,
+      color: theme.colors.successOriginal,
     },
     statusWrapper: {
       display: 'flex',
@@ -38,16 +38,16 @@ export const useCanaryStyle = makeStyles(() =>
       color: '#9E9E9E', // add natural25 to core
     },
     statusReady: {
-      color: theme.colors.success,
+      color: theme.colors.successOriginal,
     },
     statusWaiting: {
       color: '#F2994A',
     },
     statusFailed: {
-      color: theme.colors.alert,
+      color: theme.colors.alertOriginal,
     },
     sectionHeaderWrapper: {
-      background: '#F6F7F9', // add Neutral/Grey Blue to core
+      background: theme.colors.neutralGray,
       padding: `${base} ${xs}`,
       margin: `${base} 0`,
     },
@@ -55,7 +55,7 @@ export const useCanaryStyle = makeStyles(() =>
       marginLeft: small,
     },
     barroot: {
-      backgroundColor: theme.colors.success,
+      backgroundColor: theme.colors.successOriginal,
     },
     statusProcessing: {
       backgroundColor: theme.colors.neutral20,
