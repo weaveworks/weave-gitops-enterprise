@@ -2,17 +2,18 @@ import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useCanaryStyle } from '../CanaryStyles';
 
-import CanaryStatus from '../SharedComponent/CanaryStatus';
 import {
   Automation,
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { Routes } from '../../../utils/nav';
 import YamlView from '../../YamlView';
-import ListEvents from './Events/ListEvents';
 import { getProgressValue } from '../ListCanaries/Table';
-import ListManagedObjects from './ManagedObjects/ListManagedObjects';
+import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
 import DetailsSection from './Details/DetailsSection';
+import ListEvents from './Events/ListEvents';
+import ListManagedObjects from './ManagedObjects/ListManagedObjects';
 
 const TitleWrapper = styled.h2`
   margin: 0px;
@@ -29,7 +30,7 @@ function CanaryDetailsSection({
   automation?: Automation;
 }) {
   const classes = useCanaryStyle();
-  const path = `/applications/delivery/${canary.targetDeployment?.uid}`;
+  const path = Routes.CanaryDetails;
   return (
     <>
       <TitleWrapper>{canary.name}</TitleWrapper>

@@ -13,9 +13,10 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -29,11 +30,8 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	scheme, err := kube.CreateScheme()
-	g.Expect(err).To(BeNil())
-	clientsFactory := clustersmngr.NewClustersManager(
-		clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
-	err = clientsFactory.UpdateClusters(ctx)
+	clientsFactory := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
+	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
 	managementClusterName := "cluster1-management"
@@ -73,7 +71,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 
 	t.Run("should be notified with two clusters added", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+		clustersFetcher.FetchReturns([]cluster.Cluster{c1, c2}, nil)
 
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
@@ -91,9 +89,9 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 
 	t.Run("should remove items when cluster is removed", func(t *testing.T) {
 		g := NewGomegaWithT(t)
-		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+		clustersFetcher.FetchReturns([]cluster.Cluster{c1, c2}, nil)
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
-		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c2}, nil)
+		clustersFetcher.FetchReturns([]cluster.Cluster{c2}, nil)
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 
 		// only cluster 2 is left
@@ -117,11 +115,8 @@ func TestErroringCache(t *testing.T) {
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	scheme, err := kube.CreateScheme()
-	g.Expect(err).To(BeNil())
-	clientsFactory := clustersmngr.NewClustersManager(
-		clustersFetcher, nsChecker, logger, scheme, clustersmngr.ClientFactory, clustersmngr.DefaultKubeConfigOptions)
-	err = clientsFactory.UpdateClusters(ctx)
+	clientsFactory := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
+	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
 	clusterName1 := "default/cluster1"
@@ -144,13 +139,13 @@ func TestErroringCache(t *testing.T) {
 	t.Run("should still remove the watcher if the cache has some issues cleaning up", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 
-		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c1, c2}, nil)
+		clustersFetcher.FetchReturns([]cluster.Cluster{c1, c2}, nil)
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 		g.Eventually(func() []string {
 			return clusterNames(ind.ClusterWatchers)
 		}).Should(ConsistOf(clusterName1, clusterName2))
 
-		clustersFetcher.FetchReturns([]clustersmngr.Cluster{c2}, nil)
+		clustersFetcher.FetchReturns([]cluster.Cluster{c2}, nil)
 		g.Expect(clientsFactory.UpdateClusters(ctx)).To(Succeed())
 		g.Eventually(func() []string {
 			return clusterNames(ind.ClusterWatchers)
@@ -163,23 +158,23 @@ func TestNewIndexerSetsUserProxy(t *testing.T) {
 
 	// Manamgent cluster should not use proxy
 	isManagementCluster := true
-	ind, err := indexer.NewIndexer(nil, types.NamespacedName{Name: "foo", Namespace: "bar"}, isManagementCluster, nil)
+	ind, err := indexer.NewIndexer(&rest.Config{}, types.NamespacedName{Name: "foo", Namespace: "bar"}, isManagementCluster, nil)
 	g.Expect(err).To(BeNil())
 	watcher := ind.(*multiwatcher.Watcher)
 	g.Expect(watcher.UseProxy).To(BeFalse())
 
 	// other clusters should use proxy
 	isManagementCluster = false
-	ind, err = indexer.NewIndexer(nil, types.NamespacedName{Name: "foo", Namespace: "bar"}, isManagementCluster, nil)
+	ind, err = indexer.NewIndexer(&rest.Config{}, types.NamespacedName{Name: "foo", Namespace: "bar"}, isManagementCluster, nil)
 	g.Expect(err).To(BeNil())
 	watcher = ind.(*multiwatcher.Watcher)
 	g.Expect(watcher.UseProxy).To(BeTrue())
 }
 
-func makeLeafCluster(name string) clustersmngr.Cluster {
-	return clustersmngr.Cluster{
-		Name: name,
-	}
+func makeLeafCluster(name string) cluster.Cluster {
+	cluster := clusterfakes.FakeCluster{}
+	cluster.GetNameReturns(name)
+	return &cluster
 }
 
 func clusterNames(c map[string]indexer.Watcher) []string {

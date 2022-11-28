@@ -26,6 +26,7 @@ import (
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -36,16 +37,32 @@ import (
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pd "github.com/weaveworks/progressive-delivery/pkg/server"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
+	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
+	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	core_fetcher "github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
@@ -59,31 +76,16 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	k8scache "k8s.io/client-go/tools/cache"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
-	pd "github.com/weaveworks/progressive-delivery/pkg/server"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
-	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
-	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
-	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
-	k8scache "k8s.io/client-go/tools/cache"
 )
 
 const (
@@ -409,11 +411,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
 	}
 
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.CAPIClustersNamespace, p.Cluster)
-	if err != nil {
-		return err
-	}
-
 	clustersManagerScheme, err := kube.CreateScheme()
 	if err != nil {
 		return fmt.Errorf("could not create scheme: %w", err)
@@ -424,27 +421,40 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
+	runtimeUtil.Must(capiv1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta2.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(gitopsv1alpha1.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(clusterv1.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(gapiv1.AddToScheme(clustersManagerScheme))
 
-	clientsFactory := clustersmngr.CachedClientFactory
-	if !p.UseK8sCachedClients {
-		log.Info("Using un-cached clients")
-		clientsFactory = clustersmngr.ClientFactory
-	} else {
+	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
+	if err != nil {
+		return fmt.Errorf("could not create mgmt cluster: %w", err)
+	}
+
+	if p.UseK8sCachedClients {
 		log.Info("Using cached clients")
+		mgmtCluster = cluster.NewDelegatingCacheCluster(mgmtCluster, rest, clustersManagerScheme)
+	} else {
+		log.Info("Using un-cached clients")
+	}
+
+	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
+	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
+		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+		fetchers = append(fetchers, sessionFetcher)
 	}
 
 	clustersManager := clustersmngr.NewClustersManager(
-		mcf,
+		fetchers,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
-		clustersManagerScheme,
-		clientsFactory,
-		clustersmngr.DefaultKubeConfigOptions,
 	)
 
 	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
@@ -482,9 +492,16 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		}
 	}
 
+	coreCfg, err := core_core.NewCoreConfig(
+		log, rest, clusterName, clustersManager,
+	)
+	if err != nil {
+		return err
+	}
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
-		WithProfileHelmRepository(p.HelmRepoName),
+		WithProfileHelmRepository(types.NamespacedName{Name: p.HelmRepoName, Namespace: p.HelmRepoNamespace}),
 		WithEntitlementSecretKey(client.ObjectKey{
 			Name:      p.EntitlementSecretName,
 			Namespace: p.EntitlementSecretNamespace,
@@ -493,9 +510,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithApplicationsConfig(appsConfig),
-		WithCoreConfig(core_core.NewCoreConfig(
-			log, rest, clusterName, clustersManager,
-		)),
+		WithCoreConfig(coreCfg),
 		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
 			DefaultConfig: kubeClientConfig,
 			ClusterName:   "",
@@ -565,7 +580,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
 	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
-	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
+	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
+	if err != nil {
+		return fmt.Errorf("failed to set up auth client getter")
+	}
 	if args.ManagementFetcher == nil {
 		args.ManagementFetcher = mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
 	}
@@ -573,22 +591,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		server.ServerOpts{
-			Logger:                    args.Log,
-			ClustersManager:           args.CoreServerConfig.ClustersManager,
-			GitProvider:               args.GitProvider,
-			ClientGetter:              args.ClientGetter,
-			DiscoveryClient:           args.DiscoveryClient,
-			ClustersNamespace:         args.CAPIClustersNamespace,
-			ProfileHelmRepositoryName: args.ProfileHelmRepository,
-			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
-			CAPIEnabled:               args.CAPIEnabled,
-			ChartJobs:                 helm.NewJobs(),
-			ChartsCache:               args.ChartsCache,
-			ValuesFetcher:             helm.NewValuesFetcher(),
-			RestConfig:                args.CoreServerConfig.RestCfg,
-			ManagementFetcher:         args.ManagementFetcher,
-			Cluster:                   args.Cluster,
-			Estimator:                 estimator,
+			Logger:                 args.Log,
+			ClustersManager:        args.CoreServerConfig.ClustersManager,
+			GitProvider:            args.GitProvider,
+			ClientGetter:           args.ClientGetter,
+			DiscoveryClient:        args.DiscoveryClient,
+			ClustersNamespace:      args.CAPIClustersNamespace,
+			ProfileHelmRepository:  args.ProfileHelmRepository,
+			HelmRepositoryCacheDir: args.HelmRepositoryCacheDirectory,
+			CAPIEnabled:            args.CAPIEnabled,
+			ChartJobs:              helm.NewJobs(),
+			ChartsCache:            args.ChartsCache,
+			ValuesFetcher:          helm.NewValuesFetcher(),
+			RestConfig:             args.CoreServerConfig.RestCfg,
+			ManagementFetcher:      args.ManagementFetcher,
+			Cluster:                args.Cluster,
+			Estimator:              estimator,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {

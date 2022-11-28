@@ -64,10 +64,10 @@ function HeaderSection({
       value: category,
     },
     {
-      rowkey: 'Mode',
+      rowkey: 'Modee',
       children: modes?.length
-        ? modes.map((mode: string, index: number) => (
-            <Mode key={index} modeName={mode} />
+        ? modes.map((mode, index) => (
+            <Mode key={index} modeName={mode} showName />
           ))
         : '',
     },
@@ -97,7 +97,7 @@ function HeaderSection({
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
-          className={classes.editor}
+          className={`editor ${classes.editor}`}
         />
       </div>
 
@@ -105,7 +105,7 @@ function HeaderSection({
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
-          className={classes.editor}
+          className={`editor ${classes.editor}`}
           remarkPlugins={[remarkGfm]}
         />
       </div>

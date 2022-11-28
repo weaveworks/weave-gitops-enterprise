@@ -67,7 +67,7 @@ func createLeafClusterKubeconfig(leafClusterContext string, leafClusterName stri
 		gomega.Expect(stdErr).Should(gomega.BeEmpty(), "Failed to get control plane of kind cluster")
 
 		env := []string{"CLUSTER_NAME=" + leafClusterName, "CA_AUTHORITY=" + caAuthority, fmt.Sprintf("ENDPOINT=https://%s:6443", controlPlane), "TOKEN=" + token}
-		err = runCommandPassThroughWithEnv(env, "sh", "-c", fmt.Sprintf("%s > /tmp/%s", path.Join(getCheckoutRepoPath(), "test/utils/scripts/static-kubeconfig.sh"), leafClusterkubeconfig))
+		err = runCommandPassThroughWithEnv(env, "sh", "-c", fmt.Sprintf("%s > /tmp/%s", path.Join(testScriptsPath, "static-kubeconfig.sh"), leafClusterkubeconfig))
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to create kubeconfig for service account")
 	})
 	useClusterContext(currentContext)
@@ -137,7 +137,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Clusters")
 
 				ginkgo.By("And wait for  good looking response from /v1/clusters", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "clusters", POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/clusters")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: "clusters"}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/clusters")
 				})
 
 				clustersPage := pages.GetClustersPage(webDriver)

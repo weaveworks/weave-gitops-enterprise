@@ -60,7 +60,7 @@ type ApplicationViolations struct {
 }
 
 func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace string) (kustomization string) {
-	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test", "utils", "data", "git-kustomization.yaml"))
+	contents, err := ioutil.ReadFile(path.Join(testDataPath, "git-kustomization.yaml"))
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to read git-kustomization template yaml")
 
 	t := template.Must(template.New("kustomization").Parse(string(contents)))
@@ -221,6 +221,7 @@ func verifyAppDetails(app Application, cluster ClusterConfig) {
 			gomega.Eventually(details.AttemptedRevision.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(app.Version), fmt.Sprintf("Failed to verify %s Last Attempted Version", app.Name))
 
 		} else {
+			gomega.Eventually(details.Kind.Text).Should(gomega.MatchRegexp(cases.Title(language.English, cases.NoLower).String(app.Type)), fmt.Sprintf("Failed to verify %s kind", app.Name))
 			gomega.Eventually(details.Source.Text).Should(gomega.MatchRegexp("GitRepository/"+app.Name), fmt.Sprintf("Failed to verify %s Source", app.Name))
 			gomega.Eventually(details.AppliedRevision.Text).Should(gomega.MatchRegexp("master"), fmt.Sprintf("Failed to verify %s AppliedRevision", app.Name))
 			gomega.Eventually(details.Path.Text).Should(gomega.MatchRegexp(app.Path), fmt.Sprintf("Failed to verify %s Path", app.Name))
@@ -521,14 +522,15 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 	})
 
 	gitops := pages.GetGitOps(webDriver)
+	messages := pages.GetMessages(webDriver)
 	ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
 		gomega.Eventually(func(g gomega.Gomega) {
 			g.Expect(gitops.CreatePR.Click()).Should(gomega.Succeed())
-			g.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
+			g.Eventually(messages.Success, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("PR created successfully"))
 		}, ASSERTION_2MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to create pull request")
 	})
 
-	prUrl, _ = gitops.PRLinkBar.Attribute("href")
+	prUrl, _ = messages.Success.Find("a").Attribute("href")
 	return prUrl
 }
 
@@ -562,7 +564,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				pages.NavigateToPage(webDriver, "Applications")
 
 				ginkgo.By("And wait for  good looking response from /v1/objects", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "objects?kind=Kustomization", POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/objects")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{"objects", []byte(`{"kind": "Kustomization"}`)}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/objects")
 				})
 
 				applicationsPage := pages.GetApplicationsPage(webDriver)
@@ -701,7 +703,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				defer cleanGitRepository(appKustomization)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -843,6 +845,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
 				defer cleanGitRepository(appKustomization)
+				defer cleanGitRepository(fmt.Sprintf("./clusters/%s/%s-namespace.yaml", mgmtCluster.Name, podinfo.TargetNamespace))
 
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				existingAppCount = getApplicationCount()
@@ -967,7 +970,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
-			var appDir string
 			var existingAppCount int
 			patSecret := "application-pat"
 			bootstrapLabel := "bootstrap"
@@ -983,7 +985,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 				existingAppCount = getApplicationCount()
-				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafCluster.Name, "")
 				createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -998,7 +999,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafCluster.Name, "")
-				cleanGitRepository(appDir)
+				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
 				deleteNamespace([]string{leafCluster.Namespace})
 
 			})
@@ -1060,7 +1061,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
 					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
 					existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 				})
 
@@ -1093,7 +1093,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate application availability", func() {
+				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
 					useClusterContext(leafClusterContext)
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
@@ -1189,7 +1189,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				useClusterContext(mgmtClusterContext)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), "profiles", POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/profiles ")
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts ")
 				})
 
 				pages.NavigateToPage(webDriver, "Applications")
@@ -1231,7 +1231,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
 				})
 
-				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate cluster availability", func() {
+				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
 					useClusterContext(leafClusterContext)
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
@@ -1279,7 +1279,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var downloadedResourcesPath string
 
 			// Just specify policies yaml path
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+			var policiesYaml string
 
 			// Just specify policy config yaml path
 			policyConfigYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-config.yaml")
@@ -1397,8 +1397,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
-			var appDir string
+			var appSourcePath string
 			var existingAppCount int
+			var policiesYaml string
 			patSecret := "application-violations-pat"
 			bootstrapLabel := "bootstrap"
 
@@ -1420,9 +1421,10 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			}
 
 			ginkgo.JustBeforeEach(func() {
+				// Just specify policies yaml path
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
 				// Get the count of existing applications before deploying new application
 				existingAppCount = getApplicationCount()
-				appDir = path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "apps")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 
 				createCluster("kind", leafCluster.Name, "")
@@ -1449,8 +1451,8 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafCluster.Name, "")
-
-				cleanGitRepository(appDir)
+				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
+				cleanGitRepository(appSourcePath)
 
 				deleteNamespace([]string{leafCluster.Namespace})
 			})

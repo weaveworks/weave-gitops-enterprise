@@ -38,6 +38,9 @@ func minMax(vals []float32) (float32, float32) {
 //
 // TODO: return an error if the currencies don't match across all Estimates?
 func reduceEstimates(estimates map[string]*CostEstimate) *CostEstimate {
+	if len(estimates) == 0 {
+		return nil
+	}
 	lows, currency := func(m map[string]*CostEstimate) (float32, string) {
 		currencies := sets.NewString()
 		var total float32

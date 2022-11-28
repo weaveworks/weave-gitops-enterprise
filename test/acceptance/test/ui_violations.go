@@ -47,6 +47,11 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			configPolicy := "Containers Minimum Replica Count acceptance test"
 			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`
 
+			ginkgo.JustBeforeEach(func() {
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				deploymentYaml = path.Join(testDataPath, "multi-container-manifest.yaml")
+			})
+
 			ginkgo.JustAfterEach(func() {
 				// Delete the Policy config
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
@@ -54,7 +59,6 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 				_ = gitopsTestRunner.KubectlDelete([]string{}, deploymentYaml)
-
 			})
 
 			ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
@@ -138,21 +142,22 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[UI] Leaf cluster violations can be seen in management cluster", func() {
-			var existingViolationCount int
 			var mgmtClusterContext string
 			var leafClusterContext string
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
+			var policiesYaml string
+			var deploymentYaml string
 			patSecret := "violation-pat"
 			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-violation-kind"
 			leafClusterNamespace := "default"
 
-			policiesYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
+			policiesYaml = path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policies.yaml")
 			// Just specify policy config yaml path
 			policyConfigYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "policy-config.yaml")
-			deploymentYaml := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
+			deploymentYaml = path.Join(getCheckoutRepoPath(), "test", "utils", "data", "postgres-manifest.yaml")
 			policyName := "Container Image Pull Policy acceptance test"
 			violationMsg := "Container Image Pull Policy acceptance test in deployment postgres"
 			violationApplication := "default/postgres"
@@ -162,7 +167,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`
 
 			ginkgo.JustBeforeEach(func() {
-				existingViolationCount = getViolationsCount()
+				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				deploymentYaml = path.Join(testDataPath, "postgres-manifest.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -191,6 +197,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				installPolicyConfig(leafClusterName, policyConfigYaml)
 				installViolatingDeployment(leafClusterName, deploymentYaml)
 
+				// First let the leaf cluster to bootstrap prior installing policies. Policies might conflict with bootstarpping
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafClusterNamespace, patSecret)
 				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
@@ -200,6 +207,20 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
+				// Installing test policies and violating deployments on leaf cluster
+				useClusterContext(leafClusterContext)
+				installTestPolicies("management", policiesYaml)
+				installViolatingDeployment("management", deploymentYaml)
+
+				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start reconciliation", func() {
+					useClusterContext(leafClusterContext)
+					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+					useClusterContext(mgmtClusterContext)
+				})
+
+				// Installing test policies and violating deployments on management cluster
+				useClusterContext(mgmtClusterContext)
 				installTestPolicies("management", policiesYaml)
 				// Add/Install Policy config to management cluster
 				installPolicyConfig("management", policyConfigYaml)
