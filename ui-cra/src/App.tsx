@@ -51,7 +51,7 @@ const GlobalStyle = createGlobalStyle`
 
   html, body {
     height: 100%;
-    background-color:#EEF0F4 !important;
+    background-color:${theme.colors.backGrey} !important;
   }
 
   body {
