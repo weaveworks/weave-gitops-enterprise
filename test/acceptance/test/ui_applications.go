@@ -409,7 +409,7 @@ func verifyAppViolationsDetailsPage(clusterName string, violatingApp Application
 		gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to navigate back to the '%s' app violations list", violatingApp.Name))
 
 		gomega.Eventually(appViolationsDetialsPage.ClusterName.Text).Should(gomega.Equal("Cluster Name :"), "Failed to get cluster name field on App violations details page")
-		gomega.Eventually(appViolationsDetialsPage.ClusterNameValue.Text).Should(gomega.Equal(clusterName), "Failed to get cluster name value on App violations details page")
+		gomega.Eventually(appViolationsDetialsPage.ClusterNameValue.Text).Should(gomega.MatchRegexp(clusterName), "Failed to get cluster name value on App violations details page")
 
 		gomega.Eventually(appViolationsDetialsPage.ViolationTime.Text).Should(gomega.Equal("Violation Time :"), "Failed to get violation time field on App violations details page")
 		gomega.Expect(appViolationsDetialsPage.ViolationTimeValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get violation time value on App violations details page")
@@ -1323,7 +1323,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{downloadedResourcesPath})
 			})
 
-			ginkgo.FIt("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
+			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
