@@ -420,7 +420,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   const handleAddResource = useCallback(() => {
     const createReqAnnot = getCreateRequestAnnotation(resource);
-    const payload = toPayload(q
+    const payload = toPayload(
       formData,
       infraCredential,
       template.name,
