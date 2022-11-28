@@ -1450,9 +1450,14 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
 	var committedFiles []*capiv1_protos.CommitFile
 	for _, f := range p.committedFiles {
+		content := ""
+		if f.Content != nil {
+			content = *f.Content
+		}
+
 		committedFiles = append(committedFiles, &capiv1_protos.CommitFile{
 			Path:    *f.Path,
-			Content: *f.Content,
+			Content: content,
 		})
 	}
 	sortCommitFiles(committedFiles)
