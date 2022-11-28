@@ -880,6 +880,87 @@ status: {}
 			},
 			err: errors.New("kustomization metadata must be specified"),
 		},
+		{
+			name: "create kustomizations 2",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Edits dev",
+				TemplateNamespace: "default",
+				Kustomizations:    []*capiv1_protos.Kustomization{
+					// {
+					// 	Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
+					// 	Spec: &capiv1_protos.KustomizationSpec{
+					// 		Path:            "./apps/capi",
+					// 		SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+					// 		TargetNamespace: "foo-ns",
+					// 	},
+					// },
+				},
+				Credentials: &capiv1_protos.Credential{},
+
+				PreviousValues: &capiv1_protos.PreviousValues{
+					ParameterValues: map[string]string{
+						"CLUSTER_NAME": "dev",
+						"NAMESPACE":    "clusters-namespace",
+					},
+					Kustomizations: []*capiv1_protos.Kustomization{
+						{
+							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:            "./apps/capi",
+								SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+								TargetNamespace: "foo-ns",
+							},
+						},
+						{
+							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:      "./apps/billing",
+								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
+							},
+						},
+					},
+					Credentials: &capiv1_protos.Credential{},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
+      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","credentials":{},"parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Edits dev","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: dev
+  namespace: clusters-namespace0
+`,
+				},
+				{
+					Path:    "clusters/clusters-namespace/dev/apps-billing-flux-system-kustomization.yaml",
+					Content: "",
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
 	}
 
 	for _, tt := range testCases {
