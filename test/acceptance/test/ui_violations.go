@@ -44,7 +44,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationSeverity := "High"
 			violationCategory := "weave.categories.pod-security"
 			configPolicy := "Containers Minimum Replica Count acceptance test"
-			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`
+			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo \(1 occurrences\)`
 
 			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
@@ -160,7 +160,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationSeverity := "Medium"
 			violationCategory := "weave.categories.software-supply-chain"
 			configPolicy := "Containers Minimum Replica Count acceptance test"
-			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`
+			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo \(1 occurrences\)`
 
 			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
@@ -179,20 +179,15 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafClusterName, "")
-				// Delete the Policy config
+				// Delete the Policy config and test policies
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
-
 			})
 
-			ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
+			ginkgo.FIt("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
 				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
 				installPolicyAgent(leafClusterName)
-				installTestPolicies(leafClusterName, policiesYaml)
-				// Add/Install Policy config to leaf cluster
-				installPolicyConfig(leafClusterName, policyConfigYaml)
-				installViolatingDeployment(leafClusterName, deploymentYaml)
 
 				// First let the leaf cluster to bootstrap prior installing policies. Policies might conflict with bootstarpping
 				useClusterContext(mgmtClusterContext)
@@ -204,22 +199,22 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
-				// Installing test policies and violating deployments on leaf cluster
+				// Installing test policies,Policy Config and violating deployments on leaf cluster
 				useClusterContext(leafClusterContext)
-				installTestPolicies("management", policiesYaml)
-				installViolatingDeployment("management", deploymentYaml)
+				installTestPolicies(leafClusterName, policiesYaml)
+				installPolicyConfig(leafClusterName, policyConfigYaml)
+				installViolatingDeployment(leafClusterName, deploymentYaml)
 
-				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start reconciliation", func() {
-					useClusterContext(leafClusterContext)
-					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					useClusterContext(mgmtClusterContext)
-				})
+				// ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start reconciliation", func() {
+				// 	useClusterContext(leafClusterContext)
+				// 	reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				// 	reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				// 	useClusterContext(mgmtClusterContext)
+				// })
 
-				// Installing test policies and violating deployments on management cluster
+				// Installing test policies,Policy Config and violating deployment on management cluster
 				useClusterContext(mgmtClusterContext)
 				installTestPolicies("management", policiesYaml)
-				// Add/Install Policy config to management cluster
 				installPolicyConfig("management", policyConfigYaml)
 				installViolatingDeployment("management", deploymentYaml)
 
@@ -229,12 +224,13 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And wait for violations to be visibe on the dashboard", func() {
 					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
 
-					leafViolationCount := 2 // 2 leaf cluster violation
+					leafViolationCount := 2 // 2 leaf cluster violation (Container Image Pull Policy acceptance test + Containers Minimum Replica Count acceptance test)
 					gomega.Eventually(func(g gomega.Gomega) int {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return violationsPage.CountViolations(leafClusterNamespace + `/` + leafClusterName)
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(leafViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", leafViolationCount))
+						// Just increase the time to 5 mins as we noticed that the leaf cluster violations appeared  in the UI after 4 mins
+					}, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(leafViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", leafViolationCount))
 				})
 
 				ginkgo.By(fmt.Sprintf("And add filter leaf cluster '%s' violations", leafClusterName), func() {
