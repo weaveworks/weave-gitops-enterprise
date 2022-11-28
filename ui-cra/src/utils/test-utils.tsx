@@ -43,7 +43,7 @@ import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
-} from '../contexts/GithubAuth/provider';
+} from '../contexts/GithubAuth/utils';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
@@ -466,7 +466,7 @@ export class TestFilterableTable {
   }
 
   testSorthTableByColumn(columnName: string, rowValues: Array<Array<string>>) {
-   this.sortTableByColumn(columnName);
+    this.sortTableByColumn(columnName);
     const { rows } = this.getTableInfo();
     expect(rows).toHaveLength(rowValues.length);
     rowValues.forEach((row, index) => {
