@@ -11,27 +11,43 @@ import { ReactComponent as SuccessIcon } from '../../assets/img/success.svg';
 import { ReactComponent as WarningIcon } from '../../assets/img/warning.svg';
 
 const { xs, base } = theme.spacing;
+const {
+  alertLight,
+  feedbackLight,
+  successLight,
+  alertMedium,
+  feedbackMedium,
+  successMedium,
+} = theme.colors;
 
 const BoxWrapper = styled(Box)<{ severity: string }>`
-  .MuiAlert-root {
+  div[class*='MuiAlert-root'] {
     margin: 0 ${base} ${base} ${base};
     border-radius: ${xs};
   }
-  .MuiAlert-action {
+  div[class*='MuiAlert-action'] {
     display: inline;
     color: ${props => {
-      if (props.severity === 'error') return '#d58572';
-      else if (props.severity === 'warning') return theme.colors.feedbackLight;
-      else if (props.severity === 'success') return theme.colors.success;
+      if (props.severity === 'error') return alertLight;
+      else if (props.severity === 'warning') return feedbackLight;
+      else if (props.severity === 'success') return successLight;
       else return 'transparent';
     }};
+    svg {
+      fill: ${props => {
+        if (props.severity === 'error') return alertMedium;
+        else if (props.severity === 'warning') return feedbackMedium;
+        else if (props.severity === 'success') return successMedium;
+        else return 'transparent';
+      }};
+    }
   }
-  .MuiAlert-icon {
-    .MuiSvgIcon-root {
+  div[class*='MuiAlert-icon'] {
+    svg[class*='MuiSvgIcon-root'] {
       display: none;
     }
   }
-  .MuiAlert-message {
+  div[class*='MuiAlert-message'] {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -39,14 +55,14 @@ const BoxWrapper = styled(Box)<{ severity: string }>`
       margin-right: ${xs};
     }
   }
-  .MuiAlert-standardError {
-    background-color: #eecec7;
+  div[class*='MuiAlert-standardError'] {
+    background-color: ${alertLight};
   }
-  .MuiAlert-standardSuccess {
-    background-color: #c9ebd7;
+  div[class*='MuiAlert-standardSuccess'] {
+    background-color: ${successLight};
   }
-  .MuiAlert-standardWarning {
-    background-color: #fce6d2;
+  div[class*='MuiAlert-standardWarning'] {
+    background-color: ${alertLight};
   }
 `;
 
