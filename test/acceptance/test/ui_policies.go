@@ -81,7 +81,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
-			ginkgo.It("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+			ginkgo.FIt("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 				//var auditMode bool
 				//var enforceMode bool
 				existingPoliciesCount := getPoliciesCount()
@@ -159,6 +159,17 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 					}
 
+				})
+
+				ginkgo.By("And Filter Policies By Modes", func() {
+					// Filter Policieis by Audit Mode
+					policyList := pages.GetPoliciesPage(webDriver)
+					filterID := "Audit: audit"
+					searchPage := pages.GetSearchPage(webDriver)
+					searchPage.SelectFilter("Audit", filterID)
+					gomega.Eventually(policyList.CountPolicies()).Should(gomega.BeNumerically("~", 3, 5), "The number of selected violations for medium severity should be equal to 3")
+					// Clear the filter
+					searchPage.SelectFilter("Audit", filterID)
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
