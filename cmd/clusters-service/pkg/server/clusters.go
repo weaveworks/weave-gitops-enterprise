@@ -187,8 +187,14 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
 	if msg.PreviousValues != nil {
-		prevFiles, err := s.getFiles(
+		prevFiles, err := getFiles(
 			ctx,
+			client,
+			s.log,
+			s.estimator,
+			s.chartsCache,
+			types.NamespacedName{Name: s.cluster},
+			s.profileHelmRepository,
 			tmpl,
 			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations},
 			msg,
