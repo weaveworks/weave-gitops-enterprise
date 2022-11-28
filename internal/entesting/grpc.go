@@ -49,7 +49,7 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 	}
 
 	clustersManager := clustersmngr.NewClustersManager(
-		fetcher,
+		[]clustersmngr.ClusterFetcher{fetcher},
 		&nsChecker,
 		log,
 	)
