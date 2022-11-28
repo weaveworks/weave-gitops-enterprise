@@ -244,6 +244,7 @@ const toPayload = (
   templateNamespace: string,
   templateKind: string,
   updatedProfiles: ProfilesIndex,
+  createRequestAnnotation: any,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
   return {
@@ -258,6 +259,7 @@ const toPayload = (
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
     templateKind,
+    previousValues: createRequestAnnotation,
   };
 };
 
@@ -417,13 +419,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   ]);
 
   const handleAddResource = useCallback(() => {
-    const payload = toPayload(
+    const createReqAnnot = getCreateRequestAnnotation(resource);
+    const payload = toPayload(q
       formData,
       infraCredential,
       template.name,
       template.namespace!,
       template.templateKind,
       updatedProfiles,
+      createReqAnnot,
     );
     setLoading(true);
     return addResource(

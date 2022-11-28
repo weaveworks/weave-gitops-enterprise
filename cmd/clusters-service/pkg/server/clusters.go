@@ -171,6 +171,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
 		msg,
 	)
+	//TODO remove kustomizations,profiles from annotations
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +186,23 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
+	if msg.PreviousValues != nil {
+		prevFiles, err := s.getFiles(
+			ctx,
+			tmpl,
+			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations},
+			msg,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, git_files.KustomizationFiles)
+		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, git_files.ProfileFiles)
+
+		files = append(files, removedKustomizations...)
+		files = append(files, removedProfiles...)
+	}
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
@@ -962,4 +980,39 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 		Name:      name,
 		Namespace: namespace,
 	}
+}
+
+func sortFiles(files []gitprovider.CommitFile) {
+	sort.Slice(files, func(i, j int) bool {
+		return *files[i].Path < *files[j].Path
+	})
+}
+
+// Check if there are files in originalFiles that are missing from extraFiles and returns them
+func getMissingFiles(originalFiles []gitprovider.CommitFile, extraFiles []gitprovider.CommitFile) []gitprovider.CommitFile {
+	sortFiles(originalFiles)
+	sortFiles(extraFiles)
+
+	difference := []gitprovider.CommitFile{}
+	window := 0
+	for i, originalFile := range originalFiles {
+		if i+window < len(extraFiles) {
+			if *originalFile.Path != *extraFiles[i+window].Path {
+				window++
+				difference = append(difference, gitprovider.CommitFile{
+					Path:    originalFile.Path,
+					Content: nil,
+				})
+
+			}
+		} else {
+			difference = append(difference, gitprovider.CommitFile{
+				Path:    originalFile.Path,
+				Content: nil,
+			})
+		}
+	}
+
+	return difference
+
 }

@@ -1240,6 +1240,9 @@
         },
         "templateKind": {
           "type": "string"
+        },
+        "previousValues": {
+          "$ref": "#/definitions/v1PreviousValues"
         }
       }
     },
@@ -2071,6 +2074,33 @@
           "type": "string"
         }
       }
+    },
+    "v1PreviousValues": {
+      "type": "object",
+      "properties": {
+        "parameterValues": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "credentials": {
+          "$ref": "#/definitions/v1Credential"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ProfileValues"
+          }
+        },
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Kustomization"
+          }
+        }
+      },
+      "description": "Previous values for a CreatePullRequestRequest."
     },
     "v1ProfileValues": {
       "type": "object",

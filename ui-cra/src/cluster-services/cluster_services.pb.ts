@@ -210,6 +210,14 @@ export type CreatePullRequestRequest = {
   kustomizations?: Kustomization[]
   templateNamespace?: string
   templateKind?: string
+  previousValues?: PreviousValues
+}
+
+export type PreviousValues = {
+  parameterValues?: {[key: string]: string}
+  credentials?: Credential
+  values?: ProfileValues[]
+  kustomizations?: Kustomization[]
 }
 
 export type CreatePullRequestResponse = {
