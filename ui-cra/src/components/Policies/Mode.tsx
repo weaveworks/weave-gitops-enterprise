@@ -1,29 +1,43 @@
+
 import { VerifiedUser, Policy } from '@material-ui/icons';
 import { ModeWrapper } from './PolicyStyles';
 
-function Mode({ modeName }: { modeName: string }) {
+interface IModeProps {
+  modeName: string,
+  showName?: boolean 
+}
+const capitalizeFirstLetter =( strToCapitalize:string) =>  strToCapitalize.charAt(0).toUpperCase() + strToCapitalize.slice(1);
+
+function Mode({ modeName, showName = false }: IModeProps) {
   switch (modeName.toLocaleLowerCase()) {
     case 'audit':
-      return (
-        <ModeWrapper>
-          <Policy />
-          <span>{modeName}</span>
-        </ModeWrapper>
-      );
+      return ModeTooltip('audit', showName, <Policy />);
     case 'admission':
-      return (
-        <ModeWrapper>
-          <VerifiedUser />
-          <span>enforce</span>
-        </ModeWrapper>
-      );
+      return ModeTooltip('enforce', showName, <VerifiedUser />);
     default:
       return (
         <ModeWrapper>
-          <span>{modeName}</span>
+          <span>-</span>
         </ModeWrapper>
       );
   }
 }
+
+const ModeTooltip = (mode: string, showName: boolean, icon: any) => {
+  return (
+    <>
+      {!showName ? (
+        <ModeWrapper>
+          <span title={capitalizeFirstLetter(mode)}>{icon}</span>
+        </ModeWrapper>
+      ) : (
+        <ModeWrapper>
+          {icon}
+          <span>{mode}</span>
+        </ModeWrapper>
+      )}
+    </>
+  );
+};
 
 export default Mode;
