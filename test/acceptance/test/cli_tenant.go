@@ -216,5 +216,38 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				})
 			})
 		})
+
+		ginkgo.Context("[CLI] When tenant name and namespaces are available", ginkgo.Ordered, func() {
+
+			ginkgo.JustAfterEach(func() {
+
+				deleteTenants([]string{tenantYaml})
+
+				// Namespaces used in tenant creation, waiting form there termination
+				namespaces := []string{"test-ns1"}
+				waitForNamespaceDeletion(namespaces)
+			})
+
+			ginkgo.It("Verify a single tenant resources can be exported", ginkgo.Label("tenant"), func() {
+
+				// verify tenants resources are exported to terminal
+				stdOut, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --name test-tenant1 --namespace test-ns1 --export`))
+				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
+
+				verifyTenantYaml(string(stdOut), "test-tenant1", []string{"test-ns1"}, true, "test-tenant1",
+					map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{})
+
+				// verify tenants resources are exported to output file
+				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file --export > %s`, tenantYaml))
+				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
+
+				contents, err := ioutil.ReadFile(tenantYaml)
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Faile to read generated tentant yaml file")
+
+				verifyTenantYaml(string(contents), "test-tenant1", []string{"test-ns1"}, true, "test-tenant1",
+					map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{})
+			})
+
+		})
 	})
 }
