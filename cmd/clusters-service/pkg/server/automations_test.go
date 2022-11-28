@@ -679,7 +679,6 @@ status: {}
 				clusterState: tt.clusterState,
 				namespace:    "default",
 				provider:     tt.provider,
-				hr:           hr,
 			})
 
 			// request
@@ -809,7 +808,6 @@ status: {}
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
 				namespace:    "default",
-				hr:           hr,
 			})
 
 			// request

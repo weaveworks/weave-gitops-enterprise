@@ -278,6 +278,94 @@ func TestAddChart(t *testing.T) {
 	assert.Equal(t, 1, len(charts))
 }
 
+func TestGetLatestVersion(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.2", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.3", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	version, err := indexer.GetLatestVersion(context.TODO(),
+		nsn("cluster1", "clusters"),
+		nsn("foo-charts", "team-ns"),
+		"nginx")
+	assert.NoError(t, err)
+	assert.Equal(t, "1.0.3", version)
+}
+
+func TestGetLatestVersion_NotFound(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	version, err := indexer.GetLatestVersion(context.TODO(),
+		nsn("cluster1", "clusters"),
+		nsn("foo-charts", "team-ns"),
+		"redis")
+	assert.NoError(t, err)
+	assert.Equal(t, "", version)
+}
+
+func TestGetLayer(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	layer, err := indexer.GetLayer(context.TODO(),
+		nsn("cluster1", "clusters"),
+		nsn("foo-charts", "team-ns"),
+		"nginx",
+		"1.0.1")
+	assert.NoError(t, err)
+	assert.Equal(t, "layer-0", layer)
+}
+
+func TestGetLayer_NotFound(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	err := indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "foo-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	layer, err := indexer.GetLayer(context.TODO(),
+		nsn("cluster1", "clusters"),
+		nsn("foo-charts", "team-ns"),
+		"redis",
+		"1.0.1")
+	assert.NoError(t, err)
+	assert.Equal(t, "", layer)
+}
+
 func TestDeleteAllChartsForCluster(t *testing.T) {
 	db := testCreateDB(t)
 	indexer := HelmChartIndexer{

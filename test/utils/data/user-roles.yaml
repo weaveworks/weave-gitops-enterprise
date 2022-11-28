@@ -4,20 +4,27 @@ metadata:
   name: gitops-apps-reader
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods", "services" ]
-    verbs: [ "get", "list" ]
+    resources: ["secrets", "pods", "services"]
+    verbs: ["get", "list"]
   - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list"]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "patch" ]
+    resources: ["kustomizations"]
+    verbs: ["get", "list", "patch"]
   - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "patch" ]
+    resources: ["helmreleases"]
+    verbs: ["get", "list", "patch"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list", "patch" ]
+    resources:
+      [
+        "buckets",
+        "helmcharts",
+        "gitrepositories",
+        "helmrepositories",
+        "ocirepositories",
+      ]
+    verbs: ["get", "list", "patch"]
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
@@ -25,7 +32,7 @@ rules:
     resources: ["terraforms"]
     verbs: ["get", "watch", "list", "patch"]
   - apiGroups: ["apiextensions.k8s.io"]
-    resources: ["customresourcedefinitions"]    
+    resources: ["customresourcedefinitions"]
     verbs: ["get", "list", watch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -45,7 +52,7 @@ rules:
   - apiGroups: ["capi.weave.works"]
     resources: ["capitemplates"]
     verbs: ["get", "watch", "list"]
-  - apiGroups: ["clustertemplates.weave.works"]
+  - apiGroups: ["templates.weave.works"]
     resources: ["gitopstemplates"]
     verbs: ["get", "watch", "list"]
 ---
@@ -101,24 +108,24 @@ kind: ClusterRole
 metadata:
   name: gitops-gitopsclusters-reader
 rules:
-- apiGroups: ["gitops.weave.works"]
-  resources: ["gitopsclusters"]
-  verbs: ["get", "watch", "list"]
+  - apiGroups: ["gitops.weave.works"]
+    resources: ["gitopsclusters"]
+    verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: gitops-capicluster-reader
 rules:
-- apiGroups: ["cluster.x-k8s.io"]
-  resources: ["clusters"]
-  verbs: ["get", "list", "watch"]
+  - apiGroups: ["cluster.x-k8s.io"]
+    resources: ["clusters"]
+    verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
-metadata:  
-  name: gitops-pipelines-reader  
+metadata:
+  name: gitops-pipelines-reader
 rules:
-- apiGroups: ["pipelines.weave.works"]
-  resources: ["pipelines"]
-  verbs: ["get", "list", "watch"]
+  - apiGroups: ["pipelines.weave.works"]
+    resources: ["pipelines"]
+    verbs: ["get", "list", "watch"]
