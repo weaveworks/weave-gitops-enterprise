@@ -1430,6 +1430,9 @@
       "properties": {
         "repositoryURL": {
           "type": "string"
+        },
+        "uiConfig": {
+          "type": "string"
         }
       }
     },

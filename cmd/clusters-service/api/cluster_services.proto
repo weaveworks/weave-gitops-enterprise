@@ -686,7 +686,10 @@ message ProfileValues {
 
 message GetConfigRequest {}
 
-message GetConfigResponse { string repositoryURL = 1; }
+message GetConfigResponse {
+  string repositoryURL = 1;
+  string ui_config = 2;
+}
 
 message PolicyParamRepeatedString { repeated string value = 1; }
 

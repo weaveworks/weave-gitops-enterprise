@@ -52,6 +52,7 @@ type Options struct {
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Cluster                      string
 	Estimator                    estimation.Estimator
+	UIConfig                     string
 }
 
 type Option func(*Options)
@@ -255,5 +256,11 @@ func WithManagementCluster(cluster string) Option {
 func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
 	return func(o *Options) {
 		o.Estimator = estimator
+	}
+}
+
+func WithUIConfig(uiConfig string) Option {
+	return func(o *Options) {
+		o.UIConfig = uiConfig
 	}
 }

@@ -11,5 +11,8 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 
-	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
+	return &capiv1_proto.GetConfigResponse{
+		RepositoryURL: repositoryURL,
+		UiConfig:      s.uiConfig,
+	}, nil
 }

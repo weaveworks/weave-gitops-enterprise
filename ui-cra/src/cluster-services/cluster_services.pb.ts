@@ -477,6 +477,7 @@ export type GetConfigRequest = {
 
 export type GetConfigResponse = {
   repositoryURL?: string
+  uiConfig?: string
 }
 
 export type PolicyParamRepeatedString = {
