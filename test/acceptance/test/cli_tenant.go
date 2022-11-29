@@ -72,12 +72,12 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 			// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
-			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 		})
 
 		ginkgo.AfterEach(ginkgo.OncePerOrdered, func() {
 			// Create the oidc user default roles/rolebindings after tenant tests completed
-			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 		})
 
 		ginkgo.Context("[CLI] When input tenant definition yaml is available", ginkgo.Ordered, func() {
@@ -188,7 +188,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				}()
 
 				ginkgo.By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", leafCluster.Name), func() {
-					contents, err := ioutil.ReadFile(path.Join(testDataPath, "gitops-cluster.yaml"))
+					contents, err := ioutil.ReadFile(path.Join(testDataPath, "kustomization/gitops-cluster.yaml"))
 					gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
 
 					t := template.Must(template.New("gitops-cluster").Parse(string(contents)))
