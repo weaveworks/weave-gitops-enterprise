@@ -101,6 +101,7 @@ else:
    docker_build(
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
+      ignore=["ui-cra"],
       dockerfile='cmd/clusters-service/Dockerfile',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
       entrypoint= ["/sbin/tini", "--", "clusters-service", "--dev-mode"]
