@@ -1,7 +1,7 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: cluster-invalid-template-{{.Count}}
+  name: invalid-cluster-template-{{.Count}}
   namespace: default
 spec:
   resourcetemplates:

@@ -41,7 +41,7 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify capa EC2 cluster cost estimation", ginkgo.Label("integration", "cost"), func() {
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/aws/cluster-template.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -159,7 +159,7 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify non-supported (eks) capa cluster cost estimation", ginkgo.Label("integration", "cost"), func() {
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/aws/cluster-template-eks.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-eks.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -212,7 +212,7 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify capa machinepool cost estimation", ginkgo.Label("integration", "cost"), func() {
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/aws/cluster-template-machinepool.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-machinepool.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
@@ -305,7 +305,7 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify capa cost estimation with invalid pricing secrert", ginkgo.Label("integration", "cost"), func() {
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/aws/cluster-template-machinepool.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-machinepool.yaml")
 				})
 
 				pages.NavigateToPage(webDriver, "Templates")
