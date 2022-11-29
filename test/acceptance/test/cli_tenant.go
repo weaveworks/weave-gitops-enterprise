@@ -221,6 +221,10 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.Context("[CLI] When tenant name and namespaces are available", ginkgo.Ordered, func() {
 
+			ginkgo.JustBeforeEach(func() {
+				tenantYaml = getTenantYamlPath()
+			})
+
 			ginkgo.JustAfterEach(func() {
 
 				deleteTenants([]string{tenantYaml})
@@ -240,7 +244,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 					map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{}, false)
 
 				// verify tenants resources are exported to output file
-				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file --export > %s`, tenantYaml))
+				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --name test-tenant1 --namespace test-ns1 --export > %s`, tenantYaml))
 				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
 
 				contents, err := ioutil.ReadFile(tenantYaml)
