@@ -518,7 +518,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c10"
       >
         <a
-          href="/resources/edit?kind=Pipeline&name=podinfo-02&namespace=default"
+          href="/"
           style="pointer-events: none;"
         >
           <div
