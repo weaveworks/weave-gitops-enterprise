@@ -65,6 +65,14 @@ config:
       enabled: true
     tokenPassthrough:
       enabled: true
+  ui:
+    logoURL: http://iqt.dev/iqt.svg
+    footer:
+      backgroundColor: red
+      color: blue
+      content: |
+        # My footer header
+        This is the footer [link](example.com)
 
 tls:
   enabled: true
