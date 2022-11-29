@@ -930,7 +930,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/prune: disabled
     templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
       Cluster","description":"Delete kustomization from cluster","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Edits
-      dev","template_namespace":"default","template_kind":"CAPITemplate","previous_values":{"parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"credentials":{},"kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}]}}'
+      dev","template_namespace":"default","template_kind":"CAPITemplate","previous_values":{"parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"}}}'
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default

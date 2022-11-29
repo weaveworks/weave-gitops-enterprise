@@ -160,35 +160,10 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	git_files, err := getFiles(
-		ctx,
-		client,
-		s.log,
-		s.estimator,
-		s.chartsCache,
-		types.NamespacedName{Name: s.cluster},
-		s.profileHelmRepository,
-		tmpl,
-		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
-		msg,
-	)
-	//TODO remove kustomizations,profiles from annotations
-	if err != nil {
-		return nil, err
-	}
-
-	path := getClusterManifestPath(git_files.Cluster)
-	files := []gitprovider.CommitFile{
-		{
-			Path:    &path,
-			Content: &git_files.RenderedTemplate,
-		},
-	}
-
-	files = append(files, git_files.ProfileFiles...)
-	files = append(files, git_files.KustomizationFiles...)
+	// Get list of previous files to be added as deleted files in the commit, then update the next previous files to be the current ones
+	prevFiles := &GetFilesReturn{}
 	if msg.PreviousValues != nil {
-		prevFiles, err := getFiles(
+		prevFiles, err = getFiles(
 			ctx,
 			client,
 			s.log,
@@ -204,6 +179,40 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return nil, err
 		}
 
+		msg.PreviousValues.Kustomizations = msg.Kustomizations
+		msg.PreviousValues.Credentials = msg.Credentials
+		msg.PreviousValues.ParameterValues = msg.ParameterValues
+		msg.PreviousValues.Values = msg.Values
+	}
+
+	git_files, err := getFiles(
+		ctx,
+		client,
+		s.log,
+		s.estimator,
+		s.chartsCache,
+		types.NamespacedName{Name: s.cluster},
+		s.profileHelmRepository,
+		tmpl,
+		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
+		msg,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	path := getClusterManifestPath(git_files.Cluster)
+	files := []gitprovider.CommitFile{
+		{
+			Path:    &path,
+			Content: &git_files.RenderedTemplate,
+		},
+	}
+
+	files = append(files, git_files.ProfileFiles...)
+	files = append(files, git_files.KustomizationFiles...)
+	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
 		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, git_files.KustomizationFiles)
 		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, git_files.ProfileFiles)
 
