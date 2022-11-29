@@ -20,7 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func TestMultiFetcher(t *testing.T) {
+func TestGitopsFetcher(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	clusterName := "gitops-cluster"
@@ -32,9 +32,9 @@ func TestMultiFetcher(t *testing.T) {
 		expectedCount  int
 	}{
 		{
-			context:        "when no gitops clusters found, returns only self",
+			context:        "when no gitops clusters found, returns nothing",
 			clusterObjects: []runtime.Object{},
-			expectedCount:  1,
+			expectedCount:  0,
 		},
 		{
 			context: "fetches clusters with capi ref",
@@ -52,7 +52,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 2,
+			expectedCount: 1,
 		},
 		{
 			context: "fetches clusters with secret ref",
@@ -70,7 +70,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 2,
+			expectedCount: 1,
 		},
 		{
 			context: "if both capi ref and secret ref are configured for cluster, prioritizes capi ref",
@@ -91,7 +91,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 2,
+			expectedCount: 1,
 		},
 		{
 			context: "when no secret ref set for gitops cluster, does not fail, skips adding cluster to list",
@@ -100,7 +100,7 @@ func TestMultiFetcher(t *testing.T) {
 					o.ObjectMeta.Name = clusterName
 				}),
 			},
-			expectedCount: 1,
+			expectedCount: 0,
 		},
 		{
 			context: "when no secret found for gitops cluster, does not fail, skips adding cluster to list",
@@ -112,7 +112,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 1,
+			expectedCount: 0,
 		},
 		{
 			context: "fetches cluster when secret data key is value.yaml",
@@ -130,7 +130,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 2,
+			expectedCount: 1,
 		},
 		{
 			context: "when secret does not contain data key, does not fail, skips adding cluster to list",
@@ -146,7 +146,7 @@ func TestMultiFetcher(t *testing.T) {
 					o.Data = map[string][]byte{}
 				}),
 			},
-			expectedCount: 1,
+			expectedCount: 0,
 		},
 		{
 			context: "when secret data does not contain valid kubeconfig, does not fail, skips adding cluster to list",
@@ -164,7 +164,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 1,
+			expectedCount: 0,
 		},
 		{
 			context: "when cluster is not ready, it is not added",
@@ -185,7 +185,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 1,
+			expectedCount: 0,
 		},
 		{
 			context: "when cluster has not connectivity, it is not added",
@@ -208,7 +208,7 @@ func TestMultiFetcher(t *testing.T) {
 					}
 				}),
 			},
-			expectedCount: 1,
+			expectedCount: 0,
 		},
 	}
 
@@ -221,14 +221,12 @@ func TestMultiFetcher(t *testing.T) {
 			cluster.GetNameReturns("management")
 			cluster.GetServerClientReturns(client, nil)
 
-			fetcher := fetcher.NewMultiClusterFetcher(testr.New(t), cluster, "default", scheme, false)
+			fetcher := fetcher.NewGitopsClusterFetcher(testr.New(t), cluster, "default", scheme, false)
 
 			clusters, err := fetcher.Fetch(context.TODO())
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(clusters).To(HaveLen(tt.expectedCount))
-
-			g.Expect(clusters[0].GetName()).To(Equal("management"))
 		})
 	}
 }
