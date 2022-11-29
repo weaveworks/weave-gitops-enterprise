@@ -32,8 +32,8 @@ export const Title = styled.div<Size>`
 export const Count = styled.div<Size>`
   background: ${({ size }) =>
     size === 'small'
-      ? transparentize(0.5, weaveTheme.colors.primaryLight)
-      : weaveTheme.colors.primaryLight};
+      ? transparentize(0.5, weaveTheme.colors.primary)
+      : weaveTheme.colors.primary};
   padding: 0 ${weaveTheme.spacing.xxs};
   align-self: center;
   font-size: ${({ size }) =>
@@ -50,6 +50,7 @@ export interface Breadcrumb {
 }
 interface Props extends Size {
   path: Breadcrumb[];
+  listSize?: number
 }
 const useStyles = makeStyles(() =>
   createStyles({
@@ -76,8 +77,9 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
-export const Breadcrumbs: FC<Props> = ({ path, size }) => {
+export const Breadcrumbs: FC<Props> = ({ path, size, listSize}) => {
   const classes = useStyles();
+  console.log(listSize, weaveTheme)
   return (
     <Container>
       {path.map(({ label, url }, index) => (
@@ -96,11 +98,14 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
               {label}
             </Span>
           ) : (
+            <>
             <Title role="heading" size={size}>
               <Link to={url || ''} className={classes.link}>
                 {label}
               </Link>
             </Title>
+            <Count>{listSize}</Count>
+            </>
           )}
         </div>
       ))}
