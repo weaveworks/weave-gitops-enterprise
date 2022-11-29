@@ -77,8 +77,9 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
-export const Breadcrumbs: FC<Props> = ({ path, size }) => {
+export const Breadcrumbs: FC<Props> = ({ path, size, listSize}) => {
   const classes = useStyles();
+  console.log(listSize, weaveTheme)
   return (
     <Container>
       {path.map(({ label, url }, index) => (
