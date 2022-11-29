@@ -23,7 +23,7 @@ if not os.getenv('GITHUB_TOKEN'):
 # Install resources I couldn't find elsewhere
 k8s_yaml(listdir('tools/dev-resources/', recursive=True))
 
-k8s_yaml('test/utils/scripts/entitlement-secret.yaml')
+k8s_yaml('test/utils/data/entitlement/entitlement-secret.yaml')
 
 helm_values = ['tools/dev-values.yaml']
 if os.path.exists('tools/dev-values-local.yaml'):
