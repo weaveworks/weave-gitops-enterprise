@@ -1,30 +1,34 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capg-template-development-{{.Count}}
+  name: capd-cluster-template-{{.Count}}
   namespace: default
+  annotations:
+    weave.works/template-type: cluster
+    templates.weave.works/profiles-enabled: "true"
+    templates.weave.works/kustomizations-enabled: "true"
+    templates.weave.works/credentials-enabled: "false"
+    templates.weave.works/cost-estimation-enabled: "false"
+    capi.weave.works/profile-1: '{"name": "cert-manager", "values": "installCRDs: ${INSTALL_CRDS}"}'
 spec:
-  description: This is the std. CAPG template {{.Count}}
+  description: This is the std. CAPD template {{.Count}}
   params:
     - name: CLUSTER_NAME
+      required: true
       description: This is used for the cluster naming.
     - name: NAMESPACE
-      description: Namespace to create the cluster in.
-    - name: GCP_REGION
-      description: AWS Region to create cluster
-      options: ["us-central1", "us-east1", "us-west1", "europe-north1", "europe-west1", "europe-west2"]
-    - name: GCP_CONTROL_PLANE_MACHINE_TYPE
-      description: Control plane machine instane type.
-      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
+      description: Namespace to create the cluster in
+    - name: KUBERNETES_VERSION
+      description: Kubernetes version to use for the cluster
+      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
-      options: ["1", "2", "3", "4", "5"]
-    - name: GCP_NODE_MACHINE_TYPE
-      description: Node machine instane type.
-      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
+      options: ["1", "2", "3"]
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
-      options: ["1", "2", "3", "4", "5", "6", "7"]
+    - name: INSTALL_CRDS
+      description: Install crds for cert-manager
+      options: ["true", "false"]
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
@@ -33,6 +37,9 @@ spec:
         namespace: "${NAMESPACE}"
         labels:
           weave.works/flux: bootstrap
+          weave.works/apps: "capd"
+        annotations:
+          metadata.weave.works/dashboard.prometheus: https://prometheus.io/
       spec:
         capiClusterRef:
           name: "${CLUSTER_NAME}"
@@ -48,24 +55,36 @@ spec:
           pods:
             cidrBlocks:
             - 192.168.0.0/16
+          serviceDomain: cluster.local
+          services:
+            cidrBlocks:
+            - 10.128.0.0/12
         controlPlaneRef:
           apiVersion: controlplane.cluster.x-k8s.io/v1beta1
           kind: KubeadmControlPlane
           name: "${CLUSTER_NAME}-control-plane"
+          namespace: "${NAMESPACE}"
         infrastructureRef:
           apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-          kind: GCPCluster
+          kind: DockerCluster
           name: "${CLUSTER_NAME}"
+          namespace: "${NAMESPACE}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: GCPCluster
+      kind: DockerCluster
       metadata:
         name: "${CLUSTER_NAME}"
         namespace: "${NAMESPACE}"
+    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DockerMachineTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-control-plane"
+        namespace: "${NAMESPACE}"
       spec:
-        network:
-          name: default
-        project: wks-tests
-        region: "${GCP_REGION}"
+        template:
+          spec:
+            extraMounts:
+            - containerPath: /var/run/docker.sock
+              hostPath: /var/run/docker.sock
     - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
       kind: KubeadmControlPlane
       metadata:
@@ -75,40 +94,54 @@ spec:
         kubeadmConfigSpec:
           clusterConfiguration:
             apiServer:
-              extraArgs:
-                cloud-provider: gce
-              timeoutForControlPlane: 20m
+              certSANs:
+              - localhost
+              - 127.0.0.1
+              - 0.0.0.0
             controllerManager:
               extraArgs:
-                allocate-node-cidrs: "false"
-                cloud-provider: gce
+                enable-hostpath-provisioner: "true"
           initConfiguration:
             nodeRegistration:
+              criSocket: /var/run/containerd/containerd.sock
               kubeletExtraArgs:
-                cloud-provider: gce
-              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+                cgroup-driver: cgroupfs
+                eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
           joinConfiguration:
             nodeRegistration:
+              criSocket: /var/run/containerd/containerd.sock
               kubeletExtraArgs:
-                cloud-provider: gce
-              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+                cgroup-driver: cgroupfs
+                eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
         machineTemplate:
           infrastructureRef:
             apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-            kind: GCPMachineTemplate
+            kind: DockerMachineTemplate
             name: "${CLUSTER_NAME}-control-plane"
+            namespace: "${NAMESPACE}"
         replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
-        version: v1.21.10
+        version: "${KUBERNETES_VERSION}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: GCPMachineTemplate
+      kind: DockerMachineTemplate
       metadata:
-        name: "${CLUSTER_NAME}-control-plane"
+        name: "${CLUSTER_NAME}-md-0"
+        namespace: "${NAMESPACE}"
+      spec:
+        template:
+          spec: {}
+    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+      kind: KubeadmConfigTemplate
+      metadata:
+        name: "${CLUSTER_NAME}-md-0"
         namespace: "${NAMESPACE}"
       spec:
         template:
           spec:
-            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
-            instanceType: "${GCP_CONTROL_PLANE_MACHINE_TYPE}"
+            joinConfiguration:
+              nodeRegistration:
+                kubeletExtraArgs:
+                  cgroup-driver: cgroupfs
+                  eviction-hard: nodefs.available<0%,nodefs.inodesFree<0%,imagefs.available<0%
     - apiVersion: cluster.x-k8s.io/v1beta1
       kind: MachineDeployment
       metadata:
@@ -126,33 +159,11 @@ spec:
                 apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
                 kind: KubeadmConfigTemplate
                 name: "${CLUSTER_NAME}-md-0"
+                namespace: "${NAMESPACE}"
             clusterName: "${CLUSTER_NAME}"
-            failureDomain: "${GCP_REGION}-a"
             infrastructureRef:
               apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-              kind: GCPMachineTemplate
+              kind: DockerMachineTemplate
               name: "${CLUSTER_NAME}-md-0"
-            version: v1.21.10
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: GCPMachineTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
-      spec:
-        template:
-          spec:
-            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
-            instanceType: "${GCP_NODE_MACHINE_TYPE}"
-    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-      kind: KubeadmConfigTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
-      spec:
-        template:
-          spec:
-            joinConfiguration:
-              nodeRegistration:
-                kubeletExtraArgs:
-                  cloud-provider: gce
-                name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+              namespace: "${NAMESPACE}"
+            version: "${KUBERNETES_VERSION}"

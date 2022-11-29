@@ -146,7 +146,9 @@ export const Input: FC<InputProps> = ({
       />
       <MuiFormHelperText
         style={{
-          color: error ? '#9F3119' : weaveTheme.colors.neutral30,
+          color: error
+            ? weaveTheme.colors.alertDark
+            : weaveTheme.colors.neutral30,
         }}
       >
         {!error ? description : 'Please fill this field in.'}
