@@ -60,9 +60,7 @@ func init() {
 
 func applyTenantsCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		var tenancyConfig *tenancy.Config
-		var tenancyConfigObj tenancy.Config
-		tenancyConfig = &tenancyConfigObj
+		tenancyConfig := &tenancy.Config{}
 
 		if flags.fromFile != "" {
 			parsed, err := tenancy.Parse(flags.fromFile)
