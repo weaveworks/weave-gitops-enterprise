@@ -58,8 +58,7 @@ const Pipelines = ({ className }: any) => {
                       to={formatURL(Routes.PipelineDetails, {
                         name,
                         namespace,
-                        // update with type - testing only
-                        kind: 'Pipeline', // type ,
+                        kind: type,
                       })}
                     >
                       {name}

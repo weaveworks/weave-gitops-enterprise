@@ -145,8 +145,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
       <ContentWrapper loading={isLoading}>
         <EditButton
           className={classes.editButton}
-          // remove type before merging, only using it to work with demo-01
-          resource={{ ...data?.pipeline, type: 'Pipeline' } || ({} as Pipeline)}
+          resource={data?.pipeline || ({} as Pipeline)}
         />
         <SubRouterTabs rootPath={`${path}/status`}>
           <RouterTab name="Status" path={`${path}/status`}>

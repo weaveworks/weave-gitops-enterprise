@@ -90,11 +90,9 @@ const EditResourcePage: FC<Props> = props => {
   const getEditableResource = () => {
     switch (kind) {
       case 'Terraform':
-        // remove type before merging, only using it to work with demo-01
-        return { ...tfData, type: 'Terraform' };
+        return tfData;
       case 'Pipeline':
-        // remove type before merging, only using it to work with demo-01
-        return { ...pipelineData?.pipeline, type: 'Pipeline' };
+        return pipelineData?.pipeline;
       case 'GitopsCluster':
         return cluster;
       default:
