@@ -16,7 +16,7 @@ const CommandCell = ({ command }: Props) => {
   const [copied, setCopied] = React.useState(false);
   return (
     <Flex align>
-      <CommandText>{command.replace('--', '\\\n --')}</CommandText>
+      <CommandText>{command.replace(/--/g, '\\\n --')}</CommandText>
       <IconButton
         onClick={() => {
           navigator.clipboard.writeText(command);

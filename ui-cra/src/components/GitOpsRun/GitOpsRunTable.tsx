@@ -1,8 +1,18 @@
-import { DataTable, filterConfig, Link } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig, Flex, Link } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { TableWrapper } from '../Shared';
 import CommandCell from './CommandCell';
 
+const PortLinks: React.FC<{ports: string}> = ({ports}) => {
+  const list = ports.split(',');
+  return (
+    <Flex column>
+      {list.map(port => 
+       <Link key={port} href={`http://localhost:${port}`} newTab >http://localhost:{port}</Link>
+      )}
+    </Flex>
+  )
+}
 interface Props {
   sessions: any[];
 }
@@ -39,8 +49,8 @@ export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           {
             label: 'Port Forward',
             value: ({ obj }) => {
-              const port = obj.metadata.annotations['run.weave.works/port-forward']
-              return <Link href={`http://localhost:${port}`} newTab >http://localhost:{port}</Link>
+              const ports:string = obj.metadata.annotations['run.weave.works/port-forward'];
+              return <PortLinks ports={ports} />
             },
             sortValue: ({obj}) => obj.metadata.annotations['run.weave.works/port-forward']
               
