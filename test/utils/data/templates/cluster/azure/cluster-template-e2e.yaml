@@ -1,8 +1,10 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: azure-capi-quickstart-template-{{.Count}}
+  name: capz-cluster-template-{{.Count}}
   namespace: default
+  annotations:
+    templates.weave.works/credentials-enabled: "true"
 spec:
   description: This is Azure capi quick start template-{{.Count}}
   params:

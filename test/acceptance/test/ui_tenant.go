@@ -38,12 +38,12 @@ func DescribeTenants(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 			// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
-			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 		})
 
 		ginkgo.AfterEach(ginkgo.OncePerOrdered, func() {
 			// Create the oidc user default roles/rolebindings afte tenant tests completed
-			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "user-role-bindings.yaml"))
+			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 		})
 
 		ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources", ginkgo.Ordered, func() {

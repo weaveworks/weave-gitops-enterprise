@@ -366,6 +366,7 @@ func verifyAppViolationsList(violatingApp Application, violationsData Applicatio
 		// Clear the filter
 		searchPage.SelectFilter("severity", filterID)
 	})
+
 	// Checking that you can search by violated policy name in the application violation list.
 	ginkgo.By(fmt.Sprintf("And search by violated policy name in '%s' app violations list", violatingApp.Name), func() {
 
