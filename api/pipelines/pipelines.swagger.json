@@ -250,6 +250,9 @@
         },
         "yaml": {
           "type": "string"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
