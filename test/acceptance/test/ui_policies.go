@@ -68,7 +68,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -198,7 +198,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")

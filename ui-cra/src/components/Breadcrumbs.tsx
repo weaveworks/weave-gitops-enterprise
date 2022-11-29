@@ -32,8 +32,8 @@ export const Title = styled.div<Size>`
 export const Count = styled.div<Size>`
   background: ${({ size }) =>
     size === 'small'
-      ? transparentize(0.5, weaveTheme.colors.primaryLight)
-      : weaveTheme.colors.primaryLight};
+      ? transparentize(0.5, weaveTheme.colors.primaryLight10)
+      : weaveTheme.colors.primaryLight10};
   padding: 0 ${weaveTheme.spacing.xxs};
   align-self: center;
   font-size: ${({ size }) =>
