@@ -11,6 +11,9 @@ import useNotifications, {
 } from './../../contexts/Notifications';
 import Notifications from './Notifications';
 
+const ENTITLEMENT_ERROR =
+  'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
+
 const { xxs, xs, small, medium, base } = theme.spacing;
 const { white } = theme.colors;
 
@@ -75,13 +78,14 @@ export const ContentWrapper: FC<Props> = ({
 }) => {
   const { data, error } = useListVersion();
   const { notifications } = useNotifications();
-  const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
 
-  const topNotifications = notifications.filter(n => n.display !== 'bottom');
+  const topNotifications = notifications.filter(
+    n => n.display !== 'bottom' && n.message.text !== ENTITLEMENT_ERROR,
+  );
   const bottomNotifications = notifications.filter(n => n.display === 'bottom');
 
   if (loading) {
@@ -105,14 +109,14 @@ export const ContentWrapper: FC<Props> = ({
         overflowX: 'scroll',
       }}
     >
-      {errors && <AlertListErrors errors={errors} />}
+      {errors && (
+        <AlertListErrors
+          errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
+        />
+      )}
       <Notifications
         notifications={[
           ...topNotifications,
-          {
-            message: { text: entitlement },
-            severity: 'warning',
-          } as NotificationData,
           { message: { text: error?.message }, severity: 'error' },
         ]}
       />
