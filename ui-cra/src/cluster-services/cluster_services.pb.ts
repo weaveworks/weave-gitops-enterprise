@@ -477,6 +477,7 @@ export type GetConfigRequest = {
 
 export type GetConfigResponse = {
   repositoryURL?: string
+  managementClusterName?: string
 }
 
 export type PolicyParamRepeatedString = {

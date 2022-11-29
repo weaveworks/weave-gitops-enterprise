@@ -7,7 +7,9 @@ import {
   SubRouterTabs,
   theme,
 } from '@weaveworks/weave-gitops';
+
 import _ from 'lodash';
+import useConfig from '../../../hooks/config';
 import styled from 'styled-components';
 import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
@@ -113,6 +115,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
     namespace,
   });
 
+  const configResponse = useConfig()
   const environments = data?.pipeline?.environments || [];
   const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
@@ -158,7 +161,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                     {status.map(target => {
                       const clusterName = target?.clusterRef?.name
                         ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
-                        : 'management';
+                        : configResponse?.data?.managementClusterName || 'undefined';
 
                       return target?.workloads?.map((workload, wrkIndex) => (
                         <CardContainer key={wrkIndex} role="targeting">
