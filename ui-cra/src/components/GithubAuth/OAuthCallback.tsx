@@ -11,6 +11,8 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from '../../contexts/GithubAuth/utils';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import useNotifications from '../../contexts/Notifications';
 
 type Props = {
   className?: string;
@@ -24,6 +26,7 @@ function OAuthCallback({ className, code, provider }: Props) {
     React.useContext(AppContext);
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
+  const { setNotifications } = useNotifications();
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {
@@ -36,7 +39,12 @@ function OAuthCallback({ className, code, provider }: Props) {
         }),
       );
     }
-  }, [code, applicationsClient, provider, req]);
+  }, [
+    code,
+    applicationsClient,
+    provider,
+    // req causes an infinite loop
+  ]);
 
   React.useEffect(() => {
     if (!res) {
@@ -47,27 +55,31 @@ function OAuthCallback({ className, code, provider }: Props) {
 
     const state = getCallbackState();
 
-    console.log(state.page);
-
     if (state?.page) {
       history.push(linkResolver(state.page));
       return;
     }
-  }, [res]);
+  }, [res, getCallbackState, history, linkResolver, storeProviderToken]);
+
+  React.useEffect(() => {
+    if (error) {
+      setNotifications([{ message: { text: '' }, severity: 'error' }]);
+    }
+  }, [error, setNotifications]);
 
   return (
-    // <Page className={className}>
-    <Flex wide align center>
-      {loading && <CircularProgress />}
-      {/* {error && (
+    <ContentWrapper loading={loading}>
+      <Flex wide align center>
+        {loading && <CircularProgress />}
+        {/* {error && (
         <Alert
           title="Error completing OAuth 2.0 flow"
           severity="error"
           message={error.message}
         />
       )} */}
-    </Flex>
-    // </Page>
+      </Flex>
+    </ContentWrapper>
   );
 }
 
