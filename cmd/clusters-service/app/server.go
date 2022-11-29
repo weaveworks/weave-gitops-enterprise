@@ -38,7 +38,6 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	pd "github.com/weaveworks/progressive-delivery/pkg/server"
-	"github.com/weaveworks/progressive-delivery/pkg/services/crd"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
@@ -537,7 +536,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithKubernetesClientSet(kubernetesClientSet),
 		WithManagementCluster(p.Cluster),
 		WithTemplateCostEstimator(estimator),
-		WithCRDFetcher(crd.NewFetcher(ctx, log, clustersManager)),
 	)
 }
 
@@ -662,7 +660,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			Logger:         args.Log,
 			ClientsFactory: args.ClustersManager,
 			Scheme:         args.KubernetesClient.Scheme(),
-			CRDFetcher:     args.CRDFetcher,
 		}); err != nil {
 			return fmt.Errorf("hydrating terraform server: %w", err)
 		}

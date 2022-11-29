@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/progressive-delivery/pkg/services/crd"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/adapter"
@@ -16,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/types"
@@ -26,7 +26,6 @@ type ServerOpts struct {
 	logr.Logger
 	ClientsFactory clustersmngr.ClustersManager
 	Scheme         *k8sruntime.Scheme
-	CRDFetcher     crd.Fetcher
 }
 
 type server struct {
@@ -35,7 +34,6 @@ type server struct {
 	log     logr.Logger
 	clients clustersmngr.ClustersManager
 	scheme  *k8sruntime.Scheme
-	crd     crd.Fetcher
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -49,7 +47,6 @@ func NewTerraformServer(opts ServerOpts) pb.TerraformServer {
 		log:     opts.Logger,
 		clients: opts.ClientsFactory,
 		scheme:  opts.Scheme,
-		crd:     opts.CRDFetcher,
 	}
 }
 
@@ -87,7 +84,7 @@ func (s *server) ListTerraformObjects(ctx context.Context, msg *pb.ListTerraform
 		}
 
 		for _, e := range errs.Errors {
-			if !s.crd.IsAvailable(e.Cluster, tfctrl.GroupVersion.Group) {
+			if apimeta.IsNoMatchError(e.Err) {
 				// Skip reporting an error if a leaf cluster does not have the tf-controller CRD installed.
 				// It is valid for leaf clusters to not have tf installed.
 				s.log.Info("tf-controller crd not present on cluster, skipping error", "cluster", e.Cluster)

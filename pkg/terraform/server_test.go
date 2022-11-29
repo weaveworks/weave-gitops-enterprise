@@ -17,6 +17,8 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/grpc"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -24,7 +26,7 @@ import (
 func TestListTerraformObjects(t *testing.T) {
 	ctx := context.Background()
 
-	client, k8s, _, _ := setup(t)
+	client, k8s := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -47,13 +49,14 @@ func TestListTerraformObjects(t *testing.T) {
 func TestListTerraformObjects_NoTFCRD(t *testing.T) {
 	ctx := context.Background()
 
-	client, k8s, fc, crd := setup(t)
-
-	crd.IsAvailableReturns = false
+	client, k8s, fc := setupWithFakes(t)
 
 	fc.ClusteredListReturns(clustersmngr.ClusteredListError{Errors: []clustersmngr.ListError{{
 		Cluster: "some-cluster",
-		Err:     errors.New("some error"),
+		Err: &apimeta.NoKindMatchError{
+			GroupKind:        schema.ParseGroupKind("CoolObject.somegroup"),
+			SearchedVersions: []string{"v1"},
+		},
 	}}})
 
 	obj := &tfctrl.Terraform{}
@@ -70,7 +73,7 @@ func TestListTerraformObjects_NoTFCRD(t *testing.T) {
 
 func TestGetTerraformObject(t *testing.T) {
 	ctx := context.Background()
-	client, k8s, _, _ := setup(t)
+	client, k8s := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -112,7 +115,7 @@ status:
 
 func TestSyncTerraformObject(t *testing.T) {
 	ctx := context.Background()
-	client, k8s, _, _ := setup(t)
+	client, k8s := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -156,7 +159,7 @@ func TestSyncTerraformObject(t *testing.T) {
 
 func TestSuspendTerraformObject(t *testing.T) {
 	ctx := context.Background()
-	client, k8s, _, _ := setup(t)
+	client, k8s := setup(t)
 
 	obj := &tfctrl.Terraform{}
 	obj.Name = "my-obj"
@@ -184,42 +187,10 @@ func TestSuspendTerraformObject(t *testing.T) {
 
 }
 
-type fakeCRDFetcher struct {
-	IsAvailableReturns           bool
-	IsAvailableOnClustersReturns map[string]bool
-}
-
-func (f fakeCRDFetcher) IsAvailable(clusterName string, crdName string) bool {
-	return f.IsAvailableReturns
-}
-
-func (f fakeCRDFetcher) IsAvailableOnClusters(crdName string) map[string]bool {
-	if f.IsAvailableOnClustersReturns != nil {
-		return f.IsAvailableOnClustersReturns
-	}
-
-	return map[string]bool{crdName: true}
-}
-
-func (f fakeCRDFetcher) UpdateCRDList() {
-
-}
-
-func setup(t *testing.T) (pb.TerraformClient, client.Client, *fc.FakeClient, *fakeCRDFetcher) {
+func setup(t *testing.T) (pb.TerraformClient, client.Client) {
 	k8s, factory := grpctesting.MakeFactoryWithObjects()
-	c := &fc.FakeClient{}
-
-	pool := &clustersmngrfakes.FakeClientsPool{}
-	pool.ClientsReturns(map[string]client.Client{"Default": k8s})
-	c.ClientsPoolReturns(pool)
-
-	factory.GetServerClientReturns(c, nil)
-
-	cr := &fakeCRDFetcher{IsAvailableReturns: true}
 	opts := terraform.ServerOpts{
-		Logger:         logr.Discard(),
 		ClientsFactory: factory,
-		CRDFetcher:     cr,
 	}
 	srv := terraform.NewTerraformServer(opts)
 
@@ -227,7 +198,33 @@ func setup(t *testing.T) (pb.TerraformClient, client.Client, *fc.FakeClient, *fa
 		pb.RegisterTerraformServer(s, srv)
 	})
 
-	return pb.NewTerraformClient(conn), k8s, c, cr
+	return pb.NewTerraformClient(conn), k8s
+}
+
+// Use this function when you want to override the behavior of clustersmngr.Client.
+// You must provide a stub or return for the FakeClient to see objects.
+func setupWithFakes(t *testing.T) (pb.TerraformClient, client.Client, *fc.FakeClient) {
+	k8s, factory := grpctesting.MakeFactoryWithObjects()
+	fc := &fc.FakeClient{}
+
+	pool := &clustersmngrfakes.FakeClientsPool{}
+	pool.ClientsReturns(map[string]client.Client{"Default": k8s})
+	fc.ClientsPoolReturns(pool)
+
+	factory.GetServerClientReturns(fc, nil)
+	factory.GetImpersonatedClientReturns(fc, nil)
+
+	opts := terraform.ServerOpts{
+		Logger:         logr.Discard(),
+		ClientsFactory: factory,
+	}
+	srv := terraform.NewTerraformServer(opts)
+
+	conn := grpctesting.Setup(t, func(s *grpc.Server) {
+		pb.RegisterTerraformServer(s, srv)
+	})
+
+	return pb.NewTerraformClient(conn), k8s, fc
 }
 
 func simulateReconcile(ctx context.Context, k client.Client, name types.NamespacedName, o client.Object) error {
