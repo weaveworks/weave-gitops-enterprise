@@ -33,7 +33,7 @@ func (s *ProfilesSvc) Update(ctx context.Context, r ProfilesRetriever, gitProvid
 		return fmt.Errorf("failed to get default branch: %w", err)
 	}
 
-	_, version, err := s.discoverHelmRepository(ctx, r, GetOptions{
+	version, err := s.discoverHelmRepository(ctx, r, GetOptions{
 		Name:      opts.Name,
 		Version:   opts.Version,
 		Cluster:   opts.Cluster,
