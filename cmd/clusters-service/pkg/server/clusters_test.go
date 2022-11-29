@@ -881,7 +881,7 @@ status: {}
 			err: errors.New("kustomization metadata must be specified"),
 		},
 		{
-			name: "create kustomizations 2",
+			name: "Edit cluster, remove kustomization",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
@@ -895,21 +895,11 @@ status: {}
 				RepositoryUrl:     "https://github.com/org/repo.git",
 				HeadBranch:        "feature-01",
 				BaseBranch:        "main",
-				Title:             "New Cluster",
-				Description:       "Creates a cluster through a CAPI template",
+				Title:             "Edit Cluster",
+				Description:       "Delete kustomization from cluster",
 				CommitMessage:     "Edits dev",
 				TemplateNamespace: "default",
-				Kustomizations:    []*capiv1_protos.Kustomization{
-					// {
-					// 	Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
-					// 	Spec: &capiv1_protos.KustomizationSpec{
-					// 		Path:            "./apps/capi",
-					// 		SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
-					// 		TargetNamespace: "foo-ns",
-					// 	},
-					// },
-				},
-				Credentials: &capiv1_protos.Credential{},
+				Kustomizations:    []*capiv1_protos.Kustomization{},
 
 				PreviousValues: &capiv1_protos.PreviousValues{
 					ParameterValues: map[string]string{
@@ -925,13 +915,6 @@ status: {}
 								TargetNamespace: "foo-ns",
 							},
 						},
-						{
-							Metadata: testNewMetadata(t, "apps-billing", "flux-system"),
-							Spec: &capiv1_protos.KustomizationSpec{
-								Path:      "./apps/billing",
-								SourceRef: testNewSourceRef(t, "flux-system", "flux-system"),
-							},
-						},
 					},
 					Credentials: &capiv1_protos.Credential{},
 				},
@@ -945,17 +928,36 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","credentials":{},"parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Edits dev","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
+      Cluster","description":"Delete kustomization from cluster","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Edits
+      dev","template_namespace":"default","template_kind":"CAPITemplate","previous_values":{"parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"credentials":{},"kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}]}}'
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
   name: dev
-  namespace: clusters-namespace0
+  namespace: clusters-namespace
 `,
 				},
 				{
-					Path:    "clusters/clusters-namespace/dev/apps-billing-flux-system-kustomization.yaml",
+					Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+				},
+				{
+					Path:    "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
 					Content: "",
 				},
 			},
@@ -1004,6 +1006,12 @@ metadata:
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				fmt.Printf("Committed Files:: %v", len(tt.committedFiles))
+				for i, f := range tt.committedFiles {
+					fmt.Printf("Other File:: %v --> %v", i, f.Path)
+				}
+				// fmt.Printf("Other Files:: %v", len(fakeGitProvider.GetCommittedFiles()))
+
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
