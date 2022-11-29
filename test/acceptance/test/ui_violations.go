@@ -44,8 +44,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationCategory := "weave.categories.pod-security"
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
-				deploymentYaml = path.Join(testDataPath, "multi-container-manifest.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+				deploymentYaml = path.Join(testDataPath, "deployments/multi-container-manifest.yaml")
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -149,8 +149,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationCategory := "weave.categories.software-supply-chain"
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
-				deploymentYaml = path.Join(testDataPath, "postgres-manifest.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+				deploymentYaml = path.Join(testDataPath, "deployments/postgres-manifest.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
