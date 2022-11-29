@@ -18,7 +18,7 @@ import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 
 const { xxl, base, xs, xxs } = theme.spacing;
-const { neutral00 } = theme.colors;
+const { neutral00, alertLight, alertMedium } = theme.colors;
 
 const useAlertStyles = makeStyles(() =>
   createStyles({
@@ -28,7 +28,7 @@ const useAlertStyles = makeStyles(() =>
       margin: 0,
     },
     errosCount: {
-      background: '#D58572',
+      background: alertMedium,
       color: neutral00,
       padding: xxs,
       borderRadius: xxs,
@@ -44,7 +44,7 @@ const useAlertStyles = makeStyles(() =>
     arrowIcon: {
       fontSize: '18px',
       fontWeight: 400,
-      color: '#D58572',
+      color: alertMedium,
     },
   }),
 );
@@ -57,10 +57,10 @@ const BoxWrapper = styled(Box)`
   }
   .MuiAlert-action {
     display: inline;
-    color: #d58572;
+    color: ${alertMedium};
   }
   .MuiIconButton-root:hover {
-    background-color: #eecec7;
+    background-color: ${alertLight};
   }
   .MuiAlert-icon {
     .MuiSvgIcon-root {

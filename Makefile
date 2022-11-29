@@ -14,6 +14,7 @@ TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 GOOS := $(shell go env GOOS)
+TIER=enterprise
 ifeq ($(GOOS),linux)
 	cgo_ldflags=-linkmode external -w -extldflags "-static"
 else
@@ -195,4 +196,4 @@ tools/core-files/charts/gitops-server/Chart.yaml: tools/core-files/Makefile.$(CO
 	@curl --silent -o tools/core-files/charts/gitops-server/Chart.yaml https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/charts/gitops-server/Chart.yaml
 
 echo-ldflags: tools/core-files/charts/gitops-server/Chart.yaml tools/core-files/Makefile.$(CORE_REVISION)
-	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)"
+	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)" TIER="$(TIER)"
