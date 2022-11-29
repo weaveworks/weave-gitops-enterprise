@@ -237,7 +237,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify a single tenant resources can be exported", ginkgo.Label("tenant"), func() {
 
 				// verify tenants resources are exported to terminal
-				stdOut, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --name test-tenant1 --namespace test-ns1 --export`))
+				stdOut, stdErr = runGitopsCommand(`create tenants --name test-tenant1 --namespace test-ns1 --export`)
 				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
 
 				verifyTenantYaml(string(stdOut), "test-tenant1", []string{"test-ns1"}, true, "test-tenant1",
