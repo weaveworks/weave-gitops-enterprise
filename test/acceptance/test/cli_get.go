@@ -41,7 +41,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				noOfTemplates := 1
 				ginkgo.By("Apply/Install invalid CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "templates/miscellaneous/invalid-cluster-template.yaml")
 				})
 
 				stdOut, stdErr = runGitopsCommand(`get templates`)
@@ -51,7 +51,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should see template rows", func() {
-					re := regexp.MustCompile(`cluster-invalid-template-[\d]+\s+.+Couldn't load template body.+`)
+					re := regexp.MustCompile(`invalid-cluster-template-[\d]+\s+.+Couldn't load template body.+`)
 					matched_list := re.FindAllString(stdOut, 1)
 					gomega.Eventually(len(matched_list)).Should(gomega.Equal(noOfTemplates), "The number of listed templates should be equal to number of templates created")
 				})
@@ -63,12 +63,12 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				noOfTemplates := 3
 				ginkgo.By("Apply/Install valid CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-eks-fargate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "templates/cluster/aws/cluster-template-eks-fargate.yaml")
 				})
 
 				noOfInvalidTemplates := 2
 				ginkgo.By("Apply/Install invalid CAPITemplate", func() {
-					invalid_captemplate := gitopsTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "capi-server-v1-invalid-capitemplate.yaml")
+					invalid_captemplate := gitopsTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "templates/miscellaneous/invalid-cluster-template.yaml")
 					templateFiles = append(templateFiles, invalid_captemplate...)
 				})
 
@@ -79,13 +79,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should see template rows for invalid template", func() {
-					re := regexp.MustCompile(`cluster-invalid-template-[\d]+\s+.+Couldn't load template body.+`)
+					re := regexp.MustCompile(`invalid-cluster-template-[\d]+\s+.+Couldn't load template body.+`)
 					matched_list := re.FindAllString(stdOut, noOfInvalidTemplates)
 					gomega.Eventually(len(matched_list)).Should(gomega.Equal(noOfInvalidTemplates), "The number of listed invalid templates should be equal to number of templates created")
 				})
 
 				ginkgo.By("And I should see template rows for valid template", func() {
-					re := regexp.MustCompile(`eks-fargate-template-[\d]+\s+aws\s+This is eks fargate template-[\d]+`)
+					re := regexp.MustCompile(`capa-cluster-template-eks-fargate-[\d]+\s+aws\s+This is eks fargate template-[\d]+`)
 					matched_list := re.FindAllString(stdOut, noOfTemplates)
 					gomega.Eventually(len(matched_list)).Should(gomega.Equal(noOfTemplates), "The number of listed valid templates should be equal to number of templates created")
 				})
@@ -95,10 +95,10 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 				noOfTemplates := 1
 				ginkgo.By("Apply/Install invalid CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-invalid-capitemplate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "templates/miscellaneous/invalid-cluster-template.yaml")
 				})
 
-				stdOut, stdErr = runGitopsCommand(`get templates cluster-invalid-template-0 --list-parameters`)
+				stdOut, stdErr = runGitopsCommand(`get templates invalid-cluster-template-0 --list-parameters`)
 
 				ginkgo.By("Then I should not see template parameter table header", func() {
 					gomega.Eventually(stdOut).ShouldNot(gomega.MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
@@ -114,7 +114,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify gitops can list templates from template library", func() {
 
 				noOfTemplates := 5
-				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "capi-server-v1-template-azure.yaml")
+				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfTemplates, "templates/cluster/azure/cluster-template-e2e.yaml")
 
 				stdOut, stdErr = runGitopsCommand(`get templates`)
 
@@ -123,14 +123,14 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should see template rows", func() {
-					re := regexp.MustCompile(`azure-capi-quickstart-template-[\d]+\s+azure\s+This is Azure capi quick start template-[\d]+`)
+					re := regexp.MustCompile(`capz-cluster-template-[\d]+\s+azure\s+This is Azure capi quick start template-[\d]+`)
 					matched_list := re.FindAllString(stdOut, noOfTemplates)
 					gomega.Eventually(len(matched_list)).Should(gomega.Equal(noOfTemplates), "The number of listed templates should be equal to number of templates created")
 
 					// Testing templates are ordered
 					expected_list := make([]string, noOfTemplates)
 					for i := 0; i < noOfTemplates; i++ {
-						expected_list[i] = fmt.Sprintf("azure-capi-quickstart-template-%d", i)
+						expected_list[i] = fmt.Sprintf("capz-cluster-template-%d", i)
 					}
 					sort.Strings(expected_list)
 
@@ -152,9 +152,9 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				capdTemplateCount := 5
 				totalTemplateCount := awsTemplateCount + eksFargateTemplateCount + capdTemplateCount
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "capi-template-capd.yaml")...)
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-aws.yaml")...)
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "capi-server-v1-template-eks-fargate.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "templates/cluster/docker/cluster-template.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "templates/cluster/aws/cluster-template-ec2.yaml")...)
+					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "templates/cluster/aws/cluster-template-eks-fargate.yaml")...)
 				})
 
 				stdOut, stdErr = runGitopsCommand(`get templates`)
@@ -164,7 +164,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should see template rows", func() {
-					re := regexp.MustCompile(`eks-fargate-template-[\d]+\s+aws\s+This is eks fargate template-[\d]+.+`)
+					re := regexp.MustCompile(`capa-cluster-template-eks-fargate-[\d]+\s+aws\s+This is eks fargate template-[\d]+.+`)
 					matched_list := re.FindAllString(stdOut, eksFargateTemplateCount)
 					gomega.Eventually(len(matched_list)).Should(gomega.Equal(eksFargateTemplateCount), "The number of listed templates should be equal to number of templates created")
 				})
@@ -172,13 +172,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And I should see ordered list of templates", func() {
 					expected_list := make([]string, totalTemplateCount)
 					for i := 0; i < awsTemplateCount; i++ {
-						expected_list[i] = fmt.Sprintf("aws-cluster-template-%d", i)
-					}
-					for i := 0; i < capdTemplateCount; i++ {
-						expected_list[i] = fmt.Sprintf("cluster-template-development-%d", i)
+						expected_list[i] = fmt.Sprintf("capa-cluster-template-%d", i)
 					}
 					for i := 0; i < eksFargateTemplateCount; i++ {
-						expected_list[i] = fmt.Sprintf("eks-fargate-template-%d", i)
+						expected_list[i] = fmt.Sprintf("capa-cluster-template-eks-fargate-%d", i)
+					}
+					for i := 0; i < capdTemplateCount; i++ {
+						expected_list[i] = fmt.Sprintf("capd-cluster-template-%d", i)
 					}
 					sort.Strings(expected_list)
 
@@ -193,10 +193,10 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And I should see templates list filtered by provider", func() {
 					awsCluster_list := make([]string, awsTemplateCount+eksFargateTemplateCount)
 					for i := 0; i < awsTemplateCount; i++ {
-						awsCluster_list[i] = fmt.Sprintf("aws-cluster-template-%d", i)
+						awsCluster_list[i] = fmt.Sprintf("capa-cluster-template-%d", i)
 					}
 					for i := 0; i < eksFargateTemplateCount; i++ {
-						awsCluster_list[i] = fmt.Sprintf("eks-fargate-template-%d", i)
+						awsCluster_list[i] = fmt.Sprintf("capa-cluster-template-eks-fargate-%d", i)
 					}
 					sort.Strings(awsCluster_list)
 					for i := 0; i < awsTemplateCount+eksFargateTemplateCount; i++ {
@@ -204,7 +204,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 					}
 
 					for i := 0; i < 5; i++ {
-						capd_template := fmt.Sprintf("cluster-template-development-%d", i)
+						capd_template := fmt.Sprintf("capd-cluster-template-%d", i)
 						re := regexp.MustCompile(fmt.Sprintf(`%s\s+.*`, capd_template))
 						gomega.Eventually((re.Find([]byte(stdOut)))).Should(gomega.BeNil())
 					}
@@ -221,10 +221,10 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify gitops can list template parameters of a template from template library", func() {
 
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-eks-fargate.yaml")
 				})
 
-				stdOut, stdErr = runGitopsCommand(`get templates eks-fargate-template-0 --list-parameters`)
+				stdOut, stdErr = runGitopsCommand(`get templates capa-cluster-template-eks-fargate-0 --list-parameters`)
 
 				ginkgo.By("Then I should see template parameter table header", func() {
 					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`NAME\s+REQUIRED\s+DESCRIPTION\s+OPTIONS`))
@@ -346,13 +346,13 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 
-				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
+				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
 				gitopsTestRunner.CreateIPCredentials("AWS")
 			})
 
 			ginkgo.JustAfterEach(func() {
 				ginkgo.By("When I apply the valid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement/entitlement-secret.yaml"), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
@@ -376,7 +376,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify cluster service acknowledges the entitlement presences", func() {
 
 				ginkgo.By("When I delete the entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, "../../utils/scripts/entitlement-secret.yaml"), "Failed to delete entitlement secret")
+					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, "../../utils/data/entitlement/entitlement-secret.yaml"), "Failed to delete entitlement secret")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
@@ -388,7 +388,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the expired entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
@@ -400,7 +400,7 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the invalid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {

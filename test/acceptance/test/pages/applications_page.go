@@ -78,26 +78,16 @@ type ApplicationGraph struct {
 }
 
 type ApplicationViolationsList struct {
-	ViolationList             *agouti.Selection
-	ViolationMessage          *agouti.Selection
-	ViolationMessageValue     *agouti.Selection
-	Severity                  *agouti.Selection
-	SeverityValue             *agouti.Selection
-	SeverityIcon              *agouti.Selection
-	ViolatedPolicy            *agouti.Selection
-	ViolatedPolicyValue       *agouti.Selection
-	ViolationTime             *agouti.Selection
-	ViolationTimeValue        *agouti.Selection
-	ViolationTimeValueSorting *agouti.Selection
-	Filter                    *agouti.Selection
-	FilterValue               *agouti.Selection
-	Search                    *agouti.Selection
-	SearchResult              *agouti.Selection
-}
-
-// AppViolationsMsgInList contains the violation's message element
-type AppViolationsMsgInList struct {
-	AppViolationsMsg *agouti.Selection
+	ViolationList         *agouti.Selection
+	ViolationMessage      *agouti.Selection
+	ViolationMessageValue *agouti.Selection
+	Severity              *agouti.Selection
+	SeverityValue         *agouti.Selection
+	SeverityIcon          *agouti.Selection
+	ViolatedPolicy        *agouti.Selection
+	ViolatedPolicyValue   *agouti.Selection
+	ViolationTime         *agouti.Selection
+	ViolationTimeValue    *agouti.Selection
 }
 
 // ApplicationViolationsDetailsPage contains all the fields in the app violations details page
@@ -146,8 +136,9 @@ func (a ApplicationsPage) CountApplications() int {
 	count, _ := applications.Count()
 	return count
 }
-func (a ApplicationViolationsList) CountViolations() int {
-	violations := a.ViolationList.All("tr")
+
+func CountUnfilteredAppViolations(webDriver *agouti.Page, filterKey, filterValue string) int {
+	violations := webDriver.All("table > tbody > tr")
 	count, _ := violations.Count()
 	return count
 }
@@ -238,33 +229,42 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 	}
 }
 
-// GetApplicationViolationsList will have all the locators for App Violations List page.
-func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolationsList {
-	applicationViolationsList := ApplicationViolationsList{
-		ViolationList:             webDriver.First(`table tbody`),
-		ViolationMessage:          webDriver.FindByXPath(`//h2[normalize-space()='Message']`),
-		ViolationMessageValue:     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		Severity:                  webDriver.FindByXPath(`(//h2[normalize-space()='Severity'])[1]`),
-		SeverityValue:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
-		SeverityIcon:              webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root jss55 jss58'])[1]`),
-		ViolatedPolicy:            webDriver.FindByXPath(`(//h2[normalize-space()='Violated Policy'])[1]`),
-		ViolatedPolicyValue:       webDriver.FindByXPath(`//tbody/tr[1]/td[1]/span[1]`),
-		ViolationTime:             webDriver.FindByXPath(`(//h2[normalize-space()='Violation Time'])[1]`),
-		ViolationTimeValue:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
-		ViolationTimeValueSorting: webDriver.FindByXPath(`(//*[name()='path'])[25]`),
-		Filter:                    webDriver.FindByXPath(`//*[name()='path' and contains(@d,'M10 18h4v-')]`),
-		FilterValue:               webDriver.FindByXPath(`//input[@id='severity']`),
-		Search:                    webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[4]`),
-		SearchResult:              webDriver.FindByXPath(`//input[@id='table-search']`),
-	}
-	return &applicationViolationsList
+func CountAppViolations(webDriver *agouti.Page) int {
+	violations := webDriver.All("table > tbody > tr")
+	count, _ := violations.Count()
+	return count
 }
 
-// GetAppViolationsMsgInList returns the violation's message field which we need to press it to open the app violations detail page
-func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
-	return &AppViolationsMsgInList{
-		AppViolationsMsg: webDriver.FirstByXPath(`//td[1]//a`),
+func AppViolationOccurrances(webDriver *agouti.Page, filterKey, filterValue string) int {
+
+	var violations *agouti.MultiSelection
+	switch filterKey {
+	case "severity":
+		violations = webDriver.AllByXPath(fmt.Sprintf(`//table/tbody/tr/td[2][normalize-space("%s")]`, filterValue))
+	case "message":
+		violations = webDriver.AllByXPath(fmt.Sprintf(`//table/tbody/tr[.//a[contains(@data-violation-message, "%s")]]`, filterValue))
 	}
+
+	count, _ := violations.Count()
+	return count
+}
+
+// GetApplicationViolationsList will have all the locators for App Violations List page for a specific violation message.
+func GetApplicationViolationsList(webDriver *agouti.Page, violationMsg string) *ApplicationViolationsList {
+	violationHeader := webDriver.FirstByXPath(`//table/thead/tr`)
+	violationRow := webDriver.FirstByXPath(fmt.Sprintf(`//tr[.//a[contains(@data-violation-message, "%s")]]`, violationMsg))
+	applicationViolationsList := ApplicationViolationsList{
+		ViolationMessage:      violationHeader.FindByXPath(`th[1]`),
+		ViolationMessageValue: violationRow.FindByXPath(`td[1]//a`),
+		Severity:              violationHeader.FindByXPath(`th[2]`),
+		SeverityValue:         violationRow.FindByXPath(`td[2]`),
+		SeverityIcon:          violationRow.FindByXPath(`td[2]//*[name()="svg"]`),
+		ViolatedPolicy:        violationHeader.FindByXPath(`th[3]`),
+		ViolatedPolicyValue:   violationRow.FindByXPath(`td[3]`),
+		ViolationTime:         violationHeader.FindByXPath(`th[4]`),
+		ViolationTimeValue:    violationRow.FindByXPath(`td[4]`),
+	}
+	return &applicationViolationsList
 }
 
 // GetApplicationViolationsDetailsPage returns all the locators for the app violations details page
