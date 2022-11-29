@@ -138,6 +138,7 @@ func (s *server) GetTerraformObject(ctx context.Context, msg *pb.GetTerraformObj
 	return &pb.GetTerraformObjectResponse{
 		Object: &obj,
 		Yaml:   string(yaml),
+		Type:   result.GetObjectKind().GroupVersionKind().Kind,
 	}, nil
 }
 

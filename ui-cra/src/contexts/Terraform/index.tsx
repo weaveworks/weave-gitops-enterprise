@@ -54,11 +54,10 @@ interface DetailParams {
   clusterName: string;
 }
 
-export function useGetTerraformObjectDetail({
-  name,
-  namespace,
-  clusterName,
-}: DetailParams) {
+export function useGetTerraformObjectDetail(
+  { name, namespace, clusterName }: DetailParams,
+  enabled?: boolean,
+) {
   const tf = useTerraform();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
@@ -66,7 +65,7 @@ export function useGetTerraformObjectDetail({
   return useQuery<GetTerraformObjectResponse, RequestError>(
     [TERRAFORM_KEY, clusterName, namespace, name],
     () => tf.GetTerraformObject({ name, namespace, clusterName }),
-    { onError },
+    { onError, enabled },
   );
 }
 
