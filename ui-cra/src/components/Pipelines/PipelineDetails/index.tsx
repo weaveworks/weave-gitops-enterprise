@@ -7,7 +7,6 @@ import {
   SubRouterTabs,
   theme,
 } from '@weaveworks/weave-gitops';
-
 import _ from 'lodash';
 import useConfig from '../../../hooks/config';
 import styled from 'styled-components';
