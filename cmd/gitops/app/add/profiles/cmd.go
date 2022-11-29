@@ -41,6 +41,8 @@ func AddCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Comman
 	cmd.Flags().StringVar(&profileOpts.Version, "version", "latest", "Version of the profile specified as semver (e.g.: 0.1.0) or as 'latest'")
 	cmd.Flags().StringVar(&profileOpts.ConfigRepo, "config-repo", "", "URL of the external repository that contains the automation manifests")
 	cmd.Flags().StringVar(&profileOpts.Cluster, "cluster", "", "Name of the cluster to add the profile to")
+	cmd.Flags().StringVar(&profileOpts.HelmRepoName, "helm-repo-name", "weaveworks-charts", "Name of the Helm repository to use for the profile")
+	cmd.Flags().StringVar(&profileOpts.HelmRepoNamespace, "helm-repo-namespace", "flux-system", "Namespace of the Helm repository to use for the profile")
 	cmd.Flags().BoolVar(&profileOpts.AutoMerge, "auto-merge", false, "If set, 'gitops add profile' will merge automatically into the repository's branch")
 	internal.AddPRFlags(cmd, &profileOpts.HeadBranch, &profileOpts.BaseBranch, &profileOpts.Description, &profileOpts.Message, &profileOpts.Title)
 
