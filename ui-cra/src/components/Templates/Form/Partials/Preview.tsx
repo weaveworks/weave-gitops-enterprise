@@ -200,20 +200,17 @@ const Preview: FC<{
         )}
       </Tabs>
       <DialogContent>
-        {tabsContent.map((tab, index) => {
-          console.log(tab.value);
-          return (
-            <TabPanel value={value} index={index} key={index}>
-              <SyntaxHighlighter
-                language="yaml"
-                style={darcula}
-                wrapLongLines="pre-wrap"
-              >
-                {tab.value}
-              </SyntaxHighlighter>
-            </TabPanel>
-          );
-        })}
+        {tabsContent.map((tab, index) => (
+          <TabPanel value={value} index={index} key={index}>
+            <SyntaxHighlighter
+              language="yaml"
+              style={darcula}
+              wrapLongLines="pre-wrap"
+            >
+              {tab.value}
+            </SyntaxHighlighter>
+          </TabPanel>
+        ))}
       </DialogContent>
       <div className="info">
         <span>
