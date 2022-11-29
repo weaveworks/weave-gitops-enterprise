@@ -30,6 +30,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
@@ -988,35 +989,27 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 	}
 }
 
-func sortFiles(files []gitprovider.CommitFile) {
-	sort.Slice(files, func(i, j int) bool {
-		return *files[i].Path < *files[j].Path
-	})
+func filePaths(files []gitprovider.CommitFile) []string {
+	names := []string{}
+	for _, f := range files {
+		names = append(names, *f.Path)
+	}
+	return names
 }
 
 // Check if there are files in originalFiles that are missing from extraFiles and returns them
 func getMissingFiles(originalFiles []gitprovider.CommitFile, extraFiles []gitprovider.CommitFile) []gitprovider.CommitFile {
-	sortFiles(originalFiles)
-	sortFiles(extraFiles)
+	originalFilePaths := filePaths(originalFiles)
+	extraFilePaths := filePaths(extraFiles)
+
+	diffPaths := sets.NewString(originalFilePaths...).Difference(sets.NewString(extraFilePaths...)).List()
 
 	difference := []gitprovider.CommitFile{}
-	window := 0
-	for i, originalFile := range originalFiles {
-		if i+window < len(extraFiles) {
-			if *originalFile.Path != *extraFiles[i+window].Path {
-				window++
-				difference = append(difference, gitprovider.CommitFile{
-					Path:    originalFile.Path,
-					Content: nil,
-				})
-
-			}
-		} else {
-			difference = append(difference, gitprovider.CommitFile{
-				Path:    originalFile.Path,
-				Content: nil,
-			})
-		}
+	for _, filePath := range diffPaths {
+		difference = append(difference, gitprovider.CommitFile{
+			Path:    &filePath,
+			Content: nil,
+		})
 	}
 
 	return difference

@@ -247,6 +247,7 @@ const toPayload = (
   createRequestAnnotation: any,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
+  const createReqAnnot = createRequestAnnotation;
   return {
     headBranch: formData.branchName,
     title: formData.pullRequestTitle,
@@ -259,7 +260,7 @@ const toPayload = (
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
     templateKind,
-    previousValues: createRequestAnnotation,
+    previousValues: createReqAnnot,
   };
 };
 
@@ -419,7 +420,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   ]);
 
   const handleAddResource = useCallback(() => {
-    const createReqAnnot = getCreateRequestAnnotation(resource);
+    let createReqAnnot;
+    if (resource !== undefined) {
+      createReqAnnot = getCreateRequestAnnotation(resource);
+    }
     const payload = toPayload(
       formData,
       infraCredential,
