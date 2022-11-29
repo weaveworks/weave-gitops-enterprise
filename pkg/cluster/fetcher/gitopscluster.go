@@ -24,7 +24,7 @@ const (
 	yamlDataKey = "value.yaml"
 )
 
-type multiClusterFetcher struct {
+type gitopsClusterFetcher struct {
 	log               logr.Logger
 	cluster           mngrcluster.Cluster
 	scheme            *runtime.Scheme
@@ -33,9 +33,9 @@ type multiClusterFetcher struct {
 	kubeConfigOptions []mngrcluster.KubeConfigOption
 }
 
-func NewMultiClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
-	return multiClusterFetcher{
-		log:               log.WithName("multi-cluster-fetcher"),
+func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
+	return gitopsClusterFetcher{
+		log:               log.WithName("gitops-cluster-fetcher"),
 		cluster:           managementCluster,
 		scheme:            scheme,
 		namespace:         namespace,
@@ -80,8 +80,8 @@ func IsManagementCluster(mgmtClusterName string, cluster types.NamespacedName) b
 	return cluster.Namespace == "" && mgmtClusterName == cluster.Name
 }
 
-func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngrcluster.Cluster, error) {
-	clusters := []mngrcluster.Cluster{f.cluster}
+func (f gitopsClusterFetcher) Fetch(ctx context.Context) ([]mngrcluster.Cluster, error) {
+	clusters := []mngrcluster.Cluster{}
 
 	res, err := f.leafClusters(ctx)
 	if err != nil {
@@ -99,7 +99,7 @@ func (f multiClusterFetcher) Fetch(ctx context.Context) ([]mngrcluster.Cluster, 
 	return allClusters, nil
 }
 
-func (f multiClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.Cluster, error) {
+func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.Cluster, error) {
 	clusters := []mngrcluster.Cluster{}
 
 	cl, err := f.cluster.GetServerClient()
