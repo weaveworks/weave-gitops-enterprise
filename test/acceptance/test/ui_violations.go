@@ -199,7 +199,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
-				// First let the leaf cluster to reconcile flux-system before installing policies.'Containers Minimum Replica Count acceptance test' policy will prevent the reconcilation if deployed first
+				// First let the leaf cluster to reconcile flux-system before installing policies.'Containers Minimum Replica Count acceptance test' policy will prevent the reconciliation if deployed first
 				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start reconciliation", func() {
 					useClusterContext(leafClusterContext)
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
