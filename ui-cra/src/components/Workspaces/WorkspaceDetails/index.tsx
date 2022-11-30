@@ -1,4 +1,10 @@
-import { useGetWorkspaceDetails } from '../../../contexts/Workspaces';
+import {
+  useGetWorkspaceDetails,
+  useGetWorkspacePolicies,
+  useGetWorkspaceRoleBinding,
+  useGetWorkspaceRoles,
+  useGetWorkspaceServiceAccount,
+} from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
@@ -16,6 +22,28 @@ const WorkspaceDetails = ({
       clusterName,
       workspaceName,
     });
+
+  // const { data: roles, isLoading: isRolesLoading } = useGetWorkspaceRoles({
+  //   clusterName,
+  //   workspaceName,
+  // });
+
+  // const { data: listRoleBindings, isLoading: isListRoleBindingssLoading } =
+  //   useGetWorkspaceRoleBinding({
+  //     clusterName,
+  //     workspaceName,
+  //   });
+
+  // const { data: serviceAccounts, isLoading: isServiceAccountsLoading } =
+  //   useGetWorkspaceServiceAccount({
+  //     clusterName,
+  //     workspaceName,
+  //   });
+  // const { data: workspacePolicies, isLoading: isWorkspacePoliciesLoading } =
+  //   useGetWorkspacePolicies({
+  //     clusterName,
+  //     workspaceName,
+  //   });
 
   return (
     <>
