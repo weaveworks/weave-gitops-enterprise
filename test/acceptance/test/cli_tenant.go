@@ -11,7 +11,7 @@ import (
 	"github.com/onsi/gomega"
 )
 
-func verifyTenantYaml(contents string, tenantName string, namespaces []string, sa bool, saName string, saRoles map[string][]string, groups []string) {
+func verifyTenantYaml(contents string, tenantName string, namespaces []string, sa bool, saName string, saRoles map[string][]string, groups []string, teamsRBAC bool) {
 	ginkgo.By("Then I should verify generated tenant yaml file", func() {
 		for _, namespace := range namespaces {
 			// Namespace
@@ -26,9 +26,11 @@ func verifyTenantYaml(contents string, tenantName string, namespaces []string, s
 				}
 			}
 			// teamsRBAC
-			gomega.Eventually(contents).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: Role[\s\w\d./:-]*toolkit.fluxcd.io\/tenant: %[1]v[\s\w\d./:-]*name: %[1]v-team\s[\s\w\d./:-]*namespace: %[2]v\s[\s\w\d./:-]*apiGroups`, tenantName, namespace)))
-			for _, group := range groups {
-				gomega.Eventually(contents).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: RoleBinding[\s\w\d./:-]*toolkit.fluxcd.io\/tenant: %[2]v[\s\w\d./:-]*namespace: %[1]v\s[\s\w\d./:-]*kind: Role[\s\w\d./:-]*name: %[2]v-team\s[\s\w\d./:-]*kind: Group[\s\w\d./:-]*name: %[3]v\s`, namespace, tenantName, group)))
+			if teamsRBAC {
+				gomega.Eventually(contents).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: Role[\s\w\d./:-]*toolkit.fluxcd.io\/tenant: %[1]v[\s\w\d./:-]*name: %[1]v-team\s[\s\w\d./:-]*namespace: %[2]v\s[\s\w\d./:-]*apiGroups`, tenantName, namespace)))
+				for _, group := range groups {
+					gomega.Eventually(contents).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: RoleBinding[\s\w\d./:-]*toolkit.fluxcd.io\/tenant: %[2]v[\s\w\d./:-]*namespace: %[1]v\s[\s\w\d./:-]*kind: Role[\s\w\d./:-]*name: %[2]v-team\s[\s\w\d./:-]*kind: Group[\s\w\d./:-]*name: %[3]v\s`, namespace, tenantName, group)))
+				}
 			}
 			// policy
 			gomega.Eventually(contents).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: Policy[\s\w\d./:-]*name: weave.policies.tenancy.%s-allowed-application-deploy\s`, tenantName)))
@@ -101,7 +103,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				stdOut, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export`, tenatDefination))
 				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
 
-				verifyTenantYaml(string(stdOut), "test-team", []string{"test-system"}, true, "test-team", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:QA"})
+				verifyTenantYaml(string(stdOut), "test-team", []string{"test-system"}, true, "test-team", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:QA"}, true)
 
 				// verify tenants resources are exported to output file
 				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
@@ -110,7 +112,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				contents, err := ioutil.ReadFile(tenantYaml)
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Faile to read generated tentant yaml file")
 
-				verifyTenantYaml(string(contents), "test-team", []string{"test-system"}, true, "test-team", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:QA"})
+				verifyTenantYaml(string(contents), "test-team", []string{"test-system"}, true, "test-team", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:QA"}, true)
 			})
 
 			ginkgo.It("Verify global service account reconciliation by tenant", ginkgo.Label("tenant"), func() {
@@ -122,7 +124,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				contents, err := ioutil.ReadFile(tenantYaml)
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Faile to read generated tentant yaml file")
 
-				verifyTenantYaml(string(contents), "dev-team", []string{"dev-system"}, false, "reconcilerServiceAccount", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:Pesto", "developers"})
+				verifyTenantYaml(string(contents), "dev-team", []string{"dev-system"}, false, "reconcilerServiceAccount", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:Pesto", "developers"}, true)
 			})
 
 			ginkgo.It("Verify global service account reconciliation by tenant with deployment RBAC", ginkgo.Label("tenant"), func() {
@@ -134,7 +136,7 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 				contents, err := ioutil.ReadFile(tenantYaml)
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Faile to read generated tentant yaml file")
 
-				verifyTenantYaml(string(contents), "test-team", []string{"test-system"}, false, "reconcilerServiceAccount", map[string][]string{"Role": {"foo-role"}}, []string{"wge-test"})
+				verifyTenantYaml(string(contents), "test-team", []string{"test-system"}, false, "reconcilerServiceAccount", map[string][]string{"Role": {"foo-role"}}, []string{"wge-test"}, true)
 			})
 
 			ginkgo.It("Verify creating tenant resource using kubeconfig ", ginkgo.Label("tenant"), func() {
@@ -215,6 +217,43 @@ func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(stdErr).Should(gomega.MatchRegexp(fmt.Sprintf(`cluster secretRef %s is not allowed for namespace dev-system`, leafClusterkubeconfig)), fmt.Sprintf("Failed to create GitopsCluster resource for  cluster: %s", leafCluster.Name))
 				})
 			})
+		})
+
+		ginkgo.Context("[CLI] When tenant name and namespaces are available", ginkgo.Ordered, func() {
+
+			ginkgo.JustBeforeEach(func() {
+				tenantYaml = getTenantYamlPath()
+			})
+
+			ginkgo.JustAfterEach(func() {
+
+				deleteTenants([]string{tenantYaml})
+
+				// Namespaces used in tenant creation, waiting form there termination
+				namespaces := []string{"test-ns1"}
+				waitForNamespaceDeletion(namespaces)
+			})
+
+			ginkgo.It("Verify a single tenant resources can be exported", ginkgo.Label("tenant"), func() {
+
+				// verify tenants resources are exported to terminal
+				stdOut, stdErr = runGitopsCommand(`create tenants --name test-tenant1 --namespace test-ns1 --export`)
+				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
+
+				verifyTenantYaml(string(stdOut), "test-tenant1", []string{"test-ns1"}, true, "test-tenant1",
+					map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{}, false)
+
+				// verify tenants resources are exported to output file
+				_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --name test-tenant1 --namespace test-ns1 --export > %s`, tenantYaml))
+				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
+
+				contents, err := ioutil.ReadFile(tenantYaml)
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Faile to read generated tentant yaml file")
+
+				verifyTenantYaml(string(contents), "test-tenant1", []string{"test-ns1"}, true, "test-tenant1",
+					map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{}, false)
+			})
+
 		})
 	})
 }

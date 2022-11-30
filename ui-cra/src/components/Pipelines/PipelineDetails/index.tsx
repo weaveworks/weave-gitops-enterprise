@@ -10,13 +10,17 @@ import {
 import _ from 'lodash';
 import useConfig from '../../../hooks/config';
 import styled from 'styled-components';
-import { PipelineTargetStatus } from '../../../api/pipelines/types.pb';
+import {
+  Pipeline,
+  PipelineTargetStatus,
+} from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import YamlView from '../../YamlView';
 import WorkloadStatus from './WorkloadStatus';
+import { EditButton } from './../../../components/Templates/Edit/EditButton';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -53,6 +57,9 @@ const useStyles = makeStyles(() =>
     },
     subtitleColor: {
       color: neutral30,
+    },
+    editButton: {
+      paddingBottom: theme.spacing.small,
     },
   }),
 );
@@ -138,6 +145,10 @@ const PipelineDetails = ({ name, namespace }: Props) => {
       ]}
     >
       <ContentWrapper loading={isLoading}>
+        <EditButton
+          className={classes.editButton}
+          resource={data?.pipeline || ({} as Pipeline)}
+        />
         <SubRouterTabs rootPath={`${path}/status`}>
           <RouterTab name="Status" path={`${path}/status`}>
             <Grid className={classes.gridWrapper} container spacing={4}>

@@ -70,4 +70,5 @@ export type Pipeline = {
   targets?: Target[]
   status?: PipelineStatus
   yaml?: string
+  type?: string
 }
