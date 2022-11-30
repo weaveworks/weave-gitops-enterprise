@@ -72,4 +72,5 @@ message Pipeline {
     repeated       Target targets           = 5;
     PipelineStatus status                   = 6;
     string         yaml                     = 7;
+    string         type                     = 8;
 }

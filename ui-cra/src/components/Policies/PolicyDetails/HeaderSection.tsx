@@ -64,7 +64,7 @@ function HeaderSection({
       value: category,
     },
     {
-      rowkey: 'Modee',
+      rowkey: 'Mode',
       children: modes?.length
         ? modes.map((mode, index) => (
             <Mode key={index} modeName={mode} showName />

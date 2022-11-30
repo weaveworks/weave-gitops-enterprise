@@ -1,3 +1,4 @@
+# syntax = docker/dockerfile:1.2
 FROM node:14-bullseye AS build
 USER node
 WORKDIR /home/node
@@ -5,14 +6,15 @@ COPY --chown=node:node package.json /home/node
 COPY --chown=node:node .npmrc /home/node
 COPY --chown=node:node yarn.lock /home/node
 COPY --chown=node:node Makefile /home/node
+COPY --chown=node:node tsconfig.json /home/node
 
 ARG REACT_APP_DISABLE_PROGRESSIVE_DELIVERY
 ARG GITHUB_TOKEN
-RUN make node_modules
+RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make node_modules
 
-COPY --chown=node:node . /home/node
+COPY --chown=node:node . /home/node/
 ARG version
-RUN make build VERSION=${version}
+RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make build VERSION=${version}
 
 FROM alpine:3.9
 RUN apk add --no-cache bash openssh-client
