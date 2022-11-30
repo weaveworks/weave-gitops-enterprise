@@ -71,7 +71,7 @@ const useClusters = () => {
   );
 
   const deleteCreatedClusters = useCallback(
-    (data: DeleteClustersPRRequestEnriched, token: string) => {
+    (data: DeleteClustersPRRequestEnriched, token: string | null) => {
       setLoading(true);
       return request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),

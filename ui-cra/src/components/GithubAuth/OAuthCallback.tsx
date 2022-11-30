@@ -9,21 +9,23 @@ import {
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { GitProvider } from '../../contexts/GithubAuth/utils';
+import {
+  getCallbackState,
+  GitProvider,
+  storeProviderToken,
+} from '../../contexts/GithubAuth/utils';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import useNotifications from '../../contexts/Notifications';
 
 type Props = {
-  className?: string;
   code: string;
   provider: GitProvider;
 };
 
-function OAuthCallback({ className, code, provider }: Props) {
+function OAuthCallback({ code, provider }: Props) {
   const history = useHistory();
-  const { applicationsClient, storeProviderToken, getCallbackState } =
-    React.useContext(AppContext);
+  const { applicationsClient } = React.useContext(AppContext);
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
@@ -71,13 +73,6 @@ function OAuthCallback({ className, code, provider }: Props) {
     <ContentWrapper loading={loading}>
       <Flex wide align center>
         {loading && <CircularProgress />}
-        {/* {error && (
-        <Alert
-          title="Error completing OAuth 2.0 flow"
-          severity="error"
-          message={error.message}
-        />
-      )} */}
       </Flex>
     </ContentWrapper>
   );

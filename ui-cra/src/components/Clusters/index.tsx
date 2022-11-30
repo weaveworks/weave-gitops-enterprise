@@ -10,7 +10,6 @@ import {
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
-  CallbackStateContextProvider,
   filterByStatusCallback,
   filterConfig,
   Icon,
@@ -50,6 +49,7 @@ import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import { EditButton } from '../Templates/Edit/EditButton';
+import CallbackStateContextProvider from '../../contexts/GithubAuth/CallbackStateContext';
 
 interface Size {
   size?: 'small';

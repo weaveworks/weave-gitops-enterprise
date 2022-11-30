@@ -1,19 +1,16 @@
 import { ButtonProps } from '@material-ui/core';
 import * as React from 'react';
 import styled from 'styled-components';
-import {
-  Button,
-  AppContext,
-  CallbackStateContext,
-} from '@weaveworks/weave-gitops';
+import { Button, AppContext } from '@weaveworks/weave-gitops';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
+import { CallbackStateContext } from '../../contexts/GithubAuth/CallbackStateContext';
+import { storeCallbackState } from '../../contexts/GithubAuth/utils';
 
 type Props = ButtonProps;
 
 function GitlabAuthButton({ ...props }: Props) {
   const { callbackState } = React.useContext(CallbackStateContext);
-  const { applicationsClient, navigate, storeCallbackState } =
-    React.useContext(AppContext);
+  const { applicationsClient, navigate } = React.useContext(AppContext);
 
   const handleClick = (e: any) => {
     e.preventDefault();

@@ -1,8 +1,8 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
-import { useIsAuthenticated } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { GithubDeviceAuthModal } from '.';
 import { GitProvider } from '../../contexts/GithubAuth/utils';
+import { useIsAuthenticated } from '../../hooks/gitprovider';
 import RepoInputWithAuth from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`

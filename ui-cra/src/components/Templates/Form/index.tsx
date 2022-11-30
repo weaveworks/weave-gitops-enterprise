@@ -9,16 +9,12 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
-  CallbackStateContextProvider,
-  clearCallbackState,
-  getProviderToken,
   Link,
   LoadingPage,
   theme as weaveTheme,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import {
@@ -28,7 +24,6 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import useProfiles from '../../../hooks/profiles';
-
 import useTemplates from '../../../hooks/templates';
 import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -58,6 +53,11 @@ import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
+import {
+  clearCallbackState,
+  getProviderToken,
+} from '../../../contexts/GithubAuth/utils';
+import CallbackStateContextProvider from '../../../contexts/GithubAuth/CallbackStateContext';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -412,10 +412,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       updatedProfiles,
     );
     setLoading(true);
-    return addResource(
-      payload,
-      getProviderToken(formData.provider as GitProvider),
-    )
+    return addResource(payload, getProviderToken(formData.provider))
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Clusters);

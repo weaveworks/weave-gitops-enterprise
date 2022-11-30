@@ -6,18 +6,10 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import { AddApplicationRequest, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
-import {
-  Button,
-  CallbackStateContextProvider,
-  clearCallbackState,
-  getProviderToken,
-  Link,
-  LoadingPage,
-} from '@weaveworks/weave-gitops';
+import { Button, Link, LoadingPage } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
@@ -39,6 +31,11 @@ import { Routes } from '../../../utils/nav';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
+import CallbackStateContextProvider from '../../../contexts/GithubAuth/CallbackStateContext';
+import {
+  clearCallbackState,
+  getProviderToken,
+} from '../../../contexts/GithubAuth/utils';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -104,7 +101,7 @@ interface FormData {
 }
 
 function getInitialData(
-  callbackState: { state: { formData: FormData } },
+  callbackState: { state: { formData: FormData } } | null,
   random: string,
 ) {
   let defaultFormData = {
@@ -346,10 +343,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       clusterAutomations: getKustomizations(),
     };
     setLoading(true);
-    return AddApplicationRequest(
-      payload,
-      getProviderToken(formData.provider as GitProvider),
-    )
+    return AddApplicationRequest(payload, getProviderToken(formData.provider))
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Applications);
