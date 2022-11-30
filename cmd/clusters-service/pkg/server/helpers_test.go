@@ -24,9 +24,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AWSCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AWSCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -40,9 +40,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AWSManagedCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AWSManagedCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -56,9 +56,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AWSManagedControlPlane"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AWSManagedControlPlane"
+                                                        }`),
 						},
 					},
 				},
@@ -73,9 +73,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AzureCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AzureCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -89,9 +89,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AzureManagedCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AzureManagedCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -105,9 +105,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "DOCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "DOCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -121,9 +121,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "GCPCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "GCPCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -137,9 +137,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "OpenStackCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "OpenStackCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -153,9 +153,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "PacketCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "PacketCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -169,9 +169,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "VSphereCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "VSphereCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -185,9 +185,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "FooCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "FooCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -327,7 +327,7 @@ func TestGetMissingFiles(t *testing.T) {
 			sortFiles(tt.expected)
 			var expectedPaths []*string
 			expectedContents := make([]*string, len(tt.expected))
-			for i, _ := range tt.expected {
+			for i := range tt.expected {
 				expectedPaths = append(expectedPaths, tt.expected[i].Path)
 			}
 
@@ -335,7 +335,7 @@ func TestGetMissingFiles(t *testing.T) {
 			sortFiles(difference)
 			var differencePaths []*string
 			var differenceContents []*string
-			for i, _ := range difference {
+			for i := range difference {
 				differencePaths = append(differencePaths, difference[i].Path)
 				differenceContents = append(differenceContents, difference[i].Content)
 			}
