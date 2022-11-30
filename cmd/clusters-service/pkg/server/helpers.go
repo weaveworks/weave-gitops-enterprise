@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/spf13/viper"
+	"k8s.io/apimachinery/pkg/util/sets"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
@@ -93,4 +95,31 @@ func getClusterNamespace(clusterNamespace string) string {
 
 func isCAPITemplate(t apitemplates.Template) bool {
 	return t.GetObjectKind().GroupVersionKind().Kind == capiv1.Kind
+}
+
+func filePaths(files []gitprovider.CommitFile) []string {
+	names := []string{}
+	for _, f := range files {
+		names = append(names, *f.Path)
+	}
+	return names
+}
+
+// Check if there are files in originalFiles that are missing from extraFiles and returns them
+func getMissingFiles(originalFiles []gitprovider.CommitFile, extraFiles []gitprovider.CommitFile) []gitprovider.CommitFile {
+	originalFilePaths := filePaths(originalFiles)
+	extraFilePaths := filePaths(extraFiles)
+
+	diffPaths := sets.NewString(originalFilePaths...).Difference(sets.NewString(extraFilePaths...)).List()
+
+	difference := []gitprovider.CommitFile{}
+	for i := range diffPaths {
+		difference = append(difference, gitprovider.CommitFile{
+			Path:    &diffPaths[i],
+			Content: nil,
+		})
+	}
+
+	return difference
+
 }

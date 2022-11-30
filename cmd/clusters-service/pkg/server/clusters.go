@@ -30,7 +30,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
@@ -996,31 +995,4 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 		Name:      name,
 		Namespace: namespace,
 	}
-}
-
-func filePaths(files []gitprovider.CommitFile) []string {
-	names := []string{}
-	for _, f := range files {
-		names = append(names, *f.Path)
-	}
-	return names
-}
-
-// Check if there are files in originalFiles that are missing from extraFiles and returns them
-func getMissingFiles(originalFiles []gitprovider.CommitFile, extraFiles []gitprovider.CommitFile) []gitprovider.CommitFile {
-	originalFilePaths := filePaths(originalFiles)
-	extraFilePaths := filePaths(extraFiles)
-
-	diffPaths := sets.NewString(originalFilePaths...).Difference(sets.NewString(extraFilePaths...)).List()
-
-	difference := []gitprovider.CommitFile{}
-	for _, filePath := range diffPaths {
-		difference = append(difference, gitprovider.CommitFile{
-			Path:    &filePath,
-			Content: nil,
-		})
-	}
-
-	return difference
-
 }

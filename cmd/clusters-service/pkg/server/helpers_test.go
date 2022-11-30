@@ -1,8 +1,11 @@
 package server
 
 import (
+	"reflect"
+	"sort"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	apitemplate "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -200,4 +203,159 @@ func TestGetProvider(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetMissingFiles(t *testing.T) {
+	paths := []string{
+		"testdata/cluster-template.yaml",
+		"testdata/cluster-template-1.yaml",
+		"testdata/cluster-template-2.yaml",
+	}
+	content := "dummy content"
+	emptyContent := ""
+	tests := []struct {
+		name          string
+		originalFiles []gitprovider.CommitFile
+		extraFiles    []gitprovider.CommitFile
+		expected      []gitprovider.CommitFile
+	}{
+		// no extra files
+		{
+			name: "no extra files",
+			originalFiles: []gitprovider.CommitFile{
+				{
+					Path:    &paths[0],
+					Content: &content,
+				},
+				{
+					Path:    &paths[1],
+					Content: &content,
+				},
+			},
+			extraFiles: []gitprovider.CommitFile{},
+			expected: []gitprovider.CommitFile{
+				{
+					Path:    &paths[0],
+					Content: &emptyContent,
+				},
+				{
+					Path:    &paths[1],
+					Content: &emptyContent,
+				},
+			},
+		},
+		//extra files
+		{
+			name: "extra files",
+			originalFiles: []gitprovider.CommitFile{
+				{
+					Path:    &paths[0],
+					Content: &content,
+				},
+				{
+					Path:    &paths[1],
+					Content: &content,
+				},
+			},
+			extraFiles: []gitprovider.CommitFile{
+
+				{
+					Path:    &paths[2],
+					Content: &content,
+				},
+			},
+			expected: []gitprovider.CommitFile{
+				{
+
+					Path:    &paths[0],
+					Content: &emptyContent,
+				},
+				{
+
+					Path:    &paths[1],
+					Content: &emptyContent,
+				},
+			},
+		},
+		//test case 3: no original files
+		{
+			name:          "no original files",
+			originalFiles: []gitprovider.CommitFile{},
+			extraFiles: []gitprovider.CommitFile{
+				{
+					Path:    &paths[0],
+					Content: &content,
+				},
+				{
+					Path:    &paths[1],
+					Content: &content,
+				},
+			},
+			expected: []gitprovider.CommitFile{},
+		},
+		{
+			name: "original with 1 file and extra with 2 files",
+			originalFiles: []gitprovider.CommitFile{
+				{
+					Path:    &paths[0],
+					Content: &content,
+				},
+			},
+			extraFiles: []gitprovider.CommitFile{
+
+				{
+					Path:    &paths[2],
+					Content: &content,
+				}, {
+
+					Path:    &paths[1],
+					Content: &emptyContent,
+				},
+			},
+			expected: []gitprovider.CommitFile{
+				{
+
+					Path:    &paths[0],
+					Content: &emptyContent,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			sortFiles(tt.expected)
+			var expectedPaths []*string
+			expectedContents := make([]*string, len(tt.expected))
+			for i, _ := range tt.expected {
+				expectedPaths = append(expectedPaths, tt.expected[i].Path)
+			}
+
+			difference := getMissingFiles(tt.originalFiles, tt.extraFiles)
+			sortFiles(difference)
+			var differencePaths []*string
+			var differenceContents []*string
+			for i, _ := range difference {
+				differencePaths = append(differencePaths, difference[i].Path)
+				differenceContents = append(differenceContents, difference[i].Content)
+			}
+
+			// Check paths match expected paths
+			if (len(differencePaths) > 0 && len(expectedPaths) > 0) && !reflect.DeepEqual(differencePaths, expectedPaths) {
+				t.Errorf("File paths not matching expected, Paths = %v, want %v", difference, tt.expected)
+			}
+			// Check content of files to be empty
+			if (len(differencePaths) > 0 && len(expectedPaths) > 0) && !reflect.DeepEqual(differenceContents, expectedContents) {
+				t.Errorf("File content not matching expected, Content= %v, want %v", difference, tt.expected)
+			}
+
+		})
+	}
+
+}
+
+func sortFiles(files []gitprovider.CommitFile) {
+	sort.Slice(files, func(i, j int) bool {
+		return *files[i].Path < *files[j].Path
+	})
 }
