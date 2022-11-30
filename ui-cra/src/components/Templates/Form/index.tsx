@@ -479,6 +479,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.templateKind,
     setNotifications,
     history,
+    resource,
   ]);
 
   useEffect(() => {
