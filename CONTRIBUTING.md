@@ -30,39 +30,90 @@ of the following components:
 
 ## One-time setup
 
-You need a github Personal Access Token to build the service. This token needs
-at least the `repo` and `read:packages` permissions. If you want to be able to
-delete the GitOps repo every time you recreate your local Kind cluster, add the
-`delete_repo` permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1.
-You can create a token [here](https://github.com/settings/tokens), and export it
-as:
+### If using Docker Desktop for Mac, scale up the machine
+
+Docker Desktop is a complete Linux virtual machine, which will be used
+for building and running the whole product - the defaults are way too
+conservative.
+
+Dedicate at least 16GB RAM and as many CPU cores as you can
+spare - if you don't, everything will grind to a halt. Re-building the
+whole backend takes about a minute or two when there's enough
+resources, but if you're being too stingy with resources you could
+easily find yourself waiting half an hour or more, every time you want
+to change any code.
+
+As for disk space, if you can spare a few hundred gigabytes, do give
+it a few hundred gigabytes. Every time your development environment
+loads a change, Docker will store another few megabytes of volumes which
+adds up quicker than you'd think - and when you run out, you might get
+annoying mystery errors.
+
+After making this change, remember to turn your Docker Desktop off and
+on again.
+
+### Enable buildkit in docker
+
+You need to enable the buildkit feature in docker, or docker will complain:
+
+```bash
+export DOCKER_BUILDKIT=1
+```
+
+### Github Personal Access Token
+A PAT is needed to get access to our private repositories and packages.
+
+This token needs at least the `repo` and `read:packages`
+permissions. If you want to be able to delete the GitOps repo every
+time you recreate your local Kind cluster, add the `delete_repo`
+permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1.  You
+can create a token [here](https://github.com/settings/tokens), and
+export it as:
 
 ```bash
 export GITHUB_TOKEN=your_token
 ```
 
-You must also update your `~/.gitconfig` with:
+### Go package configuration
+In order for Go to be able to download private dependencies, you must also
+update your `~/.gitconfig` with:
 
 ```bash
 [url "ssh://git@github.com/"]
     insteadOf = https://github.com/
 ```
 
+If you are running into issues installing Go modules, try also setting the `GOPRIVATE` environment variable:
+
+```bash
+export GOPRIVATE=github.com/weaveworks/*
+```
+
+### Github user
 You will also be using your personal GitHub account to host GitOps repositories. Therefore you need to export your GitHub username as well:
 
 ```bash
 export GITHUB_USER=your_username
 ```
 
-If you are running into issues installing Go modules try setting the `GOPRIVATE` environment variable:
-
+### Log in to GHCR
+We use OCI artifacts hosted in GHCR, so you need your docker to be
+logged in to this repository:
 ```bash
-export GOPRIVATE=github.com/weaveworks/*
+docker login ghcr.io
 ```
+When it asks you for your username, use your github username. When it
+asks you for your password, use the Personal Access Token you set up
+before, _not_ your github password.
 
-Along with this repository you need to clone the [cluster-controller](https://github.com/weaveworks/cluster-controller) and [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller) repositories next to this repository's clone.
+### Other repositories
+cluster-controller and cluster-bootstrap-controller are both
+installed at startup.
 
-Finally, make sure you can access to the
+You need to clone the [cluster-controller](https://github.com/weaveworks/cluster-controller) and [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller) repositories next to this repository's clone.
+
+### Permissions
+Make sure you can access to the
 [weave-gitops-enterprise-credentials][wge-creds] repository.
 
 [wge-creds]: https://github.com/weaveworks/weave-gitops-enterprise-credentials
@@ -133,11 +184,6 @@ pods running in your system.
 - If a change in your local settings results in a ConfigMap update, you will
   need to restart the `clusters-service` pod in order for the pod to read the
   updated ConfigMap.
-- Every time you restart `clusters-service` it will generate new self-signed
-  certificates, therefore you will need to reload the UI and accept the new
-  certificate. Check for TLS certificate errors in the
-  `chart-mccp-cluster-service` logs and if necessary re-trigger an update to
-  rebuild it.
 
 ### Faster frontend development
 
@@ -153,6 +199,75 @@ PROXY_HOST=https://localhost:8000 yarn start
 
 Now you have a separate frontend running on
 [http://localhost:3000](http://localhost:3000) with in-process reload.
+
+Tip: by starting tilt with the command `MANUAL_MODE=true tilt up` instead,
+you will cause tilt to stop restarting the backend unless you click
+the button in the UI. If you find that the backend always restarts
+while you're doing something, this might help.
+
+### When something goes wrong
+
+Here's a list of things that might go wrong.
+
+#### The tilt "Uncategorized" tab is red, and says something about "addons.cluster.x-k8s.io"
+
+This means you have not installed a CAPI provider. If you set up your
+cluster with `tools/reset.sh` then it should have been installed
+already.
+
+If you want to fix it without a cluster reset, look for the function
+running `clusterctl` in `tools/reset.sh`.
+
+If that doesn't help, it could also mean that your version of
+`clusterctl` is too old, so you simply have the wrong version of the
+cluster API. Note that `make dependencies` does not support upgrades,
+so running it does not keep you up to date - you have to manually
+delete `tools/bin/clusterctl` and then re-run `make dependencies` to
+upgrade it.
+
+#### Errors mentioning "Unauthorized" when building docker images
+
+Note: this only applies to the building step - not after it's started!
+
+This might mean your github token isn't set correctly. Try turning
+tilt off, running `export GITHUB_TOKEN=your_token` in that terminal,
+and starting it again and see if that fixes it.
+
+If that doesn't work, make sure your token has _both_ repo _and_
+package permissions, and that it hasn't expired.
+
+If you still experience problems, ask someone in your team if it works
+for them, as it could be a new dependency you don't have permissions
+to read. If it's stopped working for you both, you probably need to
+change the github permissions.
+
+#### The UI is empty and you see an error mentioning "kubernetes client initialization failed: Unauthorized"
+
+Whenever the `Uncategorized` job runs in tilt, it resets all
+permissions. When that happens, it can delete the permissions for the
+`chart-mccp-cluster-service` pod that's currently running.
+
+Manually re-run the `Uncategorized` job to make sure it runs as
+expected. When it's finished, re-start the
+`chart-mccp-cluster-service` deployment. Once that's finished, it
+should work again.
+
+#### Tilt keeps printing "too many open files"
+
+If you're on a mac, it should go away if you simply turn Docker
+Desktop off and on again - you don't have to delete the machine, just
+reboot. If you're on linux, try turning the kind docker
+container off and on again, or reboot your machine.
+
+To get it to go away, on mac try to put `ulimit -n <big_number>` in
+your shell config file (probably `~/.zshrc` or maybe `~/.bashrc`) -
+half a million or so is a big number.
+
+On linux, you might need to set `fs.nr_open` to a big value in
+/etc/sysctl.conf, and you might need to override LimitNOFILE for the
+containerd systemd unit. There's other related settings that can cause
+similar-looking errors - the `fs.inotify` family of settings often
+start up very low and might need a bump.
 
 ## Building the project
 
