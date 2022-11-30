@@ -4,10 +4,7 @@ import * as React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { GithubDeviceAuthModal } from '..';
-import {
-  getProviderToken,
-  GitProvider,
-} from '../../../contexts/GithubAuth/utils';
+import { getProviderToken, GitProvider } from '../utils';
 import {
   ApplicationOverrides,
   createMockClient,

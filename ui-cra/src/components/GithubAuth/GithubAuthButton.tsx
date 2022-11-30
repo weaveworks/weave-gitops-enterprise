@@ -3,7 +3,7 @@ import { Button } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
 import { GithubAuthContext } from '../../contexts/GithubAuth/Provider';
-import { GitProvider } from '../../contexts/GithubAuth/utils';
+import { GitProvider } from './utils';
 
 type Props = ButtonProps;
 

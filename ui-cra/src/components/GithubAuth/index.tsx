@@ -2,10 +2,7 @@ import { CircularProgress } from '@material-ui/core';
 import { Flex } from '@weaveworks/weave-gitops';
 import Alert from '@material-ui/lab/Alert';
 import { useGetGithubDeviceCode } from '../../contexts/GithubAuth';
-import {
-  GitProvider,
-  storeProviderToken,
-} from '../../contexts/GithubAuth/utils';
+import { GitProvider, storeProviderToken } from './utils';
 import Modal from '../Modal';
 import ModalContent from './ModalContent';
 

@@ -1,21 +1,26 @@
-//@ts-nocheck
 import * as React from 'react';
 
 type Props = {
   children?: any;
 };
 
+interface DiaglogState {
+  open: boolean;
+  repoName: string | null;
+  success: boolean;
+}
+
 export interface GithubAuthContextType {
-  dialogState: { open: boolean; repoName: string; success: boolean };
+  dialogState: DiaglogState;
   setDialogState: (open: boolean, repoName: string) => void;
   setSuccess: () => void;
 }
 
 export const GithubAuthContext =
-  React.createContext<GithubAuthContextType>(null);
+  React.createContext<GithubAuthContextType | null>(null);
 
 export default function GithubAuthContextProvider({ children }: Props) {
-  const [dialogState, setDialogState] = React.useState({
+  const [dialogState, setDialogState] = React.useState<DiaglogState>({
     open: false,
     repoName: null,
     success: false,

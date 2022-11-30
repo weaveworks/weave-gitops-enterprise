@@ -4,7 +4,7 @@ import { applicationsClient } from '@weaveworks/weave-gitops';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
-} from './utils';
+} from '../../components/GithubAuth/utils';
 
 interface Props {
   api: typeof applicationsClient;

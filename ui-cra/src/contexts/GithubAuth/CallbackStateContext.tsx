@@ -1,9 +1,8 @@
-//@ts-nocheck
 import * as React from 'react';
-import { CallbackSessionState } from './utils';
+import { CallbackSessionState } from '../../components/GithubAuth/utils';
 
 type Props = {
-  callbackState?: CallbackSessionState;
+  callbackState: CallbackSessionState;
   children?: any;
 };
 
@@ -11,7 +10,7 @@ export type CallbackStateContextType = {
   callbackState: CallbackSessionState;
 };
 export const CallbackStateContext =
-  React.createContext<CallbackStateContextType>(null);
+  React.createContext<CallbackStateContextType | null>(null);
 
 export default function CallbackStateContextProvider({
   callbackState,

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import CallbackStateContextProvider from '../../../contexts/GithubAuth/CallbackStateContext';
-import { GitProvider } from '../../../contexts/GithubAuth/utils';
+import { GitProvider } from '../utils';
 import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 // check how we do this in EE

@@ -53,10 +53,7 @@ import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
-import {
-  clearCallbackState,
-  getProviderToken,
-} from '../../../contexts/GithubAuth/utils';
+import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
 import CallbackStateContextProvider from '../../../contexts/GithubAuth/CallbackStateContext';
 
 const large = weaveTheme.spacing.large;

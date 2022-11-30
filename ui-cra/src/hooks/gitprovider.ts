@@ -10,7 +10,7 @@ import {
   GrpcErrorCodes,
   makeHeaders,
   storeProviderToken,
-} from '../contexts/GithubAuth/utils';
+} from '../components/GithubAuth/utils';
 
 export function useIsAuthenticated() {
   const [res, loading, error, req] =

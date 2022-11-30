@@ -9,11 +9,7 @@ import {
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import {
-  getCallbackState,
-  GitProvider,
-  storeProviderToken,
-} from '../../contexts/GithubAuth/utils';
+import { getCallbackState, GitProvider, storeProviderToken } from './utils';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import useNotifications from '../../contexts/Notifications';

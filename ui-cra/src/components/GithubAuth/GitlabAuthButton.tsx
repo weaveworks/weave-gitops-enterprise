@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { Button, AppContext } from '@weaveworks/weave-gitops';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { CallbackStateContext } from '../../contexts/GithubAuth/CallbackStateContext';
-import { storeCallbackState } from '../../contexts/GithubAuth/utils';
+import { storeCallbackState } from './utils';
 
 type Props = ButtonProps;
 

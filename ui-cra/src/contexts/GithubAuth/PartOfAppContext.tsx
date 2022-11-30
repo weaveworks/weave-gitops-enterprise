@@ -6,7 +6,7 @@ import {
   getProviderToken,
   storeCallbackState,
   storeProviderToken,
-} from './utils';
+} from '../../components/GithubAuth/utils';
 
 export type AppContextType = {
   applicationsClient: typeof applicationsClient;
