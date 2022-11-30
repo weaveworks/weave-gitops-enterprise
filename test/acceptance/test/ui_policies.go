@@ -51,7 +51,7 @@ func installPolicySet(clusterName string, policySetYaml string) {
 	})
 }
 
-func verfiyPolicyModes(policyName string) {
+func verifyPolicyModes(policyName string) {
 	ginkgo.By("Verify different policy Modes", func() {
 
 		policiesPage := pages.GetPoliciesPage(webDriver)
@@ -173,7 +173,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyName := "Container Image Pull Policy acceptance test"
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			policyClusterName := "management"
-			//policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
+			policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
 			policySeverity := "Medium"
 			policyCategory := "weave.categories.software-supply-chain"
 			policyTags := []string{"There is no tags for this policy"}
@@ -219,7 +219,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.software-supply-chain", policyName))
 				})
 
-				verfiyPolicyModes(policyName)
+				verifyPolicyModes(policyName)
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
 					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: %s", policyName, policySeverity))
@@ -242,7 +242,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyDetailPage.ClusterName.Text).Should(gomega.MatchRegexp(policyClusterName), "Failed to verify policy cluster on policy page")
 					gomega.Eventually(policyDetailPage.Severity.Text).Should(gomega.MatchRegexp(policySeverity), "Failed to verify policy Severity on policy page")
 					gomega.Eventually(policyDetailPage.Category.Text).Should(gomega.MatchRegexp(policyCategory), "Failed to verify policy category on policy page")
-					//gomega.Eventually(policyDetailPage.Mode.Text).Should(gomega.MatchRegexp(policyMode), "Failed to verify policy mode on policy page")
+					gomega.Eventually(policyDetailPage.Mode.Text).Should(gomega.MatchRegexp(policyMode), "Failed to verify policy mode on policy page")
 
 					gomega.Expect(policyDetailPage.GetTags()).Should(gomega.ConsistOf(policyTags), "Failed to verify policy Tags on policy page")
 					gomega.Expect(policyDetailPage.GetTargetedK8sKind()).Should(gomega.ConsistOf(policyTargetedKinds), "Failed to verify policy Targeted K8s Kind on policy page")
@@ -299,6 +299,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
 			var policiesYaml string
+			var policySetYaml string
 			patSecret := "policy-pat"
 			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-policy-kind"
@@ -314,6 +315,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+				policySetYaml = path.Join(testDataPath, "policies/policy-set.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -327,16 +329,20 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafClusterName, "")
+				// Delete the test policies and policy set
+				_ = gitopsTestRunner.KubectlDelete([]string{}, policySetYaml)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 
 			})
 
-			ginkgo.It("Verify Policies can be installed on leaf cluster and monitored via management cluster dashboard", ginkgo.Label("integration", "policy", "leaf-policy"), func() {
+			ginkgo.FIt("Verify Policies can be installed on leaf cluster and monitored via management cluster dashboard", ginkgo.Label("integration", "policy", "leaf-policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
+				// Install policy agent , test policies and policy set on leaf cluster
 				installPolicyAgent(leafClusterName)
 				installTestPolicies(leafClusterName, policiesYaml)
+				installPolicySet(leafClusterName, policySetYaml)
 
 				useClusterContext(mgmtClusterContext)
 				createPATSecret(leafClusterNamespace, patSecret)
@@ -347,7 +353,10 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
+				// Install test policies and policy set on management cluster
 				installTestPolicies("management", policiesYaml)
+				installPolicySet("management", policySetYaml)
+
 				pages.NavigateToPage(webDriver, "Policies")
 				policiesPage := pages.GetPoliciesPage(webDriver)
 
@@ -355,12 +364,13 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					pages.NavigateToPage(webDriver, "Policies")
 					gomega.Eventually(policiesPage.PolicyHeader).Should(matchers.BeVisible())
 
-					totalPolicyCount := existingPoliciesCount + 8 // 4 management and 4 leaf policies
+					totalPolicyCount := existingPoliciesCount + 10 // 5 management and 5 leaf policies
 					gomega.Eventually(func(g gomega.Gomega) int {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return policiesPage.CountPolicies()
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalPolicyCount))
+						// Time increased to 5 mins as we noticed that the leaf cluster's policies appeared in the UI after 4 mins.
+					}, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalPolicyCount), fmt.Sprintf("There should be %d policy enteries in policy table, but found %d", totalPolicyCount, existingPoliciesCount))
 
 					// Wait for policy page to completely render policy information. Sometimes error appears momentarily due to RBAC reconciliation
 					gomega.Eventually(func(g gomega.Gomega) bool {
@@ -387,17 +397,17 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.pod-security", policyName))
 				})
 
-				ginkgo.By(fmt.Sprintf("And verify '%s' policy policyMode", policyName), func() {
-					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Mode: %s", policyName, policyMode))
-				})
+				verifyPolicyModes(policyName)
 
-				ginkgo.By(fmt.Sprintf("And verify '%s' policy Mode", policyName), func() {
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
 					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: %s", policyName, policySeverity))
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {
 					gomega.Eventually(policyInfo.Cluster).Should(matchers.MatchText(leafClusterName), fmt.Sprintf("Failed to have expected %[1]v policy Cluster: %[1]v", policyName))
 				})
+
+				verifyFilterPoliciesByModes()
 
 				ginkgo.By(fmt.Sprintf("And navigate to '%s' Policy page", policyName), func() {
 					gomega.Eventually(policyInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s policy detail page", policyName))
