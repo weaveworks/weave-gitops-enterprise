@@ -1,23 +1,31 @@
-import { DataTable, filterConfig, Flex, Link, Timestamp } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  filterConfig,
+  Flex,
+  Link,
+  Timestamp,
+} from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { TableWrapper } from '../Shared';
 import CommandCell from './CommandCell';
 
-const PortLinks: React.FC<{ports: string}> = ({ports = ''}) => {
+const PortLinks: React.FC<{ ports: string }> = ({ ports = '' }) => {
   const list = ports.split(',');
   return (
     <Flex column>
-      {list.map(port => 
-       <Link key={port} href={`http://localhost:${port}`} newTab >http://localhost:{port}</Link>
-      )}
+      {list.map(port => (
+        <Link key={port} href={`http://localhost:${port}`} newTab>
+          http://localhost:{port}
+        </Link>
+      ))}
     </Flex>
-  )
-}
+  );
+};
 interface Props {
   sessions: any[];
 }
 
-export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
+const GitOpsRunTable: FC<Props> = ({ sessions }) => {
   let initialFilterState = {
     ...filterConfig(
       sessions,
@@ -49,11 +57,12 @@ export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           {
             label: 'Port Forward',
             value: ({ obj }) => {
-              const ports:string = obj.metadata.annotations['run.weave.works/port-forward'];
-              return <PortLinks ports={ports} />
+              const ports: string =
+                obj.metadata.annotations['run.weave.works/port-forward'];
+              return <PortLinks ports={ports} />;
             },
-            sortValue: ({obj}) => obj.metadata.annotations['run.weave.works/port-forward']
-              
+            sortValue: ({ obj }) =>
+              obj.metadata.annotations['run.weave.works/port-forward'],
           },
           {
             label: 'Command',
@@ -66,12 +75,16 @@ export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
               obj.metadata.annotations['run.weave.works/command'],
           },
           {
-            label: 'Creation Timestamp',
-            value: ({ obj }) => <Timestamp time={obj.metadata.creationTimestamp} />,
-            sortValue: ({obj}) => obj.metadata.creationTimestamp,
+            label: 'Created',
+            value: ({ obj }) => (
+              <Timestamp time={obj.metadata.creationTimestamp} />
+            ),
+            sortValue: ({ obj }) => obj.metadata.creationTimestamp,
           },
         ]}
       />
     </TableWrapper>
   );
 };
+
+export default GitOpsRunTable;
