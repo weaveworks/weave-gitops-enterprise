@@ -26,10 +26,13 @@ import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
   /* https://github.com/necolas/normalize.css/issues/694 */
+  
   button,
   input,
   optgroup,
@@ -138,6 +141,11 @@ const App: FC = () => {
                   <GithubAuthProvider api={applicationsClient}>
                     <AppContextProvider applicationsClient={applicationsClient}>
                       <ResponsiveDrawer />
+                      <ToastContainer
+                        position="top-center"
+                        autoClose={5000}
+                        newestOnTop={false}
+                      />
                     </AppContextProvider>
                   </GithubAuthProvider>
                 </PipelinesProvider>

@@ -16,6 +16,7 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 			Name:       p.Spec.AppRef.Name,
 		},
 		Environments: []*pb.Environment{},
+		Type:         p.GetObjectKind().GroupVersionKind().Kind,
 	}
 
 	for _, e := range p.Spec.Environments {
