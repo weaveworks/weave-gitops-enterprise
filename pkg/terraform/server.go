@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/types"
@@ -79,10 +80,16 @@ func (s *server) ListTerraformObjects(ctx context.Context, msg *pb.ListTerraform
 		var errs clustersmngr.ClusteredListError
 
 		if !errors.As(err, &errs) {
-			return nil, fmt.Errorf("terraform clustered list: %w", errs)
+			return nil, fmt.Errorf("converting to ClusteredListError: %w", errs)
 		}
 
 		for _, e := range errs.Errors {
+			if apimeta.IsNoMatchError(e.Err) {
+				// Skip reporting an error if a leaf cluster does not have the tf-controller CRD installed.
+				// It is valid for leaf clusters to not have tf installed.
+				s.log.Info("tf-controller crd not present on cluster, skipping error", "cluster", e.Cluster)
+				continue
+			}
 
 			listErrors = append(listErrors, &pb.TerraformListError{
 				ClusterName: e.Cluster,
@@ -138,6 +145,7 @@ func (s *server) GetTerraformObject(ctx context.Context, msg *pb.GetTerraformObj
 	return &pb.GetTerraformObjectResponse{
 		Object: &obj,
 		Yaml:   string(yaml),
+		Type:   result.GetObjectKind().GroupVersionKind().Kind,
 	}, nil
 }
 

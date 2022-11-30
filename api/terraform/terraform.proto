@@ -70,6 +70,7 @@ message GetTerraformObjectRequest {
 message GetTerraformObjectResponse {
     TerraformObject object = 1;
     string          yaml   = 2;
+    string          type   = 3;
 }
 
 message SyncTerraformObjectRequest {
