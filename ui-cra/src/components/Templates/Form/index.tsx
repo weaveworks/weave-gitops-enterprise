@@ -432,7 +432,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push(Routes.Clusters);
+        history.push(Routes.Templates);
         setNotifications([
           {
             message: {
