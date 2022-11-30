@@ -361,8 +361,8 @@ func verifyAppViolationsList(violatingApp Application, violationsData Applicatio
 		searchPage.SelectFilter("severity", filterID)
 		gomega.Eventually(func(g gomega.Gomega) int {
 			return pages.CountAppViolations(webDriver)
-		}).Should(gomega.BeNumerically(">=", 2), "The number of selected violations for high severity should be equal or greater than 2")
-		gomega.Expect(pages.CountAppViolations(webDriver)).Should(gomega.Equal(pages.AppViolationOccurrances(webDriver, "severity", "high")), "The application violations list contains severity other then the filtered high severity")
+		}).Should(gomega.BeNumerically(">=", 2), "The number of selected violations for medium severity should be equal or greater than 2")
+		gomega.Expect(pages.CountAppViolations(webDriver)).Should(gomega.Equal(pages.AppViolationOccurrances(webDriver, "severity", "medium")), "The application violations list contains severity other then the filtered medium severity")
 		// Clear the filter
 		searchPage.SelectFilter("severity", filterID)
 	})
