@@ -8,6 +8,50 @@ import { Tooltip } from '../../Shared';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Routes } from '../../../utils/nav';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+
+export type Resource =
+  | GitopsClusterEnriched
+  | Automation
+  | Source
+  | GetTerraformObjectResponse
+  | Pipeline;
+
+export const getLink = (resource: Resource) => {
+  switch (resource.type) {
+    case 'GitopsCluster':
+    case 'Pipeline':
+      return formatURL(Routes.EditResource, {
+        name: (resource as GitopsClusterEnriched | Pipeline).name,
+        namespace: (resource as GitopsClusterEnriched | Pipeline).namespace,
+        kind: resource.type,
+      });
+    case 'GitRepository':
+    case 'Bucket':
+    case 'HelmRepository':
+    case 'HelmChart':
+    case 'Kustomization':
+    case 'HelmRelease':
+    case 'OCIRepository':
+      return formatURL(Routes.EditResource, {
+        name: (resource as Automation | Source).name,
+        namespace: (resource as Automation | Source).namespace,
+        kind: resource.type,
+        clusterName: (resource as Automation | Source).clusterName,
+      });
+    case 'Terraform':
+      return formatURL(Routes.EditResource, {
+        name: (resource as GetTerraformObjectResponse)?.object?.name,
+        namespace: (resource as GetTerraformObjectResponse)?.object?.namespace,
+        kind: resource.type,
+        clusterName: (resource as GetTerraformObjectResponse)?.object
+          ?.clusterName,
+      });
+    default:
+      return '';
+  }
+};
 
 const EditWrapper = styled(Button)`
   span {
@@ -16,28 +60,16 @@ const EditWrapper = styled(Button)`
 `;
 
 export const EditButton: React.FC<{
-  resource: GitopsClusterEnriched | Automation | Source;
-}> = ({ resource }) => {
+  resource: Resource;
+  className?: string;
+}> = ({ resource, className }) => {
   const disabled = !Boolean(getCreateRequestAnnotation(resource));
-
-  const link =
-    resource.type !== 'GitopsCluster'
-      ? formatURL(Routes.EditResource, {
-          name: resource.name,
-          namespace: resource.namespace,
-          kind: resource.type,
-          clusterName: (resource as Automation | Source).clusterName,
-        })
-      : formatURL(Routes.EditResource, {
-          name: resource.name,
-          namespace: resource.namespace,
-          kind: resource.type,
-        });
+  const link = getLink(resource);
 
   return (
     <Link to={link} style={{ pointerEvents: disabled ? 'none' : 'all' }}>
       <Tooltip title={`Edit ${resource.type}`} placement="top">
-        <div>
+        <div className={className}>
           <EditWrapper
             disabled={disabled}
             startIcon={<EditIcon fontSize="small" />}

@@ -48,7 +48,7 @@ const FilteringSection = styled.div`
 `;
 
 const Error = styled.span`
-  color: ${theme.colors.alert};
+  color: ${theme.colors.alertOriginal};
 `;
 const CustomEmptyMessage = styled.span`
   color: ${theme.colors.neutral30};

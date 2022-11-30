@@ -29,6 +29,7 @@ const res = {
     suspended: false,
   },
   yaml: '',
+  type: 'Terraform',
 };
 
 describe('TerraformObjectDetail', () => {
