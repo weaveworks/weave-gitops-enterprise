@@ -12,7 +12,7 @@ const CommandText = styled.p`
   white-space: pre;
 `;
 
-const CommandCell = ({ command }: Props) => {
+const CommandCell = ({ command = '' }: Props) => {
   const [copied, setCopied] = React.useState(false);
   return (
     <Flex align>

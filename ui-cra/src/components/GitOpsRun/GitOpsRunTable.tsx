@@ -1,9 +1,9 @@
-import { DataTable, filterConfig, Flex, Link } from '@weaveworks/weave-gitops';
+import { DataTable, filterConfig, Flex, Link, Timestamp } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { TableWrapper } from '../Shared';
 import CommandCell from './CommandCell';
 
-const PortLinks: React.FC<{ports: string}> = ({ports}) => {
+const PortLinks: React.FC<{ports: string}> = ({ports = ''}) => {
   const list = ports.split(',');
   return (
     <Flex column>
@@ -67,7 +67,8 @@ export const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           },
           {
             label: 'Creation Timestamp',
-            value: ({ obj }) => obj.metadata.creationTimestamp,
+            value: ({ obj }) => <Timestamp time={obj.metadata.creationTimestamp} />,
+            sortValue: ({obj}) => obj.metadata.creationTimestamp,
           },
         ]}
       />
