@@ -293,17 +293,36 @@ func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.Context("[CLI] When profiles are available in the management cluster", func() {
-			ginkgo.It("Verify gitops can list profiles from profile repository", func() {
+			ginkgo.It("Verify gitops can list profiles from default profile repository", func() {
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
 					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
 				stdOut, stdErr = runGitopsCommand(`get profiles`)
 
-				ginkgo.By("Then gitops lists profiles", func() {
-					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`cert-manager\s+A Weaveworks Helm chart for the Certificate Profile[,.\d\w\s]+0.0.8,0.0.7`))
-					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`weave-policy-agent\s+A Weaveworks Helm chart for Kubernetes to configure the policy agent[,.\d\w\s]+0.4.0`))
-					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`metallb\s+A Weaveworks Helm chart for a network load-balancer implementation[,.\d\w\s]+0.0.2,0.0.1`))
+				ginkgo.By("Then gitops lists profiles with default values", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`cert-manager\s+[,.\d\w\s]+0.0.8,0.0.7[,.\d\w- ]+layer-0`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`weave-policy-agent\s+[,.\d\w\s]+0.4.0[,.\d\w ]+layer-1`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`metallb\s+[,.\d\w\s]+0.0.2,0.0.1[,.\d\w ]+layer-0`))
+				})
+			})
+
+			ginkgo.It("Verify gitops can list profiles from any profile repository", func() {
+				createNamespace([]string{"test-profiles"})
+				defer deleteNamespace([]string{"test-profiles"})
+
+				addSource("helm", "profiles-catalog", "test-profiles", "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages", "", "")
+				defer deleteSource("helm", "profiles-catalog", "test-profiles", "")
+
+				ginkgo.By("And wait for cluster-service to cache profiles", func() {
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=profiles-catalog&repository.namespace=test-profiles&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
+				})
+
+				stdOut, stdErr = runGitopsCommand(`get profiles --cluster-name management --repo-name profiles-catalog --repo-namespace test-profiles`)
+
+				ginkgo.By("Then gitops lists profiles without defaults", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`dex\s+[,.\d\w\s]+0.0.11,0.0.10-0`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`secrets-store-config\s+[,.\d\w\s]+0.0.1[,.\d\w- ]+layer-4`))
 				})
 			})
 		})
