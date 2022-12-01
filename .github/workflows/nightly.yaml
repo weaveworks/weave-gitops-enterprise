@@ -23,7 +23,7 @@ jobs:
     with:
       runs-on: ubuntu-latest
       os-name: linux
-      timeout-minutes: 90
+      timeout-minutes: 120
       label-filter: "-ginkgo.label-filter='!(smoke, upgrade)'"
       kubectl-version: "v1.23.3"
       login_user_type: "oidc"
