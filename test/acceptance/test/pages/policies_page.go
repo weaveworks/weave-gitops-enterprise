@@ -13,17 +13,18 @@ type PoliciesPage struct {
 }
 
 type PolicyInformation struct {
-	Name            *agouti.Selection
-	Category        *agouti.Selection
-	AuditMode       *agouti.Selection
-	AuditModeIcon   *agouti.Selection
-	EnforceMode     *agouti.Selection
-	EnforceModeIcon *agouti.Selection
-	NoneModeIcon    *agouti.Selection
-	Tenant          *agouti.Selection
-	Severity        *agouti.Selection
-	Cluster         *agouti.Selection
-	Age             *agouti.Selection
+	Name                *agouti.Selection
+	Category            *agouti.Selection
+	AuditMode           *agouti.Selection
+	AuditModeIcon       *agouti.Selection
+	EnforceMode         *agouti.Selection
+	EnforceModeIcon     *agouti.Selection
+	AuditModeNoneIcon   *agouti.Selection
+	EnforceModeNoneIcon *agouti.Selection
+	Tenant              *agouti.Selection
+	Severity            *agouti.Selection
+	Cluster             *agouti.Selection
+	Age                 *agouti.Selection
 }
 
 type PolicyDetailPage struct {
@@ -51,16 +52,18 @@ type PolicyParametersDetail struct {
 func (p PoliciesPage) FindPolicyInList(policyName string) *PolicyInformation {
 	policy := p.PoliciesList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, policyName))
 	return &PolicyInformation{
-		Name:            policy.FindByXPath(`td[1]//a`),
-		Category:        policy.FindByXPath(`td[2]`),
-		AuditMode:       policy.FindByXPath(`td[3]`),
-		AuditModeIcon:   policy.FindByXPath(`//span[@title="Audit"]`),
-		EnforceMode:     policy.FindByXPath(`td[4]`),
-		EnforceModeIcon: policy.FindByXPath(`//span[@title='Enforce']`),
-		Tenant:          policy.FindByXPath(`td[5]`),
-		Severity:        policy.FindByXPath(`td[6]`),
-		Cluster:         policy.FindByXPath(`td[7]`),
-		Age:             policy.FindByXPath(`td[8]`),
+		Name:                policy.FindByXPath(`td[1]//a`),
+		Category:            policy.FindByXPath(`td[2]`),
+		AuditMode:           policy.FindByXPath(`td[3]`),
+		AuditModeIcon:       policy.Find(`span[title="Audit"]`),
+		EnforceMode:         policy.FindByXPath(`td[4]`),
+		EnforceModeIcon:     policy.Find(`span[title='Enforce']`),
+		AuditModeNoneIcon:   policy.FindByXPath(`td[3]/span/div/span[text()='-']`),
+		EnforceModeNoneIcon: policy.FindByXPath(`td[4]/span/div/span[text()='-']`),
+		Tenant:              policy.FindByXPath(`td[5]`),
+		Severity:            policy.FindByXPath(`td[6]`),
+		Cluster:             policy.FindByXPath(`td[7]`),
+		Age:                 policy.FindByXPath(`td[8]`),
 	}
 }
 
