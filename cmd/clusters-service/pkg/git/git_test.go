@@ -261,9 +261,16 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
+	_, _, err = client.RepositoryFiles.CreateFile(repo.ID, "management/cluster-01.yaml", &gitlab.CreateFileOptions{
+		Branch:        gitlab.String(repo.DefaultBranch),
+		Content:       gitlab.String("---\n"),
+		CommitMessage: gitlab.String("Add cluster manifest"),
+	})
+	require.NoError(t, err)
+
 	s := git.NewGitProviderService(logr.Discard())
-	path := "README.md"
-	content := "New Content"
+	path := "management/cluster-01.yaml"
+	content := "---\n"
 	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider: git.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
@@ -273,9 +280,9 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		RepositoryURL: repo.HTTPURLToRepo,
 		HeadBranch:    "feature-01",
 		BaseBranch:    repo.DefaultBranch,
-		Title:         "Update readme",
-		Description:   "Updates readme file to test update files functionality",
-		CommitMessage: "Updates readme file",
+		Title:         "Update cluster",
+		Description:   "Updates a cluster through a CAPI template",
+		CommitMessage: "Update cluster manifest",
 		Files: []gitprovider.CommitFile{
 			{
 				Path:    &path,
