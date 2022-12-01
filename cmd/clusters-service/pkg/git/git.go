@@ -103,7 +103,7 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 		for _, file := range req.Files {
 			_, err := repo.Files().Get(ctx, *file.Path, req.HeadBranch)
 			if err != nil {
-				if errors.Is(err, gitprovider.ErrNotFound) {
+				if err.Error() == "404 Not found" {
 					continue
 				} else {
 					return nil, fmt.Errorf("unable to get file: %w", err)
