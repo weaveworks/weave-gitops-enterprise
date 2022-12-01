@@ -187,7 +187,46 @@ service ClustersService {
         get : "/v1/charts/jobs/{job_id}",
       };
     }
+  
+
+    // ListWorkspaces list workspaces available on all clusters
+  rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces"
+    };
+  }
+   // GetWorkspace get workspace details
+   rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}"
+    };
+  }
+   // GetWorkspaceRoles list workspace roles
+   rpc GetWorkspaceRoles(GetWorkspaceRequest) returns (GetWorkspaceRolesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/roles"
+    };
+  }
+   // GetWorkspaceRoleBindings list workspace role bindings
+   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest) returns (GetWorkspaceRoleBindingsResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/rolebindings"
+    };
+  }
+   // GetWorkspaceServiceAccounts list workspace service accounts
+   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest) returns (GetWorkspaceServiceAccountsResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/serviceaccounts"
+    };
+  }
+  // GetWorkspacePolicies list workspace service accounts
+  rpc GetWorkspacePolicies(GetWorkspaceRequest) returns (GetWorkspacePoliciesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspaceName}/policies"
+    };
+  }
 }
+
 
 message ListTemplatesRequest {
   string provider = 1;
@@ -250,7 +289,7 @@ message RenderTemplateRequest {
 }
 
 message CommitFile {
-	string path = 1; 
+	string path = 1;
 	string content = 2;
 }
 
@@ -266,9 +305,9 @@ message CostEstimate{
   string message = 3;
 }
 
-message RenderTemplateResponse { 
-  string rendered_template = 1; 
-  repeated CommitFile profile_files = 2; 
+message RenderTemplateResponse {
+  string rendered_template = 1;
+  repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
 }
@@ -277,13 +316,13 @@ message RenderAutomationRequest {
   repeated ClusterAutomation cluster_automations = 1;
 }
 
-message RenderAutomationResponse { 
+message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
 }
 
 message ListGitopsClustersRequest {
-  string label = 1; 
+  string label = 1;
   int64 page_size = 2;
   string page_token = 3;
   string ref_type = 4;
@@ -394,7 +433,16 @@ message CreatePullRequestRequest {
   repeated Kustomization kustomizations = 13;
   string template_namespace = 14;
   string template_kind = 15;
+  PreviousValues previous_values = 16;
 }
+
+// Previous values for a CreatePullRequestRequest.
+message PreviousValues {
+  map<string, string> parameter_values = 1;
+  Credential credentials = 2;
+  repeated ProfileValues values = 3;
+  repeated Kustomization kustomizations = 4;
+ }
 
 message CreatePullRequestResponse {
   // The url of the new pull request.
@@ -494,7 +542,7 @@ message GitopsCluster {
   GitopsClusterRef secretRef = 8;
   CapiCluster capi_cluster = 9;
   bool control_plane = 10;
-  string type = 11; 
+  string type = 11;
 }
 
 message CapiCluster {
@@ -633,7 +681,7 @@ message Chart {
 message ChartSpec {
   string chart = 1;
   SourceRef source_ref = 2;
-  string version = 3; 
+  string version = 3;
 }
 
 message Metadata {
@@ -686,7 +734,10 @@ message ProfileValues {
 
 message GetConfigRequest {}
 
-message GetConfigResponse { string repositoryURL = 1; }
+message GetConfigResponse {
+  string repositoryURL = 1;
+  string managementClusterName = 2;
+}
 
 message PolicyParamRepeatedString { repeated string value = 1; }
 
@@ -797,4 +848,106 @@ message GetChartsJobResponse {
   // This is the base64 encoded version of the raw values data.
   string values = 1;
   string error = 2;
+}
+
+message Workspace {
+  string name = 1;
+  string clusterName = 2;
+  repeated string namespaces = 3;
+}
+
+message ListWorkspacesRequest{
+  Pagination pagination = 1;
+}
+
+message ListWorkspacesResponse{
+  repeated Workspace workspaces = 1;
+  int32 total = 2;
+  string nextPageToken = 3;
+  repeated ListError errors = 4;
+}
+
+message WorkspaceRoleRule {
+  repeated string groups = 1;
+  repeated string resources = 2;
+  repeated string verbs = 3;
+}
+
+message WorkspaceRole {
+  string name = 1;
+  string namespace = 2;
+  repeated WorkspaceRoleRule rules = 3;
+  string manifest = 4;
+  string timestamp = 5;
+}
+
+message WorkspaceRoleBindingRoleRef {
+  string apiGroup = 1;
+  string kind = 2;
+  string name = 3;
+}
+
+message WorkspaceRoleBindingSubject {
+  string apiGroup = 1;
+  string kind = 2;
+  string name = 3;
+  string namespace = 4;
+}
+
+message WorkspaceRoleBinding {
+  string name = 1;
+  string namespace = 2;
+  string manifest = 3;
+  string timestamp = 4;
+  WorkspaceRoleBindingRoleRef role = 5;
+  repeated WorkspaceRoleBindingSubject subjects = 6;
+}
+
+message WorkspaceServiceAccount {
+  string name = 1;
+  string namespace = 2;
+  string timestamp = 3;
+}
+
+message WorkspacePolicy {
+  string id = 1;
+  string name = 2;
+  string category = 4;
+  string severity = 5;
+  string timestamp = 6;
+}
+
+message GetWorkspaceRequest{
+  string clusterName = 1;
+  string workspaceName = 2;
+}
+
+message GetWorkspaceResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated string namespaces = 3;
+}
+
+message GetWorkspaceRolesResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspaceRole objects = 3;
+}
+
+message GetWorkspaceRoleBindingsResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspaceRoleBinding objects = 3;
+}
+
+message GetWorkspaceServiceAccountsResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspaceServiceAccount objects = 3;
+}
+
+message GetWorkspacePoliciesResponse{
+  string name = 1;
+  string clusterName = 2;
+  repeated WorkspacePolicy objects = 3;
 }
