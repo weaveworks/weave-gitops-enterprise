@@ -187,9 +187,9 @@ service ClustersService {
         get : "/v1/charts/jobs/{job_id}",
       };
     }
-
   
-  // ListWorkspaces list workspaces available on all clusters
+
+    // ListWorkspaces list workspaces available on all clusters
   rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
     option (google.api.http) = {
       get : "/v1/workspaces"
@@ -433,7 +433,16 @@ message CreatePullRequestRequest {
   repeated Kustomization kustomizations = 13;
   string template_namespace = 14;
   string template_kind = 15;
+  PreviousValues previous_values = 16;
 }
+
+// Previous values for a CreatePullRequestRequest.
+message PreviousValues {
+  map<string, string> parameter_values = 1;
+  Credential credentials = 2;
+  repeated ProfileValues values = 3;
+  repeated Kustomization kustomizations = 4;
+ }
 
 message CreatePullRequestResponse {
   // The url of the new pull request.
