@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -262,20 +261,16 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	fileInfo, resp, err := client.RepositoryFiles.CreateFile(repo.ID, "management/cluster-01.yaml", &gitlab.CreateFileOptions{
+	_, _, err = client.RepositoryFiles.CreateFile(repo.ID, "management/cluster-01.yaml", &gitlab.CreateFileOptions{
 		Branch:        gitlab.String(repo.DefaultBranch),
 		Content:       gitlab.String("---\n"),
 		CommitMessage: gitlab.String("Add cluster manifest"),
 	})
-	fmt.Printf("{1} -----> File Info: %+v", fileInfo)
-	fmt.Printf("{2} -----> Response: %+v", resp.Response)
-	filePath := strings.Split("management/cluster-01.yaml", "/")
-	fmt.Printf("{3} -----> Dir: %+v | Filename: %+v", filePath[0], filePath[1])
 	require.NoError(t, err)
 
 	s := git.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
-	content := "---\n"
+	content := "---\n\n"
 	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider: git.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
