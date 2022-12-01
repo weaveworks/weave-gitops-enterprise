@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -269,7 +269,8 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 	})
 	fmt.Printf("{1} -----> File Info: %+v", fileInfo)
 	fmt.Printf("{2} -----> Response: %+v", resp.Response)
-	fmt.Printf("{3} -----> FilePath: %+v", filepath.Split(fileInfo.FilePath))
+	filePath := strings.Split("management/cluster-01.yaml", "/")
+	fmt.Printf("{3} -----> Dir: %+v | Filename: %+v", filePath[0], filePath[1])
 	require.NoError(t, err)
 
 	s := git.NewGitProviderService(logr.Discard())
