@@ -534,8 +534,14 @@ PROXY_HOST=http://localhost:8000 yarn start
 
 ### Testing changes to an unreleased weave-gitops locally
 
-Maybe you need to add an extra export or tweak a style in a component in
-weave-gitops:
+It is possible to test against local files from gitops OSS during
+development. If you want to do this, you need to make sure you've
+started tilt using `MANUAL_MODE=true tilt up` so that it won't
+re-start your backend. After that's running, you have to do
+development against the `yarn start` method.
+
+For another method that has fewer caveats, look at "How to update
+`weave-gitops` to a non-released version during development".
 
 ```bash
 # build the weave-gitops ui-library
@@ -559,7 +565,7 @@ One magical command to "reload" core (assumes the project directories are locate
 weave-gitops-enterprise/ui-cra$ cd ../../weave-gitops && make ui-lib && cd ../weave-gitops-enterprise/ui-cra && make core-lib
 ```
 
-## How to update the version of `weave-gitops`
+## How to update `weave-gitops` to a released version
 
 [`weave-gitops-enterprise`](https://github.com/weaveworks/weave-gitops-enterprise) depends on [`weave-gitops`](https://github.com/weaveworks/weave-gitops). When WG makes a new release we'll want to update the version WGE depends on. It goes a little something like this:
 
@@ -574,15 +580,20 @@ go mod tidy
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 ```
 
-## How to update `weave-gitops` to `main` during development
+## How to update `weave-gitops` to a non-released version during development
 
 This will update WGE to use the latest `main` of `weave-gitops`
 
 ```bash
-make update-weave-gitops-main
+make update-weave-gitops
 ```
 
-You can commit and push this to GitHub and CI will be able to build and test. It is fine to merge this to main too, just be careful before a release. We always want to release WGE with a released version of WG under the hood.
+You can also pick a different branch as long as that branch has a PR
+associated with it by running
+
+```bash
+make update-weave-gitops BRANCH=<my-branch-name>
+```
 
 ## How to update the version of `cluster-controller`
 
