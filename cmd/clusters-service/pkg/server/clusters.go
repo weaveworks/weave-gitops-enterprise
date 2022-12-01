@@ -159,7 +159,8 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	// Get list of previous files to be added as deleted files in the commit, then update the next previous files to be the current ones
+	// Get list of previous files to be added as deleted files in the commit,
+	// Update the  previous values to be nil to skip including it in the updated create-request annotation
 	prevFiles := &GetFilesReturn{}
 	if msg.PreviousValues != nil {
 		prevFiles, err = getFiles(
