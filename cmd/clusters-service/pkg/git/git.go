@@ -96,14 +96,14 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 		return nil, fmt.Errorf("unable to get repo: %w", err)
 	}
 
-	// Gitlab doesn't support createOrUpdateFile, so we need to check if the file exists
+	// Gitlab doesn't support createOrUpdate, so we need to check if the file exists
 	// and if it does, we need to create a commit to delete the file.
 	if req.GitProvider.Type == "gitlab" {
 		var files []gitprovider.CommitFile
 		for _, file := range req.Files {
-			_, err := repo.Files().Get(ctx, *file.Path, req.HeadBranch)
+			_, err := repo.Files().Get(ctx, *file.Path, req.BaseBranch)
 			if err != nil {
-				if err.Error() == "404 Not found" {
+				if errors.Is(err, gitprovider.ErrNotFound) {
 					continue
 				} else {
 					return nil, fmt.Errorf("unable to get file: %w", err)
