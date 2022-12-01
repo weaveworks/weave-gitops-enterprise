@@ -358,8 +358,8 @@ func TestCreatePullRequestInGitLab_DeleteFiles(t *testing.T) {
 	pr, _, err := client.MergeRequests.GetMergeRequest(repo.ID, 1, nil)
 	require.NoError(t, err)
 	assert.Equal(t, pr.WebURL, res.WebURL)
-	assert.Equal(t, pr.Title, "Update cluster")
-	assert.Equal(t, pr.Description, "Updates a cluster through a CAPI template")
+	assert.Equal(t, pr.Title, "Delete cluster")
+	assert.Equal(t, pr.Description, "Deletes a cluster")
 }
 
 func TestGetGitProviderUrl(t *testing.T) {
