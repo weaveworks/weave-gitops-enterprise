@@ -179,7 +179,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			return nil, err
 		}
 		msg.PreviousValues = nil
-
 	}
 
 	git_files, err := getFiles(
@@ -194,7 +193,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
 		msg,
 	)
-
 	if err != nil {
 		return nil, err
 	}
