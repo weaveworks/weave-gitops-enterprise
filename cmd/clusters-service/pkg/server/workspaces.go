@@ -291,6 +291,10 @@ func (s *server) listWorkspaceResources(ctx context.Context, req *capiv1_proto.G
 		return fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
+	if clustersClient == nil {
+		return fmt.Errorf("cluster %s not found", req.ClusterName)
+	}
+
 	opts := []client.ListOption{
 		client.MatchingLabels{tenantLabel: req.WorkspaceName},
 	}
