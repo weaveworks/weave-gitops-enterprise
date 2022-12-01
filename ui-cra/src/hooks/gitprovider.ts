@@ -1,21 +1,24 @@
 import { poller, useRequestState } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { useCallback, useState } from 'react';
-import { ValidateProviderTokenResponse } from '../api/applications/applications.pb';
+import { useCallback, useState, useContext } from 'react';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
-  getProviderToken,
   GitProvider,
+  ValidateProviderTokenResponse,
+} from '../api/applications/applications.pb';
+import {
+  getProviderToken,
   GrpcErrorCodes,
   makeHeaders,
   storeProviderToken,
 } from '../components/GithubAuth/utils';
-import { Applications as applicationsClient } from './../api/applications/applications.pb';
+import { GitAuth } from '../contexts/GitAuth';
 
 export function useIsAuthenticated() {
   const [res, loading, error, req] =
     useRequestState<ValidateProviderTokenResponse>();
+  const { applicationsClient } = useContext(GitAuth);
 
   return {
     isAuthenticated: error ? false : res?.valid,
@@ -41,6 +44,7 @@ export function useIsAuthenticated() {
 
 export default function useAuth() {
   const [loading, setLoading] = useState(true);
+  const { applicationsClient } = useContext(GitAuth);
 
   const getGithubDeviceCode = () => {
     setLoading(true);

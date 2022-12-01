@@ -8,8 +8,8 @@ import { act } from 'react-dom/test-utils';
 import { createMockClient, withContext, withTheme } from '../../lib/test-utils';
 import GithubAuthButton from '../GithubAuthButton';
 import { GlobalGithubAuthDialog } from '../GithubDeviceAuthModal';
-import GithubAuthContextProvider from '../../../contexts/GitAuth/provider';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { GitAuthProvider } from '../../../contexts/GitAuth';
 
 describe('GithubAuthButton', () => {
   let container: any = null;
@@ -32,12 +32,12 @@ describe('GithubAuthButton', () => {
 
     const tree = () => (
       <div>
-        <GithubAuthContextProvider>
+        <GitAuthProvider>
           <ContentWrapper>
             <GithubAuthButton />
           </ContentWrapper>
           <GlobalGithubAuthDialog />
-        </GithubAuthContextProvider>
+        </GitAuthProvider>
       </div>
     );
     await act(async () => {

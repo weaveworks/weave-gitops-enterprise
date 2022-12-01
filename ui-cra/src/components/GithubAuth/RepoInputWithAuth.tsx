@@ -11,10 +11,10 @@ import {
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
-import { GitProvider } from './utils';
 import GithubAuthButton from './GithubAuthButton';
 import GitlabAuthButton from './GitlabAuthButton';
 import { GitAuth } from '../../contexts/GitAuth';
+import { GitProvider } from '../../api/applications/applications.pb';
 
 type Props = InputProps & {
   onAuthClick: (provider: GitProvider) => void;

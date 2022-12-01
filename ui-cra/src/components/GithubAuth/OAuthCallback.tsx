@@ -8,11 +8,12 @@ import {
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { getCallbackState, GitProvider, storeProviderToken } from './utils';
+import { getCallbackState, storeProviderToken } from './utils';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import useNotifications from '../../contexts/Notifications';
-import { Applications as applicationsClient } from './../../api/applications/applications.pb';
+import { GitAuth } from '../../contexts/GitAuth';
+import { GitProvider } from '../../api/applications/applications.pb';
 
 type Props = {
   code: string;
@@ -24,6 +25,7 @@ function OAuthCallback({ code, provider }: Props) {
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
+  const { applicationsClient } = React.useContext(GitAuth);
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {

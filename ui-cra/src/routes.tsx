@@ -34,9 +34,9 @@ import AddClusterWithCredentials from './components/Templates/Create';
 import EditResourcePage from './components/Templates/Edit';
 import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail';
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
-import { GitProvider } from './components/GithubAuth/utils';
 import { Routes } from './utils/nav';
 import OAuthCallback from './components/GithubAuth/OAuthCallback';
+import { GitProvider } from './api/applications/applications.pb';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {

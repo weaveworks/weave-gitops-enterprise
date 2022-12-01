@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { GithubDeviceAuthModal } from '..';
-import { GithubAuthProvider } from '../../../contexts/GitAuth';
+import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {
   ApplicationsClientMock,
   defaultContexts,
@@ -30,7 +30,7 @@ describe('Github Authenticate', () => {
     });
 
     api = new ApplicationsClientMock();
-    wrap = withContext([...defaultContexts(), [GithubAuthProvider, { api }]]);
+    wrap = withContext([...defaultContexts(), [GitAuthProvider, { api }]]);
   });
 
   it('render gitAuth modal', async () => {

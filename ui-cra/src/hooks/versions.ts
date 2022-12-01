@@ -4,7 +4,7 @@ import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { useRequest } from '../contexts/Request';
 import GitUrlParse from 'git-url-parse';
-import { Applications as applicationsClient } from './../api/applications/applications.pb';
+import { GitAuth } from '../contexts/GitAuth';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();
@@ -20,6 +20,8 @@ export function useListConfig() {
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
   );
+  const { applicationsClient } = useContext(GitAuth);
+
   const repositoryURL = queryResponse?.data?.repositoryURL || '';
   useEffect(() => {
     repositoryURL &&
@@ -33,7 +35,7 @@ export function useListConfig() {
           );
         }
       });
-  }, [repositoryURL]);
+  }, [repositoryURL, applicationsClient]);
 
   return {
     ...queryResponse,

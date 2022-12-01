@@ -1,8 +1,7 @@
-import { applicationsClient } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import { useQuery } from 'react-query';
 import {
-  // Applications as applicationsClient,
+  Applications as applicationsClient,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
 } from '../../api/applications/applications.pb';

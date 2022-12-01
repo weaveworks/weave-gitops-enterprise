@@ -1,20 +1,5 @@
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-
-export enum GitProvider {
-  Unknown = 'Unknown',
-  GitHub = 'GitHub',
-  GitLab = 'GitLab',
-}
-export interface GetGithubDeviceCodeResponse {
-  userCode?: string | undefined;
-  deviceCode?: string | undefined;
-  validationURI?: string | undefined;
-  interval?: number | undefined;
-}
-export interface GetGithubAuthStatusResponse {
-  accessToken?: string | undefined;
-  error?: string | undefined;
-}
+import { GitProvider } from '../../api/applications/applications.pb';
 
 const tokenKey = (providerName: GitProvider) =>
   `gitProviderToken_${providerName}`;
