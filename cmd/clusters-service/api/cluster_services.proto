@@ -289,7 +289,7 @@ message RenderTemplateRequest {
 }
 
 message CommitFile {
-	string path = 1; 
+	string path = 1;
 	string content = 2;
 }
 
@@ -305,9 +305,9 @@ message CostEstimate{
   string message = 3;
 }
 
-message RenderTemplateResponse { 
-  string rendered_template = 1; 
-  repeated CommitFile profile_files = 2; 
+message RenderTemplateResponse {
+  string rendered_template = 1;
+  repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
 }
@@ -316,13 +316,13 @@ message RenderAutomationRequest {
   repeated ClusterAutomation cluster_automations = 1;
 }
 
-message RenderAutomationResponse { 
+message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
 }
 
 message ListGitopsClustersRequest {
-  string label = 1; 
+  string label = 1;
   int64 page_size = 2;
   string page_token = 3;
   string ref_type = 4;
@@ -533,7 +533,7 @@ message GitopsCluster {
   GitopsClusterRef secretRef = 8;
   CapiCluster capi_cluster = 9;
   bool control_plane = 10;
-  string type = 11; 
+  string type = 11;
 }
 
 message CapiCluster {
@@ -672,7 +672,7 @@ message Chart {
 message ChartSpec {
   string chart = 1;
   SourceRef source_ref = 2;
-  string version = 3; 
+  string version = 3;
 }
 
 message Metadata {
@@ -725,7 +725,10 @@ message ProfileValues {
 
 message GetConfigRequest {}
 
-message GetConfigResponse { string repositoryURL = 1; }
+message GetConfigResponse {
+  string repositoryURL = 1;
+  string managementClusterName = 2;
+}
 
 message PolicyParamRepeatedString { repeated string value = 1; }
 
