@@ -105,6 +105,12 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 		var files []gitprovider.CommitFile
 
 		for _, file := range req.Files {
+			// if file content is empty, then it's a delete operation
+			// so we don't need to check if the file exists
+			if file.Content == nil {
+				break
+			}
+
 			dirPath, _ := filepath.Split(*file.Path)
 
 			treeEntries, err := s.GetTreeList(ctx, req.GitProvider, repoURL, req.BaseBranch, dirPath, true)
