@@ -31,7 +31,7 @@ import { Routes } from '../../../utils/nav';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
-import CallbackStateContextProvider from '../../../contexts/GithubAuth/CallbackStateContext';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
 
 const FormWrapper = styled.form`

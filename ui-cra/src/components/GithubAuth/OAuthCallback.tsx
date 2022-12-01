@@ -1,6 +1,5 @@
 import { CircularProgress } from '@material-ui/core';
 import {
-  AppContext,
   AuthorizeGitlabResponse,
   Flex,
   useRequestState,
@@ -13,6 +12,7 @@ import { getCallbackState, GitProvider, storeProviderToken } from './utils';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import useNotifications from '../../contexts/Notifications';
+import { Applications as applicationsClient } from './../../api/applications/applications.pb';
 
 type Props = {
   code: string;
@@ -21,7 +21,6 @@ type Props = {
 
 function OAuthCallback({ code, provider }: Props) {
   const history = useHistory();
-  const { applicationsClient } = React.useContext(AppContext);
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
@@ -37,6 +36,7 @@ function OAuthCallback({ code, provider }: Props) {
         }),
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     code,
     applicationsClient,
@@ -57,7 +57,7 @@ function OAuthCallback({ code, provider }: Props) {
       history.push(linkResolver(state.page));
       return;
     }
-  }, [res, getCallbackState, history, linkResolver, storeProviderToken]);
+  }, [res, history, linkResolver]);
 
   React.useEffect(() => {
     if (error) {

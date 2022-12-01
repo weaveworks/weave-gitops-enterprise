@@ -2,7 +2,7 @@ import { ButtonProps } from '@material-ui/core';
 import { Button } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
-import { GithubAuthContext } from '../../contexts/GithubAuth/Provider';
+import { GitAuth } from '../../contexts/GitAuth';
 import { GitProvider } from './utils';
 
 type Props = ButtonProps;
@@ -24,13 +24,13 @@ export function GlobalGithubAuthButton({ onSuccess }: any) {
   const {
     dialogState: { success },
     setDialogState,
-  } = React.useContext(GithubAuthContext);
+  } = React.useContext(GitAuth);
 
   React.useEffect(() => {
     if (success && onSuccess) {
       onSuccess();
     }
-  }, [success]);
+  }, [success, onSuccess]);
 
   return <GithubAuthButton onClick={() => setDialogState(true, '')} />;
 }

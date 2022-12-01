@@ -4,7 +4,7 @@ import 'jest-styled-components';
 import * as React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
-import CallbackStateContextProvider from '../../../contexts/GithubAuth/CallbackStateContext';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { GitProvider } from '../utils';
 import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';

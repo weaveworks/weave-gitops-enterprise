@@ -4,7 +4,7 @@ import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { useRequest } from '../contexts/Request';
 import GitUrlParse from 'git-url-parse';
-import { applicationsClient } from '@weaveworks/weave-gitops';
+import { Applications as applicationsClient } from './../api/applications/applications.pb';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();

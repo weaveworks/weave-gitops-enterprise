@@ -8,7 +8,7 @@ import { act } from 'react-dom/test-utils';
 import { createMockClient, withContext, withTheme } from '../../lib/test-utils';
 import GithubAuthButton from '../GithubAuthButton';
 import { GlobalGithubAuthDialog } from '../GithubDeviceAuthModal';
-import GithubAuthContextProvider from '../../../contexts/GithubAuth/provider';
+import GithubAuthContextProvider from '../../../contexts/GitAuth/provider';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 
 describe('GithubAuthButton', () => {

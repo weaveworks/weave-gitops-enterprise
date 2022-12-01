@@ -49,7 +49,7 @@ import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import { EditButton } from '../Templates/Edit/EditButton';
-import CallbackStateContextProvider from '../../contexts/GithubAuth/CallbackStateContext';
+import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 
 interface Size {
   size?: 'small';

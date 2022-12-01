@@ -1,5 +1,4 @@
 import {
-  AppContext,
   Button,
   Flex,
   Icon,
@@ -15,6 +14,7 @@ import styled from 'styled-components';
 import { GitProvider } from './utils';
 import GithubAuthButton from './GithubAuthButton';
 import GitlabAuthButton from './GitlabAuthButton';
+import { GitAuth } from '../../contexts/GitAuth';
 
 type Props = InputProps & {
   onAuthClick: (provider: GitProvider) => void;
@@ -30,16 +30,21 @@ function RepoInputWithAuth({
   disabled,
   ...props
 }: Props) {
-  const { applicationsClient } = React.useContext(AppContext);
   const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
   const debouncedURL = useDebounce<string>(props.value as string, 500);
+  const { applicationsClient } = React.useContext(GitAuth);
 
   React.useEffect(() => {
     if (!debouncedURL) {
       return;
     }
     req(applicationsClient.ParseRepoURL({ url: debouncedURL }));
-  }, [debouncedURL]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    applicationsClient,
+    debouncedURL,
+    // req is needed as dependency - infinite loop
+  ]);
 
   React.useEffect(() => {
     if (!res) {
@@ -49,7 +54,11 @@ function RepoInputWithAuth({
     if (res.provider && onProviderChange) {
       onProviderChange(res.provider);
     }
-  }, [res]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    res,
+    // onProviderChange
+  ]);
 
   const AuthButton =
     res?.provider === GitProvider.GitHub ? (

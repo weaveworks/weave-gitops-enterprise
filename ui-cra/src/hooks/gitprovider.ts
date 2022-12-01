@@ -1,7 +1,7 @@
-import { AppContext, poller, useRequestState } from '@weaveworks/weave-gitops';
-import { ValidateProviderTokenResponse } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { poller, useRequestState } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { ValidateProviderTokenResponse } from '../api/applications/applications.pb';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
@@ -11,12 +11,11 @@ import {
   makeHeaders,
   storeProviderToken,
 } from '../components/GithubAuth/utils';
+import { Applications as applicationsClient } from './../api/applications/applications.pb';
 
 export function useIsAuthenticated() {
   const [res, loading, error, req] =
     useRequestState<ValidateProviderTokenResponse>();
-
-  const { applicationsClient } = useContext(AppContext);
 
   return {
     isAuthenticated: error ? false : res?.valid,
@@ -30,6 +29,7 @@ export function useIsAuthenticated() {
           applicationsClient.ValidateProviderToken({ provider }, { headers }),
         );
       },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       [
         applicationsClient,
         // req causes an infinite loop
@@ -41,7 +41,6 @@ export function useIsAuthenticated() {
 
 export default function useAuth() {
   const [loading, setLoading] = useState(true);
-  const { applicationsClient } = useContext(AppContext);
 
   const getGithubDeviceCode = () => {
     setLoading(true);

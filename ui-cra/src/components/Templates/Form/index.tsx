@@ -54,7 +54,7 @@ import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
 import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
-import CallbackStateContextProvider from '../../../contexts/GithubAuth/CallbackStateContext';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;

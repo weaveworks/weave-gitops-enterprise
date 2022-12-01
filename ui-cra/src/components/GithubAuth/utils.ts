@@ -88,3 +88,10 @@ export function makeHeaders(tokenGetter: () => string) {
     [providerTokenHeaderName]: `token ${token}`,
   });
 }
+
+export const navigate = (url: string) => {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+  window.location.href = url;
+};

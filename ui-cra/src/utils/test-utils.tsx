@@ -38,12 +38,12 @@ import {
   ListPolicyValidationsResponse,
   ListTemplatesResponse,
 } from '../cluster-services/cluster_services.pb';
-import Compose from '../components/ProvidersCompose';
-import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
-} from '../contexts/GithubAuth/utils';
+} from '../components/GithubAuth/utils';
+import Compose from '../components/ProvidersCompose';
+import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
