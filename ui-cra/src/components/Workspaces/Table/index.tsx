@@ -23,7 +23,7 @@ export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
   };
 
   return (
-    <TableWrapper id="policy-list">
+    <TableWrapper id="workspace-list">
       <DataTable
         key={workspaces?.length}
         filters={initialFilterState}
