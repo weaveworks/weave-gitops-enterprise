@@ -377,8 +377,15 @@ func TestListtWorkspaceRoles(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
+				WorkspaceName: "tenant-x",
 				ClusterName:   uuid.NewString(),
+			},
+			err: true,
+		},
+		{
+			request: &capiv1_proto.GetWorkspaceRequest{
+				WorkspaceName: uuid.NewString(),
+				ClusterName:   "managament",
 			},
 			err: true,
 		},
@@ -554,8 +561,15 @@ func TestListtWorkspaceRoleBindings(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
+				WorkspaceName: "tenant-x",
 				ClusterName:   uuid.NewString(),
+			},
+			err: true,
+		},
+		{
+			request: &capiv1_proto.GetWorkspaceRequest{
+				WorkspaceName: uuid.NewString(),
+				ClusterName:   "managament",
 			},
 			err: true,
 		},
@@ -698,8 +712,15 @@ func TestListtWorkspaceServiceAccounts(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
+				WorkspaceName: "tenant-x",
 				ClusterName:   uuid.NewString(),
+			},
+			err: true,
+		},
+		{
+			request: &capiv1_proto.GetWorkspaceRequest{
+				WorkspaceName: uuid.NewString(),
+				ClusterName:   "managament",
 			},
 			err: true,
 		},
@@ -873,8 +894,15 @@ func TestListtWorkspacePolicies(t *testing.T) {
 		},
 		{
 			request: &capiv1_proto.GetWorkspaceRequest{
-				WorkspaceName: uuid.NewString(),
+				WorkspaceName: "tenant-x",
 				ClusterName:   uuid.NewString(),
+			},
+			err: true,
+		},
+		{
+			request: &capiv1_proto.GetWorkspaceRequest{
+				WorkspaceName: uuid.NewString(),
+				ClusterName:   "managament",
 			},
 			err: true,
 		},
