@@ -217,23 +217,23 @@ func TestGetMissingFiles(t *testing.T) {
 			name: "original files with empty extra files",
 			originalFiles: []gitprovider.CommitFile{
 				{
-					Path:    getValue("testdata/cluster-template.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
 				},
 				{
-					Path:    getValue("testdata/cluster-template-1.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr("dummy content"),
 				},
 			},
 			extraFiles: []gitprovider.CommitFile{},
 			expected: []gitprovider.CommitFile{
 				{
-					Path:    getValue("testdata/cluster-template.yaml"),
-					Content: getValue(""),
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr(""),
 				},
 				{
-					Path:    getValue("testdata/cluster-template-1.yaml"),
-					Content: getValue(""),
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr(""),
 				},
 			},
 		},
@@ -241,31 +241,31 @@ func TestGetMissingFiles(t *testing.T) {
 			name: "original files with files not in extra files",
 			originalFiles: []gitprovider.CommitFile{
 				{
-					Path:    getValue("testdata/cluster-template.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
 				},
 				{
-					Path:    getValue("testdata/cluster-template-1.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr("dummy content"),
 				},
 			},
 			extraFiles: []gitprovider.CommitFile{
 
 				{
-					Path:    getValue("testdata/cluster-template-2.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template-2.yaml"),
+					Content: strPtr("dummy content"),
 				},
 			},
 			expected: []gitprovider.CommitFile{
 				{
 
-					Path:    getValue("testdata/cluster-template.yaml"),
-					Content: getValue(""),
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr(""),
 				},
 				{
 
-					Path:    getValue("testdata/cluster-template-1.yaml"),
-					Content: getValue(""),
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr(""),
 				},
 			},
 		},
@@ -274,12 +274,12 @@ func TestGetMissingFiles(t *testing.T) {
 			originalFiles: []gitprovider.CommitFile{},
 			extraFiles: []gitprovider.CommitFile{
 				{
-					Path:    getValue("testdata/cluster-template.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
 				},
 				{
-					Path:    getValue("testdata/cluster-template-1.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr("dummy content"),
 				},
 			},
 			expected: []gitprovider.CommitFile{},
@@ -288,26 +288,26 @@ func TestGetMissingFiles(t *testing.T) {
 			name: "original with 1 file and extra with 2 files not in original",
 			originalFiles: []gitprovider.CommitFile{
 				{
-					Path:    getValue("testdata/cluster-template.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
 				},
 			},
 			extraFiles: []gitprovider.CommitFile{
 
 				{
-					Path:    getValue("testdata/cluster-template-2.yaml"),
-					Content: getValue("dummy content"),
+					Path:    strPtr("testdata/cluster-template-2.yaml"),
+					Content: strPtr("dummy content"),
 				}, {
 
-					Path:    getValue("testdata/cluster-template-1.yaml"),
-					Content: getValue(""),
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr(""),
 				},
 			},
 			expected: []gitprovider.CommitFile{
 				{
 
-					Path:    getValue("testdata/cluster-template.yaml"),
-					Content: getValue(""),
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr(""),
 				},
 			},
 		},
@@ -351,7 +351,6 @@ func sortFiles(files []gitprovider.CommitFile) {
 	})
 }
 
-func getValue(s string) *string {
-	result := &s
-	return result
+func strPtr(s string) *string {
+	return &s
 }
