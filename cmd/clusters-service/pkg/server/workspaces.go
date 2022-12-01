@@ -127,6 +127,15 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 		return nil, err
 	}
 
+	exists, err := s.checkWorkspaceExists(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+	}
+
 	var list rbacv1.RoleList
 	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
 		return nil, fmt.Errorf("failed to list workspace roles, error: %w", err)
@@ -164,6 +173,15 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto.GetWorkspaceRequest) (*capiv1_proto.GetWorkspaceRoleBindingsResponse, error) {
 	if err := validateRequest(req); err != nil {
 		return nil, err
+	}
+
+	exists, err := s.checkWorkspaceExists(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
 	}
 
 	var list rbacv1.RoleBindingList
@@ -213,6 +231,15 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 		return nil, err
 	}
 
+	exists, err := s.checkWorkspaceExists(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+	}
+
 	var list v1.ServiceAccountList
 	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
 		return nil, fmt.Errorf("failed to list workspace service accounts, error: %w", err)
@@ -237,6 +264,15 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.GetWorkspaceRequest) (*capiv1_proto.GetWorkspacePoliciesResponse, error) {
 	if err := validateRequest(req); err != nil {
 		return nil, err
+	}
+
+	exists, err := s.checkWorkspaceExists(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
 	}
 
 	var policies []*capiv1_proto.WorkspacePolicy
@@ -283,6 +319,14 @@ func validateRequest(req *capiv1_proto.GetWorkspaceRequest) error {
 		return errors.New("workspace name is required")
 	}
 	return nil
+}
+
+func (s *server) checkWorkspaceExists(ctx context.Context, req *capiv1_proto.GetWorkspaceRequest) (bool, error) {
+	var list v1.NamespaceList
+	if err := s.listWorkspaceResources(ctx, req, &list); err != nil {
+		return false, fmt.Errorf("failed to list workspace namespaces, error: %w", err)
+	}
+	return len(list.Items) > 0, nil
 }
 
 func (s *server) listWorkspaceResources(ctx context.Context, req *capiv1_proto.GetWorkspaceRequest, list client.ObjectList) error {
