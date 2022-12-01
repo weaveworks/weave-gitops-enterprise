@@ -261,11 +261,13 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	_, _, err = client.RepositoryFiles.CreateFile(repo.ID, "management/cluster-01.yaml", &gitlab.CreateFileOptions{
+	fileInfo, resp, err = client.RepositoryFiles.CreateFile(repo.ID, "management/cluster-01.yaml", &gitlab.CreateFileOptions{
 		Branch:        gitlab.String(repo.DefaultBranch),
 		Content:       gitlab.String("---\n"),
 		CommitMessage: gitlab.String("Add cluster manifest"),
 	})
+	fmt.Sprintf("{1} -----> File Info: %v", fileInfo)
+	fmt.Sprintf("{2} -----> Response: %v", resp)
 	require.NoError(t, err)
 
 	s := git.NewGitProviderService(logr.Discard())
