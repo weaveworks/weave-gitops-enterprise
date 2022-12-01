@@ -244,8 +244,10 @@ const toPayload = (
   templateNamespace: string,
   templateKind: string,
   updatedProfiles: ProfilesIndex,
+  createRequestAnnotation: any,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
+  const createReqAnnot = createRequestAnnotation;
   return {
     headBranch: formData.branchName,
     title: formData.pullRequestTitle,
@@ -258,6 +260,7 @@ const toPayload = (
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
     templateKind,
+    previousValues: createReqAnnot,
   };
 };
 
@@ -417,6 +420,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   ]);
 
   const handleAddResource = useCallback(() => {
+    let createReqAnnot;
+    if (resource !== undefined) {
+      createReqAnnot = getCreateRequestAnnotation(resource);
+    }
     const payload = toPayload(
       formData,
       infraCredential,
@@ -424,6 +431,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       template.namespace!,
       template.templateKind,
       updatedProfiles,
+      createReqAnnot,
     );
     setLoading(true);
     return addResource(
@@ -471,6 +479,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.templateKind,
     setNotifications,
     history,
+    resource,
   ]);
 
   useEffect(() => {
