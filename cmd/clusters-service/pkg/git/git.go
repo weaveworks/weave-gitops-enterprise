@@ -101,29 +101,26 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	if req.GitProvider.Type == "gitlab" {
 		var files []gitprovider.CommitFile
 		for _, file := range req.Files {
-			_, err := repo.Files().Get(ctx, *file.Path, req.BaseBranch)
+			remoteFile, err := repo.Files().Get(ctx, *file.Path, req.BaseBranch)
 			if err != nil {
-				if errors.Is(err, gitprovider.ErrNotFound) {
-					continue
-				} else {
-					return nil, fmt.Errorf("unable to get file: %w", err)
-				}
-			} else {
+				return nil, fmt.Errorf("unable to get old file for deletion: %w", err)
+			} else if len(remoteFile) > 0 {
 				files = append(files, gitprovider.CommitFile{
 					Path:    file.Path,
 					Content: nil,
 				})
 			}
-
 		}
-		if err := s.writeFilesToBranch(ctx, writeFilesToBranchRequest{
-			Repository:    repo,
-			HeadBranch:    req.HeadBranch,
-			BaseBranch:    req.BaseBranch,
-			CommitMessage: deleteFilesCommitMessage,
-			Files:         files,
-		}); err != nil {
-			return nil, fmt.Errorf("unable to delete files: %q: %w", req.HeadBranch, err)
+		if len(files) > 0 {
+			if err := s.writeFilesToBranch(ctx, writeFilesToBranchRequest{
+				Repository:    repo,
+				HeadBranch:    req.HeadBranch,
+				BaseBranch:    req.BaseBranch,
+				CommitMessage: deleteFilesCommitMessage,
+				Files:         files,
+			}); err != nil {
+				return nil, fmt.Errorf("unable to delete files: %q: %w", req.HeadBranch, err)
+			}
 		}
 	}
 
