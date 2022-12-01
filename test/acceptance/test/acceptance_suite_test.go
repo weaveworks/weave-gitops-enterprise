@@ -15,14 +15,12 @@ func GomegaFail(message string, callerSkip ...int) {
 	if webDriver != nil {
 		filepath := TakeScreenShot(randID) //Save the screenshot of failure
 		logger.Errorf("Failure screenshot is saved in file %s", filepath)
-
-		filepath = SaveDOM(randID)
-		logger.Errorf("Failure DOM is saved in file %s", filepath)
+		_ = SaveDOM(randID)
 	}
 
 	// Show management cluster pods etc.
 	DumpBrowserLogs(true, true)
-	ShowItems("")
+	DumpResources(randID)
 	DumpClusterInfo(randID)
 	DumpConfigRepo(randID)
 

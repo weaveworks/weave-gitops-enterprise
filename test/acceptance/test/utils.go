@@ -356,18 +356,19 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
 
-func ShowItems(itemType string) {
+func DumpResources(testName string) {
 	logger.Info("Dumping cluster objects/resources...")
-	if itemType != "" {
-		_ = runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
-	}
-	_ = runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
 
-	logger.Info(fmt.Sprintf("Dumping %s congigmap", CLUSTER_SERVICE_DEPLOYMENT_APP))
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml", CLUSTER_SERVICE_DEPLOYMENT_APP))
+	resourcesPath := "/tmp/resource-info"
+	archiveResourcePath := path.Join(artifacts_base_dir, "resource-info")
+	archivedPath := path.Join(archiveResourcePath, testName+".tar.gz")
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, resourcesPath, archiveResourcePath))
 
-	logger.Info("Dumping cluster crds...")
-	_ = runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get all --all-namespaces -o wide > %s", path.Join(resourcesPath, "resources.txt")))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml > %s", CLUSTER_SERVICE_DEPLOYMENT_APP, path.Join(resourcesPath, CLUSTER_SERVICE_DEPLOYMENT_APP+"-configmap.txt")))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get crds -o wide > %s", path.Join(resourcesPath, "crds.txt")))
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, resourcesPath, archivedPath))
 }
 
 func DumpClusterInfo(testName string) {
