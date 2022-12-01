@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -267,7 +268,8 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		CommitMessage: gitlab.String("Add cluster manifest"),
 	})
 	fmt.Printf("{1} -----> File Info: %+v", fileInfo)
-	fmt.Printf("{2} -----> Response: %+v", resp)
+	fmt.Printf("{2} -----> Response: %+v", resp.Response)
+	fmt.Printf("{3} -----> FilePath: %+v", filepath.Split(fileInfo.FilePath))
 	require.NoError(t, err)
 
 	s := git.NewGitProviderService(logr.Discard())

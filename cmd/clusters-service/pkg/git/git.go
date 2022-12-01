@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -101,7 +102,8 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	if req.GitProvider.Type == "gitlab" {
 		var files []gitprovider.CommitFile
 		for _, file := range req.Files {
-			remoteFile, err := repo.Files().Get(ctx, *file.Path, req.BaseBranch)
+			dir, _ := filepath.Split(*file.Path)
+			remoteFile, err := repo.Files().Get(ctx, dir, req.BaseBranch)
 			if err != nil {
 				return nil, fmt.Errorf("unable to get old file for deletion: %w", err)
 			} else if len(remoteFile) > 0 {
