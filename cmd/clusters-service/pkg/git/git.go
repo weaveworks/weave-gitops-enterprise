@@ -88,6 +88,7 @@ type CloneRepoToTempDirResponse struct {
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
 	commits := map[string][]gitprovider.CommitFile{}
+
 	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get git porivder url: %w", err)
@@ -102,8 +103,10 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	// and if it does, we need to create a commit to delete the file.
 	if req.GitProvider.Type == "gitlab" {
 		var files []gitprovider.CommitFile
+
 		for _, file := range req.Files {
 			dirPath, _ := filepath.Split(*file.Path)
+
 			treeEntries, err := s.GetTreeList(ctx, req.GitProvider, repoURL, req.BaseBranch, dirPath, true)
 			if err != nil {
 				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repoURL, req.BaseBranch, err)
@@ -119,20 +122,20 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 			}
 		}
 
+		// If there are files to delete, append them to the map of changes to be deleted.
 		if len(files) > 0 {
 			commits[deleteFilesCommitMessage] = files
 		}
 	}
 
+	// Add the files to be created to the map of changes.
 	commits[req.CommitMessage] = req.Files
 
 	if err := s.writeFilesToBranch(ctx, writeFilesToBranchRequest{
-		Repository:    repo,
-		HeadBranch:    req.HeadBranch,
-		BaseBranch:    req.BaseBranch,
-		CommitMessage: req.CommitMessage,
-		Files:         req.Files,
-		Commits:       commits,
+		Repository: repo,
+		HeadBranch: req.HeadBranch,
+		BaseBranch: req.BaseBranch,
+		Commits:    commits,
 	}); err != nil {
 		return nil, fmt.Errorf("unable to write files to branch %q: %w", req.HeadBranch, err)
 	}
@@ -248,12 +251,10 @@ func (s *GitProviderService) GetTreeList(ctx context.Context, gp GitProvider, re
 }
 
 type writeFilesToBranchRequest struct {
-	Repository    gitprovider.OrgRepository
-	HeadBranch    string
-	BaseBranch    string
-	CommitMessage string
-	Files         []gitprovider.CommitFile
-	Commits       map[string][]gitprovider.CommitFile
+	Repository gitprovider.OrgRepository
+	HeadBranch string
+	BaseBranch string
+	Commits    map[string][]gitprovider.CommitFile
 }
 
 func (s *GitProviderService) writeFilesToBranch(ctx context.Context, req writeFilesToBranchRequest) error {
@@ -284,6 +285,7 @@ func (s *GitProviderService) writeFilesToBranch(ctx context.Context, req writeFi
 		return fmt.Errorf("unable to create new branch %q from commit %q in branch %q: %w", req.HeadBranch, commits[0].Get().Sha, req.BaseBranch, err)
 	}
 
+	// Loop through all the commits and write the files.
 	for commitMessage, files := range req.Commits {
 		commit, err := req.Repository.Commits().Create(ctx, req.HeadBranch, commitMessage, files)
 		if err != nil {
