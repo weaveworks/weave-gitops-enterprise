@@ -18,15 +18,8 @@ import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
-  Applications,
-  GetGithubAuthStatusRequest,
   GetGithubAuthStatusResponse,
-  GetGithubDeviceCodeRequest,
   GetGithubDeviceCodeResponse,
-  ParseRepoURLRequest,
-  ParseRepoURLResponse,
-  ValidateProviderTokenRequest,
-  ValidateProviderTokenResponse,
 } from '../api/applications/applications.pb';
 import {
   GetPipelineResponse,
@@ -57,43 +50,6 @@ import { muiTheme } from '../muiTheme';
 
 export type RequestError = Error & {
   code?: number;
-};
-
-export type ApplicationOverrides = {
-  GetGithubDeviceCode?: (
-    req: GetGithubDeviceCodeRequest,
-  ) => GetGithubDeviceCodeResponse;
-  GetGithubAuthStatus?: (
-    req: GetGithubAuthStatusRequest,
-  ) => GetGithubAuthStatusResponse;
-  ParseRepoURL?: (req: ParseRepoURLRequest) => ParseRepoURLResponse;
-  ValidateProviderToken?: (
-    req: ValidateProviderTokenRequest,
-  ) => ValidateProviderTokenResponse;
-};
-
-// Don't make the user wire up all the promise stuff to be interface-compliant
-export const createMockClient = (
-  ovr: ApplicationOverrides,
-  error?: RequestError,
-): typeof Applications => {
-  const promisified = _.reduce(
-    ovr,
-    (result, handlerFn, method) => {
-      //@ts-ignore
-      result[method] = (req: any) => {
-        if (error) {
-          return new Promise((_, reject) => reject(error));
-        }
-        return new Promise(accept => accept(handlerFn?.(req) as any));
-      };
-
-      return result;
-    },
-    {},
-  );
-
-  return promisified as typeof Applications;
 };
 
 export function withTheme(element: any) {

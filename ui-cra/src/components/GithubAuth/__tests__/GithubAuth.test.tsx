@@ -1,11 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { GithubDeviceAuthModal } from '..';
+import { GitProvider } from '../../../api/applications/applications.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {
   ApplicationsClientMock,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
+import { getProviderToken } from '../utils';
 
 Object.assign(navigator, {
   clipboard: {
@@ -33,7 +35,7 @@ describe('Github Authenticate', () => {
     wrap = withContext([...defaultContexts(), [GitAuthProvider, { api }]]);
   });
 
-  it('render gitAuth modal', async () => {
+  it('renders the GithubAuth modal and user code', async () => {
     api.GetGithubDeviceCodeReturn = {
       userCode: 'D410-08FF',
       deviceCode: 'd725410cbe2431c5fa5dfa93736304db124412b6',
@@ -63,4 +65,31 @@ describe('Github Authenticate', () => {
       });
     });
   });
+
+  it('stores a token', async () => {
+    const accessToken = 'sometoken';
+    api.GetGithubDeviceCodeReturn = {
+      userCode: 'D410-08FF',
+    };
+    api.GetGithubAuthStatusReturn = {
+      accessToken,
+    };
+
+    await act(async () => {
+      const c = wrap(
+        <GithubDeviceAuthModal
+          onClose={() => {}}
+          onSuccess={() => {}}
+          open={true}
+          repoName="config"
+        />,
+      );
+      render(c);
+    });
+
+    const token = getProviderToken(GitProvider.GitHub);
+    expect(token).toEqual(accessToken);
+  });
 });
+
+// add Gitlab tests

@@ -43,7 +43,8 @@ function RepoInputWithAuth({
   }, [
     applicationsClient,
     debouncedURL,
-    // req is needed as dependency - infinite loop
+    // req
+    // is needed as dependency - infinite loop
   ]);
 
   React.useEffect(() => {
