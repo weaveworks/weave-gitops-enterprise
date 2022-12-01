@@ -99,18 +99,23 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	// Gitlab doesn't support createOrUpdate, so we need to check if the file exists
 	// and if it does, we need to create a commit to delete the file.
 	if req.GitProvider.Type == "gitlab" {
+		treeEntries, err := s.GetTreeList(ctx, req.GitProvider, repoURL, req.BaseBranch, "", true)
+		if err != nil {
+			return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repoURL, req.BaseBranch, err)
+		}
+
 		var files []gitprovider.CommitFile
 		for _, file := range req.Files {
-			remoteFile, err := repo.Files().Get(ctx, ".", req.BaseBranch)
-			if err != nil {
-				return nil, fmt.Errorf("unable to get old file for deletion: %w", err)
-			} else if len(remoteFile) > 0 {
-				files = append(files, gitprovider.CommitFile{
-					Path:    file.Path,
-					Content: nil,
-				})
+			for _, treeEntry := range treeEntries {
+				if file.Path == &treeEntry.Path {
+					files = append(files, gitprovider.CommitFile{
+						Path:    &treeEntry.Path,
+						Content: nil,
+					})
+				}
 			}
 		}
+
 		if len(files) > 0 {
 			if err := s.writeFilesToBranch(ctx, writeFilesToBranchRequest{
 				Repository:    repo,
