@@ -158,9 +158,9 @@ const App = () => {
           </Hidden>
         </nav>
         <main className={classes.content}>
-          {/* <ErrorBoundary> */}
-          <AppRoutes />
-          {/* </ErrorBoundary> */}
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
         </main>
       </div>
     </Compose>

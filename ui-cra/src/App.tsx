@@ -11,7 +11,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { muiTheme } from './muiTheme';
 import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
-import { theme } from '@weaveworks/weave-gitops';
+import { theme, AppContextProvider } from '@weaveworks/weave-gitops';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import bg from './assets/img/bg.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
@@ -131,7 +131,9 @@ const App: FC = () => {
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
                 <PipelinesProvider api={Pipelines}>
                   <GitAuthProvider>
-                    <ResponsiveDrawer />
+                    <AppContextProvider>
+                      <ResponsiveDrawer />
+                    </AppContextProvider>
                   </GitAuthProvider>
                 </PipelinesProvider>
               </ProgressiveDeliveryProvider>
