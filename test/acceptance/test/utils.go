@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"archive/zip"
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -123,26 +124,6 @@ func SetTestScriptPath(srciptPath string) {
 
 func SetSeleniumServiceUrl(url string) {
 	selenium_service_url = url
-}
-
-func TakeScreenShot(name string) string {
-	if webDriver != nil {
-		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
-		_ = webDriver.Screenshot(filepath)
-		return filepath
-	}
-	return ""
-}
-
-func SaveDOM(name string) string {
-	if webDriver != nil {
-		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
-		var htmlDocument interface{}
-		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
-		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
-		return filepath
-	}
-	return ""
 }
 
 func RandString(length int) string {
@@ -356,12 +337,30 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
 
-func DumpResources(testName string) {
-	logger.Info("Dumping cluster objects/resources...")
+func TakeScreenShot(name string) {
+	if webDriver != nil {
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
+		logger.Infof("Saving screenshot to %s", filepath)
+		_ = webDriver.Screenshot(filepath)
+	}
+}
 
+func DumpingDOM(name string) {
+	logger.Infof("Dumping DOM to %s", path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME))
+	if webDriver != nil {
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
+		var htmlDocument interface{}
+		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
+		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+	}
+}
+
+func DumpResources(testName string) {
 	resourcesPath := "/tmp/resource-info"
 	archiveResourcePath := path.Join(artifacts_base_dir, "resource-info")
 	archivedPath := path.Join(archiveResourcePath, testName+".tar.gz")
+	logger.Infof("Dumping cluster objects/resources to %s", resourcesPath)
+
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, resourcesPath, archiveResourcePath))
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get all --all-namespaces -o wide > %s", path.Join(resourcesPath, "resources.txt")))
@@ -372,11 +371,10 @@ func DumpResources(testName string) {
 }
 
 func DumpClusterInfo(testName string) {
-	logger.Info("Dumping cluster-info...")
-
 	logsPath := "/tmp/dumped-cluster-logs"
 	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")
 	archivedPath := path.Join(archiveLogsPath, testName+".tar.gz")
+	logger.Infof("Dumping cluster-info to %s", logsPath)
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, logsPath, archiveLogsPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl cluster-info dump --all-namespaces --output-directory %s`, logsPath))
@@ -384,11 +382,10 @@ func DumpClusterInfo(testName string) {
 }
 
 func DumpConfigRepo(testName string) {
-	logger.Info("Dumping git-repo...")
-
 	repoPath := "/tmp/config-repo"
 	archiveRepoPath := path.Join(artifacts_base_dir, "config-repo")
 	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")
+	logger.Infof("Dumping git-repo to %s", repoPath)
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, repoPath, archiveRepoPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
@@ -396,38 +393,40 @@ func DumpConfigRepo(testName string) {
 }
 
 func DumpBrowserLogs(console bool, network bool) {
-	fetchLogs := false
-	for _, label := range ginkgo.CurrentSpecReport().LeafNodeLabels {
-		if label == "browser-logs" {
-			fetchLogs = true
+	writeSlicetoFile := func(fileName string, dataLog interface{}) {
+		f, _ := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		defer f.Close()
+		dataWriter := bufio.NewWriter(f)
+
+		val := reflect.ValueOf(dataLog)
+		switch reflect.TypeOf(dataLog).Kind() {
+		case reflect.Slice:
+			for i := 0; i < val.Len(); i++ {
+				_, _ = dataWriter.WriteString(fmt.Sprintf("%v", val.Index(i)) + "\n")
+			}
 		}
+		dataWriter.Flush()
 	}
 
-	if !fetchLogs {
-		return
-	}
+	browserLogsPath := "/tmp/browser-logs"
+	archiveLogsPath := path.Join(artifacts_base_dir, "browser-logs")
+	archivedPath := path.Join(archiveLogsPath, "saeed"+".tar.gz")
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, browserLogsPath, archiveLogsPath))
 
 	if console {
-		logger.Info("Dumping browser console logs...")
+		logger.Infof("Dumping browser console logs to %s", browserLogsPath)
 		consoleLog, _ := webDriver.ReadAllLogs("browser")
-		for _, l := range consoleLog {
-			logger.Trace(l)
-		}
+		writeSlicetoFile(path.Join(browserLogsPath, "console.txt"), consoleLog)
 	}
 
 	if network {
-		logger.Info("Dumping network logs...")
+		logger.Infof("Dumping browser network logs to %s", browserLogsPath)
 		var networkLog interface{}
 		gomega.Expect(webDriver.RunScript(`return window.performance.getEntries();`, map[string]interface{}{}, &networkLog)).ShouldNot(gomega.HaveOccurred())
-
-		switch reflect.TypeOf(networkLog).Kind() {
-		case reflect.Slice:
-			s := reflect.ValueOf(networkLog)
-			for i := 0; i < s.Len(); i++ {
-				logger.Trace(s.Index(i))
-			}
-		}
+		writeSlicetoFile(path.Join(browserLogsPath, "network.txt"), networkLog)
 	}
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, browserLogsPath, archivedPath))
 }
 
 // utility functions

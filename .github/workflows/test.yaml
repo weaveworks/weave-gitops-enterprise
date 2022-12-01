@@ -228,7 +228,7 @@ jobs:
           make ui-build-for-tests
 
           cd test/integration/test
-          go test -v -ginkgo.v -run TestMccpUI -ginkgo.label-filter='!(integration, gce, eks, application, upgrade)'  -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
+          go test -ginkgo.v -run TestMccpUI -ginkgo.label-filter='!(integration, gce, eks, application, upgrade)'  -ginkgo.reportFile=${{ env.ARTIFACTS_BASE_DIR }}/acceptance-test-results.xml --timeout=99999s
       - name: Store integration test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
