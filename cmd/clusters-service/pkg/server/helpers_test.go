@@ -206,117 +206,108 @@ func TestGetProvider(t *testing.T) {
 }
 
 func TestGetMissingFiles(t *testing.T) {
-	paths := []string{
-		"testdata/cluster-template.yaml",
-		"testdata/cluster-template-1.yaml",
-		"testdata/cluster-template-2.yaml",
-	}
-	content := "dummy content"
-	emptyContent := ""
+
 	tests := []struct {
 		name          string
 		originalFiles []gitprovider.CommitFile
 		extraFiles    []gitprovider.CommitFile
 		expected      []gitprovider.CommitFile
 	}{
-		// no extra files
 		{
-			name: "no extra files",
+			name: "original files with empty extra files",
 			originalFiles: []gitprovider.CommitFile{
 				{
-					Path:    &paths[0],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template.yaml"),
+					Content: getValue("dummy content"),
 				},
 				{
-					Path:    &paths[1],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template-1.yaml"),
+					Content: getValue("dummy content"),
 				},
 			},
 			extraFiles: []gitprovider.CommitFile{},
 			expected: []gitprovider.CommitFile{
 				{
-					Path:    &paths[0],
-					Content: &emptyContent,
+					Path:    getValue("testdata/cluster-template.yaml"),
+					Content: getValue(""),
 				},
 				{
-					Path:    &paths[1],
-					Content: &emptyContent,
+					Path:    getValue("testdata/cluster-template-1.yaml"),
+					Content: getValue(""),
 				},
 			},
 		},
-		//extra files
 		{
-			name: "extra files",
+			name: "original files with files not in extra files",
 			originalFiles: []gitprovider.CommitFile{
 				{
-					Path:    &paths[0],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template.yaml"),
+					Content: getValue("dummy content"),
 				},
 				{
-					Path:    &paths[1],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template-1.yaml"),
+					Content: getValue("dummy content"),
 				},
 			},
 			extraFiles: []gitprovider.CommitFile{
 
 				{
-					Path:    &paths[2],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template-2.yaml"),
+					Content: getValue("dummy content"),
 				},
 			},
 			expected: []gitprovider.CommitFile{
 				{
 
-					Path:    &paths[0],
-					Content: &emptyContent,
+					Path:    getValue("testdata/cluster-template.yaml"),
+					Content: getValue(""),
 				},
 				{
 
-					Path:    &paths[1],
-					Content: &emptyContent,
+					Path:    getValue("testdata/cluster-template-1.yaml"),
+					Content: getValue(""),
 				},
 			},
 		},
-		//test case 3: no original files
 		{
 			name:          "no original files",
 			originalFiles: []gitprovider.CommitFile{},
 			extraFiles: []gitprovider.CommitFile{
 				{
-					Path:    &paths[0],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template.yaml"),
+					Content: getValue("dummy content"),
 				},
 				{
-					Path:    &paths[1],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template-1.yaml"),
+					Content: getValue("dummy content"),
 				},
 			},
 			expected: []gitprovider.CommitFile{},
 		},
 		{
-			name: "original with 1 file and extra with 2 files",
+			name: "original with 1 file and extra with 2 files not in original",
 			originalFiles: []gitprovider.CommitFile{
 				{
-					Path:    &paths[0],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template.yaml"),
+					Content: getValue("dummy content"),
 				},
 			},
 			extraFiles: []gitprovider.CommitFile{
 
 				{
-					Path:    &paths[2],
-					Content: &content,
+					Path:    getValue("testdata/cluster-template-2.yaml"),
+					Content: getValue("dummy content"),
 				}, {
 
-					Path:    &paths[1],
-					Content: &emptyContent,
+					Path:    getValue("testdata/cluster-template-1.yaml"),
+					Content: getValue(""),
 				},
 			},
 			expected: []gitprovider.CommitFile{
 				{
 
-					Path:    &paths[0],
-					Content: &emptyContent,
+					Path:    getValue("testdata/cluster-template.yaml"),
+					Content: getValue(""),
 				},
 			},
 		},
@@ -358,4 +349,9 @@ func sortFiles(files []gitprovider.CommitFile) {
 	sort.Slice(files, func(i, j int) bool {
 		return *files[i].Path < *files[j].Path
 	})
+}
+
+func getValue(s string) *string {
+	result := &s
+	return result
 }

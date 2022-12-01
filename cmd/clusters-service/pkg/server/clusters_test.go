@@ -1006,11 +1006,6 @@ status: {}
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
-				fmt.Printf("Committed Files:: %v", len(tt.committedFiles))
-				for i, f := range tt.committedFiles {
-					fmt.Printf("Other File:: %v --> %v", i, f.Path)
-				}
-				// fmt.Printf("Other Files:: %v", len(fakeGitProvider.GetCommittedFiles()))
 
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)

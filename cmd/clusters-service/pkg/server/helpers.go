@@ -112,14 +112,14 @@ func getMissingFiles(originalFiles []gitprovider.CommitFile, extraFiles []gitpro
 
 	diffPaths := sets.NewString(originalFilePaths...).Difference(sets.NewString(extraFilePaths...)).List()
 
-	difference := []gitprovider.CommitFile{}
+	removedFilenames := []gitprovider.CommitFile{}
 	for i := range diffPaths {
-		difference = append(difference, gitprovider.CommitFile{
+		removedFilenames = append(removedFilenames, gitprovider.CommitFile{
 			Path:    &diffPaths[i],
 			Content: nil,
 		})
 	}
 
-	return difference
+	return removedFilenames
 
 }
