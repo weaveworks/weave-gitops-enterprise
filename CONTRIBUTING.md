@@ -173,7 +173,7 @@ download all the Go modules/JS libraries from scratch, use the Tilt UI to check
 progress. Subsequent runs should be a lot faster.
 
 When `chart-mccp-cluster-service` has become green, you should be able to access
-your cluster at [https://localhost:8000](https://localhost:8000). The login is
+your cluster at [http://localhost:8000](http://localhost:8000). The login is
 username `wego-admin` and password `dev`.
 
 Any change you make to local code will trigger tilt to rebuild and restart the
@@ -335,7 +335,7 @@ You can execute HTTP requests to the API by pointing to an endpoint, for
 example:
 
 ```bash
-curl --insecure https://localhost:8000/v1/enterprise/version
+curl --insecure http://localhost:8000/v1/enterprise/version
 ```
 
 The --insecure flag is needed because the service will generate self-signed
