@@ -299,6 +299,69 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 	assert.Equal(t, pr.Description, "Updates a cluster through a CAPI template")
 }
 
+func TestCreatePullRequestInGitLab_DeleteFiles(t *testing.T) {
+	// Create a client
+	gitlabHost := fmt.Sprintf("https://%s", os.Getenv("GIT_PROVIDER_HOSTNAME"))
+	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"), gitlab.WithBaseURL(gitlabHost))
+	require.NoError(t, err)
+	// Create a repository using a name that doesn't exist already
+	repoName := fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
+	repos, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{
+		Owned: gitlab.Bool(true),
+	})
+	assert.NoError(t, err)
+	for findGitLabRepo(repos, repoName) != nil {
+		repoName = fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
+	}
+	repo, _, err := client.Projects.CreateProject(&gitlab.CreateProjectOptions{
+		Name:                 gitlab.String(repoName),
+		MergeRequestsEnabled: gitlab.Bool(true),
+		Visibility:           gitlab.Visibility(gitlab.PrivateVisibility),
+		InitializeWithReadme: gitlab.Bool(true),
+	})
+	require.NoError(t, err)
+	defer func() {
+		_, err = client.Projects.DeleteProject(repo.ID)
+		require.NoError(t, err)
+	}()
+
+	_, _, err = client.RepositoryFiles.CreateFile(repo.ID, "management/cluster-01.yaml", &gitlab.CreateFileOptions{
+		Branch:        gitlab.String(repo.DefaultBranch),
+		Content:       gitlab.String("---\n"),
+		CommitMessage: gitlab.String("Add cluster manifest"),
+	})
+	require.NoError(t, err)
+
+	s := git.NewGitProviderService(logr.Discard())
+	path := "management/cluster-01.yaml"
+	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: git.GitProvider{
+			Token:    os.Getenv("GITLAB_TOKEN"),
+			Type:     "gitlab",
+			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
+		},
+		RepositoryURL: repo.HTTPURLToRepo,
+		HeadBranch:    "feature-01",
+		BaseBranch:    repo.DefaultBranch,
+		Title:         "Delete cluster",
+		Description:   "Deletes a cluster",
+		CommitMessage: "Delete cluster manifest",
+		Files: []gitprovider.CommitFile{
+			{
+				Path:    &path,
+				Content: nil,
+			},
+		},
+	})
+	assert.NoError(t, err)
+
+	pr, _, err := client.MergeRequests.GetMergeRequest(repo.ID, 1, nil)
+	require.NoError(t, err)
+	assert.Equal(t, pr.WebURL, res.WebURL)
+	assert.Equal(t, pr.Title, "Update cluster")
+	assert.Equal(t, pr.Description, "Updates a cluster through a CAPI template")
+}
+
 func TestGetGitProviderUrl(t *testing.T) {
 	expected := "https://github.com/user/repo.git"
 
