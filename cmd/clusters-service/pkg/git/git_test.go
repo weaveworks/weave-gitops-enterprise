@@ -236,7 +236,6 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 }
 
 func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
-
 	// Create a client
 	gitlabHost := fmt.Sprintf("https://%s", os.Getenv("GIT_PROVIDER_HOSTNAME"))
 	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"), gitlab.WithBaseURL(gitlabHost))
@@ -262,24 +261,9 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	// Add a new snippet
-	snippetFiles := []*gitlab.SnippetFile{
-		{
-			FilePath: gitlab.String("management/cluster-01.yaml"),
-			Content:  gitlab.String("---\n"),
-		},
-	}
-	snippet := &gitlab.CreateProjectSnippetOptions{
-		Title:      gitlab.String("Dummy Snippet"),
-		Visibility: gitlab.Visibility(gitlab.PrivateVisibility),
-		Files:      &snippetFiles,
-	}
-	_, _, err = client.ProjectSnippets.CreateSnippet(repo.ID, snippet)
-	require.NoError(t, err)
-
 	s := git.NewGitProviderService(logr.Discard())
-	path := "management/cluster-01.yaml"
-	content := "---\n"
+	path := "README.md"
+	content := "New Content"
 	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider: git.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
@@ -289,9 +273,9 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		RepositoryURL: repo.HTTPURLToRepo,
 		HeadBranch:    "feature-01",
 		BaseBranch:    repo.DefaultBranch,
-		Title:         "New cluster",
-		Description:   "Creates a cluster through a CAPI template",
-		CommitMessage: "Add cluster manifest",
+		Title:         "Update readme",
+		Description:   "Updates readme file to test update files functionality",
+		CommitMessage: "Updates readme file",
 		Files: []gitprovider.CommitFile{
 			{
 				Path:    &path,
@@ -301,11 +285,11 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	pr, _, err := client.MergeRequests.GetMergeRequest(repo.ID, 1, nil) // #PR is 1 because it is a new repo
+	pr, _, err := client.MergeRequests.GetMergeRequest(repo.ID, 1, nil)
 	require.NoError(t, err)
 	assert.Equal(t, pr.WebURL, res.WebURL)
-	assert.Equal(t, pr.Title, "New cluster")
-	assert.Equal(t, pr.Description, "Creates a cluster through a CAPI template")
+	assert.Equal(t, pr.Title, "Update cluster")
+	assert.Equal(t, pr.Description, "Updates a cluster through a CAPI template")
 }
 
 func TestGetGitProviderUrl(t *testing.T) {
