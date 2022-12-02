@@ -113,9 +113,6 @@ type Params struct {
 	HelmRepoNamespace                 string                    `mapstructure:"helm-repo-namespace"`
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
-	WatcherMetricsBindAddress         string                    `mapstructure:"watcher-metrics-bind-address"`
-	WatcherHealthzBindAddress         string                    `mapstructure:"watcher-healthz-bind-address"`
-	WatcherPort                       int                       `mapstructure:"watcher-port"`
 	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
 	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
 	GitProviderType                   string                    `mapstructure:"git-provider-type"`
@@ -186,9 +183,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
-	cmd.Flags().String("watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
-	cmd.Flags().String("watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
-	cmd.Flags().Int("watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().String("html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().String("git-provider-type", "", "")
 	cmd.Flags().String("git-provider-hostname", "", "")
