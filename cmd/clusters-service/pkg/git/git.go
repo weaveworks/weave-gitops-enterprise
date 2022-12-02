@@ -108,7 +108,7 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 			// if file content is empty, then it's a delete operation
 			// so we don't need to check if the file exists
 			if file.Content == nil {
-				break
+				continue
 			}
 
 			dirPath, _ := filepath.Split(*file.Path)
