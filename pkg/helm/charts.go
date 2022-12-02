@@ -3,9 +3,6 @@ package helm
 import (
 	"context"
 	"fmt"
-	"io"
-	"net/url"
-	"os"
 	"path"
 	"sort"
 
@@ -20,7 +17,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -213,56 +209,6 @@ func credsForRepository(ctx context.Context, kc client.Client, hr *sourcev1.Helm
 	}
 
 	return string(secret.Data["username"]), string(secret.Data["password"]), nil
-}
-
-func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
-	if hostname := os.Getenv("SOURCE_CONTROLLER_LOCALHOST"); hostname != "" {
-		u, err := url.Parse(chartURL)
-		if err != nil {
-			return nil, err
-		}
-
-		u.Host = hostname
-		chartURL = u.String()
-	}
-
-	u, err := url.Parse(chartURL)
-
-	if err != nil {
-		return nil, fmt.Errorf("error parsing URL %q: %w", chartURL, err)
-	}
-
-	c, err := defaultChartGetters.ByScheme(u.Scheme)
-	if err != nil {
-		return nil, fmt.Errorf("no provider for scheme %q: %w", u.Scheme, err)
-	}
-
-	res, err := c.Get(u.String())
-	if err != nil {
-		return nil, fmt.Errorf("error fetching index file: %w", err)
-	}
-
-	b, err := io.ReadAll(res)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response: %w", err)
-	}
-
-	i := &repo.IndexFile{}
-	if err := yaml.Unmarshal(b, i); err != nil {
-		return nil, fmt.Errorf("error unmarshaling chart response: %w", err)
-	}
-
-	if i.APIVersion == "" {
-		return nil, repo.ErrNoAPIVersion
-	}
-
-	i.SortEntries()
-
-	return i, nil
-}
-
-func getLayer(annotations map[string]string) string {
-	return annotations[LayerAnnotation]
 }
 
 func hasAnnotation(cm map[string]string, name string) bool {
