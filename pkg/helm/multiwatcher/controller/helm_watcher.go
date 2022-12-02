@@ -5,6 +5,7 @@ import (
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	"helm.sh/helm/v3/pkg/repo"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -14,6 +15,25 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
+
+// ProfileAnnotation is the annotation that Helm charts must have to indicate
+// that they provide a Profile.
+const ProfileAnnotation = "weave.works/profile"
+
+// RepositoryProfilesAnnotation is the annotation that Helm Repositories must
+// have to indicate that all charts are to be considered as Profiles.
+const RepositoryProfilesAnnotation = "weave.works/profiles"
+
+// LayerAnnotation specifies profile application order.
+// Profiles are sorted by layer and those at a higher "layer" are only installed after
+// lower layers have successfully installed and started.
+const LayerAnnotation = "weave.works/layer"
+
+// Profiles is a predicate for scanning charts with the ProfileAnnotation.
+var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
+	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
+		hasAnnotation(hr.ObjectMeta.Annotations, RepositoryProfilesAnnotation)
+}
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
@@ -68,14 +88,14 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	for name, versions := range indexFile.Entries {
 		for _, version := range versions {
-			isProfile := helm.Profiles(&repository, version)
+			isProfile := Profiles(&repository, version)
 			chartKind := "chart"
 			if isProfile {
 				chartKind = "profile"
 			}
 			err := r.Cache.AddChart(
 				ctx, name, version.Version, chartKind,
-				version.Annotations[helm.LayerAnnotation],
+				version.Annotations[LayerAnnotation],
 				r.ClusterRef,
 				helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace},
 			)
@@ -113,4 +133,14 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
+}
+
+func hasAnnotation(cm map[string]string, name string) bool {
+	for k := range cm {
+		if k == name {
+			return true
+		}
+	}
+
+	return false
 }
