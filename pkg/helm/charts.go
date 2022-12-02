@@ -21,14 +21,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
-
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . HelmRepoManager
 type HelmRepoManager interface {
-	ListCharts(ctx context.Context, hr *sourcev1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error)
 	GetValuesFile(ctx context.Context, helmRepo *sourcev1.HelmRepository, c *ChartReference, filename string) ([]byte, error)
 }
 
@@ -87,65 +84,6 @@ type ChartPredicate func(*sourcev1.HelmRepository, *repo.ChartVersion) bool
 var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
 		hasAnnotation(hr.ObjectMeta.Annotations, RepositoryProfilesAnnotation)
-}
-
-// ListCharts filters charts using the provided predicate.
-func (h *RepoManager) ListCharts(ctx context.Context, hr *sourcev1.HelmRepository, pred ChartPredicate) ([]*pb.Profile, error) {
-	chartRepo, err := fetchIndexFile(hr.Status.URL)
-	if err != nil {
-		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s: %w",
-			hr.GetName(), hr.GetNamespace(), err)
-	}
-
-	ps := make(map[string]*pb.Profile)
-
-	for name, versions := range chartRepo.Entries {
-		for _, v := range versions {
-			if pred(hr, v) {
-				// if already added, update the versions array
-				if p, ok := ps[name]; ok {
-					p.AvailableVersions = append(p.AvailableVersions, v.Version)
-				} else { // otherwise create a new profile and add to map
-					p = &pb.Profile{
-						Name:        name,
-						Home:        v.Home,
-						Sources:     v.Sources,
-						Description: v.Description,
-						Keywords:    v.Keywords,
-						Icon:        v.Icon,
-						KubeVersion: v.KubeVersion,
-						HelmRepository: &pb.HelmRepository{
-							Name:      hr.Name,
-							Namespace: hr.Namespace,
-						},
-						Layer: getLayer(v.Annotations),
-					}
-					for _, m := range v.Maintainers {
-						p.Maintainers = append(p.Maintainers, &pb.Maintainer{
-							Name:  m.Name,
-							Email: m.Email,
-							Url:   m.URL,
-						})
-					}
-					p.AvailableVersions = append(p.AvailableVersions, v.Version)
-					ps[name] = p
-				}
-			}
-		}
-	}
-
-	var profiles []*pb.Profile
-
-	for _, p := range ps {
-		p.AvailableVersions, err = ReverseSemVerSort(p.AvailableVersions)
-		if err != nil {
-			return nil, fmt.Errorf("parsing template profile %s: %w", p.Name, err)
-		}
-
-		profiles = append(profiles, p)
-	}
-
-	return profiles, nil
 }
 
 // GetValuesFile fetches the value file from a chart.

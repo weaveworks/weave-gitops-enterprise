@@ -12,7 +12,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	helmwatcher "github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
@@ -94,7 +93,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&sourcev1.HelmRepository{}).
-		WithEventFilter(predicate.Or(helmwatcher.ArtifactUpdatePredicate{}, helmwatcher.DeletePredicate{})).
+		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).
 		Complete(r)
 }
 

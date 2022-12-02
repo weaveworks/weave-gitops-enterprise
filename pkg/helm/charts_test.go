@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"sort"
 	"time"
 
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
@@ -21,7 +20,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 )
 
@@ -30,129 +28,6 @@ const (
 )
 
 var _ = Describe("RepoManager", func() {
-	Context("ListCharts", func() {
-		var repoManager *helm.RepoManager
-
-		BeforeEach(func() {
-			repoManager = &helm.RepoManager{}
-		})
-
-		It("returns all profiles in the repository", func() {
-			testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/with_profiles")))
-			profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(profiles).To(ConsistOf(&pb.Profile{
-				Name:        "demo-profile",
-				Home:        "https://helm.sh/helm",
-				Sources:     []string{"https://github.com/helm/charts"},
-				Description: "Simple demo profile",
-				Keywords:    []string{"gitops", "demo"},
-				Maintainers: []*pb.Maintainer{
-					{
-						Name:  "WeaveWorks",
-						Email: "maintainers@weave.works",
-						Url:   "",
-					},
-					{
-						Name:  "CNCF",
-						Email: "",
-						Url:   "cncf.io",
-					},
-				},
-				Icon: "https://helm.sh/icon.png",
-				AvailableVersions: []string{
-					"1.10.1",
-					"1.2.1-rc.1",
-					"1.1.2",
-					"1.1.0",
-				},
-				Layer: "layer-1",
-				HelmRepository: &pb.HelmRepository{
-					Name:      "testing",
-					Namespace: "test-ns",
-				},
-			}))
-		})
-
-		When("no charts exist with the profile version", func() {
-			It("returns an empty list", func() {
-				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
-				profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(profiles).To(BeEmpty())
-			})
-		})
-
-		When("the repo is marked as containing profiles", func() {
-			It("returns all Helm charts in the index", func() {
-				// no_profiles contains Helm charts, none are annotated
-				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata/no_profiles")))
-
-				profiles, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL, func(hr *sourcev1.HelmRepository) {
-					hr.ObjectMeta.Annotations = map[string]string{
-						helm.RepositoryProfilesAnnotation: "true",
-					}
-				}), helm.Profiles)
-				Expect(err).NotTo(HaveOccurred())
-
-				foundNames := make([]string, len(profiles))
-				for i := range profiles {
-					foundNames[i] = profiles[i].Name
-				}
-				sort.Strings(foundNames)
-				Expect(foundNames).To(Equal([]string{"alpine", "nginx"}))
-			})
-		})
-
-		When("server isn't a valid helm repository", func() {
-			It("errors", func() {
-				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error fetching index file")))
-			})
-		})
-
-		When("the URL is invalid", func() {
-			It("errors", func() {
-				url := "http://[::1]:namedport"
-				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(url), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error parsing URL %q", url+"/index.yaml")))
-			})
-		})
-
-		When("the scheme is unsupported", func() {
-			It("errors", func() {
-				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository("sftp://localhost:4222/index.yaml"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring(`fetching profiles from HelmRepository testing/test-ns: no provider for scheme "sftp"`)))
-			})
-		})
-
-		When("the index file doesn't contain an API version", func() {
-			It("errors", func() {
-				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: no API version specified")))
-			})
-		})
-
-		When("the index file isn't valid yaml", func() {
-			It("errors", func() {
-				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/brokenyaml"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("fetching profiles from HelmRepository testing/test-ns: error unmarshaling chart response")))
-			})
-		})
-
-		When("the index has invalid versions", func() {
-			It("errors", func() {
-				testServer := httptest.NewServer(http.FileServer(http.Dir("testdata")))
-				_, err := repoManager.ListCharts(context.TODO(), makeTestHelmRepository(testServer.URL+"/invalid-versions"), helm.Profiles)
-				Expect(err).To(MatchError(ContainSubstring("1..2: Invalid Semantic Version")))
-			})
-		})
-	})
-
 	Context("GetValuesFile", func() {
 		var tempDir string
 

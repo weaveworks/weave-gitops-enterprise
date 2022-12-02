@@ -45,7 +45,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
@@ -54,8 +53,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
@@ -349,31 +346,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
 
-	profileCache, err := cache.NewCache(p.ProfileCacheLocation)
-	if err != nil {
-		return fmt.Errorf("failed to create cacher: %w", err)
-	}
-
-	profileWatcher, err := watcher.NewWatcher(watcher.Options{
-		KubeClient:         kubeClient,
-		Cache:              profileCache,
-		MetricsBindAddress: p.WatcherMetricsBindAddress,
-		HealthzBindAddress: p.WatcherHealthzBindAddress,
-		WatcherPort:        p.WatcherPort,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to start the watcher: %w", err)
-	}
-
-	controllerContext := ctrl.SetupSignalHandler()
-
-	go func() {
-		if err := profileWatcher.StartWatcher(controllerContext, log); err != nil {
-			log.Error(err, "failed to start profile watcher")
-			os.Exit(1)
-		}
-	}()
-
 	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation, p.Cluster)
 	if err != nil {
 		return fmt.Errorf("could not create charts cache: %w", err)
@@ -457,6 +429,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		log,
 	)
 
+	controllerContext := ctrl.SetupSignalHandler()
+
 	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
 	go func() {
 		err := indexer.Start(controllerContext, clustersManager, log)
@@ -511,10 +485,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreCfg),
-		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
-			DefaultConfig: kubeClientConfig,
-			ClusterName:   "",
-		}, profileCache, p.HelmRepoNamespace, p.HelmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -617,11 +587,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
 	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
-	}
-
-	wegoProfilesServer := server.NewProfilesServer(args.Log, args.ProfilesConfig)
-	if err := profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
-		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
 	// Add logging middleware
