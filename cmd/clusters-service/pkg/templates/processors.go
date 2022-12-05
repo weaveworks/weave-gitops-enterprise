@@ -86,9 +86,9 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		}
 	}
 
-	for _, profile := range p.GetSpec().Charts {
-		if profile.HelmReleaseTemplate != nil {
-			names, err := p.Processor.ParamNames(profile.HelmReleaseTemplate.Raw)
+	for _, profile := range p.GetSpec().Charts.Items {
+		if profile.HelmReleaseTemplate.Content != nil {
+			names, err := p.Processor.ParamNames(profile.HelmReleaseTemplate.Content.Raw)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Name, err)
 			}

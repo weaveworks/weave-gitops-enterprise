@@ -44,7 +44,7 @@ type TemplateSpec struct {
 	// descriptions.
 	Params []TemplateParam `json:"params,omitempty"` // Described above
 
-	Charts []Chart `json:"charts,omitempty"`
+	Charts ChartsSpec `json:"charts,omitempty"`
 
 	// ResourceTemplates are a set of templates for resources that are generated
 	// from this Template.
@@ -68,6 +68,13 @@ type TemplateParam struct {
 	Default string `json:"default,omitempty"`
 }
 
+// ChartsSpec defines the spec for a set of Helm charts.
+// +kubebuilder:object:generate=true
+
+type ChartsSpec struct {
+	Items []Chart `json:"items,omitempty"`
+}
+
 // Chart is the set of values that control the default and required values
 // of a chart/profile in a template.
 // +kubebuilder:object:generate=true
@@ -87,7 +94,16 @@ type Chart struct {
 	// Shortcut for template.spec.values
 	Values *HelmReleaseValues `json:"values,omitempty"`
 	// Template for the HelmRelease, merged with the default template
-	HelmReleaseTemplate *HelmReleaseTemplate `json:"template,omitempty"`
+	HelmReleaseTemplate TemplateWithPath `json:"template,omitempty"`
+}
+
+// TemplateWithPath is a future proof way to define a template with a path
+// path is not yet used, but will be used in the near future
+// +kubebuilder:object:generate=true
+
+type TemplateWithPath struct {
+	// Template for the HelmRelease, merged with the default template
+	Content *HelmReleaseTemplate `json:"content,omitempty"`
 }
 
 // HelmReleaseTemplate is the HelmRelease.spec that can be overridden

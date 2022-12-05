@@ -1419,7 +1419,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 			c.Annotations = annotations
-			c.Spec.Charts = profiles
+			c.Spec.Charts.Items = profiles
 		})
 
 		result, err := getProfilesFromTemplate(tm)
@@ -1433,9 +1433,11 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 			{
 				Name:    "k8s-rbac-permissions",
 				Version: "0.0.8",
-				HelmReleaseTemplate: &templatesv1.HelmReleaseTemplate{
-					RawExtension: runtime.RawExtension{
-						Raw: []byte(`{ "spec": { "interval": "${INTERVAL}" } }`),
+				HelmReleaseTemplate: templatesv1.TemplateWithPath{
+					Content: &templatesv1.HelmReleaseTemplate{
+						RawExtension: runtime.RawExtension{
+							Raw: []byte(`{ "spec": { "interval": "${INTERVAL}" } }`),
+						},
 					},
 				},
 				Values: &templatesv1.HelmReleaseValues{
@@ -1464,7 +1466,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		}
 
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
-			c.Spec.Charts = profiles
+			c.Spec.Charts.Items = profiles
 		})
 
 		result, err := getProfilesFromTemplate(tm)
