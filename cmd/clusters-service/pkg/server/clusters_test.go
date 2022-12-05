@@ -880,6 +880,89 @@ status: {}
 			},
 			err: errors.New("kustomization metadata must be specified"),
 		},
+		{
+			name: "Edit cluster, remove kustomization",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "dev",
+					"NAMESPACE":    "clusters-namespace",
+				},
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "Edit Cluster",
+				Description:       "Delete kustomization from cluster",
+				CommitMessage:     "Edits dev",
+				TemplateNamespace: "default",
+				Kustomizations:    []*capiv1_protos.Kustomization{},
+
+				PreviousValues: &capiv1_protos.PreviousValues{
+					ParameterValues: map[string]string{
+						"CLUSTER_NAME": "dev",
+						"NAMESPACE":    "clusters-namespace",
+					},
+					Kustomizations: []*capiv1_protos.Kustomization{
+						{
+							Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
+							Spec: &capiv1_protos.KustomizationSpec{
+								Path:            "./apps/capi",
+								SourceRef:       testNewSourceRef(t, "flux-system", "flux-system"),
+								TargetNamespace: "foo-ns",
+							},
+						},
+					},
+					Credentials: &capiv1_protos.Credential{},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
+					Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
+      Cluster","description":"Delete kustomization from cluster","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Edits
+      dev","template_namespace":"default","template_kind":"CAPITemplate"}'
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: dev
+  namespace: clusters-namespace
+`,
+				},
+				{
+					Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+				},
+				{
+					Path:    "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
+					Content: "",
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
 	}
 
 	for _, tt := range testCases {
@@ -923,6 +1006,7 @@ status: {}
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
@@ -1369,9 +1453,14 @@ func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider,
 func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
 	var committedFiles []*capiv1_protos.CommitFile
 	for _, f := range p.committedFiles {
+		content := ""
+		if f.Content != nil {
+			content = *f.Content
+		}
+
 		committedFiles = append(committedFiles, &capiv1_protos.CommitFile{
 			Path:    *f.Path,
-			Content: *f.Content,
+			Content: content,
 		})
 	}
 	sortCommitFiles(committedFiles)

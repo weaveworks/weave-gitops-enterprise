@@ -62,13 +62,15 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyID := "weave.policies.container-image-pull-policy-acceptance-test"
 			policyClusterName := "management"
 			policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
+			policyAudit := "Audit"
+			policyEnforce := "Enforce"
 			policySeverity := "Medium"
 			policyCategory := "weave.categories.software-supply-chain"
 			policyTags := []string{"There is no tags for this policy"}
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
 			})
 
 			ginkgo.JustAfterEach(func() {
@@ -103,9 +105,12 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Category).Should(matchers.MatchText(policyCategory), fmt.Sprintf("Failed to have expected %s policy Category: weave.categories.software-supply-chain", policyName))
 				})
 
-				ginkgo.By(fmt.Sprintf("And verify '%s' policy Mode", policyName), func() {
-					logger.Info(policyInfo.Mode.Text())
-					gomega.Eventually(policyInfo.Mode).Should(matchers.MatchText(policyMode), fmt.Sprintf("Failed to have expected %s Policy Mode: %s", policyName, policyMode))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Audit", policyName), func() {
+					gomega.Expect(policyInfo.Audit.Attribute("title")).Should(gomega.MatchRegexp(policyAudit), fmt.Sprintf("Failed to have expected %s Policy Audit: %s", policyName, policyAudit))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Enforce", policyName), func() {
+					gomega.Expect(policyInfo.Enforce.Attribute("title")).Should(gomega.MatchRegexp(policyEnforce), fmt.Sprintf("Failed to have expected %s Policy Enforce: %s", policyName, policyEnforce))
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Severity", policyName), func() {
@@ -192,13 +197,15 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			policyName := "Container Running As Root acceptance test"
 			policyID := "weave.policies.container-running-as-root-acceptance-test"
 			policyMode := `(Enforce|Audit)\s*(Audit|Enforce)`
+			policyAudit := "Audit"
+			policyEnforce := "Enforce"
 			policySeverity := "High"
 			policyCategory := "weave.categories.pod-security"
 			policyTags := []string{"pci-dss", "cis-benchmark", "mitre-attack", "nist800-190", "gdpr", "default"}
 			policyTargetedKinds := []string{"Deployment", "Job", "ReplicationController", "ReplicaSet", "DaemonSet", "StatefulSet", "CronJob"}
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
 				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -276,8 +283,12 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Mode: %s", policyName, policyMode))
 				})
 
-				ginkgo.By(fmt.Sprintf("And verify '%s' policy Mode", policyName), func() {
-					gomega.Eventually(policyInfo.Severity).Should(matchers.MatchText(policySeverity), fmt.Sprintf("Failed to have expected %s Policy Severity: %s", policyName, policySeverity))
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Audit", policyName), func() {
+					gomega.Expect(policyInfo.Audit.Attribute("title")).Should(gomega.MatchRegexp(policyAudit), fmt.Sprintf("Failed to have expected %s Policy Audit: %s", policyName, policyAudit))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' policy Enforce", policyName), func() {
+					gomega.Expect(policyInfo.Enforce.Attribute("title")).Should(gomega.MatchRegexp(policyEnforce), fmt.Sprintf("Failed to have expected %s Policy Enforce: %s", policyName, policyEnforce))
 				})
 
 				ginkgo.By(fmt.Sprintf("And verify '%s' policy Cluster", policyName), func() {

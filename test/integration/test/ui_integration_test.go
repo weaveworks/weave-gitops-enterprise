@@ -226,20 +226,14 @@ func waitFor200(ctx context.Context, url string, timeout time.Duration) error {
 }
 
 func gomegaFail(message string, callerSkip ...int) {
-	fmt.Println("gomegaFail:")
-	fmt.Println(message)
 	webDriver := acceptancetest.GetWebDriver()
+	fmt.Println("\x1b[31mERROR\x1b[0m: Spec has failed, capturing failure screenshot")
 	if webDriver != nil {
-		filepath := acceptancetest.TakeScreenShot(acceptancetest.RandString(16)) //Save the screenshot of failure
-		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
+		acceptancetest.TakeScreenShot(acceptancetest.RandString(16)) //Save the screenshot of failure
 	}
 	// Pass this down to the default handler for onward processing
 	Fail(message, callerSkip...)
 }
-
-//
-// "main"
-//
 
 func TestMccpUI(t *testing.T) {
 	scheme := runtime.NewScheme()

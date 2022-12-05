@@ -37,7 +37,7 @@ export const useListPipelines = () => {
   );
 };
 
-export const useGetPipeline = (req: GetPipelineRequest) => {
+export const useGetPipeline = (req: GetPipelineRequest, enabled?: boolean) => {
   const pipelinsService = usePipelines();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
@@ -49,6 +49,7 @@ export const useGetPipeline = (req: GetPipelineRequest) => {
       refetchInterval: 30000,
       retry: false,
       onError,
+      enabled,
     },
   );
 };

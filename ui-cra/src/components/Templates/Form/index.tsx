@@ -58,6 +58,9 @@ import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { getLink } from '../Edit/EditButton';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -138,14 +141,24 @@ const useStyles = makeStyles(theme =>
 );
 
 function getInitialData(
-  resource: GitopsClusterEnriched | Automation | Source | undefined,
+  resource:
+    | GitopsClusterEnriched
+    | Automation
+    | Source
+    | GetTerraformObjectResponse
+    | Pipeline
+    | undefined,
   callbackState: any,
   random: string,
   templateName: string,
 ) {
   const resourceData = resource && getCreateRequestAnnotation(resource);
 
-  const resourceName = resource?.name || resourceData?.objects?.[0].name;
+  const resourceName =
+    (resource as GitopsClusterEnriched | Automation | Source | Pipeline)
+      ?.name ||
+    (resource as GetTerraformObjectResponse)?.object?.name ||
+    resourceData?.objects?.[0].name;
   const defaultFormData = {
     url: '',
     provider: '',
@@ -231,8 +244,10 @@ const toPayload = (
   templateNamespace: string,
   templateKind: string,
   updatedProfiles: ProfilesIndex,
+  createRequestAnnotation: any,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
+  const createReqAnnot = createRequestAnnotation;
   return {
     headBranch: formData.branchName,
     title: formData.pullRequestTitle,
@@ -245,6 +260,7 @@ const toPayload = (
     kustomizations: getKustomizations(formData),
     values: encodedProfiles(updatedProfiles),
     templateKind,
+    previousValues: createReqAnnot,
   };
 };
 
@@ -311,8 +327,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
+  const editLink = resource && getLink(resource);
   const authRedirectPage = resource
-    ? `/resources/${resource?.name}/edit`
+    ? editLink
     : `/templates/${template?.name}/create`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
@@ -403,6 +420,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   ]);
 
   const handleAddResource = useCallback(() => {
+    let createReqAnnot;
+    if (resource !== undefined) {
+      createReqAnnot = getCreateRequestAnnotation(resource);
+    }
     const payload = toPayload(
       formData,
       infraCredential,
@@ -410,6 +431,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       template.namespace!,
       template.templateKind,
       updatedProfiles,
+      createReqAnnot,
     );
     setLoading(true);
     return addResource(
@@ -418,7 +440,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     )
       .then(response => {
         setPRPreview(null);
-        history.push(Routes.Clusters);
+        history.push(Routes.Templates);
         setNotifications([
           {
             message: {
@@ -457,6 +479,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.templateKind,
     setNotifications,
     history,
+    resource,
   ]);
 
   useEffect(() => {

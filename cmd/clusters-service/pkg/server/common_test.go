@@ -8,6 +8,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,6 +25,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
@@ -38,6 +40,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	rbacv1 "k8s.io/api/rbac/v1"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -47,9 +50,11 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		capiv1.AddToScheme,
 		sourcev1.AddToScheme,
 		pacv2beta2.AddToScheme,
+		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		gapiv1.AddToScheme,
 		clusterv1.AddToScheme,
+		rbacv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -77,6 +82,25 @@ type serverOptions struct {
 	valuesFetcher         helm.ValuesFetcher
 	cluster               string
 	estimator             estimation.Estimator
+}
+
+func getServer(t *testing.T, clients map[string]client.Client, namespaces map[string][]v1.Namespace) capiv1_protos.ClustersServiceServer {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	clientsPool.ClientsReturns(clients)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clients[name]; found && c != nil {
+			return c, nil
+		}
+		return nil, fmt.Errorf("cluster %s not found", name)
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, namespaces)
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+
+	return createServer(t, serverOptions{
+		clustersManager: fakeFactory,
+	})
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {

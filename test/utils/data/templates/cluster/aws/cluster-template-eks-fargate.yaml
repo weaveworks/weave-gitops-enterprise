@@ -1,7 +1,7 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: eks-fargate-template-{{.Count}}
+  name: capa-cluster-template-eks-fargate-{{.Count}}
   namespace: default
 spec:
   description: This is eks fargate template-{{.Count}}
