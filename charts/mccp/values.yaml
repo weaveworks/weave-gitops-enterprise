@@ -68,11 +68,10 @@ config:
   ui:
     logoURL: http://iqt.dev/iqt.svg
     footer:
-      backgroundColor: red
-      color: blue
-      content: |
-        # My footer header
-        This is the footer [link](example.com)
+      backgroundColor: white
+      color: gray
+      content: My footer header This is the footer [link](example.com)
+      wgePlaceholder: false
 
 tls:
   enabled: true

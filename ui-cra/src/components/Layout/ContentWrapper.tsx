@@ -3,13 +3,26 @@ import { Box, CircularProgress } from '@material-ui/core';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
-import { useListVersion } from '../../hooks/versions';
+import { useListConfig, useListVersion } from '../../hooks/versions';
 import { Tooltip } from '../Shared';
 import { AlertListErrors } from './AlertListErrors';
 import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
 import Notifications from './Notifications';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { makeStyles, createStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    editor: {
+      '& p': {
+        margin: 0,
+      },
+    },
+  }),
+);
 
 const { xxs, xs, small, medium, base } = theme.spacing;
 const { white } = theme.colors;
@@ -45,11 +58,15 @@ export const WGContent = styled.div`
   }
 `;
 
-const HelpLinkWrapper = styled.div`
+const HelpLinkWrapper = styled.div<{
+  backgroundColor?: string;
+  textColor?: string;
+}>`
   padding: calc(${medium} - ${xxs}) ${medium};
   margin: 0 ${base};
-  background-color: rgba(255, 255, 255, 0.7);
-  color: ${({ theme }) => theme.colors.neutral30};
+  background-color: ${props =>
+    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
+  color: ${props => props.textColor || theme.colors.neutral30};
   border-radius: 0 0 ${xs} ${xs};
   display: flex;
   justify-content: space-between;
@@ -75,11 +92,14 @@ export const ContentWrapper: FC<Props> = ({
 }) => {
   const { data, error } = useListVersion();
   const { notifications } = useNotifications();
+  const { uiConfig } = useListConfig();
+
   const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
+  const classes = useStyles();
 
   const topNotifications = notifications.filter(n => n.display !== 'bottom');
   const bottomNotifications = notifications.filter(n => n.display === 'bottom');
@@ -124,19 +144,34 @@ export const ContentWrapper: FC<Props> = ({
       <div style={{ paddingTop: base }}>
         <Notifications notifications={bottomNotifications} />
       </div>
-      <HelpLinkWrapper>
-        <div>
-          Need help? Raise a&nbsp;
-          <Link newTab href="https://weavesupport.zendesk.com/">
-            support ticket
-          </Link>
-        </div>
-        <Tooltip
-          title={`Server Version ${versions?.capiServer}`}
-          placement="top"
-        >
-          <div>Weave GitOps Enterprise {process.env.REACT_APP_VERSION}</div>
-        </Tooltip>
+      <HelpLinkWrapper
+        backgroundColor={uiConfig?.footer?.backgroundColor}
+        textColor={uiConfig?.footer?.color}
+      >
+        {uiConfig?.footer?.content ? (
+          <div>
+            <ReactMarkdown
+              children={uiConfig?.footer?.content || ''}
+              remarkPlugins={[remarkGfm]}
+              className={classes.editor}
+            />
+          </div>
+        ) : (
+          <div>
+            Need help? Raise a&nbsp;
+            <Link newTab href="https://weavesupport.zendesk.com/">
+              support ticket
+            </Link>
+          </div>
+        )}
+        {uiConfig?.footer?.wgePlaceholder ? (
+          <Tooltip
+            title={`Server Version ${versions?.capiServer}`}
+            placement="top"
+          >
+            <div>Weave GitOps Enterprise {process.env.REACT_APP_VERSION}</div>
+          </Tooltip>
+        ) : null}
       </HelpLinkWrapper>
     </div>
   );
