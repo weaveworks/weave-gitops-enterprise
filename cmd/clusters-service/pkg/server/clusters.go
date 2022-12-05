@@ -162,7 +162,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	// Get list of previous files to be added as deleted files in the commit,
 	// Update the  previous values to be nil to skip including it in the updated create-request annotation
 	prevFiles := &GetFilesReturn{}
-	prevPath := ""
 	if msg.PreviousValues != nil {
 		prevFiles, err = getFiles(
 			ctx,
@@ -179,7 +178,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		if err != nil {
 			return nil, err
 		}
-		prevPath = getClusterManifestPath(prevFiles.Cluster)
 		msg.PreviousValues = nil
 	}
 
@@ -199,30 +197,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	path := getClusterManifestPath(git_files.Cluster)
-	files := []gitprovider.CommitFile{
-		{
-			Path:    &path,
-			Content: &git_files.RenderedTemplate,
-		},
-	}
-
+	files := []gitprovider.CommitFile{}
+	files = append(files, git_files.RenderedTemplate)
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
-	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
-		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, git_files.KustomizationFiles)
-		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, git_files.ProfileFiles)
 
-		files = append(files, removedKustomizations...)
-		files = append(files, removedProfiles...)
-	}
-	// Add a commit file to delete old file if path is changed
-	if prevPath != "" && prevPath != path {
-		files = append(files, gitprovider.CommitFile{
-			Path:    &prevPath,
-			Content: nil,
-		})
-	}
+	deletedFiles := getDeletedFiles(prevFiles, git_files)
+	files = append(files, deletedFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
@@ -1029,4 +1010,31 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 		Name:      name,
 		Namespace: namespace,
 	}
+}
+
+// Get list of gitprovider.CommitFile objects of files that should be deleted with empty content
+// Kustomizations and Profiles removed during an edit are added to the deleted list
+// Old files with changed paths are added to the deleted list
+func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitprovider.CommitFile {
+	deletedFiles := []gitprovider.CommitFile{}
+	// If there was removed kustomizations or profiles from the prevFiles that were no longer in the newFiles
+	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
+		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
+		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)
+
+		deletedFiles = append(deletedFiles, removedKustomizations...)
+		deletedFiles = append(deletedFiles, removedProfiles...)
+		return deletedFiles
+	}
+
+	// If there were changes in the namespace resulting in the change of the file path (the old file should be deleted)
+	if prevFiles != nil && prevFiles.RenderedTemplate.Path != nil && prevFiles.RenderedTemplate.Path != newFiles.RenderedTemplate.Path {
+		prevPath := *prevFiles.RenderedTemplate.Path
+		deletedFiles = append(deletedFiles, gitprovider.CommitFile{
+			Path:    &prevPath,
+			Content: nil,
+		})
+	}
+	return deletedFiles
+
 }
