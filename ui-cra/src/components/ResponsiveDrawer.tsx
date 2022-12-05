@@ -175,7 +175,7 @@ const ResponsiveDrawer = () => {
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
             <LinkResolverProvider resolver={resolver}>
-              <Pendo defaultTelemetryFlag="false" />
+              <Pendo defaultTelemetryFlag="true" />
               <Switch>
                 <Route
                   component={() => (
