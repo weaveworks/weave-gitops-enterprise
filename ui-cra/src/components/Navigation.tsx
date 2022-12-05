@@ -246,7 +246,12 @@ export const Navigation: FC = () => {
     <>
       <div title="Home" className={classes.logo}>
         <Link to={Routes.Clusters}>
-          <img src={uiConfig?.logoURL || WeaveGitOps} alt="Home" />
+          <img
+            src={uiConfig?.logoURL || WeaveGitOps}
+            alt="Home"
+            width="150"
+            height="32"
+          />
         </Link>
       </div>
       <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>

@@ -66,7 +66,7 @@ config:
     tokenPassthrough:
       enabled: true
   ui:
-    logoURL: http://iqt.dev/iqt.svg
+    logoURL: https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg
     footer:
       backgroundColor: white
       color: gray
