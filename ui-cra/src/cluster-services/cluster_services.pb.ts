@@ -485,11 +485,8 @@ export type GetConfigRequest = {
 
 export type GetConfigResponse = {
   repositoryURL?: string
-<<<<<<< HEAD
-  uiConfig?: string
-=======
   managementClusterName?: string
->>>>>>> main
+  uiConfig?: string
 }
 
 export type PolicyParamRepeatedString = {
