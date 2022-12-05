@@ -6,3 +6,5 @@ config:
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
     value: "${FEATURE_COST_ESTIMATION}"
+  - name: WEAVE_GITOPS_FEATURE_TELEMETRY
+    value: "false"
