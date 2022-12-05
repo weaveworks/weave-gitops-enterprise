@@ -51,7 +51,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/mkmik/multierror v0.3.0
-	github.com/onsi/ginkgo/v2 v2.5.0
+	github.com/onsi/ginkgo/v2 v2.5.1
 	github.com/spf13/viper v1.12.0
 	github.com/weaveworks/cluster-controller v1.4.1
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2

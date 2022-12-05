@@ -595,6 +595,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify pull request can not be created by using exiting repository branch", ginkgo.Label("integration", "git", "browser-logs"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+				// Checkout repo main branch in case of test failure
+				defer checkoutRepoBranch(repoAbsolutePath, "main")
 
 				branchName := "ui-test-branch"
 				ginkgo.By("And create new git repository branch", func() {
