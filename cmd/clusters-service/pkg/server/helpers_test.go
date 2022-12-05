@@ -1,8 +1,11 @@
 package server
 
 import (
+	"reflect"
+	"sort"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	apitemplate "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -21,9 +24,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AWSCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AWSCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -37,9 +40,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AWSManagedCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AWSManagedCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -53,9 +56,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AWSManagedControlPlane"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AWSManagedControlPlane"
+                                                        }`),
 						},
 					},
 				},
@@ -70,9 +73,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AzureCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AzureCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -86,9 +89,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "AzureManagedCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "AzureManagedCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -102,9 +105,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "DOCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "DOCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -118,9 +121,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "GCPCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "GCPCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -134,9 +137,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "OpenStackCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "OpenStackCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -150,9 +153,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "PacketCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "PacketCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -166,9 +169,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "VSphereCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "VSphereCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -182,9 +185,9 @@ func TestGetProvider(t *testing.T) {
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
 							RawExtension: rawExtension(`{
-								"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
-								"kind": "FooCluster"
-							}`),
+                                                                "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
+                                                                "kind": "FooCluster"
+                                                        }`),
 						},
 					},
 				},
@@ -200,4 +203,154 @@ func TestGetProvider(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetMissingFiles(t *testing.T) {
+
+	tests := []struct {
+		name          string
+		originalFiles []gitprovider.CommitFile
+		extraFiles    []gitprovider.CommitFile
+		expected      []gitprovider.CommitFile
+	}{
+		{
+			name: "original files with empty extra files",
+			originalFiles: []gitprovider.CommitFile{
+				{
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
+				},
+				{
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr("dummy content"),
+				},
+			},
+			extraFiles: []gitprovider.CommitFile{},
+			expected: []gitprovider.CommitFile{
+				{
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr(""),
+				},
+				{
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr(""),
+				},
+			},
+		},
+		{
+			name: "original files with files not in extra files",
+			originalFiles: []gitprovider.CommitFile{
+				{
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
+				},
+				{
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr("dummy content"),
+				},
+			},
+			extraFiles: []gitprovider.CommitFile{
+
+				{
+					Path:    strPtr("testdata/cluster-template-2.yaml"),
+					Content: strPtr("dummy content"),
+				},
+			},
+			expected: []gitprovider.CommitFile{
+				{
+
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr(""),
+				},
+				{
+
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr(""),
+				},
+			},
+		},
+		{
+			name:          "no original files",
+			originalFiles: []gitprovider.CommitFile{},
+			extraFiles: []gitprovider.CommitFile{
+				{
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
+				},
+				{
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr("dummy content"),
+				},
+			},
+			expected: []gitprovider.CommitFile{},
+		},
+		{
+			name: "original with 1 file and extra with 2 files not in original",
+			originalFiles: []gitprovider.CommitFile{
+				{
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr("dummy content"),
+				},
+			},
+			extraFiles: []gitprovider.CommitFile{
+
+				{
+					Path:    strPtr("testdata/cluster-template-2.yaml"),
+					Content: strPtr("dummy content"),
+				}, {
+
+					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Content: strPtr(""),
+				},
+			},
+			expected: []gitprovider.CommitFile{
+				{
+
+					Path:    strPtr("testdata/cluster-template.yaml"),
+					Content: strPtr(""),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			sortFiles(tt.expected)
+			var expectedPaths []*string
+			expectedContents := make([]*string, len(tt.expected))
+			for i := range tt.expected {
+				expectedPaths = append(expectedPaths, tt.expected[i].Path)
+			}
+
+			difference := getMissingFiles(tt.originalFiles, tt.extraFiles)
+			sortFiles(difference)
+			var differencePaths []*string
+			var differenceContents []*string
+			for i := range difference {
+				differencePaths = append(differencePaths, difference[i].Path)
+				differenceContents = append(differenceContents, difference[i].Content)
+			}
+
+			// Check paths match expected paths
+			if (len(differencePaths) > 0 && len(expectedPaths) > 0) && !reflect.DeepEqual(differencePaths, expectedPaths) {
+				t.Errorf("File paths not matching expected, Paths = %v, want %v", difference, tt.expected)
+			}
+			// Check content of files to be empty
+			if (len(differencePaths) > 0 && len(expectedPaths) > 0) && !reflect.DeepEqual(differenceContents, expectedContents) {
+				t.Errorf("File content not matching expected, Content= %v, want %v", difference, tt.expected)
+			}
+
+		})
+	}
+
+}
+
+func sortFiles(files []gitprovider.CommitFile) {
+	sort.Slice(files, func(i, j int) bool {
+		return *files[i].Path < *files[j].Path
+	})
+}
+
+func strPtr(s string) *string {
+	return &s
 }

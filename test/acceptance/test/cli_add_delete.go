@@ -57,7 +57,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 			templateFiles = []string{}
-			reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 		})
 
 		ginkgo.Context("[CLI] When Capi Templates are available in the cluster", func() {
@@ -70,10 +69,10 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				workerMachineCount := "3"
 
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
 				})
 
-				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true`,
+				cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template-0 --dry-run --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true`,
 					clusterName, namespace, k8version, controlPlaneMachineCount, workerMachineCount)
 				stdOut, stdErr = runGitopsCommand(cmd)
 
@@ -100,10 +99,10 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				workerMachineCount := "2"
 
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
 				})
 
-				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --dry-run --set CLUSTER_NAME=%s,NAMESPACE=%s,KUBERNETES_VERSION=%s,CONTROL_PLANE_MACHINE_COUNT=%s,WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true`,
+				cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template-0 --dry-run --set CLUSTER_NAME=%s,NAMESPACE=%s,KUBERNETES_VERSION=%s,CONTROL_PLANE_MACHINE_COUNT=%s,WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true`,
 					clusterName, namespace, k8version, controlPlaneMachineCount, workerMachineCount)
 				stdOut, stdErr = runGitopsCommand(cmd)
 
@@ -135,7 +134,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				prDescription := "This PR creates a new capd Kubernetes cluster"
 
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
 				})
 
 				cmd := fmt.Sprintf(`add cluster --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --url %s --commit-message %s --description %s`, clusterName, namespace, k8version, prBranch, git_repository_url, prCommit, prDescription)
@@ -172,12 +171,12 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				capdPRDescription := "This PR creates a new capd Kubernetes cluster"
 
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					capdTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
-					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-eks-fargate.yaml")
+					capdTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
+					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-eks-fargate.yaml")
 					templateFiles = append(capdTemplateFile, eksTemplateFile...)
 				})
 
-				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true --branch %s --title %s --url %s --commit-message %s --description %s`,
+				cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true --branch %s --title %s --url %s --commit-message %s --description %s`,
 					capdClusterName, capdNamespace, capdK8version, controlPlaneMachineCount, workerMachineCount, capdPRBranch, capdPRTitle, git_repository_url, capdPRCommit, capdPRDescription)
 				stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
@@ -214,7 +213,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				eksPRCommit := "First eks capi template"
 				eksPRDescription := "This PR creates a new eks Kubernetes cluster"
 
-				cmd = fmt.Sprintf(`add cluster --from-template eks-fargate-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
+				cmd = fmt.Sprintf(`add cluster --from-template capa-cluster-template-eks-fargate-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
 					eksClusterName, eksRegion, eksK8version, eksSshKeyName, eksNamespace, eksPRBranch, eksPRTitle, git_repository_url, eksPRCommit, eksPRDescription)
 				stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
@@ -252,18 +251,26 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				// Parameter values
 				clusterName := "my-dev-cluster"
 				namespace := "gitops-dev"
+				k8Version := "v1.23.3"
+				awsRegion := "us-east-1"
+				controlPlaneMachineCount := "3"
+				workerMachineCount := "3"
+				costEstimationFilter := `tenancy=Dedicated`
 
 				//Pull request values
 				prTitle := "My dev pull request"
 				prCommit := "First dev capi template"
 				prDescription := "This PR creates a new dev Kubernetes cluster"
 
+				// Checkout repo main branch in case of test failure
+				defer checkoutRepoBranch(repoAbsolutePath, "main")
+
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-capitemplate.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
 				})
 
-				cmd := fmt.Sprintf(`add cluster --from-template cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
-					clusterName, namespace, branchName, prTitle, git_repository_url, prCommit, prDescription)
+				cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set COST_ESTIMATION_FILTERS=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
+					clusterName, namespace, awsRegion, k8Version, controlPlaneMachineCount, workerMachineCount, costEstimationFilter, branchName, prTitle, git_repository_url, prCommit, prDescription)
 				stdOut, stdErr = runGitopsCommand(cmd)
 
 				ginkgo.By("Then I should not see pull request to be created", func() {
@@ -281,8 +288,8 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify gitops can use the matching selected credential for cluster creation", ginkgo.Label("git"), func() {
 				ginkgo.By("Apply/Install CAPITemplates", func() {
-					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
-					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-azure.yaml")
+					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
+					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/azure/cluster-template-e2e.yaml")
 					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
 				})
 
@@ -303,7 +310,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				awsControlMAchineType := "t4g.large"
 				awsNodeMAchineType := "t3.micro"
 
-				cmd := fmt.Sprintf(`add cluster --from-template aws-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials aws-test-identity --dry-run`,
+				cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials aws-test-identity --dry-run`,
 					awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType)
 				stdOut, stdErr = runGitopsCommand(cmd)
 
@@ -316,7 +323,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify gitops restrict user from using wrong credentials for infrastructure provider", ginkgo.Label("git"), func() {
 				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-server-v1-template-aws.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
 				})
 
 				ginkgo.By("And create AZURE credentials)", func() {
@@ -332,7 +339,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				awsControlMAchineType := "t4g.large"
 				awsNodeMAchineType := "t3.micro"
 
-				cmd := fmt.Sprintf(`add cluster --from-template aws-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials azure-cluster-identity --dry-run`,
+				cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials azure-cluster-identity --dry-run`,
 					awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType)
 				stdOut, stdErr = runGitopsCommand(cmd)
 
@@ -396,7 +403,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
+					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
 				})
 
 				createCluster := func(clusterName string, namespace string, k8version string, profiles []Application) {
@@ -413,7 +420,7 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 						}
 					}
 
-					cmd := fmt.Sprintf(`add cluster --from-template cluster-template-development-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 --set INSTALL_CRDS=true`, clusterName, namespace, k8version) +
+					cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 --set INSTALL_CRDS=true`, clusterName, namespace, k8version) +
 						fmt.Sprintf(`%s --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s"`,
 							profileFlag, prBranch, prTitle, git_repository_url, prCommit, prDescription)
 					stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)

@@ -55,7 +55,7 @@ function setup {
       # does not supported external auth systems like the one GKE configures by default for kubectl etc.
       # We need to add explicit permissions here that will correctly appear in the SelfSubjectAccessReview
       # query made by the clusters-service when responding to get /v1/clusters and /v1/templates etc.
-      kubectl apply -f ${args[1]}/test/utils/data/gke-ci-user-cluster-admin-rolebinding.yaml
+      kubectl apply -f ${args[1]}/test/utils/data/rbac/gke-ci-user-cluster-admin-rolebinding.yaml
     fi
   elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
     # MANAGEMENT_CLUSTER_KIND is a KIND cluster
@@ -147,7 +147,7 @@ function setup {
   --from-literal="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
   --from-literal="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
 
-  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml 
+  kubectl apply -f ${args[1]}/test/utils/data/entitlement/entitlement-secret.yaml 
 
   # Choosing weave-gitops-enterprise chart version to install
   if [ -z ${ENTERPRISE_CHART_VERSION} ]; then
@@ -220,12 +220,12 @@ function setup {
   done  
   kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
   
-  cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
+  cat ${args[1]}/test/utils/data/ingress/certificate-issuer.yaml | \
       sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
       kubectl apply -f -
   kubectl wait --for=condition=Ready --timeout=60s -n flux-system --all certificate
 
-  cat ${args[1]}/test/utils/data/ingress.yaml | \
+  cat ${args[1]}/test/utils/data/ingress/ingress.yaml | \
       sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
       kubectl apply -f -
 
@@ -233,7 +233,7 @@ function setup {
   flux create source helm weaveworks-charts --url="https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages" --interval=30s --namespace flux-system 
 
   # Install RBAC for user authentication
-  kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/rbac/user-role-bindings.yaml
 
   # enable cluster resource sets
   export EXP_CLUSTER_RESOURCE_SET=true
@@ -241,7 +241,7 @@ function setup {
   if [ "$CAPI_PROVIDER" == "capa" ]; then
     aws cloudformation describe-stacks --stack-name wge-capi-cluster-api-provider-aws-sigs-k8s-io --region us-east-1
     if [ $? -ne 0 ]; then
-      clusterawsadm bootstrap iam create-cloudformation-stack --config aws_bootstrap_config.yaml --region=us-east-1
+      clusterawsadm bootstrap iam create-cloudformation-stack --config ${args[1]}/test/utils/data/bootstrap/aws_bootstrap_config.yaml --region=us-east-1
     fi
     export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile --region=us-east-1)
     aws ec2 describe-key-pairs --key-name weave-gitops-pesto --region=us-east-1
@@ -265,6 +265,7 @@ function setup {
 }
 
 function reset {
+   kubectl delete ValidatingWebhookConfiguration policy-agent
   # Delete flux system from the management cluster
   flux uninstall --silent
   # Delete any orphan resources
@@ -273,8 +274,7 @@ function reset {
   kubectl delete ClusterResourceSet --all
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
-  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works
-  kubectl delete ValidatingWebhookConfiguration policy-agent
+  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works 
   kubectl delete namespaces flux-system
   # Delete capi provider
   if [ "$CAPI_PROVIDER" == "capa" ]; then

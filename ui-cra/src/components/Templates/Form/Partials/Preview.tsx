@@ -19,6 +19,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Button } from '@weaveworks/weave-gitops';
 import JSZip from 'jszip';
+import { Tooltip } from '../../../Shared';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiPaper-root'] {
@@ -108,7 +109,7 @@ const Preview: FC<{
         ]
       : [
           {
-            tabName: 'Cluster Definition',
+            tabName: 'Resource Definition',
             value: (PRPreview as ClusterPRPreview).renderedTemplate,
             files: [
               {
@@ -142,6 +143,20 @@ const Preview: FC<{
       saveAs(content, 'resources.zip');
     });
   };
+
+  const getTooltipText = (tabName: string) => {
+    switch (tabName) {
+      case 'Profiles':
+        return 'profile';
+      case 'Helm Releases':
+        return 'helm release';
+      case 'Kustomizations':
+        return 'kustomization';
+      default:
+        return '';
+    }
+  };
+
   return (
     <DialogWrapper
       open={openPreview}
@@ -162,9 +177,27 @@ const Preview: FC<{
         aria-label="pr-preview-sections"
         selectionFollowsFocus={true}
       >
-        {tabsContent.map(({ tabName }, index) => (
-          <Tab key={index} className="tab-label" label={tabName} />
-        ))}
+        {tabsContent.map(({ tabName, value }, index) =>
+          value === '' ? (
+            <Tooltip
+              title={`No ${getTooltipText(
+                tabName,
+              )} files in this rendered template.`}
+              placement="top"
+            >
+              <div>
+                <Tab
+                  key={index}
+                  className="tab-label"
+                  label={tabName}
+                  disabled={value === ''}
+                />
+              </div>
+            </Tooltip>
+          ) : (
+            <Tab key={index} className="tab-label" label={tabName} />
+          ),
+        )}
       </Tabs>
       <DialogContent>
         {tabsContent.map((tab, index) => (

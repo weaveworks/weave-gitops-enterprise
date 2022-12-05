@@ -15,7 +15,8 @@ type PoliciesPage struct {
 type PolicyInformation struct {
 	Name     *agouti.Selection
 	Category *agouti.Selection
-	Mode     *agouti.Selection
+	Audit    *agouti.Selection
+	Enforce  *agouti.Selection
 	Tenant   *agouti.Selection
 	Severity *agouti.Selection
 	Cluster  *agouti.Selection
@@ -49,11 +50,12 @@ func (p PoliciesPage) FindPolicyInList(policyName string) *PolicyInformation {
 	return &PolicyInformation{
 		Name:     policy.FindByXPath(`td[1]//a`),
 		Category: policy.FindByXPath(`td[2]`),
-		Mode:     policy.FindByXPath(`td[3]`),
-		Tenant:   policy.FindByXPath(`td[4]`),
-		Severity: policy.FindByXPath(`td[5]`),
-		Cluster:  policy.FindByXPath(`td[6]`),
-		Age:      policy.FindByXPath(`td[7]`),
+		Audit:    policy.FindByXPath(`td[3]//div/span`),
+		Enforce:  policy.FindByXPath(`td[4]//div/span`),
+		Tenant:   policy.FindByXPath(`td[5]`),
+		Severity: policy.FindByXPath(`td[6]`),
+		Cluster:  policy.FindByXPath(`td[7]`),
+		Age:      policy.FindByXPath(`td[8]`),
 	}
 }
 

@@ -28,7 +28,7 @@ rules:
     resources: ["secrets", "pods", "services"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["apps"]
-    resources: ["deployments", "replicasets"]
+    resources: ["deployments", "replicasets", "statefulsets"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: ["kustomizations"]
@@ -193,3 +193,23 @@ rules:
   resources: ["pipelines"]
   verbs: ["get", "list", "watch"]
 {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-workspaces-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "serviceaccounts"]
+    verbs: ["get", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list"]
+  - apiGroups: ["pac.weave.works"]
+    resources: ["policies"]
+    verbs: ["get", "list"]
