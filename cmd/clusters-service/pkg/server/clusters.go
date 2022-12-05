@@ -162,6 +162,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	// Get list of previous files to be added as deleted files in the commit,
 	// Update the  previous values to be nil to skip including it in the updated create-request annotation
 	prevFiles := &GetFilesReturn{}
+	prevPath := ""
 	if msg.PreviousValues != nil {
 		prevFiles, err = getFiles(
 			ctx,
@@ -178,6 +179,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		if err != nil {
 			return nil, err
 		}
+		prevPath = getClusterManifestPath(prevFiles.Cluster)
 		msg.PreviousValues = nil
 	}
 
@@ -213,6 +215,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 		files = append(files, removedKustomizations...)
 		files = append(files, removedProfiles...)
+	}
+	// Add a commit file to delete old file if path is changed
+	if prevPath != "" && prevPath != path {
+		files = append(files, gitprovider.CommitFile{
+			Path:    &prevPath,
+			Content: nil,
+		})
 	}
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
