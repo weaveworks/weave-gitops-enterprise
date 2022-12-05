@@ -90,14 +90,14 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		if profile.HelmReleaseTemplate.Content != nil {
 			names, err := p.Processor.ParamNames(profile.HelmReleaseTemplate.Content.Raw)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Name, err)
+				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Chart, err)
 			}
 			paramNames.Insert(names...)
 		}
 		if profile.Values != nil {
 			names, err := p.Processor.ParamNames(profile.Values.Raw)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get params from profile.values of %s: %w", profile.Name, err)
+				return nil, fmt.Errorf("failed to get params from profile.values of %s: %w", profile.Chart, err)
 			}
 			paramNames.Insert(names...)
 		}

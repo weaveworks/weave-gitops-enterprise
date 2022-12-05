@@ -79,11 +79,13 @@ type ChartsSpec struct {
 // of a chart/profile in a template.
 // +kubebuilder:object:generate=true
 type Chart struct {
-	// Name of the chart/profile
-	Name string `json:"name"`
-	// Default version to select
+	// Name of the chart/profile in the Helm repository.
+	// Shortcut to template.content.spec.chart.spec.chart
+	Chart string `json:"chart"`
+	// Default version to select.
+	// Shortcut to template.content.spec.chart.spec.version
 	Version string `json:"version,omitempty"`
-	// Shortcut for template.spec.targetNamespace
+	// Shortcut to template.content.spec.targetNamespace
 	TargetNamespace string `json:"targetNamespace,omitempty"`
 	// Layer, overrides the default layer provided in the Helm Repository
 	Layer string `json:"layer,omitempty"`
@@ -91,18 +93,18 @@ type Chart struct {
 	Required bool `json:"required,omitempty"`
 	// If true you can change the values and version of the chart/profile
 	Editable bool `json:"editable,omitempty"`
-	// Shortcut for template.spec.values
+	// Shortcut to template.content.spec.values
 	Values *HelmReleaseValues `json:"values,omitempty"`
 	// Template for the HelmRelease, merged with the default template
-	HelmReleaseTemplate TemplateWithPath `json:"template,omitempty"`
+	HelmReleaseTemplate HelmReleaseTemplateSpec `json:"template,omitempty"`
 }
 
-// TemplateWithPath is a future proof way to define a template with a path
+// HelmReleaseTemplateSpec is a future proof way to define a template with a path
 // path is not yet used, but will be used in the near future
 // +kubebuilder:object:generate=true
 
-type TemplateWithPath struct {
-	// Template for the HelmRelease, merged with the default template
+type HelmReleaseTemplateSpec struct {
+	// Content of the template
 	Content *HelmReleaseTemplate `json:"content,omitempty"`
 }
 

@@ -450,7 +450,7 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 	// Override anything that was still in the index with the profiles from the spec
 	for _, v := range tl.GetSpec().Charts.Items {
 		profile := capiv1_proto.TemplateProfile{
-			Name:      v.Name,
+			Name:      v.Chart,
 			Version:   v.Version,
 			Namespace: v.TargetNamespace,
 			Layer:     v.Layer,
@@ -461,7 +461,7 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 		if v.Values != nil {
 			valuesBytes, err := yaml.Marshal(v.Values)
 			if err != nil {
-				return nil, fmt.Errorf("failed to marshal profile.values for %s: %w", v.Name, err)
+				return nil, fmt.Errorf("failed to marshal profile.values for %s: %w", v.Chart, err)
 			}
 			profile.Values = string(valuesBytes)
 		}
@@ -469,7 +469,7 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 		if v.HelmReleaseTemplate.Content != nil {
 			profileTemplateBytes, err := yaml.Marshal(v.HelmReleaseTemplate.Content)
 			if err != nil {
-				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Name, err)
+				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Chart, err)
 			}
 			profile.ProfileTemplate = string(profileTemplateBytes)
 		}

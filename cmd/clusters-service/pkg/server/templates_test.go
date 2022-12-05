@@ -1405,8 +1405,8 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 
 		// profiles in template.spec.profiles
 		profiles := []templatesv1.Chart{
-			{Name: "cert-manager", Version: "2.0.1"},
-			{Name: "external-dns", Version: "0.0.8", Editable: true},
+			{Chart: "cert-manager", Version: "2.0.1"},
+			{Chart: "external-dns", Version: "0.0.8", Editable: true},
 		}
 
 		expected := []*capiv1_protos.TemplateProfile{
@@ -1431,9 +1431,9 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 	t.Run("All the fields are loaded properly from template.profiles", func(t *testing.T) {
 		profiles := []templatesv1.Chart{
 			{
-				Name:    "k8s-rbac-permissions",
+				Chart:   "k8s-rbac-permissions",
 				Version: "0.0.8",
-				HelmReleaseTemplate: templatesv1.TemplateWithPath{
+				HelmReleaseTemplate: templatesv1.HelmReleaseTemplateSpec{
 					Content: &templatesv1.HelmReleaseTemplate{
 						RawExtension: runtime.RawExtension{
 							Raw: []byte(`{ "spec": { "interval": "${INTERVAL}" } }`),
