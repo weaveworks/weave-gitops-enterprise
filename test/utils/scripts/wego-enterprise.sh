@@ -265,6 +265,7 @@ function setup {
 }
 
 function reset {
+   kubectl delete ValidatingWebhookConfiguration policy-agent
   # Delete flux system from the management cluster
   flux uninstall --silent
   # Delete any orphan resources
@@ -273,8 +274,7 @@ function reset {
   kubectl delete ClusterResourceSet --all
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
-  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works
-  kubectl delete ValidatingWebhookConfiguration policy-agent
+  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works 
   kubectl delete namespaces flux-system
   # Delete capi provider
   if [ "$CAPI_PROVIDER" == "capa" ]; then
