@@ -18,6 +18,7 @@ import { ChangeEvent, FC, useContext } from 'react';
 import { useQuery } from 'react-query';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
+  GetConfigResponse,
   ClusterNamespacedName,
   GetChartsJobResponse,
   GetValuesForChartResponse,
@@ -61,6 +62,10 @@ const ChartValuesDialog: FC<{
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
 
+  const getConfigResp = useQuery<GetConfigResponse, Error>('config', () =>
+    api.GetConfig({}),
+  );
+
   const {
     isLoading: jobLoading,
     data: jobData,
@@ -70,14 +75,14 @@ const ChartValuesDialog: FC<{
     () =>
       api.GetValuesForChart({
         repository: {
-          cluster: cluster || DEFAULT_PROFILE_REPO.cluster,
+          cluster: cluster || { name: getConfigResp?.data?.managementClusterName},
           name: helmRepo.name || DEFAULT_PROFILE_REPO.name,
           namespace: helmRepo.namespace || DEFAULT_PROFILE_REPO.namespace,
         },
         name: profile.name,
         version,
       }),
-    { enabled: !yaml, refetchOnWindowFocus: false },
+    { enabled: !yaml && !!getConfigResp?.data?.managementClusterName, refetchOnWindowFocus: false },
   );
 
   const { isLoading: valuesLoading, data: jobResult } = useQuery<

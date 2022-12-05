@@ -4,6 +4,7 @@ metadata:
   name: cluster-template-development
   namespace: default
   annotations:
+    templates.weave.works/profiles-enabled: "true"
     capi.weave.works/profile-0: |
       {
         "name": "cert-manager",

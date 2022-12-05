@@ -306,9 +306,6 @@ func initializeConfig(cmd *cobra.Command) error {
 
 func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
 
-	// print out the env variables UI_CONFIG
-	log.Info("UI_CONFIG", "UI_CONFIG", os.Getenv("UI_CONFIG"))
-
 	featureflags.SetFromEnv(os.Environ())
 
 	if p.CAPITemplatesNamespace == "" {

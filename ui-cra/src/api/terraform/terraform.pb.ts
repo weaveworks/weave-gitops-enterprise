@@ -26,6 +26,7 @@ export type GetTerraformObjectRequest = {
 export type GetTerraformObjectResponse = {
   object?: TerraformV1Types.TerraformObject
   yaml?: string
+  type?: string
 }
 
 export type SyncTerraformObjectRequest = {
