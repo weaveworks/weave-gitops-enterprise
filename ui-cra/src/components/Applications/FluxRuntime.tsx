@@ -33,7 +33,7 @@ const WGApplicationsFluxRuntime: FC = () => {
       ]}
     >
       <ContentWrapper errors={errors} loading={isLoading || crdsLoading}>
-        <FluxRuntime deployments={data?.deployments} crds={crds?.crds} supportMultipleFlux />
+        <FluxRuntime deployments={data?.deployments} crds={crds?.crds} />
       </ContentWrapper>
     </PageTemplate>
   );
