@@ -57,7 +57,6 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.AfterEach(func() {
 			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
 			templateFiles = []string{}
-			reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 		})
 
 		ginkgo.Context("[CLI] When Capi Templates are available in the cluster", func() {
@@ -262,6 +261,9 @@ func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
 				prTitle := "My dev pull request"
 				prCommit := "First dev capi template"
 				prDescription := "This PR creates a new dev Kubernetes cluster"
+
+				// Checkout repo main branch in case of test failure
+				defer checkoutRepoBranch(repoAbsolutePath, "main")
 
 				ginkgo.By("Apply/Install CAPITemplate", func() {
 					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
