@@ -663,9 +663,9 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			}
 		}
 
-		values, err := RenderAndParseValues(v, *tmplProcessor, args.parameterValues)
+		values, err := renderValues(v, *tmplProcessor, args.parameterValues)
 		if err != nil {
-			return nil, fmt.Errorf("cannot render and parse values of profile %s: %w", v.Name, err)
+			return nil, fmt.Errorf("cannot get values for profile %s: %w", v.Name, err)
 		}
 
 		profileTemplate := []byte{}
@@ -836,7 +836,9 @@ func getClusterProfilesPath(cluster types.NamespacedName) string {
 	)
 }
 
-func RenderAndParseValues(v *capiv1_proto.ProfileValues, tmplProcessor templates.TemplateProcessor, parameterValues map[string]string) (map[string]interface{}, error) {
+// renderValues renders the "values.yaml" section of a HelmRelease, as it can also contain template parameters.
+func renderValues(v *capiv1_proto.ProfileValues, tmplProcessor templates.TemplateProcessor, parameterValues map[string]string) (map[string]interface{}, error) {
+	// FIXME: look into decoding the base64 in the proto API rather than here.
 	decoded, err := base64.StdEncoding.DecodeString(v.Values)
 	if err != nil {
 		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
