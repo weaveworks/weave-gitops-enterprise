@@ -2335,10 +2335,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.11.0":
-  version "0.11.0"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.11.0/f38302fdc30b1da68683a86313310c1e778810f6#f38302fdc30b1da68683a86313310c1e778810f6"
-  integrity sha512-WVy8Tn1dPn4UFKM1fOEVL44lyDsV0XmTu/mGeLetqoxNcysR4GNN7Kc2jkf/D9cOpcDnyVUISB7cVwhl1D2sFA==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.11.0-91-gf418a074":
+  version "0.11.0-91-gf418a074"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.11.0-91-gf418a074/93db0804a5f5f5008fcc018b6e9249d0701771de#93db0804a5f5f5008fcc018b6e9249d0701771de"
+  integrity sha512-oMZFyzri99HcFg6uyDWbI6Ee2I/UqbkWMZCMSPNxMN+sNdkD7CzIf7zDpqR8MasVlmP0gJVOLAO1SUBpYL04Ww==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2350,11 +2350,12 @@
     jest-canvas-mock "^2.4.0"
     jest-fail-on-console "^3.0.1"
     jest-worker "^27.5.1"
+    js-sha3 "0.8.0"
     lodash "^4.17.21"
     luxon "^1.27.0"
     mnemonic-browser "^0.0.1"
     postcss "^8.3.11"
-    query-string "^7.0.0"
+    query-string "^4.3.4"
     react "^17.0.2"
     react-dom "^17.0.2"
     react-lottie-player "^1.4.3"
@@ -7656,7 +7657,7 @@ nwsapi@^2.2.0:
   resolved "https://registry.npmjs.org/nwsapi/-/nwsapi-2.2.0.tgz"
   integrity sha512-h2AatdwYH+JHiZpv7pt/gSX1XoRGb7L/qSIeuqA6GwYoF9w1vP1cw42TO0aI2pNyshRK5893hNSl+1//vHK7hQ==
 
-object-assign@^4.1.1:
+object-assign@^4.1.0, object-assign@^4.1.1:
   version "4.1.1"
   resolved "https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz"
   integrity sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=
@@ -8722,7 +8723,7 @@ quadprog@^1.6.1:
   resolved "https://registry.yarnpkg.com/quadprog/-/quadprog-1.6.1.tgz#1cd3b13700de9553ef939a6fa73d0d55ddb2f082"
   integrity sha512-fN5Jkcjlln/b3pJkseDKREf89JkKIyu6cKIVXisgL6ocKPQ0yTp9n6NZUAq3otEPPw78WZMG9K0o9WsfKyMWJw==
 
-query-string@*, query-string@^7.0.0, query-string@^7.0.1:
+query-string@*, query-string@^7.0.1:
   version "7.1.1"
   resolved "https://registry.npmjs.org/query-string/-/query-string-7.1.1.tgz"
   integrity sha512-MplouLRDHBZSG9z7fpuAAcI7aAYjDLhtsiVZsevsfaHWDS2IDdORKbSd1kWUA+V4zyva/HZoSfpwnYMMQDhb0w==
@@ -8731,6 +8732,14 @@ query-string@*, query-string@^7.0.0, query-string@^7.0.1:
     filter-obj "^1.1.0"
     split-on-first "^1.0.0"
     strict-uri-encode "^2.0.0"
+
+query-string@^4.3.4:
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/query-string/-/query-string-4.3.4.tgz#bbb693b9ca915c232515b228b1a02b609043dbeb"
+  integrity sha512-O2XLNDBIg1DnTOa+2XrIwSiXEV8h2KImXUnjhhn2+UsvZ+Es2uyd5CCRTNQlDGbzUQOW3aYCBx9rVA6dzsiY7Q==
+  dependencies:
+    object-assign "^4.1.0"
+    strict-uri-encode "^1.0.0"
 
 queue-microtask@^1.2.2:
   version "1.2.3"
@@ -9778,6 +9787,11 @@ stacktrace-js@^2.0.2:
   version "1.5.0"
   resolved "https://registry.npmjs.org/statuses/-/statuses-1.5.0.tgz"
   integrity sha1-Fhx9rBd2Wf2YEfQ3cfqZOBR4Yow=
+
+strict-uri-encode@^1.0.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-1.1.0.tgz#279b225df1d582b1f54e65addd4352e18faa0713"
+  integrity sha512-R3f198pcvnB+5IpnBlRkphuE9n46WyVl8I39W/ZUTZLz4nqSP/oLYUrcnJrw462Ds8he4YKMov2efsTIw1BDGQ==
 
 strict-uri-encode@^2.0.0:
   version "2.0.0"
