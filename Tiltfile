@@ -76,6 +76,18 @@ if native_build:
          ],
          dir='ui-cra',
       )
+      docker_build(
+         'weaveworks/weave-gitops-enterprise-ui-server',
+         'ui-cra',
+         dockerfile="ui-cra/dev.dockerfile",
+         build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
+      )
+   else:
+      # dummy docker image tht doesn't do anything
+      dockerfile = """
+      FROM alpine:3.13
+      """
+      docker_build("weaveworks/weave-gitops-enterprise-ui-server", "", dockerfile_contents=dockerfile)
 
    docker_build_with_restart(
       'weaveworks/weave-gitops-enterprise-clusters-service',
@@ -89,13 +101,6 @@ if native_build:
       ignore=[
          'cmd/clusters-service/clusters-service'
       ]
-   )
-
-   docker_build(
-      'weaveworks/weave-gitops-enterprise-ui-server',
-      'ui-cra',
-      dockerfile="ui-cra/dev.dockerfile",
-      build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
    )
 else:
    docker_build(
