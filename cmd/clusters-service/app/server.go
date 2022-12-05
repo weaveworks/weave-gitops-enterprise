@@ -69,6 +69,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -400,6 +401,15 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
+	}
+
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") != "false" {
+		err := telemetry.InitTelemetry(ctx, mgmtCluster)
+		if err != nil {
+			// If there's an error turning on telemetry, that's not a
+			// thing that should interrupt anything else
+			log.Info("Couldn't enable telemetry", "error", err)
+		}
 	}
 
 	if p.UseK8sCachedClients {
