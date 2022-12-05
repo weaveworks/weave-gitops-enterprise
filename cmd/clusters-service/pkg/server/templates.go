@@ -467,7 +467,7 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 		}
 
 		if v.HelmReleaseTemplate.Content != nil {
-			profileTemplateBytes, err := yaml.Marshal(v.HelmReleaseTemplate)
+			profileTemplateBytes, err := yaml.Marshal(v.HelmReleaseTemplate.Content)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Name, err)
 			}
