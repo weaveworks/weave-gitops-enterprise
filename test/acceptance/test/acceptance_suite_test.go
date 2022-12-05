@@ -11,18 +11,13 @@ import (
 var theT *testing.T
 
 func GomegaFail(message string, callerSkip ...int) {
+	logger.Errorf("Spec has failed, capturing failure state")
 	randID := RandString(16)
-	if webDriver != nil {
-		filepath := TakeScreenShot(randID) //Save the screenshot of failure
-		logger.Errorf("Failure screenshot is saved in file %s", filepath)
 
-		filepath = SaveDOM(randID)
-		logger.Errorf("Failure DOM is saved in file %s", filepath)
-	}
-
-	// Show management cluster pods etc.
+	TakeScreenShot(randID) //Save the screenshot of failure
+	DumpingDOM(randID)
 	DumpBrowserLogs(true, true)
-	ShowItems("")
+	DumpResources(randID)
 	DumpClusterInfo(randID)
 	DumpConfigRepo(randID)
 
