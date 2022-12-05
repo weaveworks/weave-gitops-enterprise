@@ -2334,7 +2334,8 @@
   version "0.0.0-rc13"
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
-  "@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.11.0-91-gf418a074":
+
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.11.0-91-gf418a074":
   version "0.11.0-91-gf418a074"
   resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.11.0-91-gf418a074/93db0804a5f5f5008fcc018b6e9249d0701771de#93db0804a5f5f5008fcc018b6e9249d0701771de"
   integrity sha512-oMZFyzri99HcFg6uyDWbI6Ee2I/UqbkWMZCMSPNxMN+sNdkD7CzIf7zDpqR8MasVlmP0gJVOLAO1SUBpYL04Ww==

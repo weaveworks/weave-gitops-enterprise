@@ -15,6 +15,7 @@ import {
   coreClient,
   CoreClientContextProvider,
   LinkResolverProvider,
+  Pendo,
   SignIn,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
