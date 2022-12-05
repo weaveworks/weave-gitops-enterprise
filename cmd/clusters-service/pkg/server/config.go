@@ -13,12 +13,8 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 	mngtClusterName := viper.GetString("cluster-name")
 
 	return &capiv1_proto.GetConfigResponse{
-<<<<<<< HEAD
-		RepositoryURL: repositoryURL,
-		UiConfig:      s.uiConfig,
-=======
 		RepositoryURL:         repositoryURL,
+		UiConfig:              s.uiConfig,
 		ManagementClusterName: mngtClusterName,
->>>>>>> main
 	}, nil
 }

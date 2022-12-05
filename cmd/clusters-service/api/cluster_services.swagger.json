@@ -9,12 +9,8 @@
       "name": "ClustersService"
     }
   ],
-  "consumes": [
-    "application/json"
-  ],
-  "produces": [
-    "application/json"
-  ],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
   "paths": {
     "/v1/charts/jobs/{jobId}": {
       "get": {
@@ -42,9 +38,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/charts/list": {
@@ -103,9 +97,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/charts/values": {
@@ -136,9 +128,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/clusters": {
@@ -185,9 +175,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       },
       "delete": {
         "operationId": "ClustersService_DeleteClustersPullRequest",
@@ -215,9 +203,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       },
       "post": {
         "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
@@ -246,9 +232,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/clusters/{clusterName}/kubeconfig": {
@@ -284,9 +268,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/config": {
@@ -306,9 +288,7 @@
             }
           }
         },
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/credentials": {
@@ -328,9 +308,7 @@
             }
           }
         },
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/enterprise/automations": {
@@ -361,9 +339,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/enterprise/automations/render": {
@@ -393,9 +369,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/enterprise/events": {
@@ -442,9 +416,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/enterprise/version": {
@@ -465,9 +437,7 @@
             }
           }
         },
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/policies": {
@@ -509,9 +479,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/policies/{policyName}": {
@@ -546,9 +514,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/policyviolations": {
@@ -579,9 +545,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/policyviolations/{violationId}": {
@@ -616,9 +580,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/templates": {
@@ -652,9 +614,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/templates/{templateName}": {
@@ -694,9 +654,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/templates/{templateName}/params": {
@@ -737,9 +695,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/templates/{templateName}/profiles": {
@@ -780,9 +736,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/templates/{templateName}/render": {
@@ -850,9 +804,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/tfcontrollers": {
@@ -883,9 +835,7 @@
             }
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/workspaces": {
@@ -921,9 +871,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/workspaces/{workspaceName}": {
@@ -958,9 +906,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/workspaces/{workspaceName}/policies": {
@@ -995,9 +941,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/workspaces/{workspaceName}/rolebindings": {
@@ -1032,9 +976,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/workspaces/{workspaceName}/roles": {
@@ -1069,9 +1011,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     },
     "/v1/workspaces/{workspaceName}/serviceaccounts": {
@@ -1106,9 +1046,7 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "ClustersService"
-        ]
+        "tags": ["ClustersService"]
       }
     }
   },
@@ -1657,11 +1595,10 @@
         "repositoryURL": {
           "type": "string"
         },
-<<<<<<< HEAD
         "uiConfig": {
-=======
+          "type": "string"
+        },
         "managementClusterName": {
->>>>>>> main
           "type": "string"
         }
       }

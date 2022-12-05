@@ -95,12 +95,9 @@ export const ContentWrapper: FC<Props> = ({
 }) => {
   const { data, error } = useListVersion();
   const { notifications } = useNotifications();
-<<<<<<< HEAD
   const { uiConfig } = useListConfig();
 
   const entitlement = data?.entitlement;
-=======
->>>>>>> main
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
