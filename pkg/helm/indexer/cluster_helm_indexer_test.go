@@ -30,7 +30,7 @@ func TestClusterHelmIndexerTracker(t *testing.T) {
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clientsFactory := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 
@@ -115,7 +115,7 @@ func TestErroringCache(t *testing.T) {
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
-	clientsFactory := clustersmngr.NewClustersManager(clustersFetcher, nsChecker, logger)
+	clientsFactory := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
 	err := clientsFactory.UpdateClusters(ctx)
 	g.Expect(err).To(BeNil())
 

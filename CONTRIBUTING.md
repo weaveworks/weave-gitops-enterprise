@@ -261,6 +261,7 @@ make test
 ```
 
 ### Creating leaf cluster
+
 To create leaf clusters to test out our features, we can rely on the [vcluster](https://www.vcluster.com/) to help us deploy new clusters on the fly. That project will basically create a entire cluster inside you kind cluster without adding much overhead.
 
 to get started install the `vcluster` cli first, by following https://www.vcluster.com/docs/getting-started/setup and then just run the `./tools/create-leaf-cluster.sh` script.
@@ -338,7 +339,7 @@ deploy WGE as a whole to a cluster.
        repositoryURL: <your config repo URL>
    EOF
 
-   kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
+   kubectl apply -f ./test/utils/data/entitlement/entitlement-secret.yaml
    ./tools/bin/flux create source helm weave-gitops-enterprise-charts \
        --url=https://charts.dev.wkp.weave.works/charts-v3 \
        --namespace=flux-system \
@@ -383,7 +384,7 @@ right place by explicitly specifying the relevant environment variables (example
 below).
 
 An existing entitlement secret that you can use can be found
-[here](../test/utils/scripts/entitlement-secret.yaml). Alternatively, you can
+[here](../test/utils/data/entitlement/entitlement-secret.yaml). Alternatively, you can
 generate your own entitlement secret by using the `wge-credentials` binary.
 
 #### Port forward the source-controller to access profiles (optional):
@@ -533,8 +534,14 @@ PROXY_HOST=http://localhost:8000 yarn start
 
 ### Testing changes to an unreleased weave-gitops locally
 
-Maybe you need to add an extra export or tweak a style in a component in
-weave-gitops:
+It is possible to test against local files from gitops OSS during
+development. If you want to do this, you need to make sure you've
+started tilt using `MANUAL_MODE=true tilt up` so that it won't
+re-start your backend. After that's running, you have to do
+development against the `yarn start` method.
+
+For another method that has fewer caveats, look at "How to update
+`weave-gitops` to a non-released version during development".
 
 ```bash
 # build the weave-gitops ui-library
@@ -558,7 +565,7 @@ One magical command to "reload" core (assumes the project directories are locate
 weave-gitops-enterprise/ui-cra$ cd ../../weave-gitops && make ui-lib && cd ../weave-gitops-enterprise/ui-cra && make core-lib
 ```
 
-## How to update the version of `weave-gitops`
+## How to update `weave-gitops` to a released version
 
 [`weave-gitops-enterprise`](https://github.com/weaveworks/weave-gitops-enterprise) depends on [`weave-gitops`](https://github.com/weaveworks/weave-gitops). When WG makes a new release we'll want to update the version WGE depends on. It goes a little something like this:
 
@@ -573,15 +580,20 @@ go mod tidy
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 ```
 
-## How to update `weave-gitops` to `main` during development
+## How to update `weave-gitops` to a non-released version during development
 
 This will update WGE to use the latest `main` of `weave-gitops`
 
 ```bash
-make update-weave-gitops-main
+make update-weave-gitops
 ```
 
-You can commit and push this to GitHub and CI will be able to build and test. It is fine to merge this to main too, just be careful before a release. We always want to release WGE with a released version of WG under the hood.
+You can also pick a different branch as long as that branch has a PR
+associated with it by running
+
+```bash
+make update-weave-gitops BRANCH=<my-branch-name>
+```
 
 ## How to update the version of `cluster-controller`
 
@@ -893,6 +905,7 @@ aws eks --region <aws-region> update-kubeconfig --name <cluster-name>
 First add a new feature flag in [values.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/0605d2992fed7888dd2c5045d675c7baeadb03ef/charts/mccp/values.yaml#L28))
 
 For example:
+
 ```yaml
 # Turns on pipelines features if set to true. This includes the UI elements.
 enablePipelines: false
@@ -901,6 +914,7 @@ enablePipelines: false
 Then add an `if` block to the [deployment.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/templates/clusters-service/deployment.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/27e143749b5cda32d6d8ac6eadab3d1e2db2999e/charts/mccp/templates/clusters-service/deployment.yaml#L61-L64)) template of cluster-service in order to conditionally set an environment variable. This variable will be available to cluster-service at runtime. As a convention, the environment variable needs to be prefixed with `WEAVE_GITOPS_FEATURE_` and takes a value of `true`.
 
 For example:
+
 ```yaml
 {{- if .Values.enablePipelines }}
 - name: WEAVE_GITOPS_FEATURE_PIPELINES

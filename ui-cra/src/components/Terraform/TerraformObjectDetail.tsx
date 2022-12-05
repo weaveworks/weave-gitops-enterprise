@@ -27,6 +27,7 @@ import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import YamlView from '../YamlView';
 import useNotifications from './../../contexts/Notifications';
+import { EditButton } from './../Templates/Edit/EditButton';
 
 type Props = {
   className?: string;
@@ -44,7 +45,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
   const toggleSuspend = useToggleSuspendTerraformObject(params);
   const { setNotifications } = useNotifications();
 
-  const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
+  const { object, yaml, type } = (data || {}) as GetTerraformObjectResponse;
 
   const handleSyncClick = () => {
     setSyncing(true);
@@ -109,6 +110,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             name: object?.name,
             namespace: object?.namespace,
             clusterName: object?.clusterName,
+            kind: type,
           }),
         },
       ]}
@@ -137,6 +139,11 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 >
                   {object?.suspended ? 'Resume' : 'Suspend'}
                 </Button>
+              </Box>
+              <Box paddingLeft={1}>
+                <EditButton
+                  resource={data || ({} as GetTerraformObjectResponse)}
+                />
               </Box>
             </Flex>
           </Box>

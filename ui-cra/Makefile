@@ -1,5 +1,6 @@
 CALENDAR_VERSION=$(shell date +"%Y-%m")
 
+.PHONY: node_modules
 node_modules: package.json yarn.lock
 	yarn config set network-timeout 300000 && yarn install --prod --frozen-lockfile
 

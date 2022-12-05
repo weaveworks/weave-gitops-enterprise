@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { useContext, useMemo } from 'react';
 import { useQuery } from 'react-query';
 import {
+  GetConfigResponse,
   ListChartsForRepositoryResponse,
   RepositoryChart,
   RepositoryRef,
@@ -188,6 +189,10 @@ const useProfiles = (
 
   const onError = (error: Error) => setNotifications(formatError(error));
 
+  const getConfigResponse = useQuery<GetConfigResponse, Error>('config', () =>
+    api.GetConfig({}),
+  );
+
   const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
     [
       'profiles',
@@ -206,12 +211,12 @@ const useProfiles = (
                 name: helmRepo.cluster?.name,
                 namespace: helmRepo.cluster?.namespace,
               }
-            : { name: 'management' },
+            : { name: getConfigResponse?.data?.managementClusterName },
         },
       }),
     {
+      enabled: enabled && !!getConfigResponse?.data?.managementClusterName,
       onError,
-      enabled,
     },
   );
 

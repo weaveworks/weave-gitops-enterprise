@@ -10,6 +10,10 @@ import (
 func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigRequest) (*capiv1_proto.GetConfigResponse, error) {
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
+	mngtClusterName := viper.GetString("cluster-name")
 
-	return &capiv1_proto.GetConfigResponse{RepositoryURL: repositoryURL}, nil
+	return &capiv1_proto.GetConfigResponse{
+		RepositoryURL:         repositoryURL,
+		ManagementClusterName: mngtClusterName,
+	}, nil
 }

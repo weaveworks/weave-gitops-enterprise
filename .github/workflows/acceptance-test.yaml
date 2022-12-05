@@ -366,7 +366,7 @@ jobs:
           fi
 
           cd test/acceptance/test/
-          go test ${{ inputs.label-filter }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=99999s
+          go test ${{ inputs.label-filter }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/${{ env.TEST_ARTIFACT_NAME }}.xml -ginkgo.timeout=2h
       - name: Store test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v3.1.1

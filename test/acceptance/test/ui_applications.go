@@ -58,7 +58,7 @@ type ApplicationViolations struct {
 }
 
 func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace string) (kustomization string) {
-	contents, err := ioutil.ReadFile(path.Join(testDataPath, "git-kustomization.yaml"))
+	contents, err := ioutil.ReadFile(path.Join(testDataPath, "kustomization/git-kustomization.yaml"))
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to read git-kustomization template yaml")
 
 	t := template.Must(template.New("kustomization").Parse(string(contents)))
@@ -319,54 +319,51 @@ func verifyAppViolationsList(violatingApp Application, violationsData Applicatio
 
 	})
 
+	appViolationsList := pages.GetApplicationViolationsList(webDriver, violationsData.ViolationMessage)
 	ginkgo.By("And check violations are visible in the Application Violations List", func() {
 
 		gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 		gomega.Expect((webDriver.URL())).Should(gomega.ContainSubstring("/violations?clusterName="))
-		appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
-		gomega.Eventually(appViolationsMsg.AppViolationsMsg.Text, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.MatchRegexp(violationsData.ViolationMessage), fmt.Sprintf("Failed to list '%s' violation in '%s' vioilations list", violationsData.ViolationMessage, violatingApp.Name))
 
 		// Checking that application violation are visible.
 		gomega.Eventually(appDetailPage.Violations).Should(matchers.BeVisible())
 
-		ApplicationViolationsList := pages.GetApplicationViolationsList(webDriver)
 		// Checking the Violation Message in the application violation list.
-		gomega.Eventually(ApplicationViolationsList.ViolationMessage.Text).Should(gomega.MatchRegexp("MESSAGE"), "Failed to get Violation Message title in violations List page")
-		gomega.Eventually(ApplicationViolationsList.ViolationMessageValue.Text).Should(gomega.MatchRegexp(violationsData.ViolationMessage), "Failed to get the Violation Message Value in App violations List")
+		gomega.Eventually(appViolationsList.ViolationMessage.Text).Should(gomega.MatchRegexp("MESSAGE"), "Failed to get Violation Message title in violations List page")
+		gomega.Eventually(appViolationsList.ViolationMessageValue.Text).Should(gomega.MatchRegexp(violationsData.ViolationMessage), "Failed to get the Violation Message Value in App violations List")
 		// Checking the Severity in the application violation list.
-		gomega.Eventually(ApplicationViolationsList.Severity.Text).Should(gomega.MatchRegexp("SEVERITY"), "Failed to get the Severity title in App violations List")
-		gomega.Expect(ApplicationViolationsList.SeverityIcon).ShouldNot(gomega.BeNil(), "Failed to get the Severity icon in App violations List")
-		gomega.Eventually(ApplicationViolationsList.SeverityValue.Text).Should(gomega.MatchRegexp(violationsData.ViolationSeverity), "Failed to get the Severity Value in App violations List")
+		gomega.Eventually(appViolationsList.Severity.Text).Should(gomega.MatchRegexp("SEVERITY"), "Failed to get the Severity title in App violations List")
+		gomega.Expect(appViolationsList.SeverityIcon).ShouldNot(gomega.BeNil(), "Failed to get the Severity icon in App violations List")
+		gomega.Eventually(appViolationsList.SeverityValue.Text).Should(gomega.MatchRegexp(violationsData.ViolationSeverity), "Failed to get the Severity Value in App violations List")
 		// Checking the Violated policy in the application violation list.
-		gomega.Eventually(ApplicationViolationsList.ViolatedPolicy.Text).Should(gomega.MatchRegexp("VIOLATED POLICY"), "Failed to get the Violated Policy title in App violations List")
-		gomega.Eventually(ApplicationViolationsList.ViolatedPolicyValue.Text).Should(gomega.MatchRegexp(violationsData.PolicyName), "Failed to get the Violated Policy Value in App violations List")
+		gomega.Eventually(appViolationsList.ViolatedPolicy.Text).Should(gomega.MatchRegexp("VIOLATED POLICY"), "Failed to get the Violated Policy title in App violations List")
+		gomega.Eventually(appViolationsList.ViolatedPolicyValue.Text).Should(gomega.MatchRegexp(violationsData.PolicyName), "Failed to get the Violated Policy Value in App violations List")
 		// Checking the Violation Time in the application violation list.
-		gomega.Eventually(ApplicationViolationsList.ViolationTime.Text).Should(gomega.MatchRegexp("VIOLATION TIME"), "Failed to get the Violation time title in App violations List")
-		gomega.Expect(ApplicationViolationsList.ViolationTimeValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get violation time value in App violations List")
-		gomega.Expect(ApplicationViolationsList.ViolationTimeValueSorting).ShouldNot(gomega.BeNil(), "Failed to get the Violation Time sorting icon in App violations List")
-		pages.WaitForPageToLoad(webDriver)
+		gomega.Eventually(appViolationsList.ViolationTime.Text).Should(gomega.MatchRegexp("VIOLATION TIME"), "Failed to get the Violation time title in App violations List")
+		gomega.Expect(appViolationsList.ViolationTimeValue.Text()).NotTo(gomega.BeEmpty(), "Failed to get violation time value in App violations List")
 	})
 
 	// Checking that the Violations can be filtered in the application violation list.
 	ginkgo.By("And Violations can be filtered by Severity", func() {
-		ApplicationViolationsList := pages.GetApplicationViolationsList(webDriver)
 		filterID := "severity: high"
 		searchPage := pages.GetSearchPage(webDriver)
 		searchPage.SelectFilter("severity", filterID)
-		gomega.Eventually(ApplicationViolationsList.CountViolations).Should(gomega.BeNumerically("~", 2, 4), "The number of selected violations for high severity should be equal two")
+		gomega.Eventually(func(g gomega.Gomega) int {
+			return pages.CountAppViolations(webDriver)
+		}).Should(gomega.BeNumerically(">=", 2), "The number of selected violations for high severity should be equal or greater than 2")
+		gomega.Expect(pages.CountAppViolations(webDriver)).Should(gomega.Equal(pages.AppViolationOccurrances(webDriver, "severity", "high")), "The application violations list contains severity other then the filtered high severity")
 		// Clear the filter
 		searchPage.SelectFilter("severity", filterID)
 	})
+
 	// Checking that you can search by violated policy name in the application violation list.
 	ginkgo.By(fmt.Sprintf("And search by violated policy name in '%s' app violations list", violatingApp.Name), func() {
-		ApplicationViolationsList := pages.GetApplicationViolationsList(webDriver)
 		searchPage := pages.GetSearchPage(webDriver)
 		searchPage.SearchName(violationsData.PolicyName)
 		gomega.Eventually(func(g gomega.Gomega) int {
-			return ApplicationViolationsList.CountViolations()
-		}).Should(gomega.BeNumerically("~", 1, 2), "There should be '1' Violation Message in the list after search")
-		gomega.Eventually(ApplicationViolationsList.ViolationMessageValue.Text).Should(gomega.MatchRegexp(violationsData.ViolationMessage), "Failed to get the Violation Message Value in App violations List")
-		pages.WaitForPageToLoad(webDriver)
+			return pages.CountAppViolations(webDriver)
+		}).Should(gomega.BeNumerically(">=", 1), "There should be at least '1' Violation Message in the list after search")
+		gomega.Eventually(appViolationsList.ViolationMessageValue.Text).Should(gomega.MatchRegexp(violationsData.ViolationMessage), "Failed to get the Violation Message Value in App violations List")
 	})
 
 }
@@ -375,9 +372,9 @@ func verifyAppViolationsDetailsPage(clusterName string, violatingApp Application
 
 	ginkgo.By(fmt.Sprintf("Verify '%s' Application Violation Details", violationsData.PolicyName), func() {
 
-		appViolationsMsg := pages.GetAppViolationsMsgInList(webDriver)
+		appViolationsList := pages.GetApplicationViolationsList(webDriver, violationsData.ViolationMessage)
 
-		gomega.Eventually(appViolationsMsg.AppViolationsMsg.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation details page of violation '%s'", violationsData.ViolationMessage))
+		gomega.Eventually(appViolationsList.ViolationMessageValue.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to violation details page of violation '%s'", violationsData.ViolationMessage))
 
 		gomega.Expect(webDriver.URL()).Should(gomega.ContainSubstring("/clusters/violations/details?clusterName"))
 
@@ -1236,7 +1233,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			}
 
 			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
 				createNamespace([]string{appNameSpace, appTargetNamespace})
 
 				// Add/Install test Policies to the management cluster
@@ -1267,7 +1264,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				// App Violations data
 				appViolations := ApplicationViolations{
 					PolicyName:        "Container Running As Root acceptance test",
-					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`,
+					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo`,
 					ViolationSeverity: "High",
 					ViolationCategory: "weave.categories.pod-security",
 				}
@@ -1285,7 +1282,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("Add Application/Kustomization manifests to management cluster's repository main branch", func() {
 					pullGitRepo(repoAbsolutePath)
-					podinfoPath := path.Join(testDataPath, "podinfo-app-violations-manifest.yaml")
+					podinfoPath := path.Join(testDataPath, "deployments/podinfo-app-violations-manifest.yaml")
 					createCommand := fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", podinfoPath, path.Join(repoAbsolutePath, "apps/podinfo"))
 					err := runCommandPassThrough("sh", "-c", createCommand)
 					gomega.Expect(err).Should(gomega.BeNil(), "Failed to run '%s'", createCommand)
@@ -1353,7 +1350,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 				// Just specify policies yaml path
-				policiesYaml = path.Join(testDataPath, "policies.yaml")
+				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
 				// Get the count of existing applications before deploying new application
 				existingAppCount = getApplicationCount()
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -1401,7 +1398,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				// App Violations data
 				appViolations := ApplicationViolations{
 					PolicyName:        "Container Running As Root acceptance test",
-					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo \(1 occurrences\)`,
+					ViolationMessage:  `Container Running As Root acceptance test in deployment podinfo`,
 					ViolationSeverity: "High",
 					ViolationCategory: "weave.categories.pod-security",
 				}
@@ -1438,7 +1435,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				useClusterContext(mgmtClusterContext)
 
-				appSourcePath = addKustomizationManifests([]string{"podinfo-app-violations-manifest.yaml"})
+				appSourcePath = addKustomizationManifests([]string{"deployments/podinfo-app-violations-manifest.yaml"})
 
 				ginkgo.By("Install kustomization Application on leaf cluster", func() {
 					pullGitRepo(repoAbsolutePath)

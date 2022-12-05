@@ -1,19 +1,20 @@
 import Grid from '@material-ui/core/Grid';
 import { Kind, useGetObject } from '@weaveworks/weave-gitops';
-import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
+import { useGetPipeline } from '../../../contexts/Pipelines';
+import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
-import { GitopsClusterEnriched } from '../../../types/custom';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
+import { Resource } from './EditButton';
 
 const EditResource: FC<{
-  resource: GitopsClusterEnriched | Automation | Source;
+  resource: Resource;
 }> = ({ resource }) => {
   const { getTemplate } = useTemplates();
 
@@ -30,7 +31,7 @@ const EditResource: FC<{
                 message: {
                   text: 'No edit information is available for this resource.',
                 },
-                variant: 'danger',
+                severity: 'error',
               },
             ],
           },
@@ -47,22 +48,57 @@ const EditResource: FC<{
 type Props = {
   name: string;
   namespace: string;
-  kind: string;
   clusterName: string;
+  kind?: string;
 };
 
 const EditResourcePage: FC<Props> = props => {
   const { isLoading: isTemplateLoading } = useTemplates();
   const { name, namespace, kind, clusterName } = props;
+
   const { data: resource, isLoading } = useGetObject(
     name,
     namespace,
     kind as Kind,
     clusterName,
-    { enabled: kind !== 'GitopsCluster' },
+    {
+      enabled:
+        kind !== 'GitopsCluster' && kind !== 'Terraform' && kind !== 'Pipeline',
+    },
   );
+
   const { getCluster } = useClusters();
   const cluster = getCluster(name);
+
+  const { data: tfData } = useGetTerraformObjectDetail(
+    {
+      name,
+      namespace,
+      clusterName,
+    },
+    kind === 'Terraform',
+  );
+
+  const { data: pipelineData } = useGetPipeline(
+    {
+      name,
+      namespace,
+    },
+    kind === 'Pipeline',
+  );
+
+  const getEditableResource = () => {
+    switch (kind) {
+      case 'Terraform':
+        return tfData;
+      case 'Pipeline':
+        return pipelineData?.pipeline;
+      case 'GitopsCluster':
+        return cluster;
+      default:
+        return resource;
+    }
+  };
 
   return (
     <PageTemplate
@@ -71,9 +107,11 @@ const EditResourcePage: FC<Props> = props => {
         { label: 'Resource' },
         {
           label:
-            kind === 'GitopsCluster'
-              ? cluster?.name || ''
-              : resource?.name || '',
+            cluster?.name ||
+            resource?.name ||
+            tfData?.object?.name ||
+            pipelineData?.pipeline?.name ||
+            '',
         },
       ]}
     >
@@ -82,13 +120,7 @@ const EditResourcePage: FC<Props> = props => {
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <Title>Edit resource</Title>
           </Grid>
-          <EditResource
-            resource={
-              kind === 'GitopsCluster'
-                ? (cluster as GitopsClusterEnriched)
-                : (resource as Automation | Source)
-            }
-          />
+          <EditResource resource={getEditableResource() || {}} />
         </Grid>
       </ContentWrapper>
     </PageTemplate>

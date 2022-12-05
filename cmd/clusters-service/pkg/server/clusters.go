@@ -159,6 +159,28 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
+	// Get list of previous files to be added as deleted files in the commit,
+	// Update the  previous values to be nil to skip including it in the updated create-request annotation
+	prevFiles := &GetFilesReturn{}
+	if msg.PreviousValues != nil {
+		prevFiles, err = getFiles(
+			ctx,
+			client,
+			s.log,
+			s.estimator,
+			s.chartsCache,
+			types.NamespacedName{Name: s.cluster},
+			s.profileHelmRepository,
+			tmpl,
+			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations},
+			msg,
+		)
+		if err != nil {
+			return nil, err
+		}
+		msg.PreviousValues = nil
+	}
+
 	git_files, err := getFiles(
 		ctx,
 		client,
@@ -185,6 +207,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
+	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
+		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, git_files.KustomizationFiles)
+		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, git_files.ProfileFiles)
+
+		files = append(files, removedKustomizations...)
+		files = append(files, removedProfiles...)
+	}
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
