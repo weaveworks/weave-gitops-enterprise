@@ -15,6 +15,7 @@ import {
   coreClient,
   CoreClientContextProvider,
   LinkResolverProvider,
+  Pendo,
   SignIn,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -174,6 +175,7 @@ const ResponsiveDrawer = () => {
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
             <LinkResolverProvider resolver={resolver}>
+              <Pendo defaultTelemetryFlag="true" />
               <Switch>
                 <Route
                   component={() => (
