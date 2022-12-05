@@ -369,6 +369,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
   line-height: 24px;
 }
 
+.c23 a > span {
+  font-size: 20px;
+}
+
 .c24 {
   font-size: 14px;
 }
@@ -666,7 +670,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      class="c15"
+                      href="/cluster?clusterName=dev"
+                    >
+                      <span
+                        class="c16 c17"
+                        color="primary"
+                      >
+                        dev
+                      </span>
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -682,7 +696,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
@@ -792,7 +808,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      class="c15"
+                      href="/cluster?clusterName=dev"
+                    >
+                      <span
+                        class="c16 c17"
+                        color="primary"
+                      >
+                        dev
+                      </span>
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -808,7 +834,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-qa"
@@ -893,7 +921,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      class="c15"
+                      href="/cluster?clusterName=dev"
+                    >
+                      <span
+                        class="c16 c17"
+                        color="primary"
+                      >
+                        dev
+                      </span>
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -909,7 +947,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-perf"
@@ -1014,7 +1054,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    prod
+                    <a
+                      class="c15"
+                      href="/cluster?clusterName=prod"
+                    >
+                      <span
+                        class="c16 c17"
+                        color="primary"
+                      >
+                        prod
+                      </span>
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -1030,7 +1080,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fprod&name=podinfo&namespace=podinfo-02-prod"

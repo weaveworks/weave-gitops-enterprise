@@ -3,7 +3,11 @@ import {
   Automation,
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { formatURL, Link } from '@weaveworks/weave-gitops';
+import {
+  ClusterDashboardLink,
+  formatURL,
+  Link,
+} from '@weaveworks/weave-gitops';
 import { useState } from 'react';
 import { getKindRoute } from '../../../../utils/nav';
 import { useCanaryStyle } from '../../CanaryStyles';
@@ -29,7 +33,10 @@ const DetailsSection = ({
   };
   return (
     <>
-      <RowHeader rowkey="Cluster" value={canary.clusterName} />
+      <RowHeader
+        rowkey="Cluster"
+        value={<ClusterDashboardLink clusterName={canary.clusterName || ''}  namespaceIncluded={false}/>}
+      />
       <RowHeader rowkey="Namespace" value={canary.namespace} />
       <RowHeader
         rowkey="Target"

@@ -1,5 +1,6 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import {
+  ClusterDashboardLink,
   Flex,
   formatURL,
   Link,
@@ -87,6 +88,9 @@ const Title = styled.div`
 const ClusterName = styled.div`
   margin-bottom: ${small};
   line-height: 24px;
+  a > span {
+    font-size: 20px;
+  }
 `;
 const TargetNamespace = styled.div`
   font-size: ${theme.fontSizes.medium};
@@ -121,7 +125,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
     namespace,
   });
 
-  const configResponse = useConfig()
+  const configResponse = useConfig();
   const environments = data?.pipeline?.environments || [];
   const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
@@ -171,14 +175,20 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                     {status.map(target => {
                       const clusterName = target?.clusterRef?.name
                         ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
-                        : configResponse?.data?.managementClusterName || 'undefined';
+                        : configResponse?.data?.managementClusterName ||
+                          'undefined';
 
                       return target?.workloads?.map((workload, wrkIndex) => (
                         <CardContainer key={wrkIndex} role="targeting">
                           <TargetWrapper className="workloadTarget">
                             <Title>Cluster</Title>
                             <ClusterName className="cluster-name">
-                              {target?.clusterRef?.name || clusterName}
+                              <ClusterDashboardLink
+                                clusterName={
+                                  target?.clusterRef?.name || clusterName
+                                }
+                                namespaceIncluded={false}
+                              />
                             </ClusterName>
 
                             <Title>Namespace</Title>
@@ -187,7 +197,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                             </TargetNamespace>
                           </TargetWrapper>
                           <WorkloadWrapper>
-                            <div>
+                            <div className='automation'>
                               <Link
                                 to={formatURL(
                                   '/helm_release/details',
