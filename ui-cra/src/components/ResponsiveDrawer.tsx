@@ -174,6 +174,7 @@ const ResponsiveDrawer = () => {
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
             <LinkResolverProvider resolver={resolver}>
+              <></>
               <Switch>
                 <Route
                   component={() => (
