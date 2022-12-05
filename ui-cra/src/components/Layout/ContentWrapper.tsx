@@ -97,7 +97,6 @@ export const ContentWrapper: FC<Props> = ({
   const { notifications } = useNotifications();
   const { uiConfig } = useListConfig();
 
-  const entitlement = data?.entitlement;
   const versions = {
     capiServer: data?.data.version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
