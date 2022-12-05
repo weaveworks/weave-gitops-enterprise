@@ -95,6 +95,7 @@ require (
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
+	github.com/fluxcd/notification-controller/api v0.29.1 // indirect
 	github.com/fluxcd/pkg/apis/event v0.2.0 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gobuffalo/flect v0.2.4 // indirect
