@@ -274,7 +274,7 @@ function reset {
   kubectl delete ClusterResourceSet --all
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
-  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works 
+  kubectl delete crd clusterbootstrapconfigs.capi.weave.works 
   kubectl delete namespaces flux-system
   # Delete capi provider
   if [ "$CAPI_PROVIDER" == "capa" ]; then

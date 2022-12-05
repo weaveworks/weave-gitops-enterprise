@@ -1,8 +1,12 @@
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
 metadata:
   name: capa-cluster-template-eks-fargate-{{.Count}}
   namespace: default
+  labels:
+    weave.works/template-type: cluster
+  annotations:
+    templates.weave.works/inject-prune-annotation: "true"    
 spec:
   description: This is eks fargate template-{{.Count}}
   params:

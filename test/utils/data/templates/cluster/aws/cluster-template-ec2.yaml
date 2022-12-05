@@ -1,9 +1,12 @@
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
 metadata:
   name: capa-cluster-template-{{.Count}}
   namespace: default
-  annotations:    
+  labels:
+    weave.works/template-type: cluster
+  annotations:
+    templates.weave.works/inject-prune-annotation: "true"
     templates.weave.works/cost-estimation-enabled: "true"
     templates.weave.works/profiles-enabled: "false"
     templates.weave.works/kustomizations-enabled: "false"

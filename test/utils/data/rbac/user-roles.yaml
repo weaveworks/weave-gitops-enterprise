@@ -49,9 +49,6 @@ kind: ClusterRole
 metadata:
   name: gitops-templates-reader
 rules:
-  - apiGroups: ["capi.weave.works"]
-    resources: ["capitemplates"]
-    verbs: ["get", "watch", "list"]
   - apiGroups: ["templates.weave.works"]
     resources: ["gitopstemplates"]
     verbs: ["get", "watch", "list"]

@@ -11,7 +11,7 @@ import (
 )
 
 func DescribeCliGet(gitopsTestRunner GitopsTestRunner) {
-	var _ = ginkgo.Describe("Gitops Get Tests", func() {
+	var _ = ginkgo.Describe("Gitops Get Tests", ginkgo.Label("cli"), func() {
 
 		templateFiles := []string{}
 		var stdOut string

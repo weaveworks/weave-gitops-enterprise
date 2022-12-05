@@ -47,7 +47,7 @@ func createProfileValuesYaml(profileName string, clusterName string) string {
 }
 
 func DescribeCliAddDelete(gitopsTestRunner GitopsTestRunner) {
-	var _ = ginkgo.Describe("Gitops add Tests", func() {
+	var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 		var stdOut string
 		var stdErr string
 		var repoAbsolutePath string
