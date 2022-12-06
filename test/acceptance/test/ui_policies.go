@@ -47,7 +47,7 @@ func installTestPolicies(clusterName string, policiesYaml string) {
 func installPolicySet(clusterName string, policySetYaml string) {
 	ginkgo.By(fmt.Sprintf("Add/Install Policy Set to the %s cluster", clusterName), func() {
 		err := runCommandPassThrough("kubectl", "apply", "-f", policySetYaml)
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install policy set to cluster:"+clusterName)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy set on cluster %s", clusterName))
 	})
 }
 
