@@ -38,7 +38,7 @@ func (s SearchPage) SelectFilter(filterType string, filterID string) {
 			gomega.Eventually(func(g gomega.Gomega) {
 				g.Expect(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]`, filterID)).Check()).Should(gomega.Succeed())
 				g.Eventually(filters.At(i).FindByXPath(fmt.Sprintf(`//input[@id="%s"]/ancestor::span[contains(@class, "Mui-checked")]`, filterID)), time.Second*5).Should(matchers.BeFound())
-			}, time.Second*30, time.Second*5).Should(gomega.Succeed(), "Failed to select cluster filter: "+filterID)
+			}, time.Second*30, time.Second*5).Should(gomega.Succeed(), fmt.Sprintf("Failed to select '%s' filter", filterID))
 			break
 		}
 	}
