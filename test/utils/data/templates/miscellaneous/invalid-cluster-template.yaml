@@ -3,6 +3,8 @@ kind: CAPITemplate
 metadata:
   name: invalid-cluster-template-{{.Count}}
   namespace: default
+  labels:
+    weave.works/template-type: cluster
 spec:
   resourcetemplates:
     - apiVersion: cluster.x-k8s.io/v1alpha3
