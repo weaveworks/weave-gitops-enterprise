@@ -422,8 +422,6 @@ github.com/fluxcd/notification-controller/api v0.29.1 h1:gNLbJ18TprLPFVYNXpDRNOX
 github.com/fluxcd/notification-controller/api v0.29.1/go.mod h1:Ve4SE6jeiGlyItvHa7/UpTPOVC6ac5K76Frv1P7hqLw=
 github.com/fluxcd/pkg/apis/acl v0.1.0 h1:EoAl377hDQYL3WqanWCdifauXqXbMyFuK82NnX6pH4Q=
 github.com/fluxcd/pkg/apis/acl v0.1.0/go.mod h1:zfEZzz169Oap034EsDhmCAGgnWlcWmIObZjYMusoXS8=
-github.com/fluxcd/pkg/apis/event v0.2.0 h1:cmAtkZfoEaNVYegI4SFM8XstdRAil3O9AoP+8fpbR34=
-github.com/fluxcd/pkg/apis/event v0.2.0/go.mod h1:OyzKqs90J+MK7rQaEOFMMCkALpPkfmxlkabgyY2wSFQ=
 github.com/fluxcd/pkg/apis/kustomize v0.7.0 h1:X2htBmJ91nGYv4d93gin665MFWKNGiNwUiZ08/Zz0hY=
 github.com/fluxcd/pkg/apis/kustomize v0.7.0/go.mod h1:Mu+KdktsEKWA4l/33CZdY5lB4hz51mqfcLzBZSwAqVg=
 github.com/fluxcd/pkg/apis/meta v0.18.0 h1:s0LeulWcQ4DxVX6805vgDTxlA6bAYk+Lq1QHSnNdqLM=
@@ -1399,8 +1397,8 @@ github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
-github.com/weaveworks/weave-gitops v0.11.1-0.20221205135057-f418a074fab3 h1:vnQ8vGPUTPqVPcz8WEIR50BxkW5NQzNwLqXxCg4KbVs=
-github.com/weaveworks/weave-gitops v0.11.1-0.20221205135057-f418a074fab3/go.mod h1:WB+FykmP+dD0rp7cGv7MZZDkFZWqzB0trfeDZnTjZVw=
+github.com/weaveworks/weave-gitops v0.11.1-0.20221206112919-800b8fa3582a h1:uK72etA/3wDLD6HmZdA1qJexGjYYAJvoO7mHbPx1PDU=
+github.com/weaveworks/weave-gitops v0.11.1-0.20221206112919-800b8fa3582a/go.mod h1:WB+FykmP+dD0rp7cGv7MZZDkFZWqzB0trfeDZnTjZVw=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.74.0 h1:Ha1cokbjn0PXy6B19t3W324dwM4AOT52fuHr7nERPrc=

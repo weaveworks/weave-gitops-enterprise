@@ -33,11 +33,7 @@ export function useIsAuthenticated() {
         );
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [
-        applicationsClient,
-        // req causes an infinite loop
-        // req,
-      ],
+      [applicationsClient],
     ),
   };
 }
