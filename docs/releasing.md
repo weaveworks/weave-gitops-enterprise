@@ -96,6 +96,8 @@ You can use a [previous release](https://github.com/weaveworks/weave-gitops-ente
 - Add a **Breaking Changes** section, calling out any breaking changes in this new release.
 - Add a **Known Issues** section, calling out any known issues in this new release.
 
+Notify your Product Manager at this stage that the release notes are available. They will combine with content from the product newsletter to update the website **after** the release. 
+
 #### The https://docs.gitops.weave.works/ Enterprise releases page
 
 > **Note**
@@ -106,7 +108,7 @@ Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Kno
 - Paste it up the top, keeping previous releases in order.
 - Add the current date under the release version
 
-Make sure to backport the docs changes to the versioned docs. For example when releasing 0.9.5, both these files should be the same:
+Make sure to backport the docs changes to the most recent versioned docs. For example when releasing 0.9.5, both these files should be the same:
 - weave-gitops/website/docs/enterprise/releases.mdx
 - weave-gitops/website/versioned_docs/version-0.9.5/enterprise/releases.mdx
 

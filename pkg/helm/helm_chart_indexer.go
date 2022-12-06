@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
+	"github.com/Masterminds/semver"
 	_ "github.com/mattn/go-sqlite3"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -364,4 +366,26 @@ func createDB(cacheLocation string) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func ReverseSemVerSort(versions []string) ([]string, error) {
+	vs := make([]*semver.Version, len(versions))
+
+	for i, r := range versions {
+		v, err := semver.NewVersion(r)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", r, err)
+		}
+
+		vs[i] = v
+	}
+
+	sort.Sort(sort.Reverse(semver.Collection(vs)))
+
+	result := make([]string, len(versions))
+	for i := range vs {
+		result[i] = vs[i].String()
+	}
+
+	return result, nil
 }

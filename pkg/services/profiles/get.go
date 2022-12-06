@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
+	"github.com/Masterminds/semver/v3"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -83,12 +84,12 @@ func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts 
 
 			switch {
 			case opts.Version == "latest":
-				versions, err := controller.ConvertStringListToSemanticVersionList(p.Versions)
+				versions, err := ConvertStringListToSemanticVersionList(p.Versions)
 				if err != nil {
 					return Profile{}, "", err
 				}
 
-				controller.SortVersions(versions)
+				SortVersions(versions)
 				version = versions[0].String()
 			default:
 				if !foundVersion(p.Versions, opts.Version) {
@@ -124,4 +125,27 @@ func printProfiles(profiles []Profile, w io.Writer) {
 			fmt.Fprintln(w, "")
 		}
 	}
+}
+
+// ConvertStringListToSemanticVersionList converts a slice of strings into a slice of semantic version.
+func ConvertStringListToSemanticVersionList(versions []string) ([]*semver.Version, error) {
+	var result []*semver.Version
+
+	for _, v := range versions {
+		ver, err := semver.NewVersion(v)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, ver)
+	}
+
+	return result, nil
+}
+
+// SortVersions sorts semver versions in decreasing order.
+func SortVersions(versions []*semver.Version) {
+	sort.SliceStable(versions, func(i, j int) bool {
+		return versions[i].GreaterThan(versions[j])
+	})
 }
