@@ -175,7 +175,9 @@ const ResponsiveDrawer = () => {
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
             <LinkResolverProvider resolver={resolver}>
-              <Pendo defaultTelemetryFlag="true" />
+              {process.env.WEAVE_GITOPS_TEST_MODE !== 'true' && (
+                <Pendo defaultTelemetryFlag="true" />
+              )}
               <Switch>
                 <Route
                   component={() => (
