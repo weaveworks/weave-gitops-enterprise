@@ -671,15 +671,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c23 cluster-name"
                   >
                     <a
-                      class="c15"
                       href="/cluster?clusterName=dev"
                     >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        dev
-                      </span>
+                      dev
                     </a>
                   </div>
                   <div
@@ -809,15 +803,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c23 cluster-name"
                   >
                     <a
-                      class="c15"
                       href="/cluster?clusterName=dev"
                     >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        dev
-                      </span>
+                      dev
                     </a>
                   </div>
                   <div
@@ -922,15 +910,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c23 cluster-name"
                   >
                     <a
-                      class="c15"
                       href="/cluster?clusterName=dev"
                     >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        dev
-                      </span>
+                      dev
                     </a>
                   </div>
                   <div
@@ -1055,15 +1037,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c23 cluster-name"
                   >
                     <a
-                      class="c15"
                       href="/cluster?clusterName=prod"
                     >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        prod
-                      </span>
+                      prod
                     </a>
                   </div>
                   <div
