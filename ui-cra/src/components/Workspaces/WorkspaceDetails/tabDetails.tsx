@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import {
   Tab,
   Tabs,
-  Dialog,
   Box,
 } from '@material-ui/core';
 import {
@@ -105,23 +104,23 @@ const TabDetails = ({
   const [contentType, setContentType] = useState<string>('');
   const [dialogTitle, setDialogTitle] = useState<string>('');
 
-  const { data: roles, isLoading: isRolesLoading } = useGetWorkspaceRoles({
+  const { data: roles} = useGetWorkspaceRoles({
     clusterName,
     workspaceName,
   });
 
-  const { data: listRoleBindings, isLoading: isListRoleBindingssLoading } =
+  const { data: listRoleBindings} =
     useGetWorkspaceRoleBinding({
       clusterName,
       workspaceName,
     });
 
-  const { data: serviceAccounts, isLoading: isServiceAccountsLoading } =
+  const { data: serviceAccounts }=
     useGetWorkspaceServiceAccount({
       clusterName,
       workspaceName,
     });
-  const { data: workspacePolicies, isLoading: isWorkspacePoliciesLoading } =
+  const { data: workspacePolicies} =
     useGetWorkspacePolicies({
       clusterName,
       workspaceName,
