@@ -83,7 +83,7 @@ if native_build:
          build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
       )
    else:
-      # dummy docker image tht doesn't do anything
+      # dummy docker image that doesn't do anything
       dockerfile = """
       FROM alpine:3.13
       """
