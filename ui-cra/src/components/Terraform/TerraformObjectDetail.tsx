@@ -118,7 +118,10 @@ function TerraformObjectDetail({ className, ...params }: Props) {
       <ContentWrapper loading={isLoading}>
         <div className={className}>
           <Box paddingBottom={3}>
-            <KubeStatusIndicator conditions={object?.conditions || []} />
+            <KubeStatusIndicator
+              conditions={object?.conditions || []}
+              suspended={object?.suspended}
+            />
           </Box>
           <Box paddingBottom={3}>
             <Flex>
