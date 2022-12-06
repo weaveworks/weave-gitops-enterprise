@@ -12,6 +12,9 @@ spec:
       app: clusters-service
   template:
     metadata:
+      # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/clusters-service/configmap.yaml") . | sha256sum }}
       labels:
         app: clusters-service
         {{- include "mccp.selectorLabels" . | nindent 8 }}
