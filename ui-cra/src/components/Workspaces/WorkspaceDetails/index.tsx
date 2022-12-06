@@ -9,6 +9,8 @@ import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import HeaderSection from './HeaderSection';
+import TabDetails from './tabDetails';
+
 
 const WorkspaceDetails = ({
   clusterName,
@@ -22,29 +24,6 @@ const WorkspaceDetails = ({
       clusterName,
       workspaceName,
     });
-
-  // const { data: roles, isLoading: isRolesLoading } = useGetWorkspaceRoles({
-  //   clusterName,
-  //   workspaceName,
-  // });
-
-  // const { data: listRoleBindings, isLoading: isListRoleBindingssLoading } =
-  //   useGetWorkspaceRoleBinding({
-  //     clusterName,
-  //     workspaceName,
-  //   });
-
-  // const { data: serviceAccounts, isLoading: isServiceAccountsLoading } =
-  //   useGetWorkspaceServiceAccount({
-  //     clusterName,
-  //     workspaceName,
-  //   });
-  // const { data: workspacePolicies, isLoading: isWorkspacePoliciesLoading } =
-  //   useGetWorkspacePolicies({
-  //     clusterName,
-  //     workspaceName,
-  //   });
-
   return (
     <>
       <PageTemplate
@@ -60,6 +39,7 @@ const WorkspaceDetails = ({
             clusterName={workspaceDetails?.clusterName}
             namespaces={workspaceDetails?.namespaces}
           />
+          <TabDetails clusterName={clusterName}  workspaceName={workspaceName}/>
         </ContentWrapper>
       </PageTemplate>
     </>
