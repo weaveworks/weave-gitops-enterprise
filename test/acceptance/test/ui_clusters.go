@@ -191,7 +191,7 @@ func DescribeClusters(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{leafCluster.Namespace})
 			})
 
-			ginkgo.It("Verify a cluster can be connected and dashboard is updated accordingly", ginkgo.Label("kind-gitops-cluster", "integration", "browser-logs"), func() {
+			ginkgo.It("Verify a cluster can be connected and dashboard is updated accordingly", ginkgo.Label("kind-gitops-cluster", "integration"), func() {
 				existingClustersCount := getClustersCount()
 
 				pages.NavigateToPage(webDriver, "Clusters")
