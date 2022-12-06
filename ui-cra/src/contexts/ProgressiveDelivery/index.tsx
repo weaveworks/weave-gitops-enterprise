@@ -2,17 +2,17 @@ import {
   GetCanaryResponse,
   ListCanariesResponse,
   ListCanaryObjectsResponse,
-  ProgressiveDeliveryService,
+  ProgressiveDeliveryService
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
 import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListEventsRequest,
-  ListEventsResponse,
+  ListEventsResponse
 } from '../../cluster-services/cluster_services.pb';
-import { EnterpriseClientContext } from '../EnterpriseClient';
 import { formatError } from '../../utils/formatters';
+import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../../contexts/Notifications';
 
 interface Props {
@@ -113,6 +113,7 @@ export function useListEvents(req: ListEventsRequest) {
     () => api.ListEvents(req),
     {
       onError,
+      refetchInterval: 5000,
     },
   );
 }
