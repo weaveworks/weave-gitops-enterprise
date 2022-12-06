@@ -40,7 +40,7 @@ var (
 	selenium_service_url string
 	gitops_bin_path      string
 	capi_provider        string
-	capi_endpoint_url    string
+	wge_endpoint_url     string
 	test_ui_url          string
 	artifacts_base_dir   string
 	testScriptsPath      string
@@ -96,16 +96,17 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeViolations(gitopsTestRunner)
 	DescribeTenants(gitopsTestRunner)
 	DescribeCostEstimation(gitopsTestRunner)
-	DescribeMiscellaneousUi(gitopsTestRunner)
+	DescribeMiscellaneous(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
 func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
 	DescribeCliHelp()
-	DescribeCliGet(gitopsTestRunner)
-	DescribeCliAddDelete(gitopsTestRunner)
+	DescribeCliTemplates(gitopsTestRunner)
+	DescribeCliTemplatesCapi(gitopsTestRunner)
 	DescribeCliTenant(gitopsTestRunner)
 	DescribeCliUpgrade(gitopsTestRunner)
+	DescribeCliMiscellaneous(gitopsTestRunner)
 }
 
 func GetWebDriver() *agouti.Page {
@@ -147,7 +148,7 @@ func SetupTestEnvironment() {
 	mgmtClusterKind = GetEnv("MANAGEMENT_CLUSTER_KIND", "kind")
 	selenium_service_url = "http://localhost:4444/wd/hub"
 	test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
-	capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
+	wge_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	gitops_bin_path = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	capi_provider = GetEnv("CAPI_PROVIDER", "capd")
 	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
@@ -371,7 +372,7 @@ func DumpingDOM(name string) {
 	if webDriver != nil {
 		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
 		var htmlDocument interface{}
-		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
+		_ = webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)
 		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
 	}
 }

@@ -58,7 +58,7 @@ var _ = ginkgo.BeforeSuite(func() {
 		}
 	})
 
-	CheckClusterService(capi_endpoint_url) // Cluster service should be running before running any test for enterprise
+	CheckClusterService(wge_endpoint_url) // Cluster service should be running before running any test for enterprise
 })
 
 var _ = ginkgo.AfterSuite(func() {

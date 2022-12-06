@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"path"
 	"regexp"
 	"strconv"
 
@@ -14,7 +15,6 @@ import (
 func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 		DEPLOYMENT_APP := "my-mccp-cluster-service"
-		templateFiles := []string{}
 
 		ginkgo.BeforeEach(func() {
 			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
@@ -25,9 +25,8 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.AfterEach(func() {
-			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
-			// Reset/empty the templateFiles list
-			templateFiles = []string{}
+			_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
+			_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 		})
 
 		ginkgo.Context("[UI] When Cost estimation feature is enabled", func() {
@@ -40,16 +39,17 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify capa EC2 cluster cost estimation", ginkgo.Label("integration", "cost"), func() {
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				ginkgo.By("And I should choose a template", func() {
-					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template")
 					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -158,16 +158,17 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify non-supported (eks) capa cluster cost estimation", ginkgo.Label("integration", "cost"), func() {
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-eks.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				ginkgo.By("And I should choose a template", func() {
-					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-eks-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-eks")
 					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -211,16 +212,17 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify capa machinepool cost estimation", ginkgo.Label("integration", "cost"), func() {
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-machinepool.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-machinepool.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				ginkgo.By("And I should choose a template", func() {
-					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-machinepool-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-machinepool")
 					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -304,16 +306,17 @@ func DescribeCostEstimation(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify capa cost estimation with invalid pricing secrert", ginkgo.Label("integration", "cost"), func() {
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-machinepool.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-machinepool.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
 
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				ginkgo.By("And I should choose a template", func() {
-					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-machinepool-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-machinepool")
 					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
