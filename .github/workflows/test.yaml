@@ -182,7 +182,7 @@ jobs:
       YARN_CACHE_NAME: cache-yarn
       GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       SELENIUM_DEBUG: true
-      ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
+      ARTIFACTS_BASE_DIR: /tmp/gitops-test/
       WEAVE_GITOPS_FEATURE_TELEMETRY: "false"
     steps:
       - id: cache-paths

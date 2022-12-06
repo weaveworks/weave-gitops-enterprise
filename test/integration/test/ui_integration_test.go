@@ -303,12 +303,10 @@ func TestMccpUI(t *testing.T) {
 	RegisterFailHandler(Fail)
 	// Screenshot on fail
 	RegisterFailHandler(gomegaFail)
-	// Screenshots
-	ARTIFACTS_BASE_DIR := acceptancetest.GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
-	_ = os.RemoveAll(ARTIFACTS_BASE_DIR)
-	_ = os.MkdirAll(path.Join(ARTIFACTS_BASE_DIR, acceptancetest.SCREENSHOTS_DIR_NAME), 0700)
 	// WKP-UI can be a bit slow
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
+
+	acceptancetest.SetupTestEnvironment()
 
 	// Load up the acceptance test suite
 	mccpRunner := acceptancetest.DatabaseGitopsTestRunner{Client: cl}
