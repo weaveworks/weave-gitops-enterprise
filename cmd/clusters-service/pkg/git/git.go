@@ -87,7 +87,7 @@ type CloneRepoToTempDirResponse struct {
 // It returns the URL of the pull request.
 func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
 	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	commits := map[string][]gitprovider.CommitFile{}
+	commits := []Commit{}
 
 	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
 	if err != nil {
@@ -102,40 +102,25 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	// Gitlab doesn't support createOrUpdate, so we need to check if the file exists
 	// and if it does, we need to create a commit to delete the file.
 	if req.GitProvider.Type == "gitlab" {
-		var files []gitprovider.CommitFile
-
-		for _, file := range req.Files {
-			// if file content is empty, then it's a delete operation
-			// so we don't need to check if the file exists
-			if file.Content == nil {
-				continue
-			}
-
-			dirPath, _ := filepath.Split(*file.Path)
-
-			treeEntries, err := s.GetTreeList(ctx, req.GitProvider, repoURL, req.BaseBranch, dirPath, true)
-			if err != nil {
-				return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repoURL, req.BaseBranch, err)
-			}
-
-			for _, treeEntry := range treeEntries {
-				if treeEntry.Path == *file.Path {
-					files = append(files, gitprovider.CommitFile{
-						Path:    &treeEntry.Path,
-						Content: nil,
-					})
-				}
-			}
+		files, err := s.getFilesFromTreeList(ctx, req.Files, req.GitProvider, repoURL, req.BaseBranch)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get files from tree list: %w", err)
 		}
 
 		// If there are files to delete, append them to the map of changes to be deleted.
 		if len(files) > 0 {
-			commits[deleteFilesCommitMessage] = files
+			commits = append(commits, Commit{
+				CommitMessage: deleteFilesCommitMessage,
+				Files:         files,
+			})
 		}
 	}
 
 	// Add the files to be created to the map of changes.
-	commits[req.CommitMessage] = req.Files
+	commits = append(commits, Commit{
+		CommitMessage: req.CommitMessage,
+		Files:         req.Files,
+	})
 
 	if err := s.writeFilesToBranch(ctx, writeFilesToBranchRequest{
 		Repository: repo,
@@ -260,7 +245,12 @@ type writeFilesToBranchRequest struct {
 	Repository gitprovider.OrgRepository
 	HeadBranch string
 	BaseBranch string
-	Commits    map[string][]gitprovider.CommitFile
+	Commits    []Commit
+}
+
+type Commit struct {
+	CommitMessage string
+	Files         []gitprovider.CommitFile
 }
 
 func (s *GitProviderService) writeFilesToBranch(ctx context.Context, req writeFilesToBranchRequest) error {
@@ -292,8 +282,8 @@ func (s *GitProviderService) writeFilesToBranch(ctx context.Context, req writeFi
 	}
 
 	// Loop through all the commits and write the files.
-	for commitMessage, files := range req.Commits {
-		commit, err := req.Repository.Commits().Create(ctx, req.HeadBranch, commitMessage, files)
+	for _, c := range req.Commits {
+		commit, err := req.Repository.Commits().Create(ctx, req.HeadBranch, c.CommitMessage, c.Files)
 		if err != nil {
 			return fmt.Errorf("unable to commit changes to %q: %w", req.HeadBranch, err)
 		}
@@ -389,4 +379,39 @@ func addSchemeToDomain(domain string) string {
 		return "https://" + domain
 	}
 	return domain
+}
+
+func (s *GitProviderService) getFilesFromTreeList(
+	ctx context.Context,
+	reqFiles []gitprovider.CommitFile,
+	gp GitProvider,
+	repoURL,
+	branch string) ([]gitprovider.CommitFile, error) {
+	var files []gitprovider.CommitFile
+
+	for _, file := range reqFiles {
+		// if file content is empty, then it's a delete operation
+		// so we don't need to check if the file exists
+		if file.Content == nil {
+			continue
+		}
+
+		dirPath, _ := filepath.Split(*file.Path)
+
+		treeEntries, err := s.GetTreeList(ctx, gp, repoURL, branch, dirPath, true)
+		if err != nil {
+			return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repoURL, branch, err)
+		}
+
+		for _, treeEntry := range treeEntries {
+			if treeEntry.Path == *file.Path {
+				files = append(files, gitprovider.CommitFile{
+					Path:    &treeEntry.Path,
+					Content: nil,
+				})
+			}
+		}
+	}
+
+	return files, nil
 }
