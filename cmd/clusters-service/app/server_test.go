@@ -23,12 +23,10 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -252,7 +250,6 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 }
 
 func fakeAppsConfig(c client.Client, log logr.Logger) *wego_server.ApplicationsConfig {
-	appFactory := &servicesfakes.FakeFactory{}
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
 			return &auth.Claims{
@@ -261,10 +258,8 @@ func fakeAppsConfig(c client.Client, log logr.Logger) *wego_server.ApplicationsC
 		},
 	}
 	return &wego_server.ApplicationsConfig{
-		Factory:       appFactory,
-		Logger:        log,
-		JwtClient:     jwtClient,
-		ClusterConfig: kube.ClusterConfig{},
+		Logger:    log,
+		JwtClient: jwtClient,
 	}
 }
 

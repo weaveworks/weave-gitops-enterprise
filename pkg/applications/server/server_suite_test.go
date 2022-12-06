@@ -13,18 +13,13 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
-	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestServer(t *testing.T) {
@@ -41,37 +36,16 @@ var s *grpc.Server
 var apps pb.ApplicationsServer
 var appsClient pb.ApplicationsClient
 var conn *grpc.ClientConn
-var k8sClient client.Client
-var scheme *apiruntime.Scheme
 var ghAuthClient *authfakes.FakeGithubAuthClient
 var gitProvider *gitprovidersfakes.FakeGitProvider
 var glAuthClient *authfakes.FakeGitlabAuthClient
 var configGit *gitfakes.FakeGit
-var env *testutils.K8sTestEnv
 var fakeFactory *servicesfakes.FakeFactory
 var jwtClient auth.JWTClient
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
 }
-
-var _ = BeforeSuite(func() {
-	var err error
-	scheme, err = kube.CreateScheme()
-	Expect(err).To(BeNil())
-
-	env, err = testutils.StartK8sTestEnvironment([]string{
-		"../../manifests/crds",
-		"../../tools/testcrds",
-	})
-	Expect(err).NotTo(HaveOccurred())
-
-	k8sClient = env.Client
-})
-
-var _ = AfterSuite(func() {
-	env.Stop()
-})
 
 var secretKey string
 
@@ -93,17 +67,13 @@ var _ = BeforeEach(func() {
 	ghAuthClient = &authfakes.FakeGithubAuthClient{}
 	glAuthClient = &authfakes.FakeGitlabAuthClient{}
 	jwtClient = auth.NewJwtClient(secretKey)
-	fakeClientGetter := kubefakes.NewFakeClientGetter(k8sClient)
 
 	cfg := server.ApplicationsConfig{
-		Factory:          fakeFactory,
 		JwtClient:        jwtClient,
 		GithubAuthClient: ghAuthClient,
 		GitlabAuthClient: glAuthClient,
-		ClusterConfig:    kube.ClusterConfig{},
 	}
-	apps = server.NewApplicationsServer(&cfg,
-		server.WithClientGetter(fakeClientGetter))
+	apps = server.NewApplicationsServer(&cfg)
 	pb.RegisterApplicationsServer(s, apps)
 
 	go func() {

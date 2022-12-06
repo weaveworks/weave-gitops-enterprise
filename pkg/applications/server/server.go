@@ -15,15 +15,10 @@ import (
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
 	"k8s.io/apimachinery/pkg/util/rand"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
-	"github.com/weaveworks/weave-gitops/pkg/services"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
@@ -38,33 +33,24 @@ var (
 type applicationServer struct {
 	pb.UnimplementedApplicationsServer
 
-	factory      services.Factory
 	jwtClient    auth.JWTClient
 	log          logr.Logger
 	ghAuthClient auth.GithubAuthClient
 	glAuthClient auth.GitlabAuthClient
-	clientGetter kube.ClientGetter
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationsConfig struct {
 	Logger           logr.Logger
-	Factory          services.Factory
 	JwtClient        auth.JWTClient
 	GithubAuthClient auth.GithubAuthClient
 	GitlabAuthClient auth.GitlabAuthClient
-	ClusterConfig    kube.ClusterConfig
 }
 
 // NewApplicationsServer creates a grpc Applications server
 func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOption) pb.ApplicationsServer {
-	configGetter := kube.NewImpersonatingConfigGetter(cfg.ClusterConfig.DefaultConfig, false)
-	clientGetter := kube.NewDefaultClientGetter(configGetter, cfg.ClusterConfig.ClusterName)
-
-	args := &ApplicationsOptions{
-		ClientGetter: clientGetter,
-	}
+	args := &ApplicationsOptions{}
 
 	for _, setter := range setters {
 		setter(args)
@@ -73,10 +59,8 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 	return &applicationServer{
 		jwtClient:    cfg.JwtClient,
 		log:          cfg.Logger,
-		factory:      cfg.Factory,
 		ghAuthClient: cfg.GithubAuthClient,
 		glAuthClient: cfg.GitlabAuthClient,
-		clientGetter: args.ClientGetter,
 	}
 }
 
@@ -91,25 +75,12 @@ func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 	}
 
 	jwtClient := auth.NewJwtClient(secretKey)
-	clusterName := kube.InClusterConfigClusterName()
-
-	rest, err := config.GetConfig()
-	if err != nil {
-		return nil, fmt.Errorf("could not create client config: %w", err)
-	}
-
-	fluxClient := flux.New(&runner.CLIRunner{})
 
 	return &ApplicationsConfig{
 		Logger:           log.WithName("app-server"),
-		Factory:          services.NewFactory(fluxClient, log.WithName("services")),
 		JwtClient:        jwtClient,
 		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
-		ClusterConfig: kube.ClusterConfig{
-			DefaultConfig: rest,
-			ClusterName:   clusterName,
-		},
 	}, nil
 }
 

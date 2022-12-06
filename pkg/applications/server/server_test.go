@@ -25,29 +25,22 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
-	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Describe("ApplicationsServer", func() {
 	var (
-		namespace *corev1.Namespace
-		ctx       context.Context
+		ctx context.Context
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
-
-		namespace = &corev1.Namespace{}
-		namespace.Name = "kube-test-" + rand.String(5)
-		Expect(k8sClient.Create(context.Background(), namespace)).To(Succeed())
 	})
 
 	Describe("Authenticate", func() {
@@ -306,12 +299,9 @@ var _ = Describe("ApplicationsServer", func() {
 
 				k8s := fake.NewClientBuilder().WithScheme(scheme).Build()
 
-				fakeFactory := &servicesfakes.FakeFactory{}
-
 				cfg := server.ApplicationsConfig{
 					Logger:    log,
 					JwtClient: jwtClient,
-					Factory:   fakeFactory,
 				}
 
 				fakeClientGetter := kubefakes.NewFakeClientGetter(k8s)

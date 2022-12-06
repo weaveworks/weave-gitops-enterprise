@@ -27,12 +27,10 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -129,10 +127,8 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 	}
 
 	fakeAppsConfig := &apps.ApplicationsConfig{
-		Factory:       &servicesfakes.FakeFactory{},
-		JwtClient:     jwtClient,
-		Logger:        logr.Discard(),
-		ClusterConfig: kube.ClusterConfig{},
+		JwtClient: jwtClient,
+		Logger:    logr.Discard(),
 	}
 
 	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
