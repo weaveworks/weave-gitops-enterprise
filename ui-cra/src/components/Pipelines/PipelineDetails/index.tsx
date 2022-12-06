@@ -1,6 +1,5 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import {
-  ClusterDashboardLink,
   Flex,
   formatURL,
   Link,
@@ -22,6 +21,7 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import YamlView from '../../YamlView';
 import WorkloadStatus from './WorkloadStatus';
 import { EditButton } from './../../../components/Templates/Edit/EditButton';
+import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;

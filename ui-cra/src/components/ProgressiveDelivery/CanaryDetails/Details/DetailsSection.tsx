@@ -4,7 +4,6 @@ import {
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import {
-  ClusterDashboardLink,
   formatURL,
   Link,
 } from '@weaveworks/weave-gitops';
@@ -14,6 +13,7 @@ import { useCanaryStyle } from '../../CanaryStyles';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
 import RowHeader from '../../../RowHeader';
 import DynamicTable from '../../SharedComponent/DynamicTable';
+import { ClusterDashboardLink } from '../../../Clusters/ClusterDashboardLink';
 
 const DetailsSection = ({
   canary,
