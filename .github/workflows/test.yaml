@@ -183,6 +183,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       SELENIUM_DEBUG: true
       ARTIFACTS_BASE_DIR: /tmp/ui-integration-test/
+      WEAVE_GITOPS_FEATURE_TELEMETRY: "false"
     steps:
       - id: cache-paths
         run: |
@@ -270,4 +271,3 @@ jobs:
           snyk test --org=product-engineering-ly9 --json --file=ui-cra/yarn.lock | snyk-delta
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-
