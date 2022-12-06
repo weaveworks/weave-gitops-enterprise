@@ -39,6 +39,8 @@ data:
   OIDC_ISSUER_URL: {{ .Values.config.oidc.issuerURL | quote }}
   OIDC_REDIRECT_URL: {{ .Values.config.oidc.redirectURL | quote }}
   OIDC_COOKIE_DURATION: {{ .Values.config.oidc.cookieDuration | quote }}
+  OIDC_CLAIM_USERNAME: {{ .Values.config.oidc.claimUsername | quote }}
+  OIDC_CLAIM_GROUPS: {{ .Values.config.oidc.claimGroups | quote }}
   {{- end }}
   NO_TLS: {{ not .Values.tls.enabled | quote }}
   {{- if and .Values.tls.enabled .Values.tls.secretName }}
