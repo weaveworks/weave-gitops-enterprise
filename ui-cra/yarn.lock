@@ -2335,39 +2335,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops-main@npm:@weaveworks/weave-gitops-main@v0.11.0-91-gf418a074":
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@v0.11.0-91-gf418a074":
   version "0.11.0-91-gf418a074"
   resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.11.0-91-gf418a074/93db0804a5f5f5008fcc018b6e9249d0701771de#93db0804a5f5f5008fcc018b6e9249d0701771de"
   integrity sha512-oMZFyzri99HcFg6uyDWbI6Ee2I/UqbkWMZCMSPNxMN+sNdkD7CzIf7zDpqR8MasVlmP0gJVOLAO1SUBpYL04Ww==
-  dependencies:
-    "@material-ui/core" "^4.12.3"
-    "@material-ui/icons" "^4.11.2"
-    "@material-ui/lab" "^4.0.0-alpha.58"
-    d3 "^7.6.1"
-    d3-dag "^0.11.5"
-    history "^5.0.0"
-    http-proxy-middleware "^2.0.3"
-    jest-canvas-mock "^2.4.0"
-    jest-fail-on-console "^3.0.1"
-    jest-worker "^27.5.1"
-    js-sha3 "0.8.0"
-    lodash "^4.17.21"
-    luxon "^1.27.0"
-    mnemonic-browser "^0.0.1"
-    postcss "^8.3.11"
-    query-string "^4.3.4"
-    react "^17.0.2"
-    react-dom "^17.0.2"
-    react-lottie-player "^1.4.3"
-    react-query "^3.34.7"
-    react-router-dom "^5.2.0"
-    react-toastify "^7.0.4"
-    sha3 "^2.1.4"
-    styled-components "^5.3.0"
-    yaml "^1.10.2"
-
-"@weaveworks/weave-gitops@file:../../weave-gitops/dist":
-  version "0.11.0"
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
