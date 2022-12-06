@@ -247,11 +247,18 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 
 	var serviceAccounts []*capiv1_proto.WorkspaceServiceAccount
 	for i := range list.Items {
-		serviceAccounts = append(serviceAccounts, &capiv1_proto.WorkspaceServiceAccount{
+		serviceAccount := &capiv1_proto.WorkspaceServiceAccount{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
 			Timestamp: list.Items[i].CreationTimestamp.String(),
-		})
+		}
+		manifest, err := k8sObjectToYaml(&list.Items[i])
+		if err != nil {
+			return nil, err
+		}
+
+		serviceAccount.Manifest = manifest
+		serviceAccounts = append(serviceAccounts, serviceAccount)
 	}
 
 	return &capiv1_proto.GetWorkspaceServiceAccountsResponse{

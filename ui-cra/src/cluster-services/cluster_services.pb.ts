@@ -661,6 +661,7 @@ export type WorkspaceServiceAccount = {
   name?: string
   namespace?: string
   timestamp?: string
+  manifest?: string
 }
 
 export type WorkspacePolicy = {
