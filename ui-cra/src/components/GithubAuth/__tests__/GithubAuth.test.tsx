@@ -91,5 +91,3 @@ describe('Github Authenticate', () => {
     expect(token).toEqual(accessToken);
   });
 });
-
-// add Gitlab tests

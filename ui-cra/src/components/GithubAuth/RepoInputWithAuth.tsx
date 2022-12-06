@@ -7,14 +7,16 @@ import {
   InputProps,
   useRequestState,
   useDebounce,
-  ParseRepoURLResponse,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
 import GithubAuthButton from './GithubAuthButton';
 import GitlabAuthButton from './GitlabAuthButton';
 import { GitAuth } from '../../contexts/GitAuth';
-import { GitProvider } from '../../api/applications/applications.pb';
+import {
+  GitProvider,
+  ParseRepoURLResponse,
+} from '../../api/applications/applications.pb';
 
 type Props = InputProps & {
   onAuthClick: (provider: GitProvider) => void;
@@ -40,12 +42,7 @@ function RepoInputWithAuth({
     }
     req(applicationsClient.ParseRepoURL({ url: debouncedURL }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    applicationsClient,
-    debouncedURL,
-    // req
-    // is needed as dependency - infinite loop
-  ]);
+  }, [applicationsClient, debouncedURL]);
 
   React.useEffect(() => {
     if (!res) {
@@ -56,10 +53,7 @@ function RepoInputWithAuth({
       onProviderChange(res.provider);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    res,
-    // onProviderChange
-  ]);
+  }, [res]);
 
   const AuthButton =
     res?.provider === GitProvider.GitHub ? (

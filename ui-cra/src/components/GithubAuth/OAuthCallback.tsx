@@ -1,6 +1,5 @@
 import { CircularProgress } from '@material-ui/core';
 import {
-  AuthorizeGitlabResponse,
   Flex,
   useRequestState,
   useLinkResolver,
@@ -13,7 +12,10 @@ import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import useNotifications from '../../contexts/Notifications';
 import { GitAuth } from '../../contexts/GitAuth';
-import { GitProvider } from '../../api/applications/applications.pb';
+import {
+  AuthorizeGitlabResponse,
+  GitProvider,
+} from '../../api/applications/applications.pb';
 
 type Props = {
   code: string;
@@ -39,12 +41,7 @@ function OAuthCallback({ code, provider }: Props) {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    code,
-    applicationsClient,
-    provider,
-    // req causes an infinite loop
-  ]);
+  }, [code, applicationsClient, provider]);
 
   React.useEffect(() => {
     if (!res) {

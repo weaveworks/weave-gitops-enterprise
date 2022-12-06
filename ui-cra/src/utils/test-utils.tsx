@@ -20,6 +20,8 @@ import { ThemeProvider } from 'styled-components';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
+  GetGitlabAuthURLResponse,
+  ParseRepoURLResponse,
 } from '../api/applications/applications.pb';
 import {
   GetPipelineResponse,
@@ -200,15 +202,28 @@ export class ApplicationsClientMock {
   constructor() {
     this.GetGithubDeviceCode = this.GetGithubDeviceCode.bind(this);
     this.GetGithubAuthStatus = this.GetGithubAuthStatus.bind(this);
+    this.ParseRepoURL = this.ParseRepoURL.bind(this);
+    this.GetGitlabAuthURL = this.GetGitlabAuthURL.bind(this);
   }
   GetGithubDeviceCodeReturn: GetGithubDeviceCodeResponse = {};
   GetGithubAuthStatusReturn: GetGithubAuthStatusResponse = {};
+  ParseRepoURLReturn: ParseRepoURLResponse = {};
+  GetGitlabAuthURLReturn: GetGitlabAuthURLResponse = {};
+
   GetGithubDeviceCode() {
     return promisify(this.GetGithubDeviceCodeReturn);
   }
 
   GetGithubAuthStatus() {
     return promisify(this.GetGithubAuthStatusReturn);
+  }
+
+  ParseRepoURL() {
+    return promisify(this.ParseRepoURLReturn);
+  }
+
+  GetGitlabAuthURL() {
+    return promisify(this.GetGitlabAuthURLReturn);
   }
 }
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {

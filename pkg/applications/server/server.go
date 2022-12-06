@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
+	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
