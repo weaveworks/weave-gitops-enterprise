@@ -71,10 +71,10 @@ func verifyPolicyModes() {
 			isAuditModeNoneIconVisible, _ := policyInfo.AuditModeNoneIcon.Visible()
 			isEnforceModeNoneIconVisible, _ := policyInfo.EnforceModeNoneIcon.Visible()
 
-			logger.Info(isAuditModeIconVisible, policyInfo.AuditModeIcon)
-			logger.Info(isEnforceModeIconVisible)
-			logger.Info(isAuditModeNoneIconVisible)
-			logger.Info(isEnforceModeNoneIconVisible)
+			logger.Info("Is Audit Mode Icon visible? ", isAuditModeIconVisible)
+			logger.Info("Is Enforce Mode Icon visible? ", isEnforceModeIconVisible)
+			logger.Info("Is Audit Mode None Icon visible?", isAuditModeNoneIconVisible)
+			logger.Info("Is Audit Mode None Icon visible? ", isEnforceModeNoneIconVisible)
 
 			if policyName == "Container Image Pull Policy acceptance test" { // It has both Audit & Enforce Modes
 				gomega.Expect(isAuditModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
