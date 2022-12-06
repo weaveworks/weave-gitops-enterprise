@@ -137,7 +137,7 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(st.Message()).To(ContainSubstring(auth.ErrAuthPending.Error()))
 		})
 
-		It("retuns a jwt if the user has authenticated", func() {
+		It("returns a jwt if the user has authenticated", func() {
 			token := "abc123def456"
 			ghAuthClient.GetDeviceCodeAuthStatusStub = func(s string) (string, error) {
 				return token, nil

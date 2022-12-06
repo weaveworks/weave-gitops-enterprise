@@ -23,12 +23,12 @@ import (
 	"github.com/stretchr/testify/require"
 	gitopsv1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 
+	apps "github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
@@ -128,7 +128,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		},
 	}
 
-	fakeAppsConfig := &wego_server.ApplicationsConfig{
+	fakeAppsConfig := &apps.ApplicationsConfig{
 		Factory:       &servicesfakes.FakeFactory{},
 		JwtClient:     jwtClient,
 		Logger:        logr.Discard(),
@@ -169,7 +169,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithKubernetesClient(cl),
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithApplicationsConfig(fakeAppsConfig),
-		app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
+		app.WithApplicationsOptions(apps.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
 		app.WithCoreConfig(fakeCoreConfig),
