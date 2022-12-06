@@ -21,7 +21,7 @@ func installPolicyAgent(clusterName string) {
 		}
 
 		err := runCommandPassThrough("helm", "upgrade", "--install", "cert-manager", "cert-manager/cert-manager", "--namespace", "cert-manager", "--create-namespace", "--version", "1.10.0", "--set", "installCRDs=true")
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install cert-manager to leaf cluster: "+clusterName)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install cert-manager to leaf cluster '%s'", clusterName))
 	})
 
 	ginkgo.By(fmt.Sprintf("And install policy agent to %s cluster", clusterName), func() {
@@ -32,7 +32,7 @@ func installPolicyAgent(clusterName string) {
 		}
 
 		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "policy-agent/policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "2.0.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install policy agent to leaf cluster: "+clusterName)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy agent to leaf cluster '%s'", clusterName))
 		_ = runCommandPassThrough("kubectl", "wait", "--for=condition=Ready", "--timeout=60s", "--namespace", "policy-system", "pod", "-l", "name=policy-agent")
 	})
 }
@@ -40,14 +40,14 @@ func installPolicyAgent(clusterName string) {
 func installTestPolicies(clusterName string, policiesYaml string) {
 	ginkgo.By(fmt.Sprintf("Add/Install test Policies to the %s cluster", clusterName), func() {
 		err := runCommandPassThrough("kubectl", "apply", "-f", policiesYaml)
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to install test policies to cluster:"+clusterName)
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install test policies to cluster '%s'", clusterName))
 	})
 }
 
 func installPolicySet(clusterName string, policySetYaml string) {
 	ginkgo.By(fmt.Sprintf("Add/Install Policy Set to the %s cluster", clusterName), func() {
 		err := runCommandPassThrough("kubectl", "apply", "-f", policySetYaml)
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy set on cluster %s", clusterName))
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy set on cluster '%s'", clusterName))
 	})
 }
 
@@ -66,33 +66,38 @@ func verifyPolicyModes() {
 
 		for _, policyName := range testPolicies {
 			policyInfo := policiesPage.FindPolicyInList(policyName)
-			logger.Info(policyInfo.AuditModeIcon.Visible())
-			logger.Info(policyInfo.EnforceModeIcon.Visible())
-			logger.Info(policyInfo.AuditModeNoneIcon.Visible())
-			logger.Info(policyInfo.EnforceModeNoneIcon.Visible())
+			isAuditModeIconVisible, _ := policyInfo.AuditModeIcon.Visible()
+			isEnforceModeIconVisible, _ := policyInfo.EnforceModeIcon.Visible()
+			isAuditModeNoneIconVisible, _ := policyInfo.AuditModeNoneIcon.Visible()
+			isEnforceModeNoneIconVisible, _ := policyInfo.EnforceModeNoneIcon.Visible()
+
+			logger.Info(isAuditModeIconVisible, policyInfo.AuditModeIcon)
+			logger.Info(isEnforceModeIconVisible)
+			logger.Info(isAuditModeNoneIconVisible)
+			logger.Info(isEnforceModeNoneIconVisible)
 
 			if policyName == "Container Image Pull Policy acceptance test" { // It has both Audit & Enforce Modes
-				gomega.Expect(policyInfo.AuditModeIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
-				gomega.Expect(policyInfo.EnforceModeIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
+				gomega.Expect(isAuditModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
+				gomega.Expect(isEnforceModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
 
 			} else if policyName == "Container Running As Root acceptance test" { // It has both Audit & Enforce Modes
-				gomega.Expect(policyInfo.AuditModeIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
-				gomega.Expect(policyInfo.EnforceModeIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
+				gomega.Expect(isAuditModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
+				gomega.Expect(isEnforceModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
 
 			} else if policyName == "Containers Minimum Replica Count acceptance test" { // Both Audit & Enforce Modes are None
-				gomega.Expect(policyInfo.AuditModeNoneIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
-				gomega.Expect(policyInfo.EnforceModeNoneIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
+				gomega.Expect(isAuditModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
+				gomega.Expect(isEnforceModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
 
 			} else if policyName == "Containers Read Only Root Filesystem acceptance test" { // It has Audit Mode only , Enforce Mode is None
-				gomega.Expect(policyInfo.AuditModeIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
-				gomega.Expect(policyInfo.EnforceModeNoneIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
+				gomega.Expect(isAuditModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
+				gomega.Expect(isEnforceModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
 
 			} else if policyName == "Containers Running With Privilege Escalation acceptance test" { // It has Enforce Mode only , Audit Mode is None
-				gomega.Expect(policyInfo.AuditModeNoneIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
-				gomega.Expect(policyInfo.EnforceModeIcon.Visible()).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
+				gomega.Expect(isAuditModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
+				gomega.Expect(isEnforceModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
 
 			} else {
-				fmt.Printf("Failed to get Policy Mode for '%s'", policyName)
+				fmt.Printf("Failed to get Policy Mode for '%s' because it is not in the test policies list", policyName)
 			}
 		}
 

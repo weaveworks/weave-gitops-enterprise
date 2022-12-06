@@ -90,7 +90,7 @@ func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomiza
 func installPolicyConfig(clusterName string, policyConfigYaml string) {
 	ginkgo.By(fmt.Sprintf("Add/Install Policy config to the %s cluster", clusterName), func() {
 		err := runCommandPassThrough("kubectl", "apply", "-f", policyConfigYaml)
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy Config on cluster %s", clusterName))
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy Config on cluster '%s'", clusterName))
 	})
 }
 
