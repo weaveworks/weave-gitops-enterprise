@@ -1024,11 +1024,10 @@ func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitp
 
 		deletedFiles = append(deletedFiles, removedKustomizations...)
 		deletedFiles = append(deletedFiles, removedProfiles...)
-		return deletedFiles
 	}
 
 	// If there were changes in the namespace resulting in the change of the file path (the old file should be deleted)
-	if prevFiles != nil && prevFiles.RenderedTemplate.Path != nil && prevFiles.RenderedTemplate.Path != newFiles.RenderedTemplate.Path {
+	if prevFiles != nil && prevFiles.RenderedTemplate.Path != nil && *prevFiles.RenderedTemplate.Path != *newFiles.RenderedTemplate.Path {
 		prevPath := *prevFiles.RenderedTemplate.Path
 		deletedFiles = append(deletedFiles, gitprovider.CommitFile{
 			Path:    &prevPath,
