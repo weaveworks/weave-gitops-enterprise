@@ -102,16 +102,16 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	// Gitlab doesn't support createOrUpdate, so we need to check if the file exists
 	// and if it does, we need to create a commit to delete the file.
 	if req.GitProvider.Type == "gitlab" {
-		files, err := s.getFilesFromTreeList(ctx, req.Files, req.GitProvider, repoURL, req.BaseBranch)
+		deletedFiles, err := s.getUpdatedFiles(ctx, req.Files, req.GitProvider, repoURL, req.BaseBranch)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get files from tree list: %w", err)
 		}
 
 		// If there are files to delete, append them to the map of changes to be deleted.
-		if len(files) > 0 {
+		if len(deletedFiles) > 0 {
 			commits = append(commits, Commit{
 				CommitMessage: deleteFilesCommitMessage,
-				Files:         files,
+				Files:         deletedFiles,
 			})
 		}
 	}
@@ -381,13 +381,13 @@ func addSchemeToDomain(domain string) string {
 	return domain
 }
 
-func (s *GitProviderService) getFilesFromTreeList(
+func (s *GitProviderService) getUpdatedFiles(
 	ctx context.Context,
 	reqFiles []gitprovider.CommitFile,
 	gp GitProvider,
 	repoURL,
 	branch string) ([]gitprovider.CommitFile, error) {
-	var files []gitprovider.CommitFile
+	var updatedFiles []gitprovider.CommitFile
 
 	for _, file := range reqFiles {
 		// if file content is empty, then it's a delete operation
@@ -405,7 +405,7 @@ func (s *GitProviderService) getFilesFromTreeList(
 
 		for _, treeEntry := range treeEntries {
 			if treeEntry.Path == *file.Path {
-				files = append(files, gitprovider.CommitFile{
+				updatedFiles = append(updatedFiles, gitprovider.CommitFile{
 					Path:    &treeEntry.Path,
 					Content: nil,
 				})
@@ -413,5 +413,5 @@ func (s *GitProviderService) getFilesFromTreeList(
 		}
 	}
 
-	return files, nil
+	return updatedFiles, nil
 }
