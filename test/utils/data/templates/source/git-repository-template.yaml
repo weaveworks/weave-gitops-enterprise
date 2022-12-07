@@ -1,0 +1,45 @@
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: git-repository-template
+  namespace: default
+  labels:
+    weave.works/template-type: source
+  annotations:
+    templates.weave.works/cost-estimation-enabled: "false"
+    templates.weave.works/profiles-enabled: "false"
+    templates.weave.works/credentials-enabled: "false"
+    templates.weave.works/kustomizations-enabled: "false"
+    templates.weave.works/delimiters: "${{,}}"
+spec:
+  renderType: templating
+  description: A GitRepository template
+  params:
+    - name: RESOURCE_NAME
+      required: true
+      description: Name to give the git repository
+    - name: NAMESPACE
+      description: Namespace to create the source in
+      default: default
+    - name: BRANCH
+      description: Git repository branch name
+      default: master
+    - name: URL
+      description: URL of the git repository
+      default: https://github.com/stefanprodan/podinfo
+    - name: INTERVAL
+      description: How often to check for updates
+      default: 30s
+  resourcetemplates:
+    - apiVersion: source.toolkit.fluxcd.io/v1beta2
+      kind: GitRepository
+      metadata:
+        name: ${{ .params.RESOURCE_NAME }}
+        namespace: ${{ .params.NAMESPACE }}
+        annotations:
+          templates.weave.works/create-request: ""
+      spec:
+        interval: ${{ .params.INTERVAL }}
+        ref:
+          branch: ${{ .params.BRANCH }}
+        url: ${{ .params.URL }}

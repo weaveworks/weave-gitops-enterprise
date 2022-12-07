@@ -341,6 +341,10 @@ jobs:
 
           # Start selenium server in standalone mode
           xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
+      - name: Install Ginkgo
+        run: |
+          go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.5.1
+          ginkgo version
       - name: Setup management cluster
         run: |
           if [ ${{ inputs.management-cluster-kind }} = 'eks' ]; then
@@ -365,8 +369,7 @@ jobs:
             export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
           fi
 
-          cd test/acceptance/test/
-          go test ${{ inputs.label-filter }} -ginkgo.v -ginkgo.junit-report=${{ env.ARTIFACTS_BASE_DIR }}/${{ env.TEST_ARTIFACT_NAME }}.xml -ginkgo.timeout=2h
+          ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
       - name: Store test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v3.1.1

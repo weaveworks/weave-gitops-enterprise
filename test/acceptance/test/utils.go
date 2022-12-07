@@ -90,11 +90,13 @@ var seededRand *rand.Rand = rand.New(
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
+	DescribeTemplatesCapi(gitopsTestRunner)
 	DescribeApplications(gitopsTestRunner)
 	DescribePolicies(gitopsTestRunner)
 	DescribeViolations(gitopsTestRunner)
 	DescribeTenants(gitopsTestRunner)
 	DescribeCostEstimation(gitopsTestRunner)
+	DescribeMiscellaneousUi(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -337,7 +339,22 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
 
+func currentSpecType(specLabel string) bool {
+	for _, ctx := range ginkgo.CurrentSpecReport().ContainerHierarchyLabels {
+		for _, label := range ctx {
+			if label == specLabel {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func TakeScreenShot(name string) {
+	if currentSpecType("cli") {
+		return
+	}
+
 	if webDriver != nil {
 		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
 		logger.Infof("Saving screenshot to %s", filepath)
@@ -346,6 +363,10 @@ func TakeScreenShot(name string) {
 }
 
 func DumpingDOM(name string) {
+	if currentSpecType("cli") {
+		return
+	}
+
 	logger.Infof("Dumping DOM to %s", path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME))
 	if webDriver != nil {
 		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
@@ -393,6 +414,10 @@ func DumpConfigRepo(testName string) {
 }
 
 func DumpBrowserLogs(console bool, network bool) {
+	if currentSpecType("cli") {
+		return
+	}
+
 	writeSlicetoFile := func(fileName string, dataLog interface{}) {
 		f, _ := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 		defer f.Close()

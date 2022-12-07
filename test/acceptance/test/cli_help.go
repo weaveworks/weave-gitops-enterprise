@@ -52,7 +52,7 @@ func verifyGlobalFlags(stdOut string) {
 }
 
 func DescribeCliHelp() {
-	var _ = ginkgo.Describe("Gitops Help Tests", func() {
+	var _ = ginkgo.Describe("Gitops Help Tests", ginkgo.Label("cli"), func() {
 		var stdOut string
 		var stdErr string
 
