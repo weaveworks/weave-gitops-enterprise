@@ -42,27 +42,23 @@ const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
 };
 
 const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
-  const annotations = Object.entries(template?.annotations || {});
-  const defaultProfiles: UpdatedProfile[] = [];
-  for (const [key, value] of annotations) {
-    if (key.includes('capi.weave.works/profile')) {
-      const data = maybeParseJSON(value);
-      if (data) {
-        const { name, version, values, editable, namespace } = data;
-        defaultProfiles.push({
-          name,
-          editable,
+  const defaultProfiles: UpdatedProfile[] =
+    template.profiles?.map(
+      profile =>
+        ({
+          ...profile,
           values: [
-            { version: version || '', yaml: values || '', selected: false },
+            {
+              version: profile.version || '',
+              yaml: profile.values || '',
+              selected: false,
+            },
           ],
-          required: true,
           selected: true,
-          layer: getProfileLayer(profiles, name),
-          namespace,
-        });
-      }
-    }
-  }
+          layer: profile.layer || getProfileLayer(profiles, profile.name!),
+        } as UpdatedProfile),
+    ) || [];
+
   return defaultProfiles;
 };
 

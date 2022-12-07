@@ -2595,6 +2595,12 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateProfile"
+          }
         }
       }
     },
@@ -2637,6 +2643,15 @@
           "type": "string"
         },
         "namespace": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "profileTemplate": {
+          "type": "string"
+        },
+        "layer": {
           "type": "string"
         }
       }
