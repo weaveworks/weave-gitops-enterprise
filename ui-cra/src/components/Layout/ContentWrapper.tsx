@@ -168,7 +168,7 @@ export const ContentWrapper: FC<Props> = ({
             </Link>
           </div>
         )}
-        {uiConfig?.footer?.showVersion ? (
+        {!uiConfig?.footer?.hideVersion ? (
           <Tooltip
             title={`Server Version ${versions?.capiServer}`}
             placement="top"

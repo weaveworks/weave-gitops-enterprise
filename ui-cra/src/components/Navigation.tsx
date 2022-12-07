@@ -203,7 +203,7 @@ export const Navigation: FC = () => {
         {
           name: 'PIPELINES',
           link: Routes.Pipelines,
-          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
+          isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'DELIVERY',
@@ -218,7 +218,7 @@ export const Navigation: FC = () => {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,
       icon: <GitOpsRun className="gitops-run" />,
-      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_RUN_UI,
+      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_RUN_UI,
     },
     {
       name: 'TEMPLATES',
@@ -229,7 +229,7 @@ export const Navigation: FC = () => {
       name: 'TERRAFORM',
       link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
-      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
+      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
       name: 'FLUX RUNTIME',

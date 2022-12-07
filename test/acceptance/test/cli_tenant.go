@@ -67,7 +67,7 @@ func verifyTenatResources(tenantName string, namespaces []string, sa bool) {
 }
 
 func DescribeCliTenant(gitopsTestRunner GitopsTestRunner) {
-	var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, func() {
+	var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label("cli"), func() {
 		var tenantYaml string
 		var stdOut string
 		var stdErr string

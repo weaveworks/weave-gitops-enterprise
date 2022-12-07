@@ -1,8 +1,10 @@
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
 metadata:
   name: capg-cluster-template-{{.Count}}
   namespace: default
+  labels:
+    weave.works/template-type: cluster
 spec:
   description: This is the std. CAPG template {{.Count}}
   params:
