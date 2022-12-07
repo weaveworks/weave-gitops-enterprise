@@ -71,7 +71,7 @@ config:
       backgroundColor: ''
       color: ''
       content: ''
-      showVersion: false
+      showVersion: true
 
 tls:
   enabled: true
