@@ -3,6 +3,8 @@ kind: CAPITemplate
 metadata:
   name: capa-cluster-template-machinepool-{{.Count}}
   namespace: default
+  labels:
+    weave.works/template-type: cluster
   annotations:    
     templates.weave.works/cost-estimation-enabled: "true"
     templates.weave.works/profiles-enabled: "false"
