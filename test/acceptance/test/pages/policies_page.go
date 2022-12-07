@@ -8,18 +8,23 @@ import (
 
 type PoliciesPage struct {
 	PolicyHeader *agouti.Selection
-	PolicyCount  *agouti.Selection
 	PoliciesList *agouti.Selection
 	AlertError   *agouti.Selection
 }
 
 type PolicyInformation struct {
-	Name     *agouti.Selection
-	Category *agouti.Selection
-	Tenant   *agouti.Selection
-	Severity *agouti.Selection
-	Cluster  *agouti.Selection
-	Age      *agouti.Selection
+	Name                *agouti.Selection
+	Category            *agouti.Selection
+	AuditMode           *agouti.Selection
+	AuditModeIcon       *agouti.Selection
+	EnforceMode         *agouti.Selection
+	EnforceModeIcon     *agouti.Selection
+	AuditModeNoneIcon   *agouti.Selection
+	EnforceModeNoneIcon *agouti.Selection
+	Tenant              *agouti.Selection
+	Severity            *agouti.Selection
+	Cluster             *agouti.Selection
+	Age                 *agouti.Selection
 }
 
 type PolicyDetailPage struct {
@@ -29,6 +34,7 @@ type PolicyDetailPage struct {
 	Tags            *agouti.MultiSelection
 	Severity        *agouti.Selection
 	Category        *agouti.Selection
+	Mode            *agouti.Selection
 	TargetedK8sKind *agouti.MultiSelection
 	Description     *agouti.Selection
 	HowToSolve      *agouti.Selection
@@ -46,12 +52,18 @@ type PolicyParametersDetail struct {
 func (p PoliciesPage) FindPolicyInList(policyName string) *PolicyInformation {
 	policy := p.PoliciesList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, policyName))
 	return &PolicyInformation{
-		Name:     policy.FindByXPath(`td[1]//a`),
-		Category: policy.FindByXPath(`td[2]`),
-		Tenant:   policy.FindByXPath(`td[3]`),
-		Severity: policy.FindByXPath(`td[4]`),
-		Cluster:  policy.FindByXPath(`td[5]`),
-		Age:      policy.FindByXPath(`td[6]`),
+		Name:                policy.FindByXPath(`td[1]//a`),
+		Category:            policy.FindByXPath(`td[2]`),
+		AuditMode:           policy.FindByXPath(`td[3]`),
+		AuditModeIcon:       policy.Find(`span[title="Audit"]`),
+		EnforceMode:         policy.FindByXPath(`td[4]`),
+		EnforceModeIcon:     policy.Find(`span[title='Enforce']`),
+		AuditModeNoneIcon:   policy.FindByXPath(`td[3]/span/div/span[text()='-']`),
+		EnforceModeNoneIcon: policy.FindByXPath(`td[4]/span/div/span[text()='-']`),
+		Tenant:              policy.FindByXPath(`td[5]`),
+		Severity:            policy.FindByXPath(`td[6]`),
+		Cluster:             policy.FindByXPath(`td[7]`),
+		Age:                 policy.FindByXPath(`td[8]`),
 	}
 }
 
@@ -71,7 +83,6 @@ func (p PoliciesPage) CountPolicies() int {
 func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 	policyPage := PoliciesPage{
 		PolicyHeader: webDriver.Find(`div[role="heading"] a[href="/policies"]`),
-		PolicyCount:  webDriver.Find(`.section-header-count`),
 		PoliciesList: webDriver.First(`table tbody`),
 		AlertError:   webDriver.Find(`#alert-list-errors`),
 	}
@@ -86,6 +97,7 @@ func GetPolicyDetailPage(webDriver *agouti.Page) *PolicyDetailPage {
 		Tags:            webDriver.All(`div[data-testid="Tags"] span`),
 		Severity:        webDriver.Find(`div[data-testid="Severity"]`),
 		Category:        webDriver.Find(`div[data-testid="Category"]`),
+		Mode:            webDriver.Find(`div[data-testid="Mode"]`),
 		TargetedK8sKind: webDriver.All(`div[data-testid="Targeted K8s Kind"] span`),
 		Description:     webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
 		HowToSolve:      webDriver.FindByXPath(`//div[text()="How to solve:"]/following-sibling::*[1]`),

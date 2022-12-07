@@ -41,9 +41,7 @@ const WGApplicationsDashboard: FC = () => {
   const { repoLink } = useListConfig();
   const classes = useStyles();
 
-  const handleAddApplication = () => {
-    history.push(Routes.AddApplication);
-  };
+  const handleAddApplication = () => history.push(Routes.AddApplication);
 
   return (
     <PageTemplate
@@ -52,7 +50,6 @@ const WGApplicationsDashboard: FC = () => {
         {
           label: 'Applications',
           url: Routes.Applications,
-          count: automations?.result?.length,
         },
       ]}
     >

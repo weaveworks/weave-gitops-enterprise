@@ -11,14 +11,15 @@ type AddApplicationPage struct {
 }
 
 type AddApplication struct {
-	Name              *agouti.Selection
-	Namespace         *agouti.Selection
-	TargetNamespace   *agouti.Selection
-	Path              *agouti.Selection
-	Source            *agouti.Selection
-	Cluster           *agouti.Selection
-	RemoveApplication *agouti.Selection
-	SourceHref        *agouti.Selection
+	Name                  *agouti.Selection
+	Namespace             *agouti.Selection
+	TargetNamespace       *agouti.Selection
+	Path                  *agouti.Selection
+	Source                *agouti.Selection
+	Cluster               *agouti.Selection
+	RemoveApplication     *agouti.Selection
+	SourceHref            *agouti.Selection
+	CreateTargetNamespace *agouti.Selection
 }
 
 type GitOps struct {
@@ -29,9 +30,13 @@ type GitOps struct {
 	PullRequestDesc *agouti.Selection
 	GitCredentials  *agouti.Selection
 	CreatePR        *agouti.Selection
-	SuccessBar      *agouti.Selection
-	PRLinkBar       *agouti.Selection
-	ErrorBar        *agouti.Selection
+}
+
+type Messages struct {
+	Success *agouti.Selection
+	Warning *agouti.Selection
+	Error   *agouti.Selection
+	Close   *agouti.Selection
 }
 
 func GetAddApplicationsPage(webDriver *agouti.Page) *AddApplicationPage {
@@ -47,14 +52,15 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 	}
 
 	return &AddApplication{
-		Name:              app.Find(`[id="KUSTOMIZATION NAME-input"]`),
-		Namespace:         app.Find(`[id="KUSTOMIZATION NAMESPACE-input"]`),
-		TargetNamespace:   app.Find(`[id="TARGET NAMESPACE-input"]`),
-		Path:              app.Find(`[id="SELECT PATH-input"]`),
-		Source:            app.Find(`[id="SELECT SOURCE-input"]`),
-		Cluster:           app.Find(`[id="SELECT CLUSTER-input"]`),
-		RemoveApplication: app.Find(`button#remove-application`),
-		SourceHref:        webDriver.First(`div a[class*="Link"]`),
+		Name:                  app.Find(`[id="KUSTOMIZATION NAME-input"]`),
+		Namespace:             app.Find(`[id="KUSTOMIZATION NAMESPACE-input"]`),
+		TargetNamespace:       app.Find(`[id="TARGET NAMESPACE-input"]`),
+		Path:                  app.Find(`[id="SELECT PATH-input"]`),
+		Source:                app.Find(`[id="SELECT SOURCE-input"]`),
+		Cluster:               app.Find(`[id="SELECT CLUSTER-input"]`),
+		RemoveApplication:     app.Find(`button#remove-application`),
+		CreateTargetNamespace: app.First(`input[type="checkbox"]`),
+		SourceHref:            app.FindByXPath(`div[contains(@class, "MuiGrid-container")]/div[2]`),
 	}
 }
 
@@ -71,8 +77,14 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 		PullRequestDesc: webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
 		GitCredentials:  webDriver.Find(`div.auth-message`),
 		CreatePR:        webDriver.FindByButton(`CREATE PULL REQUEST`),
-		SuccessBar:      webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Success")]/parent::node()`),
-		PRLinkBar:       webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "PR created")]/parent::node()`),
-		ErrorBar:        webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//*[contains(text(), "Error")]/parent::node()`),
+	}
+}
+
+func GetMessages(webDriver *agouti.Page) *Messages {
+	return &Messages{
+		Success: webDriver.Find(`div > div.MuiAlert-message:has(svg > path[fill="#27AE60"])`),
+		Warning: webDriver.Find(`div > div.MuiAlert-message:has(svg > path[fill="#F2994A"])`),
+		Error:   webDriver.Find(`div > div.MuiAlert-message:has(svg > path[fill="#BC3B1D"])`),
+		Close:   webDriver.Find(`div.MuiAlert-action > button[title="Close"]`),
 	}
 }

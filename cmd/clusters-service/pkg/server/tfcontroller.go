@@ -2,144 +2,32 @@ package server
 
 import (
 	"context"
-	"fmt"
-	"path/filepath"
-
-	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/mkmik/multierror"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc/codes"
-	grpcStatus "google.golang.org/grpc/status"
 
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
 func (s *server) CreateTfControllerPullRequest(ctx context.Context, msg *proto.CreateTfControllerPullRequestRequest) (*proto.CreateTfControllerPullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to create an authenticated provider: %s", err.Error())
-	}
-
-	if err := validateCreateTfControllerPR(msg); err != nil {
-		s.log.Error(err, "Failed to create pull request, message payload was invalid")
-		return nil, grpcStatus.Errorf(codes.InvalidArgument, "validation error on the message: %s", err.Error())
-	}
-
-	tmpl, err := s.templatesLibrary.Get(ctx, msg.TemplateName, gapiv1.Kind)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "unable to get template %q: %s", msg.TemplateName, err)
-	}
-
-	client, err := s.clientGetter.Client(ctx)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to construct kubernetes client: %s", err)
-	}
-
-	templateName, ok := msg.ParameterValues["RESOURCE_NAME"]
-	if !ok {
-		return nil, grpcStatus.Errorf(codes.Internal, "unable to find required 'RESOURCE_NAME' parameter in supplied values")
-	}
-
-	defaultPath := getTfControllerManifestPath(templateName)
-
-	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, viper.GetString("capi-templates-namespace"), msg.ParameterValues)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to render template with parameter values: %s", err)
-	}
-
-	var files []gitprovider.CommitFile
-	for _, renderedTemplate := range renderedTemplates {
-
-		err = templates.ValidateRenderedTemplates(renderedTemplate.Data)
-		if err != nil {
-			return nil, grpcStatus.Errorf(codes.Internal, "validation error rendering template %v, %s", msg.TemplateName, err)
-		}
-
-		tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(s.log, client, renderedTemplate.Data, nil, msg.TemplateName)
-		if err != nil {
-			return nil, grpcStatus.Errorf(codes.Internal, "failed to gather credentials for template: %s", err)
-		}
-
-		path := renderedTemplate.Path
-		if path == "" {
-			path = defaultPath
-		}
-
-		content := string(tmplWithValuesAndCredentials[:])
-		files = append(files, gitprovider.CommitFile{
-
-			Path:    &path,
-			Content: &content,
-		})
-	}
-
-	repositoryURL := viper.GetString("capi-templates-repository-url")
-	if msg.RepositoryUrl != "" {
-		repositoryURL = msg.RepositoryUrl
-	}
-	baseBranch := viper.GetString("capi-templates-repository-base-branch")
-	if msg.BaseBranch != "" {
-		baseBranch = msg.BaseBranch
-	}
-	if msg.HeadBranch == "" {
-		msg.HeadBranch = getHash(msg.RepositoryUrl, msg.ParameterValues["RESOURCE_NAME"], msg.BaseBranch)
-	}
-	if msg.Title == "" {
-		msg.Title = fmt.Sprintf("Gitops add cluster %s", msg.ParameterValues["RESOURCE_NAME"])
-	}
-	if msg.Description == "" {
-		msg.Description = fmt.Sprintf("Pull request to create cluster %s", msg.ParameterValues["RESOURCE_NAME"])
-	}
-	if msg.CommitMessage == "" {
-		msg.CommitMessage = "Add Template Manifests"
-	}
-	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
-	if err != nil {
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to access repository under %s: %s", repositoryURL, err)
-	}
-
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:       *gp,
-		RepositoryURL:     repositoryURL,
-		ReposistoryAPIURL: msg.RepositoryApiUrl,
+	res, err := s.CreatePullRequest(ctx, &proto.CreatePullRequestRequest{
+		RepositoryUrl:     msg.RepositoryUrl,
 		HeadBranch:        msg.HeadBranch,
-		BaseBranch:        baseBranch,
+		BaseBranch:        msg.BaseBranch,
 		Title:             msg.Title,
 		Description:       msg.Description,
+		TemplateName:      msg.TemplateName,
+		TemplateNamespace: msg.TemplateNamespace,
+		ParameterValues:   msg.ParameterValues,
 		CommitMessage:     msg.CommitMessage,
-		Files:             files,
+		RepositoryApiUrl:  msg.RepositoryApiUrl,
+		TemplateKind:      gapiv1.Kind,
 	})
-	if err != nil {
-		s.log.Error(err, "Failed to create pull request")
-		return nil, grpcStatus.Errorf(codes.Internal, "failed to write files and create a pull request %s", err)
+
+	var tfRes *proto.CreateTfControllerPullRequestResponse
+	if res != nil {
+		tfRes = &proto.CreateTfControllerPullRequestResponse{
+			WebUrl: res.WebUrl,
+		}
 	}
 
-	return &proto.CreateTfControllerPullRequestResponse{
-		WebUrl: res.WebURL,
-	}, nil
-}
-
-func validateCreateTfControllerPR(msg *proto.CreateTfControllerPullRequestRequest) error {
-	var err error
-
-	if msg.TemplateName == "" {
-		err = multierror.Append(err, fmt.Errorf("template name must be specified"))
-	}
-
-	if msg.ParameterValues == nil {
-		err = multierror.Append(err, fmt.Errorf("parameter values must be specified"))
-	}
-
-	return err
-}
-
-func getTfControllerManifestPath(templateName string) string {
-	return filepath.Join(
-		viper.GetString("capi-repository-path"),
-		fmt.Sprintf("%s.yaml", templateName),
-	)
+	return tfRes, err
 }

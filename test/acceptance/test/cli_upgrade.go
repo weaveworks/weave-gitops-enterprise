@@ -72,7 +72,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				gitProviderEnv.Repo = "upgrade-" + currentConfigRepo
 
 				// Create vanilla cluster for WGE upgrade
-				createCluster("kind", kind_upgrade_cluster_name, "upgrade-kind-config.yaml")
+				createCluster("kind", kind_upgrade_cluster_name, "kind/upgrade-kind-config.yaml")
 
 			})
 
@@ -119,7 +119,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I install the entitlement for cluster upgrade", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "entitlement-secret.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testScriptsPath, "data/entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("And secure access to dashboard for dex users", func() {
@@ -181,7 +181,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And I should install rolebindings for default enterprise roles'", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(getCheckoutRepoPath(), "test", "utils", "data", "user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "rbac/user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 				})
 
 				ginkgo.By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
@@ -244,7 +244,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
 					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new cluster.*"))
+					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 				})
 
 				// Parameter values
@@ -322,31 +322,13 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 
-				//Pull request values
-				prBranch = "feature-capd"
-				prTitle := "My first pull request"
-				prCommit := "First capd capi template"
+				pullRequest := PullRequest{
+					Branch:  "feature-capd",
+					Title:   "My first pull request",
+					Message: "First capd capi template",
+				}
 
-				ginkgo.By("And set GitOps values for pull request", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.GitOpsLabel).Should(matchers.BeFound())
-
-					gomega.Expect(gitops.BranchName.SendKeys(prBranch)).To(gomega.Succeed())
-					gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
-					gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
-
-					AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
-					gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
-					if pages.ElementExist(gitops.SuccessBar) {
-						gomega.Expect(gitops.SuccessBar.Click()).To(gomega.Succeed())
-					}
-					gomega.Expect(gitops.CreatePR.Click()).To(gomega.Succeed())
-				})
-
-				ginkgo.By("Then I should see a toast with a link to the creation PR", func() {
-					gitops := pages.GetGitOps(webDriver)
-					gomega.Eventually(gitops.PRLinkBar, ASSERTION_1MINUTE_TIME_OUT).Should(matchers.BeFound())
-				})
+				_ = createGitopsPR(pullRequest)
 
 				var createPRUrl string
 				ginkgo.By("Then I should merge the pull request to start cluster provisioning", func() {

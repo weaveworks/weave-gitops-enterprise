@@ -15,19 +15,19 @@ var _ Processor = (*EnvsubstTemplateProcessor)(nil)
 func TestNewProcessorForTemplate(t *testing.T) {
 	processorTests := []struct {
 		renderType string
+		template   *gapiv1.GitOpsTemplate
 		want       interface{}
 		wantErr    string
 	}{
 		{renderType: templates.RenderTypeEnvsubst, want: NewEnvsubstTemplateProcessor()},
 		{renderType: "", want: NewEnvsubstTemplateProcessor()},
-		{renderType: templates.RenderTypeTemplating, want: NewTextTemplateProcessor()},
+		{renderType: templates.RenderTypeTemplating, want: NewTextTemplateProcessor(nil)},
 		{renderType: "unknown", wantErr: "unknown template renderType: unknown"},
 	}
 
 	for _, tt := range processorTests {
 		t.Run("processor for "+tt.renderType, func(t *testing.T) {
 			v, err := NewProcessorForTemplate(&gapiv1.GitOpsTemplate{Spec: templates.TemplateSpec{RenderType: tt.renderType}})
-
 			if err != nil {
 				if tt.wantErr == "" {
 					t.Fatal(err)
@@ -38,8 +38,49 @@ func TestNewProcessorForTemplate(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(tt.want, v.Processor) {
-				t.Fatalf("got %T, want %T", v, tt.want)
+			if reflect.TypeOf(v.Processor) != reflect.TypeOf(tt.want) {
+				t.Fatalf("got %T, want %T", v.Processor, tt.want)
+			}
+		})
+	}
+}
+
+func TestProcessor_RenderTemplates(t *testing.T) {
+	paramTests := []struct {
+		filename string
+		params   map[string]string
+		want     string
+	}{
+		{
+			filename: "testdata/text-template4.yaml",
+			params: map[string]string{
+				"CLUSTER_NAME":                "testing",
+				"NAMESPACE":                   "testing",
+				"CONTROL_PLANE_MACHINE_COUNT": "5",
+				"KUBERNETES_VERSION":          "1.2.5",
+			},
+			want: "---\napiVersion: controlplane.cluster.x-k8s.io/v1beta1\nkind: KubeadmControlPlane\nmetadata:\n  name: testing-control-plane\n  namespace: testing\nspec:\n  machineTemplate:\n    infrastructureRef:\n      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1\n      kind: DockerMachineTemplate\n      name: testing-control-plane\n      namespace: testing\n  replicas: 5\n  version: 1.2.5\n",
+		},
+	}
+
+	for _, tt := range paramTests {
+		t.Run(tt.filename, func(t *testing.T) {
+			c := parseCAPITemplateFromFile(t, tt.filename)
+			proc, err := NewProcessorForTemplate(c)
+			if err != nil {
+				t.Fatal(err)
+			}
+			result, err := proc.RenderTemplates(tt.params)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resultData := [][]byte{}
+			for _, r := range result {
+				resultData = append(resultData, r.Data...)
+			}
+			t.Logf("%s", writeMultiDoc(t, resultData))
+			if diff := cmp.Diff(tt.want, writeMultiDoc(t, resultData)); diff != "" {
+				t.Fatalf("failed to render templates:\n%s", diff)
 			}
 		})
 	}
@@ -58,12 +99,12 @@ func TestProcessor_Params(t *testing.T) {
 			filename: "testdata/template2.yaml",
 			want: []Param{
 				{
-					Name:    "AWS_NODE_MACHINE_TYPE",
-					Options: []string{"big", "small"},
-				},
-				{
 					Name:        "AWS_SSH_KEY_NAME",
 					Description: "A description",
+				},
+				{
+					Name:    "AWS_NODE_MACHINE_TYPE",
+					Options: []string{"big", "small"},
 				},
 				{
 					Name: "CLUSTER_NAME",
@@ -91,13 +132,13 @@ func TestProcessor_Params(t *testing.T) {
 					Options:     []string{},
 				},
 				{
-					Name: "S3_BUCKET_NAME",
-				},
-				{
 					Name:        "TEST_VALUE",
 					Description: "boolean string",
 					Required:    false,
 					Options:     []string{"true", "false"},
+				},
+				{
+					Name: "S3_BUCKET_NAME",
 				},
 			},
 		},
@@ -110,10 +151,9 @@ func TestProcessor_Params(t *testing.T) {
 					Required:    true,
 				},
 				{
-					Name:        "CONTROL_PLANE_MACHINE_COUNT",
-					Description: "Number of control planes",
+					Name:        "NAMESPACE",
+					Description: "Namespace to create the cluster in",
 					Required:    false,
-					Options:     []string{"1", "2", "3"},
 				},
 				{
 					Name:        "KUBERNETES_VERSION",
@@ -122,9 +162,10 @@ func TestProcessor_Params(t *testing.T) {
 					Options:     []string{"1.19.11", "1.21.1", "1.22.0", "1.23.3"},
 				},
 				{
-					Name:        "NAMESPACE",
-					Description: "Namespace to create the cluster in",
+					Name:        "CONTROL_PLANE_MACHINE_COUNT",
+					Description: "Number of control planes",
 					Required:    false,
+					Options:     []string{"1", "2", "3"},
 				},
 				{
 					Name:        "WORKER_MACHINE_COUNT",
@@ -142,6 +183,25 @@ func TestProcessor_Params(t *testing.T) {
 				},
 				{
 					Name: "TEST_PARAMETER",
+				},
+			},
+		}, {
+			filename: "testdata/template-with-profiles-params.yaml",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+				},
+				{Name: "INTERVAL"},
+				{Name: "TEST_PARAMETER"},
+			},
+		},
+		{
+			filename: "testdata/template-with-alt-annotation-params.yaml",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
 				},
 			},
 		},

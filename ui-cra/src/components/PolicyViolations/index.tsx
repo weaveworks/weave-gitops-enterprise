@@ -5,7 +5,7 @@ import { useListPolicyValidations } from '../../contexts/PolicyViolations';
 import { Routes } from '../../utils/nav';
 
 const PoliciesViolations = () => {
-  const { data, isLoading, error } = useListPolicyValidations({});
+  const { data, isLoading } = useListPolicyValidations({});
   return (
     <PageTemplate
       documentTitle="Violation Log"
@@ -13,15 +13,10 @@ const PoliciesViolations = () => {
         { label: 'Clusters', url: Routes.Clusters },
         {
           label: 'Violation Log',
-          count: data?.total,
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errorMessage={error?.message}
-        errors={data?.errors}
-      >
+      <ContentWrapper loading={isLoading} errors={data?.errors}>
         <PolicyViolationsTable
           violations={data?.violations || []}
           tableType={FieldsType.policy}

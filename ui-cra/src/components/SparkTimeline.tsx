@@ -58,8 +58,8 @@ const MajorTick = styled.line`
 
 const statusColor = (props: { status: string }) => {
   const colorIndex: { [key: string]: string } = {
-    success: theme.colors.success,
-    fail: theme.colors.alert,
+    success: theme.colors.successOriginal,
+    fail: theme.colors.alertOriginal,
   };
   return colorIndex[props.status] || theme.colors.primary;
 };

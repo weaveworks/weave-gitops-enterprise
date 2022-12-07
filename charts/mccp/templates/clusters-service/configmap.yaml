@@ -16,6 +16,15 @@ data:
   CAPI_REPOSITORY_CLUSTERS_PATH: {{ .Values.config.capi.repositoryClustersPath | quote }}
   CAPI_TEMPLATES_REPOSITORY_API_URL: {{ .Values.config.capi.repositoryApiURL | quote }}
   CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH: {{ .Values.config.capi.baseBranch | quote }}
+  {{- $estimationFilter := (.Values.config.costEstimation).estimationFilter }}
+  {{- if $estimationFilter }}
+  COST_ESTIMATION_FILTERS: {{ $estimationFilter | quote }}
+  {{- end }}
+  {{- $apiRegion := (.Values.config.costEstimation).apiRegion }}
+  {{- if $apiRegion }}
+  COST_ESTIMATION_API_REGION: {{ $apiRegion | quote }}
+  {{- end }}
+  USE_K8S_CACHED_CLIENTS: {{.Values.global.useK8sCachedClients | quote }}
   {{- /* build up the support auth methods string, should look like "oidc,user-account" */ -}}
   {{- $authMethods := list }}
   {{- if .Values.config.auth.userAccount.enabled -}}{{- $authMethods = append $authMethods "user-account"  -}}{{- end }}
@@ -30,9 +39,12 @@ data:
   OIDC_ISSUER_URL: {{ .Values.config.oidc.issuerURL | quote }}
   OIDC_REDIRECT_URL: {{ .Values.config.oidc.redirectURL | quote }}
   OIDC_COOKIE_DURATION: {{ .Values.config.oidc.cookieDuration | quote }}
+  OIDC_CLAIM_USERNAME: {{ .Values.config.oidc.claimUsername | quote }}
+  OIDC_CLAIM_GROUPS: {{ .Values.config.oidc.claimGroups | quote }}
   {{- end }}
   NO_TLS: {{ not .Values.tls.enabled | quote }}
   {{- if and .Values.tls.enabled .Values.tls.secretName }}
   TLS_CERT_FILE: /etc/clusters-service-tls/tls.crt
   TLS_PRIVATE_KEY: /etc/clusters-service-tls/tls.key
   {{- end }}
+  UI_CONFIG: {{ .Values.config.ui | toJson | quote }}

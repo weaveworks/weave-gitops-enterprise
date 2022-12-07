@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"os"
@@ -43,7 +43,8 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pipepb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 )
@@ -66,12 +67,14 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/objects?kind=Kustomization", port))
+	res, err := client.Post(fmt.Sprintf("https://localhost:%s/v1/objects", port), "application/json", bytes.NewBuffer([]byte(`{"kind": "Kustomization"}`)))
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
 	if res.StatusCode != http.StatusOK {
-		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
+		buf := make([]byte, 1024)
+		_, _ = res.Body.Read(buf)
+		t.Fatalf("expected status code to be %d but got %d instead: %v", http.StatusOK, res.StatusCode, string(buf))
 	}
 	res, err = client.Get(fmt.Sprintf("https://localhost:%s/v1/pineapples", port))
 	if err != nil {
@@ -114,7 +117,7 @@ func TestPipelinesServer(t *testing.T) {
 	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/pipelines", port))
 	assert.NoError(t, err)
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
 	assert.Equal(t, res.StatusCode, http.StatusOK, string(body))
@@ -178,6 +181,20 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 	go func(ctx context.Context) {
 		coreConfig := fakeCoreConfig(t, log)
 		appsConfig := fakeAppsConfig(k, log)
+		clientSet := fakeclientset.NewSimpleClientset(&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}})
+		mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+			Namespaces: []*corev1.Namespace{
+				{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "flux-system",
+					},
+					TypeMeta: metav1.TypeMeta{
+						APIVersion: "v1",
+						Kind:       "Namespace",
+					},
+				},
+			},
+		}, kubefakes.NewFakeClientGetter(k), &mgmtfetcherfake.FakeAuthClientGetter{})
 
 		err = app.RunInProcessGateway(ctx, addr,
 			app.WithCAPIClustersNamespace("default"),
@@ -187,11 +204,6 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
 			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
-			app.WithTemplateLibrary(&templates.CRDLibrary{
-				Log:           log,
-				ClientGetter:  kubefakes.NewFakeClientGetter(k),
-				CAPINamespace: "default",
-			}),
 			app.WithRuntimeNamespace(ns),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
@@ -199,7 +211,9 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
 				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 			),
+			app.WithKubernetesClientSet(clientSet),
 			app.WithClustersManager(grpctesting.MakeClustersManager(k)),
+			app.WithManagemetFetcher(mgmtFetcher),
 		)
 		t.Logf("%v", err)
 	}(ctx)
@@ -229,7 +243,11 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	clustersManager.GetImpersonatedClientReturns(client, nil)
 	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	coreConfig, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return coreConfig
 }
 

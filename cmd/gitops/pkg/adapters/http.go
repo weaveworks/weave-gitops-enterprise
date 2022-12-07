@@ -3,6 +3,7 @@ package adapters
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,9 +14,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"k8s.io/client-go/rest"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -63,7 +64,7 @@ func (c *HTTPClient) ConfigureClientWithOptions(opts *config.Options, out io.Wri
 
 	c.baseURI = u
 
-	c.client = c.client.SetHostURL(u.String()).
+	c.client = c.client.SetBaseURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if r.StatusCode() >= http.StatusInternalServerError {
 				fmt.Fprintf(out, "Server error: %s\n", r.Body())
@@ -231,7 +232,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 }
 
 // RetrieveTemplate returns a template from the cluster service.
-func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind) (*templates.Template, error) {
+func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind, namespace string) (*templates.Template, error) {
 	endpoint := "v1/templates/{template_name}"
 
 	type GetTemplateResponse struct {
@@ -245,7 +246,8 @@ func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind) 
 			"template_name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind":      kind.String(),
+			"template_namespace": namespace,
 		}).
 		SetResult(&template).
 		Get(endpoint)
@@ -302,7 +304,7 @@ func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, pr
 
 // RetrieveTemplateParameters returns the list of all parameters of the
 // specified template.
-func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string) ([]templates.TemplateParameter, error) {
+func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string, namespace string) ([]templates.TemplateParameter, error) {
 	endpoint := "v1/templates/{template_name}/params"
 
 	type ListTemplateParametersResponse struct {
@@ -316,7 +318,8 @@ func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 			"template_name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind":      kind.String(),
+			"template_namespace": namespace,
 		}).
 		SetResult(&templateParametersList).
 		Get(endpoint)
@@ -342,7 +345,6 @@ func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 	return tps, nil
 }
 
-// POST request payload
 type TemplateParameterValuesAndCredentials struct {
 	Values      map[string]string     `json:"values"`
 	Credentials templates.Credentials `json:"credentials"`
@@ -350,44 +352,40 @@ type TemplateParameterValuesAndCredentials struct {
 
 // RenderTemplateWithParameters returns a YAML representation of the specified
 // template populated with the supplied parameters.
-func (c *HTTPClient) RenderTemplateWithParameters(kind templates.TemplateKind, name string, parameters map[string]string, creds templates.Credentials) (string, error) {
+func (c *HTTPClient) RenderTemplateWithParameters(req templates.RenderTemplateRequest) (*templates.RenderTemplateResponse, error) {
+
 	endpoint := "v1/templates/{name}/render"
 
-	// POST response payload
-	type RenderedTemplate struct {
-		Template string `json:"renderedTemplate"`
-	}
-
-	var renderedTemplate RenderedTemplate
+	resp := &templates.RenderTemplateResponse{}
 
 	var serviceErr *ServiceError
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
-			"name": name,
+			"name": req.TemplateName,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind": req.TemplateKind.String(),
 		}).
-		SetBody(TemplateParameterValuesAndCredentials{Values: parameters, Credentials: creds}).
-		SetResult(&renderedTemplate).
+		SetBody(req).
+		SetResult(resp).
 		SetError(&serviceErr).
 		Post(endpoint)
 
 	if serviceErr != nil {
-		return "", fmt.Errorf("unable to POST parameters and render template from %q: %s", res.Request.URL, serviceErr.Message)
+		return nil, fmt.Errorf("unable to POST parameters and render template from %q: %s", res.Request.URL, serviceErr.Message)
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("unable to POST parameters and render template from %q: %w", res.Request.URL, err)
+		return nil, fmt.Errorf("unable to POST parameters and render template from %q: %w", res.Request.URL, err)
 	}
 
 	if res.StatusCode() != http.StatusOK {
-		return "", fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
+		return nil, fmt.Errorf("response status for POST %q was %d", res.Request.URL, res.StatusCode())
 	}
 
-	return renderedTemplate.Template, nil
+	return resp, nil
 }
 
 // CreatePullRequestFromTemplate commits the YAML template to the specified
@@ -395,16 +393,17 @@ func (c *HTTPClient) RenderTemplateWithParameters(kind templates.TemplateKind, n
 func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRequestFromTemplateParams) (string, error) {
 	// POST request payload
 	type CreatePullRequestFromTemplateRequest struct {
-		RepositoryURL   string                    `json:"repositoryUrl"`
-		HeadBranch      string                    `json:"headBranch"`
-		BaseBranch      string                    `json:"baseBranch"`
-		Title           string                    `json:"title"`
-		Description     string                    `json:"description"`
-		TemplateName    string                    `json:"templateName"`
-		ParameterValues map[string]string         `json:"parameter_values"`
-		CommitMessage   string                    `json:"commitMessage"`
-		Credentials     templates.Credentials     `json:"credentials"`
-		ProfileValues   []templates.ProfileValues `json:"profile_values"`
+		RepositoryURL     string                    `json:"repositoryUrl"`
+		HeadBranch        string                    `json:"headBranch"`
+		BaseBranch        string                    `json:"baseBranch"`
+		Title             string                    `json:"title"`
+		Description       string                    `json:"description"`
+		TemplateName      string                    `json:"templateName"`
+		TemplateNamespace string                    `json:"templateNamespace"`
+		ParameterValues   map[string]string         `json:"parameter_values"`
+		CommitMessage     string                    `json:"commitMessage"`
+		Credentials       templates.Credentials     `json:"credentials"`
+		ProfileValues     []templates.ProfileValues `json:"values"`
 	}
 
 	// POST response payload
@@ -427,16 +426,17 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 		SetHeader("Accept", "application/json").
 		SetHeader(gitProviderTokenHeaderName, params.GitProviderToken).
 		SetBody(CreatePullRequestFromTemplateRequest{
-			RepositoryURL:   params.RepositoryURL,
-			HeadBranch:      params.HeadBranch,
-			BaseBranch:      params.BaseBranch,
-			Title:           params.Title,
-			Description:     params.Description,
-			TemplateName:    params.TemplateName,
-			ParameterValues: params.ParameterValues,
-			CommitMessage:   params.CommitMessage,
-			Credentials:     params.Credentials,
-			ProfileValues:   params.ProfileValues,
+			RepositoryURL:     params.RepositoryURL,
+			HeadBranch:        params.HeadBranch,
+			BaseBranch:        params.BaseBranch,
+			Title:             params.Title,
+			Description:       params.Description,
+			TemplateName:      params.TemplateName,
+			TemplateNamespace: params.TemplateNamespace,
+			ParameterValues:   params.ParameterValues,
+			CommitMessage:     params.CommitMessage,
+			Credentials:       params.Credentials,
+			ProfileValues:     params.ProfileValues,
 		}).
 		SetResult(&result).
 		SetError(&serviceErr).
@@ -599,25 +599,49 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	return string(b), nil
 }
 
-func (c *HTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
-	endpoint := "/v1/profiles"
+func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profiles, error) {
+	endpoint := "/v1/charts/list"
 
-	result := &pb.GetProfilesResponse{}
+	result := profiles.Profiles{}
+
+	queryParams, err := toQueryParams(req)
+	if err != nil {
+		return result, fmt.Errorf("unable to convert request to query params: %w", err)
+	}
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
-		SetResult(result).
+		SetQueryParams(queryParams).
+		SetResult(&result).
 		Get(endpoint)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
+		return result, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
 	}
 
 	if res.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+		return result, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
 	return result, nil
+}
+
+// toQueryParams converts a profiles.GetOptions struct into a map of query parameters.
+func toQueryParams(req profiles.GetOptions) (map[string]string, error) {
+	queryParams := map[string]string{}
+
+	// Encode the req into a query string
+	b, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal request: %w", err)
+	}
+
+	err = json.Unmarshal(b, &queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal request: %w", err)
+	}
+
+	return queryParams, nil
 }
 
 // DeleteClusters deletes CAPI cluster using its name
@@ -675,7 +699,7 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 
 // RetrieveTemplateProfiles returns the list of all profiles of the
 // specified template.
-func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]templates.Profile, error) {
+func (c *HTTPClient) RetrieveTemplateProfiles(name string, namespace string) ([]templates.Profile, error) {
 	endpoint := "v1/templates/{name}/profiles"
 
 	type ListTemplatePResponse struct {
@@ -687,6 +711,9 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]templates.Profile,
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
 			"name": name,
+		}).
+		SetQueryParams(map[string]string{
+			"template_namespace": namespace,
 		}).
 		SetResult(&templateProfilesList).
 		Get(endpoint)

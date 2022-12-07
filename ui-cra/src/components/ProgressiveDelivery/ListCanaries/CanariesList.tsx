@@ -5,7 +5,7 @@ import { SectionHeader } from '../../Layout/SectionHeader';
 import { CanaryTable } from './Table';
 
 const ProgressiveDelivery = () => {
-  const { error, data, isLoading } = useListCanaries();
+  const { data, isLoading } = useListCanaries();
 
   return (
     <>
@@ -14,16 +14,12 @@ const ProgressiveDelivery = () => {
         path={[
           {
             label: 'Applications',
-            url:Routes.Applications,
+            url: Routes.Applications,
           },
-          { label: 'Delivery', count: data?.canaries?.length },
+          { label: 'Delivery' },
         ]}
       />
-      <ContentWrapper
-        loading={isLoading}
-        errors={data?.errors}
-        errorMessage={error?.message}
-      >
+      <ContentWrapper loading={isLoading} errors={data?.errors}>
         {data?.canaries && <CanaryTable canaries={data.canaries} />}
       </ContentWrapper>
     </>

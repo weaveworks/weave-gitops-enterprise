@@ -17,6 +17,7 @@ import (
 
 type terraformCommandFlags struct {
 	Template              string
+	TemplateNamespace     string
 	ParameterValues       []string
 	RepositoryURL         string
 	BaseBranch            string
@@ -44,7 +45,7 @@ gitops add terraform --from-template <template-name> --set key=val
 	}
 
 	cmd.Flags().StringVar(&flags.RepositoryURL, "url", "", "URL of remote repository to create the pull request")
-	internal.AddTemplateFlags(cmd, &flags.Template, &flags.ParameterValues)
+	internal.AddTemplateFlags(cmd, &flags.Template, &flags.TemplateNamespace, &flags.ParameterValues)
 	internal.AddPRFlags(cmd, &flags.HeadBranch, &flags.BaseBranch, &flags.Description, &flags.CommitMessage, &flags.Title)
 
 	return cmd
@@ -91,16 +92,17 @@ func addTerraformCmdRunE(opts *config.Options, client *adapters.HTTPClient) func
 		}
 
 		params := templates.CreatePullRequestFromTemplateParams{
-			GitProviderToken: token,
-			TemplateName:     flags.Template,
-			TemplateKind:     templates.GitOpsTemplateKind.String(),
-			ParameterValues:  vals,
-			RepositoryURL:    flags.RepositoryURL,
-			HeadBranch:       flags.HeadBranch,
-			BaseBranch:       flags.BaseBranch,
-			Title:            flags.Title,
-			Description:      flags.Description,
-			CommitMessage:    flags.CommitMessage,
+			GitProviderToken:  token,
+			TemplateName:      flags.Template,
+			TemplateNamespace: flags.TemplateNamespace,
+			TemplateKind:      templates.GitOpsTemplateKind.String(),
+			ParameterValues:   vals,
+			RepositoryURL:     flags.RepositoryURL,
+			HeadBranch:        flags.HeadBranch,
+			BaseBranch:        flags.BaseBranch,
+			Title:             flags.Title,
+			Description:       flags.Description,
+			CommitMessage:     flags.CommitMessage,
 		}
 
 		return templates.CreatePullRequestFromTemplate(params, client, os.Stdout)

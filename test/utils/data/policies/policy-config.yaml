@@ -1,0 +1,15 @@
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: policy-config-001
+spec:
+  match:
+    namespaces:
+    - test-system
+    - default
+  config:
+    weave.policies.containers-minimum-replica-count-acceptance-test:
+      parameters:
+        replica_count: 4
+        owner: acceptance.test
+        

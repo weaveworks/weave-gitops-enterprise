@@ -1,7 +1,7 @@
 import {
   DataTable,
   formatURL,
-  KubeStatusIndicator,
+  KubeStatusIndicator
 } from '@weaveworks/weave-gitops';
 
 import { Link } from 'react-router-dom';
@@ -27,7 +27,6 @@ function TerraformObjectList({ className }: Props) {
         {
           label: 'Terraform Objects',
           url: '/terraform',
-          count: data?.objects?.length,
         },
       ]}
     >
@@ -74,7 +73,7 @@ function TerraformObjectList({ className }: Props) {
               },
               {
                 value: (tf: TerraformObject) => (
-                  <KubeStatusIndicator conditions={tf.conditions || []} />
+                  <KubeStatusIndicator conditions={tf.conditions || []} suspended={tf.suspended}/>
                 ),
                 label: 'Status',
               },

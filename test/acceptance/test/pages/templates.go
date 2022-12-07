@@ -9,7 +9,6 @@ import (
 // Header webDriver elements
 type TemplatesPage struct {
 	TemplateHeader        *agouti.Selection
-	TemplateCount         *agouti.Selection
 	TemplateTiles         *agouti.MultiSelection
 	TemplatesList         *agouti.MultiSelection
 	TemplateProvider      *agouti.Selection
@@ -21,7 +20,6 @@ type TemplatesPage struct {
 func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
 		TemplateHeader:        webDriver.Find(`div[role="heading"] a[href="/templates"]`),
-		TemplateCount:         webDriver.FindByXPath(`//*[@href="/templates"]/parent::div[@role="heading"]/following-sibling::div`),
 		TemplateTiles:         webDriver.All(`[data-template-name]`),
 		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
@@ -32,8 +30,10 @@ func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	return &templatesPage
 }
 
-type TemplateRecord struct {
+type TemplateInformation struct {
 	Name             string
+	Type             *agouti.Selection
+	Namespace        *agouti.Selection
 	Provider         *agouti.Selection
 	Description      *agouti.Selection
 	CreateTemplate   *agouti.Selection
@@ -41,9 +41,9 @@ type TemplateRecord struct {
 	ErrorDescription *agouti.Selection
 }
 
-func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateRecord {
+func GetTemplateTile(webDriver *agouti.Page, templateName string) *TemplateInformation {
 	tileNode := webDriver.Find(fmt.Sprintf(`[data-template-name="%s"]`, templateName))
-	return &TemplateRecord{
+	return &TemplateInformation{
 		Name:             templateName,
 		Description:      tileNode.Find(`P[class^=MuiTypography-root]`),
 		CreateTemplate:   tileNode.Find(`#create-cluster`),
@@ -67,18 +67,18 @@ func (t TemplatesPage) CountTemplateRows() int {
 	return count
 }
 
-func (t TemplatesPage) GetTemplateRow(webDriver *agouti.Page, templateName string) *TemplateRecord {
+func (t TemplatesPage) GetTemplateInformation(webDriver *agouti.Page, templateName string) *TemplateInformation {
 	rowCount, _ := t.TemplatesList.Count()
 	for i := 0; i < rowCount; i++ {
 		tileRow := t.TemplatesList.At(i).FindByXPath(fmt.Sprintf(`//td[1]//span[contains(text(), "%s")]/ancestor::tr`, templateName))
 		if count, _ := tileRow.Count(); count == 1 {
-			return &TemplateRecord{
-				Name:             templateName,
-				Provider:         tileRow.FindByXPath(`td[3]`),
-				Description:      tileRow.FindByXPath(`td[4]`),
-				CreateTemplate:   tileRow.FindByXPath(`td[5]//button[@id="create-cluster"]`),
-				ErrorHeader:      tileRow.Find(`.template-error-header`),
-				ErrorDescription: tileRow.Find(`.template-error-description`),
+			return &TemplateInformation{
+				Name:           templateName,
+				Type:           tileRow.FindByXPath(`td[2]`),
+				Namespace:      tileRow.FindByXPath(`td[3]`),
+				Provider:       tileRow.FindByXPath(`td[4]`),
+				Description:    tileRow.FindByXPath(`td[5]`),
+				CreateTemplate: tileRow.FindByXPath(`td[6]//button[@id="create-cluster"]`),
 			}
 		}
 	}
@@ -113,17 +113,6 @@ func (t TemplatesPage) SelectView(viewName string) *agouti.Selection {
 		return t.TemplateView.At(0)
 	case "grid":
 		return t.TemplateView.At(1)
-	}
-	return nil
-}
-
-func GetEntitelment(webDriver *agouti.Page, typeEntitelment string) *agouti.Selection {
-
-	switch typeEntitelment {
-	case "expired":
-		return webDriver.FindByXPath(`//*/div[contains(text(), "Your entitlement for Weave GitOps Enterprise has expired")]`)
-	case "invalid", "missing":
-		return webDriver.FindByXPath(`//div[@class="Toastify"]//div[@role="alert"]//div[contains(text(), "No entitlement was found for Weave GitOps Enterprise")]`)
 	}
 	return nil
 }

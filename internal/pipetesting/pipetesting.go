@@ -9,17 +9,45 @@ import (
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	"google.golang.org/grpc"
 
 	v1 "k8s.io/api/core/v1"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupServer(t *testing.T, fact clustersmngr.ClustersManager) pb.PipelinesClient {
+func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client, cluster string) pb.PipelinesClient {
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*v1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-ns",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
 	pipeSrv := server.NewPipelinesServer(server.ServerOpts{
-		ClustersManager: fact,
+		ClustersManager:   fact,
+		ManagementFetcher: mgmtFetcher,
+		Cluster:           cluster,
 	})
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {

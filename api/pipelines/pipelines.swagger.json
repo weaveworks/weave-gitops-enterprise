@@ -151,6 +151,26 @@
         }
       }
     },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
     "v1Environment": {
       "type": "object",
       "properties": {
@@ -173,6 +193,17 @@
         }
       }
     },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1ListPipelinesResponse": {
       "type": "object",
       "properties": {
@@ -180,6 +211,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Pipeline"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -210,6 +247,12 @@
         },
         "status": {
           "$ref": "#/definitions/v1PipelineStatus"
+        },
+        "yaml": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
@@ -266,6 +309,15 @@
         },
         "lastAppliedRevision": {
           "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     }

@@ -26,11 +26,13 @@ export type ListError = {
 export type ListTemplatesResponse = {
   templates?: Template[]
   total?: number
+  errors?: ListError[]
 }
 
 export type GetTemplateRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type GetTemplateResponse = {
@@ -40,6 +42,7 @@ export type GetTemplateResponse = {
 export type ListTemplateParamsRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type ListTemplateParamsResponse = {
@@ -50,6 +53,7 @@ export type ListTemplateParamsResponse = {
 export type ListTemplateProfilesRequest = {
   templateName?: string
   templateKind?: string
+  templateNamespace?: string
 }
 
 export type ListTemplateProfilesResponse = {
@@ -65,6 +69,7 @@ export type RenderTemplateRequest = {
   clusterNamespace?: string
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
+  templateNamespace?: string
 }
 
 export type CommitFile = {
@@ -79,12 +84,12 @@ export type CostEstimateRange = {
 
 export type CostEstimate = {
   currency?: string
-  amount?: number
   range?: CostEstimateRange
+  message?: string
 }
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: string
+  renderedTemplate?: CommitFile[]
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
@@ -110,6 +115,7 @@ export type ListGitopsClustersResponse = {
   gitopsClusters?: GitopsCluster[]
   total?: number
   nextPageToken?: string
+  errors?: ListError[]
 }
 
 export type GetPolicyRequest = {
@@ -161,6 +167,14 @@ export type PolicyValidationOccurrence = {
   message?: string
 }
 
+export type PolicyValidationParam = {
+  name?: string
+  type?: string
+  value?: GoogleProtobufAny.Any
+  required?: boolean
+  configRef?: string
+}
+
 export type PolicyValidation = {
   id?: string
   message?: string
@@ -177,6 +191,7 @@ export type PolicyValidation = {
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
   policyId?: string
+  parameters?: PolicyValidationParam[]
 }
 
 export type CreatePullRequestRequest = {
@@ -192,6 +207,16 @@ export type CreatePullRequestRequest = {
   values?: ProfileValues[]
   repositoryApiUrl?: string
   clusterNamespace?: string
+  kustomizations?: Kustomization[]
+  templateNamespace?: string
+  templateKind?: string
+  previousValues?: PreviousValues
+}
+
+export type PreviousValues = {
+  parameterValues?: {[key: string]: string}
+  credentials?: Credential
+  values?: ProfileValues[]
   kustomizations?: Kustomization[]
 }
 
@@ -209,6 +234,7 @@ export type CreateTfControllerPullRequestRequest = {
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   repositoryApiUrl?: string
+  templateNamespace?: string
 }
 
 export type CreateTfControllerPullRequestResponse = {
@@ -272,6 +298,7 @@ export type GitopsCluster = {
   secretRef?: GitopsClusterRef
   capiCluster?: CapiCluster
   controlPlane?: boolean
+  type?: string
 }
 
 export type CapiCluster = {
@@ -320,6 +347,8 @@ export type Template = {
   annotations?: {[key: string]: string}
   templateKind?: string
   labels?: {[key: string]: string}
+  namespace?: string
+  profiles?: TemplateProfile[]
 }
 
 export type Parameter = {
@@ -328,6 +357,7 @@ export type Parameter = {
   required?: boolean
   options?: string[]
   default?: string
+  editable?: boolean
 }
 
 export type TemplateProfile = {
@@ -336,6 +366,9 @@ export type TemplateProfile = {
   editable?: boolean
   values?: string
   namespace?: string
+  required?: boolean
+  profileTemplate?: string
+  layer?: string
 }
 
 export type TemplateObject = {
@@ -456,6 +489,8 @@ export type GetConfigRequest = {
 
 export type GetConfigResponse = {
   repositoryURL?: string
+  managementClusterName?: string
+  uiConfig?: string
 }
 
 export type PolicyParamRepeatedString = {
@@ -500,6 +535,7 @@ export type Policy = {
   createdAt?: string
   clusterName?: string
   tenant?: string
+  modes?: string[]
 }
 
 export type ObjectRef = {
@@ -525,6 +561,149 @@ export type ListEventsRequest = {
 
 export type ListEventsResponse = {
   events?: Event[]
+}
+
+export type RepositoryRef = {
+  cluster?: ClusterNamespacedName
+  name?: string
+  namespace?: string
+  kind?: string
+}
+
+export type ListChartsForRepositoryRequest = {
+  repository?: RepositoryRef
+  kind?: string
+}
+
+export type RepositoryChart = {
+  name?: string
+  versions?: string[]
+  layer?: string
+}
+
+export type ListChartsForRepositoryResponse = {
+  charts?: RepositoryChart[]
+}
+
+export type GetValuesForChartRequest = {
+  repository?: RepositoryRef
+  name?: string
+  version?: string
+}
+
+export type GetValuesForChartResponse = {
+  jobId?: string
+}
+
+export type GetChartsJobRequest = {
+  jobId?: string
+}
+
+export type GetChartsJobResponse = {
+  values?: string
+  error?: string
+}
+
+export type Workspace = {
+  name?: string
+  clusterName?: string
+  namespaces?: string[]
+}
+
+export type ListWorkspacesRequest = {
+  pagination?: Pagination
+}
+
+export type ListWorkspacesResponse = {
+  workspaces?: Workspace[]
+  total?: number
+  nextPageToken?: string
+  errors?: ListError[]
+}
+
+export type WorkspaceRoleRule = {
+  groups?: string[]
+  resources?: string[]
+  verbs?: string[]
+}
+
+export type WorkspaceRole = {
+  name?: string
+  namespace?: string
+  rules?: WorkspaceRoleRule[]
+  manifest?: string
+  timestamp?: string
+}
+
+export type WorkspaceRoleBindingRoleRef = {
+  apiGroup?: string
+  kind?: string
+  name?: string
+}
+
+export type WorkspaceRoleBindingSubject = {
+  apiGroup?: string
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type WorkspaceRoleBinding = {
+  name?: string
+  namespace?: string
+  manifest?: string
+  timestamp?: string
+  role?: WorkspaceRoleBindingRoleRef
+  subjects?: WorkspaceRoleBindingSubject[]
+}
+
+export type WorkspaceServiceAccount = {
+  name?: string
+  namespace?: string
+  timestamp?: string
+}
+
+export type WorkspacePolicy = {
+  id?: string
+  name?: string
+  category?: string
+  severity?: string
+  timestamp?: string
+}
+
+export type GetWorkspaceRequest = {
+  clusterName?: string
+  workspaceName?: string
+}
+
+export type GetWorkspaceResponse = {
+  name?: string
+  clusterName?: string
+  namespaces?: string[]
+}
+
+export type GetWorkspaceRolesResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceRole[]
+}
+
+export type GetWorkspaceRoleBindingsResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceRoleBinding[]
+}
+
+export type GetWorkspaceServiceAccountsResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceServiceAccount[]
+}
+
+export type GetWorkspacePoliciesResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspacePolicy[]
 }
 
 export class ClustersService {
@@ -587,5 +766,32 @@ export class ClustersService {
   }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
     return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListChartsForRepository(req: ListChartsForRepositoryRequest, initReq?: fm.InitReq): Promise<ListChartsForRepositoryResponse> {
+    return fm.fetchReq<ListChartsForRepositoryRequest, ListChartsForRepositoryResponse>(`/v1/charts/list?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetValuesForChart(req: GetValuesForChartRequest, initReq?: fm.InitReq): Promise<GetValuesForChartResponse> {
+    return fm.fetchReq<GetValuesForChartRequest, GetValuesForChartResponse>(`/v1/charts/values`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetChartsJob(req: GetChartsJobRequest, initReq?: fm.InitReq): Promise<GetChartsJobResponse> {
+    return fm.fetchReq<GetChartsJobRequest, GetChartsJobResponse>(`/v1/charts/jobs/${req["jobId"]}?${fm.renderURLSearchParams(req, ["jobId"])}`, {...initReq, method: "GET"})
+  }
+  static ListWorkspaces(req: ListWorkspacesRequest, initReq?: fm.InitReq): Promise<ListWorkspacesResponse> {
+    return fm.fetchReq<ListWorkspacesRequest, ListWorkspacesResponse>(`/v1/workspaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspace(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/workspaces/${req["workspaceName"]}?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceRoles(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRolesResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRolesResponse>(`/v1/workspaces/${req["workspaceName"]}/roles?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceRoleBindings(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRoleBindingsResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRoleBindingsResponse>(`/v1/workspaces/${req["workspaceName"]}/rolebindings?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceServiceAccounts(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceServiceAccountsResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceServiceAccountsResponse>(`/v1/workspaces/${req["workspaceName"]}/serviceaccounts?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspacePolicies(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspacePoliciesResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/workspaces/${req["workspaceName"]}/policies?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
 }

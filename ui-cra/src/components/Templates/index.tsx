@@ -1,11 +1,11 @@
-import React, { FC, useCallback, useState, useEffect } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import TemplateCard from './Card';
 import Grid from '@material-ui/core/Grid';
+import useTemplates from '../../hooks/templates';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
-import useTemplates from '../../hooks/templates';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import styled from 'styled-components';
 import { ReactComponent as GridView } from '../../assets/img/grid-view.svg';
@@ -48,7 +48,7 @@ const FilteringSection = styled.div`
 `;
 
 const Error = styled.span`
-  color: ${theme.colors.alert};
+  color: ${theme.colors.alertOriginal};
 `;
 const CustomEmptyMessage = styled.span`
   color: ${theme.colors.neutral30};
@@ -64,12 +64,10 @@ const TemplatesDashboard: FC<{
 }> = ({ location }) => {
   const { templates, isLoading } = useTemplates();
   const { setNotifications } = useNotifications();
-  const notification = location.state?.notification;
   const providers = [
     ...Array.from(new Set(templates?.map((t: Template) => t.provider))),
     'All',
   ];
-  const templatesCount = templates?.length;
   const [view, setView] = useState<string>('table');
   const [selectedProvider, setSelectedProvider] = useState<
     string | null | undefined
@@ -85,6 +83,7 @@ const TemplatesDashboard: FC<{
 
   const initialFilterState = {
     ...filterConfig(templates, 'provider'),
+    ...filterConfig(templates, 'namespace'),
     ...filterConfig(templates, 'templateType'),
   };
 
@@ -99,11 +98,18 @@ const TemplatesDashboard: FC<{
     [history],
   );
 
-  useEffect(() => {
-    if (notification) {
-      setNotifications(notification);
-    }
-  }, [notification, setNotifications]);
+  useEffect(
+    () =>
+      setNotifications([
+        {
+          message: {
+            text: location?.state?.notification?.[0]?.message.text,
+          },
+          severity: location?.state?.notification?.[0]?.severity,
+        } as NotificationData,
+      ]),
+    [location?.state?.notification, setNotifications],
+  );
 
   return (
     <PageTemplate
@@ -112,7 +118,6 @@ const TemplatesDashboard: FC<{
         {
           label: 'Templates',
           url: '/templates',
-          count: templatesCount,
         },
       ]}
     >
@@ -172,6 +177,11 @@ const TemplatesDashboard: FC<{
                     label: 'Type',
                     value: 'templateType',
                     sortValue: ({ name }) => name,
+                  },
+                  {
+                    label: 'Namespace',
+                    value: 'namespace',
+                    sortValue: ({ namespace }) => namespace,
                   },
                   {
                     label: 'Provider',

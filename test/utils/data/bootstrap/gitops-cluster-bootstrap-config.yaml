@@ -1,0 +1,51 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: ClusterBootstrapConfig
+metadata:
+  name: "{{NAME}}"
+  namespace: "{{NAMESPACE}}"
+spec:
+  clusterSelector:
+    matchLabels:
+      weave.works/flux: "{{BOOTSTRAP}}"
+  jobTemplate:
+    generateName: "run-gitops-{{ .ObjectMeta.Name }}"
+    # requiredClusterReady: true
+    spec:
+      containers:
+        - image: ghcr.io/fluxcd/flux-cli:v0.36.0
+          imagePullPolicy: Always
+          name: flux-bootstrap
+          resources: {}
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/etc/gitops"
+              readOnly: true
+          args:
+            [
+              "bootstrap",
+              "$(GIT_PROVIDER)",
+              "--hostname=$(GIT_PROVIDER_HOSTNAME)",
+              "--owner=$(GITOPS_REPO_OWNER)",
+              "--repository=$(GITOPS_REPO_NAME)",
+              "--path=./clusters/{{ .ObjectMeta.Namespace }}/{{ .ObjectMeta.Name }}",
+            ]
+          envFrom:
+            - secretRef:
+                name: "{{PAT_SECRET}}"
+          env:
+            - name: KUBECONFIG
+              value: "/etc/gitops/value"
+            # Templated by the test suite depending if its github/gitlab
+            - name: GIT_PROVIDER
+              value: "{{GIT_PROVIDER}}"
+            - name: GIT_PROVIDER_HOSTNAME
+              value: "{{GIT_PROVIDER_HOSTNAME}}"
+            - name: GITOPS_REPO_OWNER
+              value: "{{GITOPS_REPO_OWNER}}"
+            - name: GITOPS_REPO_NAME
+              value: "{{GITOPS_REPO_NAME}}"
+      restartPolicy: Never
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: "{{ .ObjectMeta.Name }}-kubeconfig"

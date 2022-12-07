@@ -32,8 +32,8 @@ export const Title = styled.div<Size>`
 export const Count = styled.div<Size>`
   background: ${({ size }) =>
     size === 'small'
-      ? transparentize(0.5, weaveTheme.colors.primaryLight)
-      : weaveTheme.colors.primaryLight};
+      ? transparentize(0.5, weaveTheme.colors.primaryLight10)
+      : weaveTheme.colors.primaryLight10};
   padding: 0 ${weaveTheme.spacing.xxs};
   align-self: center;
   font-size: ${({ size }) =>
@@ -47,7 +47,6 @@ export const Count = styled.div<Size>`
 export interface Breadcrumb {
   label: string;
   url?: string;
-  count?: number | null;
 }
 interface Props extends Size {
   path: Breadcrumb[];
@@ -81,7 +80,7 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
   const classes = useStyles();
   return (
     <Container>
-      {path.map(({ label, url, count }, index) => (
+      {path.map(({ label, url }, index) => (
         <div
           key={index}
           className={classes.path}
@@ -102,11 +101,6 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
                 {label}
               </Link>
             </Title>
-          )}
-          {!(count === undefined || count === null) && (
-            <Count className="section-header-count" size={size}>
-              {count || 0}
-            </Count>
           )}
         </div>
       ))}

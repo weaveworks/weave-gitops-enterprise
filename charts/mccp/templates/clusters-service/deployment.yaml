@@ -12,6 +12,9 @@ spec:
       app: clusters-service
   template:
     metadata:
+      # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/clusters-service/configmap.yaml") . | sha256sum }}
       labels:
         app: clusters-service
         {{- include "mccp.selectorLabels" . | nindent 8 }}
@@ -37,6 +40,10 @@ spec:
           - secretRef:
               name: git-provider-credentials
               optional: true
+          {{- if .Values.extraEnvVarsSecret }}
+          - secretRef:
+              name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+          {{- end }}
           env:
             - name: RUNTIME_NAMESPACE
               valueFrom:
@@ -66,8 +73,17 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
               value: "true"
             {{- end }}
+            {{- if .Values.enableRunUI }}
+            - name: WEAVE_GITOPS_FEATURE_RUN_UI
+              value: "true"
+            {{- end }}
             {{- if .Values.envVars }}
             {{- with .Values.envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.extraEnvVars }}
+            {{- with .Values.extraEnvVars }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- end }}

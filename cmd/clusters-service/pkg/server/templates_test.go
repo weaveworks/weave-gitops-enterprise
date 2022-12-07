@@ -8,7 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -16,11 +18,15 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 func TestListTemplates(t *testing.T) {
@@ -47,6 +53,7 @@ func TestListTemplates(t *testing.T) {
 					Description:  "this is test template 1",
 					Provider:     "aws",
 					TemplateKind: "CAPITemplate",
+					Namespace:    "default",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -69,6 +76,7 @@ func TestListTemplates(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
+					ct.ObjectMeta.Namespace = "test-ns"
 					ct.Spec.Description = "this is test template 2"
 					ct.Labels = map[string]string{"weave.works/template-kind": "cluster"}
 				}),
@@ -80,6 +88,7 @@ func TestListTemplates(t *testing.T) {
 					Description:  "this is test template 1",
 					Provider:     "",
 					TemplateKind: "CAPITemplate",
+					Namespace:    "default",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        string("${CLUSTER_NAME}"),
@@ -102,6 +111,7 @@ func TestListTemplates(t *testing.T) {
 					Provider:     "",
 					TemplateKind: "CAPITemplate",
 					Labels:       map[string]string{"weave.works/template-kind": "cluster"},
+					Namespace:    "test-ns",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        string("${CLUSTER_NAME}"),
@@ -122,6 +132,7 @@ func TestListTemplates(t *testing.T) {
 		},
 	}
 
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{ID: "userID"})
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
@@ -133,7 +144,7 @@ func TestListTemplates(t *testing.T) {
 				TemplateKind: capiv1.Kind,
 			}
 
-			listTemplatesResponse, err := s.ListTemplates(context.Background(), listTemplatesRequest)
+			listTemplatesResponse, err := s.ListTemplates(ctx, listTemplatesRequest)
 			if err != nil {
 				if tt.err == nil {
 					t.Fatalf("failed to read the templates:\n%s", err)
@@ -179,6 +190,7 @@ func TestListClusterTemplates(t *testing.T) {
 					Description:  "this is test template 1",
 					Provider:     "aws",
 					TemplateKind: "GitOpsTemplate",
+					Namespace:    "default",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       "${RESOURCE_NAME}",
@@ -201,6 +213,7 @@ func TestListClusterTemplates(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeClusterTemplates(t, func(ct *gapiv1.GitOpsTemplate) {
 					ct.ObjectMeta.Name = "cluster-template-2"
+					ct.ObjectMeta.Namespace = "test-ns"
 					ct.Spec.Description = "this is test template 2"
 				}),
 				makeClusterTemplates(t),
@@ -211,6 +224,7 @@ func TestListClusterTemplates(t *testing.T) {
 					Description:  "this is test template 1",
 					Provider:     "",
 					TemplateKind: "GitOpsTemplate",
+					Namespace:    "default",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        "${RESOURCE_NAME}",
@@ -232,6 +246,7 @@ func TestListClusterTemplates(t *testing.T) {
 					Description:  "this is test template 2",
 					Provider:     "",
 					TemplateKind: "GitOpsTemplate",
+					Namespace:    "test-ns",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:        "${RESOURCE_NAME}",
@@ -252,6 +267,7 @@ func TestListClusterTemplates(t *testing.T) {
 		},
 	}
 
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{ID: "userID"})
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
@@ -263,7 +279,7 @@ func TestListClusterTemplates(t *testing.T) {
 				TemplateKind: gapiv1.Kind,
 			}
 
-			listTemplatesResponse, err := s.ListTemplates(context.Background(), listTemplatesRequest)
+			listTemplatesResponse, err := s.ListTemplates(ctx, listTemplatesRequest)
 			if err != nil {
 				if tt.err == nil {
 					t.Fatalf("failed to read the templates:\n%s", err)
@@ -304,6 +320,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 					Description:  "this is test template 2",
 					Provider:     "aws",
 					TemplateKind: "CAPITemplate",
+					Namespace:    "default",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -337,6 +354,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 					Description:  "this is test template 2",
 					Provider:     "aws",
 					TemplateKind: "CAPITemplate",
+					Namespace:    "default",
 					Objects: []*capiv1_protos.TemplateObject{
 						{
 							Name:       string("${CLUSTER_NAME}"),
@@ -380,6 +398,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 		},
 	}
 
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{ID: "userID"})
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			s := createServer(t, serverOptions{
@@ -390,7 +409,7 @@ func TestListTemplates_FilterByProvider(t *testing.T) {
 			listTemplatesRequest := new(capiv1_protos.ListTemplatesRequest)
 			listTemplatesRequest.Provider = tt.provider
 
-			listTemplatesResponse, err := s.ListTemplates(context.Background(), listTemplatesRequest)
+			listTemplatesResponse, err := s.ListTemplates(ctx, listTemplatesRequest)
 			if err != nil {
 				if tt.err == nil {
 					t.Fatalf("failed to read the templates:\n%s", err)
@@ -434,6 +453,7 @@ func TestGetTemplate(t *testing.T) {
 				Description:  "this is test template 1",
 				Provider:     "",
 				TemplateKind: "CAPITemplate",
+				Namespace:    "default",
 				Objects: []*capiv1_protos.TemplateObject{
 					{
 						Name:        string("${CLUSTER_NAME}"),
@@ -459,7 +479,7 @@ func TestGetTemplate(t *testing.T) {
 				clusterState: tt.clusterState,
 				namespace:    "default",
 			})
-			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1"})
+			getTemplateRes, err := s.GetTemplate(context.Background(), &capiv1_protos.GetTemplateRequest{TemplateName: "cluster-template-1", TemplateNamespace: "default"})
 			if err != nil && tt.err == nil {
 				t.Fatalf("failed to read the templates:\n%s", err)
 			} else if err != nil && tt.err != nil {
@@ -510,6 +530,7 @@ func TestListTemplateParams(t *testing.T) {
 
 			listTemplateParamsRequest := new(capiv1_protos.ListTemplateParamsRequest)
 			listTemplateParamsRequest.TemplateName = "cluster-template-1"
+			listTemplateParamsRequest.TemplateNamespace = "default"
 
 			listTemplateParamsResponse, err := s.ListTemplateParams(context.Background(), listTemplateParamsRequest)
 			if err != nil {
@@ -567,6 +588,7 @@ func TestListTemplateProfiles(t *testing.T) {
 
 			listTemplateProfilesRequest := new(capiv1_protos.ListTemplateProfilesRequest)
 			listTemplateProfilesRequest.TemplateName = "cluster-template-1"
+			listTemplateProfilesRequest.TemplateNamespace = "default"
 
 			listTemplateProfilesResponse, err := s.ListTemplateProfiles(context.Background(), listTemplateProfilesRequest)
 			if err != nil {
@@ -604,6 +626,7 @@ func TestRenderTemplate(t *testing.T) {
 		pruneEnvVar      string
 		clusterNamespace string
 		clusterState     []runtime.Object
+		templateKind     string
 		expected         string
 		err              error
 		expectedErrorStr string
@@ -633,11 +656,11 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templatesv1.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: false,
 					})
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion":"fooversion",
@@ -663,12 +686,12 @@ func TestRenderTemplate(t *testing.T) {
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
-					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templatesv1.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: true, // Default being set overrides this field
 						Default:  "foo",
 					})
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion":"fooversion",
@@ -714,7 +737,7 @@ func TestRenderTemplate(t *testing.T) {
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.ObjectMeta.Name = "cluster-template-1"
 					ct.Spec.Description = "this is test template 1"
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
@@ -745,17 +768,53 @@ func TestRenderTemplate(t *testing.T) {
 			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
 		},
 		{
+			name:             "enable prune injections via anno",
+			clusterNamespace: "test-ns",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.ObjectMeta.Annotations = map[string]string{
+						"templates.weave.works/inject-prune-annotation": "true",
+					}
+				}),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
+			name:             "enable prune injections with non-CAPI template",
+			pruneEnvVar:      "enabled",
+			clusterNamespace: "test-ns",
+			templateKind:     gapiv1.Kind,
+			clusterState: []runtime.Object{
+				makeClusterTemplateWithProvider(t, "AWSCluster", func(gt *gapiv1.GitOpsTemplate) {
+					gt.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
+						{
+							Content: []runtime.RawExtension{
+								rawExtension(`{
+							"apiVersion":"fooversion",
+							"kind":"fookind",
+							"metadata":{
+								"name": "${CLUSTER_NAME}"
+							}
+						}`),
+							},
+						},
+					}
+				}),
+			},
+			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+		},
+		{
 			name:             "render template with renderType: templating",
 			pruneEnvVar:      "disabled",
 			clusterNamespace: "test-ns",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
 					ct.Spec.RenderType = "templating"
-					ct.Spec.Params = append(ct.Spec.Params, templates.TemplateParam{
+					ct.Spec.Params = append(ct.Spec.Params, templatesv1.TemplateParam{
 						Name:     "OPTIONAL_PARAM",
 						Required: false,
 					})
-					ct.Spec.ResourceTemplates = []templates.ResourceTemplate{
+					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
 							Content: []runtime.RawExtension{rawExtension(`{
 							"apiVersion":"fooversion",
@@ -794,7 +853,9 @@ func TestRenderTemplate(t *testing.T) {
 				Values: map[string]string{
 					"CLUSTER_NAME": "test-cluster",
 				},
-				Credentials: tt.credentials,
+				Credentials:       tt.credentials,
+				TemplateKind:      tt.templateKind,
+				TemplateNamespace: "default",
 			}
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
@@ -806,10 +867,108 @@ func TestRenderTemplate(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate[0].Content, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}
+		})
+	}
+}
+
+func TestCostEstimation(t *testing.T) {
+	// Works very similarly to the render tests, but we need to set up a fake
+	// cost estimator server to test the cost estimation functionality.
+
+	testCases := []struct {
+		name         string
+		clusterState []runtime.Object
+		expectedCost *capiv1_protos.CostEstimate
+		estimator    estimation.Estimator
+		err          error
+	}{
+		{
+			name: "no annotation",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			expectedCost: &capiv1_protos.CostEstimate{
+				Message: "no estimate returned",
+			},
+		},
+		{
+			name: "has annotation",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.SetAnnotations(map[string]string{
+						"templates.weave.works/cost-estimation-enabled": "true",
+					})
+				}),
+			},
+			estimator: testEstimator{low: 50, high: 150000, currency: "GBP"},
+			expectedCost: &capiv1_protos.CostEstimate{
+				Currency: "GBP",
+				Range: &capiv1_protos.CostEstimate_Range{
+					Low:  50,
+					High: 150000,
+				},
+			},
+		},
+		{
+			name: "estimator errors come back in the response",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.SetAnnotations(map[string]string{
+						"templates.weave.works/cost-estimation-enabled": "true",
+					})
+				}),
+			},
+			estimator: errorEstimator{err: errors.New("on no.")},
+			expectedCost: &capiv1_protos.CostEstimate{
+				Message: "failed to calculate estimate for cluster costs: on no.",
+			},
+		},
+		{
+			name: "estimator doesn't return anything",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t, func(ct *capiv1.CAPITemplate) {
+					ct.SetAnnotations(map[string]string{
+						"templates.weave.works/cost-estimation-enabled": "true",
+					})
+				}),
+			},
+			estimator: errorEstimator{err: nil},
+			expectedCost: &capiv1_protos.CostEstimate{
+				Message: "no estimate returned",
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.Reset()
+			viper.SetDefault("capi-templates-namespace", "default")
+
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				estimator:    tt.estimator,
+			})
+
+			renderTemplateRequest := &capiv1_protos.RenderTemplateRequest{
+				TemplateName: "cluster-template-1",
+				Values: map[string]string{
+					"CLUSTER_NAME": "test-cluster",
+				},
+				TemplateKind:      "CAPITemplate",
+				TemplateNamespace: "default",
+			}
+
+			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
+			assert.NoError(t, err)
+			if diff := cmp.Diff(tt.expectedCost, renderTemplateResponse.CostEstimate, protocmp.Transform()); diff != "" {
+				t.Fatalf("cost estimate does not match:\n%s", diff)
+			}
+
 		})
 	}
 }
@@ -852,6 +1011,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
+				TemplateNamespace: "default",
 				Kustomizations: []*capiv1_protos.Kustomization{
 					{
 						Metadata: testNewMetadata(t, "apps-capi", "flux-system"),
@@ -871,7 +1031,12 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				RenderedTemplate: []*capiv1_protos.CommitFile{
+					{
+						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
+						Path:    "clusters-namespace/dev.yaml",
+					},
+				},
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
@@ -929,6 +1094,7 @@ status: {}
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
+				TemplateNamespace: "default",
 				Profiles: []*capiv1_protos.ProfileValues{
 					{
 						Name:      "demo-profile",
@@ -939,8 +1105,32 @@ status: {}
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
-				KustomizationFiles: []*capiv1_protos.CommitFile{},
+				RenderedTemplate: []*capiv1_protos.CommitFile{
+					{
+						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
+						Path:    "clusters-namespace/dev.yaml",
+					},
+				},
+				KustomizationFiles: []*capiv1_protos.CommitFile{
+					{
+						Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+					},
+				},
 				ProfileFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/profiles.yaml",
@@ -978,8 +1168,7 @@ spec:
   targetNamespace: test-system
   upgrade:
     crds: CreateReplace
-  values:
-    favoriteDrink: coffee
+  values: {}
 status: {}
 `,
 					},
@@ -999,20 +1188,18 @@ status: {}
 					"CLUSTER_NAME": "dev",
 					"NAMESPACE":    "clusters-namespace",
 				},
-				Profiles: []*capiv1_protos.ProfileValues{},
+				Profiles:          []*capiv1_protos.ProfileValues{},
+				TemplateNamespace: "default",
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
-				KustomizationFiles: []*capiv1_protos.CommitFile{},
-				ProfileFiles:       []*capiv1_protos.CommitFile{},
-				CostEstimate: &capiv1_protos.CostEstimate{
-					Currency: "USD",
-					Amount:   0,
-					Range: &capiv1_protos.CostEstimate_Range{
-						Low:  0,
-						High: 1000000,
+				RenderedTemplate: []*capiv1_protos.CommitFile{
+					{
+						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
+						Path:    "clusters-namespace/dev.yaml",
 					},
 				},
+				KustomizationFiles: []*capiv1_protos.CommitFile{},
+				ProfileFiles:       []*capiv1_protos.CommitFile{},
 			},
 		},
 	}
@@ -1020,7 +1207,7 @@ status: {}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			viper.Reset()
-			viper.SetDefault("runtime-namespace", "default")
+			viper.SetDefault("add-bases-kustomization", "disabled")
 			viper.SetDefault("inject-prune-annotation", tt.pruneEnvVar)
 			viper.SetDefault("capi-clusters-namespace", tt.clusterNamespace)
 			viper.SetDefault("capi-repository-clusters-path", "clusters")
@@ -1031,10 +1218,21 @@ status: {}
 				hr.Namespace = "default"
 			})
 			tt.clusterState = append(tt.clusterState, hr)
+			fakeCache := testNewFakeChartCache(t,
+				nsn("management", ""),
+				helm.ObjectReference{
+					Name:      "weaveworks-charts",
+					Namespace: "default",
+				},
+				[]helm.Chart{})
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
 				namespace:    "default",
-				hr:           hr,
+				chartsCache:  fakeCache,
+				profileHelmRepository: &types.NamespacedName{
+					Name:      "weaveworks-charts",
+					Namespace: "default",
+				},
 			})
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), tt.req)
@@ -1083,10 +1281,11 @@ func TestRenderTemplate_MissingRequiredVariable(t *testing.T) {
 			Name:      "",
 			Namespace: "",
 		},
+		TemplateNamespace: "default",
 	}
 
 	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
-	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1, missing required parameter: CLUSTER_NAME"); diff != "" {
+	if diff := cmp.Diff(err.Error(), "unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values"); diff != "" {
 		t.Fatalf("got the wrong error:\n%s", diff)
 	}
 }
@@ -1148,6 +1347,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				Values: map[string]string{
 					"CLUSTER_NAME": tt.clusterName,
 				},
+				TemplateNamespace: "default",
 			}
 
 			renderTemplateResponse, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
@@ -1159,7 +1359,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate[0].Content, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}
@@ -1168,23 +1368,246 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 }
 
 func TestGetProfilesFromTemplate(t *testing.T) {
-	annotations := map[string]string{
-		"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
-		"capi.weave.works/profile-1": "{\"name\": \"external-dns\", \"version\": \"0.0.8\", \"editable\": true }",
-		"capi.weave.works/profile-2": "{\"name\": \"cert-manager\", \"version\": \"2.0.1\"}",
+	t.Run("base case", func(t *testing.T) {
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
+			"capi.weave.works/profile-1": "{\"name\": \"external-dns\", \"version\": \"0.0.8\", \"editable\": true }",
+			"capi.weave.works/profile-2": "{\"name\": \"cert-manager\", \"version\": \"2.0.1\"}",
+		}
+
+		expected := []*capiv1_protos.TemplateProfile{
+			{Name: "cert-manager", Version: "2.0.1"},
+			{Name: "external-dns", Version: "0.0.8", Editable: true},
+			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
+		}
+
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+		})
+		result, err := getProfilesFromTemplate(tm)
+
+		assert.NoError(t, err)
+
+		if diff := cmp.Diff(expected, result, protocmp.Transform()); diff != "" {
+			t.Fatalf("template params didn't match expected:\n%s", diff)
+		}
+	})
+
+	t.Run("missing name", func(t *testing.T) {
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
+		}
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+		})
+		_, err := getProfilesFromTemplate(tm)
+		assert.Error(t, err)
+		assert.Equal(t, "profile name is required", err.Error())
+	})
+
+	t.Run("bad json", func(t *testing.T) {
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"",
+		}
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+		})
+		_, err := getProfilesFromTemplate(tm)
+		assert.Error(t, err)
+		assert.Equal(t, "failed to unmarshal profiles: unexpected end of JSON input", err.Error())
+	})
+
+	t.Run("profiles in template.spec.profiles overrides profiles specified in the annotations", func(t *testing.T) {
+		// base annotations
+		annotations := map[string]string{
+			"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
+			"capi.weave.works/profile-1": "{\"name\": \"external-dns\", \"version\": \"0.0.7\", \"editable\": true }",
+		}
+
+		// profiles in template.spec.profiles
+		profiles := []templatesv1.Chart{
+			{Chart: "cert-manager", Version: "2.0.1"},
+			{Chart: "external-dns", Version: "0.0.8", Editable: true},
+		}
+
+		expected := []*capiv1_protos.TemplateProfile{
+			// spec
+			{Name: "cert-manager", Version: "2.0.1"},
+			{Name: "external-dns", Version: "0.0.8", Editable: true},
+			// annotations
+			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
+		}
+
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Annotations = annotations
+			c.Spec.Charts.Items = profiles
+		})
+
+		result, err := getProfilesFromTemplate(tm)
+		// no error
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("All the fields are loaded properly from template.profiles", func(t *testing.T) {
+		profiles := []templatesv1.Chart{
+			{
+				Chart:   "k8s-rbac-permissions",
+				Version: "0.0.8",
+				HelmReleaseTemplate: templatesv1.HelmReleaseTemplateSpec{
+					Content: &templatesv1.HelmReleaseTemplate{
+						RawExtension: runtime.RawExtension{
+							Raw: []byte(`{ "spec": { "interval": "${INTERVAL}" } }`),
+						},
+					},
+				},
+				Values: &templatesv1.HelmReleaseValues{
+					RawExtension: runtime.RawExtension{
+						Raw: []byte(`{ "adminGroups": "weaveworks" }`),
+					},
+				},
+				Layer:           "layer-foo",
+				TargetNamespace: "foo-ns",
+				Editable:        true,
+				Required:        true,
+			},
+		}
+
+		expected := []*capiv1_protos.TemplateProfile{
+			{
+				Name:            "k8s-rbac-permissions",
+				Version:         "0.0.8",
+				Editable:        true,
+				ProfileTemplate: "spec:\n  interval: ${INTERVAL}\n",
+				Values:          "adminGroups: weaveworks\n",
+				Layer:           "layer-foo",
+				Namespace:       "foo-ns",
+				Required:        true,
+			},
+		}
+
+		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
+			c.Spec.Charts.Items = profiles
+		})
+
+		result, err := getProfilesFromTemplate(tm)
+		// no error
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+	})
+}
+
+func TestGetFiles_required_profiles(t *testing.T) {
+	viper.SetDefault("runtime-namespace", "flux-system")
+	ts := httptest.NewServer(makeServeMux(t))
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+		hr.SetName("weaveworks-charts")
+		hr.SetNamespace("flux-system")
+	})
+	fmt.Println("hr", hr.GetName(), hr.GetNamespace())
+	c := createClient(t, hr)
+
+	log := logr.Discard()
+	testEstimator := testEstimator{low: 1, high: 2, currency: "USD"}
+	getFilesRequest := GetFilesRequest{
+		ClusterNamespace: "ns-foo",
+		ParameterValues: map[string]string{
+			"CLUSTER_NAME": "cluster-foo",
+			"NAMESPACE":    "ns-foo",
+		},
+		Credentials: &capiv1_protos.Credential{
+			Group:     "",
+			Version:   "",
+			Kind:      "",
+			Name:      "",
+			Namespace: "",
+		},
+		Profiles:       []*capiv1_protos.ProfileValues{},
+		Kustomizations: []*capiv1_protos.Kustomization{},
 	}
 
-	expected := []*capiv1_protos.TemplateProfile{
-		{Name: "cert-manager", Version: "2.0.1"},
-		{Name: "external-dns", Version: "0.0.8", Editable: true},
-		{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks"},
+	path := "ns-foo/cluster-foo/profiles.yaml"
+	templateContent := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: weaveworks-charts
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: {{ .URL }}/charts
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: demo-profile
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: demo-profile
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: weaveworks-charts
+        namespace: flux-system
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+status: {}
+`
+	content := simpleTemplate(t, templateContent, struct{ URL string }{URL: ts.URL})
+	expected := &GetFilesReturn{
+		ProfileFiles: []gitprovider.CommitFile{
+			{
+				Path:    &path,
+				Content: &content,
+			},
+		},
+		CostEstimate: &capiv1_protos.CostEstimate{
+			Currency: "USD",
+			Range: &capiv1_protos.CostEstimate_Range{
+				Low:  1,
+				High: 2,
+			},
+		},
+		Cluster: nsn("cluster-foo", "ns-foo"),
 	}
 
-	result, err := getProfilesFromTemplate(annotations)
+	fakeChartCache := testNewFakeChartCache(t,
+		nsn("cluster-foo", "ns-foo"),
+		helm.ObjectReference{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		},
+		[]helm.Chart{})
+	values := []byte("foo: bar")
+	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
+	files, err := getFiles(
+		context.TODO(),
+		c,
+		log,
+		testEstimator,
+		fakeChartCache,
+		types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
+		types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"},
+		makeTestTemplateWithProfileAnnotation(
+			templatesv1.RenderTypeEnvsubst,
+			"capi.weave.works/profile-0",
+			profile,
+		),
+		getFilesRequest,
+		nil)
 	assert.NoError(t, err)
-
-	if diff := cmp.Diff(expected, result, protocmp.Transform()); diff != "" {
-		t.Fatalf("template params didn't match expected:\n%s", diff)
+	if diff := cmp.Diff(expected, files, protocmp.Transform()); diff != "" {
+		t.Fatalf("files did not match:\n%s", diff)
 	}
 }
 
@@ -1199,7 +1622,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 		}
 	  }`
 	return makeCAPITemplate(t, append(opts, func(c *capiv1.CAPITemplate) {
-		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
+		c.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
 				Content: []runtime.RawExtension{rawExtension(basicRaw)},
 			},
@@ -1217,11 +1640,34 @@ func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...f
 		  "name": "${RESOURCE_NAME}"
 		}
 	  }`
-	return makeClusterTemplates(t, append(opts, func(c *gapiv1.GitOpsTemplate) {
-		c.Spec.ResourceTemplates = []templates.ResourceTemplate{
-			{
-				Content: []runtime.RawExtension{rawExtension(basicRaw)},
-			},
-		}
-	})...)
+
+	defaultOpts := []func(template *gapiv1.GitOpsTemplate){
+		func(c *gapiv1.GitOpsTemplate) {
+			c.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
+				{
+					Content: []runtime.RawExtension{rawExtension(basicRaw)},
+				},
+			}
+		},
+	}
+
+	return makeClusterTemplates(t, append(defaultOpts, opts...)...)
+}
+
+type testEstimator struct {
+	high     float32
+	low      float32
+	currency string
+}
+
+func (t testEstimator) Estimate(context.Context, []*unstructured.Unstructured) (*estimation.CostEstimate, error) {
+	return &estimation.CostEstimate{Low: t.low, High: t.high, Currency: t.currency}, nil
+}
+
+type errorEstimator struct {
+	err error
+}
+
+func (t errorEstimator) Estimate(context.Context, []*unstructured.Unstructured) (*estimation.CostEstimate, error) {
+	return nil, t.err
 }

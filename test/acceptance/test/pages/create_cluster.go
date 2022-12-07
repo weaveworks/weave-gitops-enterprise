@@ -42,16 +42,17 @@ type ValuesYaml struct {
 	TextArea *agouti.Selection
 }
 
-type Preview struct {
-	Title *agouti.Selection
-	Text  *agouti.Selection
-	Close *agouti.Selection
+type CostEstimation struct {
+	Label    *agouti.Selection
+	Price    *agouti.Selection
+	Message  *agouti.Selection
+	Estimate *agouti.Selection
 }
 
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
 		CreateHeader: webDriver.Find(`.count-header`),
-		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new cluster with template"]/following-sibling::text()`),
+		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new resource with template"]/following-sibling::text()`),
 		Credentials:     webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
 		ProfileList:     webDriver.Find(`.profiles-table table tbody`),
@@ -75,7 +76,6 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 }
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
-	gomega.Eventually(webDriver.Find(`div[class^=MuiDialogTitle-root]`)).Should(matchers.BeVisible())
 	return ValuesYaml{
 		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
 		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),
@@ -108,10 +108,11 @@ func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
 	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
 }
 
-func GetPreview(webDriver *agouti.Page) Preview {
-	return Preview{
-		Title: webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  h5`),
-		Text:  webDriver.Find(`div[class*=MuiDialog-paper][role=dialog]  textarea:first-child`),
-		Close: webDriver.Find(`div[class*=MuiDialogTitle-root] button`),
+func GetCostEstimation(webDriver *agouti.Page) *CostEstimation {
+	return &CostEstimation{
+		Label:    webDriver.FindByXPath(`//h2[.="Cost Estimation"]`),
+		Price:    webDriver.FindByXPath(`//div[.="Monthly Cost:"]/following-sibling::div`),
+		Message:  webDriver.FindByXPath(`//h2[.="Cost Estimation"]/following-sibling::div//div[contains(@class, "message")]`),
+		Estimate: webDriver.FindByID(`get-estimation`),
 	}
 }

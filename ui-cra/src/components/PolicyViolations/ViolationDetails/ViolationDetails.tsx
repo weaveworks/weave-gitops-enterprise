@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Link } from 'react-router-dom';
 import { generateRowHeaders } from '../../RowHeader';
+import PolicyConfigSection from './PolicyConfigSection';
 
 interface IViolationDetailsProps {
   violation: PolicyValidation | undefined;
@@ -28,8 +29,8 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
     occurrences,
     clusterName,
     name,
+    parameters,
   } = violation || {};
-
   const defaultHeaders = [
     {
       rowkey: 'Cluster Name',
@@ -79,7 +80,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
 
       <div className={classes.sectionSeperator}>
         <div className={classes.cardTitle}>
-          Occurences{' '}
+          Occurrences{' '}
           <span className={classes.titleNotification}>
             ( {occurrences?.length} )
           </span>
@@ -128,6 +129,10 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
             {JSON.parse(JSON.stringify(violatingEntity, null, 2))}
           </SyntaxHighlighter>
         </div>
+      </div>
+
+      <div className={classes.sectionSeperator}>
+        <PolicyConfigSection parameters={parameters}/>
       </div>
     </>
   );

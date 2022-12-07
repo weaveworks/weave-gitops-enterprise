@@ -660,20 +660,6 @@ func TestRender_unknown_parameter(t *testing.T) {
 	assert.ErrorContains(t, err, "missing required parameter: CLUSTER_NAME")
 }
 
-func writeMultiDoc(t *testing.T, objs [][]byte) string {
-	t.Helper()
-	var out bytes.Buffer
-	for _, v := range objs {
-		if _, err := out.Write([]byte("---\n")); err != nil {
-			t.Fatal(err)
-		}
-		if _, err := out.Write(v); err != nil {
-			t.Fatal(err)
-		}
-	}
-	return out.String()
-}
-
 func TestInjectLabels(t *testing.T) {
 	raw := []byte(`
 apiVersion: cluster.x-k8s.io/v1alpha3
@@ -712,4 +698,64 @@ metadata:
 	if diff := cmp.Diff(want, string(updated)); diff != "" {
 		t.Fatalf("rendering with option failed:\n%s", diff)
 	}
+}
+
+func TestConvertToUnstructured(t *testing.T) {
+	raw := [][]byte{[]byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing1
+  namespace: default
+`), []byte(`
+apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: testing2
+  namespace: default
+`)}
+
+	converted, err := ConvertToUnstructured(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []*unstructured.Unstructured{
+		{
+			Object: map[string]any{
+				"apiVersion": "cluster.x-k8s.io/v1alpha3",
+				"kind":       "Cluster",
+				"metadata": map[string]any{
+					"name":      "testing1",
+					"namespace": "default",
+				},
+			},
+		},
+		{
+			Object: map[string]any{
+				"apiVersion": "cluster.x-k8s.io/v1alpha3",
+				"kind":       "Cluster",
+				"metadata": map[string]any{
+					"name":      "testing2",
+					"namespace": "default",
+				},
+			},
+		},
+	}
+	if diff := cmp.Diff(want, converted); diff != "" {
+		t.Fatalf("failed to convert to unstructured:\n%s", diff)
+	}
+}
+
+func writeMultiDoc(t *testing.T, objs [][]byte) string {
+	t.Helper()
+	var out bytes.Buffer
+	for _, v := range objs {
+		if _, err := out.Write([]byte("---\n")); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := out.Write(v); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return out.String()
 }

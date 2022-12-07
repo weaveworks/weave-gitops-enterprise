@@ -98,6 +98,7 @@ func TestRetrieveTemplate(t *testing.T) {
 	tests := []struct {
 		name         string
 		templateName string // this isn't actually used, but it's a nice to have
+		namespace    string
 		responder    httpmock.Responder
 		kind         templates.TemplateKind
 		assertFunc   func(t *testing.T, template *templates.Template, err error)
@@ -105,6 +106,7 @@ func TestRetrieveTemplate(t *testing.T) {
 		{
 			name:         "capi template returned",
 			templateName: "cluster-template",
+			namespace:    "default",
 			kind:         templates.CAPITemplateKind,
 			responder:    httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/single_capi_template.json")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
@@ -119,6 +121,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			name:         "terraform template returned",
 			kind:         templates.GitOpsTemplateKind,
 			templateName: "terraform-template",
+			namespace:    "default",
 			responder:    httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/single_terraform_template.json")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
 				assert.Equal(t, *ts, templates.Template{
@@ -131,28 +134,31 @@ func TestRetrieveTemplate(t *testing.T) {
 		{
 			name:         "error returned for capi type",
 			templateName: "cluster-template",
+			namespace:    "default",
 			kind:         templates.CAPITemplateKind,
 			responder:    httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate\": Get \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate\": oops")
+				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate&template_namespace=default\": oops")
 			},
 		},
 		{
 			name:         "error returned for gitops type",
 			templateName: "terraform-template",
+			namespace:    "default",
 			kind:         templates.GitOpsTemplateKind,
 			responder:    httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate\": Get \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate\": oops")
+				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate&template_namespace=default\": oops")
 			},
 		},
 		{
 			name:         "unexpected status code",
 			templateName: "cluster-template",
+			namespace:    "default",
 			kind:         templates.CAPITemplateKind,
 			responder:    httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate&template_namespace=default\" was 400")
 			},
 		},
 	}
@@ -169,7 +175,7 @@ func TestRetrieveTemplate(t *testing.T) {
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := client.RetrieveTemplate(tt.templateName, tt.kind)
+			ts, err := client.RetrieveTemplate(tt.templateName, tt.kind, tt.namespace)
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -231,12 +237,14 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 func TestRetrieveTemplateParameters(t *testing.T) {
 	tests := []struct {
 		name       string
+		namespace  string
 		kind       templates.TemplateKind
 		responder  httpmock.Responder
 		assertFunc func(t *testing.T, templates []templates.TemplateParameter, err error)
 	}{
 		{
 			name:      "template parameters returned for capi kind",
+			namespace: "default",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_parameters.json")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
@@ -251,6 +259,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 		},
 		{
 			name:      "template parameters returned for gitops kind",
+			namespace: "default",
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_parameters.json")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
@@ -265,26 +274,29 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 		},
 		{
 			name:      "error returned for capi kind",
+			namespace: "default",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate\": Get \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate\": oops")
+				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate&template_namespace=default\": oops")
 			},
 		},
 		{
 			name:      "error returned for gitops kind",
+			namespace: "default",
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=GitOpsTemplate\": Get \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=GitOpsTemplate\": oops")
+				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=GitOpsTemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=GitOpsTemplate&template_namespace=default\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
+			namespace: "default",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate&template_namespace=default\" was 400")
 			},
 		},
 	}
@@ -297,11 +309,11 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			client := adapters.NewHTTPClient()
 			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/params?template_kind="+tt.kind.String(), tt.responder)
+			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/params?template_kind="+tt.kind.String()+"&template_namespace="+tt.namespace, tt.responder)
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			ts, err := client.RetrieveTemplateParameters(tt.kind, "cluster-template")
+			ts, err := client.RetrieveTemplateParameters(tt.kind, "cluster-template", tt.namespace)
 			tt.assertFunc(t, ts, err)
 		})
 	}
@@ -312,14 +324,14 @@ func TestRenderTemplateWithParameters(t *testing.T) {
 		name       string
 		kind       templates.TemplateKind
 		responder  httpmock.Responder
-		assertFunc func(t *testing.T, result string, err error)
+		assertFunc func(t *testing.T, result *templates.RenderTemplateResponse, err error)
 	}{
 		{
 			name:      "rendered template returned for capi kind",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/rendered_template_capi.json")),
-			assertFunc: func(t *testing.T, result string, err error) {
-				assert.Equal(t, result, `apiVersion: cluster.x-k8s.io/v1alpha4
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
+				assert.Equal(t, result.String(), `apiVersion: cluster.x-k8s.io/v1alpha4
 kind: Cluster
 metadata:
   name: dev
@@ -362,6 +374,49 @@ spec:
   clusterName: mb-test-1
   selectors:
   - namespace: default
+
+---
+# clusters/default/cli-end-to-end-capd-cluster-1/profiles.yaml
+
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: profiles-catalog
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  timeout: 1m0s
+  url: https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+status: {}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  name: cert-manager
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: cert-manager
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: profiles-catalog
+        namespace: flux-system
+      version: 0.0.7
+  install:
+    crds: CreateReplace
+    createNamespace: true
+  interval: 1m0s
+  targetNamespace: sdsd
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+    key: value
+status: {}
 `)
 			},
 		},
@@ -369,8 +424,8 @@ spec:
 			name:      "rendered template returned for gitops kind",
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/rendered_template_gitops.json")),
-			assertFunc: func(t *testing.T, result string, err error) {
-				assert.Equal(t, result, `apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
+				assert.Equal(t, result.String(), `apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: dev
@@ -392,7 +447,7 @@ spec:
 			name:      "service error",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("./testdata/service_error.json")),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\": something bad happened")
 			},
 		},
@@ -400,7 +455,7 @@ spec:
 			name:      "error returned for capi kind",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\": Post \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\": oops")
 			},
 		},
@@ -408,7 +463,7 @@ spec:
 			name:      "error returned for gitops kind",
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "unable to POST parameters and render template from \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=GitOpsTemplate\": Post \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=GitOpsTemplate\": oops")
 			},
 		},
@@ -416,7 +471,7 @@ spec:
 			name:      "unexpected status code",
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
-			assertFunc: func(t *testing.T, result string, err error) {
+			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
 				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/templates/cluster-template/render?template_kind=CAPITemplate\" was 400")
 			},
 		},
@@ -434,7 +489,11 @@ spec:
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			result, err := client.RenderTemplateWithParameters(tt.kind, "cluster-template", nil, templates.Credentials{})
+			req := templates.RenderTemplateRequest{
+				TemplateName: "cluster-template",
+				TemplateKind: tt.kind,
+			}
+			result, err := client.RenderTemplateWithParameters(req)
 			tt.assertFunc(t, result, err)
 		})
 	}
@@ -756,11 +815,13 @@ func TestEntitlementExpiredHeader(t *testing.T) {
 func TestRetrieveTemplateProfiles(t *testing.T) {
 	tests := []struct {
 		name       string
+		namespace  string
 		responder  httpmock.Responder
 		assertFunc func(t *testing.T, profile []templates.Profile, err error)
 	}{
 		{
 			name:      "template profiles returned",
+			namespace: "default",
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/template_profiles.json")),
 			assertFunc: func(t *testing.T, ts []templates.Profile, err error) {
 				assert.ElementsMatch(t, ts, []templates.Profile{
@@ -789,9 +850,10 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 		},
 		{
 			name:      "error returned",
+			namespace: "default",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, fs []templates.Profile, err error) {
-				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles\": oops")
+				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles?template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles?template_namespace=default\": oops")
 			},
 		},
 	}
@@ -808,7 +870,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
-			tps, err := client.RetrieveTemplateProfiles("cluster-template")
+			tps, err := client.RetrieveTemplateProfiles("cluster-template", tt.namespace)
 			tt.assertFunc(t, tps, err)
 		})
 	}

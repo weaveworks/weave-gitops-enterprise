@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
+	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
 	// `gitops get <template-name> --list-profiles`
@@ -60,6 +61,27 @@ type ClustersServiceClient interface {
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
+	// ListChartsForRepository lists the discovered Helm charts in the provided
+	// repository.
+	ListChartsForRepository(ctx context.Context, in *ListChartsForRepositoryRequest, opts ...grpc.CallOption) (*ListChartsForRepositoryResponse, error)
+	// GetValuesForChart gets the default Values.yaml for the provided Chart
+	// reference.
+	GetValuesForChart(ctx context.Context, in *GetValuesForChartRequest, opts ...grpc.CallOption) (*GetValuesForChartResponse, error)
+	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// reference.
+	GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error)
+	// ListWorkspaces list workspaces available on all clusters
+	ListWorkspaces(ctx context.Context, in *ListWorkspacesRequest, opts ...grpc.CallOption) (*ListWorkspacesResponse, error)
+	// GetWorkspace get workspace details
+	GetWorkspace(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceResponse, error)
+	// GetWorkspaceRoles list workspace roles
+	GetWorkspaceRoles(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceRolesResponse, error)
+	// GetWorkspaceRoleBindings list workspace role bindings
+	GetWorkspaceRoleBindings(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceRoleBindingsResponse, error)
+	// GetWorkspaceServiceAccounts list workspace service accounts
+	GetWorkspaceServiceAccounts(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceServiceAccountsResponse, error)
+	// GetWorkspacePolicies list workspace service accounts
+	GetWorkspacePolicies(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspacePoliciesResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -250,12 +272,94 @@ func (c *clustersServiceClient) ListEvents(ctx context.Context, in *ListEventsRe
 	return out, nil
 }
 
+func (c *clustersServiceClient) ListChartsForRepository(ctx context.Context, in *ListChartsForRepositoryRequest, opts ...grpc.CallOption) (*ListChartsForRepositoryResponse, error) {
+	out := new(ListChartsForRepositoryResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListChartsForRepository", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetValuesForChart(ctx context.Context, in *GetValuesForChartRequest, opts ...grpc.CallOption) (*GetValuesForChartResponse, error) {
+	out := new(GetValuesForChartResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetValuesForChart", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error) {
+	out := new(GetChartsJobResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetChartsJob", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) ListWorkspaces(ctx context.Context, in *ListWorkspacesRequest, opts ...grpc.CallOption) (*ListWorkspacesResponse, error) {
+	out := new(ListWorkspacesResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListWorkspaces", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetWorkspace(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceResponse, error) {
+	out := new(GetWorkspaceResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetWorkspace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetWorkspaceRoles(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceRolesResponse, error) {
+	out := new(GetWorkspaceRolesResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetWorkspaceRoles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetWorkspaceRoleBindings(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceRoleBindingsResponse, error) {
+	out := new(GetWorkspaceRoleBindingsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetWorkspaceRoleBindings", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetWorkspaceServiceAccounts(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceServiceAccountsResponse, error) {
+	out := new(GetWorkspaceServiceAccountsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetWorkspaceServiceAccounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetWorkspacePolicies(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspacePoliciesResponse, error) {
+	out := new(GetWorkspacePoliciesResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetWorkspacePolicies", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
 type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
+	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
 	// `gitops get <template-name> --list-profiles`
@@ -295,6 +399,27 @@ type ClustersServiceServer interface {
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
+	// ListChartsForRepository lists the discovered Helm charts in the provided
+	// repository.
+	ListChartsForRepository(context.Context, *ListChartsForRepositoryRequest) (*ListChartsForRepositoryResponse, error)
+	// GetValuesForChart gets the default Values.yaml for the provided Chart
+	// reference.
+	GetValuesForChart(context.Context, *GetValuesForChartRequest) (*GetValuesForChartResponse, error)
+	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// reference.
+	GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error)
+	// ListWorkspaces list workspaces available on all clusters
+	ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error)
+	// GetWorkspace get workspace details
+	GetWorkspace(context.Context, *GetWorkspaceRequest) (*GetWorkspaceResponse, error)
+	// GetWorkspaceRoles list workspace roles
+	GetWorkspaceRoles(context.Context, *GetWorkspaceRequest) (*GetWorkspaceRolesResponse, error)
+	// GetWorkspaceRoleBindings list workspace role bindings
+	GetWorkspaceRoleBindings(context.Context, *GetWorkspaceRequest) (*GetWorkspaceRoleBindingsResponse, error)
+	// GetWorkspaceServiceAccounts list workspace service accounts
+	GetWorkspaceServiceAccounts(context.Context, *GetWorkspaceRequest) (*GetWorkspaceServiceAccountsResponse, error)
+	// GetWorkspacePolicies list workspace service accounts
+	GetWorkspacePolicies(context.Context, *GetWorkspaceRequest) (*GetWorkspacePoliciesResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -361,6 +486,33 @@ func (UnimplementedClustersServiceServer) GetPolicyValidation(context.Context, *
 }
 func (UnimplementedClustersServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
+}
+func (UnimplementedClustersServiceServer) ListChartsForRepository(context.Context, *ListChartsForRepositoryRequest) (*ListChartsForRepositoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListChartsForRepository not implemented")
+}
+func (UnimplementedClustersServiceServer) GetValuesForChart(context.Context, *GetValuesForChartRequest) (*GetValuesForChartResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetValuesForChart not implemented")
+}
+func (UnimplementedClustersServiceServer) GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChartsJob not implemented")
+}
+func (UnimplementedClustersServiceServer) ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWorkspaces not implemented")
+}
+func (UnimplementedClustersServiceServer) GetWorkspace(context.Context, *GetWorkspaceRequest) (*GetWorkspaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkspace not implemented")
+}
+func (UnimplementedClustersServiceServer) GetWorkspaceRoles(context.Context, *GetWorkspaceRequest) (*GetWorkspaceRolesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkspaceRoles not implemented")
+}
+func (UnimplementedClustersServiceServer) GetWorkspaceRoleBindings(context.Context, *GetWorkspaceRequest) (*GetWorkspaceRoleBindingsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkspaceRoleBindings not implemented")
+}
+func (UnimplementedClustersServiceServer) GetWorkspaceServiceAccounts(context.Context, *GetWorkspaceRequest) (*GetWorkspaceServiceAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkspaceServiceAccounts not implemented")
+}
+func (UnimplementedClustersServiceServer) GetWorkspacePolicies(context.Context, *GetWorkspaceRequest) (*GetWorkspacePoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkspacePolicies not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -735,6 +887,168 @@ func _ClustersService_ListEvents_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_ListChartsForRepository_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChartsForRepositoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListChartsForRepository(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListChartsForRepository",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListChartsForRepository(ctx, req.(*ListChartsForRepositoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetValuesForChart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetValuesForChartRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetValuesForChart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetValuesForChart",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetValuesForChart(ctx, req.(*GetValuesForChartRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetChartsJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChartsJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetChartsJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetChartsJob",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetChartsJob(ctx, req.(*GetChartsJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_ListWorkspaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWorkspacesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListWorkspaces(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListWorkspaces",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListWorkspaces(ctx, req.(*ListWorkspacesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetWorkspace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkspaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetWorkspace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetWorkspace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetWorkspace(ctx, req.(*GetWorkspaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetWorkspaceRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkspaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetWorkspaceRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetWorkspaceRoles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetWorkspaceRoles(ctx, req.(*GetWorkspaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetWorkspaceRoleBindings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkspaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetWorkspaceRoleBindings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetWorkspaceRoleBindings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetWorkspaceRoleBindings(ctx, req.(*GetWorkspaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetWorkspaceServiceAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkspaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetWorkspaceServiceAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetWorkspaceServiceAccounts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetWorkspaceServiceAccounts(ctx, req.(*GetWorkspaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetWorkspacePolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkspaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetWorkspacePolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetWorkspacePolicies",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetWorkspacePolicies(ctx, req.(*GetWorkspaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -821,6 +1135,42 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListEvents",
 			Handler:    _ClustersService_ListEvents_Handler,
+		},
+		{
+			MethodName: "ListChartsForRepository",
+			Handler:    _ClustersService_ListChartsForRepository_Handler,
+		},
+		{
+			MethodName: "GetValuesForChart",
+			Handler:    _ClustersService_GetValuesForChart_Handler,
+		},
+		{
+			MethodName: "GetChartsJob",
+			Handler:    _ClustersService_GetChartsJob_Handler,
+		},
+		{
+			MethodName: "ListWorkspaces",
+			Handler:    _ClustersService_ListWorkspaces_Handler,
+		},
+		{
+			MethodName: "GetWorkspace",
+			Handler:    _ClustersService_GetWorkspace_Handler,
+		},
+		{
+			MethodName: "GetWorkspaceRoles",
+			Handler:    _ClustersService_GetWorkspaceRoles_Handler,
+		},
+		{
+			MethodName: "GetWorkspaceRoleBindings",
+			Handler:    _ClustersService_GetWorkspaceRoleBindings_Handler,
+		},
+		{
+			MethodName: "GetWorkspaceServiceAccounts",
+			Handler:    _ClustersService_GetWorkspaceServiceAccounts_Handler,
+		},
+		{
+			MethodName: "GetWorkspacePolicies",
+			Handler:    _ClustersService_GetWorkspacePolicies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,12 +7,14 @@ import {
 } from '@weaveworks/progressive-delivery';
 import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import {
+  GetObjectRequest,
+  GetObjectResponse,
   ListObjectsRequest,
   ListObjectsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import _ from 'lodash';
 import React from 'react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
@@ -38,6 +40,10 @@ import {
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import {
+  GetGithubAuthStatusResponse,
+  GetGithubDeviceCodeResponse,
+} from '../contexts/GithubAuth/provider';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
@@ -79,7 +85,24 @@ export const defaultContexts = () => [
     RequestContextProvider,
     { fetch: () => new Promise(accept => accept(mockRes)) },
   ],
-  [QueryClientProvider, { client: new QueryClient() }],
+  [
+    QueryClientProvider,
+    {
+      client: new QueryClient({
+        queryCache: new QueryCache({
+          onError: error => {
+            const err = error as { code: number; message: string };
+            const { pathname, search } = window.location;
+            const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+
+            if (err.code === 401) {
+              window.location.href = `/sign_in?redirect=${redirectUrl}`;
+            }
+          },
+        }),
+      }),
+    },
+  ],
   [
     EnterpriseClientProvider,
     {
@@ -136,13 +159,16 @@ export class CoreClientMock {
   constructor() {
     this.ListObjects = this.ListObjects.bind(this);
     this.GetFeatureFlags = this.GetFeatureFlags.bind(this);
+    this.GetObject = this.GetObject.bind(this);
   }
   GetFeatureFlagsReturns: { flags: { [x: string]: string } } = {
     flags: {
       WEAVE_GITOPS_FEATURE_CLUSTER: 'true',
+      WEAVE_GITOPS_FEATURE_TENANCY: 'true',
     },
   };
   ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
+  GetObjectReturns: GetObjectResponse = {};
 
   GetFeatureFlags() {
     return promisify(this.GetFeatureFlagsReturns);
@@ -153,8 +179,26 @@ export class CoreClientMock {
       this.ListObjectsReturns[req.kind!] || defaultListObjectsResponse,
     );
   }
-}
 
+  GetObject(req: GetObjectRequest) {
+    return promisify(this.GetObjectReturns);
+  }
+}
+export class ApplicationsClientMock {
+  constructor() {
+    this.GetGithubDeviceCode = this.GetGithubDeviceCode.bind(this);
+    this.GetGithubAuthStatus = this.GetGithubAuthStatus.bind(this);
+  }
+  GetGithubDeviceCodeReturn: GetGithubDeviceCodeResponse = {};
+  GetGithubAuthStatusReturn: GetGithubAuthStatusResponse = {};
+  GetGithubDeviceCode() {
+    return promisify(this.GetGithubDeviceCodeReturn);
+  }
+
+  GetGithubAuthStatus() {
+    return promisify(this.GetGithubAuthStatusReturn);
+  }
+}
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);
@@ -212,9 +256,10 @@ export class PipelinesClientMock implements Pipelines {
   }
   ListPipelinesReturns: ListPipelinesResponse = {};
   GetPipelineReturns: GetPipelineResponse = {};
+  ErrorRef: { code: number; message: string } | undefined;
 
   ListPipelines() {
-    return promisify(this.ListPipelinesReturns);
+    return promisify(this.ListPipelinesReturns, this.ErrorRef);
   }
 
   GetPipeline() {
@@ -413,6 +458,16 @@ export class TestFilterableTable {
 
   testSearchTableByValue(searchValue: string, rowValues: Array<Array<string>>) {
     const { rows } = this.searchTableByValue(searchValue);
+    expect(rows).toHaveLength(rowValues.length);
+    rowValues.forEach((row, index) => {
+      const tds = rows![index].querySelectorAll('td');
+      this.testRowValues(tds, row);
+    });
+  }
+
+  testSorthTableByColumn(columnName: string, rowValues: Array<Array<string>>) {
+   this.sortTableByColumn(columnName);
+    const { rows } = this.getTableInfo();
     expect(rows).toHaveLength(rowValues.length);
     rowValues.forEach((row, index) => {
       const tds = rows![index].querySelectorAll('td');

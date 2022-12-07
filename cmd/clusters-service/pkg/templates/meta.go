@@ -10,8 +10,12 @@ import (
 
 const (
 	// DisplayNameAnnotation is the annotation used for labeling template resources
-	GitOpsTemplateNameAnnotation = "clustertemplates.weave.works/display-name"
+	GitOpsTemplateNameAnnotation = "templates.weave.works/display-name"
 	CAPIDisplayNameAnnotation    = "capi.weave.works/display-name"
+	// CostEstimationAnnotation is to signal we should try and estimate the cost of a template when rendering it
+	CostEstimationAnnotation        = "templates.weave.works/cost-estimation-enabled"
+	AddCommonBasesAnnotation        = "templates.weave.works/add-common-bases"
+	InjectPruneAnnotationAnnotation = "templates.weave.works/inject-prune-annotation"
 )
 
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
@@ -26,7 +30,7 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 	var objects []Object
 	for _, resourcetemplateDefinition := range s.GetSpec().ResourceTemplates {
 		for _, v := range resourcetemplateDefinition.Content {
-			params, err := processor.ParamNames(v)
+			params, err := processor.ParamNames(v.Raw)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse params in template: %w", err)
 			}

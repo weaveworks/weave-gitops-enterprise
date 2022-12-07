@@ -10,14 +10,17 @@ import (
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 	v1 "k8s.io/api/core/v1"
+	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -26,21 +29,29 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 	log := logr.Discard()
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
-	fetcher.FetchReturns([]clustersmngr.Cluster{restConfigToCluster(k8sEnv.Rest)}, nil)
+
+	scheme, err := kube.CreateScheme()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fakeCluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fetcher.FetchReturns([]cluster.Cluster{fakeCluster}, nil)
 
 	nsChecker := nsaccessfakes.FakeChecker{}
-	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, c *rest.Config, n []v1.Namespace) ([]v1.Namespace, error) {
+	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, client typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
 		// Pretend the user has access to everything
 		return n, nil
 	}
 
 	clustersManager := clustersmngr.NewClustersManager(
-		fetcher,
+		[]clustersmngr.ClusterFetcher{fetcher},
 		&nsChecker,
 		log,
-		nil,
-		clustersmngr.NewClustersClientsPool,
-		clustersmngr.DefaultKubeConfigOptions,
 	)
 
 	opts := server.ServerOpts{
@@ -83,14 +94,6 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 	})
 
 	return pb.NewClustersServiceClient(conn)
-}
-
-func restConfigToCluster(cfg *rest.Config) clustersmngr.Cluster {
-	return clustersmngr.Cluster{
-		Name:      "Default",
-		Server:    cfg.Host,
-		TLSConfig: cfg.TLSClientConfig,
-	}
 }
 
 func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {

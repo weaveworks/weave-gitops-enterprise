@@ -1,5 +1,4 @@
-import { V2Routes } from '@weaveworks/weave-gitops';
-import { Kind } from '@weaveworks/weave-gitops';
+import { Kind, V2Routes } from '@weaveworks/weave-gitops';
 
 export function getKindRoute(k: Kind | string): string {
   switch (k) {
@@ -36,24 +35,27 @@ export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
   Canaries = '/applications/delivery',
-  CanaryDetails = '/applications/delivery/:id',
+  CanaryDetails = '/applications/canary_details',
   Pipelines = '/applications/pipelines',
   PipelineDetails = '/applications/pipelines/details',
+
+  GitOpsRun = '/gitopsrun',
 
   TerraformObjects = '/terraform_objects',
   TerraformDetail = '/terraform',
   Clusters = '/clusters',
   ClusterDashboard = '/cluster',
   DeleteCluster = '/clusters/delete',
-  EditCluster = '/clusters/:clusterName/edit',
+  EditResource = '/resources/edit',
+
   PolicyViolations = '/clusters/violations',
   PolicyViolationDetails = '/clusters/violations/details',
-  
+
   GitlabOauthCallback = '/oauth/gitlab',
   Policies = '/policies',
   PolicyDetails = '/policies/details',
-  
+
   AddCluster = '/templates/:templateName/create',
-  
+
   Templates = '/templates',
 }

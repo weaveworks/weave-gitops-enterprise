@@ -6,60 +6,49 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const getProfilesResp = `{
-  "profiles": [
-    {
-      "name": "podinfo",
-      "home": "https://github.com/stefanprodan/podinfo",
-      "sources": [
-        "https://github.com/stefanprodan/podinfo"
-      ],
-      "description": "Podinfo Helm chart for Kubernetes",
-      "keywords": [],
-      "maintainers": [
-        {
-          "name": "stefanprodan",
-          "email": "stefanprodan@users.noreply.github.com",
-          "url": ""
-        }
-      ],
-      "icon": "",
-      "annotations": {},
-      "kubeVersion": ">=1.19.0-0",
-      "helmRepository": {
-		  "name": "podinfo",
-		  "namespace": "weave-system"
-	  },
-      "availableVersions": [
-        "6.0.0",
-        "6.0.1"
-      ]
-    }
-  ]
-}
-`
+	"charts": [
+		{
+			"name": "podinfo",
+			"versions": [
+				"6.0.0",
+				"6.0.1"
+			],
+			"layer": "default",
+			"repository": {
+				"name": "weaveworks-charts",
+				"namespace": "flux-system",
+				"kind": "HelmRepository",
+				"cluster": {
+					"name": "dev",
+					"namespace": "default"
+				}
+			}
+		}
+	]
+}`
 
 var _ = Describe("Get Profile(s)", func() {
 	var (
 		buffer      *gbytes.Buffer
 		profilesSvc *profiles.ProfilesSvc
-		fakeLogger  *loggerfakes.FakeLogger
+		fakeLogger  logger.Logger
 	)
 
 	BeforeEach(func() {
 		buffer = gbytes.NewBuffer()
-		fakeLogger = &loggerfakes.FakeLogger{}
+		fakeLogger = logger.From(logr.Discard())
 		profilesSvc = profiles.NewService(fakeLogger)
 	})
 
@@ -67,10 +56,10 @@ var _ = Describe("Get Profile(s)", func() {
 		It("prints the available profiles", func() {
 			client := NewFakeHTTPClient(getProfilesResp, nil)
 
-			Expect(profilesSvc.Get(context.TODO(), client, buffer)).To(Succeed())
+			Expect(profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})).To(Succeed())
 
-			Expect(string(buffer.Contents())).To(Equal(`NAME	DESCRIPTION	AVAILABLE_VERSIONS
-podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
+			Expect(string(buffer.Contents())).To(Equal(`NAME	AVAILABLE_VERSIONS	LAYER
+podinfo	6.0.0,6.0.1	default
 `))
 		})
 
@@ -78,7 +67,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			It("errors", func() {
 				client := NewFakeHTTPClient("not=json", nil)
 
-				err := profilesSvc.Get(context.TODO(), client, buffer)
+				err := profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})
 				Expect(err).To(MatchError(ContainSubstring("failed to unmarshal response")))
 			})
 		})
@@ -87,7 +76,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			It("errors", func() {
 				client := NewFakeHTTPClient("", fmt.Errorf("nope"))
 
-				err := profilesSvc.Get(context.TODO(), client, buffer)
+				err := profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})
 				Expect(err).To(MatchError("unable to retrieve profiles from \"Fake Client\": nope"))
 			})
 		})
@@ -96,7 +85,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			It("errors", func() {
 				client := NewFakeHTTPClient("", &errors.StatusError{ErrStatus: metav1.Status{Code: http.StatusNotFound}})
 
-				err := profilesSvc.Get(context.TODO(), client, buffer)
+				err := profilesSvc.Get(context.TODO(), client, buffer, profiles.GetOptions{})
 				Expect(err).To(MatchError("unable to retrieve profiles from \"Fake Client\": status code 404"))
 			})
 		})
@@ -121,7 +110,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 
 			profile, version, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(len(profile.AvailableVersions)).NotTo(BeZero())
+			Expect(len(profile.Versions)).NotTo(BeZero())
 			Expect(version).To(Equal("6.0.1"))
 		})
 
@@ -134,7 +123,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"profiles": [
+				"charts": [
 				  {
 					"name": "foo"
 				  }
@@ -150,7 +139,7 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 
 		It("fails if no available profile was found that matches the name for the profile being added", func() {
 			badProfileResp := `{
-				"profiles": [
+				"charts": [
 				  {
 					"name": "podinfo",
 					"availableVersions": [
@@ -163,30 +152,6 @@ podinfo	Podinfo Helm chart for Kubernetes	6.0.0,6.0.1
 			client := NewFakeHTTPClient(badProfileResp, nil)
 			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
 			Expect(err).To(MatchError("no version found for profile 'podinfo' in prod/test-namespace"))
-		})
-
-		It("fails if the available profile's HelmRepository name or namespace are empty", func() {
-			badProfileResp := `{
-				"profiles": [
-				  {
-					"name": "podinfo",
-					"helmRepository": {
-						"name": "",
-						"namespace": ""
-					},
-					"availableVersions": [
-					  "6.0.0",
-					  "6.0.1"
-					]
-				  }
-				]
-			  }
-			  `
-
-			client := NewFakeHTTPClient(badProfileResp, nil)
-
-			_, _, err := profilesSvc.GetProfile(context.TODO(), client, opts)
-			Expect(err).To(MatchError("HelmRepository's name or namespace is empty"))
 		})
 	})
 })
@@ -204,17 +169,17 @@ func (c *FakeHTTPClient) Source() string {
 	return "Fake Client"
 }
 
-func (c *FakeHTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
+func (c *FakeHTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profiles, error) {
 	if c.err != nil {
-		return nil, c.err
+		return profiles.Profiles{}, c.err
 	}
 
-	result := &pb.GetProfilesResponse{}
+	result := profiles.Profiles{}
 	data := []byte(c.data)
 
 	err := json.Unmarshal(data, &result)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response")
+		return profiles.Profiles{}, fmt.Errorf("failed to unmarshal response")
 	}
 
 	return result, nil

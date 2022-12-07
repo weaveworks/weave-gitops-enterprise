@@ -1,10 +1,13 @@
 package acceptance
 
 import (
+	"archive/zip"
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -40,6 +43,8 @@ var (
 	capi_endpoint_url    string
 	test_ui_url          string
 	artifacts_base_dir   string
+	testScriptsPath      string
+	testDataPath         string
 
 	webDriver *agouti.Page
 )
@@ -65,9 +70,11 @@ const (
 	ASSERTION_3MINUTE_TIME_OUT   time.Duration = 3 * time.Minute
 	ASSERTION_5MINUTE_TIME_OUT   time.Duration = 5 * time.Minute
 	ASSERTION_6MINUTE_TIME_OUT   time.Duration = 6 * time.Minute
+	ASSERTION_10MINUTE_TIME_OUT  time.Duration = 10 * time.Minute
 	ASSERTION_15MINUTE_TIME_OUT  time.Duration = 15 * time.Minute
 
 	POLL_INTERVAL_1SECONDS        time.Duration = 1 * time.Second
+	POLL_INTERVAL_3SECONDS        time.Duration = 3 * time.Second
 	POLL_INTERVAL_5SECONDS        time.Duration = 5 * time.Second
 	POLL_INTERVAL_15SECONDS       time.Duration = 15 * time.Second
 	POLL_INTERVAL_100MILLISECONDS time.Duration = 100 * time.Millisecond
@@ -83,9 +90,13 @@ var seededRand *rand.Rand = rand.New(
 func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeClusters(gitopsTestRunner)
 	DescribeTemplates(gitopsTestRunner)
+	DescribeTemplatesCapi(gitopsTestRunner)
 	DescribeApplications(gitopsTestRunner)
 	DescribePolicies(gitopsTestRunner)
 	DescribeViolations(gitopsTestRunner)
+	DescribeTenants(gitopsTestRunner)
+	DescribeCostEstimation(gitopsTestRunner)
+	DescribeMiscellaneousUi(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
@@ -93,6 +104,7 @@ func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
 	DescribeCliHelp()
 	DescribeCliGet(gitopsTestRunner)
 	DescribeCliAddDelete(gitopsTestRunner)
+	DescribeCliTenant(gitopsTestRunner)
 	DescribeCliUpgrade(gitopsTestRunner)
 }
 
@@ -104,28 +116,16 @@ func SetDefaultUIURL(url string) {
 	test_ui_url = url
 }
 
+func SetTestDataPath(dataPath string) {
+	testDataPath = path.Join(getCheckoutRepoPath(), dataPath)
+}
+
+func SetTestScriptPath(srciptPath string) {
+	testScriptsPath = path.Join(getCheckoutRepoPath(), srciptPath)
+}
+
 func SetSeleniumServiceUrl(url string) {
 	selenium_service_url = url
-}
-
-func TakeScreenShot(name string) string {
-	if webDriver != nil {
-		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
-		_ = webDriver.Screenshot(filepath)
-		return filepath
-	}
-	return ""
-}
-
-func SaveDOM(name string) string {
-	if webDriver != nil {
-		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
-		var htmlDocument interface{}
-		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
-		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
-		return filepath
-	}
-	return ""
 }
 
 func RandString(length int) string {
@@ -151,6 +151,8 @@ func SetupTestEnvironment() {
 	gitops_bin_path = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	capi_provider = GetEnv("CAPI_PROVIDER", "capd")
 	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
+	testScriptsPath = path.Join(getCheckoutRepoPath(), "test", "utils", "scripts")
+	testDataPath = path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 
 	gitProviderEnv = initGitProviderData()
 	git_repository_url = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
@@ -337,26 +339,63 @@ func runCommandAndReturnStringOutput(commandToRun string, timeout ...time.Durati
 	return strings.Trim(string(session.Wait().Out.Contents()), "\n"), strings.Trim(string(session.Wait().Err.Contents()), "\n")
 }
 
-func ShowItems(itemType string) {
-	logger.Info("Dumping cluster objects/resources...")
-	if itemType != "" {
-		_ = runCommandPassThrough("kubectl", "get", itemType, "--all-namespaces", "-o", "wide")
+func currentSpecType(specLabel string) bool {
+	for _, ctx := range ginkgo.CurrentSpecReport().ContainerHierarchyLabels {
+		for _, label := range ctx {
+			if label == specLabel {
+				return true
+			}
+		}
 	}
-	_ = runCommandPassThrough("kubectl", "get", "all", "--all-namespaces", "-o", "wide")
+	return false
+}
 
-	logger.Info(fmt.Sprintf("Dumping %s congigmap", CLUSTER_SERVICE_DEPLOYMENT_APP))
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml", CLUSTER_SERVICE_DEPLOYMENT_APP))
+func TakeScreenShot(name string) {
+	if currentSpecType("cli") {
+		return
+	}
 
-	logger.Info("Dumping cluster crds...")
-	_ = runCommandPassThrough("kubectl", "get", "crds", "-o", "wide")
+	if webDriver != nil {
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
+		logger.Infof("Saving screenshot to %s", filepath)
+		_ = webDriver.Screenshot(filepath)
+	}
+}
+
+func DumpingDOM(name string) {
+	if currentSpecType("cli") {
+		return
+	}
+
+	logger.Infof("Dumping DOM to %s", path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME))
+	if webDriver != nil {
+		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
+		var htmlDocument interface{}
+		gomega.Expect(webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)).ShouldNot(gomega.HaveOccurred())
+		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+	}
+}
+
+func DumpResources(testName string) {
+	resourcesPath := "/tmp/resource-info"
+	archiveResourcePath := path.Join(artifacts_base_dir, "resource-info")
+	archivedPath := path.Join(archiveResourcePath, testName+".tar.gz")
+	logger.Infof("Dumping cluster objects/resources to %s", resourcesPath)
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, resourcesPath, archiveResourcePath))
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get all --all-namespaces -o wide > %s", path.Join(resourcesPath, "resources.txt")))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml > %s", CLUSTER_SERVICE_DEPLOYMENT_APP, path.Join(resourcesPath, CLUSTER_SERVICE_DEPLOYMENT_APP+"-configmap.txt")))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get crds -o wide > %s", path.Join(resourcesPath, "crds.txt")))
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, resourcesPath, archivedPath))
 }
 
 func DumpClusterInfo(testName string) {
-	logger.Info("Dumping cluster-info...")
-
 	logsPath := "/tmp/dumped-cluster-logs"
 	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")
 	archivedPath := path.Join(archiveLogsPath, testName+".tar.gz")
+	logger.Infof("Dumping cluster-info to %s", logsPath)
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, logsPath, archiveLogsPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl cluster-info dump --all-namespaces --output-directory %s`, logsPath))
@@ -367,6 +406,7 @@ func DumpConfigRepo(testName string) {
 	repoPath := "/tmp/config-repo"
 	archiveRepoPath := path.Join(artifacts_base_dir, "config-repo")
 	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")
+	logger.Infof("Dumping git-repo to %s", repoPath)
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, repoPath, archiveRepoPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
@@ -374,42 +414,44 @@ func DumpConfigRepo(testName string) {
 }
 
 func DumpBrowserLogs(console bool, network bool) {
-	fetchLogs := false
-	for _, label := range ginkgo.CurrentSpecReport().LeafNodeLabels {
-		if label == "browser-logs" {
-			fetchLogs = true
-		}
-	}
-
-	if !fetchLogs {
+	if currentSpecType("cli") {
 		return
 	}
 
-	if console {
-		logger.Info("Dumping browser console logs...")
-		consoleLog, _ := webDriver.ReadAllLogs("browser")
-		for _, l := range consoleLog {
-			logger.Trace(l)
+	writeSlicetoFile := func(fileName string, dataLog interface{}) {
+		f, _ := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		defer f.Close()
+		dataWriter := bufio.NewWriter(f)
+
+		val := reflect.ValueOf(dataLog)
+		switch reflect.TypeOf(dataLog).Kind() {
+		case reflect.Slice:
+			for i := 0; i < val.Len(); i++ {
+				_, _ = dataWriter.WriteString(fmt.Sprintf("%v", val.Index(i)) + "\n")
+			}
 		}
+		dataWriter.Flush()
+	}
+
+	browserLogsPath := "/tmp/browser-logs"
+	archiveLogsPath := path.Join(artifacts_base_dir, "browser-logs")
+	archivedPath := path.Join(archiveLogsPath, "saeed"+".tar.gz")
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, browserLogsPath, archiveLogsPath))
+
+	if console {
+		logger.Infof("Dumping browser console logs to %s", browserLogsPath)
+		consoleLog, _ := webDriver.ReadAllLogs("browser")
+		writeSlicetoFile(path.Join(browserLogsPath, "console.txt"), consoleLog)
 	}
 
 	if network {
-		logger.Info("Dumping network logs...")
+		logger.Infof("Dumping browser network logs to %s", browserLogsPath)
 		var networkLog interface{}
 		gomega.Expect(webDriver.RunScript(`return window.performance.getEntries();`, map[string]interface{}{}, &networkLog)).ShouldNot(gomega.HaveOccurred())
-
-		switch reflect.TypeOf(networkLog).Kind() {
-		case reflect.Slice:
-			s := reflect.ValueOf(networkLog)
-			for i := 0; i < s.Len(); i++ {
-				logger.Trace(s.Index(i))
-			}
-		}
+		writeSlicetoFile(path.Join(browserLogsPath, "network.txt"), networkLog)
 	}
-}
 
-func getDownloadedKubeconfigPath(clusterName string) string {
-	return path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", clusterName))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, browserLogsPath, archivedPath))
 }
 
 // utility functions
@@ -463,4 +505,46 @@ func copyFile(sourceFile, destination string) error {
 	}
 
 	return nil
+}
+
+func getMimeType(archiveFile string) (string, error) {
+	file, err := os.Open(archiveFile)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	buf := make([]byte, 512)
+	_, err = file.Read(buf)
+	if err != nil {
+		return "", err
+	}
+
+	mimeType := http.DetectContentType(buf)
+	return mimeType, nil
+}
+
+func getArchiveFileList(archiveFile string) ([]string, error) {
+	mimeType, err := getMimeType(archiveFile)
+	if err != nil {
+		return []string{}, err
+	}
+
+	fileList := []string{}
+	switch mimeType {
+	case "application/zip":
+		archive, err := zip.OpenReader(archiveFile)
+		if err != nil {
+			panic(err)
+		}
+		defer archive.Close()
+
+		for _, f := range archive.File {
+			if f.FileInfo().IsDir() {
+				continue
+			}
+			fileList = append(fileList, f.Name)
+		}
+	}
+	return fileList, nil
 }

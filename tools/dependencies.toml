@@ -25,3 +25,11 @@ binarypath="https://kind.sigs.k8s.io/dl/v${version}/kind-${goos}-${goarch}"
 [clusterctl]
 version="1.1.3"
 binarypath="https://github.com/kubernetes-sigs/cluster-api/releases/download/v${version}/clusterctl-${goos}-${goarch}"
+
+[yq]
+version="4.28.2"
+binarypath="https://github.com/mikefarah/yq/releases/download/v${version}/yq_${goos}_${goarch}"
+
+[buf]
+version="1.9.0"
+binarypath="https://github.com/bufbuild/buf/releases/download/v${version}/buf-${os}-${arch}"

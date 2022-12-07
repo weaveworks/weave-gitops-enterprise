@@ -25,6 +25,7 @@ const (
 	GitProviderGitHub = "github"
 	GitProviderGitLab = "gitlab"
 	TokenTypeOauth    = "oauth2"
+	TmpRepoPath       = "/tmp/wge-git-repos"
 )
 
 type GitProviderEnv struct {
@@ -125,7 +126,7 @@ func extractOrgAndRepo(url string) (string, string) {
 }
 
 func configRepoAbsolutePath(gp GitProviderEnv) string {
-	return path.Join(os.Getenv("HOME"), gp.Repo)
+	return path.Join(TmpRepoPath, gp.Repo)
 }
 
 func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
@@ -139,6 +140,10 @@ func initAndCreateEmptyRepo(gp GitProviderEnv, isPrivateRepo bool) {
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
 	err = waitUntil(POLL_INTERVAL_5SECONDS, ASSERTION_30SECONDS_TIME_OUT, func() error {
+		err = os.MkdirAll(TmpRepoPath, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("error creating directory %s: %w", TmpRepoPath, err)
+		}
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gp.Hostname, gp.Org, gp.Repo, repoAbsolutePath))
 		if err != nil {
 			os.RemoveAll(repoAbsolutePath)
@@ -328,6 +333,11 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 
 	}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed())
 
+}
+
+func checkoutRepoBranch(repoAbsolutePath, branch string) {
+	logger.Infof("Checking out repo %s %s branch", repoAbsolutePath, branch)
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cd %s && git checkout main", repoAbsolutePath))
 }
 
 func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {

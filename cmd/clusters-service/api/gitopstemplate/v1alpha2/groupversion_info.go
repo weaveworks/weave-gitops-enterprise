@@ -26,7 +26,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "clustertemplates.weave.works", Version: "v1alpha2"}
+	GroupVersion = schema.GroupVersion{Group: "templates.weave.works", Version: "v1alpha2"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

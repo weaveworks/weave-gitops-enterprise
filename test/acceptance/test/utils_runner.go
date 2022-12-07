@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"text/template"
 	"time"
 
@@ -135,7 +136,7 @@ func (b RealGitopsTestRunner) TimeTravelToAlertsResolved() error {
 }
 
 func (b RealGitopsTestRunner) ResetControllers(controllers string) {
-	scriptPath := path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "wego-enterprise.sh")
+	scriptPath := path.Join(testScriptsPath, "wego-enterprise.sh")
 	_ = runCommandPassThrough(scriptPath, "reset_controllers", controllers)
 }
 
@@ -280,56 +281,54 @@ func (b RealGitopsTestRunner) RestartDeploymentPods(appName string, namespace st
 }
 
 func (b RealGitopsTestRunner) CreateIPCredentials(infrastructureProvider string) {
-	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
 		// CAPA installs the AWS identity crds
 		if capi_provider != "capa" {
 			ginkgo.By("Install AWSClusterStaticIdentity CRD", func() {
-				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
 				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 			})
 
 			ginkgo.By("Install AWSClusterRoleIdentity CRD", func() {
-				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
 				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 			})
 		}
 
 		ginkgo.By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
 			_, _ = runCommandAndReturnStringOutput("kubectl create namespace capa-system")
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 
 	} else if infrastructureProvider == "AZURE" {
 		ginkgo.By("Install AzureClusterIdentity CRD", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
 			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
 		})
 
 		ginkgo.By("Create Azure Secret and AzureClusterIdentity)", func() {
-			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
 		})
 	}
 
 }
 
 func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string) {
-	testDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 	if infrastructureProvider == "AWS" {
 		ginkgo.By("Delete AWS identities and CRD", func() {
 			// Identity crds are installed as part of CAPA installation
-			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/aws_cluster_credentials.yaml", testDataPath))
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath))
 			if capi_provider != "capa" {
-				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
-				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
 				_, _ = runCommandAndReturnStringOutput("kubectl delete namespace capa-system")
 			}
 		})
 
 	} else if infrastructureProvider == "AZURE" {
 		ginkgo.By("Delete Azure identities and CRD", func() {
-			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/azure_cluster_credentials.yaml", testDataPath))
-			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath))
+			_ = b.KubectlDelete([]string{}, fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
 		})
 	}
 }
@@ -337,7 +336,7 @@ func (b RealGitopsTestRunner) DeleteIPCredentials(infrastructureProvider string)
 // This function generates multiple capitemplate files from a single capitemplate to be used as test data
 func generateTestCapiTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
 	// Read input capitemplate
-	contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test", "utils", "data", templateFile))
+	contents, err := ioutil.ReadFile(path.Join(testDataPath, templateFile))
 
 	if err != nil {
 		return templateFiles, err
@@ -355,7 +354,7 @@ func generateTestCapiTemplates(templateCount int, templateFile string) (template
 	for i := 0; i < templateCount; i++ {
 		input := TemplateInput{i}
 
-		fileName := fmt.Sprintf("%s%d", templateFile, i)
+		fileName := fmt.Sprintf("%s%d", filepath.Base(templateFile), i)
 
 		f, err := os.Create(path.Join("/tmp", fileName))
 		if err != nil {

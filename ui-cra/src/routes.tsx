@@ -1,10 +1,12 @@
-import { V2Routes, OAuthCallback } from '@weaveworks/weave-gitops';
+import { OAuthCallback, V2Routes } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
-import { Switch, Route, Redirect } from 'react-router-dom';
+import { Redirect, Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
+import error404 from './assets/img/error404.json';
 import WGApplicationsDashboard from './components/Applications';
+import AddApplication from './components/Applications/Add';
 import WGApplicationsBucket from './components/Applications/Bucket';
 import WGApplicationsFluxRuntime from './components/Applications/FluxRuntime';
 import WGApplicationsGitRepository from './components/Applications/GitRepository';
@@ -17,7 +19,7 @@ import WGApplicationsOCIRepository from './components/Applications/OCIRepository
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
 import ClusterDashboard from './components/Clusters/ClusterDashboard';
-import EditClusterPage from './components/Clusters/Edit';
+import GitOpsRun from './components/GitOpsRun';
 import { ContentWrapper } from './components/Layout/ContentWrapper';
 import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
@@ -29,12 +31,11 @@ import PolicyViolationDetails from './components/PolicyViolations/ViolationDetai
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import TemplatesDashboard from './components/Templates';
+import AddClusterWithCredentials from './components/Templates/Create';
+import EditResourcePage from './components/Templates/Edit';
 import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail';
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import { Routes } from './utils/nav';
-import AddApplication from './components/Applications/Add';
-import AddClusterWithCredentials from './components/Clusters/Create';
-import error404 from './assets/img/error404.json';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -91,7 +92,14 @@ const AppRoutes = () => {
         ))}
         path={Routes.ClusterDashboard}
       />
-      <Route component={EditClusterPage} exact path={Routes.EditCluster} />
+      <Route
+        component={withSearchParams((props: any) => (
+          <CoreWrapper>
+            <EditResourcePage {...props} />
+          </CoreWrapper>
+        ))}
+        path={Routes.EditResource}
+      />
       <Route
         component={AddClusterWithCredentials}
         exact
@@ -107,10 +115,11 @@ const AppRoutes = () => {
         exact
         path={Routes.PolicyViolationDetails}
       />
+      <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
       <Route
-        component={() => (
+        component={(props: any) => (
           <CoreWrapper>
-            <WGApplicationsDashboard />
+            <WGApplicationsDashboard {...props} />
           </CoreWrapper>
         )}
         exact
@@ -209,7 +218,6 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.Pipelines} component={Pipelines} />
       <Route
-        exact
         path={Routes.PipelineDetails}
         component={withSearchParams(PipelineDetails)}
       />

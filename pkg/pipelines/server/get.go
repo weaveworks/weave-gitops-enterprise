@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/internal/convert"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
 func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*pb.GetPipelineResponse, error) {
@@ -31,9 +32,13 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 		},
 	}
 
-	if err := c.Get(ctx, fetcher.ManagementClusterName, client.ObjectKeyFromObject(&p), &p); err != nil {
-		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, fetcher.ManagementClusterName, err)
+	if err := c.Get(ctx, s.cluster, client.ObjectKeyFromObject(&p), &p); err != nil {
+		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 	}
+	// client.Get does not always populate TypeMeta field, without this `kind` and
+	// `apiVersion` are not returned in YAML representation.
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+	p.SetGroupVersionKind(ctrl.GroupVersion.WithKind(ctrl.PipelineKind))
 
 	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
@@ -47,12 +52,15 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetKind(p.Spec.AppRef.Kind)
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(t.Namespace)
-
-			clusterName := fetcher.ManagementClusterName
+			clusterName := s.cluster
 			if t.ClusterRef != nil {
+				ns := t.ClusterRef.Namespace
+				if ns == "" {
+					ns = p.Namespace
+				}
 				clusterName = types.NamespacedName{
 					Name:      t.ClusterRef.Name,
-					Namespace: t.ClusterRef.Namespace,
+					Namespace: ns,
 				}.String()
 			}
 
@@ -90,6 +98,12 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 		}
 	}
 
+	pipelineYaml, err := yaml.Marshal(p)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling %s pipeline, %w", msg.Name, err)
+	}
+	pipelineResp.Yaml = string(pipelineYaml)
+
 	return &pb.GetPipelineResponse{
 		Pipeline: pipelineResp,
 	}, nil
@@ -109,6 +123,17 @@ func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, erro
 		ws.Name = hr.Name
 		ws.Version = hr.Spec.Chart.Spec.Version
 		ws.LastAppliedRevision = hr.Status.LastAppliedRevision
+		ws.Suspended = hr.Spec.Suspend
+		ws.Conditions = []*pb.Condition{}
+		for _, c := range hr.Status.Conditions {
+			ws.Conditions = append(ws.Conditions, &pb.Condition{
+				Type:      c.Type,
+				Status:    string(c.Status),
+				Reason:    c.Reason,
+				Message:   c.Message,
+				Timestamp: c.LastTransitionTime.Format(time.RFC3339),
+			})
+		}
 	}
 
 	return ws, nil

@@ -12,9 +12,9 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logger"
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services"
 )
@@ -67,7 +67,7 @@ func updateProfileCmdRunE(opts *config.Options, client *adapters.HTTPClient) fun
 	return func(cmd *cobra.Command, args []string) error {
 		log := logger.NewCLILogger(os.Stdout)
 		fluxClient := flux.New(&runner.CLIRunner{})
-		factory := services.NewFactory(fluxClient, logger.Logr())
+		factory := services.NewFactory(fluxClient, log.L())
 		providerClient := internal.NewGitProviderClient(os.Stdout, os.LookupEnv, log)
 
 		err := client.ConfigureClientWithOptions(opts, os.Stdout)

@@ -1,16 +1,23 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
-import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  Link,
+  theme,
+  useFeatureFlags,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
+import { ReactComponent as GitOpsRun } from '../assets/img/gitops-run-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { useListConfig } from '../hooks/versions';
 import { Routes } from '../utils/nav';
 
 const { xxs, xs, small, medium } = theme.spacing;
@@ -88,6 +95,10 @@ export const NavItem = styled(NavLink).attrs({
 
     svg {
       fill: ${primary};
+
+      &.gitops-run {
+        stroke: ${primary};
+      }
     }
   }
 `;
@@ -101,6 +112,8 @@ const useStyles = makeStyles({
   },
   logo: {
     padding: `calc(${medium} - ${xxs})`,
+    paddingTop: `${medium}`,
+    paddingBottom: `17px`,
   },
 });
 
@@ -157,6 +170,7 @@ const NavItems = (navItems: Array<NavigationItem>) => {
 export const Navigation: FC = () => {
   const { data: flagsRes } = useFeatureFlags();
   const classes = useStyles();
+  const { uiConfig } = useListConfig();
   const navItems: Array<NavigationItem> = [
     {
       name: 'CLUSTERS',
@@ -189,7 +203,7 @@ export const Navigation: FC = () => {
         {
           name: 'PIPELINES',
           link: Routes.Pipelines,
-          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
+          isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'DELIVERY',
@@ -201,6 +215,12 @@ export const Navigation: FC = () => {
       relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
     },
     {
+      name: 'GITOPS RUN',
+      link: Routes.GitOpsRun,
+      icon: <GitOpsRun className="gitops-run" />,
+      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_RUN_UI,
+    },
+    {
       name: 'TEMPLATES',
       link: Routes.Templates,
       icon: <Templates />,
@@ -209,7 +229,7 @@ export const Navigation: FC = () => {
       name: 'TERRAFORM',
       link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
-      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
+      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
       name: 'FLUX RUNTIME',
@@ -225,9 +245,11 @@ export const Navigation: FC = () => {
   return (
     <>
       <div title="Home" className={classes.logo}>
-        <img src={WeaveGitOps} alt="Home" />
+        <Link to={Routes.Clusters}>
+          <img src={uiConfig?.logoURL || WeaveGitOps} alt="Home" />
+        </Link>
       </div>
-      <Box className={classes.root} bgcolor={theme.colors.white}>
+      <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
         {NavItems(navItems)}
       </Box>
     </>

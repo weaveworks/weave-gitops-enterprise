@@ -50,6 +50,12 @@ function setup {
       aws ec2 authorize-security-group-ingress --group-id ${INSTANCE_SECURITY_GROUP}  --ip-permissions FromPort=${UI_NODEPORT},ToPort=${UI_NODEPORT},IpProtocol=tcp,IpRanges='[{CidrIp=0.0.0.0/0}]',Ipv6Ranges='[{CidrIpv6=::/0}]'
     else
       gcloud compute firewall-rules create ui-node-port --allow tcp:${UI_NODEPORT}
+      # This allows us to test out cli auth passthrough.
+      # Our current system of SelfSubjectAccessReview to determine namespace access
+      # does not supported external auth systems like the one GKE configures by default for kubectl etc.
+      # We need to add explicit permissions here that will correctly appear in the SelfSubjectAccessReview
+      # query made by the clusters-service when responding to get /v1/clusters and /v1/templates etc.
+      kubectl apply -f ${args[1]}/test/utils/data/rbac/gke-ci-user-cluster-admin-rolebinding.yaml
     fi
   elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
     # MANAGEMENT_CLUSTER_KIND is a KIND cluster
@@ -65,7 +71,6 @@ function setup {
   fi
   
   helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
-  helm repo add profiles-catalog https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
   helm repo add cert-manager https://charts.jetstack.io
   helm repo update  
@@ -74,7 +79,8 @@ function setup {
   helm upgrade --install \
     cert-manager cert-manager/cert-manager \
     --namespace cert-manager --create-namespace \
-    --version v1.9.1 \
+    --version v1.10.0 \
+    --wait \
     --set installCRDs=true
   kubectl wait --for=condition=Ready --timeout=120s -n cert-manager --all pod
 
@@ -136,7 +142,12 @@ function setup {
   --from-literal=clientID=${DEX_CLIENT_ID} \
   --from-literal=clientSecret=${DEX_CLIENT_SECRET}
 
-  kubectl apply -f ${args[1]}/test/utils/scripts/entitlement-secret.yaml 
+  #  Create aws cost estimate pricing secret
+  kubectl create secret generic aws-pricing --namespace=flux-system \
+  --from-literal="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+  --from-literal="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+
+  kubectl apply -f ${args[1]}/test/utils/data/entitlement/entitlement-secret.yaml 
 
   # Choosing weave-gitops-enterprise chart version to install
   if [ -z ${ENTERPRISE_CHART_VERSION} ]; then
@@ -155,7 +166,6 @@ function setup {
   # using default repository path '"./clusters/management/clusters"' so the application reconciliation always happen out of the box
   # helmArgs+=( --set "config.capi.repositoryPath=./clusters/my-cluster/clusters" )
   helmArgs+=( --set "config.capi.repositoryClustersPath=./clusters" )
-  helmArgs+=( --set "config.cluster.name=$(kubectl config current-context)" )
   helmArgs+=( --set "config.capi.baseBranch=main" )
   helmArgs+=( --set "tls.enabled=false" )
   helmArgs+=( --set "config.oidc.enabled=true" )
@@ -165,6 +175,13 @@ function setup {
   helmArgs+=( --set "policy-agent.enabled=true" )
   helmArgs+=( --set "policy-agent.config.accountId=weaveworks" )
   helmArgs+=( --set "policy-agent.config.clusterId=${MANAGEMENT_CLUSTER_CNAME}" )
+  helmArgs+=( --set "features.progressiveDelivery.enabled=true" )
+  # Enabling cost estimation
+  helmArgs+=( --set "config.costEstimation.estimationFilter=operatingSystem=Linux" )
+  helmArgs+=( --set "config.costEstimation.apiRegion=us-east-1" )
+  helmArgs+=( --set "extraEnvVars[0].name=WEAVE_GITOPS_FEATURE_COST_ESTIMATION" )
+  helmArgs+=( --set-string "extraEnvVars[0].value=true" )
+  helmArgs+=( --set "extraEnvVarsSecret=aws-pricing" )
  
   if [ ! -z $WEAVE_GITOPS_GIT_HOST_TYPES ]; then
     helmArgs+=( --set "config.extraVolumes[0].name=ssh-config" )
@@ -176,23 +193,39 @@ function setup {
     kubectl create configmap ssh-config --namespace flux-system --from-file=./known_hosts
   fi
 
-  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system ${helmArgs[@]}
+  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system --wait ${helmArgs[@]}
+  
+   # Wait for cluster to settle
+  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
   
   # Install ingress-nginx for tls termination 
-  helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-    --namespace ingress-nginx --create-namespace \
-    --version 4.0.18 \
-    --set controller.service.type=NodePort \
-    --set controller.service.nodePorts.https=${UI_NODEPORT} \
-    --set controller.extraArgs.v=4
+  command="helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx --create-namespace \
+            --version 4.4.0 \
+            --wait \
+            --set controller.service.type=NodePort \
+            --set controller.service.nodePorts.https=30080 \
+            --set controller.extraArgs.v=4"  
+  # When policy-agent ValidatingWebhook service has not fully started up, admission controller call to matching validating webhook fails.
+  # Retrying few times gives enough time for ValidatingWebhook service to become available
+  for i in {0..5}
+  do
+    echo "Attempt installing ingress-nginx: $(($i+1))"
+    eval $command
+    if [ $? -ne 0 ]; then
+    sleep 3
+    else          
+      break    
+    fi  
+  done  
   kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
   
-  cat ${args[1]}/test/utils/data/certificate-issuer.yaml | \
+  cat ${args[1]}/test/utils/data/ingress/certificate-issuer.yaml | \
       sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
       kubectl apply -f -
   kubectl wait --for=condition=Ready --timeout=60s -n flux-system --all certificate
 
-  cat ${args[1]}/test/utils/data/ingress.yaml | \
+  cat ${args[1]}/test/utils/data/ingress/ingress.yaml | \
       sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
       kubectl apply -f -
 
@@ -200,7 +233,7 @@ function setup {
   flux create source helm weaveworks-charts --url="https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages" --interval=30s --namespace flux-system 
 
   # Install RBAC for user authentication
-  kubectl apply -f ${args[1]}/test/utils/data/user-role-bindings.yaml
+  kubectl apply -f ${args[1]}/test/utils/data/rbac/user-role-bindings.yaml
 
   # enable cluster resource sets
   export EXP_CLUSTER_RESOURCE_SET=true
@@ -208,7 +241,7 @@ function setup {
   if [ "$CAPI_PROVIDER" == "capa" ]; then
     aws cloudformation describe-stacks --stack-name wge-capi-cluster-api-provider-aws-sigs-k8s-io --region us-east-1
     if [ $? -ne 0 ]; then
-      clusterawsadm bootstrap iam create-cloudformation-stack --config aws_bootstrap_config.yaml --region=us-east-1
+      clusterawsadm bootstrap iam create-cloudformation-stack --config ${args[1]}/test/utils/data/bootstrap/aws_bootstrap_config.yaml --region=us-east-1
     fi
     export AWS_B64ENCODED_CREDENTIALS=$(clusterawsadm bootstrap credentials encode-as-profile --region=us-east-1)
     aws ec2 describe-key-pairs --key-name weave-gitops-pesto --region=us-east-1
@@ -216,21 +249,23 @@ function setup {
       aws ec2 create-key-pair --key-name weave-gitops-pesto --region us-east-1 --output text > ~/.ssh/weave-gitops-pesto.pem
     fi
     clusterctl init --infrastructure aws
+    kubectl wait --for=condition=Ready --timeout=300s -n capa-system --all pod 
   elif [ "$CAPI_PROVIDER" == "capg" ]; then
     export GCP_B64ENCODED_CREDENTIALS=$( echo ${GCP_SA_KEY} | base64 | tr -d '\n' )
     clusterctl init --infrastructure gcp
+    kubectl wait --for=condition=Ready --timeout=300s -n capg-system --all pod 
   else
-    clusterctl init --infrastructure docker    
+    clusterctl init --infrastructure docker   
+    kubectl wait --for=condition=Ready --timeout=300s -n capd-system --all pod 
   fi
 
-  # Wait for cluster to settle
-  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod --selector='app!=wego-app'
   kubectl get pods -A
 
   exit 0
 }
 
 function reset {
+   kubectl delete ValidatingWebhookConfiguration policy-agent
   # Delete flux system from the management cluster
   flux uninstall --silent
   # Delete any orphan resources
@@ -239,10 +274,8 @@ function reset {
   kubectl delete ClusterResourceSet --all
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
-  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works
-  # Delete policy agent
-  kubectl delete ValidatingWebhookConfiguration policy-agent
-  kubectl delete namespaces policy-system  
+  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works 
+  kubectl delete namespaces flux-system
   # Delete capi provider
   if [ "$CAPI_PROVIDER" == "capa" ]; then
     clusterctl delete --infrastructure aws

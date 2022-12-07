@@ -22,10 +22,10 @@ import {
 } from '@weaveworks/weave-gitops';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { isUnauthenticated, removeToken } from '../../utils/request';
-import GitAuth from './Form/Partials/GitAuth';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
+import GitAuth from '../GithubAuth/GitAuth';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {
@@ -115,17 +115,18 @@ export const DeleteClusterDialog: FC<Props> = ({
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(error => {
         setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
+          { message: { text: error.message }, severity: 'error' },
         ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);

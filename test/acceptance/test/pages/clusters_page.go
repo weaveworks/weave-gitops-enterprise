@@ -9,12 +9,14 @@ import (
 )
 
 type ClusterInformation struct {
-	Checkbox   *agouti.Selection
-	Name       *agouti.Selection
-	Dashboards *agouti.Selection
-	Type       *agouti.Selection
-	Namespace  *agouti.Selection
-	Status     *agouti.Selection
+	Checkbox    *agouti.Selection
+	Name        *agouti.Selection
+	Dashboards  *agouti.Selection
+	Type        *agouti.Selection
+	Namespace   *agouti.Selection
+	Status      *agouti.Selection
+	Message     *agouti.Selection
+	EditCluster *agouti.Selection
 }
 
 type ClusterStatus struct {
@@ -40,7 +42,6 @@ type DeletePullRequestPopup struct {
 // ClustersPage elements
 type ClustersPage struct {
 	ClusterHeader         *agouti.Selection
-	ClusterCount          *agouti.Selection
 	ConnectClusterButton  *agouti.Selection
 	PRDeleteClusterButton *agouti.Selection
 	ClustersList          *agouti.Selection
@@ -73,12 +74,14 @@ func WaitForPageToLoad(webDriver *agouti.Page) {
 func (c ClustersPage) FindClusterInList(clusterName string) *ClusterInformation {
 	cluster := c.ClustersList.FindByXPath(fmt.Sprintf(`//*[@data-cluster-name="%s"]/ancestor::tr`, clusterName))
 	return &ClusterInformation{
-		Checkbox:   cluster.FindByXPath(`td[1]`).Find("input"),
-		Name:       cluster.FindByXPath(`td[2]`),
-		Dashboards: cluster.FindByXPath(`td[3]`),
-		Type:       cluster.FindByXPath(`td[4]//*[@role="img"]`),
-		Namespace:  cluster.FindByXPath(`td[5]`),
-		Status:     cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
+		Checkbox:    cluster.FindByXPath(`td[1]`).Find("input"),
+		Name:        cluster.FindByXPath(`td[2]`),
+		Dashboards:  cluster.FindByXPath(`td[3]`),
+		Type:        cluster.FindByXPath(`td[4]//*[@role="img"]`),
+		Namespace:   cluster.FindByXPath(`td[5]`),
+		Status:      cluster.FindByXPath(`td[6]//div/*[last()][name()="div"]`),
+		Message:     cluster.FindByXPath(`td[7]`),
+		EditCluster: cluster.FindByXPath(`td[8]//button`),
 	}
 }
 
@@ -101,7 +104,7 @@ func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
 	return &clusterStatus
 }
 
-func GertClusterInfrastructure(webDriver *agouti.Page) *ClusterInfrastructure {
+func GetClusterInfrastructure(webDriver *agouti.Page) *ClusterInfrastructure {
 	return &ClusterInfrastructure{
 		Kind:       webDriver.FindByXPath(`//tr/td[.="Kind:"]/following-sibling::td`),
 		ApiVersion: webDriver.FindByButton(`//tr/td[.="APIVersion:"]/following-sibling::td`),
@@ -126,7 +129,6 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
 		ClusterHeader:         webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
-		ClusterCount:          webDriver.Find(`.count-header .section-header-count`),
 		ConnectClusterButton:  webDriver.Find(`#connect-cluster`),
 		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
 		ClustersList:          webDriver.First(`#clusters-list table tbody`),

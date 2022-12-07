@@ -14,6 +14,8 @@ import {
   AuthContextProvider,
   coreClient,
   CoreClientContextProvider,
+  LinkResolverProvider,
+  Pendo,
   SignIn,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -24,14 +26,13 @@ import { Terraform } from '../api/terraform/terraform.pb';
 import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
-import NotificationsProvider from '../contexts/Notifications/Provider';
 import { TerraformProvider } from '../contexts/Terraform';
+import NotificationsProvider from '../contexts/Notifications/Provider';
 import AppRoutes from '../routes';
 import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
-
-export const EDIT_CLUSTER = '/clusters/:clusterName/edit';
+import { resolver } from '../utils/link-resolver';
 
 const drawerWidth = 220;
 
@@ -173,23 +174,26 @@ const ResponsiveDrawer = () => {
       <EnterpriseClientProvider api={ClustersService}>
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
-            <Switch>
-              <Route
-                component={() => (
-                  <SignInWrapper>
-                    <SignIn />
-                  </SignInWrapper>
-                )}
-                exact={true}
-                path="/sign_in"
-              />
-              <Route path="*">
-                {/* Check we've got a logged in user otherwise redirect back to signin */}
-                <AuthCheck>
-                  <App />
-                </AuthCheck>
-              </Route>
-            </Switch>
+            <LinkResolverProvider resolver={resolver}>
+              <Pendo defaultTelemetryFlag="true" />
+              <Switch>
+                <Route
+                  component={() => (
+                    <SignInWrapper>
+                      <SignIn />
+                    </SignInWrapper>
+                  )}
+                  exact={true}
+                  path="/sign_in"
+                />
+                <Route path="*">
+                  {/* Check we've got a logged in user otherwise redirect back to signin */}
+                  <AuthCheck>
+                    <App />
+                  </AuthCheck>
+                </Route>
+              </Switch>
+            </LinkResolverProvider>
           </TerraformProvider>
         </CoreClientContextProvider>
       </EnterpriseClientProvider>

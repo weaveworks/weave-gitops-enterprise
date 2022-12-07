@@ -63,3 +63,10 @@ tilt_modules
 
 # Helm files pulled in by Tilt
 .helm
+
+# build flag artifacts
+tools/core-files
+
+# ignore custom scripts and generated config
+/tools/custom/
+/tools/kind-config.yaml

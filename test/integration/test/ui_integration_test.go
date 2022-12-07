@@ -26,6 +26,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
@@ -47,9 +48,9 @@ import (
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	acceptancetest "github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test"
 )
 
@@ -58,7 +59,7 @@ import (
 //
 
 const capiServerPort = "8000"
-const uiURL = "http://localhost:5000"
+const uiURL = "http://localhost:5001"
 const seleniumURL = "http://localhost:4444/wd/hub"
 
 const entitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -110,21 +111,15 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
 	clustersManager.GetServerClientReturns(client, nil)
 
-	return core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	cfg, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return cfg
 }
 
 func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discoveryClient discovery.DiscoveryInterface) error {
-	templatesLibrary := &templates.CRDLibrary{
-		Log:           logr.Discard(),
-		ClientGetter:  kubefakes.NewFakeClientGetter(cl),
-		CAPINamespace: "default",
-	}
-
-	clustersLibrary := &clusters.CRDLibrary{
-		Log:          logr.Discard(),
-		ClientGetter: kubefakes.NewFakeClientGetter(cl),
-		Namespace:    "default",
-	}
 
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
@@ -141,15 +136,37 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		ClusterConfig: kube.ClusterConfig{},
 	}
 
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*corev1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "flux-system",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(cl), &mgmtfetcherfake.FakeAuthClientGetter{})
+
 	fakeCoreConfig := fakeCoreConfig(t, logr.Discard())
+	clientSet := fakeclientset.NewSimpleClientset()
 
 	viper.SetDefault("capi-clusters-namespace", "default")
 
 	return app.RunInProcessGateway(ctx, "0.0.0.0:"+capiServerPort,
 		app.WithCAPIClustersNamespace("default"),
 		app.WithEntitlementSecretKey(client.ObjectKey{Name: "entitlement", Namespace: "default"}),
-		app.WithTemplateLibrary(templatesLibrary),
-		app.WithClustersLibrary(clustersLibrary),
 		app.WithKubernetesClient(cl),
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithApplicationsConfig(fakeAppsConfig),
@@ -162,6 +179,8 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 			app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 		),
 		app.WithRuntimeNamespace("flux-system"),
+		app.WithKubernetesClientSet(clientSet),
+		app.WithManagemetFetcher(mgmtFetcher),
 	)
 }
 
@@ -208,20 +227,14 @@ func waitFor200(ctx context.Context, url string, timeout time.Duration) error {
 }
 
 func gomegaFail(message string, callerSkip ...int) {
-	fmt.Println("gomegaFail:")
-	fmt.Println(message)
 	webDriver := acceptancetest.GetWebDriver()
+	fmt.Println("\x1b[31mERROR\x1b[0m: Spec has failed, capturing failure screenshot")
 	if webDriver != nil {
-		filepath := acceptancetest.TakeScreenShot(acceptancetest.RandString(16)) //Save the screenshot of failure
-		fmt.Printf("\033[1;34mFailure screenshot is saved in file %s\033[0m \n", filepath)
+		acceptancetest.TakeScreenShot(acceptancetest.RandString(16)) //Save the screenshot of failure
 	}
 	// Pass this down to the default handler for onward processing
 	Fail(message, callerSkip...)
 }
-
-//
-// "main"
-//
 
 func TestMccpUI(t *testing.T) {
 	scheme := runtime.NewScheme()
@@ -281,6 +294,8 @@ func TestMccpUI(t *testing.T) {
 		wg.Done()
 	}()
 
+	featureflags.SetFromEnv(os.Environ())
+
 	// Test ui is proxying through to cluster-service
 	err = waitFor200(ctx, uiURL+"/v1/featureflags", time.Second*30)
 	require.NoError(t, err)
@@ -298,11 +313,13 @@ func TestMccpUI(t *testing.T) {
 	// WKP-UI can be a bit slow
 	SetDefaultEventuallyTimeout(acceptancetest.ASSERTION_5MINUTE_TIME_OUT)
 
-	// Load up the acceptance suite suite
+	// Load up the acceptance test suite
 	mccpRunner := acceptancetest.DatabaseGitopsTestRunner{Client: cl}
 
 	acceptancetest.SetSeleniumServiceUrl(seleniumURL)
 	acceptancetest.SetDefaultUIURL(uiURL)
+	acceptancetest.SetTestDataPath(path.Join("test", "utils", "data"))
+	acceptancetest.SetTestScriptPath(path.Join("test", "utils", "scripts"))
 	acceptancetest.DescribeSpecsUi(mccpRunner)
 
 	BeforeSuite(func() {

@@ -8,11 +8,14 @@ import {
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
   InputBase as MuiInputBase,
-  FormHelperText,
+  FormHelperText as MuiFormHelperText,
+  InputAdornment,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
-import React, { FC } from 'react';
+import React, { Dispatch, FC } from 'react';
+import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -55,8 +58,17 @@ const InputLabel = withStyles(() => ({
 }))(MuiInputLabel);
 
 const InputBase = withStyles(() => ({
+  root: {
+    border: '1px solid #d8d8d8',
+  },
+  input: {
+    border: 'none',
+  },
   inputMultiline: {
     padding: '10px',
+  },
+  error: {
+    borderBottom: '2px solid #9F3119',
   },
 }))(MuiInputBase);
 
@@ -79,6 +91,7 @@ interface InputProps extends PickedInputProps {
   description?: string;
   required?: boolean;
   name?: string;
+  error?: boolean;
 }
 
 export const Input: FC<InputProps> = ({
@@ -96,31 +109,53 @@ export const Input: FC<InputProps> = ({
   description,
   required,
   name,
-}) => (
-  <FormControl id={`${label}-group`} className={className}>
-    {label && (
-      <InputLabel htmlFor={`${label}-input`} shrink>
-        {label}
-      </InputLabel>
-    )}
-    <InputBase
-      name={name}
-      autoFocus={autoFocus}
-      defaultValue={defaultValue}
-      disabled={disabled}
-      id={`${label}-input`}
-      onChange={onChange}
-      placeholder={placeholder}
-      type={type}
-      value={value}
-      multiline={multiline}
-      rows={rows}
-      inputProps={{ maxLength: 256 }}
-      required={required}
-    />
-    <FormHelperText>{description}</FormHelperText>
-  </FormControl>
-);
+  error,
+}) => {
+  return (
+    <FormControl id={`${label}-group`} className={className}>
+      {label && (
+        <InputLabel htmlFor={`${label}-input`} shrink>
+          {label}
+        </InputLabel>
+      )}
+      <InputBase
+        name={name}
+        autoFocus={autoFocus}
+        defaultValue={defaultValue}
+        disabled={disabled}
+        id={`${label}-input`}
+        onChange={onChange}
+        placeholder={placeholder}
+        type={type}
+        value={value}
+        multiline={multiline}
+        rows={rows}
+        inputProps={{
+          maxLength: 256,
+        }}
+        endAdornment={
+          <InputAdornment
+            position="end"
+            style={{ paddingRight: weaveTheme.spacing.small }}
+          >
+            {error && <ErrorIcon />}
+          </InputAdornment>
+        }
+        required={required}
+        error={error}
+      />
+      <MuiFormHelperText
+        style={{
+          color: error
+            ? weaveTheme.colors.alertDark
+            : weaveTheme.colors.neutral30,
+        }}
+      >
+        {!error ? description : 'Please fill this field in.'}
+      </MuiFormHelperText>
+    </FormControl>
+  );
+};
 
 // FIXME: what sure what the type should be to export correctly!
 export const Divider: any = withStyles((theme: Theme) => ({
@@ -175,20 +210,27 @@ export const Select: FC<SelectProps> = ({
           </MenuItem>
         ))}
     </MuiSelect>
-    <FormHelperText>{description}</FormHelperText>
+    <MuiFormHelperText>{description}</MuiFormHelperText>
   </FormControl>
 );
 
-export const validateFormData = (event: any, onSubmit: any) => {
-  const { form } = event.currentTarget;
-  const isValid = form?.reportValidity();
+export const validateFormData = (
+  event: any,
+  onSubmit: any,
+  setFormError: Dispatch<React.SetStateAction<any>>,
+  setSubmitType: Dispatch<React.SetStateAction<string>>,
+) => {
   event.preventDefault();
-  if (isValid) {
+  const requiredButEmptyInputs = Array.from(event.target).filter(
+    (element: any) =>
+      element.type === 'text' && element.required && element.value === '',
+  );
+  if (requiredButEmptyInputs.length === 0) {
     onSubmit();
   } else {
-    const invalid: HTMLElement | null = form.querySelector(':invalid');
-    if (invalid) {
-      invalid.focus();
-    }
+    const [firstEmpty] = requiredButEmptyInputs;
+    (firstEmpty as HTMLInputElement).focus();
+    setFormError((firstEmpty as HTMLInputElement).name);
   }
+  setSubmitType('');
 };

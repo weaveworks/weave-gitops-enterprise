@@ -3,6 +3,18 @@ kind: CAPITemplate
 metadata:
   name: cluster-template-development
   namespace: default
+  annotations:
+    templates.weave.works/profiles-enabled: "true"
+    capi.weave.works/profile-0: |
+      {
+        "name": "cert-manager",
+        "namespace": "cert-manager"
+      }
+    capi.weave.works/profile-1: |
+      {
+        "name": "ingress-nginx",
+        "namespace": "ingress-nginx"
+      }
 spec:
   description: A simple CAPD template
   params:
@@ -23,6 +35,14 @@ spec:
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
       default: "1"
+  profiles:
+    - name: cert-manager
+      targetNamespace: cert-manager
+      version: 0.0.8
+      spec:
+        install:
+          remediation:
+            retries: 3
   resourcetemplates:
     - content:
       - apiVersion: gitops.weave.works/v1alpha1

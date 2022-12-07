@@ -4,8 +4,16 @@ import { theme } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 const { xxs, xs, small, medium, base, none } = theme.spacing;
-const { neutral10, neutral20, neutral30, black, primary } = theme.colors;
-
+const {
+  neutral10,
+  neutral20,
+  neutral30,
+  black,
+  primary,
+  primary20,
+  feedbackDark,
+  alertDark,
+} = theme.colors;
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
@@ -23,7 +31,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       fontWeight: 400,
       fontSize: theme.fontSizes.medium,
       color: black,
-      marginLeft: xs,
+      marginTop: xs,
     },
     chip: {
       background: neutral10,
@@ -61,17 +69,17 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       overflow: 'scroll',
     },
     severityIcon: {
-      fontSize: theme.fontSizes.small,
+      fontSize: theme.fontSizes.large,
       marginRight: xxs,
     },
     severityLow: {
-      color: '#006B8E',
+      color: primary20,
     },
     severityMedium: {
-      color: '#8A460A',
+      color: feedbackDark,
     },
     severityHigh: {
-      color: '#9F3119',
+      color: alertDark,
     },
     column: {
       flexDirection: 'column',
@@ -103,7 +111,6 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     tableHead: {
       borderBottom: `1px solid ${neutral20}`,
     },
-
     normalRow: {
       borderBottom: `1px solid ${neutral20}`,
     },
@@ -130,32 +137,51 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
     occurrencesList: {
       paddingLeft: wtheme.spacing(1),
+      marginLeft: xs,
     },
     messageWrape: {
       whiteSpace: 'normal',
     },
     labelText: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.tiny,
+      fontSize: theme.fontSizes.medium,
       color: neutral30,
     },
-    parameterWrapper: {
-      border: `1px solid ${neutral20}`,
-      boxSizing: 'border-box',
-      borderRadius: xxs,
-      padding: base,
-      display: 'flex',
-      marginBottom: base,
-      marginTop: base,
+    inlineFlex: {
+      display: 'inline-flex',
+      marginRight: xs,
     },
-    parameterInfo: {
-      display: 'flex',
-      alignItems: 'start',
-      flexDirection: 'column',
-      width: '100%',
-    },
+    modeIcon: {
+      fontSize: theme.fontSizes.large,
+      marginRight: xxs,
+      color: neutral30,
+    }
   }),
 );
+export const ParameterWrapper = styled.div`
+  border: 1px solid ${neutral20};
+  box-sizing: border-box;
+  border-radius: ${xxs};
+  padding: ${base};
+  display: flex;
+  margin-bottom: ${base};
+  margin-top: ${base};
+`;
+export const ParameterInfo = styled.div`
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  width: 100%;
+  font-weight: 400;
+  font-size: ${theme.fontSizes.medium};
+  .label {
+    color: ${neutral30};
+  }
+  .body1 {
+    color: black;
+    margin-top: ${xs};
+  }
+`;
 
 export const LinkWrapper = styled(Link)`
   color: ${primary};
@@ -173,4 +199,19 @@ export const SpaceBetween = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+`;
+
+export const ModeWrapper = styled.div`
+  align-items: center;
+  justify-content: flex-start;
+  display: inline-flex;
+  margin-right: ${xs};
+  svg {
+    color: ${neutral30};
+    font-size: 20px;
+    margin-right: 4px;
+  }
+  span {
+    text-transform: capitalize;
+  }
 `;

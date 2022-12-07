@@ -7,6 +7,11 @@ on:
         description: "Which helm repo to push to"
         required: true
         type: string
+      gitops_platforms:
+        description: "Platforms for gitops compilation - JSON string e.g '[\"ubuntu-latest\", \"macOS-latest\"]'"
+        required: false
+        default: '["ubuntu-latest"]'
+        type: string
     secrets:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: { required: true }
       WGE_DOCKER_IO_USER: { required: true }
@@ -36,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
       - name: Grab all tags from git
@@ -51,19 +56,24 @@ jobs:
           # It is also important to use 'v' to help with semver sorting. Any character after 'r' (for 'rc' tags) will work. 'v' just makes sense.
           ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-v%05d-g$REF" $N)
           SEMVER_TAG=$(awk -F'^v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
-          echo "::set-output name=tag::$TAG"
-          echo "::set-output name=zero_filled_tag::$ZERO_FILLED_TAG"
-          echo "::set-output name=semver_tag::$SEMVER_TAG"
-      - name: Install Helm v3
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.9.0
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "zero_filled_tag=$ZERO_FILLED_TAG" >> $GITHUB_OUTPUT
+          echo "semver_tag=$SEMVER_TAG" >> $GITHUB_OUTPUT
+      - name: Install Helm
+        run: |
+          wget --no-verbose https://get.helm.sh/helm-v3.10.0-linux-amd64.tar.gz
+          tar -zxvf helm-v3.10.0-linux-amd64.tar.gz
+          mv linux-amd64/helm /usr/local/bin/helm
+          helm version
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
+      - name: Login to ghcr.io
+        run: |
+          echo $GITHUB_BUILD_TOKEN | helm registry login ghcr.io -u $GITHUB_BUILD_USERNAME --password-stdin
       - name: Publish helm chart to s3
         env:
           TAG: ${{ steps.release_tags.outputs.tag }}
@@ -74,6 +84,21 @@ jobs:
 
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
+      - name: Publish helm chart to s3 branch repo
+        run: |
+          CHART_VALUES_PATH=./charts/mccp/values.yaml
+          # Update the MCCP chart values.yaml file with the current image tag
+          make update-mccp-chart-values CHART_VALUES_PATH=$CHART_VALUES_PATH
+
+          SHORT_HASH=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%s)
+          TAG=$(git describe --always --match "v*" --abbrev=0)
+          HELM_TAG=${TAG}-${TIMESTAMP}-g${SHORT_HASH}
+          
+          # Publish the MCCP Helm v3 chart to branch helm repo
+          BRANCH_NAME=${GITHUB_REF##*/}
+          BRANCH_HELM_REPO="dev/branches/${BRANCH_NAME}"
+          ./bin/publish-chart-to-s3.sh $HELM_TAG $BRANCH_HELM_REPO ./charts/mccp
       - name: Publish Helm chart for main only
         if: github.ref_name == 'main'
         env:
@@ -100,7 +125,7 @@ jobs:
       - name: Authenticate with Google Artifact Repository
         id: google_auth
         if: github.ref_name == 'main' && env.HAS_GCP_CREDS == 'true'
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v0.8.3
         with:
           workload_identity_provider: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
@@ -125,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
       - name: Grab all tags from git
@@ -135,7 +160,7 @@ jobs:
         run: |
           make DOCKER_BUILDKIT=1 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} cmd/clusters-service/.uptodate
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2.1.0
         with:
           registry: docker.io
           username: ${{ secrets.WGE_DOCKER_IO_USER }}
@@ -147,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
       - name: Grab all tags from git
@@ -155,9 +180,9 @@ jobs:
           git fetch --tags -f
       - name: build
         run: |
-          make GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} ui-cra/.uptodate
+          make DOCKER_BUILDKIT=1 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} ui-cra/.uptodate
       - name: Login to Docker Hub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2.1.0
         with:
           registry: docker.io
           username: ${{ secrets.WGE_DOCKER_IO_USER }}
@@ -170,14 +195,14 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]    
+        os: ${{ fromJSON(inputs.gitops_platforms) }}
     steps:
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3.3.1
       with:
         go-version: 1.18.X
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3.1.0
     - name: Configure git for private modules
       run: |
         git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
@@ -189,25 +214,24 @@ jobs:
     - id: gitsha
       run: |
         gitsha=$(git rev-parse --short ${{ github.sha }})
-        echo "::set-output name=sha::$gitsha"
+        echo "sha=$gitsha" >> $GITHUB_OUTPUT
     - name: build
       run: |
         make cmd/gitops/gitops
         mv cmd/gitops/gitops cmd/gitops/gitops-${{matrix.os}}
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3.1.1
       with:
         name: gitops
         path: cmd/gitops/gitops-${{matrix.os}}
-        retention-days: 7
+        retention-days: 1
     - name: Configure AWS Credentials
-      if: ${{ (github.ref_name == 'main') && (github.event_name == 'push') }}
-      uses: aws-actions/configure-aws-credentials@v1
+      if: ${{ (github.ref_name == 'main') && (github.event_name == 'schedule') }}
+      uses: aws-actions/configure-aws-credentials@v1-node16
       with:
         aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-central-1
     - name: Publish gitops binary to s3 
-      if: ${{ (github.ref_name == 'main') && (github.event_name == 'push') }}
+      if: ${{ (github.ref_name == 'main') && (github.event_name == 'schedule') }}
       run: |
-        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}
         aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}

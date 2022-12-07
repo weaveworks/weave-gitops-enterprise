@@ -3,16 +3,19 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
+
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -22,17 +25,14 @@ type Options struct {
 	Log                          logr.Logger
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
-	ClustersLibrary              clusters.Library
-	TemplateLibrary              templates.Library
 	GitProvider                  git.Provider
 	ApplicationsConfig           *core_server.ApplicationsConfig
 	CoreServerConfig             core.CoreServerConfig
 	ApplicationsOptions          []core_server.ApplicationsOption
-	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	RuntimeNamespace             string
-	ProfileHelmRepository        string
+	ProfileHelmRepository        types.NamespacedName
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	CAPIEnabled                  bool
@@ -46,6 +46,12 @@ type Options struct {
 	NoTLS                        bool
 	DevMode                      bool
 	ClustersManager              clustersmngr.ClustersManager
+	ChartsCache                  *helm.HelmChartIndexer
+	KubernetesClientSet          kubernetes.Interface
+	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Cluster                      string
+	Estimator                    estimation.Estimator
+	UIConfig                     string
 }
 
 type Option func(*Options)
@@ -70,22 +76,6 @@ func WithKubernetesClient(client client.Client) Option {
 func WithDiscoveryClient(client discovery.DiscoveryInterface) Option {
 	return func(o *Options) {
 		o.DiscoveryClient = client
-	}
-}
-
-// WithClustersLibrary is used to set the location that contains
-// CAPI templates. Typically this will be a namespace in the cluster.
-func WithClustersLibrary(clustersLibrary clusters.Library) Option {
-	return func(o *Options) {
-		o.ClustersLibrary = clustersLibrary
-	}
-}
-
-// WithTemplateLibrary is used to set the location that contains
-// CAPI templates. Typically this will be a namespace in the cluster.
-func WithTemplateLibrary(templateLibrary templates.Library) Option {
-	return func(o *Options) {
-		o.TemplateLibrary = templateLibrary
 	}
 }
 
@@ -121,14 +111,6 @@ func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
 	}
 }
 
-// WithProfilesConfig is used to set the configuration needed to work
-// with Weave GitOps Core profiles
-func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
-	return func(o *Options) {
-		o.ProfilesConfig = profilesConfig
-	}
-}
-
 // WithRuntimeNamespace set the namespace that holds any authentication
 // secrets (e.g. cluster-user-auth or oidc-auth).
 func WithRuntimeNamespace(RuntimeNamespace string) Option {
@@ -140,9 +122,9 @@ func WithRuntimeNamespace(RuntimeNamespace string) Option {
 // WithProfileHelmRepository is used to set the name of the Flux
 // HelmRepository object that will be inspected for Helm charts
 // that include the profile annotation.
-func WithProfileHelmRepository(name string) Option {
+func WithProfileHelmRepository(repo types.NamespacedName) Option {
 	return func(o *Options) {
-		o.ProfileHelmRepository = name
+		o.ProfileHelmRepository = repo
 	}
 }
 
@@ -231,5 +213,45 @@ func WithDevMode(devMode bool) Option {
 func WithClustersManager(factory clustersmngr.ClustersManager) Option {
 	return func(o *Options) {
 		o.ClustersManager = factory
+	}
+}
+
+// WithClustersCache defines the clusters cache that will be use for cross-cluster queries.
+func WithChartsCache(chartCache *helm.HelmChartIndexer) Option {
+	return func(o *Options) {
+		o.ChartsCache = chartCache
+	}
+}
+
+// WithKubernetesClientSet defines the kuberntes client set that will be used for
+func WithKubernetesClientSet(kubernetesClientSet kubernetes.Interface) Option {
+	return func(o *Options) {
+		o.KubernetesClientSet = kubernetesClientSet
+	}
+}
+
+// WithManagemetFetcher defines the mangement fetcher to be used
+func WithManagemetFetcher(fetcher *mgmtfetcher.ManagementCrossNamespacesFetcher) Option {
+	return func(o *Options) {
+		o.ManagementFetcher = fetcher
+	}
+}
+
+// WithManagementCluster is used to set the management cluster name
+func WithManagementCluster(cluster string) Option {
+	return func(o *Options) {
+		o.Cluster = cluster
+	}
+}
+
+func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
+	return func(o *Options) {
+		o.Estimator = estimator
+	}
+}
+
+func WithUIConfig(uiConfig string) Option {
+	return func(o *Options) {
+		o.UIConfig = uiConfig
 	}
 }

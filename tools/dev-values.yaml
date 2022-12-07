@@ -16,6 +16,17 @@ enablePipelines: true
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
 
+extraEnvVars:
+  - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
+    value: ""
+  - name: WEAVE_GITOPS_FEATURE_TELEMETRY
+    value: "false"
+
+extraEnvVarsSecret: ""
+
+# Turns on UI elements for GitOps Run
+enableRunUI: true
+
 # Re-clarify capiEnabled
 global:
   capiEnabled: true

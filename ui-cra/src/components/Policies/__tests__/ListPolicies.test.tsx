@@ -1,13 +1,54 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import moment from 'moment';
 import Policies from '..';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
   PolicyClientMock,
-  sortTableByColumn,
+  TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
 
+const listPoliciesResponse = {
+  policies: [
+    {
+      category: 'weave.categories.organizational-standards',
+      name: 'Prohibit Naked Pods From Being Scheduled',
+      id: 'weave.policies.prohibit-naked-pods-from-being-scheduled',
+      severity: 'low',
+      createdAt: '2022-08-30T11:23:57Z',
+      clusterName: 'default/tw-cluster-2',
+      tenant: '',
+      audit:'audit',
+      enforce: ''
+    },
+    {
+      category: 'weave.categories.organizational-standards',
+      name: 'Containers Should Not Run In Namespace',
+      id: 'weave.policies.containers-should-not-run-in-namespace',
+      severity: 'medium',
+      createdAt: '2022-07-30T11:23:55Z',
+      clusterName: 'test-dev',
+      tenant: 'dev-team',
+      audit:'',
+      enforce: 'enforce'
+    },
+  ],
+  total: 3,
+  errors: [],
+};
+const mappedPolicies = (policies: Array<any>) => {
+  return policies.map(e => [
+    e.name,
+    e.category,
+    e.audit || '-',
+    e.enforce || '-',
+    e.tenant || '-',
+    e.severity,
+    e.clusterName,
+    moment(e.createdAt).fromNow(),
+  ]);
+};
 describe('ListPolicies', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PolicyClientMock;
@@ -43,63 +84,34 @@ describe('ListPolicies', () => {
       render(c);
     });
 
-   // TODO "Move Error tests to shared Test"
+    // TODO "Move Error tests to shared Test"
 
-   const alertMessage = screen.queryByTestId('error-message');
-   expect(alertMessage).toHaveTextContent(
-     'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
-   );
+    const alertMessage = screen.queryByTestId('error-message');
+    expect(alertMessage).toHaveTextContent(
+      'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
+    );
 
-   // Next Error
-   const nextError = screen.queryByTestId('nextError');
-   nextError?.click();
+    // Next Error
+    const nextError = screen.queryByTestId('nextError');
+    nextError?.click();
 
-   expect(alertMessage).toHaveTextContent('second Error message');
+    expect(alertMessage).toHaveTextContent('second Error message');
 
-   // Prev error
-   const prevError = screen.queryByTestId('prevError');
-   prevError?.click();
+    // Prev error
+    const prevError = screen.queryByTestId('prevError');
+    prevError?.click();
 
-   expect(alertMessage).toHaveTextContent(
-     'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
-   );
+    expect(alertMessage).toHaveTextContent(
+      'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
+    );
 
-   // Error Count
-   const errorCount = screen.queryByTestId('errorsCount');
-   expect(errorCount?.textContent).toEqual('2');
+    // Error Count
+    const errorCount = screen.queryByTestId('errorsCount');
+    expect(errorCount?.textContent).toEqual('2');
   });
   it('renders a list of policies', async () => {
-    api.ListPoliciesReturns = {
-      policies: [
-        {
-          name: 'Containers Running With Privilege Escalation',
-          id: 'weave.policies.containers-running-with-privilege-escalation',
-          category: 'weave.categories.pod-security',
-          severity: 'high',
-          createdAt: '2022-06-22T15:54:11Z',
-          clusterName: 'management',
-          tenant: '',
-        },
-        {
-          name: 'dev-team allowed clusters',
-          id: 'weave.policies.tenancy.dev-team-allowed-clusters',
-          severity: 'low',
-          category: 'weave.categories.tenancy',
-          createdAt: '2022-08-19T12:27:14Z',
-          clusterName: 'management',
-          tenant: 'dev-team',
-        },
-      ],
-      total: 2,
-      errors: [
-        {
-          clusterName: 'default/tw-test-cluster',
-          namespace: '',
-          message:
-            'no matches for kind "Policy" in version "pac.weave.works/v2beta1"',
-        },
-      ],
-    };
+    const filterTable = new TestFilterableTable('policy-list', fireEvent);
+    api.ListPoliciesReturns = listPoliciesResponse;
 
     await act(async () => {
       const c = wrap(<Policies />);
@@ -108,37 +120,31 @@ describe('ListPolicies', () => {
 
     expect(await screen.findByText('Policies')).toBeTruthy();
 
-    const tbl = document.querySelector('#policy-list table');
-    const rows = tbl?.querySelectorAll('tbody tr');
+    filterTable.testRenderTable(
+      [
+        'Policy Name',
+        'Category',
+        'Audit',
+        'Enforce',
+        'Tenant',
+        'Severity',
+        'Cluster',
+        'Age',
+      ],
+      listPoliciesResponse.policies.length,
+    );
 
-    expect(rows).toHaveLength(2);
+    const search = listPoliciesResponse.policies[0].name;
+    const searchedRows = mappedPolicies(
+      listPoliciesResponse.policies.filter(e => e.name === search),
+    );
+
+    filterTable.testSearchTableByValue(search, searchedRows);
+    filterTable.clearSearchByVal(search);
   });
-
-  it('sort policies by age', async () => {
-    api.ListPoliciesReturns = {
-      policies: [
-        {
-          name: 'Containers Running With Privilege Escalation',
-          id: 'weave.policies.containers-running-with-privilege-escalation',
-          category: 'weave.categories.pod-security',
-          severity: 'high',
-          createdAt: '2022-06-22T15:54:11Z',
-          clusterName: 'management',
-          tenant: '',
-        },
-        {
-          name: 'dev-team allowed clusters',
-          id: 'weave.policies.tenancy.dev-team-allowed-clusters',
-          severity: 'low',
-          category: 'weave.categories.tenancy',
-          createdAt: '2022-06-19T12:27:14Z',
-          clusterName: 'management',
-          tenant: 'dev-team',
-        },
-      ],
-      total: 2,
-      errors: [],
-    };
+  it('sort policies', async () => {
+    api.ListPoliciesReturns = listPoliciesResponse;
+    const filterTable = new TestFilterableTable('policy-list', fireEvent);
 
     await act(async () => {
       const c = wrap(<Policies />);
@@ -147,51 +153,21 @@ describe('ListPolicies', () => {
 
     expect(await screen.findByText('Policies')).toBeTruthy();
 
-    sortTableByColumn('policy-list', 'Age');
+    const sortRowsBySeverity = mappedPolicies(
+      listPoliciesResponse.policies.sort((a, b) =>
+        a.severity.localeCompare(b.severity),
+      ),
+    );
 
-    const text = document.querySelector(
-      '#policy-list table tbody tr td',
-    )?.textContent;
-    expect(text).toMatch('dev-team allowed clusters');
-  });
-  it('sort policies by severity', async () => {
-    api.ListPoliciesReturns = {
-      policies: [
-        {
-          name: 'Containers Running With Privilege Escalation',
-          id: 'weave.policies.containers-running-with-privilege-escalation',
-          category: 'weave.categories.pod-security',
-          severity: 'low',
-          createdAt: '2022-06-22T15:54:11Z',
-          clusterName: 'management',
-          tenant: '',
-        },
-        {
-          name: 'dev-team allowed clusters',
-          id: 'weave.policies.tenancy.dev-team-allowed-clusters',
-          severity: 'high',
-          category: 'weave.categories.tenancy',
-          createdAt: '2022-06-19T12:27:14Z',
-          clusterName: 'management',
-          tenant: 'dev-team',
-        },
-      ],
-      total: 2,
-      errors: [],
-    };
+    filterTable.testSorthTableByColumn('Severity', sortRowsBySeverity);
 
-    await act(async () => {
-      const c = wrap(<Policies />);
-      render(c);
-    });
+    const sortRowsByAge = mappedPolicies(
+      listPoliciesResponse.policies.sort(({ createdAt }) => {
+        const t = new Date(createdAt).getTime();
+        return t * 1;
+      }),
+    );
 
-    expect(await screen.findByText('Policies')).toBeTruthy();
-
-    sortTableByColumn('policy-list', 'Severity');
-
-    const text = document.querySelector(
-      '#policy-list table tbody tr td',
-    )?.textContent;
-    expect(text).toMatch('dev-team allowed clusters');
+    filterTable.testSorthTableByColumn('Age', sortRowsByAge);
   });
 });

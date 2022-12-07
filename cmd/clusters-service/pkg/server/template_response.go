@@ -26,6 +26,7 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 		Annotations:  t.GetAnnotations(),
 		Labels:       t.GetLabels(),
 		TemplateKind: templateKind,
+		Namespace:    t.GetNamespace(),
 	}
 
 	meta, err := templates.ParseTemplateMeta(t, annotation)
@@ -51,6 +52,12 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 			Name:        o.Name,
 			DisplayName: o.DisplayName,
 		})
+	}
+
+	res.Profiles, err = getProfilesFromTemplate(t)
+	if err != nil {
+		res.Error = fmt.Sprintf("Couldn't load profiles from template: %s", err.Error())
+		return res
 	}
 
 	return res

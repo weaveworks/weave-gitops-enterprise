@@ -1,35 +1,45 @@
 package server
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/client-go/rest"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
 	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/clusters"
+	rbacv1 "k8s.io/api/rbac/v1"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -38,10 +48,12 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1.AddToScheme,
+		pacv2beta2.AddToScheme,
 		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		gapiv1.AddToScheme,
 		clusterv1.AddToScheme,
+		rbacv1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -57,42 +69,123 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 }
 
 type serverOptions struct {
-	clusterState    []runtime.Object
-	namespace       string
-	provider        git.Provider
-	ns              string
-	hr              *sourcev1.HelmRepository
-	clustersManager clustersmngr.ClustersManager
-	capiEnabled     bool
+	clusterState          []runtime.Object
+	namespace             string
+	provider              git.Provider
+	ns                    string
+	profileHelmRepository *types.NamespacedName
+	clustersManager       clustersmngr.ClustersManager
+	capiEnabled           bool
+	chartsCache           helm.ChartsCacheReader
+	chartJobs             *helm.Jobs
+	valuesFetcher         helm.ValuesFetcher
+	cluster               string
+	estimator             estimation.Estimator
+}
+
+func getServer(t *testing.T, clients map[string]client.Client, namespaces map[string][]corev1.Namespace) capiv1_protos.ClustersServiceServer {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	clientsPool.ClientsReturns(clients)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clients[name]; found && c != nil {
+			return c, nil
+		}
+		return nil, fmt.Errorf("cluster %s not found", name)
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, namespaces)
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+
+	return createServer(t, serverOptions{
+		clustersManager: fakeFactory,
+	})
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
 	c := createClient(t, o.clusterState...)
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*corev1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-ns",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
+
+	if o.estimator == nil {
+		o.estimator = estimation.NilEstimator()
+	}
+
+	if o.profileHelmRepository == nil {
+		o.profileHelmRepository = &types.NamespacedName{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		}
+	}
+
+	if o.cluster == "" {
+		o.cluster = "management"
+	}
+
 	return NewClusterServer(
 		ServerOpts{
-			Logger: logr.Discard(),
-			TemplatesLibrary: &templates.CRDLibrary{
-				Log:           logr.Discard(),
-				ClientGetter:  kubefakes.NewFakeClientGetter(c),
-				CAPINamespace: o.namespace,
-			},
-			ClustersLibrary: &clusters.CRDLibrary{
-				Log:          logr.Discard(),
-				ClientGetter: kubefakes.NewFakeClientGetter(c),
-				Namespace:    o.namespace,
-			},
-			ClustersManager:           o.clustersManager,
-			GitProvider:               o.provider,
-			ClientGetter:              kubefakes.NewFakeClientGetter(c),
-			DiscoveryClient:           dc,
-			ClustersNamespace:         o.ns,
-			ProfileHelmRepositoryName: "weaveworks-charts",
-			HelmRepositoryCacheDir:    t.TempDir(),
-			CAPIEnabled:               o.capiEnabled,
+			Logger:                 testr.New(t),
+			ClustersManager:        o.clustersManager,
+			GitProvider:            o.provider,
+			ClientGetter:           kubefakes.NewFakeClientGetter(c),
+			DiscoveryClient:        dc,
+			ClustersNamespace:      o.ns,
+			HelmRepositoryCacheDir: t.TempDir(),
+			ProfileHelmRepository:  *o.profileHelmRepository,
+			CAPIEnabled:            o.capiEnabled,
+			RestConfig:             &rest.Config{},
+			ChartJobs:              o.chartJobs,
+			ChartsCache:            o.chartsCache,
+			ValuesFetcher:          o.valuesFetcher,
+			ManagementFetcher:      mgmtFetcher,
+			Cluster:                o.cluster,
+			Estimator:              o.estimator,
 		},
 	)
+}
+
+func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) *clustersmngrfakes.FakeClustersManager {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	fakeCl := createClient(t, clusterState...)
+	clients := map[string]client.Client{"management": fakeCl}
+	clientsPool.ClientsReturns(clients)
+	clientsPool.ClientReturns(fakeCl, nil)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clients[name]; found && c != nil {
+			return c, nil
+		}
+		return nil, fmt.Errorf("cluster %s not found", name)
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeCluster := &clusterfakes.FakeCluster{}
+	fakeCluster.GetNameReturns("management")
+	fakeFactory.GetClustersReturns([]cluster.Cluster{fakeCluster})
+	return fakeFactory
 }
 
 func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepository {
@@ -173,14 +266,14 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 		"metadata":{
 		   "name":"${RESOURCE_NAME}",
 		   "annotations":{
-			  "clustertemplates.weave.works/display-name":"ClusterName"
+			  "templates.weave.works/display-name":"ClusterName"
 		   }
 		}
 	 }`
 	ct := &gapiv1.GitOpsTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       gapiv1.Kind,
-			APIVersion: "clustertemplates.weave.works/v1alpha1",
+			APIVersion: "templates.weave.works/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",
@@ -215,9 +308,9 @@ func rawExtension(s string) runtime.RawExtension {
 	}
 }
 
-func makePolicy(t *testing.T, opts ...func(p *pacv2beta1.Policy)) *pacv2beta1.Policy {
+func makePolicy(t *testing.T, opts ...func(p *pacv2beta2.Policy)) *pacv2beta2.Policy {
 	t.Helper()
-	policy := &pacv2beta1.Policy{
+	policy := &pacv2beta2.Policy{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Policy",
 			APIVersion: "v1",
@@ -225,16 +318,16 @@ func makePolicy(t *testing.T, opts ...func(p *pacv2beta1.Policy)) *pacv2beta1.Po
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "weave.policies.missing-owner-label",
 		},
-		Spec: pacv2beta1.PolicySpec{
+		Spec: pacv2beta2.PolicySpec{
 			Name:     "Missing Owner Label",
 			Severity: "high",
 			Code:     "foo",
-			Targets: pacv2beta1.PolicyTargets{
+			Targets: pacv2beta2.PolicyTargets{
 				Labels:     []map[string]string{{"my-label": "my-value"}},
 				Kinds:      []string{},
 				Namespaces: []string{},
 			},
-			Standards: []pacv2beta1.PolicyStandard{},
+			Standards: []pacv2beta2.PolicyStandard{},
 		},
 	}
 	for _, o := range opts {
@@ -280,4 +373,23 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 		o(event)
 	}
 	return event
+}
+
+func testNewFakeChartCache(t *testing.T, clusterRef types.NamespacedName, repoRef helm.ObjectReference, charts []helm.Chart) helmfakes.FakeChartCache {
+	fc := helmfakes.NewFakeChartCache(helmfakes.WithCharts(
+		helmfakes.ClusterRefToString(
+			repoRef,
+			clusterRef,
+		),
+		charts,
+	))
+
+	return fc
+}
+
+func nsn(name, namespace string) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
 }
