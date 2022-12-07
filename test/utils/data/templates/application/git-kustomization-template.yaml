@@ -1,4 +1,4 @@
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: git-kustomization-template
@@ -46,21 +46,22 @@ spec:
       description: Annotated description for the Kustomization resource
       required: false
   resourcetemplates:
-    - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-      kind: Kustomization
-      metadata:
-        name: ${{ .params.RESOURCE_NAME }}
-        namespace: ${{ .params.NAMESPACE }}
-        annotations:
-          metadata.weave.works/description: |
-            ${{ .params.DESCRIPTION }}
-      spec:
-        interval: 30s
-        path: ${{ .params.PATH }}
-        prune: true
-        sourceRef:
-          kind: GitRepository
-          name: ${{ .params.SOURCE_NAME }}
-          namespace:  ${{ .params.SOURCE_NAMESPACE }}
-        targetNamespace: ${{ .params.TARGET_NAMESPACE }}
-        prune: ${{ .params.PRUNE }}
+    - content:
+      - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: ${{ .params.RESOURCE_NAME }}
+          namespace: ${{ .params.NAMESPACE }}
+          annotations:
+            metadata.weave.works/description: |
+              ${{ .params.DESCRIPTION }}
+        spec:
+          interval: 30s
+          path: ${{ .params.PATH }}
+          prune: true
+          sourceRef:
+            kind: GitRepository
+            name: ${{ .params.SOURCE_NAME }}
+            namespace:  ${{ .params.SOURCE_NAMESPACE }}
+          targetNamespace: ${{ .params.TARGET_NAMESPACE }}
+          prune: ${{ .params.PRUNE }}

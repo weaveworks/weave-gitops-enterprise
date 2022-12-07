@@ -228,7 +228,7 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.
 	ct := &capiv1.CAPITemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       capiv1.Kind,
-			APIVersion: "capi.weave.works/v1alpha1",
+			APIVersion: "capi.weave.works/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",
@@ -273,7 +273,7 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 	ct := &gapiv1.GitOpsTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       gapiv1.Kind,
-			APIVersion: "templates.weave.works/v1alpha1",
+			APIVersion: "templates.weave.works/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",

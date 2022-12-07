@@ -1,4 +1,4 @@
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: git-repository-template
@@ -31,15 +31,16 @@ spec:
       description: How often to check for updates
       default: 30s
   resourcetemplates:
-    - apiVersion: source.toolkit.fluxcd.io/v1beta2
-      kind: GitRepository
-      metadata:
-        name: ${{ .params.RESOURCE_NAME }}
-        namespace: ${{ .params.NAMESPACE }}
-        annotations:
-          templates.weave.works/create-request: ""
-      spec:
-        interval: ${{ .params.INTERVAL }}
-        ref:
-          branch: ${{ .params.BRANCH }}
-        url: ${{ .params.URL }}
+    - content:
+        - apiVersion: source.toolkit.fluxcd.io/v1beta2
+          kind: GitRepository
+          metadata:
+            name: ${{ .params.RESOURCE_NAME }}
+            namespace: ${{ .params.NAMESPACE }}
+            annotations:
+              templates.weave.works/create-request: ""
+          spec:
+            interval: ${{ .params.INTERVAL }}
+            ref:
+              branch: ${{ .params.BRANCH }}
+            url: ${{ .params.URL }}

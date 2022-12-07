@@ -1,11 +1,11 @@
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: capa-cluster-template-machinepool-{{.Count}}
   namespace: default
   labels:
     weave.works/template-type: cluster
-  annotations:    
+  annotations:
     templates.weave.works/cost-estimation-enabled: "true"
     templates.weave.works/profiles-enabled: "false"
     templates.weave.works/kustomizations-enabled: "false"
@@ -21,7 +21,22 @@ spec:
       default: "default"
     - name: AWS_REGION
       description: AWS Region to create cluster
-      options: ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "ca-central-1", "eu-central-1", "eu-west-1", "eu-west-2", "eu-south-1", "eu-west-3", "eu-north-1", "me-south-1", "sa-east-1"]
+      options:
+        [
+          "us-east-1",
+          "us-east-2",
+          "us-west-1",
+          "us-west-2",
+          "ca-central-1",
+          "eu-central-1",
+          "eu-west-1",
+          "eu-west-2",
+          "eu-south-1",
+          "eu-west-3",
+          "eu-north-1",
+          "me-south-1",
+          "sa-east-1",
+        ]
       default: "us-west-1"
     - name: AWS_SSH_KEY_NAME
       description: AWS ssh key name
@@ -32,11 +47,20 @@ spec:
       options: ["v1.21.1", "v1.22.0", "v1.23.3"]
       default: v1.23.3
     - name: AWS_AVAILABILITY_ZONE
-      description: AWS zone   
-      default: "us-west" 
+      description: AWS zone
+      default: "us-west"
     - name: AWS_CONTROL_PLANE_MACHINE_TYPE
       description: Control plane machine instane type.
-      options: ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge"]
+      options:
+        [
+          "t3.nano",
+          "t3.micro",
+          "t3.small",
+          "t3.medium",
+          "t3.large",
+          "t3.xlarge",
+          "t3.2xlarge",
+        ]
       default: t3.medium
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
@@ -44,145 +68,155 @@ spec:
       default: "2"
     - name: AWS_NODE_MACHINE_TYPE
       description: Node machine instane type.
-      options: ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge"]
+      options:
+        [
+          "t3.nano",
+          "t3.micro",
+          "t3.small",
+          "t3.medium",
+          "t3.large",
+          "t3.xlarge",
+          "t3.2xlarge",
+        ]
       default: t3.medium
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
       options: ["1", "2", "3", "4", "5", "6", "7"]
       default: "2"
   resourcetemplates:
-    - apiVersion: gitops.weave.works/v1alpha1
-      kind: GitopsCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
-        labels:
-          weave.works/flux: bootstrap
-      spec:
-        capiClusterRef:
-          name: "${CLUSTER_NAME}"
-    - apiVersion: cluster.x-k8s.io/v1beta1
-      kind: Cluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        annotations:
-          "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
-      spec:
-        infrastructureRef:
-          apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-          kind: AWSCluster
-          name: "${CLUSTER_NAME}"
-        controlPlaneRef:
-          kind: KubeadmControlPlane
-          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-          name: "${CLUSTER_NAME}-control-plane"
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-      kind: AWSCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-      spec:
-        region: "${AWS_REGION}"
-        sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - kind: KubeadmControlPlane
-      apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-      spec:
-        replicas: ${CONTROL_PLANE_MACHINE_COUNT}
-        machineTemplate:
-          infrastructureRef:
-            kind: AWSMachineTemplate
-            apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-            name: "${CLUSTER_NAME}-control-plane"
-        kubeadmConfigSpec:
-          initConfiguration:
-            nodeRegistration:
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
-              kubeletExtraArgs:
-                cloud-provider: aws
-          clusterConfiguration:
-            apiServer:
-              extraArgs:
-                cloud-provider: aws
-            controllerManager:
-              extraArgs:
-                cloud-provider: aws
-          joinConfiguration:
-            nodeRegistration:
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
-              kubeletExtraArgs:
-                cloud-provider: aws
-        version: "${KUBERNETES_VERSION}"
-    - kind: AWSMachineTemplate
-      apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-      spec:
-        template:
+    - content:
+        - apiVersion: gitops.weave.works/v1alpha1
+          kind: GitopsCluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+            namespace: "${NAMESPACE}"
+            labels:
+              weave.works/flux: bootstrap
           spec:
-            instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
-            iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
-            sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - apiVersion: cluster.x-k8s.io/v1beta1
-      kind: MachinePool
-      metadata:
-        name: ${CLUSTER_NAME}-mp-0
-        namespace: default
-      spec:
-        clusterName: ${CLUSTER_NAME}
-        replicas: ${WORKER_MACHINE_COUNT}
-        template:
+            capiClusterRef:
+              name: "${CLUSTER_NAME}"
+        - apiVersion: cluster.x-k8s.io/v1beta1
+          kind: Cluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+            annotations:
+              "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
           spec:
-            bootstrap:
-              configRef:
-                apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-                kind: KubeadmConfig
-                name: ${CLUSTER_NAME}-mp-0
-            clusterName: ${CLUSTER_NAME}
             infrastructureRef:
               apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-              kind: AWSMachinePool
-              name: ${CLUSTER_NAME}-mp-0
-            version: ${KUBERNETES_VERSION}
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-      kind: AWSMachinePool
-      metadata:
-        name: ${CLUSTER_NAME}-mp-0
-        namespace: default
-      spec:
-        minSize: 1
-        maxSize: 10
-        availabilityZones:
-          - "${AWS_AVAILABILITY_ZONE}"
-        awsLaunchTemplate:
-          iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
-          instanceType: "${AWS_NODE_MACHINE_TYPE}"
-          sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-      kind: KubeadmConfig
-      metadata:
-        name: ${CLUSTER_NAME}-mp-0
-        namespace: default
-      spec:
-        joinConfiguration:
-          nodeRegistration:
-            name: '{{`{{ ds.meta_data.local_hostname }}`}}'
-            kubeletExtraArgs:
-              cloud-provider: aws
-    - apiVersion: cluster.x-k8s.io/v1beta1
-      kind: MachineHealthCheck
-      metadata:
-        name: "${CLUSTER_NAME}-kcp-unhealthy"
-      spec:
-        clusterName: "${CLUSTER_NAME}"
-        maxUnhealthy: 100%
-        selector:
-          matchLabels:
-            cluster.x-k8s.io/control-plane: ""
-        unhealthyConditions:
-          - type: Ready
-            status: Unknown
-            timeout: 300s
-          - type: Ready
-            status: "False"
-            timeout: 300s
+              kind: AWSCluster
+              name: "${CLUSTER_NAME}"
+            controlPlaneRef:
+              kind: KubeadmControlPlane
+              apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+              name: "${CLUSTER_NAME}-control-plane"
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+          kind: AWSCluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+          spec:
+            region: "${AWS_REGION}"
+            sshKeyName: "${AWS_SSH_KEY_NAME}"
+        - kind: KubeadmControlPlane
+          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+          metadata:
+            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            replicas: ${CONTROL_PLANE_MACHINE_COUNT}
+            machineTemplate:
+              infrastructureRef:
+                kind: AWSMachineTemplate
+                apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+                name: "${CLUSTER_NAME}-control-plane"
+            kubeadmConfigSpec:
+              initConfiguration:
+                nodeRegistration:
+                  name: "{{`{{ ds.meta_data.local_hostname }}`}}"
+                  kubeletExtraArgs:
+                    cloud-provider: aws
+              clusterConfiguration:
+                apiServer:
+                  extraArgs:
+                    cloud-provider: aws
+                controllerManager:
+                  extraArgs:
+                    cloud-provider: aws
+              joinConfiguration:
+                nodeRegistration:
+                  name: "{{`{{ ds.meta_data.local_hostname }}`}}"
+                  kubeletExtraArgs:
+                    cloud-provider: aws
+            version: "${KUBERNETES_VERSION}"
+        - kind: AWSMachineTemplate
+          apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+          metadata:
+            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            template:
+              spec:
+                instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
+                iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
+                sshKeyName: "${AWS_SSH_KEY_NAME}"
+        - apiVersion: cluster.x-k8s.io/v1beta1
+          kind: MachinePool
+          metadata:
+            name: ${CLUSTER_NAME}-mp-0
+            namespace: default
+          spec:
+            clusterName: ${CLUSTER_NAME}
+            replicas: ${WORKER_MACHINE_COUNT}
+            template:
+              spec:
+                bootstrap:
+                  configRef:
+                    apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+                    kind: KubeadmConfig
+                    name: ${CLUSTER_NAME}-mp-0
+                clusterName: ${CLUSTER_NAME}
+                infrastructureRef:
+                  apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+                  kind: AWSMachinePool
+                  name: ${CLUSTER_NAME}-mp-0
+                version: ${KUBERNETES_VERSION}
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+          kind: AWSMachinePool
+          metadata:
+            name: ${CLUSTER_NAME}-mp-0
+            namespace: default
+          spec:
+            minSize: 1
+            maxSize: 10
+            availabilityZones:
+              - "${AWS_AVAILABILITY_ZONE}"
+            awsLaunchTemplate:
+              iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
+              instanceType: "${AWS_NODE_MACHINE_TYPE}"
+              sshKeyName: "${AWS_SSH_KEY_NAME}"
+        - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfig
+          metadata:
+            name: ${CLUSTER_NAME}-mp-0
+            namespace: default
+          spec:
+            joinConfiguration:
+              nodeRegistration:
+                name: "{{`{{ ds.meta_data.local_hostname }}`}}"
+                kubeletExtraArgs:
+                  cloud-provider: aws
+        - apiVersion: cluster.x-k8s.io/v1beta1
+          kind: MachineHealthCheck
+          metadata:
+            name: "${CLUSTER_NAME}-kcp-unhealthy"
+          spec:
+            clusterName: "${CLUSTER_NAME}"
+            maxUnhealthy: 100%
+            selector:
+              matchLabels:
+                cluster.x-k8s.io/control-plane: ""
+            unhealthyConditions:
+              - type: Ready
+                status: Unknown
+                timeout: 300s
+              - type: Ready
+                status: "False"
+                timeout: 300s

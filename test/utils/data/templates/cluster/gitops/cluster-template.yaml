@@ -1,4 +1,4 @@
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: connect-a-cluster
@@ -12,7 +12,7 @@ metadata:
     templates.weave.works/kustomizations-enabled: "false"
     metadata.weave.works/dashboard.grafana: https://grafana.com/
     metadata.weave.works/dashboard.prometheus: https://prometheus.io/
-    metadata.weave.works/dashboard.javascript: "javascript:alert('hello there ' + window.localStorage.getItem('name'));"     
+    metadata.weave.works/dashboard.javascript: "javascript:alert('hello there ' + window.localStorage.getItem('name'));"
 spec:
   description: Connect a leaf cluster
   params:
@@ -30,13 +30,14 @@ spec:
       description: The secret that holds the kubeconfig
       required: true
   resourcetemplates:
-    - apiVersion: gitops.weave.works/v1alpha1
-      kind: GitopsCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
-        labels:
-          weave.works/capi: "${BOOTSTRAP}"
-      spec:
-        secretRef:
-          name: "${SECRET_NAME}"
+    - content:
+        - apiVersion: gitops.weave.works/v1alpha1
+          kind: GitopsCluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+            namespace: "${NAMESPACE}"
+            labels:
+              weave.works/capi: "${BOOTSTRAP}"
+          spec:
+            secretRef:
+              name: "${SECRET_NAME}"

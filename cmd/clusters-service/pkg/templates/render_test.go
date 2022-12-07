@@ -65,7 +65,7 @@ spec:
 
 func TestTextTemplateStringReplace(t *testing.T) {
 	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template-1
@@ -114,7 +114,7 @@ metadata:
 
 func TestTextTemplateMissingFunction(t *testing.T) {
 	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template-1

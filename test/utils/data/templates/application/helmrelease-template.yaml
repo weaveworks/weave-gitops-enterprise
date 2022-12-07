@@ -1,4 +1,4 @@
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: helmrelease-template
@@ -33,11 +33,11 @@ spec:
       description: Helm chart name
     - name: CHART_VERSION
       required: true
-      description:  Helm chart version, accepts a semver range
+      description: Helm chart version, accepts a semver range
     - name: VALUES
       required: true
       default: "null"
-      description: "A json sting containing values.yaml \"{\"name\": foo}\""
+      description: 'A json sting containing values.yaml "{"name": foo}"'
     - name: TARGET_NAMESPACE
       required: true
       default: default
@@ -46,21 +46,22 @@ spec:
       description: How often to check for updates
       default: 30s
   resourcetemplates:
-    - apiVersion: helm.toolkit.fluxcd.io/v2beta1
-      kind: HelmRelease
-      metadata:
-        name: ${{ .params.RESOURCE_NAME }}
-        namespace: ${{ .params.NAMESPACE }}
-      spec:
-        interval: 30s
-        chart:
+    - content:
+        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+          kind: HelmRelease
+          metadata:
+            name: ${{ .params.RESOURCE_NAME }}
+            namespace: ${{ .params.NAMESPACE }}
           spec:
-            chart: ${{ .params.CHART_NAME }}
-            sourceRef:
-              apiVersion: source.toolkit.fluxcd.io/v1beta2
-              kind: HelmRepository
-              name: ${{ .params.SOURCE_NAME }}
-              namespace:  ${{ .params.SOURCE_NAMESPACE }}
-            version: ${{ .params.CHART_VERSION }}
-        targetNamespace: ${{ .params.TARGET_NAMESPACE }}
-        values: ${{ .params.VALUES | fromJson }} 
+            interval: 30s
+            chart:
+              spec:
+                chart: ${{ .params.CHART_NAME }}
+                sourceRef:
+                  apiVersion: source.toolkit.fluxcd.io/v1beta2
+                  kind: HelmRepository
+                  name: ${{ .params.SOURCE_NAME }}
+                  namespace: ${{ .params.SOURCE_NAMESPACE }}
+                version: ${{ .params.CHART_VERSION }}
+            targetNamespace: ${{ .params.TARGET_NAMESPACE }}
+            values: ${{ .params.VALUES | fromJson }}

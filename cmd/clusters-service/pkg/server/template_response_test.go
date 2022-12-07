@@ -92,7 +92,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
@@ -133,7 +133,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations with parameters",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
@@ -168,7 +168,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations with go-template parameters",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
