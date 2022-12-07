@@ -22,6 +22,7 @@ export type GetPipelineRequest = {
 
 export type GetPipelineResponse = {
   pipeline?: PipelinesV1Types.Pipeline
+  errors?: string[]
 }
 
 export type ListError = {
