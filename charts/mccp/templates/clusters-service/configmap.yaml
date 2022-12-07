@@ -47,3 +47,4 @@ data:
   TLS_CERT_FILE: /etc/clusters-service-tls/tls.crt
   TLS_PRIVATE_KEY: /etc/clusters-service-tls/tls.key
   {{- end }}
+  UI_CONFIG: {{ .Values.config.ui | toJson | quote }}

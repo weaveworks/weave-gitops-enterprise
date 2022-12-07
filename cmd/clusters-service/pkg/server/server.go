@@ -50,6 +50,7 @@ type server struct {
 	chartsCache       helm.ChartsCacheReader
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 	estimator         estimation.Estimator
+	uiConfig          string
 }
 
 type ServerOpts struct {
@@ -69,6 +70,7 @@ type ServerOpts struct {
 	ValuesFetcher          helm.ValuesFetcher
 	ManagementFetcher      *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Estimator              estimation.Estimator
+	UIConfig               string
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
@@ -89,5 +91,6 @@ func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {
 		managementFetcher:      opts.ManagementFetcher,
 		cluster:                opts.Cluster,
 		estimator:              opts.Estimator,
+		uiConfig:               opts.UIConfig,
 	}
 }

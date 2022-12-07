@@ -741,6 +741,7 @@ message GetConfigRequest {}
 message GetConfigResponse {
   string repositoryURL = 1;
   string managementClusterName = 2;
+    string ui_config = 3;
 }
 
 message PolicyParamRepeatedString { repeated string value = 1; }
