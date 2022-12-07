@@ -18,6 +18,7 @@ import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { useListConfig } from '../hooks/versions';
 import { Routes } from '../utils/nav';
 
 const { xxs, xs, small, medium } = theme.spacing;
@@ -170,6 +171,7 @@ const NavItems = (navItems: Array<NavigationItem>) => {
 export const Navigation: FC = () => {
   const { data: flagsRes } = useFeatureFlags();
   const classes = useStyles();
+  const { uiConfig } = useListConfig();
   const navItems: Array<NavigationItem> = [
     {
       name: 'CLUSTERS',
@@ -250,7 +252,7 @@ export const Navigation: FC = () => {
     <>
       <div title="Home" className={classes.logo}>
         <Link to={Routes.Clusters}>
-          <img src={WeaveGitOps} alt="Home" />
+          <img src={uiConfig?.logoURL || WeaveGitOps} alt="Home" />
         </Link>
       </div>
       <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
