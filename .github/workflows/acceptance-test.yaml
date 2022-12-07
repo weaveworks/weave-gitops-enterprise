@@ -85,7 +85,7 @@ on:
         required: false
       WGE_GIT_PROVIDER_PRIVATE_KEY:
         description: "Key for accessing git provider e.g. github or gitlab"
-        required: false      
+        required: false
       WGE_GITHUB_TOKEN:
         description: "Token for accessing GitHub"
         required: false
@@ -166,11 +166,12 @@ env:
   CAPI_PROVIDER: ${{ inputs.capi_provider }}
   GITOPS_BIN_PATH: ${{ inputs.gitops-bin-path }}
   ARTIFACTS_BASE_DIR: "/tmp/acceptance-test-artifact"
-  TEST_ARTIFACT_NAME: ${{ inputs.test-artifact-name }}  
+  TEST_ARTIFACT_NAME: ${{ inputs.test-artifact-name }}
   EXP_CLUSTER_RESOURCE_SET: ${{ inputs.cluster_resource_set }}
   USE_GKE_GCLOUD_AUTH_PLUGIN: True
   SELENIUM_DEBUG: true
   CHECKPOINT_DISABLE: 1
+  WEAVE_GITOPS_FEATURE_TELEMETRY: "false"
 
 jobs:
   tests:
@@ -200,7 +201,7 @@ jobs:
           key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
-      - name: setup aws credentials        
+      - name: setup aws credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
@@ -275,7 +276,7 @@ jobs:
           sudo mv ./kubectl /usr/local/bin/kubectl
       - name: Install kind
         if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
-        run: |    
+        run: |
           brew update      
           brew install kind          
           kind version
@@ -326,7 +327,7 @@ jobs:
           wget --no-verbose https://chromedriver.storage.googleapis.com/105.0.5195.52/chromedriver_${{ inputs.os-name }}64.zip
           unzip chromedriver_linux64.zip
           sudo mv chromedriver /usr/local/bin
-          chromedriver --version         
+          chromedriver --version
       - name: Install chrome browser
         if: ${{ (runner.os == 'Linux') && (inputs.git-provider_hostname == 'gitlab.com') }}
         run: |
