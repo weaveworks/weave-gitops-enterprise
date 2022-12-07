@@ -1384,7 +1384,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			var leafClusterkubeconfig string
 			var clusterBootstrapCopnfig string
 			var gitopsCluster string
-			var appSourcePath string
 			var existingAppCount int
 			var policiesYaml string
 			var policyConfigYaml string
@@ -1429,8 +1428,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 
 				deleteCluster("kind", leafCluster.Name, "")
 				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
-				cleanGitRepository(appSourcePath)
-
 				deleteNamespace([]string{leafCluster.Namespace})
 			})
 
@@ -1448,9 +1445,9 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				pullRequest := PullRequest{
-					Branch:  "management-kustomization-leaf-cluster-apps",
-					Title:   "Management Kustomization Leaf Cluster Application",
-					Message: "Adding management kustomization leaf cluster applications",
+					Branch:  "Leaf-cluster-apps-kustomization-" + RandString(5),
+					Title:   "Leaf Cluster Application Kustomization PR",
+					Message: "Adding leaf cluster applications kustomization",
 				}
 
 				sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -1467,10 +1464,6 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 					ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
 					PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
 				}
-				appDir := fmt.Sprintf("./clusters/%s/%s/podinfo", leafCluster.Namespace, leafCluster.Name)
-
-				defer cleanGitRepository(appDir)
-
 				useClusterContext(mgmtClusterContext)
 				// Create leaf cluster namespace
 				createNamespace([]string{leafCluster.Namespace})

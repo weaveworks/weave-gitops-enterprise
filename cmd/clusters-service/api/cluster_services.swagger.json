@@ -1659,6 +1659,9 @@
         },
         "managementClusterName": {
           "type": "string"
+        },
+        "uiConfig": {
+          "type": "string"
         }
       }
     },
