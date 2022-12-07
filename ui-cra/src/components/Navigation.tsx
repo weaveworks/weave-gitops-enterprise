@@ -115,11 +115,6 @@ const useStyles = makeStyles({
     paddingTop: `${medium}`,
     paddingBottom: `17px`,
   },
-  headerImg: {
-    width: '150px',
-    height: '32px',
-    objectFit: 'contain',
-  },
 });
 
 const NavItems = (navItems: Array<NavigationItem>) => {
@@ -251,11 +246,7 @@ export const Navigation: FC = () => {
     <>
       <div title="Home" className={classes.logo}>
         <Link to={Routes.Clusters}>
-          <img
-            className={classes.headerImg}
-            src={uiConfig?.logoURL || WeaveGitOps}
-            alt="Home"
-          />
+          <img src={uiConfig?.logoURL || WeaveGitOps} alt="Home" />
         </Link>
       </div>
       <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
