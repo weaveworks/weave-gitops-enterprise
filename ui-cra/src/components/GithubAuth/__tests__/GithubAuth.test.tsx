@@ -56,7 +56,7 @@ describe('Github Authenticate', () => {
     });
     expect(await screen.findByText('Authenticate with Github')).toBeTruthy();
 
-    const ghCode = screen.getByTestId('github-code');
+    const ghCode = await screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);
     await act(async () => {
       fireEvent.click(ghCode as Element);

@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useQuery } from 'react-query';
 import {
   Applications as applicationsClient,
-  GetGithubAuthStatusResponse,
-  GetGithubDeviceCodeResponse,
+  // GetGithubAuthStatusResponse,
+  // GetGithubDeviceCodeResponse,
 } from '../../api/applications/applications.pb';
 
 export interface DialogState {
@@ -70,3 +70,14 @@ export const useGetGithubDeviceCode = () => {
     },
   );
 };
+
+export interface GetGithubDeviceCodeResponse {
+  userCode?: string | undefined;
+  deviceCode?: string | undefined;
+  validationURI?: string | undefined;
+  interval?: number | undefined;
+}
+export interface GetGithubAuthStatusResponse {
+  accessToken?: string | undefined;
+  error?: string | undefined;
+}

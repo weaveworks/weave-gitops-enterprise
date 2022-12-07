@@ -25,10 +25,11 @@ import { GitAuthProvider } from '../../../contexts/GitAuth';
 describe('Applications index test', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: CoreClientMock;
-  let appsApi = new ApplicationsClientMock();
+  let appsApi: ApplicationsClientMock;
 
   beforeEach(() => {
     api = new CoreClientMock();
+    appsApi = new ApplicationsClientMock();
     wrap = withContext([
       [ThemeProvider, { theme: theme }],
       [MuiThemeProvider, { theme: muiTheme }],

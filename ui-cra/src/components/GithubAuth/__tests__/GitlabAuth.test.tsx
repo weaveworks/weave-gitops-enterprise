@@ -20,6 +20,7 @@ Object.assign(navigator, {
 describe('Gitlab Authenticate', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: ApplicationsClientMock;
+
   beforeEach(() => {
     let clipboardContents = '';
 
@@ -54,8 +55,9 @@ describe('Gitlab Authenticate', () => {
   });
 
   it('displays a button for GitLab auth', async () => {
-    const repoUrl = 'https://gitlab.git.something/folder/name';
+    const repoUrl = 'https://gitlab.git.something/someuser/somerepo';
     const oauthUrl = 'https://gitlab.com/oauth/something';
+
     const capture = jest.fn();
 
     api.ParseRepoURLReturn = {
@@ -68,7 +70,12 @@ describe('Gitlab Authenticate', () => {
       url: oauthUrl,
     };
 
+    api.ValidateProviderTokenReturn = {
+      valid: false,
+    };
+
     const onProviderChange = jest.fn();
+    const onAuthClick = jest.fn();
 
     await act(async () => {
       const c = wrap(
@@ -81,7 +88,7 @@ describe('Gitlab Authenticate', () => {
           <RepoInputWithAuth
             value={repoUrl}
             onProviderChange={onProviderChange}
-            onAuthClick={() => null}
+            onAuthClick={onAuthClick}
           />
         </CallbackStateContextProvider>,
       );
