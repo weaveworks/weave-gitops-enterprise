@@ -30,3 +30,12 @@ enableRunUI: true
 # Re-clarify capiEnabled
 global:
   capiEnabled: true
+
+config:
+  ui:
+    # logoURL: "https://static.wikia.nocookie.net/avp/images/3/36/Weyland-Yutani_Coporation_Logo.jpg"
+    footer:
+      backgroundColor: "black"
+      color: "white"
+      content: "Building better worlds"
+      # hideVersion: true

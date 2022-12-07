@@ -406,6 +406,11 @@ exports[`Applications index test snapshots loading 1`] = `
             </span>
           </a>
         </div>
+        <div
+          class=""
+        >
+          Weave GitOps Enterprise 
+        </div>
       </div>
     </div>
   </div>
@@ -2157,6 +2162,11 @@ exports[`Applications index test snapshots success 1`] = `
               support ticket
             </span>
           </a>
+        </div>
+        <div
+          class=""
+        >
+          Weave GitOps Enterprise 
         </div>
       </div>
     </div>

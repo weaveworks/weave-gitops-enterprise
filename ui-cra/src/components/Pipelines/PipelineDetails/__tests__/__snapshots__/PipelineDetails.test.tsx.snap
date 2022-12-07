@@ -1126,6 +1126,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </span>
           </a>
         </div>
+        <div
+          class=""
+        >
+          Weave GitOps Enterprise 
+        </div>
       </div>
     </div>
   </div>
