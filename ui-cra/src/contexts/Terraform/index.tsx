@@ -5,7 +5,7 @@ import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
-  Terraform,
+  Terraform
 } from '../../api/terraform/terraform.pb';
 import { formatError } from '../../utils/formatters';
 import useNotifications from './../../contexts/Notifications';
@@ -40,10 +40,8 @@ export function useListTerraformObjects() {
     [TERRAFORM_KEY],
     () => tf.ListTerraformObjects({}),
     {
-      // fetch once only
       retry: false,
-      cacheTime: Infinity,
-      staleTime: Infinity,
+      refetchInterval: 5000,
     },
   );
 }
@@ -65,7 +63,7 @@ export function useGetTerraformObjectDetail(
   return useQuery<GetTerraformObjectResponse, RequestError>(
     [TERRAFORM_KEY, clusterName, namespace, name],
     () => tf.GetTerraformObject({ name, namespace, clusterName }),
-    { onError, enabled },
+    { onError, enabled, refetchInterval: 5000 },
   );
 }
 
