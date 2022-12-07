@@ -10,6 +10,7 @@ import { Kustomization } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
+import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
@@ -28,7 +29,8 @@ function resolveLink(obj: string, params: any) {
 
     case 'Pipeline':
       return formatURL(Routes.PipelineDetails, params);
-
+    case 'ClusterDashboard':
+      return formatClusterDashboardUrl(params.clusterName);
     default:
       return null;
   }

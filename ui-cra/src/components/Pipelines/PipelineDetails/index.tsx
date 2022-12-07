@@ -187,7 +187,6 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                                 clusterName={
                                   target?.clusterRef?.name || clusterName
                                 }
-                                namespaceIncluded={false}
                               />
                             </ClusterName>
 
