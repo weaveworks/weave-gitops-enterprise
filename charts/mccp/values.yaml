@@ -68,12 +68,12 @@ config:
     tokenPassthrough:
       enabled: true
   ui:
-    logoURL: ''
+    logoURL: ""
     footer:
-      backgroundColor: ''
-      color: ''
-      content: ''
-      showVersion: true
+      backgroundColor: ""
+      color: ""
+      content: ""
+      hideVersion: false
 
 tls:
   enabled: true
