@@ -590,6 +590,7 @@ message Template {
   string template_kind = 8;
   map<string, string> labels = 9;
   string namespace = 10;
+  repeated TemplateProfile profiles = 11;
 }
 
 message Parameter {
@@ -607,6 +608,9 @@ message TemplateProfile {
   bool editable = 3;
   string values = 4;
   string namespace = 5;
+  bool required = 6;
+  string profileTemplate = 7;
+  string layer = 8;
 }
 
 message TemplateObject {
