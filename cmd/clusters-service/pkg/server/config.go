@@ -14,6 +14,7 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 
 	return &capiv1_proto.GetConfigResponse{
 		RepositoryURL:         repositoryURL,
+		UiConfig:              s.uiConfig,
 		ManagementClusterName: mngtClusterName,
 	}, nil
 }
