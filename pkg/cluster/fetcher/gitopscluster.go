@@ -8,13 +8,14 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	mngrcluster "github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -24,23 +25,27 @@ const (
 	yamlDataKey = "value.yaml"
 )
 
-type gitopsClusterFetcher struct {
+type GitopsClusterFetcher struct {
 	log               logr.Logger
 	cluster           mngrcluster.Cluster
 	scheme            *runtime.Scheme
 	namespace         string
 	isDelegating      bool
+	authPassthrough   bool
 	kubeConfigOptions []mngrcluster.KubeConfigOption
 }
 
-func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
-	return gitopsClusterFetcher{
+// NewGitopsClusterFetcher creates and returns a pre-configured
+// GitopsClusterFetcher which fetches clusters based on GitOpsCluster secrets.
+func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating, passthrough bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) GitopsClusterFetcher {
+	return GitopsClusterFetcher{
 		log:               log.WithName("gitops-cluster-fetcher"),
 		cluster:           managementCluster,
 		scheme:            scheme,
 		namespace:         namespace,
 		isDelegating:      isDelegating,
 		kubeConfigOptions: kubeConfigOptions,
+		authPassthrough:   passthrough,
 	}
 }
 
@@ -80,7 +85,7 @@ func IsManagementCluster(mgmtClusterName string, cluster types.NamespacedName) b
 	return cluster.Namespace == "" && mgmtClusterName == cluster.Name
 }
 
-func (f gitopsClusterFetcher) Fetch(ctx context.Context) ([]mngrcluster.Cluster, error) {
+func (f GitopsClusterFetcher) Fetch(ctx context.Context) ([]mngrcluster.Cluster, error) {
 	clusters := []mngrcluster.Cluster{}
 
 	res, err := f.leafClusters(ctx)
@@ -99,7 +104,7 @@ func (f gitopsClusterFetcher) Fetch(ctx context.Context) ([]mngrcluster.Cluster,
 	return allClusters, nil
 }
 
-func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.Cluster, error) {
+func (f GitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.Cluster, error) {
 	clusters := []mngrcluster.Cluster{}
 
 	cl, err := f.cluster.GetServerClient()
@@ -108,7 +113,6 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 	}
 
 	goClusters := &gitopsv1alpha1.GitopsClusterList{}
-
 	if err := cl.List(ctx, goClusters, client.InNamespace(f.namespace)); err != nil {
 		return nil, err
 	}
@@ -118,16 +122,7 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 			continue
 		}
 
-		var secretRef string
-
-		if cluster.Spec.CAPIClusterRef != nil {
-			secretRef = fmt.Sprintf("%s-kubeconfig", cluster.Spec.CAPIClusterRef.Name)
-		}
-
-		if secretRef == "" && cluster.Spec.SecretRef != nil {
-			secretRef = cluster.Spec.SecretRef.Name
-		}
-
+		secretRef := secretRefFromCluster(cluster)
 		if secretRef == "" {
 			f.log.V(logger.LogLevelDebug).Info("Ignoring GitOps Cluster, no secret ref found", "cluster", cluster.Name)
 			continue
@@ -145,25 +140,8 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 			continue
 		}
 
-		var data []byte
-
-		for k := range secret.Data {
-			if k == dataKey || k == yamlDataKey {
-				data = secret.Data[k]
-
-				break
-			}
-		}
-
-		if len(data) == 0 {
-			f.log.V(logger.LogLevelDebug).Info("Ignoring GitOps Cluster, no data found", "cluster", cluster.Name)
-			continue
-		}
-
-		restCfg, err := clientcmd.RESTConfigFromKubeConfig([]byte(data))
-		if err != nil {
-			f.log.Error(err, "unable to create kubeconfig from GitOps Cluster secret data", "cluster", cluster.Name)
-
+		restCfg := f.restConfigFromSecret(cluster, secret)
+		if restCfg == nil {
 			continue
 		}
 
@@ -194,10 +172,49 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 	return clusters, nil
 }
 
+func (f GitopsClusterFetcher) restConfigFromSecret(cluster gitopsv1alpha1.GitopsCluster, secret corev1.Secret) *rest.Config {
+	var data []byte
+
+	for k := range secret.Data {
+		if k == dataKey || k == yamlDataKey {
+			data = secret.Data[k]
+
+			break
+		}
+	}
+
+	if len(data) == 0 {
+		f.log.V(logger.LogLevelDebug).Info("Ignoring GitOps Cluster, no data found", "cluster", cluster.Name)
+
+		return nil
+	}
+
+	restCfg, err := clientcmd.RESTConfigFromKubeConfig([]byte(data))
+	if err != nil {
+		f.log.Error(err, "unable to create kubeconfig from GitOps Cluster secret data", "cluster", cluster.Name)
+
+		return nil
+	}
+
+	return restCfg
+}
+
 func isReady(cluster gitopsv1alpha1.GitopsCluster) bool {
 	return apimeta.IsStatusConditionTrue(cluster.GetConditions(), meta.ReadyCondition)
 }
 
 func hasConnectivity(cluster gitopsv1alpha1.GitopsCluster) bool {
 	return apimeta.IsStatusConditionTrue(cluster.GetConditions(), gitopsv1alpha1.ClusterConnectivity)
+}
+
+func secretRefFromCluster(cluster gitopsv1alpha1.GitopsCluster) string {
+	if cluster.Spec.CAPIClusterRef != nil {
+		return fmt.Sprintf("%s-kubeconfig", cluster.Spec.CAPIClusterRef.Name)
+	}
+
+	if cluster.Spec.SecretRef != nil {
+		return cluster.Spec.SecretRef.Name
+	}
+
+	return ""
 }
