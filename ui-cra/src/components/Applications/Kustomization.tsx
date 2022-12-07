@@ -98,7 +98,7 @@ const WGApplicationsKustomization: FC<Props> = ({
               namespace: params.namespace,
               name: params.name,
             });
-            return resolved || obj;
+            return resolved || '';
           }}
         >
           <KustomizationDetail

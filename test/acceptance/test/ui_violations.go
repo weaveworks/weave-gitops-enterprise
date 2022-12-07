@@ -35,6 +35,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.Context("[UI] Violations can be seen in management cluster dashboard", func() {
 			var policiesYaml string
 			var deploymentYaml string
+			var policyConfigYaml string
 
 			policyName := "Containers Running With Privilege Escalation acceptance test"
 			violationMsg := `Containers Running With Privilege Escalation acceptance test in deployment multi-container \(2 occurrences\)`
@@ -42,21 +43,29 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationApplication := "default/multi-container"
 			violationSeverity := "High"
 			violationCategory := "weave.categories.pod-security"
+			configPolicy := "Containers Minimum Replica Count acceptance test"
+			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo \(1 occurrences\)`
 
 			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+				policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
 				deploymentYaml = path.Join(testDataPath, "deployments/multi-container-manifest.yaml")
 			})
 
 			ginkgo.JustAfterEach(func() {
+				// Delete the Policy config
+				_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
+
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+
 				_ = gitopsTestRunner.KubectlDelete([]string{}, deploymentYaml)
 			})
 
 			ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
 				existingViolationCount := getViolationsCount()
-
+				// Installing test policies,Policy Config and violating deployment on management cluster
 				installTestPolicies("management", policiesYaml)
+				installPolicyConfig("management", policyConfigYaml)
 				installViolatingDeployment("management", deploymentYaml)
 
 				pages.NavigateToPage(webDriver, "Violations")
@@ -66,12 +75,12 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
 
-					totalViolationCount := existingViolationCount + 2 // Container Running As Root + Containers Running With Privilege Escalation
+					totalViolationCount := existingViolationCount + 3 // Container Running As Root + Containers Running With Privilege Escalation + Containers Minimum Replica Count
 					gomega.Eventually(func(g gomega.Gomega) int {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return violationsPage.CountViolations()
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", totalViolationCount))
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table, but found %d", totalViolationCount, existingViolationCount))
 
 				})
 
@@ -126,6 +135,8 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(violationDetailPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
 					gomega.Expect(violationDetailPage.ViolatingEntity.Text()).Should(gomega.MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
 				})
+
+				verifyPolicyConfigInAppViolationsDetails(configPolicy, policyConfigViolationMsg)
 			})
 		})
 
@@ -137,6 +148,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			var gitopsCluster string
 			var policiesYaml string
 			var deploymentYaml string
+			var policyConfigYaml string
 			patSecret := "violation-pat"
 			bootstrapLabel := "bootstrap"
 			leafClusterName := "wge-leaf-violation-kind"
@@ -147,9 +159,12 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationApplication := "default/postgres"
 			violationSeverity := "Medium"
 			violationCategory := "weave.categories.software-supply-chain"
+			configPolicy := "Containers Minimum Replica Count acceptance test"
+			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo \(1 occurrences\)`
 
 			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+				policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
 				deploymentYaml = path.Join(testDataPath, "deployments/postgres-manifest.yaml")
 				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				createCluster("kind", leafClusterName, "")
@@ -164,8 +179,9 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
 
 				deleteCluster("kind", leafClusterName, "")
+				// Delete the Policy config and test policies
+				_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
-
 			})
 
 			ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
@@ -183,11 +199,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				waitForLeafClusterAvailability(leafClusterName, "Ready")
 				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
 
-				// Installing test policies and violating deployments on leaf cluster
-				useClusterContext(leafClusterContext)
-				installTestPolicies("management", policiesYaml)
-				installViolatingDeployment("management", deploymentYaml)
-
+				// First let the leaf cluster to reconcile flux-system before installing policies.'Containers Minimum Replica Count acceptance test' policy will prevent the reconciliation if deployed first
 				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start reconciliation", func() {
 					useClusterContext(leafClusterContext)
 					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
@@ -195,9 +207,16 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					useClusterContext(mgmtClusterContext)
 				})
 
-				// Installing test policies and violating deployments on management cluster
+				// Installing test policies,Policy Config and violating deployments on leaf cluster
+				useClusterContext(leafClusterContext)
+				installTestPolicies(leafClusterName, policiesYaml)
+				installPolicyConfig(leafClusterName, policyConfigYaml)
+				installViolatingDeployment(leafClusterName, deploymentYaml)
+
+				// Installing test policies,Policy Config and violating deployment on management cluster
 				useClusterContext(mgmtClusterContext)
 				installTestPolicies("management", policiesYaml)
+				installPolicyConfig("management", policyConfigYaml)
 				installViolatingDeployment("management", deploymentYaml)
 
 				pages.NavigateToPage(webDriver, "Violations")
@@ -206,13 +225,12 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And wait for violations to be visibe on the dashboard", func() {
 					gomega.Eventually(violationsPage.ViolationHeader).Should(matchers.BeVisible())
 
-					leafViolationCount := 1 // 1 leaf cluster violation
+					leafViolationCount := 2 // 2 leaf cluster violation (Container Image Pull Policy acceptance test + Containers Minimum Replica Count acceptance test)
 					gomega.Eventually(func(g gomega.Gomega) int {
 						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 						time.Sleep(POLL_INTERVAL_1SECONDS)
 						return violationsPage.CountViolations(leafClusterNamespace + `/` + leafClusterName)
 					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(leafViolationCount), fmt.Sprintf("There should be %d policy enteries in policy table", leafViolationCount))
-
 				})
 
 				ginkgo.By(fmt.Sprintf("And add filter leaf cluster '%s' violations", leafClusterName), func() {
@@ -263,6 +281,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(violationDetailPage.HowToSolve.Text()).Should(gomega.MatchRegexp(howToSolve), "Failed to verify violation 'How to solve' on violation page")
 					gomega.Expect(violationDetailPage.ViolatingEntity.Text()).Should(gomega.MatchRegexp(violatingEntity), "Failed to verify 'Violating Entity' on violation page")
 				})
+				verifyPolicyConfigInAppViolationsDetails(configPolicy, policyConfigViolationMsg)
 			})
 		})
 	})

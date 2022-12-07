@@ -1,54 +1,32 @@
-apiVersion: capi.weave.works/v1alpha1
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
 metadata:
-  name: capa-cluster-template-{{.Count}}
+  name: capg-cluster-template-{{.Count}}
   namespace: default
   labels:
     weave.works/template-type: cluster
-  annotations:
-    templates.weave.works/inject-prune-annotation: "true"
-    templates.weave.works/cost-estimation-enabled: "true"
-    templates.weave.works/profiles-enabled: "false"
-    templates.weave.works/kustomizations-enabled: "false"
-    templates.weave.works/credentials-enabled: "true"
-
 spec:
-  description: This is the std. CAPA template {{.Count}}
+  description: This is the std. CAPG template {{.Count}}
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
-      required: true
     - name: NAMESPACE
       description: Namespace to create the cluster in.
-      required: true
-    - name: AWS_REGION
+    - name: GCP_REGION
       description: AWS Region to create cluster
-      options: ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "af-south-1", "ap-east-1", "ap-south-1", "ap-northeast-3", "ap-northeast-2", "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ca-central-1", "eu-central-1", "eu-west-1", "eu-west-2", "eu-south-1", "eu-west-3", "eu-north-1", "me-south-1", "sa-east-1"]
-    - name: AWS_SSH_KEY_NAME
-      description: AWS ssh key name
-      options: ["weave-gitops-pesto"]
-      default: "weave-gitops-pesto"
-      required: false
-    - name: KUBERNETES_VERSION
-      description: The version of Kubernetes to use.
-      options: ["v1.21.1", "v1.22.0", "v1.23.3"]
-    - name: AWS_CONTROL_PLANE_MACHINE_TYPE
+      options: ["us-central1", "us-east1", "us-west1", "europe-north1", "europe-west1", "europe-west2"]
+    - name: GCP_CONTROL_PLANE_MACHINE_TYPE
       description: Control plane machine instane type.
-      options: ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge"]
-      default: t3.large
+      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
       options: ["1", "2", "3", "4", "5"]
-    - name: AWS_NODE_MACHINE_TYPE
+    - name: GCP_NODE_MACHINE_TYPE
       description: Node machine instane type.
-      options: ["t3.nano", "t3.micro", "t3.small", "t3.medium", "t3.large", "t3.xlarge", "t3.2xlarge"]
-      default: t3.large
+      options: ["n1-standard-1", "n1-standard-2", "n1-standard-4", "n1-standard-8", "n1-standard-16"]
     - name: WORKER_MACHINE_COUNT
       description: Number of control planes
       options: ["1", "2", "3", "4", "5", "6", "7"]
-    - name: COST_ESTIMATION_FILTERS
-      description: "(Optional) DEBUG: Query string of extra filters to use when estimating costs."
-      required: false
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
@@ -65,10 +43,6 @@ spec:
       metadata:
         name: "${CLUSTER_NAME}"
         namespace: "${NAMESPACE}"
-        annotations:
-          "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
-        labels:
-          cni: calico
       spec:
         clusterNetwork:
           pods:
@@ -80,16 +54,18 @@ spec:
           name: "${CLUSTER_NAME}-control-plane"
         infrastructureRef:
           apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-          kind: AWSCluster
+          kind: GCPCluster
           name: "${CLUSTER_NAME}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: AWSCluster
+      kind: GCPCluster
       metadata:
         name: "${CLUSTER_NAME}"
         namespace: "${NAMESPACE}"
       spec:
-        region: "${AWS_REGION}"
-        sshKeyName: "${AWS_SSH_KEY_NAME}"
+        network:
+          name: default
+        project: wks-tests
+        region: "${GCP_REGION}"
     - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
       kind: KubeadmControlPlane
       metadata:
@@ -100,38 +76,39 @@ spec:
           clusterConfiguration:
             apiServer:
               extraArgs:
-                cloud-provider: aws
+                cloud-provider: gce
+              timeoutForControlPlane: 20m
             controllerManager:
               extraArgs:
-                cloud-provider: aws
+                allocate-node-cidrs: "false"
+                cloud-provider: gce
           initConfiguration:
             nodeRegistration:
               kubeletExtraArgs:
-                cloud-provider: aws
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
+                cloud-provider: gce
+              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
           joinConfiguration:
             nodeRegistration:
               kubeletExtraArgs:
-                cloud-provider: aws
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
+                cloud-provider: gce
+              name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
         machineTemplate:
           infrastructureRef:
             apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-            kind: AWSMachineTemplate
+            kind: GCPMachineTemplate
             name: "${CLUSTER_NAME}-control-plane"
-        replicas: ${CONTROL_PLANE_MACHINE_COUNT}
-        version: "${KUBERNETES_VERSION}"
+        replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
+        version: v1.21.10
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: AWSMachineTemplate
+      kind: GCPMachineTemplate
       metadata:
         name: "${CLUSTER_NAME}-control-plane"
         namespace: "${NAMESPACE}"
       spec:
         template:
           spec:
-            iamInstanceProfile: control-plane.cluster-api-provider-aws.sigs.k8s.io
-            instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
-            sshKeyName: "${AWS_SSH_KEY_NAME}"
+            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
+            instanceType: "${GCP_CONTROL_PLANE_MACHINE_TYPE}"
     - apiVersion: cluster.x-k8s.io/v1beta1
       kind: MachineDeployment
       metadata:
@@ -139,7 +116,7 @@ spec:
         namespace: "${NAMESPACE}"
       spec:
         clusterName: "${CLUSTER_NAME}"
-        replicas: ${WORKER_MACHINE_COUNT}
+        replicas: "${WORKER_MACHINE_COUNT}"
         selector:
           matchLabels: null
         template:
@@ -150,22 +127,22 @@ spec:
                 kind: KubeadmConfigTemplate
                 name: "${CLUSTER_NAME}-md-0"
             clusterName: "${CLUSTER_NAME}"
+            failureDomain: "${GCP_REGION}-a"
             infrastructureRef:
               apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-              kind: AWSMachineTemplate
+              kind: GCPMachineTemplate
               name: "${CLUSTER_NAME}-md-0"
-            version: "${KUBERNETES_VERSION}"
+            version: v1.21.10
     - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: AWSMachineTemplate
+      kind: GCPMachineTemplate
       metadata:
         name: "${CLUSTER_NAME}-md-0"
         namespace: "${NAMESPACE}"
       spec:
         template:
           spec:
-            iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
-            instanceType: "${AWS_NODE_MACHINE_TYPE}"
-            sshKeyName: "${AWS_SSH_KEY_NAME}"
+            image: https://www.googleapis.com/compute/v1/projects/wks-tests/global/images/cluster-api-ubuntu-1804-v1-21-10-1652195823
+            instanceType: "${GCP_NODE_MACHINE_TYPE}"
     - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
       kind: KubeadmConfigTemplate
       metadata:
@@ -177,5 +154,5 @@ spec:
             joinConfiguration:
               nodeRegistration:
                 kubeletExtraArgs:
-                  cloud-provider: aws
-                name: '{{`{{ ds.meta_data.local_hostname }}`}}'
+                  cloud-provider: gce
+                name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
