@@ -348,6 +348,7 @@ export type Template = {
   templateKind?: string
   labels?: {[key: string]: string}
   namespace?: string
+  profiles?: TemplateProfile[]
 }
 
 export type Parameter = {
@@ -365,6 +366,9 @@ export type TemplateProfile = {
   editable?: boolean
   values?: string
   namespace?: string
+  required?: boolean
+  profileTemplate?: string
+  layer?: string
 }
 
 export type TemplateObject = {

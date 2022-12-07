@@ -603,15 +603,19 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
+	requiredProfiles, err := getProfilesFromTemplate(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
 
 	profilesIndex := map[string]*capiv1_proto.ProfileValues{}
-
 	for _, v := range args.profileValues {
 		profilesIndex[v.Name] = v
+	}
+
+	requiredProfilesIndex := map[string]*capiv1_proto.TemplateProfile{}
+	for _, v := range requiredProfiles {
+		requiredProfilesIndex[v.Name] = v
 	}
 
 	// add and overwrite the required values of profilesIndex where necessary.
@@ -628,15 +632,18 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			if p.Version == "" {
 				p.Version = requiredProfile.Version
 			}
+			if p.Layer == "" {
+				p.Layer = requiredProfile.Layer
+			}
 		} else {
 			profilesIndex[requiredProfile.Name] = &capiv1_proto.ProfileValues{
 				Name:      requiredProfile.Name,
 				Version:   requiredProfile.Version,
 				Values:    base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values)),
 				Namespace: requiredProfile.Namespace,
+				Layer:     requiredProfile.Layer,
 			}
 		}
-
 	}
 
 	for _, v := range profilesIndex {
@@ -656,20 +663,20 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			}
 		}
 
-		decoded, err := base64.StdEncoding.DecodeString(v.Values)
+		values, err := renderValues(v, *tmplProcessor, args.parameterValues)
 		if err != nil {
-			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+			return nil, fmt.Errorf("cannot get values for profile %s: %w", v.Name, err)
 		}
 
-		data, err := tmplProcessor.Render(decoded, args.parameterValues)
-		if err != nil {
-			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+		profileTemplate := []byte{}
+		requiredProfile := requiredProfilesIndex[v.Name]
+		if requiredProfile != nil {
+			profileTemplate, err = tmplProcessor.Render([]byte(requiredProfile.ProfileTemplate), args.parameterValues)
+			if err != nil {
+				return nil, fmt.Errorf("cannot render spec of profile %s: %w", v.Name, err)
+			}
 		}
 
-		parsed, err := ParseValues(data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
-		}
 		installs = append(installs, charts.ChartInstall{
 			Ref: charts.ChartReference{
 				Chart:   v.Name,
@@ -680,9 +687,10 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 					Kind:      "HelmRepository",
 				},
 			},
-			Layer:     v.Layer,
-			Values:    parsed,
-			Namespace: v.Namespace,
+			ProfileTemplate: string(profileTemplate),
+			Layer:           v.Layer,
+			Values:          values,
+			Namespace:       v.Namespace,
 		})
 	}
 
@@ -826,6 +834,27 @@ func getClusterProfilesPath(cluster types.NamespacedName) string {
 		getClusterDirPath(cluster),
 		profiles.ManifestFileName,
 	)
+}
+
+// renderValues renders the "values.yaml" section of a HelmRelease, as it can also contain template parameters.
+func renderValues(v *capiv1_proto.ProfileValues, tmplProcessor templates.TemplateProcessor, parameterValues map[string]string) (map[string]interface{}, error) {
+	// FIXME: look into decoding the base64 in the proto API rather than here.
+	decoded, err := base64.StdEncoding.DecodeString(v.Values)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+	}
+
+	data, err := tmplProcessor.Render(decoded, parameterValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+	}
+
+	parsed, err := ParseValues(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
+	}
+
+	return parsed, nil
 }
 
 // ParseValues takes a YAML encoded values string and returns a struct
