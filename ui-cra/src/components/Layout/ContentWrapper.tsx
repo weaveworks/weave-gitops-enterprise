@@ -168,7 +168,7 @@ export const ContentWrapper: FC<Props> = ({
             </Link>
           </div>
         )}
-        {uiConfig?.footer?.wgePlaceholder ? (
+        {uiConfig?.footer?.showVersion ? (
           <Tooltip
             title={`Server Version ${versions?.capiServer}`}
             placement="top"

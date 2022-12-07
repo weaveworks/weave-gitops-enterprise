@@ -66,12 +66,12 @@ config:
     tokenPassthrough:
       enabled: true
   ui:
-    logoURL: https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg
+    logoURL: ''
     footer:
-      backgroundColor: white
-      color: gray
-      content: My footer header This is the footer [link](example.com)
-      wgePlaceholder: false
+      backgroundColor: ''
+      color: ''
+      content: ''
+      showVersion: false
 
 tls:
   enabled: true
