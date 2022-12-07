@@ -44,7 +44,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationSeverity := "High"
 			violationCategory := "weave.categories.pod-security"
 			configPolicy := "Containers Minimum Replica Count acceptance test"
-			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo \(1 occurrences\)`
+			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment multi-container (1 occurrences)`
 
 			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
@@ -160,7 +160,7 @@ func DescribeViolations(gitopsTestRunner GitopsTestRunner) {
 			violationSeverity := "Medium"
 			violationCategory := "weave.categories.software-supply-chain"
 			configPolicy := "Containers Minimum Replica Count acceptance test"
-			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment podinfo \(1 occurrences\)`
+			policyConfigViolationMsg := `Containers Minimum Replica Count acceptance test in deployment postgres (1 occurrences)`
 
 			ginkgo.JustBeforeEach(func() {
 				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
