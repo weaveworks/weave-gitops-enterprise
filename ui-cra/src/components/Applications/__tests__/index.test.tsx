@@ -15,14 +15,17 @@ import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import { muiTheme } from '../../../muiTheme';
 import {
+  ApplicationsClientMock,
   CoreClientMock,
   EnterpriseClientMock,
   withContext,
 } from '../../../utils/test-utils';
+import { GitAuthProvider } from '../../../contexts/GitAuth';
 
 describe('Applications index test', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: CoreClientMock;
+  let appsApi = new ApplicationsClientMock();
 
   beforeEach(() => {
     api = new CoreClientMock();
@@ -41,6 +44,7 @@ describe('Applications index test', () => {
         },
       ],
       [CoreClientContextProvider, { api }],
+      [GitAuthProvider, { appsApi }],
       [MemoryRouter],
       [NotificationsProvider],
     ]);

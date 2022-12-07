@@ -198,6 +198,7 @@ export class CoreClientMock {
     return promisify(this.GetObjectReturns);
   }
 }
+
 export class ApplicationsClientMock {
   constructor() {
     this.GetGithubDeviceCode = this.GetGithubDeviceCode.bind(this);
