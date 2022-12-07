@@ -16,7 +16,7 @@ import Mode from '../Mode';
 
 interface CustomPolicy extends Policy {
   audit?: string;
-  enforce?: string
+  enforce?: string;
 }
 
 interface Props {
@@ -26,11 +26,11 @@ interface Props {
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
 
-  policies.forEach((policy) => {
-    policy.audit = policy.modes?.includes('audit') ? 'audit' : ''
-    policy.enforce = policy.modes?.includes('admission') ? 'enforce' : ''
+  policies.forEach(policy => {
+    policy.audit = policy.modes?.includes('audit') ? 'audit' : '';
+    policy.enforce = policy.modes?.includes('admission') ? 'enforce' : '';
   });
 
   let initialFilterState = {
@@ -77,11 +77,13 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           },
           {
             label: 'Audit',
-            value: ({ audit }) => <Mode modeName={audit}/>,
+            value: ({ audit }) => <Mode modeName={audit} />,
           },
           {
             label: 'Enforce',
-            value: ({ enforce }) => <Mode modeName={enforce? 'admission': ''} />,
+            value: ({ enforce }) => (
+              <Mode modeName={enforce ? 'admission' : ''} />
+            ),
           },
           ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
             ? [{ label: 'Tenant', value: 'tenant' }]

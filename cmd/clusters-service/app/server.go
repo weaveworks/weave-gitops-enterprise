@@ -69,6 +69,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -147,6 +148,8 @@ type OIDCAuthenticationOptions struct {
 	ClientSecret  string        `mapstructure:"oidc-client-secret"`
 	RedirectURL   string        `mapstructure:"oidc-redirect-url"`
 	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
+	ClaimUsername string        `mapstructure:"oidc-claim-username"`
+	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -210,6 +213,8 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().String("oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	cmd.Flags().String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
+	cmd.Flags().String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
@@ -402,6 +407,15 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
+	}
+
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") != "false" {
+		err := telemetry.InitTelemetry(ctx, mgmtCluster)
+		if err != nil {
+			// If there's an error turning on telemetry, that's not a
+			// thing that should interrupt anything else
+			log.Info("Couldn't enable telemetry", "error", err)
+		}
 	}
 
 	if p.UseK8sCachedClients {
@@ -670,6 +684,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClientSecret:  args.OIDC.ClientSecret,
 			RedirectURL:   args.OIDC.RedirectURL,
 			TokenDuration: args.OIDC.TokenDuration,
+			ClaimsConfig: &auth.ClaimsConfig{
+				Username: args.OIDC.ClaimUsername,
+				Groups:   args.OIDC.ClaimGroups,
+			},
 		},
 		args.KubernetesClient,
 		tsv,
