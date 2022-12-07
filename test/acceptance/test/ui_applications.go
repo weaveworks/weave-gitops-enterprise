@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -1447,7 +1445,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				pullRequest := PullRequest{
-					Branch:  "Leaf-cluster-apps-kustomization-" + strconv.Itoa(rand.Intn(1000)),
+					Branch:  "Leaf-cluster-apps-kustomization-" + RandString(5),
 					Title:   "Leaf Cluster Application Kustomization PR",
 					Message: "Adding leaf cluster applications kustomization",
 				}
