@@ -1433,7 +1433,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{leafCluster.Namespace})
 			})
 
-			ginkgo.FIt("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf-cluster-app"), func() {
+			ginkgo.It("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf-cluster-app"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
