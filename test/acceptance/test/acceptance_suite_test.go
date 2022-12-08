@@ -35,13 +35,7 @@ func TestAcceptance(t *testing.T) {
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
-	// Runs the UI tests
-	DescribeSpecsUi(RealGitopsTestRunner{})
-	// Runs the CLI tests
-	DescribeSpecsCli(RealGitopsTestRunner{})
-
 	ginkgo.RunSpecs(t, "Weave GitOps Enterprise Acceptance Tests")
-
 }
 
 var _ = ginkgo.BeforeSuite(func() {

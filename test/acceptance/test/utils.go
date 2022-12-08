@@ -80,34 +80,13 @@ const (
 	POLL_INTERVAL_100MILLISECONDS time.Duration = 100 * time.Millisecond
 )
 
+var gitopsTestRunner GitopsTestRunner
+
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var seededRand *rand.Rand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
-
-// Describes all the UI acceptance tests
-func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
-	DescribeClusters(gitopsTestRunner)
-	DescribeTemplates(gitopsTestRunner)
-	DescribeTemplatesCapi(gitopsTestRunner)
-	DescribeApplications(gitopsTestRunner)
-	DescribePolicies(gitopsTestRunner)
-	DescribeViolations(gitopsTestRunner)
-	DescribeTenants(gitopsTestRunner)
-	DescribeCostEstimation(gitopsTestRunner)
-	DescribeMiscellaneous(gitopsTestRunner)
-}
-
-// Describes all the CLI acceptance tests
-func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
-	DescribeCliHelp()
-	DescribeCliTemplates(gitopsTestRunner)
-	DescribeCliTemplatesCapi(gitopsTestRunner)
-	DescribeCliTenant(gitopsTestRunner)
-	DescribeCliUpgrade(gitopsTestRunner)
-	DescribeCliMiscellaneous(gitopsTestRunner)
-}
 
 func GetWebDriver() *agouti.Page {
 	return webDriver
@@ -145,6 +124,7 @@ func getCheckoutRepoPath() string {
 }
 
 func SetupTestEnvironment() {
+	gitopsTestRunner = RealGitopsTestRunner{}
 	mgmtClusterKind = GetEnv("MANAGEMENT_CLUSTER_KIND", "kind")
 	selenium_service_url = "http://localhost:4444/wd/hub"
 	test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
