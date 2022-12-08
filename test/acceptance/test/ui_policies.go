@@ -66,16 +66,6 @@ func verifyPolicyModes() {
 
 		for _, policyName := range testPolicies {
 			policyInfo := policiesPage.FindPolicyInList(policyName)
-			isAuditModeIconVisible, _ := policyInfo.AuditModeIcon.Visible()
-			isEnforceModeIconVisible, _ := policyInfo.EnforceModeIcon.Visible()
-			isAuditModeNoneIconVisible, _ := policyInfo.AuditModeNoneIcon.Visible()
-			isEnforceModeNoneIconVisible, _ := policyInfo.EnforceModeNoneIcon.Visible()
-
-			logger.Info("Policy Name is: ", policyName)
-			logger.Info("Is Audit Mode Icon visible? ", isAuditModeIconVisible)
-			logger.Info("Is Enforce Mode Icon visible? ", isEnforceModeIconVisible)
-			logger.Info("Is Audit Mode None Icon visible?", isAuditModeNoneIconVisible)
-			logger.Info("Is Audit Mode None Icon visible? ", isEnforceModeNoneIconVisible)
 
 			if policyName == "Container Image Pull Policy acceptance test" { // It has both Audit & Enforce Modes
 				gomega.Eventually(policyInfo.AuditModeIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
@@ -202,7 +192,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
-			ginkgo.FIt("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+			ginkgo.It("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				installTestPolicies("management", policiesYaml)
 				installPolicySet("management", policySetYaml)
