@@ -1397,7 +1397,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 			// Just specify the leaf cluster info to create it
 			leafCluster := ClusterConfig{
 				Type:      "leaf",
-				Name:      "app-violations-leaf-cluster-test",
+				Name:      "app-violations-leaf-cluster-test-" + strings.ToLower(RandString(5)),
 				Namespace: "test-system",
 			}
 
