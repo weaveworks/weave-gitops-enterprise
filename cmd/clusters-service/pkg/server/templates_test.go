@@ -1529,8 +1529,8 @@ func TestGetFiles_required_profiles(t *testing.T) {
 		Kustomizations: []*capiv1_protos.Kustomization{},
 	}
 
-	path := "ns-foo/cluster-foo/profiles.yaml"
-	templateContent := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expectedPath := "ns-foo/cluster-foo/profiles.yaml"
+	expectedTemplateContent := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -1566,12 +1566,13 @@ spec:
     foo: bar
 status: {}
 `
-	content := simpleTemplate(t, templateContent, struct{ URL string }{URL: ts.URL})
+	expectedContent := simpleTemplate(t, expectedTemplateContent, struct{ URL string }{URL: ts.URL})
 	expected := &GetFilesReturn{
+		RenderedTemplate: nil,
 		ProfileFiles: []gitprovider.CommitFile{
 			{
-				Path:    &path,
-				Content: &content,
+				Path:    &expectedPath,
+				Content: &expectedContent,
 			},
 		},
 		CostEstimate: &capiv1_protos.CostEstimate{

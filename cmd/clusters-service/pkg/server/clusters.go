@@ -201,13 +201,9 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	files = append(files, git_files.RenderedTemplate...)
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
-	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
-		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, git_files.KustomizationFiles)
-		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, git_files.ProfileFiles)
 
-		files = append(files, removedKustomizations...)
-		files = append(files, removedProfiles...)
-	}
+	deletedFiles := getDeletedFiles(prevFiles, git_files)
+	files = append(files, deletedFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
@@ -1014,4 +1010,21 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 		Name:      name,
 		Namespace: namespace,
 	}
+}
+
+// Get list of gitprovider.CommitFile objects of files that should be deleted with empty content
+// Kustomizations and Profiles removed during an edit are added to the deleted list
+// Old files with changed paths are added to the deleted list
+func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitprovider.CommitFile {
+	deletedFiles := []gitprovider.CommitFile{}
+
+	removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
+	removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)
+	removedRenderedTemplates := getMissingFiles(prevFiles.RenderedTemplate, newFiles.RenderedTemplate)
+
+	deletedFiles = append(deletedFiles, removedKustomizations...)
+	deletedFiles = append(deletedFiles, removedProfiles...)
+	deletedFiles = append(deletedFiles, removedRenderedTemplates...)
+
+	return deletedFiles
 }
