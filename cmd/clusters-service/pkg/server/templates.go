@@ -35,7 +35,7 @@ type GetFilesRequest struct {
 }
 
 type GetFilesReturn struct {
-	RenderedTemplate   string
+	RenderedTemplate   gitprovider.CommitFile
 	ProfileFiles       []gitprovider.CommitFile
 	KustomizationFiles []gitprovider.CommitFile
 	Cluster            types.NamespacedName
@@ -259,7 +259,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		}
 	}
 
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: files.RenderedTemplate, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: *files.RenderedTemplate.Content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
 }
 
 func getFiles(
@@ -372,8 +372,13 @@ func getFiles(
 	}
 
 	content := string(tmplWithValuesAndCredentials)
+	path := getClusterManifestPath(cluster)
+	contentFile := gitprovider.CommitFile{
+		Path:    &path,
+		Content: &content,
+	}
 
-	return &GetFilesReturn{RenderedTemplate: content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
+	return &GetFilesReturn{RenderedTemplate: contentFile, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
 }
 
 func shouldAddCommonBases(t templatesv1.Template) bool {
