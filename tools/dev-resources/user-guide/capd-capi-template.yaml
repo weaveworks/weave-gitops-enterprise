@@ -35,12 +35,6 @@ spec:
             remediation:
               retries: 3
   resourcetemplates:
-    - path: "ns/${NAMESPACE}.yaml"
-      content:
-        - apiVersion: v1
-          kind: Namespace
-          metadata:
-            name: "${NAMESPACE}"
     - content:
         - apiVersion: gitops.weave.works/v1alpha1
           kind: GitopsCluster

@@ -74,6 +74,12 @@ type TemplateProcessor struct {
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
 	for _, resourcetemplateDefinition := range p.GetSpec().ResourceTemplates {
+		names, err := p.Processor.ParamNames([]byte(resourcetemplateDefinition.Path))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from template path: %w", err)
+		}
+		paramNames.Insert(names...)
+
 		for _, v := range resourcetemplateDefinition.Content {
 			names, err := p.Processor.ParamNames(v.Raw)
 			if err != nil {
@@ -201,7 +207,6 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 				return nil, fmt.Errorf("processing template: %w", err)
 			}
 
-			fmt.Println(string(data))
 			data, err = processUnstructured(data, opts...)
 			if err != nil {
 				return nil, fmt.Errorf("modifying template: %w", err)

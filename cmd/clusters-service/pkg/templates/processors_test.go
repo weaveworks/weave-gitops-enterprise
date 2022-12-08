@@ -193,6 +193,7 @@ func TestProcessor_Params(t *testing.T) {
 					Description: "This is used for the cluster naming.",
 				},
 				{Name: "INTERVAL"},
+				{Name: "SPECIAL_CLUSTER_PATH"},
 				{Name: "TEST_PARAMETER"},
 			},
 		},
