@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
 import { Flex, Link, theme } from '@weaveworks/weave-gitops';
 import styled, { css } from 'styled-components';
@@ -26,6 +26,9 @@ const useStyles = makeStyles(() =>
 
 const ENTITLEMENT_ERROR =
   'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
+
+const ENTITLEMENT_WARN =
+  'Your entitlement for Weave GitOps Enterprise has expired, please contact sales@weave.works.';
 
 const { xxs, xs, small, medium, base } = theme.spacing;
 const { white } = theme.colors;
@@ -94,7 +97,7 @@ export const ContentWrapper: FC<Props> = ({
   loading,
 }) => {
   const { data, error } = useListVersion();
-  const { notifications } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
   const { uiConfig } = useListConfig();
 
   const versions = {
@@ -102,6 +105,20 @@ export const ContentWrapper: FC<Props> = ({
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
   const classes = useStyles();
+
+  useEffect(() => {
+    if (data?.entitlement === ENTITLEMENT_WARN) {
+      setNotifications([
+        {
+          message: {
+            text: data.entitlement,
+          },
+          severity: 'warning',
+          display: 'top',
+        } as NotificationData,
+      ]);
+    }
+  }, [data?.entitlement, setNotifications]);
 
   const topNotifications = notifications.filter(
     n => n.display !== 'bottom' && n.message.text !== ENTITLEMENT_ERROR,

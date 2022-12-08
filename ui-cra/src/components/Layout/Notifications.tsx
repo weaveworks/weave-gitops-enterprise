@@ -41,6 +41,9 @@ const BoxWrapper = styled(Box)<{ severity: string }>`
         else return 'transparent';
       }};
     }
+    button {
+      margin-top: 5px;
+    }
   }
   div[class*='MuiAlert-icon'] {
     svg[class*='MuiSvgIcon-root'] {
