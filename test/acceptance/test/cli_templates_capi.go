@@ -69,13 +69,13 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 	ginkgo.Context("[CLI] When infrastructure provider credentials are available in the management cluster", func() {
 
 		ginkgo.JustAfterEach(func() {
-			gitopsTestRunner.DeleteIPCredentials("AWS")
-			gitopsTestRunner.DeleteIPCredentials("AZURE")
+			deleteIPCredentials("AWS")
+			deleteIPCredentials("AZURE")
 		})
 
 		ginkgo.It("Verify gitops can list credentials present in the management cluster", func() {
 			ginkgo.By("And create AWS credentials)", func() {
-				gitopsTestRunner.CreateIPCredentials("AWS")
+				createIPCredentials("AWS")
 			})
 
 			stdOut, _ = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
@@ -86,7 +86,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			})
 
 			ginkgo.By("And create AZURE credentials)", func() {
-				gitopsTestRunner.CreateIPCredentials("AZURE")
+				createIPCredentials("AZURE")
 			})
 
 			stdOut, _ = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
@@ -104,11 +104,11 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			installGitOpsTemplate(templateFiles)
 
 			ginkgo.By("And create AWS credentials)", func() {
-				gitopsTestRunner.CreateIPCredentials("AWS")
+				createIPCredentials("AWS")
 			})
 
 			ginkgo.By("And create AZURE credentials)", func() {
-				gitopsTestRunner.CreateIPCredentials("AZURE")
+				createIPCredentials("AZURE")
 			})
 
 			// AWS Parameter values
@@ -138,7 +138,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			installGitOpsTemplate(templateFiles)
 
 			ginkgo.By("And create AZURE credentials)", func() {
-				gitopsTestRunner.CreateIPCredentials("AZURE")
+				createIPCredentials("AZURE")
 			})
 
 			// AWS Parameter values
@@ -196,9 +196,9 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 		ginkgo.JustAfterEach(func() {
 			_ = deleteFile([]string{kubeconfigPath})
 			deleteSecret([]string{patSecret}, capdClusters[0].Namespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", crsConfigmap)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterResourceSet)
 
 			reconcile("suspend", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 			// Force clean the repository directory for subsequent tests

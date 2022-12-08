@@ -116,7 +116,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", func() {
 			})
 
 			ginkgo.By("And I install the entitlement for cluster upgrade", func() {
-				gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testScriptsPath, "data/entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
+				gomega.Expect(runCommandPassThrough("kubectl", "apply", "-f", path.Join(testScriptsPath, "data/entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
 			})
 
 			ginkgo.By("And secure access to dashboard for dex users", func() {
@@ -178,7 +178,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", func() {
 			})
 
 			ginkgo.By("And I should install rolebindings for default enterprise roles'", func() {
-				gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "rbac/user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
+				gomega.Expect(runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml")), "Failed to install rolbindings for enterprise default roles")
 			})
 
 			ginkgo.By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {

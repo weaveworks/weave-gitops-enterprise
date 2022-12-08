@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -377,6 +378,113 @@ func verifyCapiClusterHealth(kubeconfigPath string, applications []Application) 
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
+}
+
+// This function generates multiple template files from a single template to be used as test data
+func generateTestTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
+	// Read input capitemplate
+	contents, err := ioutil.ReadFile(templateFile)
+
+	if err != nil {
+		return templateFiles, err
+	}
+
+	// Prepare  data to insert into the template.
+	type TemplateInput struct {
+		Count int
+	}
+
+	// Create a new template and parse the letter into it.
+	t := template.Must(template.New("capi-template").Parse(string(contents)))
+
+	// Execute the template for each count.
+	for i := 0; i < templateCount; i++ {
+		input := TemplateInput{i}
+
+		fileName := fmt.Sprintf("%s%d", filepath.Base(templateFile), i)
+
+		f, err := os.Create(path.Join("/tmp", fileName))
+		if err != nil {
+			return templateFiles, err
+		}
+		templateFiles = append(templateFiles, f.Name())
+
+		if err = t.Execute(f, input); err != nil {
+			logger.Infoln("Executing template:", err)
+		}
+
+		f.Close()
+	}
+
+	return templateFiles, nil
+}
+
+func createIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		// CAPA installs the AWS identity crds
+		if capi_provider != "capa" {
+			ginkgo.By("Install AWSClusterStaticIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+
+			ginkgo.By("Install AWSClusterRoleIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+		}
+
+		ginkgo.By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput("kubectl create namespace capa-system")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+		})
+
+	} else if infrastructureProvider == "AZURE" {
+		ginkgo.By("Install AzureClusterIdentity CRD", func() {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+		})
+
+		ginkgo.By("Create Azure Secret and AzureClusterIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+		})
+	}
+
+}
+
+func deleteIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		ginkgo.By("Delete AWS identities and CRD", func() {
+			// Identity crds are installed as part of CAPA installation
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath))
+			if capi_provider != "capa" {
+				_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl delete namespace capa-system")
+			}
+		})
+
+	} else if infrastructureProvider == "AZURE" {
+		ginkgo.By("Delete Azure identities and CRD", func() {
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+		})
+	}
+}
+
+func restartDeploymentPods(appName string, namespace string) error {
+	// Restart the deployment pods
+	var err error
+	for i := 1; i < 5; i++ {
+		time.Sleep(POLL_INTERVAL_1SECONDS)
+		err = runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+		if err == nil {
+			// Wait for all the deployments replicas to rolled out successfully
+			err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+			break
+		}
+	}
+	return err
 }
 
 func createPATSecret(clusterNamespace string, patSecret string) {

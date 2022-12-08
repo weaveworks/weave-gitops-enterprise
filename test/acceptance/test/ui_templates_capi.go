@@ -91,8 +91,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 	ginkgo.Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
 
 		ginkgo.JustAfterEach(func() {
-			gitopsTestRunner.DeleteIPCredentials("AWS")
-			gitopsTestRunner.DeleteIPCredentials("AZURE")
+			deleteIPCredentials("AWS")
+			deleteIPCredentials("AZURE")
 		})
 
 		ginkgo.It("Verify matching selected credential can be used for cluster creation", ginkgo.Label("integration", "git"), func() {
@@ -103,8 +103,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			installGitOpsTemplate(templateFiles)
 
 			ginkgo.By("And create infrastructure provider credentials)", func() {
-				gitopsTestRunner.CreateIPCredentials("AWS")
-				gitopsTestRunner.CreateIPCredentials("AZURE")
+				createIPCredentials("AWS")
+				createIPCredentials("AZURE")
 			})
 
 			navigateToTemplatesGrid(webDriver)
@@ -206,7 +206,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			installGitOpsTemplate(templateFiles)
 
 			ginkgo.By("And create infrastructure provider credentials)", func() {
-				gitopsTestRunner.CreateIPCredentials("AWS")
+				createIPCredentials("AWS")
 			})
 
 			navigateToTemplatesGrid(webDriver)
@@ -321,9 +321,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 		ginkgo.JustAfterEach(func() {
 			_ = deleteFile([]string{downloadedKubeconfigPath})
 			deleteSecret([]string{patSecret}, capdCluster.Namespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, crsConfigmap)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterResourceSet)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", crsConfigmap)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterResourceSet)
 
 			reconcile("suspend", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 			// Force clean the repository directory for subsequent tests

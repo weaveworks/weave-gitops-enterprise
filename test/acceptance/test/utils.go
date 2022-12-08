@@ -80,8 +80,6 @@ const (
 	POLL_INTERVAL_100MILLISECONDS time.Duration = 100 * time.Millisecond
 )
 
-var gitopsTestRunner GitopsTestRunner
-
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -124,7 +122,6 @@ func getCheckoutRepoPath() string {
 }
 
 func SetupTestEnvironment() {
-	gitopsTestRunner = RealGitopsTestRunner{}
 	mgmtClusterKind = GetEnv("MANAGEMENT_CLUSTER_KIND", "kind")
 	selenium_service_url = "http://localhost:4444/wd/hub"
 	test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
@@ -170,6 +167,11 @@ func InstallWeaveGitopsControllers() {
 		setupScriptPath := path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh")
 		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s setup %s`, setupScriptPath, checkoutRepoPath), ASSERTION_15MINUTE_TIME_OUT)
 	}
+}
+
+func resetControllers(controllers string) {
+	scriptPath := path.Join(testScriptsPath, "wego-enterprise.sh")
+	_ = runCommandPassThrough(scriptPath, "reset_controllers", controllers)
 }
 
 func GetEnv(key, fallback string) string {

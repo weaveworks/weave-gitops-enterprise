@@ -286,7 +286,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 					GITOPS_DEFAULT_NAMESPACE))
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to create secret for leaf cluster kubeconfig")
 			})
-			gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
+			gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
 			loginUser()
 		})
 
@@ -300,7 +300,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 					GITOPS_DEFAULT_NAMESPACE, GetEnv("AWS_ACCESS_KEY_ID", ""), GetEnv("AWS_SECRET_ACCESS_KEY", "")))
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to create secret for leaf cluster kubeconfig")
 			})
-			gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
+			gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
 			loginUser()
 		})
 

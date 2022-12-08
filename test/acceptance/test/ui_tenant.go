@@ -319,8 +319,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, f
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 
 			deleteCluster("kind", leafCluster.Name, "")
 			cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))

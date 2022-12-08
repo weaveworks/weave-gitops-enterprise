@@ -183,8 +183,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 
 			deleteCluster("kind", leafCluster.Name, "")
 			deleteNamespace([]string{leafCluster.Namespace})
@@ -282,7 +282,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
 				// Clean up kubeconfig secret, gitopscluster finalizer will wait for it now
 				deleteSecret([]string{leafClusterkubeconfig}, leafCluster.Namespace)
 				gomega.Eventually(clusterInfo.Status).Should(matchers.MatchText("Not Ready"), "Failed to have expected GitopsCluster status: Not Ready")
-				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+				_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 			})
 
 			ginkgo.By("And wait for GitopsCluster to disappear from Clusters page", func() {

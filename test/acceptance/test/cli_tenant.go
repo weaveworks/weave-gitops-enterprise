@@ -139,7 +139,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 		})
 
 		ginkgo.It("Verify creating tenant resource using kubeconfig ", ginkgo.Label("tenant"), func() {
-			_ = gitopsTestRunner.KubectlDelete([]string{}, tenantYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", tenantYaml)
 			tenatDefination := path.Join(testDataPath, "tenancy", "multiple-tenant.yaml")
 
 			// Export tenants resources to output file (required to delete tenant resources after test completion)
@@ -185,7 +185,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			defer deleteSecret([]string{patSecret}, leafCluster.Namespace)
 			clusterBootstrapCopnfig := createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			defer func() {
-				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
 			}()
 
 			ginkgo.By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", leafCluster.Name), func() {

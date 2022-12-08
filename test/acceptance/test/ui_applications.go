@@ -987,8 +987,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 
 			deleteCluster("kind", leafCluster.Name, "")
 			cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
@@ -1302,8 +1302,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
 			}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 
 			// Delete the Policy config and test policies
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policyConfigYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 
 			deleteNamespace([]string{appNameSpace, appTargetNamespace})
 			_ = deleteFile([]string{downloadedResourcesPath})
@@ -1422,8 +1422,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 
 			deleteCluster("kind", leafCluster.Name, "")
 			cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))

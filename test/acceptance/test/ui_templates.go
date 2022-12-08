@@ -177,9 +177,15 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
 		})
 
 		ginkgo.It("Verify I should be able to select a template of my choice", func() {
-
-			// test selection with 50 capiTemplates
-			_ = gitopsTestRunner.CreateApplyCapitemplates(50, "templates/miscellaneous/templated-cluster-template.yaml")
+			ginkgo.By("Installing GitOpsTemplate...", func() {
+				templatedTemplate := path.Join(testDataPath, "templates/miscellaneous/templated-cluster-template.yaml")
+				templateFiles, err := generateTestTemplates(50, templatedTemplate)
+				gomega.Expect(err).To(gomega.BeNil(), fmt.Sprintf("Failed to generate template test files from %s", templatedTemplate))
+				for _, fileName := range templateFiles {
+					err = runCommandPassThrough("kubectl", "apply", "-f", fileName)
+					gomega.Expect(err).To(gomega.BeNil(), fmt.Sprintf("Failed to apply GitOpsTemplate template %s", fileName))
+				}
+			})
 
 			navigateToTemplatesGrid(webDriver)
 			templatesPage := pages.GetTemplatesPage(webDriver)

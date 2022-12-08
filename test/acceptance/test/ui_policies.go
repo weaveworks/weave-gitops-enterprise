@@ -186,9 +186,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", func() {
 		})
 
 		ginkgo.JustAfterEach(func() {
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policySetYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policySetYaml)
 
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 		})
 
 		ginkgo.It("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
@@ -326,13 +326,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", func() {
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 
 			deleteCluster("kind", leafClusterName, "")
 			// Delete the test policies and policy set
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policySetYaml)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policySetYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 
 		})
 

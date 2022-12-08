@@ -53,11 +53,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", func() {
 
 		ginkgo.JustAfterEach(func() {
 			// Delete the Policy config
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policyConfigYaml)
 
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 
-			_ = gitopsTestRunner.KubectlDelete([]string{}, deploymentYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", deploymentYaml)
 		})
 
 		ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
@@ -174,13 +174,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", func() {
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 
 			deleteCluster("kind", leafClusterName, "")
 			// Delete the Policy config and test policies
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
-			_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policyConfigYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 		})
 
 		ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {

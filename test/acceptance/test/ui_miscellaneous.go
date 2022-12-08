@@ -58,11 +58,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", fu
 
 		ginkgo.JustAfterEach(func() {
 			ginkgo.By("When I apply the valid entitlement", func() {
-				gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
+				gomega.Expect(runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
 			})
 
 			ginkgo.By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
-				gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 			})
 
 			ginkgo.By("And the Cluster service is healthy", func() {
@@ -78,11 +78,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", fu
 		ginkgo.It("Verify cluster service acknowledges the entitlement presences", ginkgo.Label("integration"), func() {
 
 			ginkgo.By("When I delete the entitlement", func() {
-				gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to delete entitlement secret")
+				gomega.Expect(runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to delete entitlement secret")
 			})
 
 			ginkgo.By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
-				gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
+				gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
 			})
 
 			ginkgo.By("And I should see the error message for missing entitlement", func() {
@@ -91,11 +91,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", fu
 			})
 
 			ginkgo.By("When I apply the expired entitlement", func() {
-				gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
+				gomega.Expect(runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "entitlement/entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
 			})
 
 			ginkgo.By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
-				gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 			})
 
 			ginkgo.By("And I should see the warning message for expired entitlement", func() {
@@ -103,11 +103,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", fu
 			})
 
 			ginkgo.By("When I apply the invalid entitlement", func() {
-				gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
+				gomega.Expect(runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "entitlement/entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
 			})
 
 			ginkgo.By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
-				gomega.Expect(gitopsTestRunner.RestartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
+				gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE), "Failed restart deployment successfully")
 			})
 
 			ginkgo.By("And I should see the error message for invalid entitlement", func() {

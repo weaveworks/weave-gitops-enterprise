@@ -375,7 +375,7 @@ var _ = ginkgo.Describe("Gitops Help Tests", ginkgo.Label("cli"), func() {
 
 		ginkgo.It("Verify that gitops displays error text when listing templates without specifying a provider name", func() {
 
-			ginkgo.By(fmt.Sprintf("When I run 'gitops get templates --provider --endpoint %s'", capi_endpoint_url), func() {
+			ginkgo.By(fmt.Sprintf("When I run 'gitops get templates --provider --endpoint %s'", wge_endpoint_url), func() {
 				stdOut, stdErr = runGitopsCommand("get templates --provider")
 			})
 
