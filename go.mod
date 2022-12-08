@@ -2,6 +2,8 @@ module github.com/weaveworks/weave-gitops-enterprise
 
 go 1.18
 
+replace k8s.io/client-go => k8s.io/client-go v0.25.4
+
 require (
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/go-logr/logr v1.2.3
@@ -22,7 +24,7 @@ require (
 	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.25.4
 	k8s.io/cli-runtime v0.25.4
-	k8s.io/client-go v0.25.4
+	k8s.io/client-go v1.5.2
 	sigs.k8s.io/controller-runtime v0.13.1
 )
 
@@ -32,6 +34,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
+	github.com/external-secrets/external-secrets v0.6.1
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.11.0
 	github.com/fluxcd/helm-controller/api v0.27.0
@@ -60,8 +63,8 @@ require (
 	github.com/xanzy/go-gitlab v0.74.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/oauth2 v0.2.0
-	google.golang.org/genproto v0.0.0-20220725144611-272f38e5d71b
-	google.golang.org/grpc v1.48.0
+	google.golang.org/genproto v0.0.0-20221025140454-527a21cfbd71
+	google.golang.org/grpc v1.50.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/src-d/go-git.v4 v4.13.1
@@ -97,7 +100,7 @@ require (
 	github.com/fatih/camelcase v1.0.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.29.1 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
-	github.com/gobuffalo/flect v0.2.4 // indirect
+	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
 	github.com/google/go-github/v47 v47.1.0 // indirect
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
@@ -159,11 +162,11 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.7.0 // indirect
+	cloud.google.com/go/compute v1.10.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
-	github.com/Azure/go-autorest/autorest v0.11.27 // indirect
-	github.com/Azure/go-autorest/autorest/adal v0.9.20 // indirect
+	github.com/Azure/go-autorest/autorest v0.11.28 // indirect
+	github.com/Azure/go-autorest/autorest/adal v0.9.21 // indirect
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
@@ -236,7 +239,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
+	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
@@ -253,7 +256,7 @@ require (
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -310,7 +313,7 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
-	gopkg.in/ini.v1 v1.66.4 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
