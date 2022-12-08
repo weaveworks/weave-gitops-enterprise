@@ -160,3 +160,7 @@ networkPolicy:
 global:
   capiEnabled: true
   useK8sCachedClients: false
+
+templates-controller:
+  enabled: true
+  fullnameOverride: templates-controller
