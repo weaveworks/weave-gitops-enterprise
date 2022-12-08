@@ -425,7 +425,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		log.Info("Using un-cached clients")
 	}
 
-	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	// FIXME: PASSTHROUGH instead of false here!!!!!!
+	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, false, cluster.DefaultKubeConfigOptions...)
 	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
 	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
