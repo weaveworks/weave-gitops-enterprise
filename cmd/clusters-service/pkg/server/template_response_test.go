@@ -6,7 +6,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 
 	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
 	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
@@ -50,7 +49,9 @@ func TestToTemplate(t *testing.T) {
 				ct.Spec.Description = "this is test template 1"
 				ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 					{
-						Content: []runtime.RawExtension{rawExtension(`{
+						Content: []templatesv1.ResourceTemplateContent{
+							{
+								RawExtension: rawExtension(`{
 							"apiVersion": "fooversion",
 							"kind": "fookind",
 							"metadata": {
@@ -60,6 +61,7 @@ func TestToTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							},
 						},
 					},
 				}
@@ -220,7 +222,7 @@ func makeErrorTemplate(t *testing.T, rawData string) *capiv1.CAPITemplate {
 		ct.Spec.Description = ""
 		ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
-				Content: []runtime.RawExtension{rawExtension(rawData)},
+				Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(rawData)}},
 			},
 		}
 	})

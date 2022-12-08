@@ -244,8 +244,10 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					Content: []runtime.RawExtension{
-						rawExtension(basicRaw),
+					Content: []apitemplates.ResourceTemplateContent{
+						{
+							RawExtension: rawExtension(basicRaw),
+						},
 					},
 				},
 			},
@@ -289,8 +291,10 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					Content: []runtime.RawExtension{
-						rawExtension(basicRaw),
+					Content: []apitemplates.ResourceTemplateContent{
+						{
+							RawExtension: rawExtension(basicRaw),
+						},
 					},
 				},
 			},

@@ -245,19 +245,21 @@ spec:
                 description: ResourceTemplates are a set of templates for resources
                   that are generated from this Template.
                 items:
-                  description: ResourceTemplate describes a resource to create.
+                  description: ResourceTemplate holds a list of resources that can
+                    be created from a template and the path to write them to.
                   properties:
                     content:
                       items:
+                        description: ResourceTemplateContent describes a resource
+                          to create.
                         type: object
+                        x-kubernetes-preserve-unknown-fields: true
                       type: array
                     path:
                       type: string
                   required:
                   - content
-                  - path
                   type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: array
             type: object
         type: object

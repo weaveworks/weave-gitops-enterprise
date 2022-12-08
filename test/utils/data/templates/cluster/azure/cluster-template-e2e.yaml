@@ -1,4 +1,4 @@
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: capz-cluster-template-{{.Count}}

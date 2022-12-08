@@ -102,10 +102,17 @@ type Chart struct {
 // HelmReleaseTemplateSpec is a future proof way to define a template with a path
 // path is not yet used, but will be used in the near future
 // +kubebuilder:object:generate=true
-
 type HelmReleaseTemplateSpec struct {
 	// Content of the template
 	Content *HelmReleaseTemplate `json:"content,omitempty"`
+}
+
+// ResourceTemplate holds a list of resources that can be created from a template
+// and the path to write them to.
+// +kubebuilder:object:generate=true
+type ResourceTemplate struct {
+	Path    string                    `json:"path,omitempty"`
+	Content []ResourceTemplateContent `json:"content"`
 }
 
 // HelmReleaseTemplate is the HelmRelease.spec that can be overridden
@@ -124,11 +131,10 @@ type HelmReleaseValues struct {
 	runtime.RawExtension `json:",inline"`
 }
 
-// ResourceTemplate describes a resource to create.
+// ResourceTemplateContent describes a resource to create.
 // +kubebuilder:skipversion
 // +kubebuilder:pruning:PreserveUnknownFields
 // +kubebuilder:object:generate=true
-type ResourceTemplate struct {
-	Path    string                 `json:"path"`
-	Content []runtime.RawExtension `json:"content"`
+type ResourceTemplateContent struct {
+	runtime.RawExtension `json:",inline"`
 }

@@ -201,6 +201,7 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 				return nil, fmt.Errorf("processing template: %w", err)
 			}
 
+			fmt.Println(string(data))
 			data, err = processUnstructured(data, opts...)
 			if err != nil {
 				return nil, fmt.Errorf("modifying template: %w", err)
