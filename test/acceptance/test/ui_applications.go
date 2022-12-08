@@ -1310,7 +1310,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				_ = deleteFile([]string{downloadedResourcesPath})
 			})
 
-			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation", "management-cluster-app"), func() {
+			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
@@ -1431,7 +1431,7 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				deleteNamespace([]string{leafCluster.Namespace})
 			})
 
-			ginkgo.It("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf-cluster-app"), func() {
+			ginkgo.It("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf-application"), func() {
 				// Podinfo application details
 				podinfo := Application{
 					Type:            "kustomization",
