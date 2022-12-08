@@ -356,9 +356,9 @@ func TakeScreenShot(name string) {
 		return
 	}
 
+	logger.Info("Saving screenshot ...")
 	if webDriver != nil {
 		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".png")
-		logger.Infof("Saving screenshot to %s", filepath)
 		_ = webDriver.Screenshot(filepath)
 	}
 }
@@ -368,7 +368,7 @@ func DumpingDOM(name string) {
 		return
 	}
 
-	logger.Infof("Dumping DOM to %s", path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME))
+	logger.Info("Dumping DOM ... ")
 	if webDriver != nil {
 		filepath := path.Join(artifacts_base_dir, SCREENSHOTS_DIR_NAME, name+".html")
 		var htmlDocument interface{}
@@ -381,7 +381,7 @@ func DumpResources(testName string) {
 	resourcesPath := "/tmp/resource-info"
 	archiveResourcePath := path.Join(artifacts_base_dir, "resource-info")
 	archivedPath := path.Join(archiveResourcePath, testName+".tar.gz")
-	logger.Infof("Dumping cluster objects/resources to %s", resourcesPath)
+	logger.Info("Dumping cluster objects/resources ...")
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, resourcesPath, archiveResourcePath))
 
@@ -396,7 +396,7 @@ func DumpClusterInfo(testName string) {
 	logsPath := "/tmp/dumped-cluster-logs"
 	archiveLogsPath := path.Join(artifacts_base_dir, "cluster-info")
 	archivedPath := path.Join(archiveLogsPath, testName+".tar.gz")
-	logger.Infof("Dumping cluster-info to %s", logsPath)
+	logger.Info("Dumping cluster-info ...")
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, logsPath, archiveLogsPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl cluster-info dump --all-namespaces --output-directory %s`, logsPath))
@@ -407,14 +407,14 @@ func DumpConfigRepo(testName string) {
 	repoPath := "/tmp/config-repo"
 	archiveRepoPath := path.Join(artifacts_base_dir, "config-repo")
 	archivedPath := path.Join(archiveRepoPath, testName+".tar.gz")
-	logger.Infof("Dumping git-repo to %s", repoPath)
+	logger.Info("Dumping git-repo ...")
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %s && mkdir -p %s`, repoPath, archiveRepoPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`git clone git@%s:%s/%s.git %s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo, repoPath))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, repoPath, archivedPath))
 }
 
-func DumpBrowserLogs(console bool, network bool) {
+func DumpBrowserLogs(testName string) {
 	if currentSpecType("cli") {
 		return
 	}
@@ -436,21 +436,17 @@ func DumpBrowserLogs(console bool, network bool) {
 
 	browserLogsPath := "/tmp/browser-logs"
 	archiveLogsPath := path.Join(artifacts_base_dir, "browser-logs")
-	archivedPath := path.Join(archiveLogsPath, "saeed"+".tar.gz")
+	archivedPath := path.Join(archiveLogsPath, testName+".tar.gz")
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, browserLogsPath, archiveLogsPath))
 
-	if console {
-		logger.Infof("Dumping browser console logs to %s", browserLogsPath)
-		consoleLog, _ := webDriver.ReadAllLogs("browser")
-		writeSlicetoFile(path.Join(browserLogsPath, "console.txt"), consoleLog)
-	}
+	logger.Info("Dumping browser console logs ...")
+	consoleLog, _ := webDriver.ReadAllLogs("browser")
+	writeSlicetoFile(path.Join(browserLogsPath, "console.txt"), consoleLog)
 
-	if network {
-		logger.Infof("Dumping browser network logs to %s", browserLogsPath)
-		var networkLog interface{}
-		gomega.Expect(webDriver.RunScript(`return window.performance.getEntries();`, map[string]interface{}{}, &networkLog)).ShouldNot(gomega.HaveOccurred())
-		writeSlicetoFile(path.Join(browserLogsPath, "network.txt"), networkLog)
-	}
+	logger.Info("Dumping browser network logs ...")
+	var networkLog interface{}
+	gomega.Expect(webDriver.RunScript(`return window.performance.getEntries();`, map[string]interface{}{}, &networkLog)).ShouldNot(gomega.HaveOccurred())
+	writeSlicetoFile(path.Join(browserLogsPath, "network.txt"), networkLog)
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, browserLogsPath, archivedPath))
 }

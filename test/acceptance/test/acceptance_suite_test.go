@@ -11,12 +11,13 @@ import (
 var theT *testing.T
 
 func GomegaFail(message string, callerSkip ...int) {
-	logger.Errorf("Spec has failed, capturing failure state")
 	randID := RandString(16)
+	logger.Error("Spec has failed, capturing failure...")
+	logger.Tracef("Dumping artifacts to %s with prefix %s", artifacts_base_dir, randID)
 
 	TakeScreenShot(randID) //Save the screenshot of failure
 	DumpingDOM(randID)
-	DumpBrowserLogs(true, true)
+	DumpBrowserLogs(randID)
 	DumpResources(randID)
 	DumpClusterInfo(randID)
 	DumpConfigRepo(randID)
