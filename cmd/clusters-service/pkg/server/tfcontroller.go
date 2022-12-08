@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 

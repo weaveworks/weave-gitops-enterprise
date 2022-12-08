@@ -8,13 +8,13 @@ import (
 	"strings"
 	"text/template"
 
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/sets"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
 
 	"github.com/Masterminds/sprig/v3"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
 // TemplateDelimiterAnnotation can be added to a Template to change the Go
@@ -47,11 +47,11 @@ type RenderOptFunc func(uns *unstructured.Unstructured) error
 
 // NewProcessorForTemplate creates and returns an appropriate processor for a
 // template based on its declared type.
-func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
+func NewProcessorForTemplate(t templatesv1.Template) (*TemplateProcessor, error) {
 	switch t.GetSpec().RenderType {
-	case "", templates.RenderTypeEnvsubst:
+	case "", templatesv1.RenderTypeEnvsubst:
 		return &TemplateProcessor{Processor: NewEnvsubstTemplateProcessor(), Template: t}, nil
-	case templates.RenderTypeTemplating:
+	case templatesv1.RenderTypeTemplating:
 		return &TemplateProcessor{Processor: NewTextTemplateProcessor(t), Template: t}, nil
 
 	}
@@ -61,7 +61,7 @@ func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
 
 // TemplateProcessor does the work of rendering a template.
 type TemplateProcessor struct {
-	templates.Template
+	templatesv1.Template
 	Processor
 }
 
@@ -223,14 +223,14 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 }
 
 // NewTextTemplateProcessor creates and returns a new TextTemplateProcessor.
-func NewTextTemplateProcessor(t templates.Template) *TextTemplateProcessor {
+func NewTextTemplateProcessor(t templatesv1.Template) *TextTemplateProcessor {
 	return &TextTemplateProcessor{template: t}
 }
 
 // TextProcessor is an implementation of the Processor interface that uses Go's
-// text/template to render templates.
+// text/template to render .
 type TextTemplateProcessor struct {
-	template templates.Template
+	template templatesv1.Template
 }
 
 func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {

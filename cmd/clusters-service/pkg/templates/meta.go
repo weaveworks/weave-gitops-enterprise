@@ -3,7 +3,7 @@ package templates
 import (
 	"fmt"
 
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	apitemplates "github.com/weaveworks/templates-controller/apis/core"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )

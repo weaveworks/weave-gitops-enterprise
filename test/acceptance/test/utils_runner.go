@@ -18,7 +18,7 @@ import (
 	goclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha2"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 )
 
 // Interface that can be implemented either with:

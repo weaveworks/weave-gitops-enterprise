@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha2"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 )
 
 var _ Processor = (*TextTemplateProcessor)(nil)
@@ -19,15 +19,15 @@ func TestNewProcessorForTemplate(t *testing.T) {
 		want       interface{}
 		wantErr    string
 	}{
-		{renderType: templates.RenderTypeEnvsubst, want: NewEnvsubstTemplateProcessor()},
+		{renderType: templatesv1.RenderTypeEnvsubst, want: NewEnvsubstTemplateProcessor()},
 		{renderType: "", want: NewEnvsubstTemplateProcessor()},
-		{renderType: templates.RenderTypeTemplating, want: NewTextTemplateProcessor(nil)},
+		{renderType: templatesv1.RenderTypeTemplating, want: NewTextTemplateProcessor(nil)},
 		{renderType: "unknown", wantErr: "unknown template renderType: unknown"},
 	}
 
 	for _, tt := range processorTests {
 		t.Run("processor for "+tt.renderType, func(t *testing.T) {
-			v, err := NewProcessorForTemplate(&gapiv1.GitOpsTemplate{Spec: templates.TemplateSpec{RenderType: tt.renderType}})
+			v, err := NewProcessorForTemplate(&gapiv1.GitOpsTemplate{Spec: templatesv1.TemplateSpec{RenderType: tt.renderType}})
 			if err != nil {
 				if tt.wantErr == "" {
 					t.Fatal(err)
