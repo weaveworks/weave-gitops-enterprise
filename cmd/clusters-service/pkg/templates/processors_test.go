@@ -181,6 +181,16 @@ func TestProcessor_Params(t *testing.T) {
 					Name: "TEST_PARAMETER",
 				},
 			},
+		}, {
+			filename: "testdata/template-with-profiles-params.yaml",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+				},
+				{Name: "INTERVAL"},
+				{Name: "TEST_PARAMETER"},
+			},
 		},
 		{
 			filename: "testdata/template-with-alt-annotation-params.yaml",

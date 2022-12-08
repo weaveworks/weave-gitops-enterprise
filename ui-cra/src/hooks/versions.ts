@@ -21,6 +21,7 @@ export function useListConfig() {
     api.GetConfig({}),
   );
   const repositoryURL = queryResponse?.data?.repositoryURL || '';
+  const uiConfig = JSON.parse(queryResponse?.data?.uiConfig || '{}');
   useEffect(() => {
     repositoryURL &&
       applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
@@ -38,5 +39,6 @@ export function useListConfig() {
   return {
     ...queryResponse,
     repoLink,
+    uiConfig,
   };
 }
