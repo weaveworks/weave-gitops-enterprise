@@ -470,6 +470,29 @@
         ]
       }
     },
+    "/v1/external_secrets": {
+      "get": {
+        "summary": "ListExternalSecrets list external secrets available on all clusters",
+        "operationId": "ClustersService_ListExternalSecrets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policies": {
       "get": {
         "summary": "ListPolicies list policies available on the management cluster",
@@ -1639,6 +1662,32 @@
         }
       }
     },
+    "v1ExternalSecretItem": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "externalSecretName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetChartsJobResponse": {
       "type": "object",
       "properties": {
@@ -1957,6 +2006,27 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
+    "v1ListExternalSecretsResponse": {
+      "type": "object",
+      "properties": {
+        "secrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecretItem"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
