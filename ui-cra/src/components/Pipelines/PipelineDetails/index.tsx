@@ -22,6 +22,7 @@ import YamlView from '../../YamlView';
 import WorkloadStatus from './WorkloadStatus';
 import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
+import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -114,6 +115,15 @@ const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   }, 0);
 };
 
+const mappedErrors = (
+  errors: Array<string>,
+  namespace: string,
+): Array<ListError> => {
+  return errors.map(err => ({
+    message: err,
+    namespace,
+  }));
+};
 interface Props {
   name: string;
   namespace: string;
@@ -148,7 +158,10 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper
+        loading={isLoading}
+        errors={mappedErrors(data?.errors || [], namespace)}
+      >
         <EditButton
           className={classes.editButton}
           resource={data?.pipeline || ({} as Pipeline)}
