@@ -50,6 +50,7 @@ message GetPipelineRequest {
 
 message GetPipelineResponse {
     Pipeline pipeline = 1;
+    repeated string errors = 2;
 }
 
 message ListError {
