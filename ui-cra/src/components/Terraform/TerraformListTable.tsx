@@ -5,6 +5,7 @@ import {
   formatURL,
   KubeStatusIndicator,
   Link,
+  statusSortHelper,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
@@ -72,6 +73,7 @@ function TerraformListTable({ className, rows }: Props) {
 
             return <Link to={u}>{name}</Link>;
           },
+          sortValue: ({ sourceRef }: TerraformObject) => sourceRef?.name,
         },
         {
           value: (tf: TerraformObject) => (
@@ -81,6 +83,7 @@ function TerraformListTable({ className, rows }: Props) {
             />
           ),
           label: 'Status',
+          sortValue: statusSortHelper,
         },
         {
           value: (tf: TerraformObject) => computeMessage(tf.conditions as any),
