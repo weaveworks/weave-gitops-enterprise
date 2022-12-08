@@ -89,6 +89,27 @@ func TestGetPipeline(t *testing.T) {
 		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
 	})
 
+	t.Run("invalid app ref", func(t *testing.T) {
+		p := newPipeline("pipe-4", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
+			APIVersion: ctrl.GroupVersion.String(),
+			Kind:       "GitopsCluster",
+			Name:       "cluster-1",
+		}
+		p.Spec.AppRef.Kind = "helmrelease"
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
+			Namespace: pipelineNamespace.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, p.Name, res.Pipeline.Name)
+		assert.Len(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads, 0)
+		assert.Len(t, res.Errors, 1)
+		assert.Equal(t, res.Errors[0], "unknown workload kind for app-1: helmrelease")
+	})
 }
 
 func newPipeline(name string, pNamespace string, tNamespace string, envName string, hr *helm.HelmRelease) *ctrl.Pipeline {

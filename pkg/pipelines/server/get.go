@@ -18,6 +18,16 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+type UnknownKind struct {
+	kind   string
+	source string
+	name   string
+}
+
+func (e UnknownKind) Error() string {
+	return fmt.Sprintf("unknown %s kind for %s: %s", e.source, e.name, e.kind)
+}
+
 func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*pb.GetPipelineResponse, error) {
 	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
 
@@ -40,6 +50,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
 	p.SetGroupVersionKind(ctrl.GroupVersion.WithKind(ctrl.PipelineKind))
 
+	pipelineErrors := []string{}
 	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
 		Environments: map[string]*pb.PipelineStatus_TargetStatusList{},
@@ -70,7 +81,9 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 			ws, err := getWorkloadStatus(app)
 			if err != nil {
-				return nil, err
+				// Do not throw an error, we want to return values we know,
+				// and return with a list of errors in the response.
+				pipelineErrors = append(pipelineErrors, err.Error())
 			}
 
 			if _, ok := pipelineResp.Status.Environments[e.Name]; !ok {
@@ -90,10 +103,16 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 					Namespace: t.ClusterRef.Namespace,
 				}
 			}
+
+			workloads := []*pb.WorkloadStatus{}
+			if ws != nil {
+				workloads = append(workloads, ws)
+			}
+
 			pipelineResp.Status.Environments[e.Name].TargetsStatuses = append(targetsStatuses, &pb.PipelineTargetStatus{
 				ClusterRef: &clusterRef,
 				Namespace:  t.Namespace,
-				Workloads:  []*pb.WorkloadStatus{ws},
+				Workloads:  workloads,
 			})
 		}
 	}
@@ -106,6 +125,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 	return &pb.GetPipelineResponse{
 		Pipeline: pipelineResp,
+		Errors:   pipelineErrors,
 	}, nil
 }
 
@@ -133,6 +153,12 @@ func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, erro
 				Message:   c.Message,
 				Timestamp: c.LastTransitionTime.Format(time.RFC3339),
 			})
+		}
+	default:
+		return nil, UnknownKind{
+			kind:   obj.GetKind(),
+			source: "workload",
+			name:   obj.GetName(),
 		}
 	}
 
