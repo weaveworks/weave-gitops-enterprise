@@ -1544,6 +1544,10 @@ status: {}
 `
 	content := simpleTemplate(t, templateContent, struct{ URL string }{URL: ts.URL})
 	expected := &GetFilesReturn{
+		RenderedTemplate: gitprovider.CommitFile{
+			Path:    strPtr("ns-foo/cluster-foo.yaml"),
+			Content: strPtr(""),
+		},
 		ProfileFiles: []gitprovider.CommitFile{
 			{
 				Path:    &path,
