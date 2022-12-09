@@ -10,7 +10,7 @@ type Props = {
 function TerraformInventoryTable({ className, rows }: Props) {
   const filterState = {
     ...filterConfig(rows, 'type'),
-    ...filterConfig(rows, 'inventory'),
+    ...filterConfig(rows, 'identifier'),
   };
   return (
     <DataTable
