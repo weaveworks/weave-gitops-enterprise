@@ -48,7 +48,6 @@ func addKustomizationManifests(manifestYamls []string) string {
 
 func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cluster", func() {
-		templateFiles := []string{}
 		clusterPath := "./clusters/management/clusters"
 
 		ginkgo.BeforeEach(func() {
@@ -60,21 +59,21 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.AfterEach(func() {
-			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
-			// Reset/empty the templateFiles list
-			templateFiles = []string{}
+			_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
+			_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 		})
 
 		ginkgo.Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
 			ginkgo.It("Verify no credentials exists in management cluster", ginkgo.Label("integration", "git"), func() {
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-eks.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template-eks": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks.yaml"),
+				}
 
+				installGitOpsTemplate(templateFiles)
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "capa-cluster-template-eks-0")
+					templateTile := pages.GetTemplateTile(webDriver, "capa-cluster-template-eks")
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -98,11 +97,11 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify matching selected credential can be used for cluster creation", ginkgo.Label("integration", "git"), func() {
-				ginkgo.By("Apply/Install CAPITemplates", func() {
-					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
-					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/azure/cluster-template-e2e.yaml")
-					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
+					"capz-cluster-template": path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				ginkgo.By("And create infrastructure provider credentials)", func() {
 					gitopsTestRunner.CreateIPCredentials("AWS")
@@ -112,7 +111,7 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "capa-cluster-template-0")
+					templateTile := pages.GetTemplateTile(webDriver, "capa-cluster-template")
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -202,9 +201,10 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify user can not use wrong credentials for infrastructure provider", ginkgo.Label("integration", "git"), func() {
-				ginkgo.By("Apply/Install CAPITemplates", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/azure/cluster-template-e2e.yaml")
-				})
+				templateFiles := map[string]string{
+					"capz-cluster-template": path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				ginkgo.By("And create infrastructure provider credentials)", func() {
 					gitopsTestRunner.CreateIPCredentials("AWS")
@@ -213,7 +213,7 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "capz-cluster-template-0")
+					templateTile := pages.GetTemplateTile(webDriver, "capz-cluster-template")
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -340,10 +340,10 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				appSourcePath = addKustomizationManifests([]string{"deployments/postgres-manifest.yaml", "deployments/podinfo-manifest.yaml"})
 
-				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
-				})
-
+				templateFiles := map[string]string{
+					"capd-cluster-template": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
@@ -351,7 +351,7 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template-0")
+					templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template")
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
@@ -610,10 +610,10 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 				appSourcePath = addKustomizationManifests([]string{"deployments/postgres-manifest.yaml", "deployments/podinfo-manifest.yaml"})
 
-				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
-				})
-
+				templateFiles := map[string]string{
+					"capd-cluster-template": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And wait for cluster-service to cache profiles", func() {
@@ -621,7 +621,7 @@ func DescribeTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template-0")
+					templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template")
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 

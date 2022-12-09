@@ -223,7 +223,7 @@ func runGitopsCommand(cmd string, timeout ...time.Duration) (stdOut, stdErr stri
 		}
 	}
 
-	cmd = fmt.Sprintf(`%s --endpoint %s %s %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag, authFlag, cmd)
+	cmd = fmt.Sprintf(`%s --endpoint %s %s %s %s`, gitops_bin_path, wge_endpoint_url, insecureFlag, authFlag, cmd)
 	ginkgo.By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 		assert_timeout := ASSERTION_DEFAULT_TIME_OUT
 		if len(timeout) > 0 {

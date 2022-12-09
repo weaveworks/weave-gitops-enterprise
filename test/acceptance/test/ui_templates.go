@@ -43,9 +43,17 @@ func setParameterValues(createPage *pages.CreateCluster, parameters []TemplateFi
 	}
 }
 
+func installGitOpsTemplate(templateFiles map[string]string) {
+	ginkgo.By("Installing GitOpsTemplate...", func() {
+		for _, templateFile := range templateFiles {
+			err := runCommandPassThrough("kubectl", "apply", "-f", templateFile)
+			gomega.Expect(err).To(gomega.BeNil(), fmt.Sprintf("Failed to apply GitOpsTemplate template %s", templateFile))
+		}
+	})
+}
+
 func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
-		templateFiles := []string{}
 
 		ginkgo.BeforeEach(func() {
 			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
@@ -56,9 +64,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.AfterEach(func() {
-			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
-			// Reset/empty the templateFiles list
-			templateFiles = []string{}
+			_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
+			_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 		})
 
 		ginkgo.Context("[UI] When no GitOps Templates are available in the cluster", func() {
@@ -82,38 +89,33 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 		ginkgo.Context("[UI] When GitOps Templates are available in the cluster", func() {
 			ginkgo.It("Verify template(s) are rendered from the template library.", func() {
-				awsTemplateCount := 2
-				eksFargateTemplateCount := 2
-				azureTemplateCount := 3
-				capdTemplateCount := 5
-				totalTemplateCount := awsTemplateCount + eksFargateTemplateCount + azureTemplateCount + capdTemplateCount
+				templateFiles := map[string]string{
+					"capa-cluster-template":             path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
+					"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks-fargate.yaml"),
+					"capa-cluster-template-eks":         path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks.yaml"),
+					"capa-cluster-template-machinepool": path.Join(testDataPath, "templates/cluster/aws/cluster-template-machinepool.yaml"),
+					"capz-cluster-template":             path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
+					"capd-cluster-template":             path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+					"capg-cluster-template":             path.Join(testDataPath, "templates/cluster/gcp/cluster-template-gke.yaml"),
+					"connect-a-cluster":                 path.Join(testDataPath, "templates/cluster/gitops/cluster-template.yaml"),
+					"git-repository-template":           path.Join(testDataPath, "templates/source/git-repository-template.yaml"),
+					"helm-repository-template":          path.Join(testDataPath, "templates/source/helm-repository-template.yaml"),
+					"git-kustomization-template":        path.Join(testDataPath, "templates/application/git-kustomization-template.yaml"),
+					"helmrelease-template":              path.Join(testDataPath, "templates/application/helmrelease-template.yaml"),
+				}
 
-				ordered_template_list := func() []string {
-					expected_list := make([]string, totalTemplateCount)
-					for i := 0; i < awsTemplateCount; i++ {
-						expected_list[i] = fmt.Sprintf("capa-cluster-template-%d", i)
-					}
-					for i := 0; i < eksFargateTemplateCount; i++ {
-						expected_list[i] = fmt.Sprintf("capa-cluster-template-eks-fargate-%d", i)
-					}
-					for i := 0; i < capdTemplateCount; i++ {
-						expected_list[i] = fmt.Sprintf("capd-cluster-template-%d", i)
-					}
-					for i := 0; i < azureTemplateCount; i++ {
-						expected_list[i] = fmt.Sprintf("capz-cluster-template-%d", i)
-					}
+				var keys []string
+				for k := range templateFiles {
+					keys = append(keys, k)
+				}
+				sort.Strings(keys)
 
-					sort.Strings(expected_list)
-					return expected_list
-				}()
+				totalTemplateCount := len(templateFiles)
+				sourceTemplateCount := 2
+				awsTemplateCount := 4
+				azureTemplateCount := 1
 
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(5, "templates/cluster/docker/cluster-template.yaml")...)
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(3, "templates/cluster/azure/cluster-template-e2e.yaml")...)
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "templates/cluster/aws/cluster-template-ec2.yaml")...)
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(2, "templates/cluster/aws/cluster-template-eks-fargate.yaml")...)
-				})
-
+				installGitOpsTemplate(templateFiles)
 				templatesPage := pages.GetTemplatesPage(webDriver)
 				navigateToTemplatesGrid(webDriver)
 
@@ -126,21 +128,20 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And I should change the templates view to 'table'", func() {
 					gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
 					gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(totalTemplateCount), "The number of rows rendered should be equal to number of templates created")
-
 				})
 
 				ginkgo.By("And templates are ordered - table view", func() {
 					actual_list := templatesPage.GetTemplateTableList()
-					for i := 0; i < totalTemplateCount; i++ {
-						gomega.Expect(actual_list[i]).Should(gomega.ContainSubstring(ordered_template_list[i]))
+					for i, key := range keys {
+						gomega.Expect(actual_list[i]).Should(gomega.ContainSubstring(key))
 					}
 				})
 
-				ginkgo.By("And templates can be filtered by provider - table view", func() {
-					filterID := "provider: aws"
+				ginkgo.By("And templates can be filtered by type - table view", func() {
+					filterID := "templateType: source"
 					searchPage := pages.GetSearchPage(webDriver)
-					searchPage.SelectFilter("provider", filterID)
-					gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(4), "The number of selected template tiles rendered should be equal to number of aws templates created")
+					searchPage.SelectFilter("templateType", filterID)
+					gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(sourceTemplateCount), "The number of selected template tiles rendered should be equal to number of aws templates created")
 				})
 
 				ginkgo.By("And I should change the templates view to 'grid'", func() {
@@ -151,8 +152,8 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 				ginkgo.By("And templates are ordered - grid view", func() {
 					actual_list := templatesPage.GetTemplateTileList()
-					for i := 0; i < totalTemplateCount; i++ {
-						gomega.Expect(actual_list[i]).Should(gomega.ContainSubstring(ordered_template_list[i]))
+					for i, key := range keys {
+						gomega.Expect(actual_list[i]).Should(gomega.ContainSubstring(key))
 					}
 				})
 
@@ -163,7 +164,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(templatesPage.SelectProvider("aws").Click()).To(gomega.Succeed())
 
 					tileCount, _ := templatesPage.TemplateTiles.Count()
-					gomega.Eventually(tileCount).Should(gomega.Equal(awsTemplateCount+eksFargateTemplateCount), "The number of aws provider template tiles rendered should be equal to number of aws templates created")
+					gomega.Eventually(tileCount).Should(gomega.Equal(awsTemplateCount), "The number of aws provider template tiles rendered should be equal to number of aws templates created")
 
 					// Select cluster provider by typing the provider name
 					gomega.Expect(templatesPage.TemplateProvider.Click()).To(gomega.Succeed())
@@ -179,7 +180,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify I should be able to select a template of my choice", func() {
 
 				// test selection with 50 capiTemplates
-				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(50, "templates/miscellaneous/templated-cluster-template.yaml")
+				_ = gitopsTestRunner.CreateApplyCapitemplates(50, "templates/miscellaneous/templated-cluster-template.yaml")
 
 				navigateToTemplatesGrid(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
@@ -220,15 +221,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify UI shows message related to an invalid template(s) when valid templates are not available", func() {
 
-				ginkgo.By("Apply/Install invalid CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/miscellaneous/invalid-cluster-template.yaml")
-				})
+				templateFiles := map[string]string{
+					"invalid-cluster-template": path.Join(testDataPath, "templates/miscellaneous/invalid-cluster-template.yaml"),
+				}
 
+				installGitOpsTemplate(templateFiles)
 				navigateToTemplatesGrid(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
 
 				ginkgo.By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "invalid-cluster-template-0")
+					templateTile := pages.GetTemplateTile(webDriver, "invalid-cluster-template")
 					gomega.Eventually(templateTile.ErrorHeader).Should(matchers.BeFound())
 					gomega.Expect(templateTile.ErrorDescription).Should(matchers.BeFound())
 					gomega.Expect(templateTile.CreateTemplate).ShouldNot(matchers.BeEnabled())
@@ -239,7 +241,7 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And User should see message informing user of the invalid template in the cluster - table view", func() {
-					templateRow := templatesPage.GetTemplateInformation(webDriver, "invalid-cluster-template-0")
+					templateRow := templatesPage.GetTemplateInformation(webDriver, "invalid-cluster-template")
 					gomega.Eventually(templateRow.Type).Should(matchers.MatchText(""))
 					gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"))
 					gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
@@ -250,15 +252,16 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
 
-				noOfValidTemplates := 3
-				ginkgo.By("Apply/Install valid CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(noOfValidTemplates, "templates/cluster/aws/cluster-template-eks-fargate.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks-fargate.yaml"),
+					"helm-repository-template":          path.Join(testDataPath, "templates/source/helm-repository-template.yaml"),
+					"git-kustomization-template":        path.Join(testDataPath, "templates/application/git-kustomization-template.yaml"),
+					"invalid-cluster-template":          path.Join(testDataPath, "templates/miscellaneous/invalid-cluster-template.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
+				noOfValidTemplates := 3
 				noOfInvalidTemplates := 1
-				ginkgo.By("Apply/Install invalid CAPITemplate", func() {
-					templateFiles = append(templateFiles, gitopsTestRunner.CreateApplyCapitemplates(noOfInvalidTemplates, "templates/miscellaneous/invalid-cluster-template.yaml")...)
-				})
 
 				navigateToTemplatesGrid(webDriver)
 				templatesPage := pages.GetTemplatesPage(webDriver)
@@ -270,79 +273,10 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And User should see message informing user of the invalid template in the cluster", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "invalid-cluster-template-0")
+					templateTile := pages.GetTemplateTile(webDriver, "invalid-cluster-template")
 					gomega.Eventually(templateTile.ErrorHeader).Should(matchers.BeFound())
 					gomega.Expect(templateTile.ErrorDescription).Should(matchers.BeFound())
 					gomega.Expect(templateTile.CreateTemplate).ShouldNot(matchers.BeEnabled())
-				})
-			})
-
-			ginkgo.It("Verify template parameters should be rendered dynamically and can be set for the selected template", ginkgo.Label("integration"), func() {
-
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-eks-fargate.yaml")
-				})
-
-				navigateToTemplatesGrid(webDriver)
-				templatesPage := pages.GetTemplatesPage(webDriver)
-
-				ginkgo.By("And I should change the templates view to 'table'", func() {
-					gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
-				})
-
-				ginkgo.By("And I should choose a template - table view", func() {
-					templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-eks-fargate-0")
-					gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
-				})
-
-				createPage := pages.GetCreateClusterPage(webDriver)
-				ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
-					pages.WaitForPageToLoad(webDriver)
-					gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
-				})
-
-				clusterName := "my-eks-cluster"
-				region := "east"
-
-				var parameters = []TemplateField{
-					{
-						Name:   "CLUSTER_NAME",
-						Value:  clusterName,
-						Option: "",
-					},
-				}
-
-				setParameterValues(createPage, parameters)
-
-				ginkgo.By("Then missing required parameters should get focus when previewing PR", func() {
-					gomega.Eventually(createPage.PreviewPR.Click).Should(gomega.Succeed())
-					gomega.Eventually(createPage.GetTemplateParameter(webDriver, "AWS_REGION").Focused).Should(matchers.BeFound(), "Missing required parameter 'AWS_REGION' failed to get focus")
-				})
-
-				parameters = []TemplateField{
-					{
-						Name:   "AWS_REGION",
-						Value:  region,
-						Option: "",
-					},
-				}
-
-				setParameterValues(createPage, parameters)
-
-				ginkgo.By("Then I should preview the PR", func() {
-					preview := pages.GetPreview(webDriver)
-					gomega.Eventually(func(g gomega.Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
-						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
-
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
-
-					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*name: %[1]v\s+namespace: default\s+spec:[\s\w\d./:-]*controlPlaneRef:[\s\w\d./:-]*name: %[1]v-control-plane\s+infrastructureRef:[\s\w\d./:-]*kind: AWSManagedCluster\s+name: %[1]v`, clusterName)))
-					gomega.Eventually(preview.Text).Should((matchers.MatchText(fmt.Sprintf(`kind: AWSManagedCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v`, clusterName))))
-					gomega.Eventually(preview.Text).Should((matchers.MatchText(fmt.Sprintf(`kind: AWSManagedControlPlane\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-control-plane\s+namespace: default\s+spec:\s+region: %[2]v\s+sshKeyName: null\s+version: null`, clusterName, region))))
-					gomega.Eventually(preview.Text).Should((matchers.MatchText(fmt.Sprintf(`kind: AWSFargateProfile\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %[1]v-fargate-0`, clusterName))))
-
-					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
 				})
 			})
 		})
@@ -365,13 +299,14 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify pull request for cluster can be created to the management cluster", ginkgo.Label("integration", "git"), func() {
 				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				}
 
+				installGitOpsTemplate(templateFiles)
 				navigateToTemplatesGrid(webDriver)
 
-				templateName := "capd-cluster-template-0"
+				templateName := "capd-cluster-template"
 				ginkgo.By("And User should choose a template", func() {
 					templateTile := pages.GetTemplateTile(webDriver, templateName)
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
@@ -563,14 +498,15 @@ func DescribeTemplates(gitopsTestRunner GitopsTestRunner) {
 					_ = createGitRepoBranch(repoAbsolutePath, branchName)
 				})
 
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				}
 
+				installGitOpsTemplate(templateFiles)
 				navigateToTemplatesGrid(webDriver)
 
 				ginkgo.By("And User should choose a template", func() {
-					templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template-0")
+					templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template")
 					gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
 				})
 
