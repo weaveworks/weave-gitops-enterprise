@@ -52,7 +52,7 @@ func installGitOpsTemplate(templateFiles map[string]string) {
 	})
 }
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.Label("ui", "template"), func() {
 
 	ginkgo.BeforeEach(func() {
 		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
@@ -68,7 +68,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
 	})
 
 	ginkgo.Context("[UI] When no GitOps Templates are available in the cluster", func() {
-		ginkgo.It("Verify template page renders no GitOpsTemplate", ginkgo.Label("integration"), func() {
+
+		ginkgo.It("Verify template page renders no GitOpsTemplate", func() {
 			ginkgo.By("And wait for  good looking response from /v1/templates", func() {
 				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: "templates"}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/templates")
 			})
@@ -87,6 +88,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
 	})
 
 	ginkgo.Context("[UI] When GitOps Templates are available in the cluster", func() {
+
 		ginkgo.It("Verify template(s) are rendered from the template library.", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template":             path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
@@ -301,7 +303,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
 			_ = deleteFile([]string{downloadedResourcesPath})
 		})
 
-		ginkgo.It("Verify pull request for cluster can be created to the management cluster", ginkgo.Label("integration", "git"), func() {
+		ginkgo.It("Verify pull request for cluster can be created to the management cluster", func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 			templateFiles := map[string]string{
@@ -493,7 +495,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
 			})
 		})
 
-		ginkgo.It("Verify pull request can not be created by using exiting repository branch", ginkgo.Label("integration", "git"), func() {
+		ginkgo.It("Verify pull request can not be created by using exiting repository branch", func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			// Checkout repo main branch in case of test failure
 			defer checkoutRepoBranch(repoAbsolutePath, "main")

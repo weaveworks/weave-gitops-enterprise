@@ -51,7 +51,7 @@ func verifyGlobalFlags(stdOut string) {
 	})
 }
 
-var _ = ginkgo.Describe("Gitops Help Tests", ginkgo.Label("cli"), func() {
+var _ = ginkgo.Describe("Gitops Help Tests", ginkgo.Label("cli", "help"), func() {
 	var stdOut string
 	var stdErr string
 
@@ -365,6 +365,7 @@ var _ = ginkgo.Describe("Gitops Help Tests", ginkgo.Label("cli"), func() {
 	})
 
 	ginkgo.Context("[CLI] When gitops command required parameters are missing", func() {
+
 		ginkgo.It("Verify that gitops displays error text when listing parameters without specifying a template", func() {
 			stdOut, stdErr = runGitopsCommand("get templates --list-parameters")
 

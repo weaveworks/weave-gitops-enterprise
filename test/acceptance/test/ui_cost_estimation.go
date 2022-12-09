@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.Label("ui", "template", "cost"), func() {
 	DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 	ginkgo.BeforeEach(func() {
@@ -37,7 +37,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 
 		})
 
-		ginkgo.It("Verify capa EC2 cluster cost estimation", ginkgo.Label("integration", "cost"), func() {
+		ginkgo.It("Verify capa EC2 cluster cost estimation", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
 			}
@@ -156,7 +156,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 			})
 		})
 
-		ginkgo.It("Verify non-supported (eks) capa cluster cost estimation", ginkgo.Label("integration", "cost"), func() {
+		ginkgo.It("Verify non-supported (eks) capa cluster cost estimation", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks.yaml"),
 			}
@@ -210,7 +210,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 			})
 		})
 
-		ginkgo.It("Verify capa machinepool cost estimation", ginkgo.Label("integration", "cost"), func() {
+		ginkgo.It("Verify capa machinepool cost estimation", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-machinepool.yaml"),
 			}
@@ -304,7 +304,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 			loginUser()
 		})
 
-		ginkgo.It("Verify capa cost estimation with invalid pricing secrert", ginkgo.Label("integration", "cost"), func() {
+		ginkgo.It("Verify capa cost estimation with invalid pricing secrert", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-machinepool.yaml"),
 			}

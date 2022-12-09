@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-var _ = ginkgo.Describe("Gitops upgrade Tests", func() {
+var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), func() {
 
 	UI_NODEPORT := "30081"
 	var upgradeWgeEndpointUrl string
@@ -58,7 +58,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", func() {
 		})
 	})
 
-	ginkgo.Context("[CLI] When Wego core is installed in the cluster", func() {
+	ginkgo.Context("[CLI] When Wego core is installed in the cluster", ginkgo.Label("cluster"), func() {
 		var currentConfigRepo string
 		var currentContext string
 		kind_upgrade_cluster_name := "test-upgrade"
@@ -91,7 +91,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", func() {
 
 		})
 
-		ginkgo.It("Verify wego core can be upgraded to wego enterprise", ginkgo.Label("upgrade", "git"), func() {
+		ginkgo.It("Verify wego core can be upgraded to wego enterprise", func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 			ginkgo.By("When I create a private repository for cluster configs", func() {

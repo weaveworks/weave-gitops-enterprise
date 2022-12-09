@@ -46,7 +46,7 @@ func addKustomizationManifests(manifestYamls []string) string {
 	return manifestPath
 }
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cluster", func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cluster", ginkgo.Label("ui", "template"), func() {
 	clusterPath := "./clusters/management/clusters"
 
 	ginkgo.BeforeEach(func() {
@@ -63,7 +63,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 	})
 
 	ginkgo.Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
-		ginkgo.It("Verify no credentials exists in management cluster", ginkgo.Label("integration", "git"), func() {
+
+		ginkgo.It("Verify no credentials exists in management cluster", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template-eks": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks.yaml"),
 			}
@@ -95,7 +96,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			deleteIPCredentials("AZURE")
 		})
 
-		ginkgo.It("Verify matching selected credential can be used for cluster creation", ginkgo.Label("integration", "git"), func() {
+		ginkgo.It("Verify matching selected credential can be used for cluster creation", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
 				"capz-cluster-template": path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
@@ -199,7 +200,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 
 		})
 
-		ginkgo.It("Verify user can not use wrong credentials for infrastructure provider", ginkgo.Label("integration", "git"), func() {
+		ginkgo.It("Verify user can not use wrong credentials for infrastructure provider", func() {
 			templateFiles := map[string]string{
 				"capz-cluster-template": path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
 			}
@@ -335,7 +336,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 		})
 
-		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("smoke", "integration", "capd", "git"), func() {
+		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("smoke", "capd"), func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			appSourcePath = addKustomizationManifests([]string{"deployments/postgres-manifest.yaml", "deployments/podinfo-manifest.yaml"})
 
@@ -605,7 +606,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 		})
 
-		ginkgo.It("Verify CAPI cluster resource can be modified/edited", ginkgo.Label("integration", "capd", "git"), func() {
+		ginkgo.It("Verify CAPI cluster resource can be modified/edited", ginkgo.Label("capd"), func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			appSourcePath = addKustomizationManifests([]string{"deployments/postgres-manifest.yaml", "deployments/podinfo-manifest.yaml"})
 

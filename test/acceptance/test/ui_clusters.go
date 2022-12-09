@@ -115,7 +115,7 @@ func verifyClusterInformation(clusterInfo *pages.ClusterInformation, cluster Clu
 	})
 }
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", ginkgo.Label("ui", "cluster"), func() {
 
 	ginkgo.BeforeEach(func() {
 		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
@@ -126,7 +126,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
 	})
 
 	ginkgo.Context("[UI] When no leaf cluster is connected", func() {
-		ginkgo.It("Verify connected cluster dashboard shows only management cluster", ginkgo.Label("integration"), func() {
+
+		ginkgo.It("Verify connected cluster dashboard shows only management cluster", func() {
 			mgmtCluster := ClusterConfig{
 				Type:      "kubernetes",
 				Name:      "management",
@@ -152,7 +153,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
 		})
 	})
 
-	ginkgo.Context("[UI] Cluster(s) can be connected", func() {
+	ginkgo.Context("[UI] Cluster(s) can be connected", ginkgo.Label("leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -190,7 +191,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", func() {
 			deleteNamespace([]string{leafCluster.Namespace})
 		})
 
-		ginkgo.It("Verify a cluster can be connected and dashboard is updated accordingly", ginkgo.Label("kind-gitops-cluster", "integration"), func() {
+		ginkgo.It("Verify a cluster can be connected and dashboard is updated accordingly", func() {
 			existingClustersCount := getClustersCount()
 
 			pages.NavigateToPage(webDriver, "Clusters")

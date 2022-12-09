@@ -11,7 +11,7 @@ import (
 	"github.com/onsi/gomega"
 )
 
-var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
+var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), func() {
 	var stdOut string
 	var stdErr string
 	var repoAbsolutePath string
@@ -188,7 +188,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			})
 		})
 
-		ginkgo.It("Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", ginkgo.Label("git"), func() {
+		ginkgo.It("Verify gitops can set template parameters by specifying multiple parameters --set key=value --set key=value", func() {
 			clusterName := "development-cluster"
 			namespace := "gitops-dev"
 			k8version := "1.19.7"
@@ -219,7 +219,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			})
 		})
 
-		ginkgo.It("Verify gitops can set template parameters by separate values with commas key1=val1,key2=val2", ginkgo.Label("git"), func() {
+		ginkgo.It("Verify gitops can set template parameters by separate values with commas key1=val1,key2=val2", func() {
 			clusterName := "development-cluster"
 			namespace := "gitops-dev"
 			k8version := "1.23.6"
@@ -251,7 +251,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			})
 		})
 
-		ginkgo.It("Verify gitops reports an error when trying to create pull request with missing --from-template argument", ginkgo.Label("git"), func() {
+		ginkgo.It("Verify gitops reports an error when trying to create pull request with missing --from-template argument", func() {
 			// Parameter values
 			clusterName := "development-cluster"
 			namespace := "gitops-dev"
@@ -286,7 +286,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			cleanGitRepository(clusterPath)
 		})
 
-		ginkgo.It("Verify gitops can create pull requests to management cluster", ginkgo.Label("smoke", "git"), func() {
+		ginkgo.It("Verify gitops can create pull requests to management cluster", ginkgo.Label("smoke"), func() {
 			// CAPD Parameter values
 			capdClusterName := "my-capd-cluster2"
 			capdNamespace := "gitops-dev"
@@ -372,7 +372,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 
 		})
 
-		ginkgo.It("Verify giops can not create pull request to management cluster using existing branch", ginkgo.Label("git"), func() {
+		ginkgo.It("Verify giops can not create pull request to management cluster using existing branch", func() {
 			branchName := "cli-test-branch"
 			ginkgo.By("And create new git repository branch", func() {
 				createGitRepoBranch(repoAbsolutePath, branchName)

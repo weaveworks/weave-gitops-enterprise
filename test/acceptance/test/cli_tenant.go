@@ -66,7 +66,7 @@ func verifyTenatResources(tenantName string, namespaces []string, sa bool) {
 	})
 }
 
-var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label("cli"), func() {
+var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label("cli", "tenant"), func() {
 	var tenantYaml string
 	var stdOut string
 	var stdErr string
@@ -95,7 +95,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			waitForNamespaceDeletion(namespaces)
 		})
 
-		ginkgo.It("Verify a single tenant resources can be exported", ginkgo.Label("tenant"), func() {
+		ginkgo.It("Verify a single tenant resources can be exported", func() {
 			tenatDefination := path.Join(testDataPath, "tenancy", "single-tenant.yaml")
 
 			// verify tenants resources are exported to terminal
@@ -114,7 +114,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			verifyTenantYaml(string(contents), "test-team", []string{"test-system"}, true, "test-team", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:QA"}, true)
 		})
 
-		ginkgo.It("Verify global service account reconciliation by tenant", ginkgo.Label("tenant"), func() {
+		ginkgo.It("Verify global service account reconciliation by tenant", func() {
 			tenatDefination := path.Join(testDataPath, "tenancy", "single-tenant-sa.yaml")
 
 			_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
@@ -126,7 +126,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			verifyTenantYaml(string(contents), "dev-team", []string{"dev-system"}, false, "reconcilerServiceAccount", map[string][]string{"ClusterRole": {"cluster-admin"}}, []string{"weaveworks:Pesto", "developers"}, true)
 		})
 
-		ginkgo.It("Verify global service account reconciliation by tenant with deployment RBAC", ginkgo.Label("tenant"), func() {
+		ginkgo.It("Verify global service account reconciliation by tenant with deployment RBAC", func() {
 			tenatDefination := path.Join(testDataPath, "tenancy", "single-tenant-deployment-sa.yaml")
 
 			_, stdErr = runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
@@ -138,7 +138,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			verifyTenantYaml(string(contents), "test-team", []string{"test-system"}, false, "reconcilerServiceAccount", map[string][]string{"Role": {"foo-role"}}, []string{"wge-test"}, true)
 		})
 
-		ginkgo.It("Verify creating tenant resource using kubeconfig ", ginkgo.Label("tenant"), func() {
+		ginkgo.It("Verify creating tenant resource using kubeconfig ", func() {
 			_ = runCommandPassThrough("kubectl", "delete", "-f", tenantYaml)
 			tenatDefination := path.Join(testDataPath, "tenancy", "multiple-tenant.yaml")
 
@@ -154,7 +154,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			verifyTenatResources("dev-team", []string{"dev-system"}, true)
 		})
 
-		ginkgo.It("Verify tenant can only install the application from allowed repositories", ginkgo.Label("tenant"), func() {
+		ginkgo.It("Verify tenant can only install the application from allowed repositories", func() {
 			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 			// Adding not allowed git repository source
@@ -169,7 +169,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			gomega.Expect(stdErr).Should(gomega.MatchRegexp(`admission webhook "admission.agent.weaveworks" denied the request`), fmt.Sprintf("The restricted git repository source '%s' should not be allowd", sourceURL))
 		})
 
-		ginkgo.It("Verify tenant can only add allowed GitopsCluster to multi-cluster setup", ginkgo.Label("tenant"), func() {
+		ginkgo.It("Verify tenant can only add allowed GitopsCluster to multi-cluster setup", func() {
 			leafCluster := ClusterConfig{
 				Type:      "other",
 				Name:      "wge-leaf-tenant-kind",
@@ -233,7 +233,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 			waitForNamespaceDeletion(namespaces)
 		})
 
-		ginkgo.It("Verify a single tenant resources can be exported", ginkgo.Label("tenant"), func() {
+		ginkgo.It("Verify a single tenant resources can be exported", func() {
 
 			// verify tenants resources are exported to terminal
 			stdOut, stdErr = runGitopsCommand(`create tenants --name test-tenant1 --namespace test-ns1 --export`)

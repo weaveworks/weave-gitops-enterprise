@@ -46,7 +46,7 @@ func createProfileValuesYaml(profileName string, clusterName string) string {
 	return profileValues
 }
 
-var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.Label("cli"), func() {
+var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.Label("cli", "template"), func() {
 	var stdOut string
 	var repoAbsolutePath string
 	clusterPath := "./clusters/management/clusters"
@@ -96,7 +96,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			})
 		})
 
-		ginkgo.It("Verify gitops can use the matching selected credential for cluster creation", ginkgo.Label("git"), func() {
+		ginkgo.It("Verify gitops can use the matching selected credential for cluster creation", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
 				"capz-cluster-template": path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
@@ -131,7 +131,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			})
 		})
 
-		ginkgo.It("Verify gitops restrict user from using wrong credentials for infrastructure provider", ginkgo.Label("git"), func() {
+		ginkgo.It("Verify gitops restrict user from using wrong credentials for infrastructure provider", func() {
 			templateFiles := map[string]string{
 				"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
 			}
@@ -208,7 +208,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 		})
 
-		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("capd", "git"), func() {
+		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("capd"), func() {
 			ginkgo.By("And wait for cluster-service to cache profiles", func() {
 				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 			})

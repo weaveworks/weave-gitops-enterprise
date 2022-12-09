@@ -21,7 +21,7 @@ func installViolatingDeployment(clusterName string, deploymentYaml string) {
 	})
 }
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", ginkgo.Label("ui", "violation"), func() {
 
 	ginkgo.BeforeEach(func() {
 		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
@@ -60,7 +60,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", func() {
 			_ = runCommandPassThrough("kubectl", "delete", "-f", deploymentYaml)
 		})
 
-		ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", ginkgo.Label("integration", "violation"), func() {
+		ginkgo.It("Verify multiple occurrence violations can be monitored for violating resource", func() {
 			existingViolationCount := getViolationsCount()
 			// Installing test policies,Policy Config and violating deployment on management cluster
 			installTestPolicies("management", policiesYaml)
@@ -139,7 +139,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", func() {
 		})
 	})
 
-	ginkgo.Context("[UI] Leaf cluster violations can be seen in management cluster", func() {
+	ginkgo.Context("[UI] Leaf cluster violations can be seen in management cluster", ginkgo.Label("leaf-violation"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -183,7 +183,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", func() {
 			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 		})
 
-		ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", ginkgo.Label("integration", "violation", "leaf-violation"), func() {
+		ginkgo.It("Verify leaf cluster Violations can be monitored for violating resource via management cluster dashboard", func() {
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
 			installPolicyAgent(leafClusterName)

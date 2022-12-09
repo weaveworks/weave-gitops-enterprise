@@ -33,7 +33,7 @@ func deleteTenants(tenantYamls []string) {
 	}
 }
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, ginkgo.Label("ui", "tenant"), func() {
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 		// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
@@ -45,7 +45,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, f
 		_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 	})
 
-	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources", ginkgo.Ordered, func() {
+	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources", ginkgo.Ordered, ginkgo.Label("application"), func() {
 		existingAppCount := 0 // Tenant starts from a clean slate
 
 		mgmtCluster := ClusterConfig{
@@ -70,7 +70,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, f
 			gomega.Eventually(applicationsPage.CountApplications, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 		})
 
-		ginkgo.It("Verify tenant can install the kustomization application and dashboard is updated accordingly", ginkgo.Label("integration", "tenant", "application"), func() {
+		ginkgo.It("Verify tenant can install the kustomization application and dashboard is updated accordingly", func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",
@@ -171,7 +171,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, f
 			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 		})
 
-		ginkgo.It("Verify tenant can install the helmrelease application and dashboard is updated accordingly", ginkgo.Label("integration", "tenant", "application"), func() {
+		ginkgo.It("Verify tenant can install the helmrelease application and dashboard is updated accordingly", func() {
 			ginkgo.Skip("HelmReleases are always get installed in flux-system, skipping until fixed")
 			tenantNamespace := "test-system"
 
@@ -284,7 +284,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, f
 		})
 	})
 
-	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources on leaf cluster", func() {
+	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources on leaf cluster", ginkgo.Ordered, ginkgo.Label("leaf-application"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -327,7 +327,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, f
 			deleteNamespace([]string{leafCluster.Namespace})
 		})
 
-		ginkgo.It("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", ginkgo.Label("integration", "tenant", "leaf-application"), func() {
+		ginkgo.It("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",

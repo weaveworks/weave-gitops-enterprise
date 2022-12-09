@@ -23,7 +23,8 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 
 	})
 
-	ginkgo.Context("[CLI] When no clusters are available in the management cluster", func() {
+	ginkgo.Context("[CLI] When no clusters are available in the management cluster", ginkgo.Label("cli", "cluster"), func() {
+
 		ginkgo.It("Verify gitops lists no clusters", func() {
 			ginkgo.By("And gitops state is reset", func() {
 				resetControllers("enterprise")
@@ -39,7 +40,8 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 		})
 	})
 
-	ginkgo.Context("[CLI] When profiles are available in the management cluster", func() {
+	ginkgo.Context("[CLI] When profiles are available in the management cluster", ginkgo.Label("profile"), func() {
+
 		ginkgo.It("Verify gitops can list profiles from default profile repository", func() {
 			ginkgo.By("And wait for cluster-service to cache profiles", func() {
 				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
@@ -74,7 +76,7 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 		})
 	})
 
-	ginkgo.Context("[CLI] When entitlement is available in the cluster", func() {
+	ginkgo.Context("[CLI] When entitlement is available in the cluster", ginkgo.Label("entitlement"), func() {
 		var resourceName string
 		DEPLOYMENT_APP := "my-mccp-cluster-service"
 

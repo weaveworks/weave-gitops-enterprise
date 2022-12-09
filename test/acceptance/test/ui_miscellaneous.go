@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", ginkgo.Label("ui"), func() {
 
 	ginkgo.BeforeEach(func() {
 		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
@@ -23,7 +23,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", fu
 
 	})
 
-	ginkgo.Context("[UI] When entitlement is available in the cluster", func() {
+	ginkgo.Context("[UI] When entitlement is available in the cluster", ginkgo.Label("entitlement"), func() {
 		DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 		checkEntitlement := func(typeEntitelment string, beFound bool) {
@@ -75,7 +75,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", fu
 			})
 		})
 
-		ginkgo.It("Verify cluster service acknowledges the entitlement presences", ginkgo.Label("integration"), func() {
+		ginkgo.It("Verify cluster service acknowledges the entitlement presences", func() {
 
 			ginkgo.By("When I delete the entitlement", func() {
 				gomega.Expect(runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to delete entitlement secret")
