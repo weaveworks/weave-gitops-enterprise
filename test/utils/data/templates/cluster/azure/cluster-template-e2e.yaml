@@ -1,7 +1,7 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capz-cluster-template-{{.Count}}
+  name: capz-cluster-template
   namespace: default
   labels:
     weave.works/template-type: cluster
@@ -9,7 +9,7 @@ metadata:
     templates.weave.works/inject-prune-annotation: "true"
     templates.weave.works/credentials-enabled: "true"
 spec:
-  description: This is Azure capi quick start template-{{.Count}}
+  description: This is Azure capi quick start template
   params:
     - name: CLUSTER_NAME
       required: true
@@ -130,14 +130,14 @@ spec:
                 azure-container-registry-config: /etc/kubernetes/azure.json
                 cloud-config: /etc/kubernetes/azure.json
                 cloud-provider: azure
-              name: {{` ds.meta_data["local_hostname"] `}}
+              name: '{{ ds.meta_data["local_hostname"] }}'
           joinConfiguration:
             nodeRegistration:
               kubeletExtraArgs:
                 azure-container-registry-config: /etc/kubernetes/azure.json
                 cloud-config: /etc/kubernetes/azure.json
                 cloud-provider: azure
-              name: {{` ds.meta_data["local_hostname"] `}}
+              name: '{{ ds.meta_data["local_hostname"] }}'
           mounts:
           - - LABEL=etcd_disk
             - /var/lib/etcddisk
@@ -223,5 +223,5 @@ spec:
                   azure-container-registry-config: /etc/kubernetes/azure.json
                   cloud-config: /etc/kubernetes/azure.json
                   cloud-provider: azure
-                name: {{` ds.meta_data["local_hostname"] `}}
+                name: '{{ ds.meta_data["local_hostname"] }}'
 
