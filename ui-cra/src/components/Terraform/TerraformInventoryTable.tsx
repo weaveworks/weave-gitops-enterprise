@@ -32,7 +32,7 @@ function TerraformInventoryTable({ className, rows }: Props) {
         },
       ]}
       filters={filterState}
-      emptyMessagePlaceholder='To see the inventory items on this Terraform object set the "spec.enableInventory" to true, and force an apply'
+      emptyMessagePlaceholder='To see the inventory items on this Terraform object set the "spec.enableInventory" to true'
     />
   );
 }

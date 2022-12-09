@@ -94,7 +94,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
       })
       .finally(() => setSuspending(false));
   };
-  console.log(object);
+
   return (
     <PageTemplate
       documentTitle="Terraform"
