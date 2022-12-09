@@ -267,7 +267,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			}
 			installGitOpsTemplate(templateFiles)
 
-			cmd := fmt.Sprintf(`add cluster --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --url %s --commit-message %s --description %s`, clusterName, namespace, k8version, prBranch, git_repository_url, prCommit, prDescription)
+			cmd := fmt.Sprintf(`add cluster --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --branch %s --url %s --commit-message %s --description %s`, clusterName, namespace, k8version, prBranch, gitRepositoryUrl, prCommit, prDescription)
 			stdOut, stdErr = runGitopsCommand(cmd)
 
 			ginkgo.By("Then I should see an error for required argument to create pull request", func() {
@@ -307,7 +307,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			installGitOpsTemplate(templateFiles)
 
 			cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set INSTALL_CRDS=true --branch %s --title %s --url %s --commit-message %s --description %s`,
-				capdClusterName, capdNamespace, capdK8version, controlPlaneMachineCount, workerMachineCount, capdPRBranch, capdPRTitle, git_repository_url, capdPRCommit, capdPRDescription)
+				capdClusterName, capdNamespace, capdK8version, controlPlaneMachineCount, workerMachineCount, capdPRBranch, capdPRTitle, gitRepositoryUrl, capdPRCommit, capdPRDescription)
 			stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
 			var capdPRUrl string
@@ -344,7 +344,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			eksPRDescription := "This PR creates a new eks Kubernetes cluster"
 
 			cmd = fmt.Sprintf(`add cluster --from-template capa-cluster-template-eks-fargate --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
-				eksClusterName, eksRegion, eksK8version, eksSshKeyName, eksNamespace, eksPRBranch, eksPRTitle, git_repository_url, eksPRCommit, eksPRDescription)
+				eksClusterName, eksRegion, eksK8version, eksSshKeyName, eksNamespace, eksPRBranch, eksPRTitle, gitRepositoryUrl, eksPRCommit, eksPRDescription)
 			stdOut, stdErr = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
 			var eksPRUrl string
@@ -401,7 +401,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli"), func() {
 			installGitOpsTemplate(templateFiles)
 
 			cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template --set CLUSTER_NAME=%s --set NAMESPACE=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=%s --set WORKER_MACHINE_COUNT=%s --set COST_ESTIMATION_FILTERS=%s --branch %s --title %s --url %s --commit-message %s --description %s`,
-				clusterName, namespace, awsRegion, k8Version, controlPlaneMachineCount, workerMachineCount, costEstimationFilter, branchName, prTitle, git_repository_url, prCommit, prDescription)
+				clusterName, namespace, awsRegion, k8Version, controlPlaneMachineCount, workerMachineCount, costEstimationFilter, branchName, prTitle, gitRepositoryUrl, prCommit, prDescription)
 			stdOut, stdErr = runGitopsCommand(cmd)
 
 			ginkgo.By("Then I should not see pull request to be created", func() {

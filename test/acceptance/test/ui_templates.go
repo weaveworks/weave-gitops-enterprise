@@ -55,7 +55,7 @@ func installGitOpsTemplate(templateFiles map[string]string) {
 var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
 
 	ginkgo.BeforeEach(func() {
-		gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
 
 		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
 			loginUser()
@@ -581,7 +581,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", func() {
 				pages.ClearFieldValue(gitops.CommitMessage)
 				gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
 
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+				authenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 				gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 
 				if pages.ElementExist(messages.Error) {

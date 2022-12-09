@@ -28,7 +28,7 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 			ginkgo.By("And gitops state is reset", func() {
 				resetControllers("enterprise")
 				verifyEnterpriseControllers("my-mccp", "", GITOPS_DEFAULT_NAMESPACE)
-				CheckClusterService(wge_endpoint_url)
+				checkClusterService(wgeEndpointUrl)
 			})
 
 			stdOut, _ = runGitopsCommand(`get cluster`)
@@ -100,13 +100,13 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 			}
 
 			resourceName = "templates"
-			logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wge_endpoint_url)
+			logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wgeEndpointUrl)
 			gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 			resourceName = "credentials"
-			logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wge_endpoint_url)
+			logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wgeEndpointUrl)
 			gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 			resourceName = "clusters"
-			logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wge_endpoint_url)
+			logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wgeEndpointUrl)
 			gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 		}
 
@@ -124,7 +124,7 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 			})
 
 			ginkgo.By("And the Cluster service is healthy", func() {
-				CheckClusterService(wge_endpoint_url)
+				checkClusterService(wgeEndpointUrl)
 			})
 
 			ginkgo.By("And I should not see the error or warning message for valid entitlement", func() {

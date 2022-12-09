@@ -12,7 +12,7 @@ import (
 var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", func() {
 
 	ginkgo.BeforeEach(func() {
-		gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
 
 		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
 			loginUser()
@@ -66,7 +66,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", fu
 			})
 
 			ginkgo.By("And the Cluster service is healthy", func() {
-				CheckClusterService(wge_endpoint_url)
+				checkClusterService(wgeEndpointUrl)
 			})
 
 			ginkgo.By("And I should not see the error or warning message for valid entitlement", func() {

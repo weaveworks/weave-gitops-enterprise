@@ -16,7 +16,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", func() {
 	DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 	ginkgo.BeforeEach(func() {
-		gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
 
 		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
 			loginUser()

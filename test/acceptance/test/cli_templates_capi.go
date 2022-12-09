@@ -234,7 +234,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 
 				cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 --set INSTALL_CRDS=true`, clusterName, namespace, k8version) +
 					fmt.Sprintf(`%s --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s"`,
-						profileFlag, prBranch, prTitle, git_repository_url, prCommit, prDescription)
+						profileFlag, prBranch, prTitle, gitRepositoryUrl, prCommit, prDescription)
 				stdOut, _ = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)
 
 				ginkgo.By("Then I should see pull request created to management cluster", func() {
@@ -310,7 +310,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			prDescription := "This PR deletes CAPD Kubernetes cluster"
 
 			cmd := fmt.Sprintf(`delete cluster %s --branch %s --title "%s" --url %s --commit-message "%s" --description "%s"`,
-				clusterName, prBranch, prTitle, git_repository_url, prCommit, prDescription)
+				clusterName, prBranch, prTitle, gitRepositoryUrl, prCommit, prDescription)
 			stdOut, _ = runGitopsCommand(cmd)
 
 			ginkgo.By("Then I should see delete pull request created to management cluster", func() {

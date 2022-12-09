@@ -50,7 +50,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 	clusterPath := "./clusters/management/clusters"
 
 	ginkgo.BeforeEach(func() {
-		gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
 
 		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
 			loginUser()
@@ -307,7 +307,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 		patSecret := "capi-pat"
 
 		ginkgo.JustBeforeEach(func() {
-			capdCluster = ClusterConfig{"capd", "ui-end-to-end-capd-cluster-" + strings.ToLower(RandString(6)), clusterNamespace[gitProviderEnv.Type]}
+			capdCluster = ClusterConfig{"capd", "ui-end-to-end-capd-cluster-" + strings.ToLower(randString(6)), clusterNamespace[gitProviderEnv.Type]}
 			downloadedKubeconfigPath = path.Join(os.Getenv("HOME"), "Downloads", fmt.Sprintf("%s.kubeconfig", capdCluster.Name))
 			_ = deleteFile([]string{downloadedKubeconfigPath})
 
@@ -568,7 +568,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				deletePR := pages.GetDeletePRPopup(webDriver)
 				gomega.Expect(deletePR.PRDescription.SendKeys("Delete CAPD capi cluster, it is not required any more")).To(gomega.Succeed())
 
-				AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+				authenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 				gomega.Eventually(deletePR.GitCredentials).Should(matchers.BeVisible())
 
 				gomega.Expect(deletePR.DeleteClusterButton.Click()).To(gomega.Succeed())

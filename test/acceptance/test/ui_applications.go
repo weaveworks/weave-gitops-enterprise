@@ -510,7 +510,7 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 			gomega.Expect(gitops.CommitMessage.SendKeys(pullRequest.Message)).To(gomega.Succeed())
 		}
 
-		AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+		authenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 		gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 	})
 
@@ -530,7 +530,7 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
 
 	ginkgo.BeforeEach(func() {
-		gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
 
 		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
 			loginUser()
@@ -1444,7 +1444,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
 			}
 
 			pullRequest := PullRequest{
-				Branch:  "Leaf-cluster-apps-kustomization-" + RandString(5),
+				Branch:  "Leaf-cluster-apps-kustomization-" + randString(5),
 				Title:   "Leaf Cluster Application Kustomization PR",
 				Message: "Adding leaf cluster applications kustomization",
 			}
