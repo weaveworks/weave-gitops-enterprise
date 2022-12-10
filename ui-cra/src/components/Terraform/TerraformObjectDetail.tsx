@@ -6,6 +6,7 @@ import {
   InfoList,
   Interval,
   KubeStatusIndicator,
+  Metadata,
   RouterTab,
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
@@ -13,6 +14,7 @@ import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
+import { TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,
@@ -33,6 +35,27 @@ type Props = {
   name: string;
   namespace: string;
   clusterName: string;
+};
+
+const getLabels = (obj: TerraformObject | undefined): [string, string][] => {
+  const labels = obj?.labels;
+  if (!labels) return [];
+  return Object.keys(labels).flatMap(key => {
+    return [[key, labels[key] as string]];
+  });
+};
+
+const getMetadata = (obj: TerraformObject | undefined): [string, string][] => {
+  const annotations = obj?.annotations;
+  if (!annotations) return [];
+  const prefix = 'metadata.weave.works/';
+  return Object.keys(annotations).flatMap(key => {
+    if (!key.startsWith(prefix)) {
+      return [];
+    } else {
+      return [[key.slice(prefix.length), annotations[key] as string]];
+    }
+  });
 };
 
 function TerraformObjectDetail({ className, ...params }: Props) {
@@ -149,7 +172,6 @@ function TerraformObjectDetail({ className, ...params }: Props) {
               </Box>
             </Flex>
           </Box>
-
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
               <>
@@ -172,6 +194,10 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                       ],
                       ['Suspended', object?.suspended ? 'True' : 'False'],
                     ]}
+                  />
+                  <Metadata
+                    metadata={getMetadata(object)}
+                    labels={getLabels(object)}
                   />
                 </Box>
                 <Box style={{ width: '100%' }}>
