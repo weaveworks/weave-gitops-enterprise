@@ -1,5 +1,4 @@
 import React from 'react';
-import WorkloadStatus from './WorkloadStatus';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
 import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
 import {
@@ -19,6 +18,7 @@ import {
   usePipelineStyles,
   WorkloadWrapper,
 } from './styles';
+import WorkloadStatus from './WorkloadStatus';
 
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
@@ -26,9 +26,69 @@ const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   }, 0);
 };
 
+const TargetStatus = ({
+  target,
+  classes,
+}: {
+  target: PipelineTargetStatus;
+  classes: any;
+}) => {
+  const configResponse = useConfig();
+
+  const clusterName = target?.clusterRef?.name
+    ? `${target?.clusterRef?.namespace || target.namespace}/${
+        target?.clusterRef?.name
+      }`
+    : configResponse?.data?.managementClusterName || 'undefined';
+  return (
+    <>
+      {target.workloads?.map((workload, wrkIndex) => (
+        <CardContainer key={wrkIndex} role="targeting">
+          <TargetWrapper className="workloadTarget">
+            <Title>Cluster</Title>
+            <ClusterName className="cluster-name">
+              <ClusterDashboardLink
+                clusterName={target?.clusterRef?.name || clusterName}
+              />
+            </ClusterName>
+            <Title>Namespace</Title>
+            <TargetNamespace className="workload-namespace">
+              {target?.namespace}
+            </TargetNamespace>
+          </TargetWrapper>
+          <WorkloadWrapper>
+            <div className="automation">
+              <Link
+                to={formatURL('/helm_release/details', {
+                  name: workload?.name,
+                  namespace: target?.namespace,
+                  clusterName,
+                })}
+              >
+                {workload && <WorkloadStatus workload={workload} />}
+              </Link>
+            </div>
+            <Flex wide between>
+              <div
+                style={{ alignSelf: 'flex-end' }}
+                className={`${classes.subtitle} ${classes.subtitleColor}`}
+              >
+                <span>Specification:</span>
+                <span className={`version`}>{`v${workload?.version}`}</span>
+              </div>
+              {workload?.lastAppliedRevision && (
+                <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
+              )}
+            </Flex>
+          </WorkloadWrapper>
+        </CardContainer>
+      ))}
+    </>
+  );
+};
+
 function Workloads({ pipeline }: { pipeline: Pipeline }) {
   const classes = usePipelineStyles();
-  const configResponse = useConfig();
   const environments = pipeline?.environments || [];
   const targetsStatuses = pipeline?.status?.environments || {};
 
@@ -50,56 +110,9 @@ function Workloads({ pipeline }: { pipeline: Pipeline }) {
                 {getTargetsCount(status || [])} Targets
               </div>
             </div>
-            {status.map(target => {
-              const clusterName = target?.clusterRef?.name
-                ? `${target?.namespace}/${target?.clusterRef?.name}`
-                : configResponse?.data?.managementClusterName || 'undefined';
-
-              return target?.workloads?.map((workload, wrkIndex) => (
-                <CardContainer key={wrkIndex} role="targeting">
-                  <TargetWrapper className="workloadTarget">
-                    <Title>Cluster</Title>
-                    <ClusterName className="cluster-name">
-                      <ClusterDashboardLink
-                        clusterName={target?.clusterRef?.name || clusterName}
-                      />
-                    </ClusterName>
-
-                    <Title>Namespace</Title>
-                    <TargetNamespace className="workload-namespace">
-                      {target?.namespace}
-                    </TargetNamespace>
-                  </TargetWrapper>
-                  <WorkloadWrapper>
-                    <div className="automation">
-                      <Link
-                        to={formatURL('/helm_release/details', {
-                          name: workload?.name,
-                          namespace: target?.namespace,
-                          clusterName,
-                        })}
-                      >
-                        {workload && <WorkloadStatus workload={workload} />}
-                      </Link>
-                    </div>
-                    <Flex wide between>
-                      <div
-                        style={{ alignSelf: 'flex-end' }}
-                        className={`${classes.subtitle} ${classes.subtitleColor}`}
-                      >
-                        <span>Specification:</span>
-                        <span className={`version`}>
-                          {`v${workload?.version}`}
-                        </span>
-                      </div>
-                      {workload?.lastAppliedRevision && (
-                        <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
-                      )}
-                    </Flex>
-                  </WorkloadWrapper>
-                </CardContainer>
-              ));
-            })}
+            {status.map((target, indx) => (
+              <TargetStatus target={target} classes={classes} key={indx} />
+            ))}
           </Grid>
         );
       })}
