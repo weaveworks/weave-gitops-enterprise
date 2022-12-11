@@ -107,7 +107,7 @@ const useStyles = makeStyles({
   root: {
     paddingTop: medium,
     alignItems: 'center',
-    height: '100vh',
+    height: 'calc(100vh - 84px)',
     borderTopRightRadius: '10px',
   },
   logo: {
