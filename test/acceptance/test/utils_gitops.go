@@ -610,3 +610,9 @@ func getViolationsCount() int {
 	vCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
 	return vCount
 }
+
+func getWorkspacesCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl get workspaces --output name | wc -l")
+	pCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return pCount
+}

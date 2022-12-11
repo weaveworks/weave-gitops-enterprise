@@ -168,7 +168,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 			}
 		})
 
-		ginkgo.Context("[UI] Policies can be installed", func() {
+		ginkgo.Context("[UI] Policies can be installed on management cluster", func() {
 			var policiesYaml string
 			var policySetYaml string
 
@@ -192,7 +192,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
 			})
 
-			ginkgo.It("Verify Policies and policy set can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+			ginkgo.It("Verify Policies and policy set can be installed on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				installTestPolicies("management", policiesYaml)
 				installPolicySet("management", policySetYaml)
@@ -337,7 +337,7 @@ func DescribePolicies(gitopsTestRunner GitopsTestRunner) {
 
 			})
 
-			ginkgo.It("Verify Policies can be installed on leaf cluster and monitored via management cluster dashboard", ginkgo.Label("integration", "policy", "leaf-policy"), func() {
+			ginkgo.It("Verify Policies and policy set can be installed on leaf cluster and monitored via management cluster dashboard", ginkgo.Label("integration", "policy", "leaf-policy"), func() {
 				existingPoliciesCount := getPoliciesCount()
 				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
