@@ -17,7 +17,7 @@ import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
-import { useListConfig } from '../hooks/versions';
+import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
 
 const { xxs, xs, small, medium } = theme.spacing;
@@ -244,7 +244,8 @@ const MemoizedNavItems = React.memo(NavItems);
 
 export const Navigation: FC = () => {
   const classes = useStyles();
-  const {uiConfig} = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const uiConfig = listConfigContext?.uiConfig || '';
 
   return (
     <>

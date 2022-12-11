@@ -5,9 +5,12 @@ import remarkGfm from 'remark-gfm';
 import { Tooltip } from '../Shared';
 import styled from 'styled-components';
 
-import { useListConfig, useListVersion } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { toast } from 'react-toastify';
+import {
+  useListConfigContext,
+  useVersionContext,
+} from '../../contexts/ListConfig';
+import React from 'react';
 
 const { xxs, xs, medium } = theme.spacing;
 
@@ -35,18 +38,16 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
-const HelpLinkWrapper = () => {
-  const { data, error } = useListVersion();
-  const { uiConfig } = useListConfig();
+const Footer = ({ version }: { version: string }) => {
+  const classes = useStyles();
+  const listConfigContext = useListConfigContext();
+  const uiConfig = listConfigContext?.uiConfig || '';
+
   const versions = {
-    capiServer: data?.data.version,
+    capiServer: version,
     ui: process.env.REACT_APP_VERSION || 'no version specified',
   };
-  const classes = useStyles();
 
-  if (error) {
-    toast.error(error.message);
-  }
   return (
     <HelpLink
       backgroundColor={uiConfig?.footer?.backgroundColor}
@@ -80,4 +81,10 @@ const HelpLinkWrapper = () => {
   );
 };
 
-export default HelpLinkWrapper;
+const HelpLinkWrapper = () => {
+  const versionResponse = useVersionContext();
+  return <Footer version={versionResponse?.data.version} />;
+};
+const MemoizedHelpLinkWrapper = React.memo(HelpLinkWrapper);
+
+export default MemoizedHelpLinkWrapper;

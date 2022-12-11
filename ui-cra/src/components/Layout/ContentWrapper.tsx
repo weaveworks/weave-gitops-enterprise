@@ -10,7 +10,7 @@ import useNotifications, {
 } from './../../contexts/Notifications';
 import Notifications from './Notifications';
 
-import HelpLinkWrapper from './HelpLinkWrapper';
+import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 
 const ENTITLEMENT_ERROR =
   'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
@@ -94,7 +94,7 @@ export const ContentWrapper: FC<Props> = ({
       <div style={{ paddingTop: base }}>
         <Notifications notifications={bottomNotifications} />
       </div>
-      <HelpLinkWrapper />
+      <MemoizedHelpLinkWrapper />
     </div>
   );
 };

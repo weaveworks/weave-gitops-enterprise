@@ -28,6 +28,7 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ListConfigProvider, VersionProvider } from './contexts/ListConfig';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -140,12 +141,16 @@ const App: FC = () => {
                 <PipelinesProvider api={Pipelines}>
                   <GithubAuthProvider api={applicationsClient}>
                     <AppContextProvider applicationsClient={applicationsClient}>
-                      <ResponsiveDrawer />
-                      <ToastContainer
-                        position="top-center"
-                        autoClose={5000}
-                        newestOnTop={false}
-                      />
+                      <ListConfigProvider>
+                        <VersionProvider>
+                          <ResponsiveDrawer />
+                          <ToastContainer
+                            position="top-center"
+                            autoClose={5000}
+                            newestOnTop={false}
+                          />
+                        </VersionProvider>
+                      </ListConfigProvider>
                     </AppContextProvider>
                   </GithubAuthProvider>
                 </PipelinesProvider>
