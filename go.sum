@@ -1397,8 +1397,8 @@ github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
-github.com/weaveworks/weave-gitops v0.11.1-0.20221206105045-217477f482ed h1:xzSaeH4sDR13JH5fCHq3UOQVGpMRGji4qHUJPimuSdQ=
-github.com/weaveworks/weave-gitops v0.11.1-0.20221206105045-217477f482ed/go.mod h1:WB+FykmP+dD0rp7cGv7MZZDkFZWqzB0trfeDZnTjZVw=
+github.com/weaveworks/weave-gitops v0.12.0 h1:MC9jbQITE0GmmNbH7wN1B5bZE/DaREyXwwKF/fYexoo=
+github.com/weaveworks/weave-gitops v0.12.0/go.mod h1:ejNiyHsnDCv2GJpcdiq+DL7/u1h9g5a4IWyvQZ9WnIM=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.74.0 h1:Ha1cokbjn0PXy6B19t3W324dwM4AOT52fuHr7nERPrc=

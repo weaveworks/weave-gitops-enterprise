@@ -1,14 +1,14 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capa-cluster-template-eks-fargate-{{.Count}}
+  name: capa-cluster-template-eks-fargate
   namespace: default
   labels:
     weave.works/template-type: cluster
   annotations:
     templates.weave.works/inject-prune-annotation: "true"    
 spec:
-  description: This is eks fargate template-{{.Count}}
+  description: This is eks fargate template
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming

@@ -1,17 +1,18 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
+	"path"
 	"regexp"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
 
-func DescribeMiscellaneousCli(gitopsTestRunner GitopsTestRunner) {
+func DescribeCliMiscellaneous(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), func() {
 
-		templateFiles := []string{}
 		var stdOut string
 		var stdErr string
 
@@ -20,8 +21,57 @@ func DescribeMiscellaneousCli(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.AfterEach(func() {
-			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
-			templateFiles = []string{}
+
+		})
+
+		ginkgo.Context("[CLI] When no clusters are available in the management cluster", func() {
+			ginkgo.It("Verify gitops lists no clusters", func() {
+				ginkgo.By("And gitops state is reset", func() {
+					gitopsTestRunner.ResetControllers("enterprise")
+					gitopsTestRunner.VerifyWegoPodsRunning()
+				})
+
+				stdOut, _ = runGitopsCommand(`get cluster`)
+
+				ginkgo.By("Then gitops lists no clusters", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`management\s+Ready`))
+				})
+			})
+		})
+
+		ginkgo.Context("[CLI] When profiles are available in the management cluster", func() {
+			ginkgo.It("Verify gitops can list profiles from default profile repository", func() {
+				ginkgo.By("And wait for cluster-service to cache profiles", func() {
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
+				})
+
+				stdOut, _ = runGitopsCommand(`get profiles`)
+
+				ginkgo.By("Then gitops lists profiles with default values", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`cert-manager\s+[,.\d\w\s]+0.0.8,0.0.7[,.\d\w- ]+layer-0`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`weave-policy-agent\s+[,.\d\w\s]+0.4.0[,.\d\w ]+layer-1`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`metallb\s+[,.\d\w\s]+0.0.2,0.0.1[,.\d\w ]+layer-0`))
+				})
+			})
+
+			ginkgo.It("Verify gitops can list profiles from any profile repository", func() {
+				createNamespace([]string{"test-profiles"})
+				defer deleteNamespace([]string{"test-profiles"})
+
+				addSource("helm", "profiles-catalog", "test-profiles", "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages", "", "")
+				defer deleteSource("helm", "profiles-catalog", "test-profiles", "")
+
+				ginkgo.By("And wait for cluster-service to cache profiles", func() {
+					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=profiles-catalog&repository.namespace=test-profiles&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
+				})
+
+				stdOut, _ = runGitopsCommand(`get profiles --cluster-name management --repo-name profiles-catalog --repo-namespace test-profiles`)
+
+				ginkgo.By("Then gitops lists profiles without defaults", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`dex\s+[,.\d\w\s]+0.0.11,0.0.10-0`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`secrets-store-config\s+[,.\d\w\s]+0.0.1[,.\d\w- ]+layer-4`))
+				})
+			})
 		})
 
 		ginkgo.Context("[CLI] When entitlement is available in the cluster", func() {
@@ -50,25 +100,23 @@ func DescribeMiscellaneousCli(gitopsTestRunner GitopsTestRunner) {
 				}
 
 				resourceName = "templates"
-				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
+				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wge_endpoint_url)
 				gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 				resourceName = "credentials"
-				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
+				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wge_endpoint_url)
 				gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 				resourceName = "clusters"
-				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, capi_endpoint_url)
+				logger.Infof("Running 'gitops get %s --endpoint %s'", resourceName, wge_endpoint_url)
 				gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(matcher())
 			}
 
 			ginkgo.JustBeforeEach(func() {
 
-				templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
-				gitopsTestRunner.CreateIPCredentials("AWS")
 			})
 
 			ginkgo.JustAfterEach(func() {
 				ginkgo.By("When I apply the valid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement/entitlement-secret.yaml"), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
@@ -76,7 +124,7 @@ func DescribeMiscellaneousCli(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And the Cluster service is healthy", func() {
-					CheckClusterService(capi_endpoint_url)
+					CheckClusterService(wge_endpoint_url)
 				})
 
 				ginkgo.By("And I should not see the error or warning message for valid entitlement", func() {
@@ -92,7 +140,7 @@ func DescribeMiscellaneousCli(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify cluster service acknowledges the entitlement presences", func() {
 
 				ginkgo.By("When I delete the entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, "../../utils/data/entitlement/entitlement-secret.yaml"), "Failed to delete entitlement secret")
+					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to delete entitlement secret")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
@@ -104,7 +152,7 @@ func DescribeMiscellaneousCli(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the expired entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement/entitlement-secret-expired.yaml"), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
@@ -116,7 +164,7 @@ func DescribeMiscellaneousCli(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the invalid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, "../../utils/data/entitlement/entitlement-secret-invalid.yaml"), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {

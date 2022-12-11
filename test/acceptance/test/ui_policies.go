@@ -66,35 +66,26 @@ func verifyPolicyModes() {
 
 		for _, policyName := range testPolicies {
 			policyInfo := policiesPage.FindPolicyInList(policyName)
-			isAuditModeIconVisible, _ := policyInfo.AuditModeIcon.Visible()
-			isEnforceModeIconVisible, _ := policyInfo.EnforceModeIcon.Visible()
-			isAuditModeNoneIconVisible, _ := policyInfo.AuditModeNoneIcon.Visible()
-			isEnforceModeNoneIconVisible, _ := policyInfo.EnforceModeNoneIcon.Visible()
-
-			logger.Info("Is Audit Mode Icon visible? ", isAuditModeIconVisible)
-			logger.Info("Is Enforce Mode Icon visible? ", isEnforceModeIconVisible)
-			logger.Info("Is Audit Mode None Icon visible?", isAuditModeNoneIconVisible)
-			logger.Info("Is Audit Mode None Icon visible? ", isEnforceModeNoneIconVisible)
 
 			if policyName == "Container Image Pull Policy acceptance test" { // It has both Audit & Enforce Modes
-				gomega.Expect(isAuditModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
-				gomega.Expect(isEnforceModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
+				gomega.Eventually(policyInfo.AuditModeIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
+				gomega.Eventually(policyInfo.EnforceModeIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
 
 			} else if policyName == "Container Running As Root acceptance test" { // It has both Audit & Enforce Modes
-				gomega.Expect(isAuditModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
-				gomega.Expect(isEnforceModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
+				gomega.Eventually(policyInfo.AuditModeIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
+				gomega.Eventually(policyInfo.EnforceModeIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
 
 			} else if policyName == "Containers Minimum Replica Count acceptance test" { // Both Audit & Enforce Modes are None
-				gomega.Expect(isAuditModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
-				gomega.Expect(isEnforceModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
+				gomega.Eventually(policyInfo.AuditModeNoneIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
+				gomega.Eventually(policyInfo.EnforceModeNoneIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
 
 			} else if policyName == "Containers Read Only Root Filesystem acceptance test" { // It has Audit Mode only , Enforce Mode is None
-				gomega.Expect(isAuditModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
-				gomega.Expect(isEnforceModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
+				gomega.Eventually(policyInfo.AuditModeIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Audit Mode as expected", policyName))
+				gomega.Eventually(policyInfo.EnforceModeNoneIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Enforce Mode which is not as expected, None is expected", policyName))
 
 			} else if policyName == "Containers Running With Privilege Escalation acceptance test" { // It has Enforce Mode only , Audit Mode is None
-				gomega.Expect(isAuditModeNoneIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
-				gomega.Expect(isEnforceModeIconVisible).To(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
+				gomega.Eventually(policyInfo.AuditModeNoneIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' has the Audit Mode which is not as expected, None is expected", policyName))
+				gomega.Eventually(policyInfo.EnforceModeIcon.Visible).Should(gomega.BeTrue(), fmt.Sprintf("Policy '%s' doesn't have the Enforce Mode as expected", policyName))
 
 			} else {
 				fmt.Printf("Failed to get Policy Mode for '%s' because it is not in the test policies list", policyName)

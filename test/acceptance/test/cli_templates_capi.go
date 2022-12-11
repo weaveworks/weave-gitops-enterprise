@@ -50,12 +50,21 @@ func DescribeCliTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.Label("cli"), func() {
 		var stdOut string
 		var repoAbsolutePath string
-		templateFiles := []string{}
 		clusterPath := "./clusters/management/clusters"
 
 		ginkgo.AfterEach(func() {
-			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
-			templateFiles = []string{}
+			_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
+			_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
+		})
+
+		ginkgo.Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
+			ginkgo.It("Verify gitops lists no credentials", func() {
+				stdOut, _ = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
+
+				ginkgo.By("Then gitops lists no credentials", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp("No credentials were found"))
+				})
+			})
 		})
 
 		ginkgo.Context("[CLI] When infrastructure provider credentials are available in the management cluster", func() {
@@ -65,12 +74,35 @@ func DescribeCliTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				gitopsTestRunner.DeleteIPCredentials("AZURE")
 			})
 
-			ginkgo.It("Verify gitops can use the matching selected credential for cluster creation", ginkgo.Label("git"), func() {
-				ginkgo.By("Apply/Install CAPITemplates", func() {
-					eksTemplateFile := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
-					azureTemplateFiles := gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/azure/cluster-template-e2e.yaml")
-					templateFiles = append(azureTemplateFiles, eksTemplateFile...)
+			ginkgo.It("Verify gitops can list credentials present in the management cluster", func() {
+				ginkgo.By("And create AWS credentials)", func() {
+					gitopsTestRunner.CreateIPCredentials("AWS")
 				})
+
+				stdOut, _ = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
+
+				ginkgo.By("Then gitops lists AWS credentials", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`aws-test-identity`))
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`test-role-identity`))
+				})
+
+				ginkgo.By("And create AZURE credentials)", func() {
+					gitopsTestRunner.CreateIPCredentials("AZURE")
+				})
+
+				stdOut, _ = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
+
+				ginkgo.By("Then gitops lists AZURE credentials", func() {
+					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`azure-cluster-identity`))
+				})
+			})
+
+			ginkgo.It("Verify gitops can use the matching selected credential for cluster creation", ginkgo.Label("git"), func() {
+				templateFiles := map[string]string{
+					"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
+					"capz-cluster-template": path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				ginkgo.By("And create AWS credentials)", func() {
 					gitopsTestRunner.CreateIPCredentials("AWS")
@@ -89,7 +121,7 @@ func DescribeCliTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				awsControlMAchineType := "t4g.large"
 				awsNodeMAchineType := "t3.micro"
 
-				cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials aws-test-identity --dry-run`,
+				cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials aws-test-identity --dry-run`,
 					awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType)
 				stdOut, _ = runGitopsCommand(cmd)
 
@@ -101,9 +133,10 @@ func DescribeCliTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 			})
 
 			ginkgo.It("Verify gitops restrict user from using wrong credentials for infrastructure provider", ginkgo.Label("git"), func() {
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/aws/cluster-template-ec2.yaml")
-				})
+				templateFiles := map[string]string{
+					"capa-cluster-template": path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				ginkgo.By("And create AZURE credentials)", func() {
 					gitopsTestRunner.CreateIPCredentials("AZURE")
@@ -118,7 +151,7 @@ func DescribeCliTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 				awsControlMAchineType := "t4g.large"
 				awsNodeMAchineType := "t3.micro"
 
-				cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template-0 --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials azure-cluster-identity --dry-run`,
+				cmd := fmt.Sprintf(`add cluster --from-template capa-cluster-template --set CLUSTER_NAME=%s --set AWS_REGION=%s --set KUBERNETES_VERSION=%s --set AWS_SSH_KEY_NAME=%s --set NAMESPACE=%s --set CONTROL_PLANE_MACHINE_COUNT=2 --set AWS_CONTROL_PLANE_MACHINE_TYPE=%s --set WORKER_MACHINE_COUNT=3 --set AWS_NODE_MACHINE_TYPE=%s --set-credentials azure-cluster-identity --dry-run`,
 					awsClusterName, awsRegion, awsK8version, awsSshKeyName, awsNamespace, awsControlMAchineType, awsNodeMAchineType)
 				stdOut, _ = runGitopsCommand(cmd)
 
@@ -181,9 +214,10 @@ func DescribeCliTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 				})
 
-				ginkgo.By("Then I Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "templates/cluster/docker/cluster-template.yaml")
-				})
+				templateFiles := map[string]string{
+					"capd-cluster-template": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				createCluster := func(clusterName string, namespace string, k8version string, profiles []Application) {
 					//Pull request values
@@ -199,7 +233,7 @@ func DescribeCliTemplatesCapi(gitopsTestRunner GitopsTestRunner) {
 						}
 					}
 
-					cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template-0 --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 --set INSTALL_CRDS=true`, clusterName, namespace, k8version) +
+					cmd := fmt.Sprintf(`add cluster --from-template capd-cluster-template --set CLUSTER_NAME=%s --set NAMESPACE=%s --set KUBERNETES_VERSION=%s --set CONTROL_PLANE_MACHINE_COUNT=1 --set WORKER_MACHINE_COUNT=1 --set INSTALL_CRDS=true`, clusterName, namespace, k8version) +
 						fmt.Sprintf(`%s --branch "%s" --title "%s" --url %s --commit-message "%s" --description "%s"`,
 							profileFlag, prBranch, prTitle, git_repository_url, prCommit, prDescription)
 					stdOut, _ = runGitopsCommand(cmd, ASSERTION_30SECONDS_TIME_OUT)

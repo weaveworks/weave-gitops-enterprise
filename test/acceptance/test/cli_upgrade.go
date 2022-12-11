@@ -20,7 +20,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Gitops upgrade Tests", func() {
 
 		UI_NODEPORT := "30081"
-		var upgrade_capi_endpoint_url string
+		var upgrade_wge_endpoint_url string
 		var upgrade_test_ui_url string
 		var stdOut string
 		var stdErr string
@@ -64,8 +64,6 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 			var currentContext string
 			kind_upgrade_cluster_name := "test-upgrade"
 
-			templateFiles := []string{}
-
 			ginkgo.JustBeforeEach(func() {
 				currentContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 				currentConfigRepo = gitProviderEnv.Repo
@@ -78,8 +76,8 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustAfterEach(func() {
 
-				gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
-				templateFiles = []string{}
+				_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
+				_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 
 				deleteRepo(gitProviderEnv)              // Delete the upgrade config repository to keep the org clean
 				gitProviderEnv.Repo = currentConfigRepo // Revert to original config repository for subsequent tests
@@ -187,7 +185,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				ginkgo.By("And I can also use upgraded enterprise UI/CLI after port forwarding (for loadbalancer ingress controller)", func() {
 					serviceType, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`kubectl get service clusters-service -n %s -o jsonpath="{.spec.type}"`, GITOPS_DEFAULT_NAMESPACE))
 					if serviceType == "NodePort" {
-						upgrade_capi_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
+						upgrade_wge_endpoint_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
 						upgrade_test_ui_url = fmt.Sprintf(`https://%s:%s`, GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost"), UI_NODEPORT)
 					} else {
 						commandToRun := fmt.Sprintf("kubectl port-forward --namespace %s svc/clusters-service 8000:80", GITOPS_DEFAULT_NAMESPACE)
@@ -200,7 +198,7 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 						}()
 
 						upgrade_test_ui_url = "http://localhost:8000"
-						upgrade_capi_endpoint_url = "http://localhost:8000"
+						upgrade_wge_endpoint_url = "http://localhost:8000"
 					}
 					InitializeWebdriver(upgrade_test_ui_url)
 
@@ -210,15 +208,15 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And the Cluster service is healthy", func() {
-					CheckClusterService(upgrade_capi_endpoint_url)
+					CheckClusterService(upgrade_wge_endpoint_url)
 				})
 
 				// FIXME: CLI checks are disabled due to authentication not being supported
 				// ginkgo.By("Then I should run enterprise CLI commands", func() {
 				// 	testGetCommand := func(subCommand string) {
-				// 		logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, upgrade_capi_endpoint_url)
+				// 		logger.Infof("Running 'gitops get %s --endpoint %s'", subCommand, upgrade_wge_endpoint_url)
 
-				// 		cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, upgrade_capi_endpoint_url)
+				// 		cmd := fmt.Sprintf(`%s get %s --endpoint %s`, gitops_bin_path, subCommand, upgrade_wge_endpoint_url)
 				// 		stdOut, stdErr = runCommandAndReturnStringOutput(cmd)
 				// 		gomega.Expect(stdErr).Should(gomega.BeEmpty(), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
 				// 		gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`No %s[\s\w]+found`, subCommand)), fmt.Sprintf("'%s get %s' command failed", gitops_bin_path, subCommand))
@@ -229,9 +227,10 @@ func DescribeCliUpgrade(gitopsTestRunner GitopsTestRunner) {
 				// 	testGetCommand("clusters")
 				// })
 
-				ginkgo.By("Apply/Install CAPITemplate", func() {
-					templateFiles = gitopsTestRunner.CreateApplyCapitemplates(1, "capi-template-capd.yaml")
-				})
+				templateFiles := map[string]string{
+					"capd-cluster-template": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				}
+				installGitOpsTemplate(templateFiles)
 
 				pages.NavigateToPage(webDriver, "Templates")
 				pages.WaitForPageToLoad(webDriver)
