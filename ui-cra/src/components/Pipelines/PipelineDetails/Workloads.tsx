@@ -36,9 +36,7 @@ const TargetStatus = ({
   const configResponse = useConfig();
 
   const clusterName = target?.clusterRef?.name
-    ? `${target?.clusterRef?.namespace || target.namespace}/${
-        target?.clusterRef?.name
-      }`
+    ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
     : configResponse?.data?.managementClusterName || 'undefined';
   return (
     <>
