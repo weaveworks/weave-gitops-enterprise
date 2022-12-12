@@ -88,6 +88,8 @@ type ClustersServiceClient interface {
 	GetWorkspacePolicies(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspacePoliciesResponse, error)
 	// ListExternalSecrets list external secrets available on all clusters
 	ListExternalSecrets(ctx context.Context, in *ListExternalSecretsRequest, opts ...grpc.CallOption) (*ListExternalSecretsResponse, error)
+	// GetExternalSecret get secret details
+	GetExternalSecret(ctx context.Context, in *GetExternalSecretRequest, opts ...grpc.CallOption) (*GetExternalSecretResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -368,6 +370,15 @@ func (c *clustersServiceClient) ListExternalSecrets(ctx context.Context, in *Lis
 	return out, nil
 }
 
+func (c *clustersServiceClient) GetExternalSecret(ctx context.Context, in *GetExternalSecretRequest, opts ...grpc.CallOption) (*GetExternalSecretResponse, error) {
+	out := new(GetExternalSecretResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetExternalSecret", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -437,6 +448,8 @@ type ClustersServiceServer interface {
 	GetWorkspacePolicies(context.Context, *GetWorkspaceRequest) (*GetWorkspacePoliciesResponse, error)
 	// ListExternalSecrets list external secrets available on all clusters
 	ListExternalSecrets(context.Context, *ListExternalSecretsRequest) (*ListExternalSecretsResponse, error)
+	// GetExternalSecret get secret details
+	GetExternalSecret(context.Context, *GetExternalSecretRequest) (*GetExternalSecretResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -533,6 +546,9 @@ func (UnimplementedClustersServiceServer) GetWorkspacePolicies(context.Context, 
 }
 func (UnimplementedClustersServiceServer) ListExternalSecrets(context.Context, *ListExternalSecretsRequest) (*ListExternalSecretsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListExternalSecrets not implemented")
+}
+func (UnimplementedClustersServiceServer) GetExternalSecret(context.Context, *GetExternalSecretRequest) (*GetExternalSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetExternalSecret not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -1087,6 +1103,24 @@ func _ClustersService_ListExternalSecrets_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_GetExternalSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetExternalSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetExternalSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetExternalSecret",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetExternalSecret(ctx, req.(*GetExternalSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1213,6 +1247,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListExternalSecrets",
 			Handler:    _ClustersService_ListExternalSecrets_Handler,
+		},
+		{
+			MethodName: "GetExternalSecret",
+			Handler:    _ClustersService_GetExternalSecret_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

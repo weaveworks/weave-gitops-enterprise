@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"errors"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"github.com/hashicorp/go-multierror"
@@ -153,4 +154,48 @@ func (s *server) listClusterExternalSecrets(ctx context.Context, cl clustersmngr
 		}
 	}
 	return secrets, nil
+}
+
+func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExternalSecretRequest) (*capiv1_proto.GetExternalSecretResponse, error) {
+	if err := validateReq(req); err != nil {
+		return nil, err
+	}
+
+	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), req.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	if clustersClient == nil {
+		return nil, fmt.Errorf("cluster %s not found", req.ClusterName)
+	}
+
+	//Get the external secret with the given name from the given cluster
+	externalSecret := esv1beta1.ExternalSecret{}
+	externalSecretName := req.SecretName
+	clusterName := req.ClusterName
+
+	if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
+		return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", externalSecretName, clusterName, err)
+	}
+
+	return &capiv1_proto.GetExternalSecretResponse{
+		SecretName:         externalSecret.Spec.Target.Name,
+		ClusterName:        clusterName,
+		Namespace:		 	externalSecret.GetNamespace(),
+		SecretStore:		externalSecret.Spec.SecretStoreRef.Name,
+		ExternalSecretName: externalSecret.GetName(),
+		//SecretPath
+
+	}, nil
+}
+
+func validateReq(req *capiv1_proto.GetExternalSecretRequest) error {
+	if req.ClusterName == "" {
+		return errors.New("cluster name is required")
+	}
+	if req.SecretName == "" {
+		return errors.New("secret name is required")
+	}
+	return nil
 }
