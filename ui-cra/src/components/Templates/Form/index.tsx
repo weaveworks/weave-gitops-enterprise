@@ -298,7 +298,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const isKustomizationsEnabled =
     annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
   const isCostEstimationEnabled =
-    featureFlagsData?.flags?.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
+    featureFlagsData.flags.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(

@@ -253,7 +253,7 @@ describe('PipelineDetails', () => {
         );
 
         //Target as a link
-        const linkToAutomation = target.querySelector('a');
+        const linkToAutomation = target.querySelector('.automation > a');
 
         const href = formatURL('/helm_release/details', {
           name: workloads![index].name,

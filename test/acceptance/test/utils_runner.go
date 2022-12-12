@@ -142,7 +142,7 @@ func (b RealGitopsTestRunner) ResetControllers(controllers string) {
 
 func (b RealGitopsTestRunner) VerifyWegoPodsRunning() {
 	verifyEnterpriseControllers("my-mccp", "", GITOPS_DEFAULT_NAMESPACE)
-	CheckClusterService(capi_endpoint_url)
+	CheckClusterService(wge_endpoint_url)
 }
 
 func (b RealGitopsTestRunner) KubectlApply(env []string, url string) error {

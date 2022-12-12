@@ -29,3 +29,7 @@ binarypath="https://github.com/kubernetes-sigs/cluster-api/releases/download/v${
 [yq]
 version="4.28.2"
 binarypath="https://github.com/mikefarah/yq/releases/download/v${version}/yq_${goos}_${goarch}"
+
+[buf]
+version="1.9.0"
+binarypath="https://github.com/bufbuild/buf/releases/download/v${version}/buf-${os}-${arch}"

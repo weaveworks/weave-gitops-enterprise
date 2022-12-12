@@ -17,6 +17,7 @@ import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { useListConfig } from '../hooks/versions';
 import { Routes } from '../utils/nav';
 
 const { xxs, xs, small, medium } = theme.spacing;
@@ -169,6 +170,7 @@ const NavItems = (navItems: Array<NavigationItem>) => {
 export const Navigation: FC = () => {
   const { data: flagsRes } = useFeatureFlags();
   const classes = useStyles();
+  const { uiConfig } = useListConfig();
   const navItems: Array<NavigationItem> = [
     {
       name: 'CLUSTERS',
@@ -201,7 +203,7 @@ export const Navigation: FC = () => {
         {
           name: 'PIPELINES',
           link: Routes.Pipelines,
-          isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_PIPELINES,
+          isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_PIPELINES,
         },
         {
           name: 'DELIVERY',
@@ -216,7 +218,7 @@ export const Navigation: FC = () => {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,
       icon: <GitOpsRun className="gitops-run" />,
-      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_RUN_UI,
+      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_RUN_UI,
     },
     {
       name: 'TEMPLATES',
@@ -227,7 +229,7 @@ export const Navigation: FC = () => {
       name: 'TERRAFORM',
       link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
-      isVisible: !!flagsRes?.flags?.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
+      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
       name: 'FLUX RUNTIME',
@@ -244,7 +246,7 @@ export const Navigation: FC = () => {
     <>
       <div title="Home" className={classes.logo}>
         <Link to={Routes.Clusters}>
-          <img src={WeaveGitOps} alt="Home" />
+          <img src={uiConfig?.logoURL || WeaveGitOps} alt="Home" />
         </Link>
       </div>
       <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
