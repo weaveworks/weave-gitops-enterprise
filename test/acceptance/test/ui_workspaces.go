@@ -37,14 +37,14 @@ func DescribeWorkspaces(gitopsTestRunner GitopsTestRunner) {
 			workspaceClusterName := "management"
 
 			ginkgo.JustBeforeEach(func() {
-				workspacesYaml = path.Join(testWorkspacesPath, "example.yaml")
+				workspacesYaml = path.Join(getCheckoutRepoPath(), "pkg", "tenancy", "testdata", "example.yaml")
 			})
 
 			ginkgo.JustAfterEach(func() {
 				_ = gitopsTestRunner.KubectlDelete([]string{}, workspacesYaml)
 			})
 
-			ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+			ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 				existingWorkspacesCount := getWorkspacesCount()
 				installTestWorkspaces("management", workspacesYaml)
 
