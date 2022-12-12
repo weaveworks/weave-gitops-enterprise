@@ -5,7 +5,7 @@ import { useGetGithubDeviceCode } from '../../contexts/GitAuth';
 import { storeProviderToken } from './utils';
 import Modal from '../Modal';
 import ModalContent from './ModalContent';
-import { GitProvider } from '../../api/applications/applications.pb';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
 
 type Props = {
   className?: string;

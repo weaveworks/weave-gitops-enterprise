@@ -15,6 +15,7 @@ import WGApplicationsHelmRepository from './components/Applications/HelmReposito
 import WGApplicationsKustomization from './components/Applications/Kustomization';
 import WGNotifications from './components/Applications/Notifications';
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
+import WGNotificationsProvider from './components/Applications/NotificationsProvider';
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
 import ClusterDashboard from './components/Clusters/ClusterDashboard';
@@ -36,7 +37,7 @@ import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail'
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import { Routes } from './utils/nav';
 import OAuthCallback from './components/GithubAuth/OAuthCallback';
-import { GitProvider } from './api/applications/applications.pb';
+import { GitProvider } from './api/gitauth/gitauth.pb';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -211,6 +212,14 @@ const AppRoutes = () => {
           </CoreWrapper>
         ))}
         path={V2Routes.Notifications}
+      />
+      <Route
+        component={withSearchParams((props: any) => (
+          <CoreWrapper>
+            <WGNotificationsProvider {...props} />
+          </CoreWrapper>
+        ))}
+        path={V2Routes.Provider}
       />
       <Route exact path={Routes.Canaries} component={ProgressiveDelivery} />
       <Route

@@ -16,7 +16,7 @@ import { GitAuth } from '../../contexts/GitAuth';
 import {
   GitProvider,
   ParseRepoURLResponse,
-} from '../../api/applications/applications.pb';
+} from '../../api/gitauth/gitauth.pb';
 
 type Props = InputProps & {
   onAuthClick: (provider: GitProvider) => void;
@@ -34,15 +34,15 @@ function RepoInputWithAuth({
 }: Props) {
   const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
   const debouncedURL = useDebounce<string>(props.value as string, 500);
-  const { applicationsClient } = React.useContext(GitAuth);
+  const { gitAuthClient } = React.useContext(GitAuth);
 
   React.useEffect(() => {
     if (!debouncedURL) {
       return;
     }
-    req(applicationsClient.ParseRepoURL({ url: debouncedURL }));
+    req(gitAuthClient.ParseRepoURL({ url: debouncedURL }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applicationsClient, debouncedURL]);
+  }, [gitAuthClient, debouncedURL]);
 
   React.useEffect(() => {
     if (!res) {

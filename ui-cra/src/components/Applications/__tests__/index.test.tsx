@@ -45,7 +45,7 @@ describe('Applications index test', () => {
         },
       ],
       [CoreClientContextProvider, { api }],
-      [GitAuthProvider, { appsApi }],
+      [GitAuthProvider, { api: appsApi }],
       [MemoryRouter],
       [NotificationsProvider],
     ]);

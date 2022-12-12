@@ -16,8 +16,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
+	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
@@ -308,7 +308,7 @@ var _ = Describe("ApplicationsServer", func() {
 				appsSrv := server.NewApplicationsServer(&cfg, server.WithClientGetter(fakeClientGetter))
 				mux = runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 				httpHandler := middleware.WithLogging(log, mux)
-				err = pb.RegisterApplicationsHandlerServer(context.Background(), mux, appsSrv)
+				err = pb.RegisterGitAuthHandlerServer(context.Background(), mux, appsSrv)
 				Expect(err).NotTo(HaveOccurred())
 
 				ts = httptest.NewServer(httpHandler)
@@ -337,10 +337,10 @@ var _ = Describe("ApplicationsServer", func() {
 			})
 
 			It("logs server errors", func() {
-				err := pb.RegisterApplicationsHandlerServer(context.Background(), mux, pb.UnimplementedApplicationsServer{})
+				err := pb.RegisterGitAuthHandlerServer(context.Background(), mux, pb.UnimplementedGitAuthServer{})
 				Expect(err).NotTo(HaveOccurred())
 
-				path := "/v1/applications/parse_repo_url"
+				path := "/v1/gitauth/parse_repo_url"
 				url := ts.URL + path
 
 				res, err := http.Get(url)
@@ -364,7 +364,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 			It("logs ok requests", func() {
 				// A valid URL for our server
-				path := "/v1/applications/parse_repo_url?url=https://github.com/user/repo.git"
+				path := "/v1/gitauth/parse_repo_url?url=https://github.com/user/repo.git"
 				url := ts.URL + path
 
 				res, err := http.Get(url)

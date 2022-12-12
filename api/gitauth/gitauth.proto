@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package applications.v1;
+package gitauth.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/applications/api";
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitauth/api";
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
@@ -10,15 +10,15 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
-      title: "Weave Gitops Enterprise Applications GitAuth API",
+      title: "Weave Gitops Enterprise GitAuth API",
       version: "0.1";
-      description: "Weave Gitops Enterprise Applications GitAuth API handles authentication via Github and Gitlab";
+      description: "Weave Gitops Enterprise GitAuth API handles authentication via Github and Gitlab";
     };
-    consumes: "application/json";
-    produces: "application/json";
+    consumes: "gitauth/json";
+    produces: "gitauth/json";
 };
 
-service Applications {
+service GitAuth {
     /**
     * Authenticate generates jwt token using git provider name and git provider token arguments
     */
@@ -35,7 +35,7 @@ service Applications {
     */
     rpc GetGithubDeviceCode(GetGithubDeviceCodeRequest) returns (GetGithubDeviceCodeResponse) {
         option (google.api.http) = {
-            get : "/v1/applications/auth_providers/github"
+            get : "/v1/gitauth/auth_providers/github"
         };
     }
 
@@ -47,7 +47,7 @@ service Applications {
     */
     rpc GetGithubAuthStatus(GetGithubAuthStatusRequest) returns (GetGithubAuthStatusResponse) {
         option (google.api.http) = {
-            post : "/v1/applications/auth_providers/github/status"
+            post : "/v1/gitauth/auth_providers/github/status"
             body: "*"
         };
     }
@@ -60,7 +60,7 @@ service Applications {
     */
     rpc GetGitlabAuthURL(GetGitlabAuthURLRequest) returns (GetGitlabAuthURLResponse) {
         option (google.api.http) = {
-            get : "/v1/applications/auth_providers/gitlab"
+            get : "/v1/gitauth/auth_providers/gitlab"
         };
     }
 
@@ -72,7 +72,7 @@ service Applications {
     */
     rpc AuthorizeGitlab(AuthorizeGitlabRequest) returns (AuthorizeGitlabResponse) {
         option (google.api.http) = {
-            post : "/v1/applications/auth_providers/gitlab/authorize"
+            post : "/v1/gitauth/auth_providers/gitlab/authorize"
             body: "*"
         };
     }
@@ -82,7 +82,7 @@ service Applications {
     */
     rpc ParseRepoURL(ParseRepoURLRequest) returns(ParseRepoURLResponse) {
         option (google.api.http) = {
-            get : "/v1/applications/parse_repo_url"
+            get : "/v1/gitauth/parse_repo_url"
         };
     }
 
@@ -91,7 +91,7 @@ service Applications {
     */
     rpc ValidateProviderToken(ValidateProviderTokenRequest) returns (ValidateProviderTokenResponse) {
         option (google.api.http) = {
-            post : "/v1/applications/validate_token"
+            post : "/v1/gitauth/validate_token"
             body: "*"
         };
     }

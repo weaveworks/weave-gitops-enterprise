@@ -1,11 +1,12 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { GitProvider } from '../../../api/applications/applications.pb';
+import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { Routes } from '../../../utils/nav';
 import {
   ApplicationsClientMock,
   defaultContexts,
+  promisify,
   withContext,
 } from '../../../utils/test-utils';
 import RepoInputWithAuth from '../RepoInputWithAuth';
@@ -66,8 +67,9 @@ describe('Gitlab Authenticate', () => {
       owner: 'someuser',
     };
 
-    api.GetGitlabAuthURLReturn = {
-      url: oauthUrl,
+    api.GetGitlabAuthURL = (req: any) => {
+      capture(req);
+      return promisify({ url: oauthUrl });
     };
 
     api.ValidateProviderTokenReturn = {

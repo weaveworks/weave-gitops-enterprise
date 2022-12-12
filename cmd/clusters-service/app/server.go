@@ -48,11 +48,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
-	core_app_proto "github.com/weaveworks/weave-gitops-enterprise/pkg/api/applications"
-	apps "github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
@@ -343,7 +343,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 
-	appsConfig, err := apps.DefaultApplicationsConfig(log)
+	appsConfig, err := gitauth_server.DefaultApplicationsConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
@@ -597,8 +597,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	//Add weave-gitops core handlers
-	wegoApplicationServer := apps.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
-	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
+	wegoApplicationServer := gitauth_server.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
+	if err := gitauth.RegisterGitAuthHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 

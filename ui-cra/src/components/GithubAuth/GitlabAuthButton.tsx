@@ -16,14 +16,14 @@ function GitlabAuthButton({ ...props }: Props) {
   const { callbackState } = React.useContext(
     CallbackStateContext as React.Context<CallbackStateContextType>,
   );
-  const { applicationsClient } = React.useContext(GitAuth);
+  const { gitAuthClient } = React.useContext(GitAuth);
 
   const handleClick = (e: any) => {
     e.preventDefault();
 
     storeCallbackState(callbackState);
 
-    applicationsClient
+    gitAuthClient
       .GetGitlabAuthURL({
         redirectUri: gitlabOAuthRedirectURI(),
       })

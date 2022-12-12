@@ -23,12 +23,11 @@ import (
 	"github.com/stretchr/testify/require"
 	gitopsv1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 
-	apps "github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -128,7 +127,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		},
 	}
 
-	fakeAppsConfig := &apps.ApplicationsConfig{
+	fakeAppsConfig := &gitauth.ApplicationsConfig{
 		JwtClient: jwtClient,
 		Logger:    logr.Discard(),
 	}
@@ -167,7 +166,7 @@ func RunCAPIServer(t *testing.T, ctx context.Context, cl client.Client, discover
 		app.WithKubernetesClient(cl),
 		app.WithDiscoveryClient(discoveryClient),
 		app.WithApplicationsConfig(fakeAppsConfig),
-		app.WithApplicationsOptions(apps.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
+		app.WithApplicationsOptions(gitauth.WithClientGetter(kubefakes.NewFakeClientGetter(cl))),
 		app.WithGitProvider(git.NewGitProviderService(logr.Discard())),
 		app.WithClientGetter(kubefakes.NewFakeClientGetter(cl)),
 		app.WithCoreConfig(fakeCoreConfig),

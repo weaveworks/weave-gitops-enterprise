@@ -1,5 +1,5 @@
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { GitProvider } from '../../api/applications/applications.pb';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
 
 const tokenKey = (providerName: GitProvider) =>
   `gitProviderToken_${providerName}`;

@@ -1,7 +1,7 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { GithubDeviceAuthModal } from '.';
-import { GitProvider } from '../../api/applications/applications.pb';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
 import RepoInputWithAuth from './RepoInputWithAuth';
 
