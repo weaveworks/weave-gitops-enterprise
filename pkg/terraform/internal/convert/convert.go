@@ -54,6 +54,8 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 		DriftDetectionResult: tf.HasDrift(),
 		Inventory:            inv,
 		Conditions:           conditions,
+		Labels:               tf.Labels,
+		Annotations:          tf.Annotations,
 		Suspended:            tf.Spec.Suspend,
 	}
 }
