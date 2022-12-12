@@ -36,7 +36,7 @@ import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail'
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import { Routes } from './utils/nav';
 import OAuthCallback from './components/GithubAuth/OAuthCallback';
-import { GitProvider } from './api/applications/applications.pb';
+import { GitProvider } from './api/gitauth/gitauth.pb';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {

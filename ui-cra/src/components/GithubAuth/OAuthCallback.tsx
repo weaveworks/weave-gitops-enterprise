@@ -15,7 +15,7 @@ import { GitAuth } from '../../contexts/GitAuth';
 import {
   AuthorizeGitlabResponse,
   GitProvider,
-} from '../../api/applications/applications.pb';
+} from '../../api/gitauth/gitauth.pb';
 
 type Props = {
   code: string;
@@ -27,21 +27,21 @@ function OAuthCallback({ code, provider }: Props) {
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
-  const { applicationsClient } = React.useContext(GitAuth);
+  const { gitAuthClient } = React.useContext(GitAuth);
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {
       const redirectUri = gitlabOAuthRedirectURI();
 
       req(
-        applicationsClient.AuthorizeGitlab({
+        gitAuthClient.AuthorizeGitlab({
           redirectUri,
           code,
         }),
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, applicationsClient, provider]);
+  }, [code, gitAuthClient, provider]);
 
   React.useEffect(() => {
     if (!res) {

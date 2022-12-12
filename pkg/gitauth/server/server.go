@@ -16,7 +16,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/applications"
+	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -31,7 +31,7 @@ var (
 )
 
 type applicationServer struct {
-	pb.UnimplementedApplicationsServer
+	pb.UnimplementedGitAuthServer
 
 	jwtClient    auth.JWTClient
 	log          logr.Logger
@@ -49,7 +49,7 @@ type ApplicationsConfig struct {
 }
 
 // NewApplicationsServer creates a grpc Applications server
-func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOption) pb.ApplicationsServer {
+func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOption) pb.GitAuthServer {
 	args := &ApplicationsOptions{}
 
 	for _, setter := range setters {

@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { useQuery } from 'react-query';
 import {
-  Applications as applicationsClient,
+  GitAuth as gitAuthClient,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
-} from '../../api/applications/applications.pb';
+} from '../../api/gitauth/gitauth.pb';
 
 export interface DialogState {
   open: boolean;
@@ -16,14 +16,14 @@ export type GitAuthContext = {
   dialogState: DialogState;
   setDialogState: (open: boolean, repoName: string) => void;
   setSuccess: () => void;
-  applicationsClient: typeof applicationsClient;
+  gitAuthClient: typeof gitAuthClient;
 };
 
 export const GitAuth = React.createContext<GitAuthContext>(null as any);
 
 export interface Props {
   children?: any;
-  api?: typeof applicationsClient;
+  api?: typeof gitAuthClient;
 }
 
 export const GitAuthProvider: React.FC = ({ children, api }: Props) => {
@@ -40,7 +40,7 @@ export const GitAuthProvider: React.FC = ({ children, api }: Props) => {
         setDialogState: (open: boolean, repoName: string) =>
           setDialogState({ ...dialogState, open, repoName }),
         setSuccess: () => setDialogState({ ...dialogState, success: true }),
-        applicationsClient: api || applicationsClient,
+        gitAuthClient: api || gitAuthClient,
       }}
     >
       {children}
@@ -52,20 +52,20 @@ const GITHUB_AUTH_KEY = 'githubAuth';
 export const useGetGithubAuthStatus = (
   codeRes: GetGithubDeviceCodeResponse,
 ) => {
-  const { applicationsClient } = React.useContext(GitAuth);
+  const { gitAuthClient } = React.useContext(GitAuth);
   return useQuery<GetGithubAuthStatusResponse, Error>(
     [GITHUB_AUTH_KEY],
-    () => applicationsClient.GetGithubAuthStatus(codeRes),
+    () => gitAuthClient.GetGithubAuthStatus(codeRes),
     { retry: false, refetchInterval: (codeRes.interval || 1) * 1000 },
   );
 };
 
 const GITHUB_DEVICE_KEY = 'githubDeviceCode';
 export const useGetGithubDeviceCode = () => {
-  const { applicationsClient } = React.useContext(GitAuth);
+  const { gitAuthClient } = React.useContext(GitAuth);
   return useQuery<GetGithubDeviceCodeResponse, Error>(
     [GITHUB_DEVICE_KEY],
-    () => applicationsClient.GetGithubDeviceCode({}),
+    () => gitAuthClient.GetGithubDeviceCode({}),
     {
       retry: false,
     },

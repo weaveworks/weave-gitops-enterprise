@@ -23,7 +23,7 @@ import {
   GetGitlabAuthURLResponse,
   ParseRepoURLResponse,
   ValidateProviderTokenResponse,
-} from '../api/applications/applications.pb';
+} from '../api/gitauth/gitauth.pb';
 import {
   GetPipelineResponse,
   ListPipelinesResponse,

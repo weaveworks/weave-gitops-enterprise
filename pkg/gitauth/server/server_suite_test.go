@@ -9,8 +9,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/applications"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
+	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -33,8 +33,8 @@ const bufSize = 1024 * 1024
 var lis *bufconn.Listener
 
 var s *grpc.Server
-var apps pb.ApplicationsServer
-var appsClient pb.ApplicationsClient
+var apps pb.GitAuthServer
+var appsClient pb.GitAuthClient
 var conn *grpc.ClientConn
 var ghAuthClient *authfakes.FakeGithubAuthClient
 var gitProvider *gitprovidersfakes.FakeGitProvider
@@ -74,7 +74,7 @@ var _ = BeforeEach(func() {
 		GitlabAuthClient: glAuthClient,
 	}
 	apps = server.NewApplicationsServer(&cfg)
-	pb.RegisterApplicationsServer(s, apps)
+	pb.RegisterGitAuthServer(s, apps)
 
 	go func() {
 		if err := s.Serve(lis); err != nil {
@@ -87,7 +87,7 @@ var _ = BeforeEach(func() {
 	conn, err = grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	Expect(err).NotTo(HaveOccurred())
 
-	appsClient = pb.NewApplicationsClient(conn)
+	appsClient = pb.NewGitAuthClient(conn)
 })
 
 var _ = AfterEach(func() {

@@ -14,10 +14,10 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ApplicationsClient is the client API for Applications service.
+// GitAuthClient is the client API for GitAuth service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ApplicationsClient interface {
+type GitAuthClient interface {
 	//
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error)
@@ -51,81 +51,81 @@ type ApplicationsClient interface {
 	ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error)
 }
 
-type applicationsClient struct {
+type gitAuthClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewApplicationsClient(cc grpc.ClientConnInterface) ApplicationsClient {
-	return &applicationsClient{cc}
+func NewGitAuthClient(cc grpc.ClientConnInterface) GitAuthClient {
+	return &gitAuthClient{cc}
 }
 
-func (c *applicationsClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
+func (c *gitAuthClient) Authenticate(ctx context.Context, in *AuthenticateRequest, opts ...grpc.CallOption) (*AuthenticateResponse, error) {
 	out := new(AuthenticateResponse)
-	err := c.cc.Invoke(ctx, "/applications.v1.Applications/Authenticate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/Authenticate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *applicationsClient) GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error) {
+func (c *gitAuthClient) GetGithubDeviceCode(ctx context.Context, in *GetGithubDeviceCodeRequest, opts ...grpc.CallOption) (*GetGithubDeviceCodeResponse, error) {
 	out := new(GetGithubDeviceCodeResponse)
-	err := c.cc.Invoke(ctx, "/applications.v1.Applications/GetGithubDeviceCode", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/GetGithubDeviceCode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *applicationsClient) GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error) {
+func (c *gitAuthClient) GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error) {
 	out := new(GetGithubAuthStatusResponse)
-	err := c.cc.Invoke(ctx, "/applications.v1.Applications/GetGithubAuthStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/GetGithubAuthStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *applicationsClient) GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error) {
+func (c *gitAuthClient) GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error) {
 	out := new(GetGitlabAuthURLResponse)
-	err := c.cc.Invoke(ctx, "/applications.v1.Applications/GetGitlabAuthURL", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/GetGitlabAuthURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *applicationsClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error) {
+func (c *gitAuthClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error) {
 	out := new(AuthorizeGitlabResponse)
-	err := c.cc.Invoke(ctx, "/applications.v1.Applications/AuthorizeGitlab", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/AuthorizeGitlab", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *applicationsClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
+func (c *gitAuthClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
 	out := new(ParseRepoURLResponse)
-	err := c.cc.Invoke(ctx, "/applications.v1.Applications/ParseRepoURL", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/ParseRepoURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *applicationsClient) ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error) {
+func (c *gitAuthClient) ValidateProviderToken(ctx context.Context, in *ValidateProviderTokenRequest, opts ...grpc.CallOption) (*ValidateProviderTokenResponse, error) {
 	out := new(ValidateProviderTokenResponse)
-	err := c.cc.Invoke(ctx, "/applications.v1.Applications/ValidateProviderToken", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/ValidateProviderToken", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ApplicationsServer is the server API for Applications service.
-// All implementations must embed UnimplementedApplicationsServer
+// GitAuthServer is the server API for GitAuth service.
+// All implementations must embed UnimplementedGitAuthServer
 // for forward compatibility
-type ApplicationsServer interface {
+type GitAuthServer interface {
 	//
 	// Authenticate generates jwt token using git provider name and git provider token arguments
 	Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error)
@@ -157,209 +157,209 @@ type ApplicationsServer interface {
 	//
 	// ValidateProviderToken check to see if the git provider token is still valid
 	ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error)
-	mustEmbedUnimplementedApplicationsServer()
+	mustEmbedUnimplementedGitAuthServer()
 }
 
-// UnimplementedApplicationsServer must be embedded to have forward compatible implementations.
-type UnimplementedApplicationsServer struct {
+// UnimplementedGitAuthServer must be embedded to have forward compatible implementations.
+type UnimplementedGitAuthServer struct {
 }
 
-func (UnimplementedApplicationsServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
+func (UnimplementedGitAuthServer) Authenticate(context.Context, *AuthenticateRequest) (*AuthenticateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Authenticate not implemented")
 }
-func (UnimplementedApplicationsServer) GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error) {
+func (UnimplementedGitAuthServer) GetGithubDeviceCode(context.Context, *GetGithubDeviceCodeRequest) (*GetGithubDeviceCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubDeviceCode not implemented")
 }
-func (UnimplementedApplicationsServer) GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error) {
+func (UnimplementedGitAuthServer) GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGithubAuthStatus not implemented")
 }
-func (UnimplementedApplicationsServer) GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error) {
+func (UnimplementedGitAuthServer) GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGitlabAuthURL not implemented")
 }
-func (UnimplementedApplicationsServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
+func (UnimplementedGitAuthServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
 }
-func (UnimplementedApplicationsServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
+func (UnimplementedGitAuthServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseRepoURL not implemented")
 }
-func (UnimplementedApplicationsServer) ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error) {
+func (UnimplementedGitAuthServer) ValidateProviderToken(context.Context, *ValidateProviderTokenRequest) (*ValidateProviderTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateProviderToken not implemented")
 }
-func (UnimplementedApplicationsServer) mustEmbedUnimplementedApplicationsServer() {}
+func (UnimplementedGitAuthServer) mustEmbedUnimplementedGitAuthServer() {}
 
-// UnsafeApplicationsServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ApplicationsServer will
+// UnsafeGitAuthServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GitAuthServer will
 // result in compilation errors.
-type UnsafeApplicationsServer interface {
-	mustEmbedUnimplementedApplicationsServer()
+type UnsafeGitAuthServer interface {
+	mustEmbedUnimplementedGitAuthServer()
 }
 
-func RegisterApplicationsServer(s grpc.ServiceRegistrar, srv ApplicationsServer) {
-	s.RegisterService(&Applications_ServiceDesc, srv)
+func RegisterGitAuthServer(s grpc.ServiceRegistrar, srv GitAuthServer) {
+	s.RegisterService(&GitAuth_ServiceDesc, srv)
 }
 
-func _Applications_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GitAuth_Authenticate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthenticateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApplicationsServer).Authenticate(ctx, in)
+		return srv.(GitAuthServer).Authenticate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/applications.v1.Applications/Authenticate",
+		FullMethod: "/gitauth.v1.GitAuth/Authenticate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).Authenticate(ctx, req.(*AuthenticateRequest))
+		return srv.(GitAuthServer).Authenticate(ctx, req.(*AuthenticateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_GetGithubDeviceCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GitAuth_GetGithubDeviceCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGithubDeviceCodeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApplicationsServer).GetGithubDeviceCode(ctx, in)
+		return srv.(GitAuthServer).GetGithubDeviceCode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/applications.v1.Applications/GetGithubDeviceCode",
+		FullMethod: "/gitauth.v1.GitAuth/GetGithubDeviceCode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetGithubDeviceCode(ctx, req.(*GetGithubDeviceCodeRequest))
+		return srv.(GitAuthServer).GetGithubDeviceCode(ctx, req.(*GetGithubDeviceCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_GetGithubAuthStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GitAuth_GetGithubAuthStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGithubAuthStatusRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApplicationsServer).GetGithubAuthStatus(ctx, in)
+		return srv.(GitAuthServer).GetGithubAuthStatus(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/applications.v1.Applications/GetGithubAuthStatus",
+		FullMethod: "/gitauth.v1.GitAuth/GetGithubAuthStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetGithubAuthStatus(ctx, req.(*GetGithubAuthStatusRequest))
+		return srv.(GitAuthServer).GetGithubAuthStatus(ctx, req.(*GetGithubAuthStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_GetGitlabAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GitAuth_GetGitlabAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGitlabAuthURLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApplicationsServer).GetGitlabAuthURL(ctx, in)
+		return srv.(GitAuthServer).GetGitlabAuthURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/applications.v1.Applications/GetGitlabAuthURL",
+		FullMethod: "/gitauth.v1.GitAuth/GetGitlabAuthURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).GetGitlabAuthURL(ctx, req.(*GetGitlabAuthURLRequest))
+		return srv.(GitAuthServer).GetGitlabAuthURL(ctx, req.(*GetGitlabAuthURLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GitAuth_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthorizeGitlabRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApplicationsServer).AuthorizeGitlab(ctx, in)
+		return srv.(GitAuthServer).AuthorizeGitlab(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/applications.v1.Applications/AuthorizeGitlab",
+		FullMethod: "/gitauth.v1.GitAuth/AuthorizeGitlab",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).AuthorizeGitlab(ctx, req.(*AuthorizeGitlabRequest))
+		return srv.(GitAuthServer).AuthorizeGitlab(ctx, req.(*AuthorizeGitlabRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_ParseRepoURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GitAuth_ParseRepoURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ParseRepoURLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApplicationsServer).ParseRepoURL(ctx, in)
+		return srv.(GitAuthServer).ParseRepoURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/applications.v1.Applications/ParseRepoURL",
+		FullMethod: "/gitauth.v1.GitAuth/ParseRepoURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).ParseRepoURL(ctx, req.(*ParseRepoURLRequest))
+		return srv.(GitAuthServer).ParseRepoURL(ctx, req.(*ParseRepoURLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Applications_ValidateProviderToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GitAuth_ValidateProviderToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ValidateProviderTokenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ApplicationsServer).ValidateProviderToken(ctx, in)
+		return srv.(GitAuthServer).ValidateProviderToken(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/applications.v1.Applications/ValidateProviderToken",
+		FullMethod: "/gitauth.v1.GitAuth/ValidateProviderToken",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ApplicationsServer).ValidateProviderToken(ctx, req.(*ValidateProviderTokenRequest))
+		return srv.(GitAuthServer).ValidateProviderToken(ctx, req.(*ValidateProviderTokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Applications_ServiceDesc is the grpc.ServiceDesc for Applications service.
+// GitAuth_ServiceDesc is the grpc.ServiceDesc for GitAuth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Applications_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "applications.v1.Applications",
-	HandlerType: (*ApplicationsServer)(nil),
+var GitAuth_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "gitauth.v1.GitAuth",
+	HandlerType: (*GitAuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Authenticate",
-			Handler:    _Applications_Authenticate_Handler,
+			Handler:    _GitAuth_Authenticate_Handler,
 		},
 		{
 			MethodName: "GetGithubDeviceCode",
-			Handler:    _Applications_GetGithubDeviceCode_Handler,
+			Handler:    _GitAuth_GetGithubDeviceCode_Handler,
 		},
 		{
 			MethodName: "GetGithubAuthStatus",
-			Handler:    _Applications_GetGithubAuthStatus_Handler,
+			Handler:    _GitAuth_GetGithubAuthStatus_Handler,
 		},
 		{
 			MethodName: "GetGitlabAuthURL",
-			Handler:    _Applications_GetGitlabAuthURL_Handler,
+			Handler:    _GitAuth_GetGitlabAuthURL_Handler,
 		},
 		{
 			MethodName: "AuthorizeGitlab",
-			Handler:    _Applications_AuthorizeGitlab_Handler,
+			Handler:    _GitAuth_AuthorizeGitlab_Handler,
 		},
 		{
 			MethodName: "ParseRepoURL",
-			Handler:    _Applications_ParseRepoURL_Handler,
+			Handler:    _GitAuth_ParseRepoURL_Handler,
 		},
 		{
 			MethodName: "ValidateProviderToken",
-			Handler:    _Applications_ValidateProviderToken_Handler,
+			Handler:    _GitAuth_ValidateProviderToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/applications/applications.proto",
+	Metadata: "api/gitauth/gitauth.proto",
 }

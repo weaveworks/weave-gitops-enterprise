@@ -1,210 +1,26 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Weave Gitops Enterprise Applications GitAuth API",
-    "description": "Weave Gitops Enterprise Applications GitAuth API handles authentication via Github and Gitlab",
+    "title": "Weave Gitops Enterprise GitAuth API",
+    "description": "Weave Gitops Enterprise GitAuth API handles authentication via Github and Gitlab",
     "version": "0.1"
   },
   "tags": [
     {
-      "name": "Applications"
+      "name": "GitAuth"
     }
   ],
   "consumes": [
-    "application/json"
+    "gitauth/json"
   ],
   "produces": [
-    "application/json"
+    "gitauth/json"
   ],
   "paths": {
-    "/v1/applications/auth_providers/github": {
-      "get": {
-        "summary": "GetGithubDeviceCode retrieves a temporary device code for Github authentication.\nThis code is used to start the Github device-flow.",
-        "operationId": "Applications_GetGithubDeviceCode",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetGithubDeviceCodeResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/auth_providers/github/status": {
-      "post": {
-        "summary": "GetGithubAuthStatus gets the status of the Github device flow authentication requests.\nOnce the user has completed the Github device flow, an access token will be returned.\nThis token will expired in 15 minutes, after which the user will need to complete the flow again\nto do Git Provider operations.",
-        "operationId": "Applications_GetGithubAuthStatus",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetGithubAuthStatusResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetGithubAuthStatusRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/auth_providers/gitlab": {
-      "get": {
-        "summary": "GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.\nThe user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
-        "operationId": "Applications_GetGitlabAuthURL",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetGitlabAuthURLResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "redirectUri",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/auth_providers/gitlab/authorize": {
-      "post": {
-        "summary": "AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.\nThe returned token is useable for authentication with the GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
-        "operationId": "Applications_AuthorizeGitlab",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1AuthorizeGitlabResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1AuthorizeGitlabRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/parse_repo_url": {
-      "get": {
-        "summary": "ParseRepoURL returns structured data about a git repository URL",
-        "operationId": "Applications_ParseRepoURL",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ParseRepoURLResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "url",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
-    "/v1/applications/validate_token": {
-      "post": {
-        "summary": "ValidateProviderToken check to see if the git provider token is still valid",
-        "operationId": "Applications_ValidateProviderToken",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ValidateProviderTokenResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ValidateProviderTokenRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Applications"
-        ]
-      }
-    },
     "/v1/authenticate/{providerName}": {
       "post": {
         "summary": "Authenticate generates jwt token using git provider name and git provider token arguments",
-        "operationId": "Applications_Authenticate",
+        "operationId": "GitAuth_Authenticate",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -241,7 +57,191 @@
           }
         ],
         "tags": [
-          "Applications"
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/auth_providers/github": {
+      "get": {
+        "summary": "GetGithubDeviceCode retrieves a temporary device code for Github authentication.\nThis code is used to start the Github device-flow.",
+        "operationId": "GitAuth_GetGithubDeviceCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetGithubDeviceCodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/auth_providers/github/status": {
+      "post": {
+        "summary": "GetGithubAuthStatus gets the status of the Github device flow authentication requests.\nOnce the user has completed the Github device flow, an access token will be returned.\nThis token will expired in 15 minutes, after which the user will need to complete the flow again\nto do Git Provider operations.",
+        "operationId": "GitAuth_GetGithubAuthStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetGithubAuthStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetGithubAuthStatusRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/auth_providers/gitlab": {
+      "get": {
+        "summary": "GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.\nThe user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
+        "operationId": "GitAuth_GetGitlabAuthURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetGitlabAuthURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "redirectUri",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/auth_providers/gitlab/authorize": {
+      "post": {
+        "summary": "AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.\nThe returned token is useable for authentication with the GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
+        "operationId": "GitAuth_AuthorizeGitlab",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeGitlabResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeGitlabRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/parse_repo_url": {
+      "get": {
+        "summary": "ParseRepoURL returns structured data about a git repository URL",
+        "operationId": "GitAuth_ParseRepoURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ParseRepoURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/validate_token": {
+      "post": {
+        "summary": "ValidateProviderToken check to see if the git provider token is still valid",
+        "operationId": "GitAuth_ValidateProviderToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ValidateProviderTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ValidateProviderTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitAuth"
         ]
       }
     }

@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { GitProvider } from '../../../api/applications/applications.pb';
+import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { Routes } from '../../../utils/nav';

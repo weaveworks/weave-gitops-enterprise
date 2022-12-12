@@ -2,7 +2,7 @@ import { ButtonProps } from '@material-ui/core';
 import { Button } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
-import { GitProvider } from '../../api/applications/applications.pb';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { GitAuth } from '../../contexts/GitAuth';
 
 type Props = ButtonProps;

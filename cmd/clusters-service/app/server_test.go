@@ -17,7 +17,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	wego_server "github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/logger"
@@ -201,7 +201,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithDiscoveryClient(dc),
 			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
-			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
+			app.WithApplicationsOptions(gitauth.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
 			app.WithRuntimeNamespace(ns),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
@@ -249,7 +249,7 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	return coreConfig
 }
 
-func fakeAppsConfig(c client.Client, log logr.Logger) *wego_server.ApplicationsConfig {
+func fakeAppsConfig(c client.Client, log logr.Logger) *gitauth.ApplicationsConfig {
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
 			return &auth.Claims{
@@ -257,7 +257,7 @@ func fakeAppsConfig(c client.Client, log logr.Logger) *wego_server.ApplicationsC
 			}, nil
 		},
 	}
-	return &wego_server.ApplicationsConfig{
+	return &gitauth.ApplicationsConfig{
 		Logger:    log,
 		JwtClient: jwtClient,
 	}

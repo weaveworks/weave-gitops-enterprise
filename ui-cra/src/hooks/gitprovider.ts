@@ -6,7 +6,7 @@ import {
   GetGithubDeviceCodeResponse,
   GitProvider,
   ValidateProviderTokenResponse,
-} from '../api/applications/applications.pb';
+} from '../api/gitauth/gitauth.pb';
 import {
   getProviderToken,
   GrpcErrorCodes,
@@ -18,7 +18,7 @@ import { GitAuth } from '../contexts/GitAuth';
 export function useIsAuthenticated() {
   const [res, loading, error, req] =
     useRequestState<ValidateProviderTokenResponse>();
-  const { applicationsClient } = useContext(GitAuth);
+  const { gitAuthClient } = useContext(GitAuth);
 
   return {
     isAuthenticated: error ? false : res?.valid,
@@ -28,23 +28,21 @@ export function useIsAuthenticated() {
       (provider: GitProvider) => {
         //@ts-ignore
         const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-        req(
-          applicationsClient.ValidateProviderToken({ provider }, { headers }),
-        );
+        req(gitAuthClient.ValidateProviderToken({ provider }, { headers }));
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [applicationsClient],
+      [gitAuthClient],
     ),
   };
 }
 
 export default function useAuth() {
   const [loading, setLoading] = useState(true);
-  const { applicationsClient } = useContext(GitAuth);
+  const { gitAuthClient } = useContext(GitAuth);
 
   const getGithubDeviceCode = () => {
     setLoading(true);
-    return applicationsClient
+    return gitAuthClient
       .GetGithubDeviceCode({})
       .finally(() => setLoading(false));
   };
@@ -55,7 +53,7 @@ export default function useAuth() {
       cancel: () => clearInterval(poll),
       promise: new Promise<GetGithubAuthStatusResponse>((accept, reject) => {
         poll = poller(() => {
-          applicationsClient
+          gitAuthClient
             .GetGithubAuthStatus(codeRes)
             .then(res => {
               clearInterval(poll);

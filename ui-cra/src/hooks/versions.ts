@@ -20,13 +20,13 @@ export function useListConfig() {
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
   );
-  const { applicationsClient } = useContext(GitAuth);
+  const { gitAuthClient } = useContext(GitAuth);
 
   const repositoryURL = queryResponse?.data?.repositoryURL || '';
   const uiConfig = JSON.parse(queryResponse?.data?.uiConfig || '{}');
   useEffect(() => {
     repositoryURL &&
-      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+      gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
         const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
         if (res.provider === 'GitHub') {
           setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
@@ -36,7 +36,7 @@ export function useListConfig() {
           );
         }
       });
-  }, [repositoryURL, applicationsClient]);
+  }, [repositoryURL, gitAuthClient]);
 
   return {
     ...queryResponse,

@@ -6,8 +6,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	core_server "github.com/weaveworks/weave-gitops-enterprise/pkg/applications/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
@@ -26,9 +26,9 @@ type Options struct {
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
 	GitProvider                  git.Provider
-	ApplicationsConfig           *core_server.ApplicationsConfig
+	ApplicationsConfig           *gitauth.ApplicationsConfig
 	CoreServerConfig             core.CoreServerConfig
-	ApplicationsOptions          []core_server.ApplicationsOption
+	ApplicationsOptions          []gitauth.ApplicationsOption
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	RuntimeNamespace             string
@@ -89,7 +89,7 @@ func WithGitProvider(gitProvider git.Provider) Option {
 
 // WithApplicationsConfig is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsConfig(appConfig *core_server.ApplicationsConfig) Option {
+func WithApplicationsConfig(appConfig *gitauth.ApplicationsConfig) Option {
 	return func(o *Options) {
 		o.ApplicationsConfig = appConfig
 	}
@@ -97,7 +97,7 @@ func WithApplicationsConfig(appConfig *core_server.ApplicationsConfig) Option {
 
 // WithApplicationsOptions is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsOptions(appOptions ...core_server.ApplicationsOption) Option {
+func WithApplicationsOptions(appOptions ...gitauth.ApplicationsOption) Option {
 	return func(o *Options) {
 		o.ApplicationsOptions = appOptions
 	}
