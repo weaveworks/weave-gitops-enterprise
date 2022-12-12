@@ -23,9 +23,10 @@ export const GitAuth = React.createContext<GitAuthContext>(null as any);
 
 export interface Props {
   children?: any;
+  api?: typeof applicationsClient;
 }
 
-export const GitAuthProvider: React.FC = ({ children }: Props) => {
+export const GitAuthProvider: React.FC = ({ children, api }: Props) => {
   const [dialogState, setDialogState] = React.useState<DialogState>({
     open: false,
     repoName: null,
@@ -39,7 +40,7 @@ export const GitAuthProvider: React.FC = ({ children }: Props) => {
         setDialogState: (open: boolean, repoName: string) =>
           setDialogState({ ...dialogState, open, repoName }),
         setSuccess: () => setDialogState({ ...dialogState, success: true }),
-        applicationsClient,
+        applicationsClient: api || applicationsClient,
       }}
     >
       {children}
