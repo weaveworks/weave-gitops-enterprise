@@ -19,6 +19,9 @@ import {
   LoadingPage,
   statusSortHelper,
   theme,
+  useListSources,
+  GitRepository,
+  Kind,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -30,7 +33,7 @@ import { useCallbackState } from '../../utils/callback-state';
 import {
   EKSDefault,
   GKEDefault,
-  Kind,
+  KindIcon,
   Kubernetes,
   Vsphere,
   LiquidMetal,
@@ -50,6 +53,7 @@ import useNotifications, {
 } from '../../contexts/Notifications';
 import { EditButton } from '../Templates/Edit/EditButton';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
+import _ from 'lodash';
 
 interface Size {
   size?: 'small';
@@ -159,7 +163,7 @@ const ClusterRowCheckbox = ({
 
 const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
   if (clusterType === 'DockerCluster') {
-    return Kind;
+    return KindIcon;
   } else if (
     clusterType === 'AWSCluster' ||
     clusterType === 'AWSManagedCluster'
@@ -187,7 +191,7 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
 };
 
 interface FormData {
-  url: string | null;
+  gitRepos: GitRepository[] | null;
   branchName: string;
   pullRequestTitle: string;
   commitMessage: string;
@@ -208,9 +212,18 @@ const MCCP: FC<{
     setOpenDeletePR(false);
     setSelectedClusters([]);
   }, [setOpenDeletePR, setSelectedClusters]);
+  const { repoLink } = useListConfig();
 
-  const { data, repoLink } = useListConfig();
-  const repositoryURL = data?.repositoryURL || '';
+  const { data: sources } = useListSources();
+  const gitRepos = _.orderBy(
+    _.filter(
+      sources?.result,
+      (item): item is GitRepository => item.type === Kind.GitRepository,
+    ),
+    ['name'],
+    ['asc'],
+  );
+
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
@@ -243,7 +256,7 @@ const MCCP: FC<{
 
   let initialFormData = {
     ...PRdefaults,
-    url: '',
+    gitRepos: [],
     pullRequestDescription: '',
   };
 
@@ -281,7 +294,7 @@ const MCCP: FC<{
         .join(', ')}`;
       setFormData((prevState: FormData) => ({
         ...prevState,
-        url: repositoryURL,
+        gitRepos,
         commitMessage: prTitle,
         pullRequestTitle: prTitle,
         pullRequestDescription: prTitle,
@@ -300,7 +313,7 @@ const MCCP: FC<{
     selectedCapiClusters,
     capiClusters,
     selectedClusters,
-    repositoryURL,
+    // gitRepos,
   ]);
 
   useEffect(
@@ -352,6 +365,8 @@ const MCCP: FC<{
 
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
+
+  console.log(formData.gitRepos);
 
   return (
     <PageTemplate
