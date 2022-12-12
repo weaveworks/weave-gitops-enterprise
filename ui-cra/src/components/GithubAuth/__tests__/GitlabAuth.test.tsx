@@ -6,6 +6,7 @@ import { Routes } from '../../../utils/nav';
 import {
   ApplicationsClientMock,
   defaultContexts,
+  promisify,
   withContext,
 } from '../../../utils/test-utils';
 import RepoInputWithAuth from '../RepoInputWithAuth';
@@ -66,8 +67,9 @@ describe('Gitlab Authenticate', () => {
       owner: 'someuser',
     };
 
-    api.GetGitlabAuthURLReturn = {
-      url: oauthUrl,
+    api.GetGitlabAuthURL = (req: any) => {
+      capture(req);
+      return promisify({ url: oauthUrl });
     };
 
     api.ValidateProviderTokenReturn = {

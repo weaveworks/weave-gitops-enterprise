@@ -136,7 +136,7 @@ export const defaultContexts = () => [
   [GitAuthProvider, { api: new ApplicationsClientMock() }],
 ];
 
-const promisify = <R, E>(res: R, errRes?: E) =>
+export const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {
     if (errRes) {
       return reject(errRes);
@@ -228,7 +228,7 @@ export class ApplicationsClientMock {
     return promisify(this.ParseRepoURLReturn);
   }
 
-  GetGitlabAuthURL() {
+  GetGitlabAuthURL(req: any) {
     return promisify(this.GetGitlabAuthURLReturn);
   }
 
