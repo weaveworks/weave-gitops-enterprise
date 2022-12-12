@@ -45,8 +45,8 @@ var (
 	artifacts_base_dir   string
 	testScriptsPath      string
 	testDataPath         string
-
-	webDriver *agouti.Page
+	testWorkspacesPath   string
+	webDriver            *agouti.Page
 )
 
 const (
@@ -144,6 +144,10 @@ func getCheckoutRepoPath() string {
 	return repoDir[1]
 }
 
+func SetTestWorkspacesPath(workspacesPath string) {
+	testWorkspacesPath = path.Join(getCheckoutRepoPath(), workspacesPath)
+}
+
 func SetupTestEnvironment() {
 	mgmtClusterKind = GetEnv("MANAGEMENT_CLUSTER_KIND", "kind")
 	selenium_service_url = "http://localhost:4444/wd/hub"
@@ -154,6 +158,7 @@ func SetupTestEnvironment() {
 	artifacts_base_dir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 	testScriptsPath = path.Join(getCheckoutRepoPath(), "test", "utils", "scripts")
 	testDataPath = path.Join(getCheckoutRepoPath(), "test", "utils", "data")
+	testWorkspacesPath = path.Join(getCheckoutRepoPath(), "pkg", "tenancy", "testdata")
 
 	gitProviderEnv = initGitProviderData()
 	git_repository_url = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)

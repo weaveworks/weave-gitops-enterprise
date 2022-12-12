@@ -32,12 +32,12 @@ func DescribeWorkspaces(gitopsTestRunner GitopsTestRunner) {
 		ginkgo.Context("[UI] Workspaces can be configured on management cluster", func() {
 			var workspacesYaml string
 
-			workspaceName := "Cbar-tenant"
+			workspaceName := "bar-tenant"
 			workspaceNamespaces := "foobar-ns"
 			workspaceClusterName := "management"
 
 			ginkgo.JustBeforeEach(func() {
-				workspacesYaml = path.Join(testDataPath, "/home/taghreed/Tagreed-work/weave-gitops-enterprise/pkg/tenancy/testdata/example.yaml")
+				workspacesYaml = path.Join(testWorkspacesPath, "example.yaml")
 			})
 
 			ginkgo.JustAfterEach(func() {
