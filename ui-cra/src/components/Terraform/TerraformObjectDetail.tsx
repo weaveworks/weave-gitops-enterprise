@@ -45,15 +45,16 @@ const getLabels = (obj: TerraformObject | undefined): [string, string][] => {
   });
 };
 
+const metadataPrefix = 'metadata.weave.works/';
+
 const getMetadata = (obj: TerraformObject | undefined): [string, string][] => {
   const annotations = obj?.annotations;
   if (!annotations) return [];
-  const prefix = 'metadata.weave.works/';
   return Object.keys(annotations).flatMap(key => {
-    if (!key.startsWith(prefix)) {
+    if (!key.startsWith(metadataPrefix)) {
       return [];
     } else {
-      return [[key.slice(prefix.length), annotations[key] as string]];
+      return [[key.slice(metadataPrefix.length), annotations[key] as string]];
     }
   });
 };
@@ -174,38 +175,34 @@ function TerraformObjectDetail({ className, ...params }: Props) {
           </Box>
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
-              <>
-                <Box marginBottom={2}>
-                  <InfoList
-                    data-testid="info-list"
-                    items={[
-                      ['Source', object?.sourceRef?.name],
-                      ['Applied Revision', object?.appliedRevision],
-                      ['Cluster', object?.clusterName],
-                      ['Path', object?.path],
-                      [
-                        'Interval',
-                        <Interval interval={object?.interval as any} />,
-                      ],
-                      ['Last Update', object?.lastUpdatedAt],
-                      [
-                        'Drift Detection Result',
-                        object?.driftDetectionResult ? 'True' : 'False',
-                      ],
-                      ['Suspended', object?.suspended ? 'True' : 'False'],
-                    ]}
-                  />
-                  <Metadata
-                    metadata={getMetadata(object)}
-                    labels={getLabels(object)}
-                  />
-                </Box>
-                <Box style={{ width: '100%' }}>
-                  <TableWrapper>
-                    <TerraformInventoryTable rows={object?.inventory || []} />
-                  </TableWrapper>
-                </Box>
-              </>
+              <Box style={{ width: '100%' }}>
+                <InfoList
+                  data-testid="info-list"
+                  items={[
+                    ['Source', object?.sourceRef?.name],
+                    ['Applied Revision', object?.appliedRevision],
+                    ['Cluster', object?.clusterName],
+                    ['Path', object?.path],
+                    [
+                      'Interval',
+                      <Interval interval={object?.interval as any} />,
+                    ],
+                    ['Last Update', object?.lastUpdatedAt],
+                    [
+                      'Drift Detection Result',
+                      object?.driftDetectionResult ? 'True' : 'False',
+                    ],
+                    ['Suspended', object?.suspended ? 'True' : 'False'],
+                  ]}
+                />
+                <Metadata
+                  metadata={getMetadata(object)}
+                  labels={getLabels(object)}
+                />
+                <TableWrapper>
+                  <TerraformInventoryTable rows={object?.inventory || []} />
+                </TableWrapper>
+              </Box>
             </RouterTab>
             <RouterTab name="Events" path={`${path}/events`}>
               <ListEvents
@@ -239,6 +236,9 @@ function TerraformObjectDetail({ className, ...params }: Props) {
 export default styled(TerraformObjectDetail).attrs({
   className: TerraformObjectDetail.name,
 })`
+  ${TableWrapper} {
+    margin-top: 0;
+  }
   #events-list {
     width: 100%;
     margin-top: 0;
