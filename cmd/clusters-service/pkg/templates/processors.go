@@ -9,7 +9,6 @@ import (
 	"text/template"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
@@ -35,7 +34,7 @@ type Processor interface {
 	Render([]byte, map[string]string) ([]byte, error)
 	// ParamNames implementations parse a resource template and extract the
 	// parameters.
-	ParamNames(templates.ResourceTemplate) ([]string, error)
+	ParamNames([]byte) ([]string, error)
 }
 
 // RenderOptFunc is a functional option for Rendering templates.
@@ -70,7 +69,7 @@ type TemplateProcessor struct {
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
 	for _, v := range p.GetSpec().ResourceTemplates {
-		names, err := p.Processor.ParamNames(v)
+		names, err := p.Processor.ParamNames(v.Raw)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get params from template: %w", err)
 		}
@@ -79,12 +78,26 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 
 	for k, v := range p.GetAnnotations() {
 		if strings.HasPrefix(k, "capi.weave.works/profile-") {
-			names, err := p.Processor.ParamNames(templates.ResourceTemplate{
-				RawExtension: runtime.RawExtension{
-					Raw: []byte(v),
-				}})
+			names, err := p.Processor.ParamNames([]byte(v))
 			if err != nil {
 				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
+			}
+			paramNames.Insert(names...)
+		}
+	}
+
+	for _, profile := range p.GetSpec().Charts.Items {
+		if profile.HelmReleaseTemplate.Content != nil {
+			names, err := p.Processor.ParamNames(profile.HelmReleaseTemplate.Content.Raw)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Chart, err)
+			}
+			paramNames.Insert(names...)
+		}
+		if profile.Values != nil {
+			names, err := p.Processor.ParamNames(profile.Values.Raw)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from profile.values of %s: %w", profile.Chart, err)
 			}
 			paramNames.Insert(names...)
 		}
@@ -220,8 +233,8 @@ func (p *TextTemplateProcessor) templateDelims() (string, string) {
 	return "{{", "}}"
 }
 
-func (p *TextTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]string, error) {
-	b, err := yaml.JSONToYAML(rt.RawExtension.Raw)
+func (p *TextTemplateProcessor) ParamNames(raw []byte) ([]string, error) {
+	b, err := yaml.JSONToYAML(raw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
 	}
@@ -268,10 +281,10 @@ func (p *EnvsubstTemplateProcessor) Render(tmpl []byte, values map[string]string
 	return rendered, nil
 }
 
-func (p *EnvsubstTemplateProcessor) ParamNames(rt templates.ResourceTemplate) ([]string, error) {
+func (p *EnvsubstTemplateProcessor) ParamNames(raw []byte) ([]string, error) {
 	proc := processor.NewSimpleProcessor()
 	variables := sets.NewString()
-	tv, err := proc.GetVariables(rt.RawExtension.Raw)
+	tv, err := proc.GetVariables(raw)
 	if err != nil {
 		return nil, fmt.Errorf("processing template: %w", err)
 	}

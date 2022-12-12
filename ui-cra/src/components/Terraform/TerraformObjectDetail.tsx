@@ -1,7 +1,6 @@
 import { Box } from '@material-ui/core';
 import {
   Button,
-  DataTable,
   Flex,
   formatURL,
   InfoList,
@@ -14,7 +13,6 @@ import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
-import { ResourceRef } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,
@@ -28,6 +26,7 @@ import { TableWrapper } from '../Shared';
 import YamlView from '../YamlView';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
+import TerraformInventoryTable from './TerraformInventoryTable';
 
 type Props = {
   className?: string;
@@ -167,22 +166,17 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                         <Interval interval={object?.interval as any} />,
                       ],
                       ['Last Update', object?.lastUpdatedAt],
-                      ['Drift Detection Result', object?.driftDetectionResult],
+                      [
+                        'Drift Detection Result',
+                        object?.driftDetectionResult ? 'True' : 'False',
+                      ],
                       ['Suspended', object?.suspended ? 'True' : 'False'],
                     ]}
                   />
                 </Box>
                 <Box style={{ width: '100%' }}>
                   <TableWrapper>
-                    <DataTable
-                      fields={[
-                        {
-                          value: (r: ResourceRef) => r.name as string,
-                          label: 'Name',
-                        },
-                      ]}
-                      rows={object?.inventory || []}
-                    />
+                    <TerraformInventoryTable rows={object?.inventory || []} />
                   </TableWrapper>
                 </Box>
               </>

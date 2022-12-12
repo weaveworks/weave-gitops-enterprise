@@ -10,6 +10,7 @@ import { useCanaryStyle } from '../../CanaryStyles';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
 import RowHeader from '../../../RowHeader';
 import DynamicTable from '../../SharedComponent/DynamicTable';
+import { ClusterDashboardLink } from '../../../Clusters/ClusterDashboardLink';
 
 const DetailsSection = ({
   canary,
@@ -29,7 +30,10 @@ const DetailsSection = ({
   };
   return (
     <>
-      <RowHeader rowkey="Cluster" value={canary.clusterName} />
+      <RowHeader
+        rowkey="Cluster"
+        value={<ClusterDashboardLink clusterName={canary.clusterName || ''} />}
+      />
       <RowHeader rowkey="Namespace" value={canary.namespace} />
       <RowHeader
         rowkey="Target"

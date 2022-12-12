@@ -27,6 +27,8 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -288,6 +290,8 @@ func TestMccpUI(t *testing.T) {
 		require.NoError(t, err)
 		wg.Done()
 	}()
+
+	featureflags.SetFromEnv(os.Environ())
 
 	// Test ui is proxying through to cluster-service
 	err = waitFor200(ctx, uiURL+"/v1/featureflags", time.Second*30)

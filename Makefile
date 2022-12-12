@@ -180,7 +180,7 @@ push:
 	done
 
 proto: ## Generate protobuf files
-	buf generate
+	./tools/bin/buf generate
 
 
 FORCE:

@@ -369,6 +369,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
   line-height: 24px;
 }
 
+.c23 a > span {
+  font-size: 20px;
+}
+
 .c24 {
   font-size: 14px;
 }
@@ -406,7 +410,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-42"
+          class="makeStyles-path-54"
           style="align-items: center;"
         >
           <div
@@ -414,7 +418,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-45"
+              class="makeStyles-link-57"
               href="/applications"
             >
               Applications
@@ -422,15 +426,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-42"
+          class="makeStyles-path-54"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-43"
+            class="makeStyles-divider-55"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-44"
+              class="MuiSvgIcon-root makeStyles-iconDivider-56"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -444,7 +448,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-45"
+              class="makeStyles-link-57"
               href="/applications/pipelines"
             >
               Pipelines
@@ -452,15 +456,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-42"
+          class="makeStyles-path-54"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-43"
+            class="makeStyles-divider-55"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-44"
+              class="MuiSvgIcon-root makeStyles-iconDivider-56"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -470,7 +474,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </svg>
           </div>
           <span
-            class="c4 makeStyles-labelLink-46"
+            class="c4 makeStyles-labelLink-58"
             title="podinfo-02"
           >
             podinfo-02
@@ -522,7 +526,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
           style="pointer-events: none;"
         >
           <div
-            class="makeStyles-editButton-41"
+            class="makeStyles-editButton-53"
           >
             <button
               class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 c12 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
@@ -621,7 +625,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
               </div>
               <span
-                class="PrivateTabIndicator-root-48 PrivateTabIndicator-colorPrimary-49 MuiTabs-indicator"
+                class="PrivateTabIndicator-root-66 PrivateTabIndicator-colorPrimary-67 MuiTabs-indicator"
                 style="left: 0px; width: 0px;"
               />
             </div>
@@ -630,22 +634,22 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="c19"
           />
           <div
-            class="MuiGrid-root makeStyles-gridWrapper-36 MuiGrid-container MuiGrid-spacing-xs-4"
+            class="MuiGrid-root makeStyles-gridWrapper-48 MuiGrid-container MuiGrid-spacing-xs-4"
           >
             <div
-              class="MuiGrid-root makeStyles-gridContainer-35 MuiGrid-item MuiGrid-grid-xs-true"
+              class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
               id="dev"
             >
               <div
-                class="makeStyles-mbSmall-39"
+                class="makeStyles-mbSmall-51"
               >
                 <div
-                  class="makeStyles-title-37"
+                  class="makeStyles-title-49"
                 >
                   dev
                 </div>
                 <div
-                  class="makeStyles-subtitle-38"
+                  class="makeStyles-subtitle-50"
                 >
                   1
                    Targets
@@ -666,7 +670,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -682,7 +690,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
@@ -737,7 +747,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c32"
                   >
                     <div
-                      class="makeStyles-subtitle-38 makeStyles-subtitleColor-40"
+                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
                       style="align-self: flex-end;"
                     >
                       <span>
@@ -759,19 +769,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
               </div>
             </div>
             <div
-              class="MuiGrid-root makeStyles-gridContainer-35 MuiGrid-item MuiGrid-grid-xs-true"
+              class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
               id="test"
             >
               <div
-                class="makeStyles-mbSmall-39"
+                class="makeStyles-mbSmall-51"
               >
                 <div
-                  class="makeStyles-title-37"
+                  class="makeStyles-title-49"
                 >
                   test
                 </div>
                 <div
-                  class="makeStyles-subtitle-38"
+                  class="makeStyles-subtitle-50"
                 >
                   2
                    Targets
@@ -792,7 +802,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -808,7 +822,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-qa"
@@ -863,7 +879,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c32"
                   >
                     <div
-                      class="makeStyles-subtitle-38 makeStyles-subtitleColor-40"
+                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
                       style="align-self: flex-end;"
                     >
                       <span>
@@ -893,7 +909,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -909,7 +929,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-perf"
@@ -964,7 +986,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c32"
                   >
                     <div
-                      class="makeStyles-subtitle-38 makeStyles-subtitleColor-40"
+                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
                       style="align-self: flex-end;"
                     >
                       <span>
@@ -981,19 +1003,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
               </div>
             </div>
             <div
-              class="MuiGrid-root makeStyles-gridContainer-35 MuiGrid-item MuiGrid-grid-xs-true"
+              class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
               id="prod"
             >
               <div
-                class="makeStyles-mbSmall-39"
+                class="makeStyles-mbSmall-51"
               >
                 <div
-                  class="makeStyles-title-37"
+                  class="makeStyles-title-49"
                 >
                   prod
                 </div>
                 <div
-                  class="makeStyles-subtitle-38"
+                  class="makeStyles-subtitle-50"
                 >
                   1
                    Targets
@@ -1014,7 +1036,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    prod
+                    <a
+                      href="/cluster?clusterName=prod"
+                    >
+                      prod
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -1030,7 +1056,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fprod&name=podinfo&namespace=podinfo-02-prod"
@@ -1085,7 +1113,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     class="c32"
                   >
                     <div
-                      class="makeStyles-subtitle-38 makeStyles-subtitleColor-40"
+                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
                       style="align-self: flex-end;"
                     >
                       <span>

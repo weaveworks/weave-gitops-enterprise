@@ -9,9 +9,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func DescribeMiscellaneousUi(gitopsTestRunner GitopsTestRunner) {
+func DescribeMiscellaneous(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", func() {
-		templateFiles := []string{}
 
 		ginkgo.BeforeEach(func() {
 			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
@@ -22,9 +21,7 @@ func DescribeMiscellaneousUi(gitopsTestRunner GitopsTestRunner) {
 		})
 
 		ginkgo.AfterEach(func() {
-			gitopsTestRunner.DeleteApplyCapiTemplates(templateFiles)
-			// Reset/empty the templateFiles list
-			templateFiles = []string{}
+
 		})
 
 		ginkgo.Context("[UI] When entitlement is available in the cluster", func() {
@@ -62,7 +59,7 @@ func DescribeMiscellaneousUi(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustAfterEach(func() {
 				ginkgo.By("When I apply the valid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testScriptsPath, "data/entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for valid entitlemnt to take effect", func() {
@@ -70,7 +67,7 @@ func DescribeMiscellaneousUi(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("And the Cluster service is healthy", func() {
-					CheckClusterService(capi_endpoint_url)
+					CheckClusterService(wge_endpoint_url)
 				})
 
 				ginkgo.By("And I should not see the error or warning message for valid entitlement", func() {
@@ -82,7 +79,7 @@ func DescribeMiscellaneousUi(gitopsTestRunner GitopsTestRunner) {
 			ginkgo.It("Verify cluster service acknowledges the entitlement presences", ginkgo.Label("integration"), func() {
 
 				ginkgo.By("When I delete the entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(testScriptsPath, "data/entitlement/entitlement-secret.yaml")), "Failed to delete entitlement secret")
+					gomega.Expect(gitopsTestRunner.KubectlDelete([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret.yaml")), "Failed to delete entitlement secret")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for missing entitlemnt to take effect", func() {
@@ -95,7 +92,7 @@ func DescribeMiscellaneousUi(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the expired entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "data/entitlement/entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret-expired.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for expired entitlemnt to take effect", func() {
@@ -107,7 +104,7 @@ func DescribeMiscellaneousUi(gitopsTestRunner GitopsTestRunner) {
 				})
 
 				ginkgo.By("When I apply the invalid entitlement", func() {
-					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "/data/entitlement/entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
+					gomega.Expect(gitopsTestRunner.KubectlApply([]string{}, path.Join(testDataPath, "entitlement/entitlement-secret-invalid.yaml")), "Failed to create/configure entitlement")
 				})
 
 				ginkgo.By("Then I restart the cluster service pod for invalid entitlemnt to take effect", func() {
