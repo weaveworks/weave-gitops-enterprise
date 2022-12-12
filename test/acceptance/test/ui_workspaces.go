@@ -12,8 +12,9 @@ import (
 )
 
 func installTestWorkspaces(clusterName string, workspacesYaml string) {
-	ginkgo.By(fmt.Sprintf("Add/Install test Policies to the %s cluster", clusterName), func() {
-		err := runCommandPassThrough("go", " run", " main.go", "create", "tenants", "--from-file", workspacesYaml, "--prune")
+	ginkgo.By(fmt.Sprintf("Add workspaces to the %s cluster", clusterName), func() {
+		_ = runCommandPassThrough("cd cmd/gitops")
+		err := runCommandPassThrough("go run main.go create tenants --from-file", workspacesYaml, "--prune")
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install workspaces to cluster '%s'", clusterName))
 	})
 }
@@ -38,6 +39,7 @@ func DescribeWorkspaces(gitopsTestRunner GitopsTestRunner) {
 
 			ginkgo.JustBeforeEach(func() {
 				workspacesYaml = path.Join(getCheckoutRepoPath(), "pkg", "tenancy", "testdata", "example.yaml")
+				//logger.Info("workspacesYaml :", workspacesYaml)
 			})
 
 			ginkgo.JustAfterEach(func() {

@@ -96,6 +96,7 @@ func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
 	DescribeTenants(gitopsTestRunner)
 	DescribeCostEstimation(gitopsTestRunner)
 	DescribeMiscellaneous(gitopsTestRunner)
+	DescribeWorkspaces(gitopsTestRunner)
 }
 
 // Describes all the CLI acceptance tests
