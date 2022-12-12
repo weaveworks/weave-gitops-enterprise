@@ -96,7 +96,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #BC3B1D;
+  color: #27AE60;
 }
 
 .c9 svg {
@@ -126,7 +126,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c30 svg {
-  fill: #BC3B1D !important;
+  fill: #27AE60 !important;
   height: 16px;
   width: 16px;
 }
@@ -145,7 +145,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 .c30 .c16 {
   margin-left: 4px;
-  color: #BC3B1D;
+  color: #27AE60;
 }
 
 .c30 img {
@@ -522,7 +522,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c10"
       >
         <a
-          href="/"
+          href="/resources/edit?kind=Pipeline&name=podinfo-02&namespace=flux-system"
           style="pointer-events: none;"
         >
           <div
@@ -723,14 +723,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     viewBox="0 0 24 24"
                                   >
                                     <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                                     />
                                   </svg>
                                   <span
                                     class="c16 c31"
-                                    color="alertOriginal"
+                                    color="successOriginal"
                                   >
-                                    Not Ready
+                                    Ready
                                   </span>
                                 </div>
                               </div>
@@ -756,13 +756,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       <span
                         class="version"
                       >
-                        v6.2.0
+                        v6.2.1
                       </span>
                     </div>
                     <span
                       class="c33 last-applied-version"
                     >
-                      v6.2.0
+                      v6.2.1
                     </span>
                   </div>
                 </div>
@@ -827,7 +827,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <a
                       class="c15"
-                      href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-qa"
+                      href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-qa"
                     >
                       <span
                         class="c16 c17"
@@ -855,14 +855,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     viewBox="0 0 24 24"
                                   >
                                     <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                                     />
                                   </svg>
                                   <span
                                     class="c16 c31"
-                                    color="alertOriginal"
+                                    color="successOriginal"
                                   >
-                                    Not Ready
+                                    Ready
                                   </span>
                                 </div>
                               </div>
@@ -891,6 +891,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         v6.1.8
                       </span>
                     </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.8
+                    </span>
                   </div>
                 </div>
               </div>
@@ -934,7 +939,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <a
                       class="c15"
-                      href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-perf"
+                      href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-perf"
                     >
                       <span
                         class="c16 c17"
@@ -962,14 +967,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     viewBox="0 0 24 24"
                                   >
                                     <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                                     />
                                   </svg>
                                   <span
                                     class="c16 c31"
-                                    color="alertOriginal"
+                                    color="successOriginal"
                                   >
-                                    Not Ready
+                                    Ready
                                   </span>
                                 </div>
                               </div>
@@ -998,6 +1003,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         v6.1.8
                       </span>
                     </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.8
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1061,7 +1071,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <a
                       class="c15"
-                      href="/helm_release/details?clusterName=undefined%2Fprod&name=podinfo&namespace=podinfo-02-prod"
+                      href="/helm_release/details?clusterName=default%2Fprod&name=podinfo&namespace=podinfo-02-prod"
                     >
                       <span
                         class="c16 c17"
@@ -1089,14 +1099,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     viewBox="0 0 24 24"
                                   >
                                     <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                                     />
                                   </svg>
                                   <span
                                     class="c16 c31"
-                                    color="alertOriginal"
+                                    color="successOriginal"
                                   >
-                                    Not Ready
+                                    Ready
                                   </span>
                                 </div>
                               </div>
@@ -1125,6 +1135,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         v6.1.6
                       </span>
                     </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.6
+                    </span>
                   </div>
                 </div>
               </div>
