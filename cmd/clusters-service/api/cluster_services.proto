@@ -232,6 +232,14 @@ service ClustersService {
       get : "/v1/external_secrets"
     };
   }
+     // GetExternalSecret get secret details
+     rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
+      option (google.api.http) = {
+        get : "/v1/external_secrets/{secretName}"
+      };
+    }
+
+  
 }
 
 
@@ -980,4 +988,19 @@ message ListExternalSecretsResponse {
   repeated ExternalSecretItem secrets = 1;
   int32 total = 2;
   repeated ListError errors = 4;
+}
+
+message GetExternalSecretRequest{
+  string clusterName = 1;
+  string namespace = 2;
+  string secretName = 3;
+}
+
+message GetExternalSecretResponse{
+  string secretName = 1;
+  string clusterName = 2;
+  string namespace = 3;
+  string secretStore = 4;
+  string externalSecretName = 5;
+  string secretPath = 6;
 }

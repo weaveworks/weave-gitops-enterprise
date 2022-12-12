@@ -725,6 +725,21 @@ export type ListExternalSecretsResponse = {
   errors?: ListError[]
 }
 
+export type GetExternalSecretRequest = {
+  clusterName?: string
+  namespace?: string
+  secretName?: string
+}
+
+export type GetExternalSecretResponse = {
+  secretName?: string
+  clusterName?: string
+  namespace?: string
+  secretStore?: string
+  externalSecretName?: string
+  secretPath?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -815,5 +830,8 @@ export class ClustersService {
   }
   static ListExternalSecrets(req: ListExternalSecretsRequest, initReq?: fm.InitReq): Promise<ListExternalSecretsResponse> {
     return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external_secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
+    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external_secrets/${req["secretName"]}?${fm.renderURLSearchParams(req, ["secretName"])}`, {...initReq, method: "GET"})
   }
 }
