@@ -74,7 +74,7 @@ const GitAuth: FC<{
         // this needs to be a dropdown; we need to get the list of git repos that we use when we create apps
         value={formData.url}
         helperText=""
-        disabled={true}
+        // disabled={true}
       />
       {showAuthDialog && (
         <GithubDeviceAuthModal

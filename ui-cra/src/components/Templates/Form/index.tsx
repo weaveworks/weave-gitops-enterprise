@@ -13,6 +13,7 @@ import {
   LoadingPage,
   theme as weaveTheme,
   useFeatureFlags,
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -25,7 +26,6 @@ import {
 } from '../../../cluster-services/cluster_services.pb';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
-import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
@@ -58,6 +58,7 @@ import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStat
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
+import { getGitRepos } from '../../Clusters';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -271,8 +272,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addResource } = useTemplates();
-  const { data } = useListConfig();
-  const repositoryURL = data?.repositoryURL || '';
+  const { data } = useListSources();
+  const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
   const { setNotifications } = useNotifications();
@@ -479,9 +480,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      url: repositoryURL,
+      gitRepos,
     }));
-  }, [repositoryURL]);
+  }, [gitRepos]);
 
   useEffect(() => {
     if (!resource) {

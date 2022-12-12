@@ -54,6 +54,7 @@ import useNotifications, {
 import { EditButton } from '../Templates/Edit/EditButton';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import _ from 'lodash';
+import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 interface Size {
   size?: 'small';
@@ -198,6 +199,19 @@ interface FormData {
   pullRequestDescription: string;
 }
 
+export const getGitRepos = (sources: Source[] | undefined) =>
+  _.orderBy(
+    _.uniqBy(
+      _.filter(
+        sources,
+        (item): item is GitRepository => item.type === Kind.GitRepository,
+      ),
+      repo => repo.clusterName,
+    ),
+    ['name'],
+    ['asc'],
+  );
+
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
@@ -215,13 +229,10 @@ const MCCP: FC<{
   const { repoLink } = useListConfig();
 
   const { data: sources } = useListSources();
-  const gitRepos = _.orderBy(
-    _.filter(
-      sources?.result,
-      (item): item is GitRepository => item.type === Kind.GitRepository,
-    ),
-    ['name'],
-    ['asc'],
+
+  const gitRepos = useMemo(
+    () => getGitRepos(sources?.result),
+    [sources?.result],
   );
 
   const capiClusters = useMemo(
@@ -313,7 +324,7 @@ const MCCP: FC<{
     selectedCapiClusters,
     capiClusters,
     selectedClusters,
-    // gitRepos,
+    gitRepos,
   ]);
 
   useEffect(
@@ -365,8 +376,6 @@ const MCCP: FC<{
 
   const numSelected = selectedClusters.length;
   const rowCount = clusters.length || 0;
-
-  console.log(formData.gitRepos);
 
   return (
     <PageTemplate
