@@ -47,6 +47,7 @@ import {
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
+import { GitAuthProvider } from '../contexts/GitAuth';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
@@ -132,9 +133,10 @@ export const defaultContexts = () => [
   ],
   [MemoryRouter],
   [NotificationProvider],
+  [GitAuthProvider, { api: new ApplicationsClientMock() }],
 ];
 
-const promisify = <R, E>(res: R, errRes?: E) =>
+export const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {
     if (errRes) {
       return reject(errRes);
@@ -226,7 +228,7 @@ export class ApplicationsClientMock {
     return promisify(this.ParseRepoURLReturn);
   }
 
-  GetGitlabAuthURL() {
+  GetGitlabAuthURL(req: any) {
     return promisify(this.GetGitlabAuthURLReturn);
   }
 
