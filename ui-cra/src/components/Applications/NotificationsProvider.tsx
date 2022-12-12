@@ -30,11 +30,14 @@ const WGNotificationsProvider: FC<Props> = ({
 
   return (
     <PageTemplate
-      documentTitle="Notification Providers"
+      documentTitle="Notifications"
       path={[
         {
-          label: 'Notification Providers',
-          url: V2Routes.Provider,
+          label: 'Notifications',
+          url: V2Routes.Notifications,
+        },
+        {
+          label: name,
         },
       ]}
     >
