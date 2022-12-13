@@ -54,7 +54,9 @@ func (s *server) ListWorkspaces(ctx context.Context, m *capiv1_proto.ListWorkspa
 		return &v1.NamespaceList{}
 	})
 	if err := clustersClient.ClusteredList(ctx, namespaces, false, opts...); err != nil {
-		return nil, fmt.Errorf("failed to list namespaces, error: %w", err)
+		if !errors.As(err, &clustersmngr.ClusteredListError{}) {
+			return nil, fmt.Errorf("failed to list namespaces, error: %w", err)
+		}
 	}
 
 	continueToken = namespaces.GetContinue()
