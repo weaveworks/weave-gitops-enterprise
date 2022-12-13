@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"errors"
+	"fmt"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"github.com/hashicorp/go-multierror"
@@ -171,23 +171,38 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 	}
 
 	//Get the external secret with the given name from the given cluster
-	externalSecret := esv1beta1.ExternalSecret{}
-	externalSecretName := req.SecretName
-	clusterName := req.ClusterName
+	var externalSecret esv1beta1.ExternalSecret
+	var clusterExternalSecret esv1beta1.ClusterExternalSecret
 
-	if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
-		return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", externalSecretName, clusterName, err)
+	if req.Namespace == "" {
+		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.SecretName}, &clusterExternalSecret); err != nil {
+			return nil, fmt.Errorf("error getting cluster external secret %s from cluster %s: %w", req.SecretName, req.ClusterName, err)
+		}
+
+		return &capiv1_proto.GetExternalSecretResponse{
+			SecretName:         clusterExternalSecret.Spec.ExternalSecretSpec.Target.Name,
+			ClusterName:        req.ClusterName,
+			Namespace:          req.Namespace,
+			SecretStore:        clusterExternalSecret.Spec.ExternalSecretSpec.SecretStoreRef.Name,
+			ExternalSecretName: clusterExternalSecret.GetName(),
+			SecretPath:         clusterExternalSecret.Spec.ExternalSecretSpec.Data[0].RemoteRef.Key,
+		}, nil
+
+	} else {
+		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.SecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
+			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.SecretName, req.ClusterName, err)
+		}
+
+		return &capiv1_proto.GetExternalSecretResponse{
+			SecretName:         externalSecret.Spec.Target.Name,
+			ClusterName:        req.ClusterName,
+			Namespace:          req.Namespace,
+			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
+			ExternalSecretName: externalSecret.GetName(),
+			SecretPath:         externalSecret.Spec.Data[0].RemoteRef.Key,
+		}, nil
 	}
 
-	return &capiv1_proto.GetExternalSecretResponse{
-		SecretName:         externalSecret.Spec.Target.Name,
-		ClusterName:        clusterName,
-		Namespace:		 	externalSecret.GetNamespace(),
-		SecretStore:		externalSecret.Spec.SecretStoreRef.Name,
-		ExternalSecretName: externalSecret.GetName(),
-		//SecretPath
-
-	}, nil
 }
 
 func validateReq(req *capiv1_proto.GetExternalSecretRequest) error {
