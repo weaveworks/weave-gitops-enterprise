@@ -1,68 +1,23 @@
 import { FC } from 'react';
-import {
-  Typography,
-  DialogContent,
-  DialogTitle,
-  Dialog,
-} from '@material-ui/core';
-import styled from 'styled-components';
+import { Typography, DialogContent, DialogTitle } from '@material-ui/core';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
 import { WorkspaceRoleRule } from '../../../cluster-services/cluster_services.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-
-const DialogWrapper = styled(Dialog)`
-  .MuiDialog-paper {
-    border-top-right-radius: 10px;
-    border-top-left-radius: 10px;
-  }
-  .MuiDialogTitle-root {
-    background: ${({ theme }) => theme.colors.neutralGray};
-    padding-top: ${({ theme }) => theme.spacing.medium};
-    padding-left: ${({ theme }) => theme.spacing.medium};
-    padding-bottom: ${({ theme }) => theme.spacing.small};
-    p{
-        font-weight: 600;
-    }
-    .MuiSvgIcon-root{
-        color: ${({ theme }) => theme.colors.neutral30};
-
-    }
-    .info{
-        color: ${({ theme }) => theme.colors.primary10} ;
-        font-size: ${({ theme }) => theme.fontSizes.small};
-        font-weight: 500;
-    }
-  }
-  .MuiDialogContent-root{
-    pre{
-        background: #fff !important;
-        padding-left:${({ theme }) => theme.spacing.none} !important;
-        span{
-        font-family: ${({ theme }) => theme.fontFamilies.monospace};
-        font-size: ${({ theme }) => theme.fontSizes.small};
-        text-align: left !important;
-        padding-right: ${({ theme }) => theme.spacing.none} !important;
-        min-width: 27px !important;
-}
-        }
-    }
-  }
-
-`;
+import { DialogWrapper, RulesList } from '../WorkspaceStyles';
 
 interface Props {
   onFinish: () => void;
   title: string;
   contentType: string;
-  content: string | WorkspaceRoleRule[]
+  content: string | WorkspaceRoleRule[];
 }
 const WorkspaceModal: FC<Props> = ({
   onFinish,
   title,
   contentType,
-  content
+  content,
 }) => {
-  function GetContent() {
+  const GetContent = () => {
     switch (contentType) {
       case 'yaml':
         return (
@@ -75,12 +30,31 @@ const WorkspaceModal: FC<Props> = ({
           </SyntaxHighlighter>
         );
       case 'rules':
-        return <ul>to be implemented</ul>;
+        return (
+          <RulesList>
+            {Array.isArray(content) &&
+              content.map((rule: WorkspaceRoleRule, index: number) => (
+                <li key={index}>
+                  <div>
+                    <label>Resources:</label>
+                    <span>{rule.resources?.join(', ')}</span>
+                  </div>
+                  <div>
+                    <label>Verbs:</label>
+                    <span>{rule.verbs?.join(', ')}</span>
+                  </div>
+                  <div>
+                    <label>Api Groups:</label>
+                    <span>{rule.groups?.join('.')}</span>
+                  </div>
+                </li>
+              ))}
+          </RulesList>
+        );
       default:
-        return <span>-</span>;
+        return <span></span>;
     }
-  }
-  console.log(content)
+  };
   return (
     <DialogWrapper
       open
@@ -100,7 +74,11 @@ const WorkspaceModal: FC<Props> = ({
           </span>
         )}
       </DialogTitle>
-      <DialogContent>{GetContent()}</DialogContent>
+      <DialogContent
+        className={contentType === 'rules' ? 'customBackgroundColor' : ''}
+      >
+        {GetContent()}
+      </DialogContent>
     </DialogWrapper>
   );
 };

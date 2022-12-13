@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
-import {
-  Tab,
-  Tabs,
-  Box,
-} from '@material-ui/core';
+import { Box } from '@material-ui/core';
 import {
   Button,
   DataTable,
+  filterConfig,
   formatURL,
 } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../Shared';
@@ -23,6 +19,11 @@ import {
   useGetWorkspacePolicies,
 } from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
+import {
+  useWorkspaceStyle,
+  WorkspacesTabs,
+  WorkspaceTab,
+} from '../WorkspaceStyles';
 import moment from 'moment';
 import WorkspaceModal from './workspaceModal';
 import Severity from '../../Policies/Severity';
@@ -39,43 +40,8 @@ interface TabContent {
   data?: any;
 }
 
-const WorkspacesTabs = styled(Tabs)`
-  min-height: 32px !important;
-  .link{
-    color: ${({ theme }) => theme.colors.primary},
-    fontWeight: 600,
-    whiteSpace: 'pre-line',
-  }
-`;
-
-const WorkspaceTab = styled(Tab)(({ theme }) => ({
-  '&.MuiTab-root': {
-    fontSize: theme.fontSizes.small,
-    fontWeight: 600,
-    minHeight: '32px',
-    minWidth: '133px',
-    opacity: 1,
-    paddingLeft: '0 !important',
-    paddingRight: '0 !important',
-    span: {
-      color: theme.colors.neutral30,
-    },
-  },
-  '&.Mui-selected': {
-    fontWeight: 700,
-    background: `${theme.colors.primary}1A`,
-    span: {
-      color: theme.colors.primary10,
-    },
-  },
-  '&.Mui-focusVisible': {
-    backgroundColor: '#d1eaff',
-  },
-}));
-
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, empty, ...other } = props;
-
   return (
     <div
       role="tabpanel"
@@ -84,7 +50,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box>{children}</Box>}
     </div>
   );
 }
@@ -96,7 +62,7 @@ const TabDetails = ({
   clusterName: string;
   workspaceName: string;
 }) => {
-  const [value, setValue] = useState<number>(0);
+  const [selectedTab, setSelectedTab] = useState<number>(0);
   const [dialogContent, setDialogContent] = useState<
     string | WorkspaceRoleRule[]
   >();
@@ -104,31 +70,47 @@ const TabDetails = ({
   const [contentType, setContentType] = useState<string>('');
   const [dialogTitle, setDialogTitle] = useState<string>('');
 
-  const { data: roles} = useGetWorkspaceRoles({
+  const classes = useWorkspaceStyle();
+
+  const { data: roles } = useGetWorkspaceRoles({
     clusterName,
     workspaceName,
   });
 
-  const { data: listRoleBindings} =
-    useGetWorkspaceRoleBinding({
-      clusterName,
-      workspaceName,
-    });
+  const { data: listRoleBindings } = useGetWorkspaceRoleBinding({
+    clusterName,
+    workspaceName,
+  });
 
-  const { data: serviceAccounts }=
-    useGetWorkspaceServiceAccount({
-      clusterName,
-      workspaceName,
-    });
-  const { data: workspacePolicies} =
-    useGetWorkspacePolicies({
-      clusterName,
-      workspaceName,
-    });
+  const { data: serviceAccounts } = useGetWorkspaceServiceAccount({
+    clusterName,
+    workspaceName,
+  });
+  const { data: workspacePolicies } = useGetWorkspacePolicies({
+    clusterName,
+    workspaceName,
+  });
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setValue(newValue);
+    setSelectedTab(newValue);
   };
+  const viewDialog = (
+    type: string,
+    title: string,
+    content: string | WorkspaceRoleRule[],
+  ) => {
+    setContentType(type);
+    setDialogTitle(title);
+    setDialogContent(content);
+    setIsDialogOpen(true);
+  };
+
+  const generateFilters = (T: any) => {
+    return {
+      ...filterConfig(T, 'name'),
+    };
+  };
+
   const tabsContent: Array<TabContent> = [
     {
       tabName: 'SERVICE ACCOUNTS',
@@ -137,12 +119,12 @@ const TabDetails = ({
           <DataTable
             key={serviceAccounts?.objects?.length}
             rows={serviceAccounts?.objects}
+            filters={generateFilters(serviceAccounts?.objects)}
             fields={[
               {
                 label: 'Name',
                 value: 'name',
                 textSearchable: true,
-                sortValue: ({ name }) => name,
                 maxWidth: 650,
               },
               {
@@ -152,17 +134,19 @@ const TabDetails = ({
               {
                 label: 'Age',
                 value: ({ timestamp }) => moment(timestamp).fromNow(),
+                sortValue: ({ createdAt }) => {
+                  const t = createdAt && new Date(createdAt).getTime();
+                  return t * -1;
+                },
               },
               {
                 label: '',
                 value: ({ manifest }) => (
                   <Button
-                    onClick={() => {
-                      setContentType('yaml');
-                      setDialogTitle('Service Accounts Manifest');
-                      setDialogContent(manifest);
-                      setIsDialogOpen(true);
-                    }}
+                    className={classes.viewYamlBtn}
+                    onClick={() =>
+                      viewDialog('yaml', 'Service Accounts Manifest', manifest)
+                    }
                     style={{ marginRight: 0, textTransform: 'uppercase' }}
                   >
                     View Yaml
@@ -181,12 +165,12 @@ const TabDetails = ({
           <DataTable
             key={roles?.objects?.length}
             rows={roles?.objects}
+            filters={generateFilters(roles?.objects)}
             fields={[
               {
                 label: 'Name',
                 value: 'name',
                 textSearchable: true,
-                sortValue: ({ name }) => name,
                 maxWidth: 650,
               },
               {
@@ -197,12 +181,7 @@ const TabDetails = ({
                 label: 'Rules',
                 value: ({ rules }) => (
                   <Button
-                    onClick={() => {
-                      setContentType('rules');
-                      setDialogTitle('Rules');
-                      setDialogContent(rules);
-                      setIsDialogOpen(true);
-                    }}
+                    onClick={() => viewDialog('rules', 'Rules', rules)}
                     style={{ marginRight: 0, textTransform: 'uppercase' }}
                   >
                     View Rules
@@ -212,17 +191,20 @@ const TabDetails = ({
               {
                 label: 'Age',
                 value: ({ timestamp }) => moment(timestamp).fromNow(),
+                defaultSort: true,
+                sortValue: ({ createdAt }) => {
+                  const t = createdAt && new Date(createdAt).getTime();
+                  return t * -1;
+                },
               },
               {
                 label: '',
                 value: ({ manifest }) => (
                   <Button
-                    onClick={() => {
-                      setContentType('yaml');
-                      setDialogTitle('Rules Manifest');
-                      setDialogContent(manifest);
-                      setIsDialogOpen(true);
-                    }}
+                    className={classes.viewYamlBtn}
+                    onClick={() =>
+                      viewDialog('yaml', 'Rules Manifest', manifest)
+                    }
                     style={{ marginRight: 0, textTransform: 'uppercase' }}
                   >
                     View Yaml
@@ -241,12 +223,12 @@ const TabDetails = ({
           <DataTable
             key={listRoleBindings?.objects?.length}
             rows={listRoleBindings?.objects}
+            filters={generateFilters(listRoleBindings?.objects)}
             fields={[
               {
                 label: 'Name',
                 value: 'name',
                 textSearchable: true,
-                sortValue: ({ name }) => name,
                 maxWidth: 650,
               },
               {
@@ -267,17 +249,20 @@ const TabDetails = ({
               {
                 label: 'Age',
                 value: ({ timestamp }) => moment(timestamp).fromNow(),
+                defaultSort: true,
+                sortValue: ({ createdAt }) => {
+                  const t = createdAt && new Date(createdAt).getTime();
+                  return t * -1;
+                },
               },
               {
                 label: '',
                 value: ({ manifest }) => (
                   <Button
-                    onClick={() => {
-                      setContentType('yaml');
-                      setDialogTitle('RoleBinding Manifest');
-                      setDialogContent(manifest);
-                      setIsDialogOpen(true);
-                    }}
+                    className={classes.viewYamlBtn}
+                    onClick={() =>
+                      viewDialog('yaml', 'RoleBinding Manifest', manifest)
+                    }
                     style={{ marginRight: 0, textTransform: 'uppercase' }}
                   >
                     View Yaml
@@ -292,10 +277,11 @@ const TabDetails = ({
     {
       tabName: 'POLICIES',
       data: (
-        <TableWrapper id="policy-list">
+        <TableWrapper id="workspace-policy-list">
           <DataTable
             key={workspacePolicies?.objects?.length}
             rows={workspacePolicies?.objects}
+            filters={generateFilters(workspacePolicies?.objects)}
             fields={[
               {
                 label: 'Name',
@@ -326,6 +312,11 @@ const TabDetails = ({
               {
                 label: 'Age',
                 value: ({ timestamp }) => moment(timestamp).fromNow(),
+                defaultSort: true,
+                sortValue: ({ createdAt }) => {
+                  const t = createdAt && new Date(createdAt).getTime();
+                  return t * -1;
+                },
               },
             ]}
           />
@@ -333,10 +324,6 @@ const TabDetails = ({
       ),
     },
   ];
-  console.log(workspacePolicies);
-  const onFinish = () => {
-    setIsDialogOpen(false);
-  };
 
   return (
     <>
@@ -344,18 +331,17 @@ const TabDetails = ({
         <WorkspacesTabs
           className="tabs-container"
           indicatorColor="primary"
-          value={value}
+          value={selectedTab}
           onChange={handleChange}
-          aria-label="pr-preview-sections"
           selectionFollowsFocus={true}
         >
-          {tabsContent.map(({ tabName, value }, index) => (
+          {tabsContent.map(({ tabName }, index) => (
             <WorkspaceTab key={index} className="tab-label" label={tabName} />
           ))}
         </WorkspacesTabs>
       </Box>
       {tabsContent.map((tab, index) => (
-        <TabPanel value={value} index={index} key={index}>
+        <TabPanel value={selectedTab} index={index} key={index}>
           {tab.data}
         </TabPanel>
       ))}
@@ -363,8 +349,8 @@ const TabDetails = ({
         <WorkspaceModal
           title={dialogTitle}
           contentType={contentType}
-          content={dialogContent || ''}
-          onFinish={onFinish}
+          content={dialogContent || []}
+          onFinish={() => setIsDialogOpen(false)}
         />
       )}
     </>

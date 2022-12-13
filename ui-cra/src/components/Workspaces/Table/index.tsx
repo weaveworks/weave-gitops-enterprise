@@ -11,7 +11,7 @@ import { Routes } from '../../../utils/nav';
 import { usePolicyStyle } from '../../Policies/PolicyStyles';
 
 interface Props {
-  workspaces: any[];
+  workspaces: Workspace[];
 }
 
 export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
@@ -23,7 +23,7 @@ export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
   };
 
   return (
-    <TableWrapper id="policy-list">
+    <TableWrapper id="workspaces-list">
       <DataTable
         key={workspaces?.length}
         filters={initialFilterState}
