@@ -23,6 +23,7 @@ import {
   useWorkspaceStyle,
   WorkspacesTabs,
   WorkspaceTab,
+  ViewYamlBtn,
 } from '../WorkspaceStyles';
 import moment from 'moment';
 import WorkspaceModal from './workspaceModal';
@@ -142,15 +143,20 @@ const TabDetails = ({
               {
                 label: '',
                 value: ({ manifest }) => (
-                  <Button
-                    className={classes.viewYamlBtn}
-                    onClick={() =>
-                      viewDialog('yaml', 'Service Accounts Manifest', manifest)
-                    }
-                    style={{ marginRight: 0, textTransform: 'uppercase' }}
-                  >
-                    View Yaml
-                  </Button>
+                  <ViewYamlBtn>
+                    <Button
+                      onClick={() =>
+                        viewDialog(
+                          'yaml',
+                          'Service Accounts Manifest',
+                          manifest,
+                        )
+                      }
+                      style={{ marginRight: 0, textTransform: 'uppercase' }}
+                    >
+                      View Yaml
+                    </Button>
+                  </ViewYamlBtn>
                 ),
               },
             ]}
@@ -200,15 +206,16 @@ const TabDetails = ({
               {
                 label: '',
                 value: ({ manifest }) => (
-                  <Button
-                    className={classes.viewYamlBtn}
-                    onClick={() =>
-                      viewDialog('yaml', 'Rules Manifest', manifest)
-                    }
-                    style={{ marginRight: 0, textTransform: 'uppercase' }}
-                  >
-                    View Yaml
-                  </Button>
+                  <ViewYamlBtn>
+                    <Button
+                      onClick={() =>
+                        viewDialog('yaml', 'Rules Manifest', manifest)
+                      }
+                      style={{ marginRight: 0, textTransform: 'uppercase' }}
+                    >
+                      View Yaml
+                    </Button>
+                  </ViewYamlBtn>
                 ),
               },
             ]}
@@ -229,7 +236,7 @@ const TabDetails = ({
                 label: 'Name',
                 value: 'name',
                 textSearchable: true,
-                maxWidth: 650,
+                maxWidth: 550,
               },
               {
                 label: 'Namespace',
@@ -258,15 +265,16 @@ const TabDetails = ({
               {
                 label: '',
                 value: ({ manifest }) => (
-                  <Button
-                    className={classes.viewYamlBtn}
-                    onClick={() =>
-                      viewDialog('yaml', 'RoleBinding Manifest', manifest)
-                    }
-                    style={{ marginRight: 0, textTransform: 'uppercase' }}
-                  >
-                    View Yaml
-                  </Button>
+                  <ViewYamlBtn>
+                    <Button
+                      onClick={() =>
+                        viewDialog('yaml', 'RoleBinding Manifest', manifest)
+                      }
+                      style={{ marginRight: 0, textTransform: 'uppercase' }}
+                    >
+                      View Yaml
+                    </Button>
+                  </ViewYamlBtn>
                 ),
               },
             ]}

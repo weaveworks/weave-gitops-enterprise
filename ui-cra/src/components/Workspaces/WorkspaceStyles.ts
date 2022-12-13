@@ -15,9 +15,6 @@ export const useWorkspaceStyle = makeStyles(() =>
       color: theme.colors.primary10,
       marginRight: theme.spacing.small,
     },
-    viewYamlBtn: {
-      marginLeft: 'calc( 100% - 97px)',
-    },
   }),
 );
 
@@ -57,8 +54,7 @@ export const WorkspaceTab = styled(Tab)(({ theme }) => ({
 
 export const DialogWrapper = styled(Dialog)`
   .MuiDialog-paper {
-    border-top-right-radius: 10px;
-    border-top-left-radius: 10px;
+    border-radius: 10px;
   }
   .MuiDialogTitle-root {
     background: ${({ theme }) => theme.colors.neutralGray};
@@ -113,3 +109,9 @@ export const RulesList = styled.ul`
     }
   }
 `;
+
+export const ViewYamlBtn = styled.div`
+width: 100%;
+    display: flex;
+    justify-content: flex-end;
+`

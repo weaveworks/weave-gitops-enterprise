@@ -49,7 +49,7 @@ export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
           },
           {
             label: 'Namespaces',
-            value: 'namespaces',
+            value: ({namespaces}) => namespaces.join(', '),
           },
           {
             label: 'Cluster',
