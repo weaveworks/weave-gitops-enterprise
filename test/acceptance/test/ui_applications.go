@@ -510,7 +510,7 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 			gomega.Expect(gitops.CommitMessage.SendKeys(pullRequest.Message)).To(gomega.Succeed())
 		}
 
-		AuthenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
+		authenticateWithGitProvider(webDriver, gitProviderEnv.Type, gitProviderEnv.Hostname)
 		gomega.Eventually(gitops.GitCredentials).Should(matchers.BeVisible())
 	})
 
@@ -527,57 +527,26 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 	return prUrl
 }
 
-func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
-	var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label("ui", "application"), func() {
 
-		ginkgo.BeforeEach(func() {
-			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+	ginkgo.BeforeEach(func() {
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
 
-			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
-				loginUser()
+		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+			loginUser()
+		}
+	})
+
+	ginkgo.Context("[UI] When no applications are installed", func() {
+
+		ginkgo.It("Verify management cluster dashboard shows bootstrap 'flux-system' application", func() {
+			fluxSystem := Application{
+				Type:      "Kustomization",
+				Chart:     "weaveworks-charts",
+				Name:      "flux-system",
+				Namespace: GITOPS_DEFAULT_NAMESPACE,
+				Source:    "flux-system",
 			}
-		})
-
-		ginkgo.Context("[UI] When no applications are installed", func() {
-			ginkgo.It("Verify management cluster dashboard shows bootstrap 'flux-system' application", ginkgo.Label("integration"), func() {
-				fluxSystem := Application{
-					Type:      "Kustomization",
-					Chart:     "weaveworks-charts",
-					Name:      "flux-system",
-					Namespace: GITOPS_DEFAULT_NAMESPACE,
-					Source:    "flux-system",
-				}
-
-				mgmtCluster := ClusterConfig{
-					Type:      "management",
-					Name:      "management",
-					Namespace: "",
-				}
-
-				pages.NavigateToPage(webDriver, "Applications")
-
-				ginkgo.By("And wait for  good looking response from /v1/objects", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), Request{"objects", []byte(`{"kind": "Kustomization"}`)}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/objects")
-				})
-
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-				pages.WaitForPageToLoad(webDriver)
-
-				ginkgo.By("And wait for Applications page to be rendered", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Equal(1), "There should not be any application in application's table except flux-system")
-				})
-
-				verifyAppInformation(applicationsPage, fluxSystem, mgmtCluster, "Ready")
-			})
-		})
-
-		ginkgo.Context("[UI] Applications(s) can be installed on management cluster", func() {
-
-			var existingAppCount int
-			var downloadedResourcesPath string
-			appNameSpace := "test-kustomization"
-			appTargetNamespace := "test-system"
 
 			mgmtCluster := ClusterConfig{
 				Type:      "management",
@@ -585,990 +554,1020 @@ func DescribeApplications(gitopsTestRunner GitopsTestRunner) {
 				Namespace: "",
 			}
 
-			ginkgo.JustBeforeEach(func() {
-				downloadedResourcesPath = path.Join(os.Getenv("HOME"), "Downloads", "resources.zip")
-				// Application target namespace is created by the kustomization 'Add Application' UI
-				createNamespace([]string{appNameSpace, appTargetNamespace})
-				_ = deleteFile([]string{downloadedResourcesPath})
+			pages.NavigateToPage(webDriver, "Applications")
+
+			ginkgo.By("And wait for  good looking response from /v1/objects", func() {
+				gomega.Expect(waitForGitopsResources(context.Background(), Request{"objects", []byte(`{"kind": "Kustomization"}`)}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/objects")
 			})
 
-			ginkgo.JustAfterEach(func() {
-				// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
-				gomega.Eventually(func(g gomega.Gomega) int {
-					return getApplicationCount()
-				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+			applicationsPage := pages.GetApplicationsPage(webDriver)
+			pages.WaitForPageToLoad(webDriver)
 
-				deleteNamespace([]string{appNameSpace, appTargetNamespace})
-				_ = deleteFile([]string{downloadedResourcesPath})
+			ginkgo.By("And wait for Applications page to be rendered", func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Equal(1), "There should not be any application in application's table except flux-system")
 			})
 
-			ginkgo.It("Verify application with annotations/metadata can be installed  and dashboard is updated accordingly", ginkgo.Label("integration", "application"), func() {
-
-				podinfo := Application{
-					Type:            "kustomization",
-					Name:            "my-podinfo",
-					DeploymentName:  "podinfo",
-					Namespace:       appNameSpace,
-					TargetNamespace: appTargetNamespace,
-					Source:          "my-podinfo",
-					Path:            "./kustomize",
-					SyncInterval:    "30s",
-				}
-
-				sourceURL := "https://github.com/stefanprodan/podinfo"
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
-
-				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount = getApplicationCount()
-
-				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)
-				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
-				defer cleanGitRepository(appDir)
-
-				pages.NavigateToPage(webDriver, "Applications")
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				ginkgo.By("And add Kustomization & GitRepository Source manifests pointing to podinfo repository’s master branch)", func() {
-
-					pullGitRepo(repoAbsolutePath)
-					_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
-					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-				})
-
-				ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-				})
-
-				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
-				})
-
-				verifyAppPage(podinfo)
-				verifyAppDetails(podinfo, mgmtCluster)
-				verifyAppAnnotations(podinfo)
-
-				navigatetoApplicationsPage(applicationsPage)
-				verifyAppSourcePage(applicationInfo, podinfo)
-
-				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
-			})
-
-			ginkgo.It("Verify application can be installed from HelmRepository source and dashboard is updated accordingly", ginkgo.Label("integration", "application"), func() {
-				metallb := Application{
-					Type:            "helm_release",
-					Chart:           "weaveworks-charts",
-					SyncInterval:    "10m",
-					Name:            "metallb",
-					DeploymentName:  "metallb-controller",
-					Namespace:       GITOPS_DEFAULT_NAMESPACE, // HelmRelease application always get installed in flux-system namespace
-					TargetNamespace: appNameSpace,
-					Source:          GITOPS_DEFAULT_NAMESPACE + "-metallb",
-					Version:         "0.0.2",
-					ValuesRegex:     `namespace: ""`,
-					Values:          fmt.Sprintf(`namespace: %s`, appNameSpace),
-				}
-
-				appEvent := ApplicationEvent{
-					Reason:    "info",
-					Message:   "Helm install succeeded|Helm install has started",
-					Component: "helm-controller",
-					Timestamp: "seconds|minutes|minute ago",
-				}
-
-				pullRequest := PullRequest{
-					Branch:  "management-helm-apps",
-					Title:   "Management Helm Applications",
-					Message: "Adding management helm applications",
-				}
-				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
-				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
-
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount = getApplicationCount()
-
-				defer cleanGitRepository(appKustomization)
-
-				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
-				})
-
-				pages.NavigateToPage(webDriver, "Applications")
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				ginkgo.By(`And navigate to 'Add Application' page`, func() {
-					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
-
-					addApplication := pages.GetAddApplicationsPage(webDriver)
-					gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
-				})
-
-				application := pages.GetAddApplication(webDriver)
-				createPage := pages.GetCreateClusterPage(webDriver)
-				profile := createPage.GetProfileInList(metallb.Name)
-				ginkgo.By(fmt.Sprintf("And select %s HelmRepository", metallb.Chart), func() {
-					gomega.Eventually(func(g gomega.Gomega) bool {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
-						g.Eventually(application.SelectListItem(webDriver, mgmtCluster.Name).Click).Should(gomega.Succeed(), "Failed to select 'management' cluster from clusters list")
-						g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
-						return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
-
-					gomega.Eventually(application.SelectListItem(webDriver, metallb.Chart).Click).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
-					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
-				})
-
-				AddHelmReleaseApp(profile, metallb)
-
-				preview := pages.GetPreview(webDriver)
-				ginkgo.By("Then I should preview the PR", func() {
-					gomega.Eventually(func(g gomega.Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
-						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
-
-					}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), "Failed to get PR preview")
-				})
-
-				ginkgo.By("Then verify preview tab lists", func() {
-					// Verify profiles preview
-					gomega.Eventually(preview.GetPreviewTab("Helm Releases").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
-					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, metallb.Name, metallb.Namespace)))
-					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s[\s\w\d./:-]*prometheus[\s\w\d./:-]*namespace: %s`, metallb.Name, metallb.Chart, metallb.Version, metallb.TargetNamespace, metallb.TargetNamespace)))
-				})
-
-				ginkgo.By("And verify downloaded preview resources", func() {
-					// verify download prview resources
-					gomega.Eventually(func(g gomega.Gomega) {
-						g.Expect(preview.Download.Click()).Should(gomega.Succeed())
-						_, err := os.Stat(downloadedResourcesPath)
-						g.Expect(err).Should(gomega.Succeed())
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
-					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
-
-					fileList, _ := getArchiveFileList(downloadedResourcesPath)
-					previewResources := []string{
-						path.Join("clusters/management", strings.Join([]string{metallb.Name, metallb.TargetNamespace, "helmrelease.yaml"}, "-")),
-					}
-					gomega.Expect(len(fileList)).Should(gomega.Equal(len(previewResources)), "Failed to verify expected number of downloaded preview resources")
-					gomega.Expect(fileList).Should(gomega.ContainElements(previewResources), "Failed to verify downloaded preview resources files")
-				})
-
-				prUrl := createGitopsPR(pullRequest)
-				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
-					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					gomega.Expect(createPRUrl).Should(gomega.Equal(prUrl))
-
-				})
-
-				ginkgo.By("And the manifests are present in the cluster config repository", func() {
-					mergePullRequest(gitProviderEnv, repoAbsolutePath, prUrl)
-					pullGitRepo(repoAbsolutePath)
-
-					_, err := os.Stat(path.Join(repoAbsolutePath, "clusters/management", strings.Join([]string{metallb.Name, metallb.TargetNamespace, "helmrelease.yaml"}, "-")))
-					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "helmrelease kustomization yaml can not be found.")
-				})
-
-				ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
-					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-				})
-
-				ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", metallb.Name), func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-				})
-
-				verifyAppInformation(applicationsPage, metallb, mgmtCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(metallb.Name)
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", metallb.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", metallb.Name))
-				})
-
-				verifyAppPage(metallb)
-				verifyAppEvents(metallb, appEvent)
-				verifyAppDetails(metallb, mgmtCluster)
-				verfifyAppGraph(metallb)
-
-				navigatetoApplicationsPage(applicationsPage)
-				verifyAppSourcePage(applicationInfo, metallb)
-
-				verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
-			})
-
-			ginkgo.It("Verify application can be installed from GitRepository source and dashboard is updated accordingly", ginkgo.Label("integration", "application"), func() {
-				podinfo := Application{
-					Type:            "kustomization",
-					Name:            "my-podinfo",
-					DeploymentName:  "podinfo",
-					Namespace:       appNameSpace,
-					TargetNamespace: appTargetNamespace,
-					Source:          "my-podinfo",
-					Path:            "./kustomize",
-					SyncInterval:    "10m",
-				}
-
-				appEvent := ApplicationEvent{
-					Reason:    "ReconciliationSucceeded",
-					Message:   "next run in " + podinfo.SyncInterval,
-					Component: "kustomize-controller",
-					Timestamp: "seconds|minutes|minute ago",
-				}
-
-				pullRequest := PullRequest{
-					Branch:  "management-kustomization-apps",
-					Title:   "Management Kustomization Application",
-					Message: "Adding management kustomization applications",
-				}
-
-				// tartget namespace is created by the kustomization, hence deleting it beforehand to avoid namespace creation errors
-				deleteNamespace([]string{appTargetNamespace})
-
-				sourceURL := "https://github.com/stefanprodan/podinfo"
-				appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-kustomization.yaml", mgmtCluster.Name, podinfo.Name, podinfo.Namespace)
-
-				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
-				defer cleanGitRepository(appKustomization)
-				defer cleanGitRepository(fmt.Sprintf("./clusters/%s/%s-namespace.yaml", mgmtCluster.Name, podinfo.TargetNamespace))
-
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount = getApplicationCount()
-
-				pages.NavigateToPage(webDriver, "Applications")
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
-				ginkgo.By(`And navigate to 'Add Application' page`, func() {
-					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
-
-					addApplication := pages.GetAddApplicationsPage(webDriver)
-					gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
-				})
-
-				application := pages.GetAddApplication(webDriver)
-				ginkgo.By(fmt.Sprintf("And select %s GitRepository", podinfo.Source), func() {
-					gomega.Eventually(func(g gomega.Gomega) bool {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
-						g.Eventually(application.SelectListItem(webDriver, mgmtCluster.Name).Click).Should(gomega.Succeed(), "Failed to select 'management' cluster from clusters list")
-						g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
-						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
-
-					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
-					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
-				})
-
-				AddKustomizationApp(application, podinfo)
-
-				createPage := pages.GetCreateClusterPage(webDriver)
-				preview := pages.GetPreview(webDriver)
-				ginkgo.By("Then I should preview the PR", func() {
-					gomega.Eventually(func(g gomega.Gomega) {
-						g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
-						g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
-
-					}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), "Failed to get PR preview")
-				})
-
-				ginkgo.By("Then verify preview tab lists", func() {
-					// Verify kustomizations preview resources.zip
-					gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
-					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
-					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
-					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`path: %s`, podinfo.Path)))
-					gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
-				})
-
-				ginkgo.By("And verify downloaded preview resources", func() {
-					// verify download prview resources
-					gomega.Eventually(func(g gomega.Gomega) {
-						g.Expect(preview.Download.Click()).Should(gomega.Succeed())
-						_, err := os.Stat(downloadedResourcesPath)
-						g.Expect(err).Should(gomega.Succeed())
-					}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
-					gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
-
-					fileList, _ := getArchiveFileList(downloadedResourcesPath)
-					previewResources := []string{
-						path.Join("clusters/management", strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")),
-						path.Join("clusters/management", strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")),
-					}
-					gomega.Expect(len(fileList)).Should(gomega.Equal(len(previewResources)), "Failed to verify expected number of downloaded preview resources")
-					gomega.Expect(fileList).Should(gomega.ContainElements(previewResources), "Failed to verify downloaded preview resources files")
-				})
-
-				prUrl := createGitopsPR(pullRequest)
-
-				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
-					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					gomega.Expect(createPRUrl).Should(gomega.Equal(prUrl))
-
-				})
-
-				ginkgo.By("And the manifests are present in the cluster config repository", func() {
-					mergePullRequest(gitProviderEnv, repoAbsolutePath, prUrl)
-					pullGitRepo(repoAbsolutePath)
-
-					_, err := os.Stat(path.Join(repoAbsolutePath, "clusters/management", strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")))
-					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "target namespace.yaml can not be found.")
-
-					_, err = os.Stat(path.Join(repoAbsolutePath, "clusters/management", strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")))
-					gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Kustomization kustomization.yaml can not be found.")
-				})
-
-				ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
-					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-				})
-
-				ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", podinfo.Name), func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-				})
-
-				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
-				})
-
-				verifyAppPage(podinfo)
-				verifyAppEvents(podinfo, appEvent)
-				verifyAppDetails(podinfo, mgmtCluster)
-				verfifyAppGraph(podinfo)
-
-				navigatetoApplicationsPage(applicationsPage)
-				verifyAppSourcePage(applicationInfo, podinfo)
-
-				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
-			})
+			verifyAppInformation(applicationsPage, fluxSystem, mgmtCluster, "Ready")
+		})
+	})
+
+	ginkgo.Context("[UI] Applications(s) can be installed on management cluster", func() {
+
+		var existingAppCount int
+		var downloadedResourcesPath string
+		appNameSpace := "test-kustomization"
+		appTargetNamespace := "test-system"
+
+		mgmtCluster := ClusterConfig{
+			Type:      "management",
+			Name:      "management",
+			Namespace: "",
+		}
+
+		ginkgo.JustBeforeEach(func() {
+			downloadedResourcesPath = path.Join(os.Getenv("HOME"), "Downloads", "resources.zip")
+			// Application target namespace is created by the kustomization 'Add Application' UI
+			createNamespace([]string{appNameSpace, appTargetNamespace})
+			_ = deleteFile([]string{downloadedResourcesPath})
 		})
 
-		ginkgo.Context("[UI] Applications(s) can be installed on leaf cluster", func() {
-			var mgmtClusterContext string
-			var leafClusterContext string
-			var leafClusterkubeconfig string
-			var clusterBootstrapCopnfig string
-			var gitopsCluster string
-			var existingAppCount int
-			patSecret := "application-pat"
-			bootstrapLabel := "bootstrap"
+		ginkgo.JustAfterEach(func() {
+			// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
+			gomega.Eventually(func(g gomega.Gomega) int {
+				return getApplicationCount()
+			}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 
-			appNameSpace := "test-kustomization"
-			appTargetNamespace := "test-system"
+			deleteNamespace([]string{appNameSpace, appTargetNamespace})
+			_ = deleteFile([]string{downloadedResourcesPath})
+		})
 
-			leafCluster := ClusterConfig{
-				Type:      "other",
-				Name:      "wge-leaf-application-kind",
-				Namespace: "test-system",
+		ginkgo.It("Verify application with annotations/metadata can be installed  and dashboard is updated accordingly", func() {
+
+			podinfo := Application{
+				Type:            "kustomization",
+				Name:            "my-podinfo",
+				DeploymentName:  "podinfo",
+				Namespace:       appNameSpace,
+				TargetNamespace: appTargetNamespace,
+				Source:          "my-podinfo",
+				Path:            "./kustomize",
+				SyncInterval:    "30s",
 			}
 
-			ginkgo.JustBeforeEach(func() {
-				existingAppCount = getApplicationCount()
-				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
-				createCluster("kind", leafCluster.Name, "")
-				createNamespace([]string{appNameSpace, appTargetNamespace})
-				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			sourceURL := "https://github.com/stefanprodan/podinfo"
+			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+
+			appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
+			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+			existingAppCount = getApplicationCount()
+
+			appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)
+			defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
+			defer cleanGitRepository(appDir)
+
+			pages.NavigateToPage(webDriver, "Applications")
+			applicationsPage := pages.GetApplicationsPage(webDriver)
+
+			ginkgo.By("And add Kustomization & GitRepository Source manifests pointing to podinfo repository’s master branch)", func() {
+
+				pullGitRepo(repoAbsolutePath)
+				_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
+				gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
 			})
 
-			ginkgo.JustAfterEach(func() {
-				useClusterContext(mgmtClusterContext)
+			ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
-				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+				totalAppCount := existingAppCount + 1
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+			})
 
-				deleteCluster("kind", leafCluster.Name, "")
-				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
-				deleteNamespace([]string{leafCluster.Namespace})
+			verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
+
+			applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+			ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
+				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
+			})
+
+			verifyAppPage(podinfo)
+			verifyAppDetails(podinfo, mgmtCluster)
+			verifyAppAnnotations(podinfo)
+
+			navigatetoApplicationsPage(applicationsPage)
+			verifyAppSourcePage(applicationInfo, podinfo)
+
+			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
+		})
+
+		ginkgo.It("Verify application can be installed from HelmRepository source and dashboard is updated accordingly", func() {
+			metallb := Application{
+				Type:            "helm_release",
+				Chart:           "weaveworks-charts",
+				SyncInterval:    "10m",
+				Name:            "metallb",
+				DeploymentName:  "metallb-controller",
+				Namespace:       GITOPS_DEFAULT_NAMESPACE, // HelmRelease application always get installed in flux-system namespace
+				TargetNamespace: appNameSpace,
+				Source:          GITOPS_DEFAULT_NAMESPACE + "-metallb",
+				Version:         "0.0.2",
+				ValuesRegex:     `namespace: ""`,
+				Values:          fmt.Sprintf(`namespace: %s`, appNameSpace),
+			}
+
+			appEvent := ApplicationEvent{
+				Reason:    "info",
+				Message:   "Helm install succeeded|Helm install has started",
+				Component: "helm-controller",
+				Timestamp: "seconds|minutes|minute ago",
+			}
+
+			pullRequest := PullRequest{
+				Branch:  "management-helm-apps",
+				Title:   "Management Helm Applications",
+				Message: "Adding management helm applications",
+			}
+			sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
+			appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
+
+			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+			existingAppCount = getApplicationCount()
+
+			defer cleanGitRepository(appKustomization)
+
+			ginkgo.By("And wait for cluster-service to cache profiles", func() {
+				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
+			})
+
+			pages.NavigateToPage(webDriver, "Applications")
+			applicationsPage := pages.GetApplicationsPage(webDriver)
+
+			ginkgo.By(`And navigate to 'Add Application' page`, func() {
+				gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+
+				addApplication := pages.GetAddApplicationsPage(webDriver)
+				gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
+			})
+
+			application := pages.GetAddApplication(webDriver)
+			createPage := pages.GetCreateClusterPage(webDriver)
+			profile := createPage.GetProfileInList(metallb.Name)
+			ginkgo.By(fmt.Sprintf("And select %s HelmRepository", metallb.Chart), func() {
+				gomega.Eventually(func(g gomega.Gomega) bool {
+					g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
+					g.Eventually(application.SelectListItem(webDriver, mgmtCluster.Name).Click).Should(gomega.Succeed(), "Failed to select 'management' cluster from clusters list")
+					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
+					return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
+
+				gomega.Eventually(application.SelectListItem(webDriver, metallb.Chart).Click).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
+			})
+
+			AddHelmReleaseApp(profile, metallb)
+
+			preview := pages.GetPreview(webDriver)
+			ginkgo.By("Then I should preview the PR", func() {
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+					g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
+
+				}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), "Failed to get PR preview")
+			})
+
+			ginkgo.By("Then verify preview tab lists", func() {
+				// Verify profiles preview
+				gomega.Eventually(preview.GetPreviewTab("Helm Releases").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
+				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, metallb.Name, metallb.Namespace)))
+				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s[\s\w\d./:-]*prometheus[\s\w\d./:-]*namespace: %s`, metallb.Name, metallb.Chart, metallb.Version, metallb.TargetNamespace, metallb.TargetNamespace)))
+			})
+
+			ginkgo.By("And verify downloaded preview resources", func() {
+				// verify download prview resources
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(preview.Download.Click()).Should(gomega.Succeed())
+					_, err := os.Stat(downloadedResourcesPath)
+					g.Expect(err).Should(gomega.Succeed())
+				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+
+				fileList, _ := getArchiveFileList(downloadedResourcesPath)
+				previewResources := []string{
+					path.Join("clusters/management", strings.Join([]string{metallb.Name, metallb.TargetNamespace, "helmrelease.yaml"}, "-")),
+				}
+				gomega.Expect(len(fileList)).Should(gomega.Equal(len(previewResources)), "Failed to verify expected number of downloaded preview resources")
+				gomega.Expect(fileList).Should(gomega.ContainElements(previewResources), "Failed to verify downloaded preview resources files")
+			})
+
+			prUrl := createGitopsPR(pullRequest)
+			ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
+				createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
+				gomega.Expect(createPRUrl).Should(gomega.Equal(prUrl))
 
 			})
 
-			ginkgo.It("Verify application can be installed from GitRepository source on leaf cluster and management dashboard is updated accordingly", ginkgo.Label("integration", "application", "leaf-application"), func() {
-				podinfo := Application{
-					Type:            "kustomization",
-					Name:            "my-podinfo",
-					DeploymentName:  "podinfo",
-					Namespace:       appNameSpace,
-					TargetNamespace: appTargetNamespace,
-					Source:          "my-podinfo",
-					Path:            "./kustomize",
-					SyncInterval:    "10m",
-				}
+			ginkgo.By("And the manifests are present in the cluster config repository", func() {
+				mergePullRequest(gitProviderEnv, repoAbsolutePath, prUrl)
+				pullGitRepo(repoAbsolutePath)
 
-				appEvent := ApplicationEvent{
-					Reason:    "ReconciliationSucceeded",
-					Message:   "next run in " + podinfo.SyncInterval,
-					Component: "kustomize-controller",
-					Timestamp: "seconds|minutes|minute ago",
-				}
-
-				pullRequest := PullRequest{
-					Branch:  "management-kustomization-leaf-cluster-apps",
-					Title:   "Management Kustomization Leaf Cluster Application",
-					Message: "Adding management kustomization leaf cluster applications",
-				}
-
-				sourceURL := "https://github.com/stefanprodan/podinfo"
-				appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
-
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
-
-				useClusterContext(mgmtClusterContext)
-				createNamespace([]string{leafCluster.Namespace})
-
-				createPATSecret(leafCluster.Namespace, patSecret)
-				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
-				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
-
-				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
-				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
-
-				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
-					useClusterContext(leafClusterContext)
-					verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
-					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				// Add GitRepository source to leaf cluster
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
-				useClusterContext(mgmtClusterContext)
-
-				pages.NavigateToPage(webDriver, "Applications")
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-					existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
-				})
-
-				ginkgo.By(`And navigate to 'Add Application' page`, func() {
-					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
-
-					addApplication := pages.GetAddApplicationsPage(webDriver)
-					gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
-				})
-
-				application := pages.GetAddApplication(webDriver)
-				ginkgo.By(fmt.Sprintf("And select %s GitRepository for cluster %s", podinfo.Source, leafCluster.Name), func() {
-					gomega.Eventually(func(g gomega.Gomega) bool {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
-						g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s cluster from clusters list", leafCluster.Name))
-						g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
-						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
-
-					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
-					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
-				})
-
-				AddKustomizationApp(application, podinfo)
-				_ = createGitopsPR(pullRequest)
-
-				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
-					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
-				})
-
-				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
-					useClusterContext(leafClusterContext)
-					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					useClusterContext(mgmtClusterContext)
-				})
-
-				ginkgo.By("And wait for leaf cluster podinfo application to be visibe on the dashboard", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-				})
-
-				ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
-					searchPage := pages.GetSearchPage(webDriver)
-					searchPage.SearchName(podinfo.Name)
-					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
-				})
-
-				verifyAppInformation(applicationsPage, podinfo, leafCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
-				})
-
-				verifyAppPage(podinfo)
-				verifyAppEvents(podinfo, appEvent)
-				verifyAppDetails(podinfo, leafCluster)
-				verfifyAppGraph(podinfo)
-
-				navigatetoApplicationsPage(applicationsPage)
-				verifyAppSourcePage(applicationInfo, podinfo)
-
-				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
+				_, err := os.Stat(path.Join(repoAbsolutePath, "clusters/management", strings.Join([]string{metallb.Name, metallb.TargetNamespace, "helmrelease.yaml"}, "-")))
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "helmrelease kustomization yaml can not be found.")
 			})
 
-			ginkgo.It("Verify application can be installed from HelmRepository source on leaf cluster and management dashboard is updated accordingly", ginkgo.Label("integration", "application", "leaf-application"), func() {
-				ginkgo.Skip("Test is waiting for #1282 to be fixed. Can't get profile from leaf clusters")
-
-				metallb := Application{
-					Type:            "helm_release",
-					Chart:           "profiles-catalog",
-					SyncInterval:    "10m",
-					Name:            "metallb",
-					DeploymentName:  "metallb-controller",
-					Namespace:       appNameSpace,
-					TargetNamespace: appTargetNamespace,
-					Source:          appNameSpace + "-metallb",
-					Version:         "0.0.2",
-					ValuesRegex:     `namespace: ""`,
-					Values:          fmt.Sprintf(`namespace: %s`, appNameSpace),
-				}
-
-				appEvent := ApplicationEvent{
-					Reason:    "info",
-					Message:   "Helm install has started|Helm install succeeded",
-					Component: "helm-controller",
-					Timestamp: "seconds|minutes|minute ago",
-				}
-
-				pullRequest := PullRequest{
-					Branch:  "management-helm-leaf-cluster-apps",
-					Title:   "Management Helm Leaf Cluster Application",
-					Message: "Adding management helm leaf cluster applications",
-				}
-
-				sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
-				appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, metallb.Name, metallb.Namespace)
-
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
-
-				useClusterContext(mgmtClusterContext)
-				createNamespace([]string{leafCluster.Namespace})
-
-				createPATSecret(leafCluster.Namespace, patSecret)
-				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
-				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
-
-				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
-				addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
-
-				ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
-					useClusterContext(leafClusterContext)
-					verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
-					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				// Add HelmRepository source to leaf cluster
-				addSource("helm", metallb.Chart, metallb.Namespace, sourceURL, "", "")
-				useClusterContext(mgmtClusterContext)
-
-				ginkgo.By("And wait for cluster-service to cache profiles", func() {
-					gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts ")
-				})
-
-				pages.NavigateToPage(webDriver, "Applications")
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
-				})
-
-				ginkgo.By(`And navigate to 'Add Application' page`, func() {
-					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
-
-					addApplication := pages.GetAddApplicationsPage(webDriver)
-					gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
-				})
-
-				application := pages.GetAddApplication(webDriver)
-				createPage := pages.GetCreateClusterPage(webDriver)
-				profile := createPage.GetProfileInList(metallb.Name)
-				ginkgo.By(fmt.Sprintf("And select %s HelmRepository", metallb.Chart), func() {
-					gomega.Eventually(func(g gomega.Gomega) bool {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
-						g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), "Failed to select 'management' cluster from clusters list")
-						g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
-						return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
-
-					gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, metallb.Chart), -250, 0)).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
-				})
-
-				AddHelmReleaseApp(profile, metallb)
-				_ = createGitopsPR(pullRequest)
-
-				ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
-					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
-				})
-
-				ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
-					useClusterContext(leafClusterContext)
-					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					useClusterContext(mgmtClusterContext)
-				})
-
-				ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", metallb.Name), func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1 // metallb (leaf cluster)
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-				})
-
-				ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
-					searchPage := pages.GetSearchPage(webDriver)
-					searchPage.SearchName(metallb.Name)
-					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
-				})
-
-				verifyAppInformation(applicationsPage, metallb, leafCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(metallb.Name)
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", metallb.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", metallb.Name))
-				})
-
-				verifyAppPage(metallb)
-				verifyAppEvents(metallb, appEvent)
-				verifyAppDetails(metallb, leafCluster)
-				verfifyAppGraph(metallb)
-
-				navigatetoApplicationsPage(applicationsPage)
-				verifyAppSourcePage(applicationInfo, metallb)
-
-				verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
+			ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
+				reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 			})
+
+			ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", metallb.Name), func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+				totalAppCount := existingAppCount + 1
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+			})
+
+			verifyAppInformation(applicationsPage, metallb, mgmtCluster, "Ready")
+
+			applicationInfo := applicationsPage.FindApplicationInList(metallb.Name)
+			ginkgo.By(fmt.Sprintf("And navigate to %s application page", metallb.Name), func() {
+				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", metallb.Name))
+			})
+
+			verifyAppPage(metallb)
+			verifyAppEvents(metallb, appEvent)
+			verifyAppDetails(metallb, mgmtCluster)
+			verfifyAppGraph(metallb)
+
+			navigatetoApplicationsPage(applicationsPage)
+			verifyAppSourcePage(applicationInfo, metallb)
+
+			verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
+		})
+
+		ginkgo.It("Verify application can be installed from GitRepository source and dashboard is updated accordingly", func() {
+			podinfo := Application{
+				Type:            "kustomization",
+				Name:            "my-podinfo",
+				DeploymentName:  "podinfo",
+				Namespace:       appNameSpace,
+				TargetNamespace: appTargetNamespace,
+				Source:          "my-podinfo",
+				Path:            "./kustomize",
+				SyncInterval:    "10m",
+			}
+
+			appEvent := ApplicationEvent{
+				Reason:    "ReconciliationSucceeded",
+				Message:   "next run in " + podinfo.SyncInterval,
+				Component: "kustomize-controller",
+				Timestamp: "seconds|minutes|minute ago",
+			}
+
+			pullRequest := PullRequest{
+				Branch:  "management-kustomization-apps",
+				Title:   "Management Kustomization Application",
+				Message: "Adding management kustomization applications",
+			}
+
+			// tartget namespace is created by the kustomization, hence deleting it beforehand to avoid namespace creation errors
+			deleteNamespace([]string{appTargetNamespace})
+
+			sourceURL := "https://github.com/stefanprodan/podinfo"
+			appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-kustomization.yaml", mgmtCluster.Name, podinfo.Name, podinfo.Namespace)
+
+			defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
+			defer cleanGitRepository(appKustomization)
+			defer cleanGitRepository(fmt.Sprintf("./clusters/%s/%s-namespace.yaml", mgmtCluster.Name, podinfo.TargetNamespace))
+
+			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+			existingAppCount = getApplicationCount()
+
+			pages.NavigateToPage(webDriver, "Applications")
+			applicationsPage := pages.GetApplicationsPage(webDriver)
+
+			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+			ginkgo.By(`And navigate to 'Add Application' page`, func() {
+				gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+
+				addApplication := pages.GetAddApplicationsPage(webDriver)
+				gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
+			})
+
+			application := pages.GetAddApplication(webDriver)
+			ginkgo.By(fmt.Sprintf("And select %s GitRepository", podinfo.Source), func() {
+				gomega.Eventually(func(g gomega.Gomega) bool {
+					g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
+					g.Eventually(application.SelectListItem(webDriver, mgmtCluster.Name).Click).Should(gomega.Succeed(), "Failed to select 'management' cluster from clusters list")
+					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
+					return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
+
+				gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
+			})
+
+			AddKustomizationApp(application, podinfo)
+
+			createPage := pages.GetCreateClusterPage(webDriver)
+			preview := pages.GetPreview(webDriver)
+			ginkgo.By("Then I should preview the PR", func() {
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+					g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
+
+				}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), "Failed to get PR preview")
+			})
+
+			ginkgo.By("Then verify preview tab lists", func() {
+				// Verify kustomizations preview resources.zip
+				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
+				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
+				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
+				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`path: %s`, podinfo.Path)))
+				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
+			})
+
+			ginkgo.By("And verify downloaded preview resources", func() {
+				// verify download prview resources
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(preview.Download.Click()).Should(gomega.Succeed())
+					_, err := os.Stat(downloadedResourcesPath)
+					g.Expect(err).Should(gomega.Succeed())
+				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+
+				fileList, _ := getArchiveFileList(downloadedResourcesPath)
+				previewResources := []string{
+					path.Join("clusters/management", strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")),
+					path.Join("clusters/management", strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")),
+				}
+				gomega.Expect(len(fileList)).Should(gomega.Equal(len(previewResources)), "Failed to verify expected number of downloaded preview resources")
+				gomega.Expect(fileList).Should(gomega.ContainElements(previewResources), "Failed to verify downloaded preview resources files")
+			})
+
+			prUrl := createGitopsPR(pullRequest)
+
+			ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
+				createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
+				gomega.Expect(createPRUrl).Should(gomega.Equal(prUrl))
+
+			})
+
+			ginkgo.By("And the manifests are present in the cluster config repository", func() {
+				mergePullRequest(gitProviderEnv, repoAbsolutePath, prUrl)
+				pullGitRepo(repoAbsolutePath)
+
+				_, err := os.Stat(path.Join(repoAbsolutePath, "clusters/management", strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")))
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "target namespace.yaml can not be found.")
+
+				_, err = os.Stat(path.Join(repoAbsolutePath, "clusters/management", strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")))
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Kustomization kustomization.yaml can not be found.")
+			})
+
+			ginkgo.By("Then force reconcile flux-system to immediately start application provisioning", func() {
+				reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+			})
+
+			ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", podinfo.Name), func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+				totalAppCount := existingAppCount + 1
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+			})
+
+			verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
+
+			applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+			ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
+				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
+			})
+
+			verifyAppPage(podinfo)
+			verifyAppEvents(podinfo, appEvent)
+			verifyAppDetails(podinfo, mgmtCluster)
+			verfifyAppGraph(podinfo)
+
+			navigatetoApplicationsPage(applicationsPage)
+			verifyAppSourcePage(applicationInfo, podinfo)
+
+			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
+		})
+	})
+
+	ginkgo.Context("[UI] Applications(s) can be installed on leaf cluster", ginkgo.Label("leaf-application"), func() {
+		var mgmtClusterContext string
+		var leafClusterContext string
+		var leafClusterkubeconfig string
+		var clusterBootstrapCopnfig string
+		var gitopsCluster string
+		var existingAppCount int
+		patSecret := "application-pat"
+		bootstrapLabel := "bootstrap"
+
+		appNameSpace := "test-kustomization"
+		appTargetNamespace := "test-system"
+
+		leafCluster := ClusterConfig{
+			Type:      "other",
+			Name:      "wge-leaf-application-kind",
+			Namespace: "test-system",
+		}
+
+		ginkgo.JustBeforeEach(func() {
+			existingAppCount = getApplicationCount()
+			mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			createCluster("kind", leafCluster.Name, "")
+			createNamespace([]string{appNameSpace, appTargetNamespace})
+			leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+		})
+
+		ginkgo.JustAfterEach(func() {
+			useClusterContext(mgmtClusterContext)
+
+			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
+
+			deleteCluster("kind", leafCluster.Name, "")
+			cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
+			deleteNamespace([]string{leafCluster.Namespace})
 
 		})
 
-		// Application Violations tests
-		ginkgo.Context("[UI] Application violations are available for management cluster", func() {
-			// Count of existing applications before deploying new application
-			var existingAppCount int
-			var downloadedResourcesPath string
-			var policiesYaml string
-			var policyConfigYaml string
-
-			// Just specify the violated application info to create it
-			appNameSpace := "test-kustomization"
-			appTargetNamespace := "test-system"
-
-			mgmtCluster := ClusterConfig{
-				Type:      "management",
-				Name:      "management",
-				Namespace: "",
+		ginkgo.It("Verify application can be installed from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
+			podinfo := Application{
+				Type:            "kustomization",
+				Name:            "my-podinfo",
+				DeploymentName:  "podinfo",
+				Namespace:       appNameSpace,
+				TargetNamespace: appTargetNamespace,
+				Source:          "my-podinfo",
+				Path:            "./kustomize",
+				SyncInterval:    "10m",
 			}
 
-			ginkgo.JustBeforeEach(func() {
-				downloadedResourcesPath = path.Join(os.Getenv("HOME"), "Downloads", "resources.zip")
-				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
-				policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
+			appEvent := ApplicationEvent{
+				Reason:    "ReconciliationSucceeded",
+				Message:   "next run in " + podinfo.SyncInterval,
+				Component: "kustomize-controller",
+				Timestamp: "seconds|minutes|minute ago",
+			}
 
-				// Application target namespace is created by the kustomization 'Add Application' UI
-				createNamespace([]string{appNameSpace, appTargetNamespace})
-				_ = deleteFile([]string{downloadedResourcesPath})
+			pullRequest := PullRequest{
+				Branch:  "management-kustomization-leaf-cluster-apps",
+				Title:   "Management Kustomization Leaf Cluster Application",
+				Message: "Adding management kustomization leaf cluster applications",
+			}
 
-				// Add/Install test Policies,Policy Config on the management cluster
-				installTestPolicies(mgmtCluster.Name, policiesYaml)
-				installPolicyConfig(mgmtCluster.Name, policyConfigYaml)
+			sourceURL := "https://github.com/stefanprodan/podinfo"
+			appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
+
+			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
+
+			useClusterContext(mgmtClusterContext)
+			createNamespace([]string{leafCluster.Namespace})
+
+			createPATSecret(leafCluster.Namespace, patSecret)
+			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
+			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
+			createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
+
+			waitForLeafClusterAvailability(leafCluster.Name, "Ready")
+			addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
+
+			ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
+				useClusterContext(leafClusterContext)
+				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
+				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
 
-			ginkgo.JustAfterEach(func() {
-				// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
-				gomega.Eventually(func(g gomega.Gomega) int {
-					return getApplicationCount()
-				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+			// Add GitRepository source to leaf cluster
+			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+			useClusterContext(mgmtClusterContext)
 
-				// Delete the Policy config and test policies
-				_ = gitopsTestRunner.KubectlDelete([]string{}, policyConfigYaml)
-				_ = gitopsTestRunner.KubectlDelete([]string{}, policiesYaml)
+			pages.NavigateToPage(webDriver, "Applications")
+			applicationsPage := pages.GetApplicationsPage(webDriver)
 
-				deleteNamespace([]string{appNameSpace, appTargetNamespace})
-				_ = deleteFile([]string{downloadedResourcesPath})
+			ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 			})
 
-			ginkgo.It("Verify application violations for management cluster", ginkgo.Label("integration", "application", "violation"), func() {
-				// Podinfo application details
-				podinfo := Application{
-					Type:            "kustomization",
-					Name:            "app-violations-podinfo",
-					DeploymentName:  "podinfo",
-					Namespace:       appNameSpace,
-					TargetNamespace: appTargetNamespace,
-					Source:          "app-violations-podinfo",
-					Path:            "./kustomize",
-					SyncInterval:    "30s",
-				}
+			ginkgo.By(`And navigate to 'Add Application' page`, func() {
+				gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 
-				// App Violations data
-				appViolations := ApplicationViolations{
-					PolicyName:               "Container Image Pull Policy acceptance test",
-					ViolationMessage:         `Container Image Pull Policy acceptance test in deployment podinfo (1 occurrences)`,
-					ViolationSeverity:        "Medium",
-					ViolationCategory:        "weave.categories.software-supply-chain",
-					ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
-					PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
-				}
-
-				sourceURL := "https://github.com/stefanprodan/podinfo"
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
-
-				appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-				existingAppCount = getApplicationCount()
-
-				appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)
-				defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
-				defer cleanGitRepository(appDir)
-
-				pages.NavigateToPage(webDriver, "Applications")
-				// Declare application page variable
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				ginkgo.By("And add Kustomization & GitRepository Source manifests pointing to podinfo repository’s master branch)", func() {
-
-					pullGitRepo(repoAbsolutePath)
-					err := runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
-					gomega.Expect(err).Should(gomega.BeNil(), "Failed to add kustomization file for '%s'", podinfo.Name)
-					gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
-				})
-
-				ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
-				})
-
-				verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
-				})
-
-				verifyAppViolationsList(podinfo, appViolations)
-				verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo, appViolations)
-				verifyPolicyConfigInAppViolationsDetails(appViolations.ConfigPolicy, appViolations.PolicyConfigViolationMsg)
-				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
-
+				addApplication := pages.GetAddApplicationsPage(webDriver)
+				gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
 			})
+
+			application := pages.GetAddApplication(webDriver)
+			ginkgo.By(fmt.Sprintf("And select %s GitRepository for cluster %s", podinfo.Source, leafCluster.Name), func() {
+				gomega.Eventually(func(g gomega.Gomega) bool {
+					g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
+					g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s cluster from clusters list", leafCluster.Name))
+					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
+					return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
+
+				gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
+			})
+
+			AddKustomizationApp(application, podinfo)
+			_ = createGitopsPR(pullRequest)
+
+			ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
+				createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
+				mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
+			})
+
+			ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
+				useClusterContext(leafClusterContext)
+				reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				useClusterContext(mgmtClusterContext)
+			})
+
+			ginkgo.By("And wait for leaf cluster podinfo application to be visibe on the dashboard", func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+				totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+			})
+
+			ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
+				searchPage := pages.GetSearchPage(webDriver)
+				searchPage.SearchName(podinfo.Name)
+				gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
+			})
+
+			verifyAppInformation(applicationsPage, podinfo, leafCluster, "Ready")
+
+			applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+			ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
+				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
+			})
+
+			verifyAppPage(podinfo)
+			verifyAppEvents(podinfo, appEvent)
+			verifyAppDetails(podinfo, leafCluster)
+			verfifyAppGraph(podinfo)
+
+			navigatetoApplicationsPage(applicationsPage)
+			verifyAppSourcePage(applicationInfo, podinfo)
+
+			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 		})
 
-		ginkgo.Context("[UI] Application violations are available for leaf cluster", func() {
-			var mgmtClusterContext string
-			var leafClusterContext string
-			var leafClusterkubeconfig string
-			var clusterBootstrapCopnfig string
-			var gitopsCluster string
-			var existingAppCount int
-			var policiesYaml string
-			var policyConfigYaml string
-			patSecret := "application-violations-pat"
-			bootstrapLabel := "bootstrap"
+		ginkgo.It("Verify application can be installed from HelmRepository source on leaf cluster and management dashboard is updated accordingly", func() {
+			ginkgo.Skip("Test is waiting for #1282 to be fixed. Can't get profile from leaf clusters")
 
-			// Just specify the violated application info to create it
-			appNameSpace := "test-kustomization"
-			appTargetNamespace := "test-system"
-
-			// Just specify the leaf cluster info to create it
-			leafCluster := ClusterConfig{
-				Type:      "leaf",
-				Name:      "app-violations-leaf-cluster-test",
-				Namespace: "test-system",
+			metallb := Application{
+				Type:            "helm_release",
+				Chart:           "profiles-catalog",
+				SyncInterval:    "10m",
+				Name:            "metallb",
+				DeploymentName:  "metallb-controller",
+				Namespace:       appNameSpace,
+				TargetNamespace: appTargetNamespace,
+				Source:          appNameSpace + "-metallb",
+				Version:         "0.0.2",
+				ValuesRegex:     `namespace: ""`,
+				Values:          fmt.Sprintf(`namespace: %s`, appNameSpace),
 			}
 
-			ginkgo.JustBeforeEach(func() {
-				policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
-				policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
+			appEvent := ApplicationEvent{
+				Reason:    "info",
+				Message:   "Helm install has started|Helm install succeeded",
+				Component: "helm-controller",
+				Timestamp: "seconds|minutes|minute ago",
+			}
 
-				// Get the count of existing applications before deploying new application
-				existingAppCount = getApplicationCount()
-				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			pullRequest := PullRequest{
+				Branch:  "management-helm-leaf-cluster-apps",
+				Title:   "Management Helm Leaf Cluster Application",
+				Message: "Adding management helm leaf cluster applications",
+			}
 
-				createCluster("kind", leafCluster.Name, "")
-				// Create App namespace
-				createNamespace([]string{appNameSpace, appTargetNamespace})
-				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
+			appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, metallb.Name, metallb.Namespace)
 
-				// Add/Install Policy Agent on the leaf cluster
-				installPolicyAgent(leafCluster.Name)
+			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
+
+			useClusterContext(mgmtClusterContext)
+			createNamespace([]string{leafCluster.Namespace})
+
+			createPATSecret(leafCluster.Namespace, patSecret)
+			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
+			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
+			createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
+
+			waitForLeafClusterAvailability(leafCluster.Name, "Ready")
+			addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
+
+			ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
+				useClusterContext(leafClusterContext)
+				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
+				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
 
-			ginkgo.JustAfterEach(func() {
+			// Add HelmRepository source to leaf cluster
+			addSource("helm", metallb.Chart, metallb.Namespace, sourceURL, "", "")
+			useClusterContext(mgmtClusterContext)
 
-				useClusterContext(mgmtClusterContext)
-
-				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
-				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
-
-				deleteCluster("kind", leafCluster.Name, "")
-				cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
-				deleteNamespace([]string{leafCluster.Namespace})
+			ginkgo.By("And wait for cluster-service to cache profiles", func() {
+				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts ")
 			})
 
-			ginkgo.It("Verify application violations for leaf cluster", ginkgo.Label("integration", "application", "violation", "leaf-application"), func() {
-				// Podinfo application details
-				podinfo := Application{
-					Type:            "kustomization",
-					Name:            "app-violations-podinfo",
-					DeploymentName:  "podinfo",
-					Namespace:       appNameSpace,
-					TargetNamespace: appTargetNamespace,
-					Source:          "app-violations-podinfo",
-					Path:            "./kustomize",
-					SyncInterval:    "10m",
-				}
+			pages.NavigateToPage(webDriver, "Applications")
+			applicationsPage := pages.GetApplicationsPage(webDriver)
 
-				pullRequest := PullRequest{
-					Branch:  "Leaf-cluster-apps-kustomization-" + RandString(5),
-					Title:   "Leaf Cluster Application Kustomization PR",
-					Message: "Adding leaf cluster applications kustomization",
-				}
+			ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
 
-				sourceURL := "https://github.com/stefanprodan/podinfo"
-				appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
-
-				repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
-
-				// App Violations data
-				appViolations := ApplicationViolations{
-					PolicyName:               "Container Image Pull Policy acceptance test",
-					ViolationMessage:         `Container Image Pull Policy acceptance test in deployment podinfo (1 occurrences)`,
-					ViolationSeverity:        "Medium",
-					ViolationCategory:        "weave.categories.software-supply-chain",
-					ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
-					PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
-				}
-				useClusterContext(mgmtClusterContext)
-				// Create leaf cluster namespace
-				createNamespace([]string{leafCluster.Namespace})
-
-				// Create leaf cluster kubeconfig
-				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
-
-				createPATSecret(leafCluster.Namespace, patSecret)
-				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
-				gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
-				createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
-
-				// Declare application page variable
-				applicationsPage := pages.GetApplicationsPage(webDriver)
-
-				// First let the leaf cluster to bootstrap and be Ready before installing policies.'Containers Minimum Replica Count acceptance test' policy will prevent the bootstrap if deployed first
-				waitForLeafClusterAvailability(leafCluster.Name, "Ready")
-				addKustomizationBases(leafCluster.Type, leafCluster.Name, leafCluster.Namespace)
-
-				ginkgo.By(fmt.Sprintf("And verify '%s' leafCluster is bootstraped", leafCluster.Name), func() {
-					useClusterContext(leafClusterContext)
-					verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
-					waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
-				})
-
-				// Add/Install test Policies and Policy Config on the leaf cluster
-				installTestPolicies(leafCluster.Name, policiesYaml)
-				installPolicyConfig(leafCluster.Name, policyConfigYaml)
-
-				// Add GitRepository source to leaf cluster
-				addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
-				useClusterContext(mgmtClusterContext)
-
-				pages.NavigateToPage(webDriver, "Applications")
-
-				ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
-				})
-
-				ginkgo.By(`And navigate to 'Add Application' page`, func() {
-					gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
-
-					addApplication := pages.GetAddApplicationsPage(webDriver)
-					gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
-				})
-
-				application := pages.GetAddApplication(webDriver)
-				ginkgo.By(fmt.Sprintf("And select %s GitRepository for cluster %s", podinfo.Source, leafCluster.Name), func() {
-					gomega.Eventually(func(g gomega.Gomega) bool {
-						g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-						g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
-						g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s cluster from clusters list", leafCluster.Name))
-						g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
-						return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
-					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
-
-					gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
-					gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
-				})
-
-				AddKustomizationApp(application, podinfo)
-				_ = createGitopsPR(pullRequest)
-
-				ginkgo.By("Then merge the pull request to start application reconciliation", func() {
-					createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
-					mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
-				})
-
-				ginkgo.By("Then force reconcile leaf cluster flux-system for immediate application availability", func() {
-					useClusterContext(leafClusterContext)
-					reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
-					useClusterContext(mgmtClusterContext)
-				})
-
-				ginkgo.By(fmt.Sprintf("And wait for leaf cluster %s application to be visibe on the dashboard", podinfo.Name), func() {
-					gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
-					totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
-					gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table, but found %d", totalAppCount, existingAppCount))
-				})
-
-				ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
-					searchPage := pages.GetSearchPage(webDriver)
-					searchPage.SearchName(podinfo.Name)
-					gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
-				})
-
-				verifyAppInformation(applicationsPage, podinfo, leafCluster, "Ready")
-
-				applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
-
-				ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
-					gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
-				})
-
-				verifyAppViolationsList(podinfo, appViolations)
-				verifyAppViolationsDetailsPage(leafCluster.Name, podinfo, appViolations)
-				verifyPolicyConfigInAppViolationsDetails(appViolations.ConfigPolicy, appViolations.PolicyConfigViolationMsg)
-				verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
-
+				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 			})
+
+			ginkgo.By(`And navigate to 'Add Application' page`, func() {
+				gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+
+				addApplication := pages.GetAddApplicationsPage(webDriver)
+				gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
+			})
+
+			application := pages.GetAddApplication(webDriver)
+			createPage := pages.GetCreateClusterPage(webDriver)
+			profile := createPage.GetProfileInList(metallb.Name)
+			ginkgo.By(fmt.Sprintf("And select %s HelmRepository", metallb.Chart), func() {
+				gomega.Eventually(func(g gomega.Gomega) bool {
+					g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
+					g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), "Failed to select 'management' cluster from clusters list")
+					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
+					return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
+
+				gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, metallb.Chart), -250, 0)).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+			})
+
+			AddHelmReleaseApp(profile, metallb)
+			_ = createGitopsPR(pullRequest)
+
+			ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
+				createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
+				mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
+			})
+
+			ginkgo.By("Then force reconcile leaf cluster flux-system to immediately start application provisioning", func() {
+				useClusterContext(leafClusterContext)
+				reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				useClusterContext(mgmtClusterContext)
+			})
+
+			ginkgo.By(fmt.Sprintf("And wait for %s application to be visibe on the dashboard", metallb.Name), func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+				totalAppCount := existingAppCount + 1 // metallb (leaf cluster)
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+			})
+
+			ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
+				searchPage := pages.GetSearchPage(webDriver)
+				searchPage.SearchName(metallb.Name)
+				gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
+			})
+
+			verifyAppInformation(applicationsPage, metallb, leafCluster, "Ready")
+
+			applicationInfo := applicationsPage.FindApplicationInList(metallb.Name)
+			ginkgo.By(fmt.Sprintf("And navigate to %s application page", metallb.Name), func() {
+				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", metallb.Name))
+			})
+
+			verifyAppPage(metallb)
+			verifyAppEvents(metallb, appEvent)
+			verifyAppDetails(metallb, leafCluster)
+			verfifyAppGraph(metallb)
+
+			navigatetoApplicationsPage(applicationsPage)
+			verifyAppSourcePage(applicationInfo, metallb)
+
+			verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
+		})
+
+	})
+
+	// Application Violations tests
+	ginkgo.Context("[UI] Application violations are available for management cluster", ginkgo.Label("violation"), func() {
+		// Count of existing applications before deploying new application
+		var existingAppCount int
+		var downloadedResourcesPath string
+		var policiesYaml string
+		var policyConfigYaml string
+
+		// Just specify the violated application info to create it
+		appNameSpace := "test-kustomization"
+		appTargetNamespace := "test-system"
+
+		mgmtCluster := ClusterConfig{
+			Type:      "management",
+			Name:      "management",
+			Namespace: "",
+		}
+
+		ginkgo.JustBeforeEach(func() {
+			downloadedResourcesPath = path.Join(os.Getenv("HOME"), "Downloads", "resources.zip")
+			policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+			policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
+
+			// Application target namespace is created by the kustomization 'Add Application' UI
+			createNamespace([]string{appNameSpace, appTargetNamespace})
+			_ = deleteFile([]string{downloadedResourcesPath})
+
+			// Add/Install test Policies,Policy Config on the management cluster
+			installTestPolicies(mgmtCluster.Name, policiesYaml)
+			installPolicyConfig(mgmtCluster.Name, policyConfigYaml)
+		})
+
+		ginkgo.JustAfterEach(func() {
+			// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
+			gomega.Eventually(func(g gomega.Gomega) int {
+				return getApplicationCount()
+			}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
+
+			// Delete the Policy config and test policies
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policyConfigYaml)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
+
+			deleteNamespace([]string{appNameSpace, appTargetNamespace})
+			_ = deleteFile([]string{downloadedResourcesPath})
+		})
+
+		ginkgo.It("Verify application violations for management cluster", func() {
+			// Podinfo application details
+			podinfo := Application{
+				Type:            "kustomization",
+				Name:            "app-violations-podinfo",
+				DeploymentName:  "podinfo",
+				Namespace:       appNameSpace,
+				TargetNamespace: appTargetNamespace,
+				Source:          "app-violations-podinfo",
+				Path:            "./kustomize",
+				SyncInterval:    "30s",
+			}
+
+			// App Violations data
+			appViolations := ApplicationViolations{
+				PolicyName:               "Container Image Pull Policy acceptance test",
+				ViolationMessage:         `Container Image Pull Policy acceptance test in deployment podinfo (1 occurrences)`,
+				ViolationSeverity:        "Medium",
+				ViolationCategory:        "weave.categories.software-supply-chain",
+				ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
+				PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
+			}
+
+			sourceURL := "https://github.com/stefanprodan/podinfo"
+			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+
+			appDir := fmt.Sprintf("./clusters/%s/podinfo", mgmtCluster.Name)
+			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+			existingAppCount = getApplicationCount()
+
+			appKustomization := createGitKustomization(podinfo.Name, podinfo.Namespace, podinfo.Path, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)
+			defer deleteSource("git", podinfo.Source, podinfo.Namespace, "")
+			defer cleanGitRepository(appDir)
+
+			pages.NavigateToPage(webDriver, "Applications")
+			// Declare application page variable
+			applicationsPage := pages.GetApplicationsPage(webDriver)
+
+			ginkgo.By("And add Kustomization & GitRepository Source manifests pointing to podinfo repository’s master branch)", func() {
+
+				pullGitRepo(repoAbsolutePath)
+				err := runCommandPassThrough("sh", "-c", fmt.Sprintf("mkdir -p %[2]v && cp -f %[1]v %[2]v", appKustomization, path.Join(repoAbsolutePath, appDir)))
+				gomega.Expect(err).Should(gomega.BeNil(), "Failed to add kustomization file for '%s'", podinfo.Name)
+				gitUpdateCommitPush(repoAbsolutePath, "Adding podinfo kustomization")
+			})
+
+			ginkgo.By("And wait for podinfo application to be visibe on the dashboard", func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+				totalAppCount := existingAppCount + 1
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table", totalAppCount))
+			})
+
+			verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
+
+			applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+			ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
+				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
+			})
+
+			verifyAppViolationsList(podinfo, appViolations)
+			verifyAppViolationsDetailsPage(mgmtCluster.Name, podinfo, appViolations)
+			verifyPolicyConfigInAppViolationsDetails(appViolations.ConfigPolicy, appViolations.PolicyConfigViolationMsg)
+			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 
 		})
 	})
-}
+
+	ginkgo.Context("[UI] Application violations are available for leaf cluster", ginkgo.Label("violation", "leaf-application"), func() {
+		var mgmtClusterContext string
+		var leafClusterContext string
+		var leafClusterkubeconfig string
+		var clusterBootstrapCopnfig string
+		var gitopsCluster string
+		var existingAppCount int
+		var policiesYaml string
+		var policyConfigYaml string
+		patSecret := "application-violations-pat"
+		bootstrapLabel := "bootstrap"
+
+		// Just specify the violated application info to create it
+		appNameSpace := "test-kustomization"
+		appTargetNamespace := "test-system"
+
+		// Just specify the leaf cluster info to create it
+		leafCluster := ClusterConfig{
+			Type:      "leaf",
+			Name:      "app-violations-leaf-cluster-test",
+			Namespace: "test-system",
+		}
+
+		ginkgo.JustBeforeEach(func() {
+			policiesYaml = path.Join(testDataPath, "policies/policies.yaml")
+			policyConfigYaml = path.Join(testDataPath, "policies/policy-config.yaml")
+
+			// Get the count of existing applications before deploying new application
+			existingAppCount = getApplicationCount()
+			mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+
+			createCluster("kind", leafCluster.Name, "")
+			// Create App namespace
+			createNamespace([]string{appNameSpace, appTargetNamespace})
+			leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+
+			// Add/Install Policy Agent on the leaf cluster
+			installPolicyAgent(leafCluster.Name)
+		})
+
+		ginkgo.JustAfterEach(func() {
+
+			useClusterContext(mgmtClusterContext)
+
+			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
+
+			deleteCluster("kind", leafCluster.Name, "")
+			cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
+			deleteNamespace([]string{leafCluster.Namespace})
+		})
+
+		ginkgo.It("Verify application violations for leaf cluster", func() {
+			// Podinfo application details
+			podinfo := Application{
+				Type:            "kustomization",
+				Name:            "app-violations-podinfo",
+				DeploymentName:  "podinfo",
+				Namespace:       appNameSpace,
+				TargetNamespace: appTargetNamespace,
+				Source:          "app-violations-podinfo",
+				Path:            "./kustomize",
+				SyncInterval:    "10m",
+			}
+
+			pullRequest := PullRequest{
+				Branch:  "Leaf-cluster-apps-kustomization-" + randString(5),
+				Title:   "Leaf Cluster Application Kustomization PR",
+				Message: "Adding leaf cluster applications kustomization",
+			}
+
+			sourceURL := "https://github.com/stefanprodan/podinfo"
+			appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, podinfo.Name, podinfo.Namespace)
+
+			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
+
+			// App Violations data
+			appViolations := ApplicationViolations{
+				PolicyName:               "Container Image Pull Policy acceptance test",
+				ViolationMessage:         `Container Image Pull Policy acceptance test in deployment podinfo (1 occurrences)`,
+				ViolationSeverity:        "Medium",
+				ViolationCategory:        "weave.categories.software-supply-chain",
+				ConfigPolicy:             "Containers Minimum Replica Count acceptance test",
+				PolicyConfigViolationMsg: `Containers Minimum Replica Count acceptance test in deployment podinfo (1 occurrences)`,
+			}
+			useClusterContext(mgmtClusterContext)
+			// Create leaf cluster namespace
+			createNamespace([]string{leafCluster.Namespace})
+
+			// Create leaf cluster kubeconfig
+			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
+
+			createPATSecret(leafCluster.Namespace, patSecret)
+			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
+			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
+			createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
+
+			// Declare application page variable
+			applicationsPage := pages.GetApplicationsPage(webDriver)
+
+			// First let the leaf cluster to bootstrap and be Ready before installing policies.'Containers Minimum Replica Count acceptance test' policy will prevent the bootstrap if deployed first
+			waitForLeafClusterAvailability(leafCluster.Name, "Ready")
+			addKustomizationBases(leafCluster.Type, leafCluster.Name, leafCluster.Namespace)
+
+			ginkgo.By(fmt.Sprintf("And verify '%s' leafCluster is bootstraped", leafCluster.Name), func() {
+				useClusterContext(leafClusterContext)
+				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
+				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
+			})
+
+			// Add/Install test Policies and Policy Config on the leaf cluster
+			installTestPolicies(leafCluster.Name, policiesYaml)
+			installPolicyConfig(leafCluster.Name, policyConfigYaml)
+
+			// Add GitRepository source to leaf cluster
+			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
+			useClusterContext(mgmtClusterContext)
+
+			pages.NavigateToPage(webDriver, "Applications")
+
+			ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
+			})
+
+			ginkgo.By(`And navigate to 'Add Application' page`, func() {
+				gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+
+				addApplication := pages.GetAddApplicationsPage(webDriver)
+				gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))
+			})
+
+			application := pages.GetAddApplication(webDriver)
+			ginkgo.By(fmt.Sprintf("And select %s GitRepository for cluster %s", podinfo.Source, leafCluster.Name), func() {
+				gomega.Eventually(func(g gomega.Gomega) bool {
+					g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
+					g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s cluster from clusters list", leafCluster.Name))
+					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
+					return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
+
+				gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
+				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
+			})
+
+			AddKustomizationApp(application, podinfo)
+			_ = createGitopsPR(pullRequest)
+
+			ginkgo.By("Then merge the pull request to start application reconciliation", func() {
+				createPRUrl := verifyPRCreated(gitProviderEnv, repoAbsolutePath)
+				mergePullRequest(gitProviderEnv, repoAbsolutePath, createPRUrl)
+			})
+
+			ginkgo.By("Then force reconcile leaf cluster flux-system for immediate application availability", func() {
+				useClusterContext(leafClusterContext)
+				reconcile("reconcile", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
+				useClusterContext(mgmtClusterContext)
+			})
+
+			ginkgo.By(fmt.Sprintf("And wait for leaf cluster %s application to be visibe on the dashboard", podinfo.Name), func() {
+				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
+
+				totalAppCount := existingAppCount + 1 // podinfo (leaf cluster)
+				gomega.Eventually(applicationsPage.CountApplications, ASSERTION_3MINUTE_TIME_OUT).Should(gomega.Equal(totalAppCount), fmt.Sprintf("There should be %d application enteries in application table, but found %d", totalAppCount, existingAppCount))
+			})
+
+			ginkgo.By(fmt.Sprintf("And search leaf cluster '%s' app", leafCluster.Name), func() {
+				searchPage := pages.GetSearchPage(webDriver)
+				searchPage.SearchName(podinfo.Name)
+				gomega.Eventually(applicationsPage.CountApplications).Should(gomega.Equal(1), "There should be '1' application entery in application table after search")
+			})
+
+			verifyAppInformation(applicationsPage, podinfo, leafCluster, "Ready")
+
+			applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
+
+			ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
+				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
+			})
+
+			verifyAppViolationsList(podinfo, appViolations)
+			verifyAppViolationsDetailsPage(leafCluster.Name, podinfo, appViolations)
+			verifyPolicyConfigInAppViolationsDetails(appViolations.ConfigPolicy, appViolations.PolicyConfigViolationMsg)
+			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
+
+		})
+
+	})
+})
