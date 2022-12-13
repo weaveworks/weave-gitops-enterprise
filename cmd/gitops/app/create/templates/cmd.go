@@ -62,9 +62,6 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			}
 		}
 
-		fmt.Printf("{1} -----> Template name: %s\n", parsedTemplate.Name)
-		fmt.Printf("{2} -----> Template kind: %s\n", parsedTemplate.Kind)
-
 		getFilesRequest := server.GetFilesRequest{
 			ParameterValues: vals,
 			TemplateName:    parsedTemplate.Name,
@@ -77,9 +74,6 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get template resources: %w", err)
 		}
-
-		fmt.Printf("{3} -----> Rendered Template:\n%v\n", *templateResources.RenderedTemplate.Content)
-		fmt.Printf("{4} -----> Template resources:\n%v\n", templateResources.KustomizationFiles)
 
 		renderedTemplate := templateResources.RenderedTemplate.Content
 
@@ -102,12 +96,12 @@ func parseTemplate(filename string) (*gapiv1.GitOpsTemplate, error) {
 
 	templateYAML, err := os.ReadFile(filename)
 	if err != nil {
-		return &gitOpsTemplate, fmt.Errorf("failed to read template file %s: %w", filename, err)
+		return nil, fmt.Errorf("failed to read template file %s: %w", filename, err)
 	}
 
 	scheme := runtime.NewScheme()
 	if err := gapiv1.AddToScheme(scheme); err != nil {
-		return &gitOpsTemplate, fmt.Errorf("failed to add GitOpsTemplate to scheme: %w", err)
+		return nil, fmt.Errorf("failed to add GitOpsTemplate to scheme: %w", err)
 	}
 
 	var codecs = serializer.NewCodecFactory(scheme)
@@ -115,7 +109,7 @@ func parseTemplate(filename string) (*gapiv1.GitOpsTemplate, error) {
 
 	_, _, err = decoder.Decode(templateYAML, nil, &gitOpsTemplate)
 	if err != nil {
-		return &gitOpsTemplate, fmt.Errorf("failed to decode template file %s: %w", filename, err)
+		return nil, fmt.Errorf("failed to decode template file %s: %w", filename, err)
 	}
 
 	return &gitOpsTemplate, nil
