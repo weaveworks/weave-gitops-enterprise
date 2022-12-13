@@ -95,13 +95,13 @@ export const DialogWrapper = styled(Dialog)`
 
 export const RulesList = styled.ul`
   list-style: none;
+  margin-top: ${({ theme }) => theme.spacing.none} !important;
   padding-left: ${({ theme }) => theme.spacing.none} !important;
   li {
     background: ${({ theme }) => theme.colors.white};
     margin-bottom: ${({ theme }) => theme.spacing.small};
-    padding-left: ${({ theme }) => theme.spacing.medium};
-    padding-top: ${({ theme }) => theme.spacing.small};
-    padding-bottom: ${({ theme }) => theme.spacing.small};
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.medium};
     font-family: ${({ theme }) => theme.fontFamilies.monospace};
     font-size: ${({ theme }) => theme.fontSizes.small};
     label {
@@ -111,7 +111,7 @@ export const RulesList = styled.ul`
 `;
 
 export const ViewYamlBtn = styled.div`
-width: 100%;
-    display: flex;
-    justify-content: flex-end;
-`
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+`;
