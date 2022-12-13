@@ -3,7 +3,6 @@ import {
   Flex,
   Icon,
   IconType,
-  InputProps,
   useRequestState,
   useDebounce,
   GitRepository,
@@ -17,16 +16,17 @@ import {
   GitProvider,
   ParseRepoURLResponse,
 } from '../../api/gitauth/gitauth.pb';
-import { Select } from '../../utils/form';
-import MenuItem from '@material-ui/core/MenuItem';
+import { Select, SelectProps } from '../../utils/form';
+import { MenuItem } from '@material-ui/core';
 
-type Props = {
-  className?: string;
+type Props = SelectProps & {
   onAuthClick: (provider: GitProvider) => void;
   onProviderChange?: (provider: GitProvider) => void;
   isAuthenticated?: boolean;
   disabled?: boolean;
   values: GitRepository[];
+  formData: any;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
 };
 
 function RepoInputWithAuth({
@@ -34,11 +34,15 @@ function RepoInputWithAuth({
   onProviderChange,
   isAuthenticated,
   disabled,
+  formData,
+  setFormData,
+  values,
   ...props
 }: Props) {
   const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
-  const { values } = props;
-  const debouncedURL = useDebounce<string>(props.values?.[0] as string, 500);
+  const [gitRepo, setGitRepo] = React.useState<string>();
+  const { value } = props;
+  const debouncedURL = useDebounce<string>(value, 500);
   const { gitAuthClient } = React.useContext(GitAuth);
 
   React.useEffect(() => {
@@ -71,8 +75,7 @@ function RepoInputWithAuth({
       <GitlabAuthButton onClick={() => onAuthClick(GitProvider.GitLab)} />
     );
 
-  const renderProviderAuthButton =
-    props.value && !!res?.provider && !isAuthenticated;
+  const renderProviderAuthButton = value && !!res?.provider && !isAuthenticated;
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
@@ -80,7 +83,7 @@ function RepoInputWithAuth({
 
     setFormData({
       ...formData,
-      url: gitRepo,
+      url: obj?.spec.url,
     });
   };
 
@@ -88,17 +91,16 @@ function RepoInputWithAuth({
     <Flex className={props.className} align start>
       <Select
         {...props}
-        error={props.value && !!err?.message ? true : false}
-        // helperText={!props.value || !err ? props.helperText : err?.message}
+        error={values && !!err?.message ? true : false}
+        description={!value || !err ? props.description : err?.message}
         name="repo-select"
         required={true}
         label="SELECT GIT REPO"
-        value={values[0] || ''}
+        value={value}
         onChange={handleSelectSource}
         defaultValue={''}
-        description="The name and type of source"
       >
-        {props.values?.map((option, index: number) => (
+        {values?.map((option, index: number) => (
           <MenuItem key={index} value={JSON.stringify(option)}>
             {option.name}
           </MenuItem>

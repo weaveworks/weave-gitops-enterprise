@@ -1,3 +1,4 @@
+import { GitRepository } from '@weaveworks/weave-gitops';
 import React, { FC, Dispatch, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { GithubDeviceAuthModal } from '.';
@@ -24,12 +25,14 @@ const GitAuth: FC<{
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
+  gitRepos?: GitRepository[];
 }> = ({
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
   setEnableCreatePR,
+  gitRepos,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, req: check } = useIsAuthenticated();
@@ -56,12 +59,6 @@ const GitAuth: FC<{
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
-        onChange={(e: any) => {
-          setFormData({
-            ...formData,
-            url: e.currentTarget.value,
-          });
-        }}
         onAuthClick={(provider: GitProvider) => {
           if (provider === ('GitHub' as GitProvider)) {
             setShowAuthDialog(true);
@@ -71,8 +68,11 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
-        values={formData.gitRepos}
-        helperText=""
+        value={formData.url}
+        values={gitRepos || []}
+        description=""
+        formData={formData}
+        setFormData={setFormData}
       />
       {showAuthDialog && (
         <GithubDeviceAuthModal

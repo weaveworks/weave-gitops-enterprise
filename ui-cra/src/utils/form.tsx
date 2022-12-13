@@ -172,7 +172,7 @@ export const DividerWrapper: FC = ({ children }) => (
   </div>
 );
 
-interface SelectProps extends MuiSelectProps {
+export interface SelectProps extends MuiSelectProps {
   label: string;
   items?: string[];
   value: string;

@@ -480,7 +480,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      gitRepos,
+      url: gitRepos.filter(gitRepo => gitRepo.clusterName === 'management'),
     }));
   }, [gitRepos]);
 
@@ -620,6 +620,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
               formError={formError}
+              gitRepos={gitRepos}
             />
             {loading ? (
               <LoadingPage className="create-loading" />
@@ -665,6 +666,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formError,
     submitType,
     getSubmitFunction,
+    gitRepos,
   ]);
 };
 

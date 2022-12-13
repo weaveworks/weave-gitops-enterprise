@@ -2,6 +2,7 @@ import React, { FC, useCallback, Dispatch, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import GitAuth from '../../../GithubAuth/GitAuth';
 import { Input } from '../../../../utils/form';
+import { GitRepository } from '@weaveworks/weave-gitops';
 
 const GitOpsWrapper = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
@@ -17,6 +18,7 @@ const GitOps: FC<{
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   formError?: string;
+  gitRepos?: GitRepository[];
 }> = ({
   formData,
   setFormData,
@@ -24,6 +26,7 @@ const GitOps: FC<{
   setShowAuthDialog,
   setEnableCreatePR,
   formError,
+  gitRepos,
 }) => {
   const {
     branchName,
@@ -118,6 +121,7 @@ const GitOps: FC<{
         setEnableCreatePR={setEnableCreatePR}
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
+        gitRepos={gitRepos}
       />
     </GitOpsWrapper>
   );
