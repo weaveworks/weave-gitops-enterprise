@@ -2,6 +2,7 @@ package create
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/create/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/create/tenants"
 )
 
@@ -15,6 +16,7 @@ gitops create tenants --from-file tenants.yaml`,
 	}
 
 	cmd.AddCommand(tenants.CreateCommand)
+	cmd.AddCommand(templates.CreateCommand)
 
 	return cmd
 }
