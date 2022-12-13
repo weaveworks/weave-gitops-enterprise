@@ -13,6 +13,11 @@ export function useListVersion() {
     () => requestWithEntitlementHeader('GET', '/v1/enterprise/version'),
   );
 }
+export interface ListConfigResponse extends GetConfigResponse {
+  repoLink: string;
+  uiConfig: any;
+  [key: string]: any;
+}
 
 export function useListConfig() {
   const { api } = useContext(EnterpriseClientContext);
@@ -21,6 +26,7 @@ export function useListConfig() {
     api.GetConfig({}),
   );
   const repositoryURL = queryResponse?.data?.repositoryURL || '';
+  const uiConfig = JSON.parse(queryResponse?.data?.uiConfig || '{}');
   useEffect(() => {
     repositoryURL &&
       applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
@@ -38,5 +44,6 @@ export function useListConfig() {
   return {
     ...queryResponse,
     repoLink,
+    uiConfig,
   };
 }

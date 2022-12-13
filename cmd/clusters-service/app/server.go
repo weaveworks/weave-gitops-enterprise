@@ -45,7 +45,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
@@ -54,8 +53,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
@@ -72,6 +69,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -116,9 +114,6 @@ type Params struct {
 	HelmRepoNamespace                 string                    `mapstructure:"helm-repo-namespace"`
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
-	WatcherMetricsBindAddress         string                    `mapstructure:"watcher-metrics-bind-address"`
-	WatcherHealthzBindAddress         string                    `mapstructure:"watcher-healthz-bind-address"`
-	WatcherPort                       int                       `mapstructure:"watcher-port"`
 	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
 	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
 	GitProviderType                   string                    `mapstructure:"git-provider-type"`
@@ -144,6 +139,7 @@ type Params struct {
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
 	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
+	UIConfig                          string                    `mapstructure:"ui-config"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -152,6 +148,8 @@ type OIDCAuthenticationOptions struct {
 	ClientSecret  string        `mapstructure:"oidc-client-secret"`
 	RedirectURL   string        `mapstructure:"oidc-redirect-url"`
 	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
+	ClaimUsername string        `mapstructure:"oidc-claim-username"`
+	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -189,9 +187,6 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
 	cmd.Flags().String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
-	cmd.Flags().String("watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
-	cmd.Flags().String("watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
-	cmd.Flags().Int("watcher-port", 9443, "the port on which the watcher is running")
 	cmd.Flags().String("html-root-path", "/html", "Where to serve static assets from")
 	cmd.Flags().String("git-provider-type", "", "")
 	cmd.Flags().String("git-provider-hostname", "", "")
@@ -218,11 +213,14 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmd.Flags().String("oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	cmd.Flags().String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
+	cmd.Flags().String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
 	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
+	cmd.Flags().String("ui-config", "", "UI configuration, JSON encoded")
 
 	// Hide some flags from the help output
 	err := cmd.Flags().MarkHidden("cost-estimation-filters")
@@ -349,31 +347,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
 
-	profileCache, err := cache.NewCache(p.ProfileCacheLocation)
-	if err != nil {
-		return fmt.Errorf("failed to create cacher: %w", err)
-	}
-
-	profileWatcher, err := watcher.NewWatcher(watcher.Options{
-		KubeClient:         kubeClient,
-		Cache:              profileCache,
-		MetricsBindAddress: p.WatcherMetricsBindAddress,
-		HealthzBindAddress: p.WatcherHealthzBindAddress,
-		WatcherPort:        p.WatcherPort,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to start the watcher: %w", err)
-	}
-
-	controllerContext := ctrl.SetupSignalHandler()
-
-	go func() {
-		if err := profileWatcher.StartWatcher(controllerContext, log); err != nil {
-			log.Error(err, "failed to start profile watcher")
-			os.Exit(1)
-		}
-	}()
-
 	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation, p.Cluster)
 	if err != nil {
 		return fmt.Errorf("could not create charts cache: %w", err)
@@ -436,6 +409,15 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
 	}
 
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") != "false" {
+		err := telemetry.InitTelemetry(ctx, mgmtCluster)
+		if err != nil {
+			// If there's an error turning on telemetry, that's not a
+			// thing that should interrupt anything else
+			log.Info("Couldn't enable telemetry", "error", err)
+		}
+	}
+
 	if p.UseK8sCachedClients {
 		log.Info("Using cached clients")
 		mgmtCluster = cluster.NewDelegatingCacheCluster(mgmtCluster, rest, clustersManagerScheme)
@@ -456,6 +438,8 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
 	)
+
+	controllerContext := ctrl.SetupSignalHandler()
 
 	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
 	go func() {
@@ -511,10 +495,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreCfg),
-		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
-			DefaultConfig: kubeClientConfig,
-			ClusterName:   "",
-		}, profileCache, p.HelmRepoNamespace, p.HelmRepoName)),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -536,6 +516,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithKubernetesClientSet(kubernetesClientSet),
 		WithManagementCluster(p.Cluster),
 		WithTemplateCostEstimator(estimator),
+		WithUIConfig(p.UIConfig),
 	)
 }
 
@@ -607,6 +588,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ManagementFetcher:      args.ManagementFetcher,
 			Cluster:                args.Cluster,
 			Estimator:              estimator,
+			UIConfig:               args.UIConfig,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
@@ -617,11 +599,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
 	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
-	}
-
-	wegoProfilesServer := server.NewProfilesServer(args.Log, args.ProfilesConfig)
-	if err := profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
-		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
 	// Add logging middleware
@@ -707,6 +684,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClientSecret:  args.OIDC.ClientSecret,
 			RedirectURL:   args.OIDC.RedirectURL,
 			TokenDuration: args.OIDC.TokenDuration,
+			ClaimsConfig: &auth.ClaimsConfig{
+				Username: args.OIDC.ClaimUsername,
+				Groups:   args.OIDC.ClaimGroups,
+			},
 		},
 		args.KubernetesClient,
 		tsv,

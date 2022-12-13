@@ -30,7 +30,6 @@ import {
 import useProfiles from '../../../hooks/profiles';
 
 import useTemplates from '../../../hooks/templates';
-import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
@@ -61,6 +60,7 @@ import { Routes } from '../../../utils/nav';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -274,7 +274,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addResource } = useTemplates();
-  const { data } = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const data = listConfigContext?.data;
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
@@ -301,7 +302,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const isKustomizationsEnabled =
     annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
   const isCostEstimationEnabled =
-    featureFlagsData?.flags?.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
+    featureFlagsData.flags.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(

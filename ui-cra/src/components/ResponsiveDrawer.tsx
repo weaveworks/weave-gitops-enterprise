@@ -15,6 +15,7 @@ import {
   coreClient,
   CoreClientContextProvider,
   LinkResolverProvider,
+  Pendo,
   SignIn,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
@@ -32,6 +33,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
 import { resolver } from '../utils/link-resolver';
+import { ListConfigProvider, VersionProvider } from '../contexts/ListConfig';
 
 const drawerWidth = 220;
 
@@ -174,6 +176,7 @@ const ResponsiveDrawer = () => {
         <CoreClientContextProvider api={coreClient}>
           <TerraformProvider api={Terraform}>
             <LinkResolverProvider resolver={resolver}>
+              <Pendo defaultTelemetryFlag="true" />
               <Switch>
                 <Route
                   component={() => (
@@ -187,7 +190,11 @@ const ResponsiveDrawer = () => {
                 <Route path="*">
                   {/* Check we've got a logged in user otherwise redirect back to signin */}
                   <AuthCheck>
-                    <App />
+                    <ListConfigProvider>
+                      <VersionProvider>
+                        <App />
+                      </VersionProvider>
+                    </ListConfigProvider>
                   </AuthCheck>
                 </Route>
               </Switch>

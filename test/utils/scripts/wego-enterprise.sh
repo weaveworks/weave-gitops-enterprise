@@ -265,17 +265,17 @@ function setup {
 }
 
 function reset {
-  # Delete flux system from the management cluster
-  flux uninstall --silent
+   kubectl delete ValidatingWebhookConfiguration policy-agent
   # Delete any orphan resources
   kubectl delete CAPITemplate --all
+  kubectl delete GitOpsTemplate --all
   kubectl delete ClusterBootstrapConfig --all
   kubectl delete ClusterResourceSet --all
   kubectl delete ClusterRoleBinding clusters-service-impersonator
   kubectl delete ClusterRole clusters-service-impersonator-role 
-  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works
-  kubectl delete ValidatingWebhookConfiguration policy-agent
-  kubectl delete namespaces flux-system
+  kubectl delete crd capitemplates.capi.weave.works clusterbootstrapconfigs.capi.weave.works gitopstemplates.templates.weave.works 
+  # Delete flux system from the management cluster
+  flux uninstall --silent
   # Delete capi provider
   if [ "$CAPI_PROVIDER" == "capa" ]; then
     clusterctl delete --infrastructure aws

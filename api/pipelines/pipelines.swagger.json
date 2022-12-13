@@ -190,6 +190,12 @@
       "properties": {
         "pipeline": {
           "$ref": "#/definitions/v1Pipeline"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

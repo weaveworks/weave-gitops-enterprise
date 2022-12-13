@@ -6,7 +6,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -30,7 +29,6 @@ type Options struct {
 	ApplicationsConfig           *core_server.ApplicationsConfig
 	CoreServerConfig             core.CoreServerConfig
 	ApplicationsOptions          []core_server.ApplicationsOption
-	ProfilesConfig               server.ProfilesConfig
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	RuntimeNamespace             string
@@ -53,6 +51,7 @@ type Options struct {
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Cluster                      string
 	Estimator                    estimation.Estimator
+	UIConfig                     string
 }
 
 type Option func(*Options)
@@ -109,14 +108,6 @@ func WithApplicationsOptions(appOptions ...core_server.ApplicationsOption) Optio
 func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
 	return func(o *Options) {
 		o.CoreServerConfig = coreServerConfig
-	}
-}
-
-// WithProfilesConfig is used to set the configuration needed to work
-// with Weave GitOps Core profiles
-func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
-	return func(o *Options) {
-		o.ProfilesConfig = profilesConfig
 	}
 }
 
@@ -256,5 +247,11 @@ func WithManagementCluster(cluster string) Option {
 func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
 	return func(o *Options) {
 		o.Estimator = estimator
+	}
+}
+
+func WithUIConfig(uiConfig string) Option {
+	return func(o *Options) {
+		o.UIConfig = uiConfig
 	}
 }

@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/weave-gitops v0.11.1-0.20221130135351-90e0a6ba98f1
+	github.com/weaveworks/weave-gitops v0.12.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -51,7 +51,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/mkmik/multierror v0.3.0
-	github.com/onsi/ginkgo/v2 v2.5.0
+	github.com/onsi/ginkgo/v2 v2.5.1
 	github.com/spf13/viper v1.12.0
 	github.com/weaveworks/cluster-controller v1.4.1
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
@@ -95,7 +95,7 @@ require (
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
-	github.com/fluxcd/pkg/apis/event v0.2.0 // indirect
+	github.com/fluxcd/notification-controller/api v0.29.1 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gobuffalo/flect v0.2.4 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
@@ -172,8 +172,8 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4 // indirect
@@ -209,7 +209,6 @@ require (
 	github.com/fluxcd/pkg/apis/kustomize v0.7.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.22.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/ghodss/yaml v1.0.0
 	github.com/go-asset/generics v0.0.0-20220317100214-d5f632c68060 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
@@ -221,7 +220,7 @@ require (
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gofrs/flock v0.8.1
+	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
@@ -302,11 +301,11 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.23.0 // indirect
-	golang.org/x/net v0.2.0
+	golang.org/x/net v0.4.0
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/term v0.2.0 // indirect
-	golang.org/x/text v0.4.0
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/term v0.3.0 // indirect
+	golang.org/x/text v0.5.0
 	golang.org/x/time v0.2.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
