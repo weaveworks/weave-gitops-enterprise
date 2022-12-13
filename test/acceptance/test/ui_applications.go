@@ -502,8 +502,8 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 			gomega.Expect(gitops.BranchName.SendKeys(pullRequest.Branch)).To(gomega.Succeed())
 		}
 		if pullRequest.Title != "" {
-			pages.ClearFieldValue(gitops.PullRequestTile)
-			gomega.Expect(gitops.PullRequestTile.SendKeys(pullRequest.Title)).To(gomega.Succeed())
+			pages.ClearFieldValue(gitops.PullRequestTitle)
+			gomega.Expect(gitops.PullRequestTitle.SendKeys(pullRequest.Title)).To(gomega.Succeed())
 		}
 		if pullRequest.Message != "" {
 			pages.ClearFieldValue(gitops.CommitMessage)
@@ -516,11 +516,11 @@ func createGitopsPR(pullRequest PullRequest) (prUrl string) {
 
 	gitops := pages.GetGitOps(webDriver)
 	messages := pages.GetMessages(webDriver)
-	ginkgo.By("Then I should see see a toast with a link to the creation PR", func() {
+	ginkgo.By("Then I should see a toast with a link to the creation PR", func() {
 		gomega.Eventually(func(g gomega.Gomega) {
 			g.Expect(gitops.CreatePR.Click()).Should(gomega.Succeed())
 			g.Eventually(messages.Success, ASSERTION_30SECONDS_TIME_OUT).Should(matchers.MatchText("PR created successfully"))
-		}, ASSERTION_2MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to create pull request")
+		}, ASSERTION_1MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to create pull request")
 	})
 
 	prUrl, _ = messages.Success.Find("a").Attribute("href")

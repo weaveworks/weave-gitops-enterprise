@@ -70,11 +70,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			}
 
 			installGitOpsTemplate(templateFiles)
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "capa-cluster-template-eks")
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			templatesPage := pages.GetTemplatesPage(webDriver)
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template-eks")
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
@@ -108,11 +110,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				createIPCredentials("AZURE")
 			})
 
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "capa-cluster-template")
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			templatesPage := pages.GetTemplatesPage(webDriver)
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "capa-cluster-template")
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
@@ -210,11 +214,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				createIPCredentials("AWS")
 			})
 
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "capz-cluster-template")
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			templatesPage := pages.GetTemplatesPage(webDriver)
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "capz-cluster-template")
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
@@ -344,15 +350,18 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				"capd-cluster-template": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
 			}
 			installGitOpsTemplate(templateFiles)
-			navigateToTemplatesGrid(webDriver)
 
 			ginkgo.By("And wait for cluster-service to cache profiles", func() {
 				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 			})
 
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template")
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
+
+			templatesPage := pages.GetTemplatesPage(webDriver)
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "capd-cluster-template")
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
@@ -614,15 +623,18 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				"capd-cluster-template": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
 			}
 			installGitOpsTemplate(templateFiles)
-			navigateToTemplatesGrid(webDriver)
 
 			ginkgo.By("And wait for cluster-service to cache profiles", func() {
 				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 			})
 
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template")
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
+			templatesPage := pages.GetTemplatesPage(webDriver)
+
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "capd-cluster-template")
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)

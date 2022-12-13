@@ -64,6 +64,7 @@ const (
 	ASSERTION_DEFAULT_TIME_OUT   time.Duration = 15 * time.Second
 	ASSERTION_1SECOND_TIME_OUT   time.Duration = 1 * time.Second
 	ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
+	ASSERTION_15SECONDS_TIME_OUT time.Duration = 15 * time.Second
 	ASSERTION_30SECONDS_TIME_OUT time.Duration = 30 * time.Second
 	ASSERTION_1MINUTE_TIME_OUT   time.Duration = 1 * time.Minute
 	ASSERTION_2MINUTE_TIME_OUT   time.Duration = 2 * time.Minute
