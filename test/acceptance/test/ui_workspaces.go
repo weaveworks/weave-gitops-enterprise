@@ -11,44 +11,51 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func installTestWorkspaces(clusterName string, workspacesYaml string) {
+func installTestWorkspaces(clusterName string) {
 	ginkgo.By(fmt.Sprintf("Add workspaces to the %s cluster", clusterName), func() {
-		_ = runCommandPassThrough("cd cmd/gitops")
-		err := runCommandPassThrough("go run main.go create tenants --from-file", workspacesYaml, "--prune")
-		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install workspaces to cluster '%s'", clusterName))
+		createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+
 	})
 }
 
 func DescribeWorkspaces(gitopsTestRunner GitopsTestRunner) {
 	var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", func() {
 
-		ginkgo.BeforeEach(func() {
+		ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
+			// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
+			_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
+
 			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
 
+			gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
 			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
 				loginUser()
 			}
 		})
 
-		ginkgo.Context("[UI] Workspaces can be configured on management cluster", func() {
-			var workspacesYaml string
+		ginkgo.AfterEach(ginkgo.OncePerOrdered, func() {
+			// Create the oidc user default roles/rolebindings afte tenant tests completed
+			_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
+		})
 
-			workspaceName := "bar-tenant"
-			workspaceNamespaces := "foobar-ns"
+		ginkgo.Context("[UI] Workspaces can be configured on management cluster", func() {
+
+			workspaceName := "test-team"
+			workspaceNamespaces := "test-kustomization, test-system"
 			workspaceClusterName := "management"
 
 			ginkgo.JustBeforeEach(func() {
-				workspacesYaml = path.Join(getCheckoutRepoPath(), "pkg", "tenancy", "testdata", "example.yaml")
-				//logger.Info("workspacesYaml :", workspacesYaml)
+				installTestWorkspaces("management")
+
 			})
 
 			ginkgo.JustAfterEach(func() {
-				_ = gitopsTestRunner.KubectlDelete([]string{}, workspacesYaml)
+
+				defer deleteTenants([]string{getTenantYamlPath()})
 			})
 
-			ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+			ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
 				existingWorkspacesCount := getWorkspacesCount()
-				installTestWorkspaces("management", workspacesYaml)
 
 				pages.NavigateToPage(webDriver, "Workspaces")
 				WorkspacesPage := pages.GetWorkspacesPage(webDriver)
@@ -80,5 +87,100 @@ func DescribeWorkspaces(gitopsTestRunner GitopsTestRunner) {
 
 			})
 		})
+
+		ginkgo.Context("[UI] Workspaces can be configured on leaf cluster", func() {
+			var mgmtClusterContext string
+			var leafClusterContext string
+			var leafClusterkubeconfig string
+			var clusterBootstrapCopnfig string
+			var gitopsCluster string
+			patSecret := "workspace-pat"
+			bootstrapLabel := "bootstrap"
+			leafClusterName := "workspaces-leaf-cluster-test"
+			leafClusterNamespace := "default"
+
+			workspaceName := "dev-team"
+			workspaceNamespaces := "dev-system"
+			workspaceClusterName := leafClusterName
+
+			ginkgo.JustBeforeEach(func() {
+
+				gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed())
+				if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+					loginUser()
+				}
+				mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+				createCluster("kind", leafClusterName, "")
+				leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			})
+
+			ginkgo.JustAfterEach(func() {
+				useClusterContext(mgmtClusterContext)
+
+				deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafClusterNamespace)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, clusterBootstrapCopnfig)
+				_ = gitopsTestRunner.KubectlDelete([]string{}, gitopsCluster)
+
+				deleteCluster("kind", leafClusterName, "")
+				// Delete the test workspaces
+				defer deleteTenants([]string{getTenantYamlPath()})
+
+			})
+
+			ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces", "leaf-workspaces"), func() {
+				existingWorkspacesCount := getWorkspacesCount()
+				leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
+
+				// Install policy agent ,and workspaces on leaf cluster
+				installPolicyAgent(leafClusterName)
+				installTestWorkspaces(leafClusterName)
+
+				useClusterContext(mgmtClusterContext)
+				createPATSecret(leafClusterNamespace, patSecret)
+				clusterBootstrapCopnfig = createClusterBootstrapConfig(leafClusterName, leafClusterNamespace, bootstrapLabel, patSecret)
+				gitopsCluster = connectGitopsCluster(leafClusterName, leafClusterNamespace, bootstrapLabel, leafClusterkubeconfig)
+				createLeafClusterSecret(leafClusterNamespace, leafClusterkubeconfig)
+
+				waitForLeafClusterAvailability(leafClusterName, "Ready")
+				addKustomizationBases("leaf", leafClusterName, leafClusterNamespace)
+
+				pages.NavigateToPage(webDriver, "Workspaces")
+				WorkspacesPage := pages.GetWorkspacesPage(webDriver)
+
+				ginkgo.By("And wait for workspaces to be visibe on the dashboard", func() {
+					gomega.Eventually(WorkspacesPage.WorkspaceHeader).Should(matchers.BeVisible())
+
+					totalWorkspacesCount := existingWorkspacesCount + 2
+					gomega.Eventually(func(g gomega.Gomega) int {
+						gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+						time.Sleep(POLL_INTERVAL_1SECONDS)
+						return WorkspacesPage.CountWorkspaces()
+					}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
+
+				})
+
+				workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
+
+				ginkgo.By(fmt.Sprintf("And filter leaf cluster '%s' workspaces", leafClusterName), func() {
+					filterID := "clusterName: " + leafClusterNamespace + `/` + leafClusterName
+					searchPage := pages.GetSearchPage(webDriver)
+					searchPage.SelectFilter("cluster", filterID)
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' workspace Name", workspaceName), func() {
+					gomega.Eventually(workspaceInfo.Name).Should(matchers.MatchText(workspaceName), fmt.Sprintf("Failed to list '%s' workspace in the Workspaces List", workspaceName))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' workspace Namespaces", workspaceName), func() {
+					gomega.Eventually(workspaceInfo.Namespaces).Should(matchers.MatchText(workspaceNamespaces), fmt.Sprintf("Failed to get the expected '%s' workspace Namespaces", workspaceName))
+				})
+
+				ginkgo.By(fmt.Sprintf("And verify '%s' workspace Cluster", workspaceName), func() {
+					gomega.Eventually(workspaceInfo.Cluster).Should(matchers.MatchText(workspaceClusterName), fmt.Sprintf("Failed to get the expected %[1]v workspace Cluster: %[1]v", workspaceName))
+				})
+
+			})
+		})
+
 	})
 }
