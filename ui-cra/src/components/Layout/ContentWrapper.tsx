@@ -8,19 +8,8 @@ import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
 import Notifications from './Notifications';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    editor: {
-      '& p': {
-        margin: 0,
-      },
-    },
-  }),
-);
+import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 
 import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 import { useVersionContext } from '../../contexts/ListConfig';
