@@ -197,23 +197,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	path := getClusterManifestPath(git_files.Cluster)
-	files := []gitprovider.CommitFile{
-		{
-			Path:    &path,
-			Content: &git_files.RenderedTemplate,
-		},
-	}
-
+	files := []gitprovider.CommitFile{}
+	files = append(files, git_files.RenderedTemplate)
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
-	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
-		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, git_files.KustomizationFiles)
-		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, git_files.ProfileFiles)
 
-		files = append(files, removedKustomizations...)
-		files = append(files, removedProfiles...)
-	}
+	deletedFiles := getDeletedFiles(prevFiles, git_files)
+	files = append(files, deletedFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
@@ -603,15 +593,19 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
+	requiredProfiles, err := getProfilesFromTemplate(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
 
 	profilesIndex := map[string]*capiv1_proto.ProfileValues{}
-
 	for _, v := range args.profileValues {
 		profilesIndex[v.Name] = v
+	}
+
+	requiredProfilesIndex := map[string]*capiv1_proto.TemplateProfile{}
+	for _, v := range requiredProfiles {
+		requiredProfilesIndex[v.Name] = v
 	}
 
 	// add and overwrite the required values of profilesIndex where necessary.
@@ -628,15 +622,18 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			if p.Version == "" {
 				p.Version = requiredProfile.Version
 			}
+			if p.Layer == "" {
+				p.Layer = requiredProfile.Layer
+			}
 		} else {
 			profilesIndex[requiredProfile.Name] = &capiv1_proto.ProfileValues{
 				Name:      requiredProfile.Name,
 				Version:   requiredProfile.Version,
 				Values:    base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values)),
 				Namespace: requiredProfile.Namespace,
+				Layer:     requiredProfile.Layer,
 			}
 		}
-
 	}
 
 	for _, v := range profilesIndex {
@@ -656,20 +653,20 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			}
 		}
 
-		decoded, err := base64.StdEncoding.DecodeString(v.Values)
+		values, err := renderValues(v, *tmplProcessor, args.parameterValues)
 		if err != nil {
-			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+			return nil, fmt.Errorf("cannot get values for profile %s: %w", v.Name, err)
 		}
 
-		data, err := tmplProcessor.Render(decoded, args.parameterValues)
-		if err != nil {
-			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+		profileTemplate := []byte{}
+		requiredProfile := requiredProfilesIndex[v.Name]
+		if requiredProfile != nil {
+			profileTemplate, err = tmplProcessor.Render([]byte(requiredProfile.ProfileTemplate), args.parameterValues)
+			if err != nil {
+				return nil, fmt.Errorf("cannot render spec of profile %s: %w", v.Name, err)
+			}
 		}
 
-		parsed, err := ParseValues(data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
-		}
 		installs = append(installs, charts.ChartInstall{
 			Ref: charts.ChartReference{
 				Chart:   v.Name,
@@ -680,9 +677,10 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 					Kind:      "HelmRepository",
 				},
 			},
-			Layer:     v.Layer,
-			Values:    parsed,
-			Namespace: v.Namespace,
+			ProfileTemplate: string(profileTemplate),
+			Layer:           v.Layer,
+			Values:          values,
+			Namespace:       v.Namespace,
 		})
 	}
 
@@ -826,6 +824,27 @@ func getClusterProfilesPath(cluster types.NamespacedName) string {
 		getClusterDirPath(cluster),
 		profiles.ManifestFileName,
 	)
+}
+
+// renderValues renders the "values.yaml" section of a HelmRelease, as it can also contain template parameters.
+func renderValues(v *capiv1_proto.ProfileValues, tmplProcessor templates.TemplateProcessor, parameterValues map[string]string) (map[string]interface{}, error) {
+	// FIXME: look into decoding the base64 in the proto API rather than here.
+	decoded, err := base64.StdEncoding.DecodeString(v.Values)
+	if err != nil {
+		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+	}
+
+	data, err := tmplProcessor.Render(decoded, parameterValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+	}
+
+	parsed, err := ParseValues(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
+	}
+
+	return parsed, nil
 }
 
 // ParseValues takes a YAML encoded values string and returns a struct
@@ -991,4 +1010,30 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 		Name:      name,
 		Namespace: namespace,
 	}
+}
+
+// Get list of gitprovider.CommitFile objects of files that should be deleted with empty content
+// Kustomizations and Profiles removed during an edit are added to the deleted list
+// Old files with changed paths are added to the deleted list
+func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitprovider.CommitFile {
+	deletedFiles := []gitprovider.CommitFile{}
+	// If there was removed kustomizations or profiles from the prevFiles that were no longer in the newFiles
+	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
+		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
+		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)
+
+		deletedFiles = append(deletedFiles, removedKustomizations...)
+		deletedFiles = append(deletedFiles, removedProfiles...)
+	}
+
+	// If there were changes in the namespace resulting in the change of the file path (the old file should be deleted)
+	if prevFiles != nil && prevFiles.RenderedTemplate.Path != nil && *prevFiles.RenderedTemplate.Path != *newFiles.RenderedTemplate.Path {
+		prevPath := *prevFiles.RenderedTemplate.Path
+		deletedFiles = append(deletedFiles, gitprovider.CommitFile{
+			Path:    &prevPath,
+			Content: nil,
+		})
+	}
+	return deletedFiles
+
 }

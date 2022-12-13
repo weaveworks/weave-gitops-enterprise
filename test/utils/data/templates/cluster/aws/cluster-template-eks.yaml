@@ -1,8 +1,10 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capa-cluster-template-eks-{{.Count}}
+  name: capa-cluster-template-eks
   namespace: default
+  labels:
+    weave.works/template-type: cluster
   annotations:    
     templates.weave.works/cost-estimation-enabled: "true"
     templates.weave.works/profiles-enabled: "false"
@@ -10,7 +12,7 @@ metadata:
     templates.weave.works/credentials-enabled: "true"
 
 spec:
-  description: This is the std. CAPA template {{.Count}}
+  description: This is the std. CAPA template
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.

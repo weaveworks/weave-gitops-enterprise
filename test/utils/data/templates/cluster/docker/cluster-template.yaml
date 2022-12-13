@@ -1,17 +1,20 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capd-cluster-template-{{.Count}}
+  name: capd-cluster-template
   namespace: default
-  annotations:
+  labels:
     weave.works/template-type: cluster
+  annotations:
+    templates.weave.works/add-common-bases: "true"
+    templates.weave.works/inject-prune-annotation: "true"
     templates.weave.works/profiles-enabled: "true"
     templates.weave.works/kustomizations-enabled: "true"
     templates.weave.works/credentials-enabled: "false"
     templates.weave.works/cost-estimation-enabled: "false"
-    capi.weave.works/profile-1: '{"name": "cert-manager", "values": "installCRDs: ${INSTALL_CRDS}"}'
+    capi.weave.works/profile-1: '{"name": "cert-manager", "editable": true, "values": "installCRDs: ${INSTALL_CRDS}"}'
 spec:
-  description: This is the std. CAPD template {{.Count}}
+  description: This is the std. CAPD template
   params:
     - name: CLUSTER_NAME
       required: true

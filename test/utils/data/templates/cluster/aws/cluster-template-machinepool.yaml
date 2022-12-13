@@ -1,8 +1,10 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capa-cluster-template-machinepool-{{.Count}}
+  name: capa-cluster-template-machinepool
   namespace: default
+  labels:
+    weave.works/template-type: cluster
   annotations:    
     templates.weave.works/cost-estimation-enabled: "true"
     templates.weave.works/profiles-enabled: "false"
@@ -10,7 +12,7 @@ metadata:
     templates.weave.works/credentials-enabled: "false"
 
 spec:
-  description: This is the std. CAPA template {{.Count}}
+  description: This is the std. CAPA template
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
@@ -95,7 +97,7 @@ spec:
         kubeadmConfigSpec:
           initConfiguration:
             nodeRegistration:
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
+              name: '{{ ds.meta_data.local_hostname }}'
               kubeletExtraArgs:
                 cloud-provider: aws
           clusterConfiguration:
@@ -107,7 +109,7 @@ spec:
                 cloud-provider: aws
           joinConfiguration:
             nodeRegistration:
-              name: '{{`{{ ds.meta_data.local_hostname }}`}}'
+              name: '{{ ds.meta_data.local_hostname }}'
               kubeletExtraArgs:
                 cloud-provider: aws
         version: "${KUBERNETES_VERSION}"
@@ -164,7 +166,7 @@ spec:
       spec:
         joinConfiguration:
           nodeRegistration:
-            name: '{{`{{ ds.meta_data.local_hostname }}`}}'
+            name: '{{ ds.meta_data.local_hostname }}'
             kubeletExtraArgs:
               cloud-provider: aws
     - apiVersion: cluster.x-k8s.io/v1beta1

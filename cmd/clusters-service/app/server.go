@@ -69,6 +69,7 @@ import (
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -138,6 +139,7 @@ type Params struct {
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
 	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
+	UIConfig                          string                    `mapstructure:"ui-config"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -218,6 +220,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
 	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
+	cmd.Flags().String("ui-config", "", "UI configuration, JSON encoded")
 
 	// Hide some flags from the help output
 	err := cmd.Flags().MarkHidden("cost-estimation-filters")
@@ -406,6 +409,15 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
 	}
 
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") != "false" {
+		err := telemetry.InitTelemetry(ctx, mgmtCluster)
+		if err != nil {
+			// If there's an error turning on telemetry, that's not a
+			// thing that should interrupt anything else
+			log.Info("Couldn't enable telemetry", "error", err)
+		}
+	}
+
 	if p.UseK8sCachedClients {
 		log.Info("Using cached clients")
 		mgmtCluster = cluster.NewDelegatingCacheCluster(mgmtCluster, rest, clustersManagerScheme)
@@ -504,6 +516,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithKubernetesClientSet(kubernetesClientSet),
 		WithManagementCluster(p.Cluster),
 		WithTemplateCostEstimator(estimator),
+		WithUIConfig(p.UIConfig),
 	)
 }
 
@@ -575,6 +588,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ManagementFetcher:      args.ManagementFetcher,
 			Cluster:                args.Cluster,
 			Estimator:              estimator,
+			UIConfig:               args.UIConfig,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {

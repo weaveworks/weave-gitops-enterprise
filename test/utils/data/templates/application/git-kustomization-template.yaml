@@ -1,0 +1,66 @@
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: git-kustomization-template
+  namespace: default
+  labels:
+    weave.works/template-type: application
+  annotations:
+    templates.weave.works/cost-estimation-enabled: "false"
+    templates.weave.works/profiles-enabled: "false"
+    templates.weave.works/credentials-enabled: "false"
+    templates.weave.works/kustomizations-enabled: "false"
+    templates.weave.works/delimiters: "${{,}}"
+spec:
+  renderType: templating
+  description: A generic git Kustomization template for deploying from a git repository using a Flux Kustomization
+  params:
+    - name: RESOURCE_NAME
+      required: true
+      description: Name to give the kustomization
+    - name: NAMESPACE
+      description: Namespace to create the source in
+      default: default
+    - name: PATH
+      required: true
+      default: ./
+      description: path to the directory containing a kustomization.yaml
+    - name: SOURCE_NAME
+      required: true
+      description: Source that contains the Kubernetes manifests
+    - name: SOURCE_NAMESPACE
+      required: true
+      default: default
+      description: Namespace of source
+    - name: TARGET_NAMESPACE
+      required: true
+      default: default
+      description: Namespace of all Kustomization objects
+    - name: PRUNE
+      description: Enable garbage collection
+      default: "true"
+    - name: INTERVAL
+      description: How often to check for updates
+      default: 30s
+    - name: DESCRIPTION
+      description: Annotated description for the Kustomization resource
+      required: false
+  resourcetemplates:
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: ${{ .params.RESOURCE_NAME }}
+        namespace: ${{ .params.NAMESPACE }}
+        annotations:
+          metadata.weave.works/description: |
+            ${{ .params.DESCRIPTION }}
+      spec:
+        interval: 30s
+        path: ${{ .params.PATH }}
+        prune: true
+        sourceRef:
+          kind: GitRepository
+          name: ${{ .params.SOURCE_NAME }}
+          namespace:  ${{ .params.SOURCE_NAMESPACE }}
+        targetNamespace: ${{ .params.TARGET_NAMESPACE }}
+        prune: ${{ .params.PRUNE }}

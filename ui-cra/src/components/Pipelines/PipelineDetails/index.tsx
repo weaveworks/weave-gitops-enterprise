@@ -21,6 +21,8 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import YamlView from '../../YamlView';
 import WorkloadStatus from './WorkloadStatus';
 import { EditButton } from './../../../components/Templates/Edit/EditButton';
+import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
+import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 
 const { medium, xs, xxs, large } = theme.spacing;
 const { small } = theme.fontSizes;
@@ -87,6 +89,9 @@ const Title = styled.div`
 const ClusterName = styled.div`
   margin-bottom: ${small};
   line-height: 24px;
+  a > span {
+    font-size: 20px;
+  }
 `;
 const TargetNamespace = styled.div`
   font-size: ${theme.fontSizes.medium};
@@ -110,6 +115,15 @@ const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   }, 0);
 };
 
+const mappedErrors = (
+  errors: Array<string>,
+  namespace: string,
+): Array<ListError> => {
+  return errors.map(err => ({
+    message: err,
+    namespace,
+  }));
+};
 interface Props {
   name: string;
   namespace: string;
@@ -121,7 +135,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
     namespace,
   });
 
-  const configResponse = useConfig()
+  const configResponse = useConfig();
   const environments = data?.pipeline?.environments || [];
   const targetsStatuses = data?.pipeline?.status?.environments || {};
   const classes = useStyles();
@@ -144,7 +158,10 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <ContentWrapper
+        loading={isLoading}
+        errors={mappedErrors(data?.errors || [], namespace)}
+      >
         <EditButton
           className={classes.editButton}
           resource={data?.pipeline || ({} as Pipeline)}
@@ -171,14 +188,19 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                     {status.map(target => {
                       const clusterName = target?.clusterRef?.name
                         ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
-                        : configResponse?.data?.managementClusterName || 'undefined';
+                        : configResponse?.data?.managementClusterName ||
+                          'undefined';
 
                       return target?.workloads?.map((workload, wrkIndex) => (
                         <CardContainer key={wrkIndex} role="targeting">
                           <TargetWrapper className="workloadTarget">
                             <Title>Cluster</Title>
                             <ClusterName className="cluster-name">
-                              {target?.clusterRef?.name || clusterName}
+                              <ClusterDashboardLink
+                                clusterName={
+                                  target?.clusterRef?.name || clusterName
+                                }
+                              />
                             </ClusterName>
 
                             <Title>Namespace</Title>
@@ -187,7 +209,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
                             </TargetNamespace>
                           </TargetWrapper>
                           <WorkloadWrapper>
-                            <div>
+                            <div className='automation'>
                               <Link
                                 to={formatURL(
                                   '/helm_release/details',
