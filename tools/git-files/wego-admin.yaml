@@ -18,7 +18,7 @@ metadata:
   name: wego-admin-cluster-role
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods"]
+    resources: ["secrets", "pods", "namespaces", "serviceaccounts"]
     verbs: ["get", "list"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
@@ -38,5 +38,6 @@ rules:
   - apiGroups: ["pac.weave.works"]
     resources: ["policies"]
     verbs: ["get", "list"]
-
-
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "list"]
