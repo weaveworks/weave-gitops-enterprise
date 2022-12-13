@@ -10,7 +10,6 @@ import (
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
-	"github.com/sclevine/agouti"
 	"github.com/sclevine/agouti/matchers"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
@@ -19,12 +18,6 @@ type TemplateField struct {
 	Name   string
 	Value  string
 	Option string
-}
-
-func navigateToTemplatesGrid(webDriver *agouti.Page) {
-	pages.NavigateToPage(webDriver, "Templates")
-	pages.WaitForPageToLoad(webDriver)
-	gomega.Expect(pages.GetTemplatesPage(webDriver).SelectView("grid").Click()).To(gomega.Succeed())
 }
 
 func setParameterValues(createPage *pages.CreateCluster, parameters []TemplateField) {
@@ -74,14 +67,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: "templates"}, POLL_INTERVAL_15SECONDS)).To(gomega.Succeed(), "Failed to get a successful response from /v1/templates")
 			})
 
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And wait for Templates page to be rendered", func() {
 				gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-
-				tileCount, _ := templatesPage.TemplateTiles.Count()
-				gomega.Expect(tileCount).To(gomega.Equal(0), "There should not be any template tile rendered")
+				gomega.Expect(templatesPage.CountTemplateRows()).To(gomega.Equal(0), "There should not be any template visible/available in template's table")
 
 			})
 		})
@@ -113,22 +105,17 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 			totalTemplateCount := len(templateFiles)
 			sourceTemplateCount := 2
+			clusterTemplateCount := 8
 			awsTemplateCount := 4
-			azureTemplateCount := 1
 
 			installGitOpsTemplate(templateFiles)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 			templatesPage := pages.GetTemplatesPage(webDriver)
-			navigateToTemplatesGrid(webDriver)
 
 			ginkgo.By("And wait for Templates page to be fully rendered", func() {
 				gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-				tileCount, _ := templatesPage.TemplateTiles.Count()
-				gomega.Eventually(tileCount).Should(gomega.Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
-			})
-
-			ginkgo.By("And I should change the templates view to 'table'", func() {
-				gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
-				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(totalTemplateCount), "The number of rows rendered should be equal to number of templates created")
+				gomega.Expect(templatesPage.CountTemplateRows()).To(gomega.Equal(totalTemplateCount), "The number of template rows should be equal to number of templates created")
 			})
 
 			ginkgo.By("And templates are ordered - table view", func() {
@@ -142,39 +129,19 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				filterID := "templateType: source"
 				searchPage := pages.GetSearchPage(webDriver)
 				searchPage.SelectFilter("templateType", filterID)
-				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(sourceTemplateCount), "The number of selected template tiles rendered should be equal to number of aws templates created")
-			})
+				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(sourceTemplateCount), "The number of filtered template rows should be equal to number of aws templates created")
+				// Unselect the 'source' templateType filter
+				searchPage.SelectFilter("templateType", filterID, false)
 
-			ginkgo.By("And I should change the templates view to 'grid'", func() {
-				gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
-				tileCount, _ := templatesPage.TemplateTiles.Count()
-				gomega.Eventually(tileCount).Should(gomega.Equal(totalTemplateCount), "The number of template tiles rendered should be equal to number of templates created")
-			})
+				// Select the 'cluster' templateType filter
+				filterID = "templateType: cluster"
+				searchPage.SelectFilter("templateType", filterID)
+				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(clusterTemplateCount), "The number of filtered template rows should be equal to number of aws templates created")
 
-			ginkgo.By("And templates are ordered - grid view", func() {
-				actual_list := templatesPage.GetTemplateTileList()
-				for i, key := range keys {
-					gomega.Expect(actual_list[i]).Should(gomega.ContainSubstring(key))
-				}
-			})
-
-			ginkgo.By("And templates can be filtered by provider - grid view", func() {
-				gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
-				// Select cluster provider by selecting from the popup list
-				gomega.Expect(templatesPage.TemplateProvider.Click()).To(gomega.Succeed())
-				gomega.Expect(templatesPage.SelectProvider("aws").Click()).To(gomega.Succeed())
-
-				tileCount, _ := templatesPage.TemplateTiles.Count()
-				gomega.Eventually(tileCount).Should(gomega.Equal(awsTemplateCount), "The number of aws provider template tiles rendered should be equal to number of aws templates created")
-
-				// Select cluster provider by typing the provider name
-				gomega.Expect(templatesPage.TemplateProvider.Click()).To(gomega.Succeed())
-				gomega.Expect(templatesPage.TemplateProvider.SendKeys("\uE003")).To(gomega.Succeed()) // sending back space key
-				gomega.Expect(templatesPage.TemplateProvider.SendKeys("azure")).To(gomega.Succeed())
-				gomega.Expect(templatesPage.TemplateProviderPopup.At(0).Click()).To(gomega.Succeed())
-
-				tileCount, _ = templatesPage.TemplateTiles.Count()
-				gomega.Eventually(tileCount).Should(gomega.Equal(azureTemplateCount), "The number of azure provider template tiles rendered should be equal to number of azure templates created")
+				// Select the 'aws' provider filter
+				filterID = "provider: aws"
+				searchPage.SelectFilter("provider", filterID)
+				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(awsTemplateCount), "The number of selected template rows should be equal to number of aws templates created")
 			})
 		})
 
@@ -189,26 +156,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				}
 			})
 
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 			templatesPage := pages.GetTemplatesPage(webDriver)
-
-			ginkgo.By("And I should choose a template - grid view", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "capg-cluster-template-9")
-
-				gomega.Eventually(templateTile.Description).Should(matchers.MatchText("This is the std. CAPG template 9"))
-				gomega.Expect(templateTile.CreateTemplate).Should(matchers.BeFound())
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
-			})
-
-			ginkgo.By("And wait for Create cluster page to be fully rendered - grid view", func() {
-				createPage := pages.GetCreateClusterPage(webDriver)
-				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
-			})
-
-			ginkgo.By("And I should wait for the table to be fully loaded - table view by default", func() {
-				pages.NavigateToPage(webDriver, "Templates")
-				pages.WaitForPageToLoad(webDriver)
-			})
 
 			ginkgo.By("And I should choose a template from the default table view", func() {
 				templateRow := templatesPage.GetTemplateInformation(webDriver, "capg-cluster-template-10")
@@ -233,27 +183,17 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			}
 
 			installGitOpsTemplate(templateFiles)
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 			templatesPage := pages.GetTemplatesPage(webDriver)
-
-			ginkgo.By("And User should see message informing user of the invalid template in the cluster - grid view", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "invalid-cluster-template")
-				gomega.Eventually(templateTile.ErrorHeader).Should(matchers.BeFound())
-				gomega.Expect(templateTile.ErrorDescription).Should(matchers.BeFound())
-				gomega.Expect(templateTile.CreateTemplate).ShouldNot(matchers.BeEnabled())
-			})
-
-			ginkgo.By("And I should change the templates view to 'table'", func() {
-				gomega.Expect(templatesPage.SelectView("table").Click()).To(gomega.Succeed())
-			})
 
 			ginkgo.By("And User should see message informing user of the invalid template in the cluster - table view", func() {
 				templateRow := templatesPage.GetTemplateInformation(webDriver, "invalid-cluster-template")
 				gomega.Eventually(templateRow.Type).Should(matchers.MatchText(""))
-				gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"))
-				gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""))
-				gomega.Eventually(templateRow.Description).Should(matchers.MatchText("Couldn't load template body"))
-				gomega.Expect(templateRow.CreateTemplate).ShouldNot(matchers.BeEnabled())
+				gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"), "Failed to match the namespace for invalid template")
+				gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""), "The should be no provider for invalid template")
+				gomega.Expect(templateRow.Description).Should(matchers.MatchText("Couldn't load template body"), "Failed to find invalid template error message")
+				gomega.Expect(templateRow.CreateTemplate).ShouldNot(matchers.BeEnabled(), "The button 'USE THIS TEMPLATE' should be disabled for invalid emplate")
 			})
 		})
 
@@ -270,20 +210,22 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			noOfValidTemplates := 3
 			noOfInvalidTemplates := 1
 
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
 			templatesPage := pages.GetTemplatesPage(webDriver)
+
 			ginkgo.By("And wait for Templates page to be fully rendered", func() {
-				gomega.Expect(templatesPage.SelectView("grid").Click()).To(gomega.Succeed())
 				gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-				tileCount, _ := templatesPage.TemplateTiles.Count()
-				gomega.Eventually(tileCount).Should(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template tiles rendered should be equal to number of templates created")
+				gomega.Expect(templatesPage.CountTemplateRows()).To(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template rows should be equal to number of templates created")
 			})
 
 			ginkgo.By("And User should see message informing user of the invalid template in the cluster", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "invalid-cluster-template")
-				gomega.Eventually(templateTile.ErrorHeader).Should(matchers.BeFound())
-				gomega.Expect(templateTile.ErrorDescription).Should(matchers.BeFound())
-				gomega.Expect(templateTile.CreateTemplate).ShouldNot(matchers.BeEnabled())
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "invalid-cluster-template")
+				gomega.Eventually(templateRow.Type).Should(matchers.MatchText(""))
+				gomega.Eventually(templateRow.Namespace).Should(matchers.MatchText("default"), "Failed to match the namespace for invalid template")
+				gomega.Eventually(templateRow.Provider).Should(matchers.MatchText(""), "The should be no provider for invalid template")
+				gomega.Expect(templateRow.Description).Should(matchers.MatchText("Couldn't load template body"), "Failed to find invalid template error message")
+				gomega.Expect(templateRow.CreateTemplate).ShouldNot(matchers.BeEnabled(), "The button 'USE THIS TEMPLATE' should be disabled for invalid emplate")
 			})
 		})
 	})
@@ -311,12 +253,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			}
 
 			installGitOpsTemplate(templateFiles)
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
+			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			templateName := "capd-cluster-template"
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, templateName)
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, templateName)
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
@@ -510,11 +454,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			}
 
 			installGitOpsTemplate(templateFiles)
-			navigateToTemplatesGrid(webDriver)
+			pages.NavigateToPage(webDriver, "Templates")
+			pages.WaitForPageToLoad(webDriver)
+			templatesPage := pages.GetTemplatesPage(webDriver)
 
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "capd-cluster-template")
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "capd-cluster-template")
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
@@ -578,8 +524,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 				pages.ClearFieldValue(gitops.BranchName)
 				gomega.Expect(gitops.BranchName.SendKeys(branchName)).To(gomega.Succeed())
-				pages.ClearFieldValue(gitops.PullRequestTile)
-				gomega.Expect(gitops.PullRequestTile.SendKeys(prTitle)).To(gomega.Succeed())
+				pages.ClearFieldValue(gitops.PullRequestTitle)
+				gomega.Expect(gitops.PullRequestTitle.SendKeys(prTitle)).To(gomega.Succeed())
 				pages.ClearFieldValue(gitops.CommitMessage)
 				gomega.Expect(gitops.CommitMessage.SendKeys(prCommit)).To(gomega.Succeed())
 
