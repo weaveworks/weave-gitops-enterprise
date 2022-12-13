@@ -1,16 +1,9 @@
-import {
-  useGetWorkspaceDetails,
-  useGetWorkspacePolicies,
-  useGetWorkspaceRoleBinding,
-  useGetWorkspaceRoles,
-  useGetWorkspaceServiceAccount,
-} from '../../../contexts/Workspaces';
+import { useGetWorkspaceDetails } from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import HeaderSection from './HeaderSection';
 import TabDetails from './tabDetails';
-
 
 const WorkspaceDetails = ({
   clusterName,
@@ -39,7 +32,7 @@ const WorkspaceDetails = ({
             clusterName={workspaceDetails?.clusterName}
             namespaces={workspaceDetails?.namespaces}
           />
-          <TabDetails clusterName={clusterName}  workspaceName={workspaceName}/>
+          <TabDetails clusterName={clusterName} workspaceName={workspaceName} />
         </ContentWrapper>
       </PageTemplate>
     </>
