@@ -829,9 +829,9 @@ export class ClustersService {
     return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/workspaces/${req["workspaceName"]}/policies?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
   static ListExternalSecrets(req: ListExternalSecretsRequest, initReq?: fm.InitReq): Promise<ListExternalSecretsResponse> {
-    return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external_secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external-secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
-    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external_secrets/${req["secretName"]}?${fm.renderURLSearchParams(req, ["secretName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external-secrets/${req["secretName"]}?${fm.renderURLSearchParams(req, ["secretName"])}`, {...initReq, method: "GET"})
   }
 }
