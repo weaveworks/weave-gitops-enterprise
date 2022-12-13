@@ -20,6 +20,7 @@ export const useWorkspaceStyle = makeStyles(() =>
 
 export const WorkspacesTabs = styled(Tabs)`
   min-height: 32px !important;
+  margin-top: ${({ theme }) => theme.spacing.medium};
   .link{
     color: ${({ theme }) => theme.colors.primary},
     fontWeight: 600,
@@ -58,9 +59,8 @@ export const DialogWrapper = styled(Dialog)`
   }
   .MuiDialogTitle-root {
     background: ${({ theme }) => theme.colors.neutralGray};
-    padding-top: ${({ theme }) => theme.spacing.medium};
-    padding-left: ${({ theme }) => theme.spacing.medium};
-    padding-bottom: ${({ theme }) => theme.spacing.small};
+    padding: ${({ theme }) => theme.spacing.medium};
+    padding-bottom: ${({ theme }) => theme.spacing.small} ;
     p{
         font-weight: 600;
     }
