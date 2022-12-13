@@ -229,17 +229,15 @@ service ClustersService {
    // ListExternalSecrets list external secrets available on all clusters
    rpc ListExternalSecrets(ListExternalSecretsRequest) returns (ListExternalSecretsResponse) {
     option (google.api.http) = {
-      get : "/v1/external_secrets"
+      get : "/v1/external-secrets"
     };
   }
-     // GetExternalSecret get secret details
-     rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
-      option (google.api.http) = {
-        get : "/v1/external_secrets/{secretName}"
-      };
-    }
-
-  
+    // GetExternalSecret get secret details
+    rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets/{secretName}"
+    };
+  }
 }
 
 

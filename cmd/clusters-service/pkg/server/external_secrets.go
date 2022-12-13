@@ -115,7 +115,7 @@ func (s *server) listClusterExternalSecrets(ctx context.Context, cl clustersmngr
 		return &esv1beta1.ClusterExternalSecretList{}
 	})
 
-	if err := cl.ClusteredList(ctx, list, true); err != nil {
+	if err := cl.ClusteredList(ctx, list, false); err != nil {
 		return nil, fmt.Errorf("failed to list cluster external secrets, error: %w", err)
 	}
 
@@ -170,11 +170,8 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 		return nil, fmt.Errorf("cluster %s not found", req.ClusterName)
 	}
 
-	//Get the external secret with the given name from the given cluster
-	var externalSecret esv1beta1.ExternalSecret
-	var clusterExternalSecret esv1beta1.ClusterExternalSecret
-
 	if req.Namespace == "" {
+		var clusterExternalSecret esv1beta1.ClusterExternalSecret
 		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.SecretName}, &clusterExternalSecret); err != nil {
 			return nil, fmt.Errorf("error getting cluster external secret %s from cluster %s: %w", req.SecretName, req.ClusterName, err)
 		}
@@ -189,6 +186,7 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 		}, nil
 
 	} else {
+		var externalSecret esv1beta1.ExternalSecret
 		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.SecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
 			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.SecretName, req.ClusterName, err)
 		}

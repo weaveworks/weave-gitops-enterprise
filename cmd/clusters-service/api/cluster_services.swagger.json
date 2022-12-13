@@ -470,7 +470,7 @@
         ]
       }
     },
-    "/v1/external_secrets": {
+    "/v1/external-secrets": {
       "get": {
         "summary": "ListExternalSecrets list external secrets available on all clusters",
         "operationId": "ClustersService_ListExternalSecrets",
@@ -493,7 +493,7 @@
         ]
       }
     },
-    "/v1/external_secrets/{secretName}": {
+    "/v1/external-secrets/{secretName}": {
       "get": {
         "summary": "GetExternalSecret get secret details",
         "operationId": "ClustersService_GetExternalSecret",

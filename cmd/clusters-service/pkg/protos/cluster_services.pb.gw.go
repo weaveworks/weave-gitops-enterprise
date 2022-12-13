@@ -2226,7 +2226,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListExternalSecrets", runtime.WithHTTPPathPattern("/v1/external_secrets"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListExternalSecrets", runtime.WithHTTPPathPattern("/v1/external-secrets"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2250,7 +2250,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetExternalSecret", runtime.WithHTTPPathPattern("/v1/external_secrets/{secretName}"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetExternalSecret", runtime.WithHTTPPathPattern("/v1/external-secrets/{secretName}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2922,7 +2922,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListExternalSecrets", runtime.WithHTTPPathPattern("/v1/external_secrets"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListExternalSecrets", runtime.WithHTTPPathPattern("/v1/external-secrets"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2943,7 +2943,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetExternalSecret", runtime.WithHTTPPathPattern("/v1/external_secrets/{secretName}"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetExternalSecret", runtime.WithHTTPPathPattern("/v1/external-secrets/{secretName}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3021,9 +3021,9 @@ var (
 
 	pattern_ClustersService_GetWorkspacePolicies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "workspaces", "workspaceName", "policies"}, ""))
 
-	pattern_ClustersService_ListExternalSecrets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "external_secrets"}, ""))
+	pattern_ClustersService_ListExternalSecrets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "external-secrets"}, ""))
 
-	pattern_ClustersService_GetExternalSecret_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "external_secrets", "secretName"}, ""))
+	pattern_ClustersService_GetExternalSecret_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "external-secrets", "secretName"}, ""))
 )
 
 var (
