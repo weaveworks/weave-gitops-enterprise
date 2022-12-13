@@ -45,7 +45,6 @@ export const ColumnHeaderTooltip: FC<TooltipProps> = ({
 );
 
 export const TableWrapper = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.medium};
   max-width: calc(100vw - 300px);
   div[class*='FilterDialog'] {
     .Mui-checked {
@@ -59,5 +58,3 @@ export const TableWrapper = styled.div`
     overflow: unset;
   }
 `;
-
-

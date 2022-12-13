@@ -23,13 +23,13 @@ type AddApplication struct {
 }
 
 type GitOps struct {
-	GitOpsLabel     *agouti.Selection
-	BranchName      *agouti.Selection
-	PullRequestTile *agouti.Selection
-	CommitMessage   *agouti.Selection
-	PullRequestDesc *agouti.Selection
-	GitCredentials  *agouti.Selection
-	CreatePR        *agouti.Selection
+	GitOpsLabel      *agouti.Selection
+	BranchName       *agouti.Selection
+	PullRequestTitle *agouti.Selection
+	CommitMessage    *agouti.Selection
+	PullRequestDesc  *agouti.Selection
+	GitCredentials   *agouti.Selection
+	CreatePR         *agouti.Selection
 }
 
 type Messages struct {
@@ -70,13 +70,13 @@ func (a AddApplication) SelectListItem(webDriver *agouti.Page, itemName string) 
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel:     webDriver.FindByXPath(`//h2[.="GitOps"]`),
-		BranchName:      webDriver.FindByID(`CREATE BRANCH-input`),
-		PullRequestTile: webDriver.FindByID(`PULL REQUEST TITLE-input`),
-		CommitMessage:   webDriver.FindByID(`COMMIT MESSAGE-input`),
-		PullRequestDesc: webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
-		GitCredentials:  webDriver.Find(`div.auth-message`),
-		CreatePR:        webDriver.FindByButton(`CREATE PULL REQUEST`),
+		GitOpsLabel:      webDriver.FindByXPath(`//h2[.="GitOps"]`),
+		BranchName:       webDriver.FindByID(`CREATE BRANCH-input`),
+		PullRequestTitle: webDriver.FindByID(`PULL REQUEST TITLE-input`),
+		CommitMessage:    webDriver.FindByID(`COMMIT MESSAGE-input`),
+		PullRequestDesc:  webDriver.FindByID(`PULL REQUEST DESCRIPTION-input`),
+		GitCredentials:   webDriver.Find(`div.auth-message`),
+		CreatePR:         webDriver.FindByButton(`CREATE PULL REQUEST`),
 	}
 }
 

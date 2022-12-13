@@ -1,8 +1,6 @@
 import React from 'react';
 import { EnterpriseClientContext } from './index';
 import { ClustersService } from '../../cluster-services/cluster_services.pb';
-import { UnAuthorizedInterceptor } from '@weaveworks/weave-gitops';
-import { Core } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 type Props = {
   api: typeof ClustersService;
@@ -17,9 +15,8 @@ export enum AuthRoutes {
 }
 
 const EnterpriseClientProvider = ({ api, children }: Props) => {
-  const wrapped = UnAuthorizedInterceptor(api as unknown as typeof Core);
   return (
-    <EnterpriseClientContext.Provider value={{ api: wrapped as unknown as typeof ClustersService }}>
+    <EnterpriseClientContext.Provider value={{ api }}>
       {children}
     </EnterpriseClientContext.Provider>
   );

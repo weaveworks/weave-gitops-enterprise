@@ -18,7 +18,6 @@ import { useHistory } from 'react-router-dom';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
 import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
 import {
@@ -39,6 +38,7 @@ import { Routes } from '../../../utils/nav';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -148,7 +148,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { setNotifications } = useNotifications();
   const history = useHistory();
-  const { data } = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const data = listConfigContext?.data;
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');

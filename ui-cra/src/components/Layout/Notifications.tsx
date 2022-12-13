@@ -22,7 +22,7 @@ const {
 
 const BoxWrapper = styled(Box)<{ severity: string }>`
   div[class*='MuiAlert-root'] {
-    margin: 0 ${base} ${base} ${base};
+    margin-bottom: ${base};
     border-radius: ${xs};
   }
   div[class*='MuiAlert-action'] {
@@ -40,9 +40,6 @@ const BoxWrapper = styled(Box)<{ severity: string }>`
         else if (props.severity === 'success') return successMedium;
         else return 'transparent';
       }};
-    }
-    button {
-      margin-top: 5px;
     }
   }
   div[class*='MuiAlert-icon'] {
