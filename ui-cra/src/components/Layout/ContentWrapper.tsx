@@ -1,33 +1,21 @@
 import React, { FC } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
-import { Flex, Link, theme } from '@weaveworks/weave-gitops';
+import { Flex, theme } from '@weaveworks/weave-gitops';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
-import { useListConfig, useListVersion } from '../../hooks/versions';
-import { Tooltip } from '../Shared';
+
 import { AlertListErrors } from './AlertListErrors';
 import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
 import Notifications from './Notifications';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    editor: {
-      '& p': {
-        margin: 0,
-      },
-    },
-  }),
-);
+import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 
 const ENTITLEMENT_ERROR =
   'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
 
-const { xxs, xs, small, medium, base } = theme.spacing;
+const { xs, medium, base } = theme.spacing;
 const { white } = theme.colors;
 
 export const Title = styled.h2`
@@ -40,7 +28,6 @@ export const PageWrapper = styled.div`
 `;
 
 export const contentCss = css`
-  margin: 0 ${base};
   padding: ${medium};
   background-color: ${white};
   border-radius: ${xs} ${xs} 0 0;
@@ -49,33 +36,6 @@ export const contentCss = css`
 export const Content = styled.div<{ backgroundColor?: string }>`
   ${contentCss};
   background-color: ${props => props.backgroundColor};
-`;
-
-export const WGContent = styled.div`
-  margin: ${medium} ${small} 0 ${small};
-  background-color: ${white};
-  border-radius: ${xs} ${xs} 0 0;
-  > div > div {
-    border-radius: ${xs};
-    max-width: none;
-  }
-`;
-
-const HelpLinkWrapper = styled.div<{
-  backgroundColor?: string;
-  textColor?: string;
-}>`
-  padding: calc(${medium} - ${xxs}) ${medium};
-  margin: 0 ${base};
-  background-color: ${props =>
-    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
-  color: ${props => props.textColor || theme.colors.neutral30};
-  border-radius: 0 0 ${xs} ${xs};
-  display: flex;
-  justify-content: space-between;
-  a {
-    color: ${({ theme }) => theme.colors.primary};
-  }
 `;
 
 interface Props {
@@ -88,20 +48,11 @@ interface Props {
 
 export const ContentWrapper: FC<Props> = ({
   children,
-  type,
   backgroundColor,
   errors,
   loading,
 }) => {
-  const { data, error } = useListVersion();
   const { notifications } = useNotifications();
-  const { uiConfig } = useListConfig();
-
-  const versions = {
-    capiServer: data?.data.version,
-    ui: process.env.REACT_APP_VERSION || 'no version specified',
-  };
-  const classes = useStyles();
 
   const topNotifications = notifications.filter(
     n => n.display !== 'bottom' && n.message.text !== ENTITLEMENT_ERROR,
@@ -123,10 +74,12 @@ export const ContentWrapper: FC<Props> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: '100%',
+        width: 'calc(100% - 4px)',
         height: 'calc(100vh - 80px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
+        padding: '0px 12px',
+        margin: '0 auto',
       }}
     >
       {errors && (
@@ -134,49 +87,14 @@ export const ContentWrapper: FC<Props> = ({
           errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
         />
       )}
-      <Notifications
-        notifications={[
-          ...topNotifications,
-          { message: { text: error?.message }, severity: 'error' },
-        ]}
-      />
-      {type === 'WG' ? (
-        <WGContent>{children}</WGContent>
-      ) : (
-        <Content backgroundColor={backgroundColor}>{children}</Content>
-      )}
+      <Notifications notifications={topNotifications} />
+
+      <Content backgroundColor={backgroundColor}>{children}</Content>
+
       <div style={{ paddingTop: base }}>
         <Notifications notifications={bottomNotifications} />
       </div>
-      <HelpLinkWrapper
-        backgroundColor={uiConfig?.footer?.backgroundColor}
-        textColor={uiConfig?.footer?.color}
-      >
-        {uiConfig?.footer?.content ? (
-          <div>
-            <ReactMarkdown
-              children={uiConfig?.footer?.content || ''}
-              remarkPlugins={[remarkGfm]}
-              className={classes.editor}
-            />
-          </div>
-        ) : (
-          <div>
-            Need help? Raise a&nbsp;
-            <Link newTab href="https://weavesupport.zendesk.com/">
-              support ticket
-            </Link>
-          </div>
-        )}
-        {!uiConfig?.footer?.hideVersion ? (
-          <Tooltip
-            title={`Server Version ${versions?.capiServer}`}
-            placement="top"
-          >
-            <div>Weave GitOps Enterprise {process.env.REACT_APP_VERSION}</div>
-          </Tooltip>
-        ) : null}
-      </HelpLinkWrapper>
+      <MemoizedHelpLinkWrapper />
     </div>
   );
 };

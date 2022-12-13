@@ -44,10 +44,10 @@ func initUserCredentials() UserCredentials {
 }
 
 func loginUser() {
-	LoginUserFlow(userCredentials)
+	loginUserFlow(userCredentials)
 }
 
-func LoginUserFlow(uc UserCredentials) {
+func loginUserFlow(uc UserCredentials) {
 	loginPage := pages.GetLoginPage(webDriver)
 
 	if pages.ElementExist(loginPage.LoginOIDC, 10) {
@@ -198,20 +198,20 @@ func cliOidcAuthFlow(uc UserCredentials) {
 	}
 }
 
-func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProviderHostname string) {
+func authenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProviderHostname string) {
 	if gitProvider == GitProviderGitHub {
 		authenticate := pages.AuthenticateWithGithub(webDriver)
 
 		if pages.ElementExist(authenticate.AuthenticateGithub) {
 			gomega.Expect(authenticate.AuthenticateGithub.Click()).To(gomega.Succeed())
-			AuthenticateWithGitHub(webDriver)
+			authenticateWithGitHub(webDriver)
 
 			// Sometimes authentication failed to get the github device code, it may require revalidation with new access code
 			if pages.ElementExist(authenticate.AuthorizationError) {
 				logger.Info("Error getting github device code, requires revalidating...")
 				gomega.Expect(authenticate.Close.Click()).To(gomega.Succeed())
 				gomega.Eventually(authenticate.AuthenticateGithub.Click).Should(gomega.Succeed())
-				AuthenticateWithGitHub(webDriver)
+				authenticateWithGitHub(webDriver)
 			}
 
 			gomega.Eventually(authenticate.AuthroizeButton).ShouldNot(matchers.BeFound())
@@ -234,7 +234,6 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 					pages.OpenWindowInBg(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
 					gomega.Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(matchers.BeFound())
 					browserCompatibility = true
-					TakeScreenShot("gitlab_browser_compatibility")
 				}
 
 				if pages.ElementExist(authenticate.AcceptCookies, 10) {
@@ -242,7 +241,6 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 				}
 			}
 
-			TakeScreenShot("gitlab_cookies_accepted")
 			if pages.ElementExist(authenticate.Username) {
 				gomega.Eventually(authenticate.Username).Should(matchers.BeVisible())
 				gomega.Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(gomega.Succeed())
@@ -264,7 +262,7 @@ func AuthenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 	}
 }
 
-func AuthenticateWithGitHub(webDriver *agouti.Page) {
+func authenticateWithGitHub(webDriver *agouti.Page) {
 
 	authenticate := pages.AuthenticateWithGithub(webDriver)
 
@@ -275,9 +273,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 	logger.Info(accessCode)
 
 	// Move to device activation window
-	TakeScreenShot("application_authentication")
 	gomega.Expect(webDriver.NextWindow()).ShouldNot(gomega.HaveOccurred(), "Failed to switch to github authentication window")
-	TakeScreenShot("github_authentication")
 
 	activate := pages.ActivateDeviceGithub(webDriver)
 
@@ -288,7 +284,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 		gomega.Expect(activate.Signin.Click()).To(gomega.Succeed())
 	} else {
 		logger.Info("Login not found, assuming already logged in")
-		TakeScreenShot("login_skipped")
+		takeScreenShot("login_skipped")
 	}
 
 	if pages.ElementExist(activate.AuthCode) {
@@ -298,7 +294,7 @@ func AuthenticateWithGitHub(webDriver *agouti.Page) {
 		gomega.Expect(activate.AuthCode.SendKeys(authCode)).To(gomega.Succeed())
 	} else {
 		logger.Info("OTP not found, assuming already logged in")
-		TakeScreenShot("otp_skipped")
+		takeScreenShot("otp_skipped")
 	}
 
 	gomega.Eventually(activate.Continue).Should(matchers.BeVisible())

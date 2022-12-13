@@ -33,6 +33,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
 import { resolver } from '../utils/link-resolver';
+import { ListConfigProvider, VersionProvider } from '../contexts/ListConfig';
 
 const drawerWidth = 220;
 
@@ -189,7 +190,11 @@ const ResponsiveDrawer = () => {
                 <Route path="*">
                   {/* Check we've got a logged in user otherwise redirect back to signin */}
                   <AuthCheck>
-                    <App />
+                    <ListConfigProvider>
+                      <VersionProvider>
+                        <App />
+                      </VersionProvider>
+                    </ListConfigProvider>
                   </AuthCheck>
                 </Route>
               </Switch>

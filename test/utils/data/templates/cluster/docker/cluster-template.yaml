@@ -1,7 +1,7 @@
 apiVersion: capi.weave.works/v1alpha1
 kind: CAPITemplate
 metadata:
-  name: capd-cluster-template-{{.Count}}
+  name: capd-cluster-template
   namespace: default
   labels:
     weave.works/template-type: cluster
@@ -14,7 +14,7 @@ metadata:
     templates.weave.works/cost-estimation-enabled: "false"
     capi.weave.works/profile-1: '{"name": "cert-manager", "editable": true, "values": "installCRDs: ${INSTALL_CRDS}"}'
 spec:
-  description: This is the std. CAPD template {{.Count}}
+  description: This is the std. CAPD template
   params:
     - name: CLUSTER_NAME
       required: true

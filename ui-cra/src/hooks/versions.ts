@@ -13,6 +13,11 @@ export function useListVersion() {
     () => requestWithEntitlementHeader('GET', '/v1/enterprise/version'),
   );
 }
+export interface ListConfigResponse extends GetConfigResponse {
+  repoLink: string;
+  uiConfig: any;
+  [key: string]: any;
+}
 
 export function useListConfig() {
   const { api } = useContext(EnterpriseClientContext);
