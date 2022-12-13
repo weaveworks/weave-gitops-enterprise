@@ -27,6 +27,7 @@ type Application struct {
 	SyncInterval    string
 	Name            string
 	Namespace       string
+	Description     string
 	Tenant          string
 	TargetNamespace string
 	DeploymentName  string

@@ -10,7 +10,7 @@ metadata:
     templates.weave.works/profiles-enabled: "false"
     templates.weave.works/credentials-enabled: "false"
     templates.weave.works/kustomizations-enabled: "false"
-    templates.weave.works/delimiters: "${{,}}"
+    templates.weave.works/delimiters: "$[[,]]"
 spec:
   renderType: templating
   description: A generic git Kustomization template for deploying from a git repository using a Flux Kustomization
@@ -22,8 +22,7 @@ spec:
       description: Namespace to create the source in
       default: default
     - name: PATH
-      required: true
-      default: ./
+      required: false
       description: path to the directory containing a kustomization.yaml
     - name: SOURCE_NAME
       required: true
@@ -49,18 +48,18 @@ spec:
     - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
       kind: Kustomization
       metadata:
-        name: ${{ .params.RESOURCE_NAME }}
-        namespace: ${{ .params.NAMESPACE }}
+        name: $[[ .params.RESOURCE_NAME ]]
+        namespace: $[[ .params.NAMESPACE ]]
         annotations:
           metadata.weave.works/description: |
-            ${{ .params.DESCRIPTION }}
+            $[[ .params.DESCRIPTION | b64enc ]]
       spec:
         interval: 30s
-        path: ${{ .params.PATH }}
+        path: $[[ .params.PATH | empty |  ternary "./" .params.PATH ]]
         prune: true
         sourceRef:
           kind: GitRepository
-          name: ${{ .params.SOURCE_NAME }}
-          namespace:  ${{ .params.SOURCE_NAMESPACE }}
-        targetNamespace: ${{ .params.TARGET_NAMESPACE }}
-        prune: ${{ .params.PRUNE }}
+          name: $[[ .params.SOURCE_NAME ]]
+          namespace:  $[[ .params.SOURCE_NAMESPACE ]]
+        targetNamespace: $[[ .params.TARGET_NAMESPACE ]]
+        prune: $[[ .params.PRUNE ]]
