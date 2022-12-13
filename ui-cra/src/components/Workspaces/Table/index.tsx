@@ -23,7 +23,7 @@ export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
   };
 
   return (
-    <TableWrapper id="workspaces-list">
+    <TableWrapper id="workspaces-list" style={{minHeight: 'calc(100vh - 233px)'}}>
       <DataTable
         key={workspaces?.length}
         filters={initialFilterState}

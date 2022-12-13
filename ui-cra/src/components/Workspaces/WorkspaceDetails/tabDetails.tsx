@@ -20,7 +20,6 @@ import {
 } from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
 import {
-  useWorkspaceStyle,
   WorkspacesTabs,
   WorkspaceTab,
   ViewYamlBtn,
@@ -70,8 +69,6 @@ const TabDetails = ({
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [contentType, setContentType] = useState<string>('');
   const [dialogTitle, setDialogTitle] = useState<string>('');
-
-  const classes = useWorkspaceStyle();
 
   const { data: roles } = useGetWorkspaceRoles({
     clusterName,
@@ -334,7 +331,7 @@ const TabDetails = ({
   ];
 
   return (
-    <>
+    <div style={{minHeight: 'calc(100vh - 335px)'}}>
       <Box>
         <WorkspacesTabs
           className="tabs-container"
@@ -361,7 +358,7 @@ const TabDetails = ({
           onFinish={() => setIsDialogOpen(false)}
         />
       )}
-    </>
+    </div>
   );
 };
 
