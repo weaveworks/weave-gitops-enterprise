@@ -41,7 +41,7 @@ func Test_parseTemplate(t *testing.T) {
 					},
 					ResourceTemplates: []templates.ResourceTemplate{
 						{
-							runtime.RawExtension{
+							RawExtension: runtime.RawExtension{
 								Raw: []byte(`{"apiVersion":"kustomize.toolkit.fluxcd.io/v1beta2","kind":"Kustomization","metadata":{"name":"${RESOURCE_NAME}","namespace":"${NAMESPACE}"},"spec":{"interval":"1h","path":"${TEMPLATE_PATH}","sourceRef":{"kind":"GitRepository","name":"${GIT_REPO_NAME}","namespace":"${GIT_REPO_NAMESPACE}"}}}`),
 							},
 						},
