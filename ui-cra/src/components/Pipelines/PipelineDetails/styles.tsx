@@ -29,7 +29,7 @@ export const usePipelineStyles = makeStyles(() =>
     subtitle: {
       fontSize: small,
       fontWeight: 400,
-      marginTop: xxs,
+      marginTop: xs,
     },
     mbSmall: {
       marginBottom: small,

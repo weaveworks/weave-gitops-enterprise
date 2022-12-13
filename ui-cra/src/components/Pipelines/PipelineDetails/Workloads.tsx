@@ -36,7 +36,9 @@ const TargetStatus = ({
   const configResponse = useConfig();
 
   const clusterName = target?.clusterRef?.name
-    ? `${target?.clusterRef?.namespace}/${target?.clusterRef?.name}`
+    ? `${target?.clusterRef?.namespace || 'default'}/${
+        target?.clusterRef?.name
+      }`
     : configResponse?.data?.managementClusterName || 'undefined';
   return (
     <>
@@ -55,24 +57,21 @@ const TargetStatus = ({
             </TargetNamespace>
           </TargetWrapper>
           <WorkloadWrapper>
-            <div className="automation">
-              <Link
-                to={formatURL('/helm_release/details', {
-                  name: workload?.name,
-                  namespace: target?.namespace,
-                  clusterName,
-                })}
-              >
-                {workload && <WorkloadStatus workload={workload} />}
-              </Link>
-            </div>
             <Flex wide between>
-              <div
-                style={{ alignSelf: 'flex-end' }}
-                className={`${classes.subtitle} ${classes.subtitleColor}`}
-              >
-                <span>Specification:</span>
-                <span className={`version`}>{`v${workload?.version}`}</span>
+              <div className="automation">
+                <Link
+                  to={formatURL('/helm_release/details', {
+                    name: workload?.name,
+                    namespace: target?.namespace,
+                    clusterName,
+                  })}
+                >
+                  {workload && <WorkloadStatus workload={workload} />}
+                </Link>
+                <div className={`${classes.subtitle} ${classes.subtitleColor}`}>
+                  <span>Specification:</span>
+                  <span className={`version`}>{`v${workload?.version}`}</span>
+                </div>
               </div>
               {workload?.lastAppliedRevision && (
                 <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>

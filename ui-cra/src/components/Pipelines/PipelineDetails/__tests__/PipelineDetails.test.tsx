@@ -115,7 +115,6 @@ const res: GetPipelineResponse = {
               clusterRef: {
                 kind: 'GitopsCluster',
                 name: 'prod',
-                namespace: 'default',
               },
               namespace: 'podinfo-02-prod',
               workloads: [
@@ -285,7 +284,7 @@ describe('PipelineDetails', () => {
             ...wrk,
             clusterName: ts.clusterRef?.name || 'management',
             mappedClusterName: ts.clusterRef?.name
-              ? `${ts.clusterRef?.namespace}/${ts.clusterRef.name}`
+              ? `${ts.clusterRef?.namespace || 'default'}/${ts.clusterRef.name}`
               : 'management',
             namespace: ts.namespace,
           }));
