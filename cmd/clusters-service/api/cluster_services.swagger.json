@@ -493,6 +493,49 @@
         ]
       }
     },
+    "/v1/external_secrets/{secretName}": {
+      "get": {
+        "summary": "GetExternalSecret get secret details",
+        "operationId": "ClustersService_GetExternalSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetExternalSecretResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "secretName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policies": {
       "get": {
         "summary": "ListPolicies list policies available on the management cluster",
@@ -1720,6 +1763,29 @@
         "version": {
           "type": "string",
           "title": "The version of WeGO Enterprise"
+        }
+      }
+    },
+    "v1GetExternalSecretResponse": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "externalSecretName": {
+          "type": "string"
+        },
+        "secretPath": {
+          "type": "string"
         }
       }
     },
