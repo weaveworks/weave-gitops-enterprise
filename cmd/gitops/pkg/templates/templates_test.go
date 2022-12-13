@@ -169,6 +169,19 @@ func TestGetTemplates(t *testing.T) {
 			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\t\t\tb desc\tsomething went wrong\n",
 		},
 		{
+			name: "templates with template kind",
+			ts: []templates.Template{
+				{
+					Name:         "template-a",
+					Description:  "a desc",
+					Provider:     "azure",
+					TemplateKind: "CAPITemplate",
+					Error:        "",
+				},
+			},
+			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\tCAPITemplate\ta desc\t\n",
+		},
+		{
 			name:             "error retrieving templates",
 			err:              fmt.Errorf("oops something went wrong"),
 			expectedErrorStr: "unable to retrieve templates from \"In-memory fake\": oops something went wrong",
