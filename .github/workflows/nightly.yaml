@@ -24,7 +24,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 120
-      label-filter: "--label-filter='!(smoke, upgrade)'"
+      label-filter: "--label-filter='!(smoke, upgrade&&(cluster))'"
       kubectl-version: "v1.23.3"
       login_user_type: "oidc"
       git-provider: gitlab

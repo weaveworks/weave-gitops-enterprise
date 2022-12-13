@@ -390,6 +390,18 @@
             "$ref": "#/definitions/v1Condition"
           }
         },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "suspended": {
           "type": "boolean"
         }
