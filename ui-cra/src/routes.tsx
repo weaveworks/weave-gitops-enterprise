@@ -253,6 +253,11 @@ const AppRoutes = () => {
       />
 
       <Route
+        exact
+        path={Routes.Workspaces}
+        component={Workspaces}
+      />
+      <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
       />
