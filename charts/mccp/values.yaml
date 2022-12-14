@@ -164,3 +164,7 @@ global:
 templates-controller:
   enabled: true
   fullnameOverride: templates-controller
+  controllerManager:
+    manager:
+      image:
+        tag: pr-2
