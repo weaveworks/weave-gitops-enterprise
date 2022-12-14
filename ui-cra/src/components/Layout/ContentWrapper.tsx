@@ -10,8 +10,6 @@ import useNotifications, {
 import Notifications from './Notifications';
 
 import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
-
-import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 import { useVersionContext } from '../../contexts/ListConfig';
 
 const ENTITLEMENT_ERROR =
