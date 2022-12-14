@@ -25,14 +25,12 @@ const GitAuth: FC<{
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
-  gitRepos?: GitRepository[];
 }> = ({
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
   setEnableCreatePR,
-  gitRepos,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, req: check } = useIsAuthenticated();
@@ -52,6 +50,8 @@ const GitAuth: FC<{
     }
   }, [authSuccess, isAuthenticated, setEnableCreatePR]);
 
+  console.log(formData.url);
+
   return (
     <>
       <RepoInputWithAuthWrapper
@@ -69,7 +69,6 @@ const GitAuth: FC<{
         label="Source Repo URL"
         variant="standard"
         value={formData.url}
-        values={gitRepos || []}
         description=""
         formData={formData}
         setFormData={setFormData}

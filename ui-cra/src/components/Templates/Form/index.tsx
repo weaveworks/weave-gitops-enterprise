@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
+  GitRepository,
   Link,
   LoadingPage,
   theme as weaveTheme,
@@ -158,7 +159,7 @@ function getInitialData(
     (resource as GetTerraformObjectResponse)?.object?.name ||
     resourceData?.objects?.[0].name;
   const defaultFormData = {
-    url: '',
+    url: null,
     provider: '',
     branchName: resourceData
       ? `edit-${resourceName}-branch-${random}`
@@ -272,11 +273,14 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addResource } = useTemplates();
-  const { data } = useListSources();
-  const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
   const { setNotifications } = useNotifications();
+  const { data } = useListSources();
+  const gitRepos = React.useMemo(
+    () => getGitRepos(data?.result),
+    [data?.result],
+  );
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -480,7 +484,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      url: gitRepos.filter(gitRepo => gitRepo.clusterName === 'management'),
+      url: gitRepos[0],
     }));
   }, [gitRepos]);
 
@@ -516,6 +520,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     },
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
+
+  // console.log(formData.url, gitRepos);
 
   return useMemo(() => {
     return (
@@ -620,7 +626,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
               formError={formError}
-              gitRepos={gitRepos}
             />
             {loading ? (
               <LoadingPage className="create-loading" />
@@ -666,7 +671,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formError,
     submitType,
     getSubmitFunction,
-    gitRepos,
+    // gitRepos,
   ]);
 };
 

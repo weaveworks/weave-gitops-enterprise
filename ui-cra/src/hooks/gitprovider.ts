@@ -1,10 +1,11 @@
 import { poller, useRequestState } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { useCallback, useState, useContext } from 'react';
+import { useCallback, useState, useContext, useEffect } from 'react';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
   GitProvider,
+  ParseRepoURLResponse,
   ValidateProviderTokenResponse,
 } from '../api/gitauth/gitauth.pb';
 import {

@@ -18,7 +18,6 @@ const GitOps: FC<{
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   formError?: string;
-  gitRepos?: GitRepository[];
 }> = ({
   formData,
   setFormData,
@@ -26,7 +25,6 @@ const GitOps: FC<{
   setShowAuthDialog,
   setEnableCreatePR,
   formError,
-  gitRepos,
 }) => {
   const {
     branchName,
@@ -34,6 +32,7 @@ const GitOps: FC<{
     commitMessage,
     pullRequestDescription,
   } = formData;
+
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setFormData((prevState: any) => ({
@@ -121,7 +120,6 @@ const GitOps: FC<{
         setEnableCreatePR={setEnableCreatePR}
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
-        gitRepos={gitRepos}
       />
     </GitOpsWrapper>
   );

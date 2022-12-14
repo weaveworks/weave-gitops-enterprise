@@ -6,6 +6,7 @@ import {
   useRequestState,
   useDebounce,
   GitRepository,
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
@@ -18,13 +19,19 @@ import {
 } from '../../api/gitauth/gitauth.pb';
 import { Select, SelectProps } from '../../utils/form';
 import { MenuItem } from '@material-ui/core';
+import { getGitRepos } from '../Clusters';
+
+const GitAuthForm = styled(Flex)`
+  div[class*='MuiFormControl-root'] {
+    padding-bottom: 0;
+  }
+`;
 
 type Props = SelectProps & {
   onAuthClick: (provider: GitProvider) => void;
   onProviderChange?: (provider: GitProvider) => void;
   isAuthenticated?: boolean;
   disabled?: boolean;
-  values: GitRepository[];
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
 };
@@ -36,22 +43,37 @@ function RepoInputWithAuth({
   disabled,
   formData,
   setFormData,
-  values,
   ...props
 }: Props) {
   const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
-  const [gitRepo, setGitRepo] = React.useState<string>();
-  const { value } = props;
-  const debouncedURL = useDebounce<string>(value, 500);
+  const { data } = useListSources();
+  const gitRepos = React.useMemo(
+    () => getGitRepos(data?.result),
+    [data?.result],
+  );
+  const value = gitRepos.filter(
+    gitRepo => gitRepo.clusterName === 'management',
+  )[0]?.obj?.spec?.url;
+  // const debouncedURL = useDebounce<string>(value, 500);
   const { gitAuthClient } = React.useContext(GitAuth);
 
+  console.log(gitRepos);
+
   React.useEffect(() => {
-    if (!debouncedURL) {
+    // if (!debouncedURL) {
+    //   return;
+    // }
+    if (!value) {
       return;
     }
-    req(gitAuthClient.ParseRepoURL({ url: debouncedURL }));
+    // req(gitAuthClient.ParseRepoURL({ url: debouncedURL }));
+    req(gitAuthClient.ParseRepoURL({ url: value }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gitAuthClient, debouncedURL]);
+  }, [
+    gitAuthClient,
+    value,
+    // debouncedURL
+  ]);
 
   React.useEffect(() => {
     if (!res) {
@@ -83,26 +105,26 @@ function RepoInputWithAuth({
 
     setFormData({
       ...formData,
-      url: obj?.spec.url,
+      url: value,
     });
   };
 
+  console.log(formData.url);
+
   return (
-    <Flex className={props.className} align start>
+    <GitAuthForm className={props.className} align start>
       <Select
-        {...props}
-        error={values && !!err?.message ? true : false}
+        error={gitRepos && !!err?.message ? true : false}
         description={!value || !err ? props.description : err?.message}
         name="repo-select"
         required={true}
         label="SELECT GIT REPO"
-        value={value}
+        value={JSON.stringify(formData.url)}
         onChange={handleSelectSource}
-        defaultValue={''}
       >
-        {values?.map((option, index: number) => (
+        {gitRepos?.map((option, index: number) => (
           <MenuItem key={index} value={JSON.stringify(option)}>
-            {option.name}
+            {option?.obj?.spec?.url}
           </MenuItem>
         ))}
       </Select>
@@ -120,10 +142,9 @@ function RepoInputWithAuth({
         {!isAuthenticated && !res && (
           <Button disabled>Authenticate with your Git Provider</Button>
         )}
-
         {renderProviderAuthButton ? AuthButton : null}
       </div>
-    </Flex>
+    </GitAuthForm>
   );
 }
 

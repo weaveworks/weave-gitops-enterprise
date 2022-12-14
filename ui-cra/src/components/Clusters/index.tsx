@@ -206,7 +206,7 @@ export const getGitRepos = (sources: Source[] | undefined) =>
         sources,
         (item): item is GitRepository => item.type === Kind.GitRepository,
       ),
-      repo => repo.clusterName,
+      repo => repo?.obj?.spec?.url,
     ),
     ['name'],
     ['asc'],
