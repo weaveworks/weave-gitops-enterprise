@@ -58,6 +58,7 @@ if native_build:
       'clusters-service',
       'make build-linux',
       deps=[
+         '../weave-gitops/core',
          './cmd/clusters-service',
          './pkg'
       ],
