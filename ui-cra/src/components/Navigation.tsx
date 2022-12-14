@@ -7,7 +7,7 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
@@ -103,6 +103,16 @@ export const NavItem = styled(NavLink).attrs({
   }
 `;
 
+const checkActive = (item: NavigationItem, path: string): boolean => {
+  if (path.includes(item.link)) return true;
+  if (item.relatedRoutes) {
+    for (const route in item.relatedRoutes) {
+      if (path.includes(item.relatedRoutes[route])) return true;
+    }
+  }
+  return false;
+};
+
 const useStyles = makeStyles({
   root: {
     paddingTop: medium,
@@ -119,6 +129,7 @@ const useStyles = makeStyles({
 
 const NavItems = () => {
   const { data: flagsRes } = useFeatureFlags();
+  const location = useLocation();
   const navItems: Array<NavigationItem> = [
     {
       name: 'CLUSTERS',
@@ -199,11 +210,7 @@ const NavItems = () => {
               exact={!!item.subItems ? true : false}
               to={item.link}
               className={`route-nav ${
-                item.relatedRoutes?.some(link =>
-                  window.location.pathname.includes(link),
-                )
-                  ? 'nav-link-active'
-                  : ''
+                checkActive(item, location.pathname) ? 'nav-link-active' : ''
               }`}
             >
               <div className="parent-icon">{item.icon}</div>
