@@ -103,16 +103,6 @@ export const NavItem = styled(NavLink).attrs({
   }
 `;
 
-const checkActive = (item: NavigationItem, path: string): boolean => {
-  if (path.includes(item.link)) return true;
-  if (item.relatedRoutes) {
-    for (const route in item.relatedRoutes) {
-      if (path.includes(item.relatedRoutes[route])) return true;
-    }
-  }
-  return false;
-};
-
 const useStyles = makeStyles({
   root: {
     paddingTop: medium,
@@ -210,7 +200,11 @@ const NavItems = () => {
               exact={!!item.subItems ? true : false}
               to={item.link}
               className={`route-nav ${
-                checkActive(item, location.pathname) ? 'nav-link-active' : ''
+                item.relatedRoutes?.some(link =>
+                  location.pathname.includes(link),
+                )
+                  ? 'nav-link-active'
+                  : ''
               }`}
             >
               <div className="parent-icon">{item.icon}</div>
@@ -227,7 +221,7 @@ const NavItems = () => {
                         key={subItem.name}
                         className={`subroute-nav ${
                           subItem.relatedRoutes?.some(link =>
-                            window.location.pathname.includes(link),
+                            location.pathname.includes(link),
                           )
                             ? 'nav-link-active'
                             : ''
