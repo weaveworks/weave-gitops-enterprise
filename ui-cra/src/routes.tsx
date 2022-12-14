@@ -247,7 +247,6 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.Workspaces} component={Workspaces} />
       <Route
-        exact
         path={Routes.WorkspaceDetails}
         component={withSearchParams(WorkspaceDetails)}
       />

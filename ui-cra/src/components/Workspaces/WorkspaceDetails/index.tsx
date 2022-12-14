@@ -3,7 +3,7 @@ import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import HeaderSection from './HeaderSection';
-import TabDetails from './tabDetails';
+import TabDetails from './TabDetails';
 
 const WorkspaceDetails = ({
   clusterName,

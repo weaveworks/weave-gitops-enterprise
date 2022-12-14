@@ -93,7 +93,7 @@ export const DialogWrapper = styled(Dialog)`
   }
 `;
 
-export const RulesList = styled.ul`
+export const RulesListWrapper = styled.ul`
   list-style: none;
   margin-top: ${({ theme }) => theme.spacing.none} !important;
   padding-left: ${({ theme }) => theme.spacing.none} !important;
