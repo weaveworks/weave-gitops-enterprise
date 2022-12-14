@@ -178,6 +178,7 @@ const NavItems = () => {
       link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
       isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
+      relatedRoutes: [Routes.TerraformDetail],
     },
     {
       name: 'FLUX RUNTIME',
