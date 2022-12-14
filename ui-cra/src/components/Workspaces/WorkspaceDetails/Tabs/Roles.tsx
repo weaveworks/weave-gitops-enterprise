@@ -47,9 +47,7 @@ export const RolesTab = ({
     workspaceName,
   });
 
-  let initialFilterState = {
-    ...filterConfig(roles?.objects, 'name'),
-  };
+
 
   return (
     <WorkspaceTabsWrapper loading={isLoading} errorMessage={error?.message}>
@@ -57,7 +55,6 @@ export const RolesTab = ({
         <DataTable
           key={roles?.objects?.length}
           rows={roles?.objects}
-          filters={initialFilterState}
           fields={[
             {
               label: 'Name',
@@ -74,7 +71,7 @@ export const RolesTab = ({
               value: ({ rules }) => (
                 <WorkspaceModal
                   content={rules.length ? <RulesList rules={rules} /> : null}
-                  title="Service Accounts Manifest"
+                  title="Rules"
                   btnName="View Rules"
                   className="customBackgroundColor"
                 />
@@ -83,7 +80,6 @@ export const RolesTab = ({
             {
               label: 'Age',
               value: ({ timestamp }) => moment(timestamp).fromNow(),
-              defaultSort: true,
               sortValue: ({ createdAt }) => {
                 const t = createdAt && new Date(createdAt).getTime();
                 return t * -1;
@@ -104,7 +100,7 @@ export const RolesTab = ({
                       </SyntaxHighlighter>
                     ) : null
                   }
-                  title="Service Accounts Manifest"
+                  title="Role Manifest"
                   caption="[some command related to retrieving this yaml]"
                   btnName="View Yaml"
                 />

@@ -2,6 +2,7 @@ import React, { FC } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
 import { Flex } from '@weaveworks/weave-gitops';
 import Alert from '@material-ui/lab/Alert';
+import { useWorkspaceStyle } from '../../WorkspaceStyles';
 
 interface Props {
   loading: boolean;
@@ -13,9 +14,10 @@ const WorkspaceTabsWrapper: FC<Props> = ({
   errorMessage,
   loading,
 }) => {
+  const classes = useWorkspaceStyle();
 
   return (
-    <div style={{ width: '100%' }}>
+    <div className={classes.fullWidth}>
       {loading && (
         <Box marginTop={4}>
           <Flex wide center>
@@ -24,10 +26,7 @@ const WorkspaceTabsWrapper: FC<Props> = ({
         </Box>
       )}
       {errorMessage && (
-        <Alert
-          severity="error"
-          //   className={classes.alertWrapper}
-        >
+        <Alert severity="error" className={classes.alertWrapper}>
           {errorMessage}
         </Alert>
       )}
@@ -35,11 +34,5 @@ const WorkspaceTabsWrapper: FC<Props> = ({
     </div>
   );
 };
-
-// alertWrapper: {
-//     padding: base,
-//     margin: `0 ${base} ${base} ${base}`,
-//     borderRadius: '10px',
-//   },
 
 export default WorkspaceTabsWrapper;

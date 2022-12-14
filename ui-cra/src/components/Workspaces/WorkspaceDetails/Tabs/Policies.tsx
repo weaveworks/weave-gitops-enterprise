@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Routes } from '../../../../utils/nav';
 import Severity from '../../../Policies/Severity';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
+import { useWorkspaceStyle } from '../../WorkspaceStyles';
 
 export const PoliciesTab = ({
   clusterName,
@@ -22,10 +23,7 @@ export const PoliciesTab = ({
     clusterName,
     workspaceName,
   });
-
-  let initialFilterState = {
-    ...filterConfig(workspacePolicies?.objects, 'name'),
-  };
+  const classes = useWorkspaceStyle();
 
   return (
     <WorkspaceTabsWrapper loading={isLoading} errorMessage={error?.message}>
@@ -33,7 +31,6 @@ export const PoliciesTab = ({
         <DataTable
           key={workspacePolicies?.objects?.length}
           rows={workspacePolicies?.objects}
-          filters={initialFilterState}
           fields={[
             {
               label: 'Name',
@@ -43,7 +40,7 @@ export const PoliciesTab = ({
                     clusterName: clusterName,
                     id: w.id,
                   })}
-                  className="link"
+                  className={classes.link}
                   data-workspace-name={w.name}
                 >
                   {w.name}
@@ -64,7 +61,6 @@ export const PoliciesTab = ({
             {
               label: 'Age',
               value: ({ timestamp }) => moment(timestamp).fromNow(),
-              defaultSort: true,
               sortValue: ({ createdAt }) => {
                 const t = createdAt && new Date(createdAt).getTime();
                 return t * -1;

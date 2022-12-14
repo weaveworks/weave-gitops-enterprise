@@ -23,17 +23,12 @@ export const RoleBindingsTab = ({
     workspaceName,
   });
 
-  let initialFilterState = {
-    ...filterConfig(listRoleBindings?.objects, 'name'),
-  };
-
   return (
     <WorkspaceTabsWrapper loading={isLoading} errorMessage={error?.message}>
       <TableWrapper id="role-bindings-list">
         <DataTable
           key={listRoleBindings?.objects?.length}
           rows={listRoleBindings?.objects}
-          filters={initialFilterState}
           fields={[
             {
               label: 'Name',
@@ -59,7 +54,6 @@ export const RoleBindingsTab = ({
             {
               label: 'Age',
               value: ({ timestamp }) => moment(timestamp).fromNow(),
-              defaultSort: true,
               sortValue: ({ createdAt }) => {
                 const t = createdAt && new Date(createdAt).getTime();
                 return t * -1;
@@ -80,7 +74,7 @@ export const RoleBindingsTab = ({
                       </SyntaxHighlighter>
                     ) : null
                   }
-                  title="Service Accounts Manifest"
+                  title="RoleBinding Manifest"
                   caption="[some command related to retrieving this yaml]"
                   btnName="view Yaml"
                 />

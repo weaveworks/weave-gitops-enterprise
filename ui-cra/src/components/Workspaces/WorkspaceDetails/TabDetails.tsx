@@ -1,5 +1,6 @@
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import { RouterTab } from '@weaveworks/weave-gitops';
 import { Routes } from '../../../utils/nav';
+import { CustomSubRouterTabs } from '../WorkspaceStyles';
 import { PoliciesTab } from './Tabs/Policies';
 import { RoleBindingsTab } from './Tabs/RoleBindings';
 import { RolesTab } from './Tabs/Roles';
@@ -17,7 +18,7 @@ const TabDetails = ({
 
   return (
     <div style={{ minHeight: 'calc(100vh - 335px)'}}>
-      <SubRouterTabs rootPath={`${path}/serviceAccounts`}>
+      <CustomSubRouterTabs rootPath={`${path}/serviceAccounts`}>
         <RouterTab name="Service Accounts" path={`${path}/serviceAccounts`}>
           <ServiceAccountsTab clusterName={clusterName} workspaceName={workspaceName}/>
         </RouterTab>
@@ -33,7 +34,7 @@ const TabDetails = ({
         <RouterTab name="Policies" path={`${path}/policies`}>
           <PoliciesTab clusterName={clusterName} workspaceName={workspaceName}/>
         </RouterTab>
-      </SubRouterTabs>
+      </CustomSubRouterTabs>
     </div>
   );
 };

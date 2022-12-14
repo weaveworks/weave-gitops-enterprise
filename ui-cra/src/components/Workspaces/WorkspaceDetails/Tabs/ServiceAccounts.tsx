@@ -22,17 +22,12 @@ export const ServiceAccountsTab = ({
     workspaceName,
   });
 
-  let initialFilterState = {
-    ...filterConfig(serviceAccounts?.objects, 'name'),
-  };
-
   return (
     <WorkspaceTabsWrapper loading={isLoading} errorMessage={error?.message}>
       <TableWrapper id="service-accounts-list">
         <DataTable
           key={serviceAccounts?.objects?.length}
           rows={serviceAccounts?.objects}
-          filters={initialFilterState}
           fields={[
             {
               label: 'Name',

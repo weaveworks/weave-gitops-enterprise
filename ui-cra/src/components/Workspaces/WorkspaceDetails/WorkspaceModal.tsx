@@ -1,7 +1,11 @@
 import { FC, useState } from 'react';
 import { Typography, DialogContent, DialogTitle } from '@material-ui/core';
 import { CloseIconButton } from '../../../assets/img/close-icon-button';
-import { DialogWrapper, ViewYamlBtn } from '../WorkspaceStyles';
+import {
+  DialogWrapper,
+  useWorkspaceStyle,
+  ViewYamlBtn,
+} from '../WorkspaceStyles';
 import { Button } from '@weaveworks/weave-gitops';
 
 interface Props {
@@ -9,22 +13,29 @@ interface Props {
   caption?: string;
   content: any;
   className?: string;
-  btnName:string
+  btnName: string;
 }
-const WorkspaceModal: FC<Props> = ({ title, caption, content, className, btnName }) => {
+const WorkspaceModal: FC<Props> = ({
+  title,
+  caption,
+  content,
+  className,
+  btnName,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const classes = useWorkspaceStyle();
 
   return (
     <>
       {content && (
-        <ViewYamlBtn>
+        <div className={title !== 'Rules' ? classes.YamlBtn : ''}>
           <Button
             style={{ marginRight: 0, textTransform: 'uppercase' }}
             onClick={() => setIsModalOpen(true)}
           >
             {btnName}
           </Button>
-        </ViewYamlBtn>
+        </div>
       )}
       {isModalOpen && (
         <DialogWrapper
@@ -40,9 +51,7 @@ const WorkspaceModal: FC<Props> = ({ title, caption, content, className, btnName
             </div>
             {caption && <span className="info">{caption}</span>}
           </DialogTitle>
-          <DialogContent className={className || ''}>
-            {content}
-          </DialogContent>
+          <DialogContent className={className || ''}>{content}</DialogContent>
         </DialogWrapper>
       )}
     </>
