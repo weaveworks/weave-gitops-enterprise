@@ -46,7 +46,20 @@ func installGitOpsTemplate(templateFiles map[string]string) {
 	})
 }
 
+func waitForTemplatesToAppear(templateCpunt int) {
+	ginkgo.By("And wait for Templates to be rendered", func() {
+		templatesPage := pages.GetTemplatesPage(webDriver)
+		gomega.Eventually(func(g gomega.Gomega) {
+			g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+			pages.WaitForPageToLoad(webDriver)
+			gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
+			g.Eventually(templatesPage.CountTemplateRows).Should(gomega.Equal(templateCpunt))
+		}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), "The number of template rows should be equal to number of templates created")
+	})
+}
+
 var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.Label("ui", "template"), func() {
+	var templateNamespaces []string
 
 	ginkgo.BeforeEach(func() {
 		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
@@ -59,6 +72,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 	ginkgo.AfterEach(func() {
 		_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
 		_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
+		deleteNamespace(templateNamespaces)
 	})
 
 	ginkgo.Context("[UI] When no GitOps Templates are available in the cluster", func() {
@@ -83,6 +97,10 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 	ginkgo.Context("[UI] When GitOps Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify template(s) are rendered from the template library.", func() {
+			// Namespace for some GitOpsTemplates
+			templateNamespaces = []string{"dev-system", "test-system"}
+			createNamespace(templateNamespaces)
+
 			templateFiles := map[string]string{
 				"capa-cluster-template":             path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
 				"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks-fargate.yaml"),
@@ -104,21 +122,16 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			}
 			sort.Strings(keys)
 
-			totalTemplateCount := len(templateFiles)
 			sourceTemplateCount := 2
+			namespaceSourceTemplateCount := 2
 			clusterTemplateCount := 8
 			awsTemplateCount := 4
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
+
 			templatesPage := pages.GetTemplatesPage(webDriver)
-
-			ginkgo.By("And wait for Templates page to be fully rendered", func() {
-				gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-				gomega.Expect(templatesPage.CountTemplateRows()).To(gomega.Equal(totalTemplateCount), "The number of template rows should be equal to number of templates created")
-			})
-
 			ginkgo.By("And templates are ordered - table view", func() {
 				actual_list := templatesPage.GetTemplateTableList()
 				for i, key := range keys {
@@ -127,22 +140,29 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			})
 
 			ginkgo.By("And templates can be filtered by type - table view", func() {
-				filterID := "templateType: source"
 				searchPage := pages.GetSearchPage(webDriver)
+
+				// Select the 'templateType' filter
+				filterID := "templateType: source"
 				searchPage.SelectFilter("templateType", filterID)
-				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(sourceTemplateCount), "The number of selected template tiles rendered should be equal to number of aws templates created")
-				// Unselect the 'source' templateType filter
-				searchPage.SelectFilter("templateType", filterID, false)
+				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(sourceTemplateCount), "The number of filtered templates should be equal to number of source templates created")
+				searchPage.SelectFilter("templateType", filterID, false) // Reset the 'source' templateType filter
+
+				// Select the 'namespace' filter
+				filterID = "namespace: dev-system"
+				searchPage.SelectFilter("namespace", filterID)
+				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(namespaceSourceTemplateCount), "The number of filtered templates should be equal to number of source templates created in a namespace")
+				searchPage.SelectFilter("namespace", filterID, false) // Reset the 'namespace' filter
 
 				// Select the 'cluster' templateType filter
 				filterID = "templateType: cluster"
 				searchPage.SelectFilter("templateType", filterID)
-				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(clusterTemplateCount), "The number of selected template tiles rendered should be equal to number of aws templates created")
+				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(clusterTemplateCount), "The number of filtered templates should be equal to number of cluster templates created")
 
 				// Select the 'aws' provider filter
 				filterID = "provider: aws"
 				searchPage.SelectFilter("provider", filterID)
-				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(awsTemplateCount), "The number of selected template tiles rendered should be equal to number of aws templates created")
+				gomega.Eventually(templatesPage.CountTemplateRows()).Should(gomega.Equal(awsTemplateCount), "The number of filtered templates should be equal to number of aws templates created")
 			})
 		})
 
@@ -171,7 +191,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
-			ginkgo.By("And wait for Create cluster page to be fully rendered - table view", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered - table view", func() {
 				createPage := pages.GetCreateClusterPage(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -200,6 +220,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 		ginkgo.It("Verify UI shows message related to an invalid template(s) and renders the available valid template(s)", func() {
 
+			templateNamespaces = []string{"dev-system", "test-system"}
+			createNamespace(templateNamespaces)
+
 			templateFiles := map[string]string{
 				"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks-fargate.yaml"),
 				"helm-repository-template":          path.Join(testDataPath, "templates/source/helm-repository-template.yaml"),
@@ -208,17 +231,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			}
 			installGitOpsTemplate(templateFiles)
 
-			noOfValidTemplates := 3
-			noOfInvalidTemplates := 1
-
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
-
-			ginkgo.By("And wait for Templates page to be fully rendered", func() {
-				gomega.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-				gomega.Expect(templatesPage.CountTemplateRows()).To(gomega.Equal(noOfValidTemplates+noOfInvalidTemplates), "The number of template rows should be equal to number of templates created")
-			})
 
 			ginkgo.By("And User should see message informing user of the invalid template in the cluster", func() {
 				templateRow := templatesPage.GetTemplateInformation(webDriver, "invalid-cluster-template")
@@ -265,7 +280,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -392,7 +407,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 					_, err := os.Stat(downloadedResourcesPath)
 					g.Expect(err).Should(gomega.Succeed())
 				}, ASSERTION_1MINUTE_TIME_OUT).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 				fileList, _ := getArchiveFileList(path.Join(os.Getenv("HOME"), "Downloads", "resources.zip"))
 
 				previewResources := []string{
@@ -465,7 +480,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -561,7 +576,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -600,7 +615,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 			})
 
-			ginkgo.By("hen verify PR preview contents for envsubst functions", func() {
+			ginkgo.By("Then verify PR preview contents for envsubst functions", func() {
 				// Verify resource definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
 				// Verify CLUSTER_NAME and NAMESPACE parameter values should be converted to lowecase - template is using envsubst function ${var,,}
@@ -618,6 +633,10 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		})
 
 		ginkgo.It("Verify render type 'templating' supported functions", func() {
+			// Namespace for some GitOpsTemplates
+			templateNamespaces = []string{"test-system"}
+			createNamespace(templateNamespaces)
+
 			templateName := "git-kustomization-template"
 			templateNamespace := "default"
 			templateFiles := map[string]string{
@@ -626,16 +645,16 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template", func() {
 				templateRow := templatesPage.GetTemplateInformation(webDriver, templateName)
-				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
+				gomega.Eventually(templateRow.CreateTemplate.Click, ASSERTION_2MINUTE_TIME_OUT).Should(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})

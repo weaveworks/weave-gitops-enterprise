@@ -2,7 +2,7 @@ apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: helmrelease-template
-  namespace: default
+  namespace: dev-system
   labels:
     weave.works/template-type: application
   annotations:

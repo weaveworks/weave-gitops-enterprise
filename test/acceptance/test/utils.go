@@ -21,6 +21,7 @@ import (
 	"github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/sclevine/agouti"
+	"github.com/sclevine/agouti/api"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
@@ -46,7 +47,8 @@ var (
 	testScriptsPath    string
 	testDataPath       string
 
-	webDriver *agouti.Page
+	webDriver        *agouti.Page
+	enterpriseWindow *api.Window
 )
 
 const (
@@ -215,9 +217,9 @@ func initializeWebdriver(wgeURL string) {
 
 	ginkgo.By(fmt.Sprintf("And I set the default WGE window name to: %s", WGE_WINDOW_NAME), func() {
 		pages.SetWindowName(webDriver, WGE_WINDOW_NAME)
-		weaveGitopsWindowName := pages.GetWindowName(webDriver)
-		gomega.Expect(weaveGitopsWindowName).To(gomega.Equal(WGE_WINDOW_NAME))
-
+		gomega.Expect(pages.GetWindowName(webDriver)).To(gomega.Equal(WGE_WINDOW_NAME))
+		enterpriseWindow, err = webDriver.Session().GetWindow()
+		gomega.Expect(err).To(gomega.BeNil(), "Failed to get wevegitops enterprise window")
 	})
 }
 

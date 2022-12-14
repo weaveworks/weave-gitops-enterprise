@@ -53,7 +53,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -172,7 +172,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -226,7 +226,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -320,7 +320,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})

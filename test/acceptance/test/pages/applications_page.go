@@ -38,6 +38,7 @@ type ApplicationDetailPage struct {
 	Events     *agouti.Selection
 	Graph      *agouti.Selection
 	Violations *agouti.Selection
+	Edit       *agouti.Selection
 }
 
 type ApplicationDetail struct {
@@ -181,6 +182,7 @@ func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *Applicat
 		Events:     webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/event"`, appType)),
 		Graph:      webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/graph"`, appType)),
 		Violations: webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/violations"`, appType)),
+		Edit:       webDriver.First(`a[href*="resources/edit"] button`),
 	}
 }
 

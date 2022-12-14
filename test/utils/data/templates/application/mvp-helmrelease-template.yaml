@@ -79,7 +79,7 @@ spec:
               name: ${{ .params.RESOURCE_NAME }}
               namespace:  ${{ .params.NAMESPACE }}
         targetNamespace: ${{ .params.TARGET_NAMESPACE }}
-        values: ${{ .params.VALUES }}
+        values: ${{ .params.VALUES | fromJson}}
     - apiVersion: networking.k8s.io/v1
       kind: Ingress
       metadata:

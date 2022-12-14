@@ -2,7 +2,7 @@ apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: git-kustomization-template
-  namespace: default
+  namespace: test-system
   labels:
     weave.works/template-type: application
   annotations:

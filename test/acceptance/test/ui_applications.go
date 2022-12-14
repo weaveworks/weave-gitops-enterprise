@@ -22,6 +22,7 @@ type Application struct {
 	DefaultApp      bool
 	Type            string
 	Chart           string
+	Url             string
 	Source          string
 	Path            string
 	SyncInterval    string
@@ -751,7 +752,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 					_, err := os.Stat(downloadedResourcesPath)
 					g.Expect(err).Should(gomega.Succeed())
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 
 				fileList, _ := getArchiveFileList(downloadedResourcesPath)
 				previewResources := []string{
@@ -897,7 +898,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 					_, err := os.Stat(downloadedResourcesPath)
 					g.Expect(err).Should(gomega.Succeed())
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 
 				fileList, _ := getArchiveFileList(downloadedResourcesPath)
 				previewResources := []string{
