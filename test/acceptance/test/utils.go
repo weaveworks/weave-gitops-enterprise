@@ -31,23 +31,6 @@ type CustomFormatter struct {
 }
 
 var (
-<<<<<<< HEAD
-	logger               *logrus.Logger
-	logFile              *os.File
-	gitProviderEnv       GitProviderEnv
-	userCredentials      UserCredentials
-	mgmtClusterKind      string
-	git_repository_url   string
-	selenium_service_url string
-	gitops_bin_path      string
-	capi_provider        string
-	wge_endpoint_url     string
-	test_ui_url          string
-	artifacts_base_dir   string
-	testScriptsPath      string
-	testDataPath         string
-	webDriver            *agouti.Page
-=======
 	logger             *logrus.Logger
 	logFile            *os.File
 	gitProviderEnv     GitProviderEnv
@@ -64,7 +47,6 @@ var (
 	testDataPath       string
 
 	webDriver *agouti.Page
->>>>>>> origin
 )
 
 const (
@@ -105,55 +87,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz" +
 var seededRand *rand.Rand = rand.New(
 	rand.NewSource(time.Now().UnixNano()))
 
-<<<<<<< HEAD
-// Describes all the UI acceptance tests
-func DescribeSpecsUi(gitopsTestRunner GitopsTestRunner) {
-	DescribeClusters(gitopsTestRunner)
-	DescribeTemplates(gitopsTestRunner)
-	DescribeTemplatesCapi(gitopsTestRunner)
-	DescribeApplications(gitopsTestRunner)
-	DescribePolicies(gitopsTestRunner)
-	DescribeViolations(gitopsTestRunner)
-	DescribeTenants(gitopsTestRunner)
-	DescribeCostEstimation(gitopsTestRunner)
-	DescribeMiscellaneous(gitopsTestRunner)
-	DescribeWorkspaces(gitopsTestRunner)
-}
-
-// Describes all the CLI acceptance tests
-func DescribeSpecsCli(gitopsTestRunner GitopsTestRunner) {
-	DescribeCliHelp()
-	DescribeCliTemplates(gitopsTestRunner)
-	DescribeCliTemplatesCapi(gitopsTestRunner)
-	DescribeCliTenant(gitopsTestRunner)
-	DescribeCliUpgrade(gitopsTestRunner)
-	DescribeCliMiscellaneous(gitopsTestRunner)
-}
-
-func GetWebDriver() *agouti.Page {
-	return webDriver
-}
-
-func SetDefaultUIURL(url string) {
-	test_ui_url = url
-}
-
-func SetTestDataPath(dataPath string) {
-	testDataPath = path.Join(getCheckoutRepoPath(), dataPath)
-}
-
-func SetTestScriptPath(srciptPath string) {
-	testScriptsPath = path.Join(getCheckoutRepoPath(), srciptPath)
-}
-
-func SetSeleniumServiceUrl(url string) {
-	selenium_service_url = url
-}
-
-func RandString(length int) string {
-=======
 func randString(length int) string {
->>>>>>> origin
 	return stringWithCharset(length, charset)
 }
 

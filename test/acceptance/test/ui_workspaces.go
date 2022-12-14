@@ -18,6 +18,43 @@ func installTestWorkspaces(clusterName string) {
 	})
 }
 
+func verifyFilterWorkspacesByClusterName(clusterName string, workspaceName string) {
+	ginkgo.By(fmt.Sprintf("Filter Workspaces By cluster name: '%s'", clusterName), func() {
+
+		workspacesList := pages.GetWorkspacesPage(webDriver)
+		filterID := "Cluster:" + clusterName
+		searchPage := pages.GetSearchPage(webDriver)
+		searchPage.SelectFilter("Cluster", filterID)
+		gomega.Eventually(workspacesList.CountWorkspaces()).Should(gomega.BeNumerically("=", 2), fmt.Sprintf("The number of workspaces for selected cluster:  '%s' should equal to 2", clusterName))
+		// Clear the filter
+		searchPage.SelectFilter("Cluster", filterID)
+	})
+
+	ginkgo.By(fmt.Sprintf("Filter Workspaces By workspace name: '%s'", workspaceName), func() {
+
+		workspacesList := pages.GetWorkspacesPage(webDriver)
+		filterID := "Name:" + workspaceName
+		searchPage := pages.GetSearchPage(webDriver)
+		searchPage.SelectFilter("Name", filterID)
+		gomega.Eventually(workspacesList.CountWorkspaces()).Should(gomega.BeNumerically("=", 2), fmt.Sprintf("The number of workspaces for selected Name:  '%s' should equal to 2", workspaceName))
+		// Clear the filter
+		searchPage.SelectFilter("Name", filterID)
+	})
+}
+
+func verifySearchWorkspaceByName(workspaceName string) {
+	// Search by Workspace Name in the workspaces list.
+	ginkgo.By(fmt.Sprintf("And search by Workspace '%s' in the workspaces list", workspaceName), func() {
+
+		searchPage := pages.GetSearchPage(webDriver)
+		searchPage.SearchName(workspaceName)
+		gomega.Eventually(func(g gomega.Gomega) int {
+			return pages.CountAppViolations(webDriver)
+		}).Should(gomega.BeNumerically("=", 1), "Search should return '1' workspace in the list")
+
+	})
+}
+
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("ui", "workspaces"), func() {
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
@@ -81,6 +118,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			ginkgo.By(fmt.Sprintf("And verify '%s' workspace Cluster", workspaceName), func() {
 				gomega.Eventually(workspaceInfo.Cluster).Should(matchers.MatchText(workspaceClusterName), fmt.Sprintf("Failed to get the expected %[1]v workspace Cluster: %[1]v", workspaceName))
 			})
+			verifyFilterWorkspacesByClusterName("management", workspaceName)
+			verifySearchWorkspaceByName(workspaceName)
+			gomega.Eventually(workspaceInfo.Name.Text).Should(gomega.Equal(workspaceName), "Failed to get the workspace by its name Value in the Workspaces List")
 
 		})
 	})
@@ -175,6 +215,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			ginkgo.By(fmt.Sprintf("And verify '%s' workspace Cluster", workspaceName), func() {
 				gomega.Eventually(workspaceInfo.Cluster).Should(matchers.MatchText(workspaceClusterName), fmt.Sprintf("Failed to get the expected %[1]v workspace Cluster: %[1]v", workspaceName))
 			})
+			verifyFilterWorkspacesByClusterName(leafClusterName, workspaceName)
+			verifySearchWorkspaceByName(workspaceName)
+			gomega.Eventually(workspaceInfo.Name.Text).Should(gomega.Equal(workspaceName), "Failed to get the workspace by its name Value in the Workspaces List")
 
 		})
 	})
