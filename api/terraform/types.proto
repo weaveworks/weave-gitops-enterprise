@@ -35,10 +35,12 @@ message TerraformObject {
     string    lastUpdatedAt        = 8;
     bool      driftDetectionResult = 9;
 
-    repeated ResourceRef inventory = 10;
-    repeated Condition conditions  = 11;
+    repeated ResourceRef inventory   = 10;
+    repeated Condition   conditions  = 11;
+    map<string, string>  labels      = 12;
+    map<string, string>  annotations = 13;
 
-    bool suspended = 12;
+    bool suspended = 14;
 }
 
 message Pagination {

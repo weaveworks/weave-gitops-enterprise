@@ -17,7 +17,7 @@ import { uniqBy, sortBy } from 'lodash';
 import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 
-const { xxl, base, xs, xxs } = theme.spacing;
+const { base, xs, xxs } = theme.spacing;
 const { neutral00, alertLight, alertMedium } = theme.colors;
 
 const useAlertStyles = makeStyles(() =>
@@ -36,7 +36,6 @@ const useAlertStyles = makeStyles(() =>
     },
     alertIcon: {
       marginRight: xs,
-      width: xxl,
     },
     errorMessage: {
       fontSize: base,
@@ -51,7 +50,7 @@ const useAlertStyles = makeStyles(() =>
 
 const BoxWrapper = styled(Box)`
   .MuiAlert-root {
-    margin: 0 ${base} ${base} ${base};
+    margin-bottom: ${base};
     background: #eecec7;
     border-radius: ${xs};
   }

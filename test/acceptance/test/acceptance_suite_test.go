@@ -11,15 +11,16 @@ import (
 var theT *testing.T
 
 func GomegaFail(message string, callerSkip ...int) {
-	logger.Errorf("Spec has failed, capturing failure state")
-	randID := RandString(16)
+	randID := randString(16)
+	logger.Error("Spec has failed, capturing failure...")
+	logger.Tracef("Dumping artifacts to %s with prefix %s", artifactsBaseDir, randID)
 
-	TakeScreenShot(randID) //Save the screenshot of failure
-	DumpingDOM(randID)
-	DumpBrowserLogs(true, true)
-	DumpResources(randID)
-	DumpClusterInfo(randID)
-	DumpConfigRepo(randID)
+	takeScreenShot(randID) //Save the screenshot of failure
+	dumpingDOM(randID)
+	dumpBrowserLogs(randID)
+	dumpResources(randID)
+	dumpClusterInfo(randID)
+	dumpConfigRepo(randID)
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
@@ -34,21 +35,15 @@ func TestAcceptance(t *testing.T) {
 	//Intercept the assertiona Failure
 	gomega.RegisterFailHandler(GomegaFail)
 
-	// Runs the UI tests
-	DescribeSpecsUi(RealGitopsTestRunner{})
-	// Runs the CLI tests
-	DescribeSpecsCli(RealGitopsTestRunner{})
-
 	ginkgo.RunSpecs(t, "Weave GitOps Enterprise Acceptance Tests")
-
 }
 
 var _ = ginkgo.BeforeSuite(func() {
 	gomega.SetDefaultEventuallyTimeout(ASSERTION_DEFAULT_TIME_OUT) // Things are slow when running on Kind
-	SetupTestEnvironment()                                         // Read OS environment variables and initialize the test environment
-	InitializeLogger("acceptance-tests.log")                       // Initilaize the global logger and tee Ginkgowriter
-	InstallWeaveGitopsControllers()                                // Install weave gitops core and enterprise controllers
-	InitializeWebdriver(test_ui_url)                               // Initilize web driver for whole test suite run
+	setupTestEnvironment()                                         // Read OS environment variables and initialize the test environment
+	initializeLogger("acceptance-tests.log")                       // Initilaize the global logger and tee Ginkgowriter
+	installWeaveGitopsControllers()                                // Install weave gitops core and enterprise controllers
+	initializeWebdriver(testUiUrl)                                 // Initilize web driver for whole test suite run
 
 	ginkgo.By(fmt.Sprintf("Login as a %s user", userCredentials.UserType), func() {
 		loginUser() // Login to the weaveworks enterprise dashboard
@@ -58,14 +53,14 @@ var _ = ginkgo.BeforeSuite(func() {
 		}
 	})
 
-	CheckClusterService(capi_endpoint_url) // Cluster service should be running before running any test for enterprise
+	checkClusterService(wgeEndpointUrl) // Cluster service should be running before running any test for enterprise
 })
 
 var _ = ginkgo.AfterSuite(func() {
 	//Tear down the suite level setup
 	ginkgo.By(fmt.Sprintf("Logout as a %s user", userCredentials.UserType), func() {
-		gomega.Expect(webDriver.Navigate(test_ui_url)).To(gomega.Succeed()) // Make sure the UI should not has any popups and modal dialogs
-		logoutUser()                                                        // Logout to the weaveworks enterprise
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed()) // Make sure the UI should not has any popups and modal dialogs
+		logoutUser()                                                      // Logout to the weaveworks enterprise
 	})
 
 	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean

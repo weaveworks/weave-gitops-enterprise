@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -108,7 +109,7 @@ func controllerStatus(controllerName, namespace string) error {
 	return runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl rollout status deployment %s -n %s", controllerName, namespace))
 }
 
-func CheckClusterService(capiEndpointURL string) {
+func checkClusterService(endpointURL string) {
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
 	gomega.Eventually(func(g gomega.Gomega) {
 		logger.Info("Trying to login to cluster service")
@@ -117,7 +118,7 @@ func CheckClusterService(capiEndpointURL string) {
 			fmt.Sprintf(
 				// insecure for self-signed tls
 				`curl --insecure  -d '{"username":"%s","password":"%s"}' -H "Content-Type: application/json" -X POST %s/oauth2/sign_in -c -`,
-				AdminUserName, adminPassword, capiEndpointURL,
+				AdminUserName, adminPassword, endpointURL,
 			),
 			ASSERTION_1MINUTE_TIME_OUT,
 		)
@@ -129,7 +130,7 @@ func CheckClusterService(capiEndpointURL string) {
 		stdOut, stdErr := runCommandAndReturnStringOutput(
 			fmt.Sprintf(
 				`curl --insecure --silent --cookie "id_token=%s" -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
-				cookie, capiEndpointURL,
+				cookie, endpointURL,
 			),
 			ASSERTION_1MINUTE_TIME_OUT,
 		)
@@ -164,7 +165,7 @@ func waitForGitopsResources(ctx context.Context, request Request, timeout time.D
 			},
 		}
 		// login to fetch cookie
-		resp, err := client.Post(test_ui_url+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, AdminUserName, adminPassword))))
+		resp, err := client.Post(testUiUrl+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, AdminUserName, adminPassword))))
 		if err != nil {
 			logger.Tracef("error logging in (waiting for a success, retrying): %v", err)
 			return false, nil
@@ -175,9 +176,9 @@ func waitForGitopsResources(ctx context.Context, request Request, timeout time.D
 		}
 		// fetch gitops resource
 		if request.Body != nil {
-			resp, err = client.Post(test_ui_url+"/v1/"+request.Path, "application/json", bytes.NewReader(request.Body))
+			resp, err = client.Post(testUiUrl+"/v1/"+request.Path, "application/json", bytes.NewReader(request.Body))
 		} else {
-			resp, err = client.Get(test_ui_url + "/v1/" + request.Path)
+			resp, err = client.Get(testUiUrl + "/v1/" + request.Path)
 		}
 		if err != nil {
 			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", request.Path, err)
@@ -223,7 +224,7 @@ func runGitopsCommand(cmd string, timeout ...time.Duration) (stdOut, stdErr stri
 		}
 	}
 
-	cmd = fmt.Sprintf(`%s --endpoint %s %s %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag, authFlag, cmd)
+	cmd = fmt.Sprintf(`%s --endpoint %s %s %s %s`, gitopsBinPath, wgeEndpointUrl, insecureFlag, authFlag, cmd)
 	ginkgo.By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 		assert_timeout := ASSERTION_DEFAULT_TIME_OUT
 		if len(timeout) > 0 {
@@ -377,6 +378,113 @@ func verifyCapiClusterHealth(kubeconfigPath string, applications []Application) 
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
+}
+
+// This function generates multiple template files from a single template to be used as test data
+func generateTestTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
+	// Read input capitemplate
+	contents, err := ioutil.ReadFile(templateFile)
+
+	if err != nil {
+		return templateFiles, err
+	}
+
+	// Prepare  data to insert into the template.
+	type TemplateInput struct {
+		Count int
+	}
+
+	// Create a new template and parse the letter into it.
+	t := template.Must(template.New("capi-template").Parse(string(contents)))
+
+	// Execute the template for each count.
+	for i := 0; i < templateCount; i++ {
+		input := TemplateInput{i}
+
+		fileName := fmt.Sprintf("%s%d", filepath.Base(templateFile), i)
+
+		f, err := os.Create(path.Join("/tmp", fileName))
+		if err != nil {
+			return templateFiles, err
+		}
+		templateFiles = append(templateFiles, f.Name())
+
+		if err = t.Execute(f, input); err != nil {
+			logger.Infoln("Executing template:", err)
+		}
+
+		f.Close()
+	}
+
+	return templateFiles, nil
+}
+
+func createIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		// CAPA installs the AWS identity crds
+		if capiProvider != "capa" {
+			ginkgo.By("Install AWSClusterStaticIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+
+			ginkgo.By("Install AWSClusterRoleIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+		}
+
+		ginkgo.By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput("kubectl create namespace capa-system")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+		})
+
+	} else if infrastructureProvider == "AZURE" {
+		ginkgo.By("Install AzureClusterIdentity CRD", func() {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+		})
+
+		ginkgo.By("Create Azure Secret and AzureClusterIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+		})
+	}
+
+}
+
+func deleteIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		ginkgo.By("Delete AWS identities and CRD", func() {
+			// Identity crds are installed as part of CAPA installation
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath))
+			if capiProvider != "capa" {
+				_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl delete namespace capa-system")
+			}
+		})
+
+	} else if infrastructureProvider == "AZURE" {
+		ginkgo.By("Delete Azure identities and CRD", func() {
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+		})
+	}
+}
+
+func restartDeploymentPods(appName string, namespace string) error {
+	// Restart the deployment pods
+	var err error
+	for i := 1; i < 5; i++ {
+		time.Sleep(POLL_INTERVAL_1SECONDS)
+		err = runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+		if err == nil {
+			// Wait for all the deployments replicas to rolled out successfully
+			err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+			break
+		}
+	}
+	return err
 }
 
 func createPATSecret(clusterNamespace string, patSecret string) {

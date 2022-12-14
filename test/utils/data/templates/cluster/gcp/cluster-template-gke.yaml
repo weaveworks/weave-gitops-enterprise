@@ -1,12 +1,12 @@
 apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
-  name: capg-cluster-template-{{.Count}}
+  name: capg-cluster-template
   namespace: default
   labels:
     weave.works/template-type: cluster
 spec:
-  description: This is the std. CAPG template {{.Count}}
+  description: This is the std. CAPG template
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
@@ -111,12 +111,12 @@ spec:
                 nodeRegistration:
                   kubeletExtraArgs:
                     cloud-provider: gce
-                  name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+                  name: '{{ ds.meta_data.local_hostname.split(".")[0] }}'
               joinConfiguration:
                 nodeRegistration:
                   kubeletExtraArgs:
                     cloud-provider: gce
-                  name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+                  name: '{{ ds.meta_data.local_hostname.split(".")[0] }}'
             machineTemplate:
               infrastructureRef:
                 apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
@@ -180,4 +180,4 @@ spec:
                   nodeRegistration:
                     kubeletExtraArgs:
                       cloud-provider: gce
-                    name: '{{`{{ ds.meta_data.local_hostname.split(".")[0] }}`}}'
+                    name: '{{ ds.meta_data.local_hostname.split(".")[0] }}'

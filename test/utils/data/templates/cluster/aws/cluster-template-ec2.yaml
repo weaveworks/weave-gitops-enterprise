@@ -1,7 +1,7 @@
 apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
-  name: capa-cluster-template-{{.Count}}
+  name: capa-cluster-template
   namespace: default
   labels:
     weave.works/template-type: cluster
@@ -13,7 +13,7 @@ metadata:
     templates.weave.works/credentials-enabled: "true"
 
 spec:
-  description: This is the std. CAPA template {{.Count}}
+  description: This is the std. CAPA template
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
@@ -107,10 +107,10 @@ spec:
           metadata:
             name: "${CLUSTER_NAME}"
             namespace: "${NAMESPACE}"
-            labels:
-              cni: calico
             annotations:
               "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
+            labels:
+              cni: calico
           spec:
             clusterNetwork:
               pods:
@@ -150,12 +150,12 @@ spec:
                 nodeRegistration:
                   kubeletExtraArgs:
                     cloud-provider: aws
-                  name: "{{`{{ ds.meta_data.local_hostname }}`}}"
+                  name: "{{ ds.meta_data.local_hostname }}"
               joinConfiguration:
                 nodeRegistration:
                   kubeletExtraArgs:
                     cloud-provider: aws
-                  name: "{{`{{ ds.meta_data.local_hostname }}`}}"
+                  name: "{{ ds.meta_data.local_hostname }}"
             machineTemplate:
               infrastructureRef:
                 apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
@@ -220,4 +220,4 @@ spec:
                   nodeRegistration:
                     kubeletExtraArgs:
                       cloud-provider: aws
-                    name: "{{`{{ ds.meta_data.local_hostname }}`}}"
+                    name: "{{ ds.meta_data.local_hostname }}"

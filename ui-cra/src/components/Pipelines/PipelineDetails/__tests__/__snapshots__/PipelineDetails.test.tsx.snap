@@ -230,21 +230,8 @@ exports[`PipelineDetails snapshots renders 1`] = `
   padding-right: 12px;
 }
 
-.c0 {
-  width: 100%;
-  margin: 0 auto;
-}
-
-.c10 {
-  margin: 0 16px;
-  padding: 24px;
-  background-color: #fff;
-  border-radius: 8px 8px 0 0;
-}
-
 .c34 {
   padding: calc(24px - 4px) 24px;
-  margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
   color: #737373;
   border-radius: 0 0 8px 8px;
@@ -260,6 +247,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 .c34 a {
   color: #00b3ec;
+}
+
+.c0 {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.c10 {
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 8px 8px 0 0;
 }
 
 .c2 {
@@ -367,6 +365,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
 .c23 {
   margin-bottom: 12px;
   line-height: 24px;
+}
+
+.c23 a > span {
+  font-size: 20px;
 }
 
 .c24 {
@@ -512,7 +514,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
+      style="display: flex; flex-direction: column; width: calc(100% - 4px); height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
     >
       <div
         class="c10"
@@ -621,7 +623,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
               </div>
               <span
-                class="PrivateTabIndicator-root-66 PrivateTabIndicator-colorPrimary-67 MuiTabs-indicator"
+                class="PrivateTabIndicator-root-65 PrivateTabIndicator-colorPrimary-66 MuiTabs-indicator"
                 style="left: 0px; width: 0px;"
               />
             </div>
@@ -666,7 +668,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -682,7 +688,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
@@ -792,7 +800,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -808,7 +820,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-qa"
@@ -893,7 +907,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    dev
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -909,7 +927,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-perf"
@@ -1014,7 +1034,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   <div
                     class="c23 cluster-name"
                   >
-                    prod
+                    <a
+                      href="/cluster?clusterName=prod"
+                    >
+                      prod
+                    </a>
                   </div>
                   <div
                     class="c22"
@@ -1030,7 +1054,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 <div
                   class="c25"
                 >
-                  <div>
+                  <div
+                    class="automation"
+                  >
                     <a
                       class="c15"
                       href="/helm_release/details?clusterName=undefined%2Fprod&name=podinfo&namespace=podinfo-02-prod"
