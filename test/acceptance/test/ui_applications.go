@@ -595,6 +595,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 
 		ginkgo.JustAfterEach(func() {
+			pages.CloseOtherWindows(webDriver, enterpriseWindow)
 			// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
 			gomega.Eventually(func(g gomega.Gomega) int {
 				return getApplicationCount()

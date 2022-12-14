@@ -5,6 +5,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -12,13 +13,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func verifySelfServicePodinfo(podinfo Application, bgColour, message string) {
-	podinfoWebUrl := fmt.Sprintf(`https://%s:%s`, "mvp.wge.com", GetEnv("UI_NODEPORT", "30080"))
+func verifySelfServicePodinfo(podinfo Application, webUrl, bgColour, message string) {
 	windowName := "podinfo"
 	currentWindow, err := webDriver.Session().GetWindow()
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to get current/active window")
 
-	pages.OpenWindowInBg(webDriver, podinfoWebUrl, windowName)
+	pages.OpenWindowInBg(webDriver, webUrl, windowName)
 	gomega.Expect(webDriver.NextWindow()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to switch to '%s' window", windowName))
 
 	gomega.Eventually(func(g gomega.Gomega) {
@@ -28,7 +28,7 @@ func verifySelfServicePodinfo(podinfo Application, bgColour, message string) {
 
 	gomega.Eventually(webDriver.Find(fmt.Sprintf(`div[style*="background-color: %s"]`, bgColour))).Should(matchers.BeFound(), fmt.Sprintf("Failed to verify '%s' background colour", "podinfoApp"))
 	gomega.Eventually(webDriver.Find(`div h1`).Text).Should(gomega.MatchRegexp(message), fmt.Sprintf("Failed to verify '%s' message", "podinfoApp"))
-
+	time.Sleep(POLL_INTERVAL_1SECONDS)
 	gomega.Eventually(webDriver.CloseWindow).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' window", windowName))
 	gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
 }
@@ -52,7 +52,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 		deleteNamespace(templateNamespaces)
 	})
 
-	ginkgo.Context("[UI] When GitOps Template are available in the management cluster for deployments", func() {
+	ginkgo.Context("[UI] GitOps Template can create resources in the management cluster", ginkgo.Label("deploy", "application"), func() {
 		var existingAppCount int
 		appNameSpace := "test-system"
 		appTargetNamespace := "test-system"
@@ -78,7 +78,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			deleteNamespace([]string{appNameSpace, appTargetNamespace})
 		})
 
-		ginkgo.FIt("Verify self service MVP deployment workflow for management cluster", func() {
+		ginkgo.It("Verify self service MVP deployment workflow for management cluster", func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			existingAppCount = getApplicationCount()
 
@@ -119,6 +119,12 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			ingressHost := "mvp.wge.com" // ingress host must be resolvable
 			appServiceName := strings.Join([]string{podinfo.TargetNamespace, podinfo.Name}, "-")
 			appServicePort := "9898" // default podinfo service
+			podinfoWebUrl := fmt.Sprintf(`https://%s:%s`, ingressHost, GetEnv("UI_NODEPORT", "30080"))
+
+			ginkgo.By("And set cluster hostname mapping in the /etc/hosts file for deploy service", func() {
+				err := runCommandPassThrough(path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "hostname-to-ip.sh"), ingressHost)
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to set deployment service hostname entry in /etc/hosts file")
+			})
 
 			// Not setting the helm chart values via parameters
 			var parameters = []TemplateField{
@@ -171,18 +177,18 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 			})
 
-			ginkgo.By("Then verify all resources are labled with template name and namespace", func() {
+			ginkgo.By("Then verify all resources are labelled with template name and namespace", func() {
 				// Verify resource definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
 				previewText, _ := preview.Text.Text()
 
 				re, _ := regexp.Compile(fmt.Sprintf("templates.weave.works/template-name: %s", templateName))
 				matches := re.FindAllString(previewText, -1)
-				gomega.Eventually(len(matches)).Should(gomega.Equal(3), "All resources should be labled with template name")
+				gomega.Eventually(len(matches)).Should(gomega.Equal(3), "All resources should be labelled with template name")
 
 				re, _ = regexp.Compile(fmt.Sprintf("templates.weave.works/template-namespace: %s", templateNamespace))
 				matches = re.FindAllString(previewText, -1)
-				gomega.Eventually(len(matches)).Should(gomega.Equal(3), "All resources should be labled with template namespace")
+				gomega.Eventually(len(matches)).Should(gomega.Equal(3), "All resources should be labelled with template namespace")
 
 				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 			})
@@ -226,7 +232,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 
 			bgColour := "rgb(52, 87, 124)"      // default podinfo background colour '#34577c'
 			message := "greetings from podinfo" // default podinfo message
-			verifySelfServicePodinfo(podinfo, bgColour, message)
+			verifySelfServicePodinfo(podinfo, podinfoWebUrl, bgColour, message)
 
 			ginkgo.By(fmt.Sprintf("Then I should start editing the %s application", podinfo.Name), func() {
 				appDetailPage := pages.GetApplicationsDetailPage(webDriver, podinfo.Type)
@@ -261,7 +267,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 
 			bgColour = "rgb(124, 78, 52)" // edited podinfo background colour '#7c4e34'
 			message = "Hello World"       // edited podinfo message
-			verifySelfServicePodinfo(podinfo, bgColour, message)
+			verifySelfServicePodinfo(podinfo, podinfoWebUrl, bgColour, message)
 
 			pages.NavigateToPage(webDriver, "Applications")
 			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, templateRepoPath)

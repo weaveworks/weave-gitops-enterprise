@@ -715,7 +715,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			ginkgo.By("Then verify PR preview contents for templating functions", func() {
 				// Verify resource definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
-				// Verify resource is labled with template name and namespace
+				// Verify resource is labelled with template name and namespace
 				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`labels:[\s]*templates.weave.works/template-name: %s[\s]*templates.weave.works/template-namespace: %s`, templateName, templateNamespace)))
 				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s]*metadata:[|=\s\w\d./:-]*name: %s[\s]*namespace: %s`, app.Name, app.Namespace)))
 				// Verify PATH should be assigned the same value set as parameter - template is using templating functions '.params.PATH | empty |  ternary "./" .params.PATH'

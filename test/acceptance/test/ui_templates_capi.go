@@ -326,6 +326,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 		})
 
 		ginkgo.JustAfterEach(func() {
+			pages.CloseOtherWindows(webDriver, enterpriseWindow)
 			_ = deleteFile([]string{downloadedKubeconfigPath})
 			deleteSecret([]string{patSecret}, capdCluster.Namespace)
 			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
