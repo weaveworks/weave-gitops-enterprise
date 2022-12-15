@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -24,9 +25,41 @@ var TemplateKinds = []TemplateKind{
 	GitOpsTemplateKind,
 }
 
+// Return a string representation of all supported template Kinds
+func TemplateKindsString() string {
+	var kinds []string
+	for _, k := range TemplateKinds {
+		kinds = append(kinds, k.String())
+	}
+	return strings.Join(kinds, ", ")
+}
+
 // String returns a string representation of the template Kind.
 func (t TemplateKind) String() string {
 	return string(t)
+}
+
+// Set the value of the template kind object with a string
+func (t *TemplateKind) Set(v string) error {
+	if v == "" {
+		*t = DefaultTemplateKind
+		return nil
+	} else if inTemplateKinds(v) {
+		*t = TemplateKind(v)
+		return nil
+
+	} else {
+		return errors.New(`Template kind not found. Supported templates: ` + TemplateKindsString())
+	}
+}
+
+func inTemplateKinds(str string) bool {
+	for _, k := range TemplateKinds {
+		if k.String() == str {
+			return true
+		}
+	}
+	return false
 }
 
 type CreatePullRequestFromTemplateParams struct {

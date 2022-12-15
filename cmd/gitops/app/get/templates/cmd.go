@@ -90,14 +90,12 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
-		templateKind := templates.DefaultTemplateKind
-		if flags.TemplateKind != "" {
-			if flags.TemplateKind == "GitOpsTemplate" {
-				templateKind = templates.GitOpsTemplateKind
-			} else if flags.TemplateKind == "CAPITemplate" {
-				templateKind = templates.CAPITemplateKind
-			}
+		templateKind := templates.TemplateKind(flags.TemplateKind)
+		err = templateKind.Set(flags.TemplateKind)
+		if err != nil {
+			return err
 		}
+
 		if flags.ListTemplateParameters {
 			if len(args) == 0 {
 				return errors.New("template name is required")
