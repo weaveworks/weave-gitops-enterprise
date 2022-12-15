@@ -27,9 +27,9 @@ const WorkspaceModal: FC<Props> = ({
   return (
     <>
       {title !== 'Rules' && (
-        <a className={classes.link} onClick={() => setIsModalOpen(true)}>
+        <span className={classes.link} onClick={() => setIsModalOpen(true)}>
           {btnName}
-        </a>
+        </span>
       )}
       {title === 'Rules' && content && (
         <Button
