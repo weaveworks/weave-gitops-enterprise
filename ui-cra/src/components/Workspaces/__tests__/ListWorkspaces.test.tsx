@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import WorkspacesList from '..';
+import { Workspace } from '../../../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
@@ -11,19 +12,24 @@ import {
 const listWorkspacesResponse = {
   workspaces: [
     {
-        name: 'foo-tenant',
+        name: 'bar-tenant',
         clusterName: 'management',
         namespaces: ['foo-ns'],
       },
+      {
+        name: 'foo-tenant',
+        clusterName: 'management',
+        namespaces: [],
+      }
   ],
-  total: 1,
+  total: 2,
   nextPageToken: 'eyJDb250aW51ZVRva2VucyI6eyJtYW5hZ2VtZW50Ijp7IiI6IiJ9fX0K',
   errors: [],
 };
 const mappedWorkspaces = (workspaces: Array<any>) => {
   return workspaces.map(e => [
     e.name,
-    e.namespaces.join(', '),
+    e.namespaces?.join(', '),
     e.clusterName,
   ]);
 };
@@ -88,7 +94,7 @@ describe('ListWorkspaces', () => {
     expect(errorCount?.textContent).toEqual('2');
   });
   it('renders a list of workspaces', async () => {
-    const filterTable = new TestFilterableTable('workspace-list', fireEvent);
+    const filterTable = new TestFilterableTable('workspaces-list', fireEvent);
     api.ListWorkspacesReturns = listWorkspacesResponse;
 
     await act(async () => {
@@ -117,7 +123,7 @@ describe('ListWorkspaces', () => {
   });
   it('sort workspaces', async () => {
     api.ListWorkspacesReturns = listWorkspacesResponse;
-    const filterTable = new TestFilterableTable('workspace-list', fireEvent);
+    const filterTable = new TestFilterableTable('workspaces-list', fireEvent);
 
     await act(async () => {
       const c = wrap(<WorkspacesList />);
@@ -132,6 +138,6 @@ describe('ListWorkspaces', () => {
       ),
     );
 
-    filterTable.testSorthTableByColumn('Name', sortRowsByName);
+    filterTable.testSorthTableByColumn('Name', sortRowsByName );
   });
 });
