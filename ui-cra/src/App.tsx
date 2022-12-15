@@ -135,12 +135,14 @@ const App: FC = () => {
                 <PipelinesProvider api={Pipelines}>
                   <GitAuthProvider>
                     <AppContextProvider>
-                      <ResponsiveDrawer />
-                      <ToastContainer
-                        position="top-center"
-                        autoClose={5000}
-                        newestOnTop={false}
-                      />
+                     
+                          <ResponsiveDrawer />
+                          <ToastContainer
+                            position="top-center"
+                            autoClose={5000}
+                            newestOnTop={false}
+                          />
+                      
                     </AppContextProvider>
                   </GitAuthProvider>
                 </PipelinesProvider>
