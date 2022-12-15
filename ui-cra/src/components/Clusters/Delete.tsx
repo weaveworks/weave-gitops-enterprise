@@ -12,20 +12,13 @@ import useClusters from '../../hooks/clusters';
 import useNotifications from '../../contexts/Notifications';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
-import {
-  Button,
-  clearCallbackState,
-  getProviderToken,
-  Icon,
-  IconType,
-  Link,
-} from '@weaveworks/weave-gitops';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { Button, Icon, IconType, Link } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../utils/request';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
 import GitAuth from '../GithubAuth/GitAuth';
+import { clearCallbackState, getProviderToken } from '../GithubAuth/utils';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {
@@ -106,7 +99,7 @@ export const DeleteClusterDialog: FC<Props> = ({
         description: formData.pullRequestDescription,
         repositoryUrl: formData.repositoryURL,
       },
-      getProviderToken(formData.provider as GitProvider),
+      getProviderToken(formData.provider),
     )
       .then(response => {
         cleanUp();
