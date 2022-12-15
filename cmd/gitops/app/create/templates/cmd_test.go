@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -15,11 +16,12 @@ func Test_parseTemplate(t *testing.T) {
 	type args struct {
 		templateFile string
 	}
+
 	tests := []struct {
 		name     string
 		args     args
 		expected *gapiv1.GitOpsTemplate
-		wantErr  bool
+		err      error
 	}{
 		{
 			name: "valid template",
@@ -48,7 +50,7 @@ func Test_parseTemplate(t *testing.T) {
 					},
 				},
 			},
-			wantErr: false,
+			err: nil,
 		},
 		{
 			name: "invalid template",
@@ -56,19 +58,22 @@ func Test_parseTemplate(t *testing.T) {
 				templateFile: "testdata/invalid-template.yaml",
 			},
 			expected: nil,
-			wantErr:  true,
+			err:      errors.New("failed to read template file testdata/invalid-template.yaml: open testdata/invalid-template.yaml: no such file or directory"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := parseTemplate(tt.args.templateFile)
 			if err != nil {
-				if !tt.wantErr {
-					t.Fatalf("got an error: %v, while wantErr is: %v", err, tt.wantErr)
+				if tt.err == nil {
+					t.Fatalf("failed to parse template:\n%v", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("returned error didn't match expected:\n%v", diff)
 				}
 			}
-			if diff := cmp.Diff(result, tt.expected, protocmp.Transform()); diff != "" {
-				t.Fatalf("got: %v, want: %v", result, tt.expected)
+			if diff := cmp.Diff(tt.expected, result, protocmp.Transform()); diff != "" {
+				t.Fatalf("result didn't match expected:\n%s", diff)
 			}
 		})
 	}
