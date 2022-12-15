@@ -44,9 +44,6 @@ function get-external-ip {
 get-localhost-ip LOCALHOST_IP
 get-external-ip WORKER_NODE_EXTERNAL_IP
 
-# echo "Test host ip: ${LOCALHOST_IP}"
-# echo "Cluster external ip: ${WORKER_NODE_EXTERNAL_IP}"
-
 if [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
     # MANAGEMENT_CLUSTER_KIND is a KIND cluster
     WORKER_NODE_EXTERNAL_IP=${LOCALHOST_IP}

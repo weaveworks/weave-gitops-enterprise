@@ -98,7 +98,7 @@ func installPolicyConfig(clusterName string, policyConfigYaml string) {
 
 func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
 	ginkgo.By("And navigate to Applicartions page via header link", func() {
-		gomega.Expect(applicationsPage.ApplicationHeader.Click()).Should(gomega.Succeed(), "Failed to navigate to Applications pages via header link")
+		gomega.Expect(applicationsPage.ApplicationHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Applications pages via header link")
 		pages.WaitForPageToLoad(webDriver)
 	})
 }
@@ -472,7 +472,7 @@ func verifyPolicyConfigInAppViolationsDetails(policyName string, violationMsg st
 }
 
 func verifyDeleteApplication(applicationsPage *pages.ApplicationsPage, existingAppCount int, appName, appKustomization string) {
-	navigatetoApplicationsPage(applicationsPage)
+	pages.NavigateToPage(webDriver, "Applications")
 
 	if appKustomization != "" {
 		ginkgo.By(fmt.Sprintf("And delete the %s kustomization and source maifest from the repository's master branch", appName), func() {

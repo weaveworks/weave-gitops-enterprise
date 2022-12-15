@@ -45,8 +45,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 	})
 
 	ginkgo.AfterEach(func() {
-		pages.CloseOtherWindows(webDriver, enterpriseWindow)
-
 		_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
 		_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 		deleteNamespace(templateNamespaces)
@@ -69,6 +67,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 		})
 
 		ginkgo.JustAfterEach(func() {
+			pages.CloseOtherWindows(webDriver, enterpriseWindow)
+
 			// Force clean the repository directory for subsequent tests
 			cleanGitRepository(templateRepoPath)
 			gomega.Eventually(func(g gomega.Gomega) int {
@@ -269,7 +269,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			message = "Hello World"       // edited podinfo message
 			verifySelfServicePodinfo(podinfo, podinfoWebUrl, bgColour, message)
 
-			pages.NavigateToPage(webDriver, "Applications")
 			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, templateRepoPath)
 		})
 	})

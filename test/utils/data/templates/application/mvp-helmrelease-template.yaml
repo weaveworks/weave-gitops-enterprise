@@ -39,7 +39,7 @@ spec:
     - name: VALUES
       required: false
       default: nil
-      description: "Values for the helm chart,e.g. {ui: {message: hello}}"
+      description: 'Json string that contains the values.yaml data for the helm chart,e.g. "{\"accountID\": id-account}"'
     - name: HOST_NAME
       required: true
       description: Host name running backend services for the deployment(s)

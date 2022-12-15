@@ -23,12 +23,11 @@ import (
 	"github.com/sclevine/agouti"
 	"github.com/sclevine/agouti/api"
 	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
 type CustomFormatter struct {
-	log.TextFormatter
+	logrus.TextFormatter
 }
 
 var (
@@ -223,17 +222,17 @@ func initializeWebdriver(wgeURL string) {
 	})
 }
 
-func (f *CustomFormatter) Format(entry *log.Entry) ([]byte, error) {
+func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	// ansi color codes are required for the colored output otherwise console output would have no lose colors for the log levels
 	var levelColor int
 	switch entry.Level {
-	case log.DebugLevel:
+	case logrus.DebugLevel:
 		levelColor = 31 // gray
-	case log.InfoLevel:
+	case logrus.InfoLevel:
 		levelColor = 36 // cyan
-	case log.WarnLevel:
+	case logrus.WarnLevel:
 		levelColor = 33 // orange
-	case log.ErrorLevel, log.FatalLevel, log.PanicLevel:
+	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
 		levelColor = 31 // red
 	default:
 		return []byte(fmt.Sprintf("\t%s\n", entry.Message)), nil
@@ -245,7 +244,7 @@ func initializeLogger(logFileName string) {
 	logger = &logrus.Logger{
 		Out:   os.Stdout,
 		Level: logrus.TraceLevel,
-		Formatter: &CustomFormatter{log.TextFormatter{
+		Formatter: &CustomFormatter{logrus.TextFormatter{
 			FullTimestamp:          true,
 			TimestampFormat:        "01/02/06 15:04:05.000",
 			ForceColors:            true,
