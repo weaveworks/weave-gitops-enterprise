@@ -11,6 +11,7 @@ import {
 } from '../../../utils/test-utils';
 import RepoInputWithAuth from '../RepoInputWithAuth';
 import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
+import { GitRepository } from '@weaveworks/weave-gitops';
 
 Object.assign(navigator, {
   clipboard: {
@@ -40,6 +41,8 @@ describe('Gitlab Authenticate', () => {
   });
 
   it('renders', async () => {
+    const onAuthClick = jest.fn();
+
     await act(async () => {
       const c = wrap(
         <CallbackStateContextProvider
@@ -48,7 +51,7 @@ describe('Gitlab Authenticate', () => {
             state: { foo: 'bar' },
           }}
         >
-          <RepoInputWithAuth onAuthClick={() => null} />
+          <RepoInputWithAuth onAuthClick={onAuthClick} />
         </CallbackStateContextProvider>,
       );
       render(c);
@@ -56,7 +59,7 @@ describe('Gitlab Authenticate', () => {
   });
 
   it('displays a button for GitLab auth', async () => {
-    const repoUrl = 'https://gitlab.git.something/someuser/somerepo';
+    const gitRepo = {} as GitRepository;
     const oauthUrl = 'https://gitlab.com/oauth/something';
 
     const capture = jest.fn();
@@ -88,7 +91,7 @@ describe('Gitlab Authenticate', () => {
           }}
         >
           <RepoInputWithAuth
-            value={repoUrl}
+            value={gitRepo}
             onProviderChange={onProviderChange}
             onAuthClick={onAuthClick}
           />

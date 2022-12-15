@@ -15,7 +15,7 @@ import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
 import React, { Dispatch, FC } from 'react';
 import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { GitRepository, theme as weaveTheme } from '@weaveworks/weave-gitops';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -175,7 +175,7 @@ export const DividerWrapper: FC = ({ children }) => (
 export interface SelectProps extends MuiSelectProps {
   label: string;
   items?: string[];
-  value: string;
+  value: string | GitRepository;
   disabled?: boolean;
   className?: string;
   description?: string;

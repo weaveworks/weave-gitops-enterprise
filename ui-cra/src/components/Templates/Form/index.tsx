@@ -52,7 +52,7 @@ import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
-import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
@@ -419,7 +419,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
     const payload = toPayload(
-      formData,
+      { ...formData, url: JSON.parse(formData.url).obj.spec.url },
       infraCredential,
       template.name,
       template.namespace!,

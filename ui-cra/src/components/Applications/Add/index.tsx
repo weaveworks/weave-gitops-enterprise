@@ -32,7 +32,7 @@ import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 
 const FormWrapper = styled.form`
   .preview-cta {

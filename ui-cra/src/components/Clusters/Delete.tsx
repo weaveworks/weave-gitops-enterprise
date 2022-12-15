@@ -17,8 +17,8 @@ import { isUnauthenticated, removeToken } from '../../utils/request';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
-import GitAuth from '../GithubAuth/GitAuth';
-import { clearCallbackState, getProviderToken } from '../GithubAuth/utils';
+import GitAuth from '../GitAuth';
+import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {

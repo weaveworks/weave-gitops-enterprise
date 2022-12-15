@@ -2,7 +2,6 @@ import { Box } from '@material-ui/core';
 import {
   Button,
   Flex,
-  formatURL,
   InfoList,
   Interval,
   KubeStatusIndicator,

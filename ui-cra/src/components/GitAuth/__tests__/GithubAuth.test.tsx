@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { GithubDeviceAuthModal } from '..';
+import { GithubDeviceAuthModal } from '../GithubDeviceAuthModal';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {

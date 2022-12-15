@@ -1,6 +1,6 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { GithubDeviceAuthModal } from '.';
+import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
 import RepoInputWithAuth from './RepoInputWithAuth';
@@ -49,8 +49,6 @@ const GitAuth: FC<{
     }
   }, [authSuccess, isAuthenticated, setEnableCreatePR]);
 
-  // console.log(formData.url);
-
   return (
     <>
       <RepoInputWithAuthWrapper
@@ -67,10 +65,8 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
-        // this needs to be a dropdown; we need to get the list of git repos that we use when we create apps
         value={formData.url}
         description=""
-        formData={formData}
         setFormData={setFormData}
       />
       {showAuthDialog && (

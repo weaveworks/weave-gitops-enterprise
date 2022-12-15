@@ -5,6 +5,7 @@ import {
   IconType,
   useRequestState,
   useListSources,
+  GitRepository,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
@@ -30,7 +31,6 @@ type Props = SelectProps & {
   onProviderChange?: (provider: GitProvider) => void;
   isAuthenticated?: boolean;
   disabled?: boolean;
-  formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
 };
 
@@ -39,7 +39,6 @@ function RepoInputWithAuth({
   onProviderChange,
   isAuthenticated,
   disabled,
-  formData,
   setFormData,
   ...props
 }: Props) {
@@ -49,17 +48,18 @@ function RepoInputWithAuth({
     () => getGitRepos(data?.result),
     [data?.result],
   );
-  const { url } = formData;
+  const value = props.value;
+
   const { gitAuthClient } = React.useContext(GitAuth);
 
   React.useEffect(() => {
-    if (!url) {
+    if (!value) {
       return;
     }
-    const { obj } = JSON.parse(url);
+    const { obj } = JSON.parse(value as string);
     req(gitAuthClient.ParseRepoURL({ url: obj?.spec?.url }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gitAuthClient, url]);
+  }, [gitAuthClient, value]);
 
   React.useEffect(() => {
     if (!res) {
@@ -82,14 +82,16 @@ function RepoInputWithAuth({
       <GitlabAuthButton onClick={() => onAuthClick(GitProvider.GitLab)} />
     );
 
-  const renderProviderAuthButton = url && !!res?.provider && !isAuthenticated;
+  const renderProviderAuthButton = value && !!res?.provider && !isAuthenticated;
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
-    setFormData({
-      ...formData,
-      url: value,
+    setFormData((prevState: any) => {
+      return {
+        ...prevState,
+        url: value,
+      };
     });
   };
 
@@ -97,11 +99,11 @@ function RepoInputWithAuth({
     <GitAuthForm className={props.className} align start>
       <Select
         error={gitRepos && !!err?.message ? true : false}
-        description={!url || !err ? props.description : err?.message}
+        description={!value || !err ? props.description : err?.message}
         name="repo-select"
         required={true}
         label="SELECT GIT REPO"
-        value={url}
+        value={value}
         onChange={handleSelectSource}
       >
         {gitRepos?.map((option, index: number) => (
