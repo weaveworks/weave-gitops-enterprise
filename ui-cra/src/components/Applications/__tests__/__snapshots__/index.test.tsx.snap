@@ -184,8 +184,11 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c3 {
-  margin-right: 8px;
+  color: #fff;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  overflow: hidden;
+  max-width: 300px;
 }
 
 .c1 {
@@ -245,17 +248,12 @@ exports[`Applications index test snapshots loading 1`] = `
           class="makeStyles-path-18"
           style="align-items: center;"
         >
-          <div
-            class="c3"
-            role="heading"
+          <span
+            class="c3 makeStyles-labelLink-22"
+            title="Applications"
           >
-            <a
-              class="makeStyles-link-21"
-              href="/applications"
-            >
-              Applications
-            </a>
-          </div>
+            Applications
+          </span>
         </div>
       </div>
       <div
@@ -1001,8 +999,11 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c3 {
-  margin-right: 8px;
+  color: #fff;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  overflow: hidden;
+  max-width: 300px;
 }
 
 .c1 {
@@ -1062,17 +1063,12 @@ exports[`Applications index test snapshots success 1`] = `
           class="makeStyles-path-34"
           style="align-items: center;"
         >
-          <div
-            class="c3"
-            role="heading"
+          <span
+            class="c3 makeStyles-labelLink-38"
+            title="Applications"
           >
-            <a
-              class="makeStyles-link-37"
-              href="/applications"
-            >
-              Applications
-            </a>
-          </div>
+            Applications
+          </span>
         </div>
       </div>
       <div

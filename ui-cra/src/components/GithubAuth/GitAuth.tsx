@@ -68,6 +68,7 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
+        // this needs to be a dropdown; we need to get the list of git repos that we use when we create apps
         value={formData.url}
         description=""
         formData={formData}
