@@ -228,7 +228,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error getting client: %v", err)
 	}
 
-	files, err := getFiles(
+	files, err := GetFiles(
 		ctx,
 		client,
 		s.log,
@@ -262,7 +262,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: *files.RenderedTemplate.Content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
 }
 
-func getFiles(
+func GetFiles(
 	ctx context.Context,
 	client client.Client,
 	log logr.Logger,
@@ -273,6 +273,7 @@ func getFiles(
 	tmpl templatesv1.Template,
 	msg GetFilesRequest,
 	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
+	var content string
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
 	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
@@ -291,12 +292,22 @@ func getFiles(
 		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 	}
 
+	for _, b := range tmplWithValues {
+		content += string(b)
+	}
+
 	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
 	costEstimate := getCostEstimate(ctx, estimator, tmplWithValues)
 
-	tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
-	if err != nil {
-		return nil, err
+	if client != nil {
+		tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
+		if err != nil {
+			return nil, err
+		}
+
+		content = string(tmplWithValuesAndCredentials)
+	} else {
+		log.Info("client is nil, skipping credentials injection")
 	}
 
 	// FIXME: parse and read from Cluster in yaml template
@@ -371,7 +382,6 @@ func getFiles(
 		}
 	}
 
-	content := string(tmplWithValuesAndCredentials)
 	path := getClusterManifestPath(cluster)
 	contentFile := gitprovider.CommitFile{
 		Path:    &path,
