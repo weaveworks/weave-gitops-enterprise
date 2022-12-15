@@ -34,6 +34,8 @@ export type TerraformObject = {
   driftDetectionResult?: boolean
   inventory?: ResourceRef[]
   conditions?: Condition[]
+  labels?: {[key: string]: string}
+  annotations?: {[key: string]: string}
   suspended?: boolean
 }
 

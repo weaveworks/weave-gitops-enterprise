@@ -10,7 +10,6 @@ import { Button, Link, LoadingPage } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
-import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
 import {
@@ -31,6 +30,7 @@ import { Routes } from '../../../utils/nav';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
 
@@ -142,7 +142,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { setNotifications } = useNotifications();
   const history = useHistory();
-  const { data } = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const data = listConfigContext?.data;
   const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');

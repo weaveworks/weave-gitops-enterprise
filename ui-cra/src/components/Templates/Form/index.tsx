@@ -25,7 +25,6 @@ import {
 } from '../../../cluster-services/cluster_services.pb';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
-import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
@@ -58,6 +57,7 @@ import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStat
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -271,7 +271,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addResource } = useTemplates();
-  const { data } = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const data = listConfigContext?.data;
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
