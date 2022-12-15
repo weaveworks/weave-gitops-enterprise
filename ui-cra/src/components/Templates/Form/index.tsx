@@ -9,16 +9,12 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
-  CallbackStateContextProvider,
-  clearCallbackState,
-  getProviderToken,
   Link,
   LoadingPage,
   theme as weaveTheme,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import {
@@ -28,9 +24,7 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import useProfiles from '../../../hooks/profiles';
-
 import useTemplates from '../../../hooks/templates';
-import { useListConfig } from '../../../hooks/versions';
 import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
@@ -58,9 +52,12 @@ import { getCreateRequestAnnotation } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
+import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -230,8 +227,8 @@ const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
       const v = p.values.find(v => v.selected)!;
       return {
         name: p.name,
-        version: v.version,
-        values: utf8_to_b64(v.yaml),
+        version: v?.version,
+        values: utf8_to_b64(v?.yaml),
         layer: p.layer,
         namespace: p.namespace,
       };
@@ -274,7 +271,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addResource } = useTemplates();
-  const { data } = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const data = listConfigContext?.data;
   const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
@@ -434,10 +432,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       createReqAnnot,
     );
     setLoading(true);
-    return addResource(
-      payload,
-      getProviderToken(formData.provider as GitProvider),
-    )
+    return addResource(payload, getProviderToken(formData.provider))
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Templates);

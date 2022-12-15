@@ -234,9 +234,10 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 			pages.NavigateToPage(webDriver, "Templates")
 			pages.WaitForPageToLoad(webDriver)
 
-			ginkgo.By("And User should choose a template", func() {
-				templateTile := pages.GetTemplateTile(webDriver, "cluster-template-development-0")
-				gomega.Expect(templateTile.CreateTemplate.Click()).To(gomega.Succeed())
+			templatesPage := pages.GetTemplatesPage(webDriver)
+			ginkgo.By("And I should choose a template", func() {
+				templateRow := templatesPage.GetTemplateInformation(webDriver, "capd-cluster-template")
+				gomega.Expect(templateRow.CreateTemplate.Click()).To(gomega.Succeed())
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)

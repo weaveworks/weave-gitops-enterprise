@@ -10,7 +10,6 @@ import {
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
-  CallbackStateContextProvider,
   filterByStatusCallback,
   filterConfig,
   Icon,
@@ -25,7 +24,6 @@ import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useClusters from '../../hooks/clusters';
-import { useListConfig } from '../../hooks/versions';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
 import {
@@ -50,6 +48,8 @@ import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { useListConfigContext } from '../../contexts/ListConfig';
+import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 
 interface Size {
   size?: 'small';
@@ -209,7 +209,9 @@ const MCCP: FC<{
     setSelectedClusters([]);
   }, [setOpenDeletePR, setSelectedClusters]);
 
-  const { data, repoLink } = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const repoLink = listConfigContext?.repoLink || '';
+  const data = listConfigContext?.data;
   const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
@@ -354,10 +356,7 @@ const MCCP: FC<{
   const rowCount = clusters.length || 0;
 
   return (
-    <PageTemplate
-      documentTitle="Clusters"
-      path={[{ label: 'Clusters', url: 'clusters' }]}
-    >
+    <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,

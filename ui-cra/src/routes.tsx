@@ -1,5 +1,4 @@
-import { OAuthCallback, V2Routes } from '@weaveworks/weave-gitops';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
+import { V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -37,6 +36,8 @@ import EditResourcePage from './components/Templates/Edit';
 import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail';
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import { Routes } from './utils/nav';
+import OAuthCallback from './components/GithubAuth/OAuthCallback';
+import { GitProvider } from './api/gitauth/gitauth.pb';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {

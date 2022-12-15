@@ -1,16 +1,11 @@
 import { CircularProgress } from '@material-ui/core';
-import { Flex} from '@weaveworks/weave-gitops';
+import { Flex } from '@weaveworks/weave-gitops';
 import Alert from '@material-ui/lab/Alert';
-
-import {
-  useGetGithubDeviceCode,
-} from '../../contexts/GithubAuth';
-import {
-  GitProvider,
-  storeProviderToken,
-} from '../../contexts/GithubAuth/provider';
+import { useGetGithubDeviceCode } from '../../contexts/GitAuth';
+import { storeProviderToken } from './utils';
 import Modal from '../Modal';
 import ModalContent from './ModalContent';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
 
 type Props = {
   className?: string;
