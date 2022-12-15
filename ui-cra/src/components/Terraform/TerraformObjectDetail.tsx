@@ -129,12 +129,6 @@ function TerraformObjectDetail({ className, ...params }: Props) {
         },
         {
           label: params?.name,
-          url: formatURL(Routes.TerraformDetail, {
-            name: object?.name,
-            namespace: object?.namespace,
-            clusterName: object?.clusterName,
-            kind: type,
-          }),
         },
       ]}
     >

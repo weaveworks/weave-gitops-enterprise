@@ -209,8 +209,9 @@ type TextTemplateProcessor struct {
 }
 
 func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
+	templateName := p.template.GetName()
 	left, right := p.templateDelims()
-	parsed, err := template.New("capi-template").Funcs(templateFuncs).Delims(left, right).Parse(string(tmpl))
+	parsed, err := template.New(templateName).Funcs(templateFuncs).Delims(left, right).Parse(string(tmpl))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}

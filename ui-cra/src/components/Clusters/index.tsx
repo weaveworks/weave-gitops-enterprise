@@ -378,10 +378,7 @@ const MCCP: FC<{
   const rowCount = clusters.length || 0;
 
   return (
-    <PageTemplate
-      documentTitle="Clusters"
-      path={[{ label: 'Clusters', url: 'clusters' }]}
-    >
+    <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
