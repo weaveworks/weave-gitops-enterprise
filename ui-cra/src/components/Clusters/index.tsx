@@ -226,8 +226,6 @@ const MCCP: FC<{
     setOpenDeletePR(false);
     setSelectedClusters([]);
   }, [setOpenDeletePR, setSelectedClusters]);
-  const { repoLink } = useListConfig();
-
   const { data: sources } = useListSources();
 
   const gitRepos = useMemo(
