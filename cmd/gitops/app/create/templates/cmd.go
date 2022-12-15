@@ -30,7 +30,7 @@ var CreateCommand = &cobra.Command{
 	Short: "Create template resources",
 	Example: `
 	  export or apply rendered resources of template to cluster or path
-	  gitops create template.yaml --values key=value key=value --export > clusters/management/template.yaml
+	  gitops create template.yaml --values key1=value1,key2=value2 --export > clusters/management/template.yaml
 	`,
 	RunE: templatesCmdRunE(),
 }

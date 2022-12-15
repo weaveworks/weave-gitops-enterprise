@@ -12,7 +12,10 @@ func Command() *cobra.Command {
 		Short: "Create new resources",
 		Example: `
 # Create a new tenant
-gitops create tenants --from-file tenants.yaml`,
+gitops create tenants --from-file tenants.yaml
+
+# Create resources from a template
+gitops create templates template.yaml`,
 	}
 
 	cmd.AddCommand(tenants.CreateCommand)
