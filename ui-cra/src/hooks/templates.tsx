@@ -36,7 +36,7 @@ const useTemplates = () => {
 
   const renderTemplate = api.RenderTemplate;
 
-  const addResource = useCallback(({ ...data }, token: string) => {
+  const addResource = useCallback(({ ...data }, token: string | null) => {
     setLoading(true);
     return request('POST', '/v1/clusters', {
       body: JSON.stringify(data),
