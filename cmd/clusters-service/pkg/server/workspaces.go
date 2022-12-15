@@ -200,7 +200,7 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 			Role: &capiv1_proto.WorkspaceRoleBindingRoleRef{
 				ApiGroup: list.Items[i].RoleRef.APIGroup,
 				Kind:     list.Items[i].RoleRef.Kind,
-				Name:     list.Items[i].RoleRef.Kind,
+				Name:     list.Items[i].RoleRef.Name,
 			},
 		}
 
