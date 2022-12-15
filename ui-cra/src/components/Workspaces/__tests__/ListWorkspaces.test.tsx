@@ -29,7 +29,7 @@ const listWorkspacesResponse = {
 const mappedWorkspaces = (workspaces: Array<any>) => {
   return workspaces.map(e => [
     e.name,
-    e.namespaces?.join(', '),
+    e.namespaces?.join(', ') || '-',
     e.clusterName,
   ]);
 };
@@ -133,10 +133,10 @@ describe('ListWorkspaces', () => {
     expect(await screen.findByText('Workspaces')).toBeTruthy();
 
     const sortRowsByName = mappedWorkspaces(
-        listWorkspacesResponse.workspaces.sort((a, b) =>
-        a.name.localeCompare(b.name),
-      ),
-    );
+      listWorkspacesResponse.workspaces.sort((a, b) =>
+      b.name.localeCompare(a.name),
+    ),
+  );
 
     filterTable.testSorthTableByColumn('Name', sortRowsByName );
   });
