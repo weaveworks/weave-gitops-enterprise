@@ -30,7 +30,6 @@ const WGApplicationsSources: FC = () => {
         },
         {
           label: 'Sources',
-          url: V2Routes.Sources,
         },
       ]}
     >

@@ -10,7 +10,6 @@ import {
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
-  CallbackStateContextProvider,
   filterByStatusCallback,
   filterConfig,
   Icon,
@@ -50,6 +49,7 @@ import useNotifications, {
 } from '../../contexts/Notifications';
 import { EditButton } from '../Templates/Edit/EditButton';
 import { useListConfigContext } from '../../contexts/ListConfig';
+import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 
 interface Size {
   size?: 'small';
@@ -356,10 +356,7 @@ const MCCP: FC<{
   const rowCount = clusters.length || 0;
 
   return (
-    <PageTemplate
-      documentTitle="Clusters"
-      path={[{ label: 'Clusters', url: 'clusters' }]}
-    >
+    <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,

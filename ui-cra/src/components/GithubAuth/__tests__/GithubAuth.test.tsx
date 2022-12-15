@@ -1,11 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { GithubDeviceAuthModal } from '..';
-import { GithubAuthProvider } from '../../../contexts/GithubAuth';
+import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {
   ApplicationsClientMock,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
+import { getProviderToken } from '../utils';
 
 Object.assign(navigator, {
   clipboard: {
@@ -30,10 +32,10 @@ describe('Github Authenticate', () => {
     });
 
     api = new ApplicationsClientMock();
-    wrap = withContext([...defaultContexts(), [GithubAuthProvider, { api }]]);
+    wrap = withContext([...defaultContexts(), [GitAuthProvider, { api }]]);
   });
 
-  it('render gitAuth modal', async () => {
+  it('renders the GithubAuth modal and user code', async () => {
     api.GetGithubDeviceCodeReturn = {
       userCode: 'D410-08FF',
       deviceCode: 'd725410cbe2431c5fa5dfa93736304db124412b6',
@@ -54,7 +56,7 @@ describe('Github Authenticate', () => {
     });
     expect(await screen.findByText('Authenticate with Github')).toBeTruthy();
 
-    const ghCode = screen.getByTestId('github-code');
+    const ghCode = await screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);
     await act(async () => {
       fireEvent.click(ghCode as Element);
@@ -62,5 +64,30 @@ describe('Github Authenticate', () => {
         expect(ghCode.textContent).toEqual(code);
       });
     });
+  });
+
+  it('stores a token', async () => {
+    const accessToken = 'sometoken';
+    api.GetGithubDeviceCodeReturn = {
+      userCode: 'D410-08FF',
+    };
+    api.GetGithubAuthStatusReturn = {
+      accessToken,
+    };
+
+    await act(async () => {
+      const c = wrap(
+        <GithubDeviceAuthModal
+          onClose={() => {}}
+          onSuccess={() => {}}
+          open={true}
+          repoName="config"
+        />,
+      );
+      render(c);
+    });
+
+    const token = getProviderToken(GitProvider.GitHub);
+    expect(token).toEqual(accessToken);
   });
 });
