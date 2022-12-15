@@ -23,6 +23,10 @@ const GitAuthForm = styled(Flex)`
   div[class*='MuiFormControl-root'] {
     padding-bottom: 0;
   }
+  justify-content: space-between;
+  #SELECT_GIT_REPO-group {
+    width: 70%;
+  }
 `;
 
 type Props = SelectProps & {
@@ -101,7 +105,7 @@ function RepoInputWithAuth({
         description={!value || !err ? props.description : err?.message}
         name="repo-select"
         required={true}
-        label="SELECT GIT REPO"
+        label="SELECT_GIT_REPO"
         value={value}
         onChange={handleSelectSource}
       >

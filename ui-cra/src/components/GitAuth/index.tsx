@@ -6,14 +6,13 @@ import { useIsAuthenticated } from '../../hooks/gitprovider';
 import RepoInputWithAuth from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
   width: 100%;
   & .auth-message {
     margin-top: ${({ theme }) => theme.spacing.base};
-    button,
-    > div {
-      width: 200px;
-      margin-right: ${({ theme }) => theme.spacing.medium};
+    margin-left: 0;
+    margin-right: ${({ theme }) => theme.spacing.small};
+    button {
+      min-width: 300px;
     }
   }
 `;
