@@ -1,32 +1,36 @@
-import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import { DataTable } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
 import moment from 'moment';
 import { RulesListWrapper } from '../../WorkspaceStyles';
 import { WorkspaceRoleRule } from '../../../../cluster-services/cluster_services.pb';
 import WorkspaceModal from '../WorkspaceModal';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 const RulesList = ({ rules }: { rules: WorkspaceRoleRule[] }) => {
   return (
     <RulesListWrapper>
-      {rules.map((rule: WorkspaceRoleRule, index: number) => (
-        <li key={index}>
-          <div>
-            <label>Resources:</label>
-            <span>{rule.resources?.join(', ')}</span>
-          </div>
-          <div>
-            <label>Verbs:</label>
-            <span>{rule.verbs?.join(', ')}</span>
-          </div>
-          <div>
-            <label>Api Groups:</label>
-            <span>{rule.groups?.join('.')}</span>
-          </div>
-        </li>
-      ))}
+      {rules.length ? (
+        rules.map((rule: WorkspaceRoleRule, index: number) => (
+          <li key={index}>
+            <div>
+              <label>Resources:</label>
+              <span>{rule.resources?.join(', ')}</span>
+            </div>
+            <div>
+              <label>Verbs:</label>
+              <span>{rule.verbs?.join(', ')}</span>
+            </div>
+            <div>
+              <label>Api Groups:</label>
+              <span>{rule.groups?.join('.')}</span>
+            </div>
+          </li>
+        ))
+      ) : (
+        <span>No Data</span>
+      )}
     </RulesListWrapper>
   );
 };
@@ -38,6 +42,7 @@ export const RolesTab = ({
   clusterName: string;
   workspaceName: string;
 }) => {
+
   const {
     data: roles,
     isLoading,
@@ -46,8 +51,6 @@ export const RolesTab = ({
     clusterName,
     workspaceName,
   });
-
-
 
   return (
     <WorkspaceTabsWrapper loading={isLoading} errorMessage={error?.message}>
@@ -58,7 +61,26 @@ export const RolesTab = ({
           fields={[
             {
               label: 'Name',
-              value: 'name',
+              value: ({ name, manifest }) => {
+                if (manifest) {
+                  return (
+                    <WorkspaceModal
+                      content={
+                        <SyntaxHighlighter
+                          language="yaml"
+                          wrapLongLines="pre-wrap"
+                          showLineNumbers
+                        >
+                          {manifest}
+                        </SyntaxHighlighter>
+                      }
+                      title="Role Manifest"
+                      caption="[some command related to retrieving this yaml]"
+                      btnName={name}
+                    />
+                  );
+                } else return name;
+              },
               textSearchable: true,
               maxWidth: 650,
             },
@@ -84,28 +106,7 @@ export const RolesTab = ({
                 const t = createdAt && new Date(createdAt).getTime();
                 return t * -1;
               },
-            },
-            {
-              label: '',
-              value: ({ manifest }) => (
-                <WorkspaceModal
-                  content={
-                    manifest ? (
-                      <SyntaxHighlighter
-                        language="yaml"
-                        wrapLongLines="pre-wrap"
-                        showLineNumbers
-                      >
-                        {manifest}
-                      </SyntaxHighlighter>
-                    ) : null
-                  }
-                  title="Role Manifest"
-                  caption="[some command related to retrieving this yaml]"
-                  btnName="View Yaml"
-                />
-              ),
-            },
+            }
           ]}
         />
       </TableWrapper>

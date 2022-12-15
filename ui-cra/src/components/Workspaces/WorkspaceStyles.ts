@@ -1,4 +1,3 @@
-import { Tab, Tabs, Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
@@ -33,34 +32,19 @@ export const useWorkspaceStyle = makeStyles(() =>
       color: primary,
       fontWeight: 600,
       whiteSpace: 'pre-line',
+      cursor: 'pointer',
     },
     tabsWrapper: {
       'a[class*="MuiTab-root"]': {
         width: 'fit-content',
       },
     },
-    YamlBtn: {
-      width: '100%',
-      display: 'flex',
-      justifyContent: 'flex-end',
-    },
   }),
 );
 
 export const CustomSubRouterTabs = styled(SubRouterTabs)(({}) => ({
   '.MuiTabs-root': {
-    marginTop: medium,
     width: '100%',
-    fontSize: smallSize,
-    fontWeight: 600,
-    minHeight: '32px',
-    minWidth: '133px',
-    opacity: 1,
-    paddingLeft: '0 !important',
-    paddingRight: '0 !important',
-    span: {
-      color: neutral30,
-    },
     '.MuiTab-root': {
       minWidth: 'fit-content',
     },
@@ -69,12 +53,7 @@ export const CustomSubRouterTabs = styled(SubRouterTabs)(({}) => ({
     },
   },
   '.Mui-selected': {
-    fontWeight: 700,
-    background: `${primary}1A`,
     borderBottom: '3px solid #00b3ec',
-    span: {
-      color: primary10,
-    },
   },
 }));
 
@@ -133,5 +112,3 @@ export const RulesListWrapper = styled.ul`
     }
   }
 `;
-
-export const ViewYamlBtn = styled.div``;

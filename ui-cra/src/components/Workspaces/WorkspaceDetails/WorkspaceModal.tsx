@@ -4,7 +4,6 @@ import { CloseIconButton } from '../../../assets/img/close-icon-button';
 import {
   DialogWrapper,
   useWorkspaceStyle,
-  ViewYamlBtn,
 } from '../WorkspaceStyles';
 import { Button } from '@weaveworks/weave-gitops';
 
@@ -27,16 +26,20 @@ const WorkspaceModal: FC<Props> = ({
 
   return (
     <>
-      {content && (
-        <div className={title !== 'Rules' ? classes.YamlBtn : ''}>
-          <Button
-            style={{ marginRight: 0, textTransform: 'uppercase' }}
-            onClick={() => setIsModalOpen(true)}
-          >
-            {btnName}
-          </Button>
-        </div>
+      {title !== 'Rules' && (
+        <a className={classes.link} onClick={() => setIsModalOpen(true)}>
+          {btnName}
+        </a>
       )}
+      {title === 'Rules' && content && (
+        <Button
+          style={{ marginRight: 0, textTransform: 'uppercase' }}
+          onClick={() => setIsModalOpen(true)}
+        >
+          {btnName}
+        </Button>
+      )}
+
       {isModalOpen && (
         <DialogWrapper
           open={isModalOpen}

@@ -24,7 +24,7 @@ function HeaderSection({ name, namespaces }: Workspace) {
     <>
       <Button
         onClick={() => {
-          history.push(`/applications?filters=tenant=${name}`);
+          history.push(`/applications?filters=tenant%3A%20${name}_`);
         }}
         className={classes.navigateBtn}
       >

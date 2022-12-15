@@ -1,4 +1,4 @@
-import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import { DataTable } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspaceRoleBinding } from '../../../../contexts/Workspaces';
 import moment from 'moment';
@@ -32,7 +32,26 @@ export const RoleBindingsTab = ({
           fields={[
             {
               label: 'Name',
-              value: 'name',
+              value: ({ name, manifest }) => {
+                if (manifest) {
+                  return (
+                    <WorkspaceModal
+                      content={
+                        <SyntaxHighlighter
+                          language="yaml"
+                          wrapLongLines="pre-wrap"
+                          showLineNumbers
+                        >
+                          {manifest}
+                        </SyntaxHighlighter>
+                      }
+                      title="RoleBinding Manifest"
+                      caption="[some command related to retrieving this yaml]"
+                      btnName={name}
+                    />
+                  );
+                } else return name;
+              },
               textSearchable: true,
               maxWidth: 550,
             },
@@ -58,28 +77,7 @@ export const RoleBindingsTab = ({
                 const t = createdAt && new Date(createdAt).getTime();
                 return t * -1;
               },
-            },
-            {
-              label: '',
-              value: ({ manifest }) => (
-                <WorkspaceModal
-                  content={
-                    manifest ? (
-                      <SyntaxHighlighter
-                        language="yaml"
-                        wrapLongLines="pre-wrap"
-                        showLineNumbers
-                      >
-                        {manifest}
-                      </SyntaxHighlighter>
-                    ) : null
-                  }
-                  title="RoleBinding Manifest"
-                  caption="[some command related to retrieving this yaml]"
-                  btnName="view Yaml"
-                />
-              ),
-            },
+            }
           ]}
         />
       </TableWrapper>
