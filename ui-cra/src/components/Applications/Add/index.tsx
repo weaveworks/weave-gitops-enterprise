@@ -6,7 +6,12 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import { AddApplicationRequest, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { Button, Link, LoadingPage } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  GitRepository,
+  Link,
+  LoadingPage,
+} from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
@@ -30,7 +35,6 @@ import { Routes } from '../../../utils/nav';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
-import { useListConfigContext } from '../../../contexts/ListConfig';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 
@@ -66,7 +70,7 @@ const SourceLinkWrapper = styled.div`
 `;
 
 interface FormData {
-  url: string;
+  url: GitRepository | null;
   provider: string;
   branchName: string;
   pullRequestTitle: string;
@@ -102,7 +106,7 @@ function getInitialData(
   random: string,
 ) {
   let defaultFormData = {
-    url: '',
+    url: null,
     provider: '',
     branchName: `add-application-branch-${random}`,
     pullRequestTitle: 'Add application',
@@ -142,9 +146,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { setNotifications } = useNotifications();
   const history = useHistory();
-  const listConfigContext = useListConfigContext();
-  const data = listConfigContext?.data;
-  const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');
 
@@ -212,13 +213,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [callbackState?.state?.updatedProfiles, profiles]);
 
   useEffect(() => clearCallbackState(), []);
-
-  useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      url: repositoryURL,
-    }));
-  }, [repositoryURL]);
 
   useEffect(() => {
     setFormData((prevState: any) => ({

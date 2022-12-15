@@ -5,7 +5,6 @@ import {
   IconType,
   useRequestState,
   useListSources,
-  GitRepository,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
