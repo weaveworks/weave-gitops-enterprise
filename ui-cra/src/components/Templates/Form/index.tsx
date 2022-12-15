@@ -9,12 +9,10 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
-  GitRepository,
   Link,
   LoadingPage,
   theme as weaveTheme,
   useFeatureFlags,
-  useListSources,
 } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -59,8 +57,6 @@ import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStat
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
-import { getGitRepos } from '../../Clusters';
-import { useListConfigContext } from '../../../contexts/ListConfig';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -274,17 +270,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addResource } = useTemplates();
-  const listConfigContext = useListConfigContext();
-  const data = listConfigContext?.data;
-  const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
   const { setNotifications } = useNotifications();
-  // const { data } = useListSources();
-  const gitRepos = React.useMemo(
-    () => getGitRepos(data?.result),
-    [data?.result],
-  );
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -486,13 +474,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   ]);
 
   useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      url: gitRepos[0],
-    }));
-  }, [gitRepos]);
-
-  useEffect(() => {
     if (!resource) {
       setFormData((prevState: any) => ({
         ...prevState,
@@ -524,8 +505,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     },
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
-
-  // console.log(formData.url, gitRepos);
 
   return useMemo(() => {
     return (
@@ -675,7 +654,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formError,
     submitType,
     getSubmitFunction,
-    // gitRepos,
   ]);
 };
 

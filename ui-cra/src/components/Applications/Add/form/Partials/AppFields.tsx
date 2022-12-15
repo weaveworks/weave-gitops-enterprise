@@ -211,7 +211,6 @@ const AppFields: FC<{
     });
   };
 
-  console.log(source);
   return (
     <AppFieldsWrapper>
       {!!clusters && (

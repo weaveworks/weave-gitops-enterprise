@@ -235,8 +235,6 @@ const MCCP: FC<{
 
   const listConfigContext = useListConfigContext();
   const repoLink = listConfigContext?.repoLink || '';
-  const data = listConfigContext?.data;
-  const repositoryURL = data?.repositoryURL || '';
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],

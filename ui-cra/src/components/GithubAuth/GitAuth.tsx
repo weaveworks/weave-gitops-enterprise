@@ -1,4 +1,3 @@
-import { GitRepository } from '@weaveworks/weave-gitops';
 import React, { FC, Dispatch, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { GithubDeviceAuthModal } from '.';
@@ -50,7 +49,7 @@ const GitAuth: FC<{
     }
   }, [authSuccess, isAuthenticated, setEnableCreatePR]);
 
-  console.log(formData.url);
+  // console.log(formData.url);
 
   return (
     <>
