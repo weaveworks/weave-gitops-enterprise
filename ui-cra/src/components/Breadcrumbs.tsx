@@ -96,13 +96,11 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
               {label}
             </Span>
           ) : (
-            <>
             <Title role="heading" size={size}>
               <Link to={url || ''} className={classes.link}>
                 {label}
               </Link>
             </Title>
-            </>
           )}
         </div>
       ))}

@@ -33,10 +33,12 @@ import {
   GetConfigResponse,
   GetPolicyResponse,
   GetPolicyValidationResponse,
+  GetWorkspaceResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
   ListPolicyValidationsResponse,
   ListTemplatesResponse,
+  ListWorkspacesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
@@ -295,6 +297,22 @@ export class TerraformClientMock implements Terraform {
     {};
   ToggleSuspendTerraformObject() {
     return promisify(this.ToggleSuspendTerraformObjectReturns);
+  }
+}
+
+export class WorkspaceClientMock {
+  constructor() {
+    this.ListWorkspaces = this.ListWorkspaces.bind(this);
+    this.GetWorkspace = this.GetWorkspace.bind(this);
+  }
+  ListWorkspacesReturns: ListWorkspacesResponse = {};
+  GetWorkspaceReturns: GetWorkspaceResponse = {};
+
+  ListWorkspaces() {
+    return promisify(this.ListWorkspacesReturns);
+  }
+  GetWorkspace() {
+    return promisify(this.GetWorkspaceReturns);
   }
 }
 
