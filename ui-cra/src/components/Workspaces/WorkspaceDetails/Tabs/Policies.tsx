@@ -1,4 +1,4 @@
-import { DataTable, filterConfig, formatURL } from '@weaveworks/weave-gitops';
+import { DataTable, formatURL } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import moment from 'moment';

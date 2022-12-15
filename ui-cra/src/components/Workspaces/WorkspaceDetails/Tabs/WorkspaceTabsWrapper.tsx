@@ -30,7 +30,7 @@ const WorkspaceTabsWrapper: FC<Props> = ({
           {errorMessage}
         </Alert>
       )}
-      {!loading && children}
+      {!loading && !errorMessage && children}
     </div>
   );
 };

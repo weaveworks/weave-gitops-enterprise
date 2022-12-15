@@ -2,7 +2,7 @@ import { useGetWorkspaceDetails } from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import HeaderSection from './HeaderSection';
+import WorkspaceHeaderSection from './WorkspaceHeaderSection';
 import TabDetails from './TabDetails';
 
 const WorkspaceDetails = ({
@@ -27,7 +27,7 @@ const WorkspaceDetails = ({
         ]}
       >
         <ContentWrapper loading={isWorkspaceLoading}>
-          <HeaderSection
+          <WorkspaceHeaderSection
             name={workspaceDetails?.name}
             clusterName={workspaceDetails?.clusterName}
             namespaces={workspaceDetails?.namespaces}

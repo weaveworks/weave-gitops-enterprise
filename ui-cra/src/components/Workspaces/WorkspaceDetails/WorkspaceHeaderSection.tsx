@@ -5,7 +5,7 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import { useHistory } from 'react-router-dom';
 import { useWorkspaceStyle } from '../WorkspaceStyles';
 
-function HeaderSection({ name, namespaces }: Workspace) {
+function WorkspaceHeaderSection({ name, namespaces }: Workspace) {
   const classes = useWorkspaceStyle();
   const history = useHistory();
 
@@ -36,4 +36,4 @@ function HeaderSection({ name, namespaces }: Workspace) {
   );
 }
 
-export default HeaderSection;
+export default WorkspaceHeaderSection;
