@@ -4,7 +4,7 @@ import {
   Link,
   theme,
   useFeatureFlags,
-  V2Routes,
+  V2Routes
 } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -159,6 +159,7 @@ const NavItems = () => {
           link: Routes.Canaries,
           isVisible:
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
+          relatedRoutes: [Routes.CanaryDetails],
         },
       ],
       relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
