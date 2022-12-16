@@ -6,7 +6,7 @@ import {
   Kind,
   Link,
   Timestamp,
-  V2Routes,
+  V2Routes
 } from '@weaveworks/weave-gitops';
 import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
@@ -27,14 +27,16 @@ const PortLinks: React.FC<{ ports: string }> = ({ ports = '' }) => {
 };
 
 const AutomationLink: React.FC<{ s: FluxObject }> = ({ s }) => {
+  console.log(s);
   const metadata = s.obj.metadata;
   const kind =
     metadata.annotations['run.weave.works/automation-kind'] === 'ks'
       ? Kind.Kustomization
       : Kind.HelmRelease;
-  const namespace =
-    metadata.namespace === 'default' ? 'flux-system' : metadata.namespace;
+  let namespace = metadata.annotations['run.weave.works/namespace'];
+  if (namespace === 'default') namespace = 'flux-system';
   const name = kind === Kind.Kustomization ? 'run-dev-ks' : 'run-dev-helm';
+  const clusterName = s.clusterName === 'management' ? 'default' : s.clusterName;
   const route =
     kind === Kind.Kustomization ? V2Routes.Kustomization : V2Routes.HelmRelease;
 
@@ -42,8 +44,8 @@ const AutomationLink: React.FC<{ s: FluxObject }> = ({ s }) => {
     <Link
       to={formatURL(route, {
         name,
-        namespace: namespace,
-        clusterName: `${metadata.namespace}/${metadata.name}`,
+        namespace,
+        clusterName: `${clusterName}/${metadata.name}`,
       })}
     >
       {kind}/{name}
@@ -85,13 +87,15 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           {
             label: 'Source',
             value: s => {
-              const metadata = s.obj.metadata;
+              let namespace = s.obj.metadata.annotations['run.weave.works/namespace'];
+              if (namespace === 'default') namespace = 'flux-system';
+              const clusterName = s.clusterName === 'management' ? 'default' : s.clusterName;
               return (
                 <Link
                   to={formatURL(V2Routes.Bucket, {
                     name: 'run-dev-bucket',
-                    namespace: 'flux-system',
-                    clusterName: `${metadata.namespace}/${metadata.name}`,
+                    namespace,
+                    clusterName: `${clusterName}/${s.obj.metadata.name}`,
                   })}
                 >
                   Bucket/run-dev-bucket
