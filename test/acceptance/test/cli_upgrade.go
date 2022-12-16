@@ -241,7 +241,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -318,7 +318,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 
 				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
 				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 			})
 
 			pullRequest := PullRequest{
