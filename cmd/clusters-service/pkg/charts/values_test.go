@@ -2,7 +2,6 @@ package charts
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -96,7 +95,7 @@ func TestUpdateCache_with_missing_missing_secret_for_auth(t *testing.T) {
 			Name: testSecretName,
 		}
 	})
-	tempDir, err := ioutil.TempDir("", "prefix")
+	tempDir, err := os.MkdirTemp("", "prefix")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -439,7 +438,7 @@ func makeTestSecret(user, pass string) *corev1.Secret {
 
 func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1.HelmRepository) *HelmChartClient {
 	t.Helper()
-	tempDir, err := ioutil.TempDir("", "prefix")
+	tempDir, err := os.MkdirTemp("", "prefix")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -59,7 +58,7 @@ func createLeafClusterKubeconfig(leafClusterContext string, leafClusterName stri
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf(`docker cp %s:/etc/kubernetes/pki/ca.crt %s`, containerID, caCertificate))
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get CA certificate of kind cluster")
 
-		contents, err := ioutil.ReadFile(caCertificate)
+		contents, err := os.ReadFile(caCertificate)
 		gomega.Expect(err).Should(gomega.BeNil(), fmt.Sprintf("Failed to read CA Certificate for %s cluster", leafClusterName))
 		caAuthority := base64.StdEncoding.EncodeToString([]byte(contents))
 
