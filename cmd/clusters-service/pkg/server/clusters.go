@@ -22,6 +22,7 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -136,7 +137,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		msg.TemplateKind = capiv1.Kind
 	}
 
-	gp, err := getGitProvider(ctx)
+	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -252,7 +253,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 }
 
 func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
+	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -530,17 +531,33 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 	return file, nil
 }
 
-func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
+func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider, error) {
 	token, tokenType, err := getToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	// defaults from config
+	repoType := viper.GetString("git-provider-type")
+	repoHostname := viper.GetString("git-provider-hostname")
+
+	// if user supplies a different gitrepo, derive the provider and the host etc from
+	if repositoryURL != "" {
+		repoURL, err := gitproviders.NewRepoURL(repositoryURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse repository URL: %w", err)
+		}
+
+		// override defaults
+		repoType = string(repoURL.Provider())
+		repoHostname = repoURL.URL().Host
+	}
+
 	return &git.GitProvider{
-		Type:      viper.GetString("git-provider-type"),
+		Type:      repoType,
 		TokenType: tokenType,
 		Token:     token,
-		Hostname:  viper.GetString("git-provider-hostname"),
+		Hostname:  repoHostname,
 	}, nil
 }
 
