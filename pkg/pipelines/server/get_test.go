@@ -84,9 +84,12 @@ func TestGetPipeline(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		targetStatus := res.Pipeline.Status.Environments[envName].TargetsStatuses[0]
+
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
+		assert.Equal(t, hr.Spec.Chart.Spec.Version, targetStatus.Workloads[0].Version)
+		assert.Equal(t, targetNamespace.Name, targetStatus.Namespace)
+		assert.Equal(t, pipelineNamespace.Name, targetStatus.ClusterRef.Namespace)
 	})
 
 	t.Run("invalid app ref", func(t *testing.T) {
