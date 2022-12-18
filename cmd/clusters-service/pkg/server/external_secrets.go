@@ -41,12 +41,21 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		externalSecrets, err = s.listExternalSecrets(gctx, clustersClient)
-		return err
-
+		if err != nil {
+			if !errors.As(err, &clustersmngr.ClusteredListError{}) {
+				return err
+			}
+		}
+		return nil
 	})
 	g.Go(func() error {
 		clusterExternalSecrets, err = s.listClusterExternalSecrets(gctx, clustersClient)
-		return err
+		if err != nil {
+			if !errors.As(err, &clustersmngr.ClusteredListError{}) {
+				return err
+			}
+		}
+		return nil
 	})
 
 	if err := g.Wait(); err != nil {
