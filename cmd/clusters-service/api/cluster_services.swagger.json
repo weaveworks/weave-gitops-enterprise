@@ -493,7 +493,7 @@
         ]
       }
     },
-    "/v1/external-secrets/{secretName}": {
+    "/v1/external-secrets/{externalSecretName}": {
       "get": {
         "summary": "GetExternalSecret get secret details",
         "operationId": "ClustersService_GetExternalSecret",
@@ -513,7 +513,7 @@
         },
         "parameters": [
           {
-            "name": "secretName",
+            "name": "externalSecretName",
             "in": "path",
             "required": true,
             "type": "string"

@@ -729,7 +729,7 @@ export type ListExternalSecretsResponse = {
 export type GetExternalSecretRequest = {
   clusterName?: string
   namespace?: string
-  secretName?: string
+  externalSecretName?: string
 }
 
 export type GetExternalSecretResponse = {
@@ -833,6 +833,6 @@ export class ClustersService {
     return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external-secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
-    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external-secrets/${req["secretName"]}?${fm.renderURLSearchParams(req, ["secretName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["externalSecretName"])}`, {...initReq, method: "GET"})
   }
 }

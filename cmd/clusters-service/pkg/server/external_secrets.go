@@ -172,8 +172,8 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 
 	if req.Namespace == "" {
 		var clusterExternalSecret esv1beta1.ClusterExternalSecret
-		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.SecretName}, &clusterExternalSecret); err != nil {
-			return nil, fmt.Errorf("error getting cluster external secret %s from cluster %s: %w", req.SecretName, req.ClusterName, err)
+		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.ExternalSecretName}, &clusterExternalSecret); err != nil {
+			return nil, fmt.Errorf("error getting cluster external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
 		}
 
 		return &capiv1_proto.GetExternalSecretResponse{
@@ -187,8 +187,8 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 
 	} else {
 		var externalSecret esv1beta1.ExternalSecret
-		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.SecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
-			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.SecretName, req.ClusterName, err)
+		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.ExternalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
+			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
 		}
 
 		return &capiv1_proto.GetExternalSecretResponse{
@@ -207,8 +207,8 @@ func validateReq(req *capiv1_proto.GetExternalSecretRequest) error {
 	if req.ClusterName == "" {
 		return errors.New("cluster name is required")
 	}
-	if req.SecretName == "" {
-		return errors.New("secret name is required")
+	if req.ExternalSecretName == "" {
+		return errors.New("external secret name is required")
 	}
 	return nil
 }
