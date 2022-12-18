@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -26,7 +25,7 @@ var TemplateKinds = []TemplateKind{
 }
 
 // Return a string representation of all supported template Kinds
-func TemplateKindsString() string {
+func templateKindsString() string {
 	var kinds []string
 	for _, k := range TemplateKinds {
 		kinds = append(kinds, k.String())
@@ -44,13 +43,13 @@ func (t *TemplateKind) Set(v string) error {
 	if v == "" {
 		*t = DefaultTemplateKind
 		return nil
-	} else if inTemplateKinds(v) {
+	}
+	if inTemplateKinds(v) {
 		*t = TemplateKind(v)
 		return nil
-
-	} else {
-		return errors.New(`Template kind not found. Supported templates: ` + TemplateKindsString())
 	}
+	return fmt.Errorf("template kind not found, supported templates: %s", templateKindsString())
+
 }
 
 func inTemplateKinds(str string) bool {
