@@ -98,7 +98,6 @@ func installPolicyConfig(clusterName string, policyConfigYaml string) {
 
 func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
 	ginkgo.By("And back to Applicartions page via navigation bar", func() {
-		// gomega.Expect(applicationsPage.ApplicationHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Applications pages via header link")
 		pages.NavigateToPage(webDriver, "Applications")
 		pages.WaitForPageToLoad(webDriver)
 	})
@@ -542,7 +541,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 
 	ginkgo.Context("[UI] When no applications are installed", func() {
 
-		ginkgo.FIt("Verify management cluster dashboard shows bootstrap 'flux-system' application", func() {
+		ginkgo.It("Verify management cluster dashboard shows bootstrap 'flux-system' application", func() {
 			fluxSystem := Application{
 				Type:      "Kustomization",
 				Chart:     "weaveworks-charts",
@@ -606,7 +605,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			_ = deleteFile([]string{downloadedResourcesPath})
 		})
 
-		ginkgo.FIt("Verify application with annotations/metadata can be installed  and dashboard is updated accordingly", func() {
+		ginkgo.It("Verify application with annotations/metadata can be installed  and dashboard is updated accordingly", func() {
 
 			podinfo := Application{
 				Type:            "kustomization",
@@ -664,7 +663,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 		})
 
-		ginkgo.FIt("Verify application can be installed from HelmRepository source and dashboard is updated accordingly", func() {
+		ginkgo.It("Verify application can be installed from HelmRepository source and dashboard is updated accordingly", func() {
 			metallb := Application{
 				Type:            "helm_release",
 				Chart:           "weaveworks-charts",
@@ -809,7 +808,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			verifyDeleteApplication(applicationsPage, existingAppCount, metallb.Name, appKustomization)
 		})
 
-		ginkgo.FIt("Verify application can be installed from GitRepository source and dashboard is updated accordingly", func() {
+		ginkgo.It("Verify application can be installed from GitRepository source and dashboard is updated accordingly", func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",
@@ -1001,7 +1000,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 
 		})
 
-		ginkgo.FIt("Verify application can be installed from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
+		ginkgo.It("Verify application can be installed from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",
@@ -1128,7 +1127,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 		})
 
-		ginkgo.FIt("Verify application can be installed from HelmRepository source on leaf cluster and management dashboard is updated accordingly", func() {
+		ginkgo.It("Verify application can be installed from HelmRepository source on leaf cluster and management dashboard is updated accordingly", func() {
 			ginkgo.Skip("Test is waiting for #1282 to be fixed. Can't get profile from leaf clusters")
 
 			metallb := Application{
@@ -1314,7 +1313,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			_ = deleteFile([]string{downloadedResourcesPath})
 		})
 
-		ginkgo.FIt("Verify application violations for management cluster", func() {
+		ginkgo.It("Verify application violations for management cluster", func() {
 			// Podinfo application details
 			podinfo := Application{
 				Type:            "kustomization",
@@ -1435,7 +1434,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			deleteNamespace([]string{leafCluster.Namespace})
 		})
 
-		ginkgo.FIt("Verify application violations for leaf cluster", func() {
+		ginkgo.It("Verify application violations for leaf cluster", func() {
 			// Podinfo application details
 			podinfo := Application{
 				Type:            "kustomization",

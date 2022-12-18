@@ -191,7 +191,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 		})
 
-		ginkgo.FIt("Verify Policies and policy set can be installed  and dashboard is updated accordingly", func() {
+		ginkgo.It("Verify Policies and policy set can be installed  and dashboard is updated accordingly", func() {
 			existingPoliciesCount := getPoliciesCount()
 			installTestPolicies("management", policiesYaml)
 			installPolicySet("management", policySetYaml)
@@ -287,7 +287,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 			})
 
 			ginkgo.By("And back to Polisies page via navigation bar", func() {
-				//gomega.Expect(policiesPage.PolicyHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Policies pages via header link")
 				pages.NavigateToPage(webDriver, "Policies")
 				pages.WaitForPageToLoad(webDriver)
 			})
@@ -337,7 +336,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 
 		})
 
-		ginkgo.FIt("Verify Policies can be installed on leaf cluster and monitored via management cluster dashboard", func() {
+		ginkgo.It("Verify Policies can be installed on leaf cluster and monitored via management cluster dashboard", func() {
 			existingPoliciesCount := getPoliciesCount()
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 
@@ -460,7 +459,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 			})
 
 			ginkgo.By("And back to Polisies page via navigation bar", func() {
-				// gomega.Expect(policiesPage.PolicyHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Policies pages via header link")
 				pages.NavigateToPage(webDriver, "Policies")
 				pages.WaitForPageToLoad(webDriver)
 			})
