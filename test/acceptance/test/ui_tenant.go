@@ -70,7 +70,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			gomega.Eventually(applicationsPage.CountApplications, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(existingAppCount), fmt.Sprintf("There should be %d application enteries after application(s) deletion", existingAppCount))
 		})
 
-		ginkgo.It("Verify tenant can install the kustomization application and dashboard is updated accordingly", func() {
+		ginkgo.FIt("Verify tenant can install the kustomization application and dashboard is updated accordingly", func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",
@@ -171,7 +171,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appKustomization)
 		})
 
-		ginkgo.It("Verify tenant can install the helmrelease application and dashboard is updated accordingly", func() {
+		ginkgo.FIt("Verify tenant can install the helmrelease application and dashboard is updated accordingly", func() {
 			ginkgo.Skip("HelmReleases are always get installed in flux-system, skipping until fixed")
 			tenantNamespace := "test-system"
 
@@ -327,7 +327,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			deleteNamespace([]string{leafCluster.Namespace})
 		})
 
-		ginkgo.It("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
+		ginkgo.FIt("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",
