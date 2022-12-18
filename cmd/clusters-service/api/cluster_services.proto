@@ -996,9 +996,13 @@ message GetExternalSecretRequest{
 
 message GetExternalSecretResponse{
   string secretName = 1;
-  string clusterName = 2;
-  string namespace = 3;
-  string secretStore = 4;
-  string externalSecretName = 5;
+  string externalSecretName = 2;
+  string clusterName = 3;
+  string namespace = 4;
+  string secretStore = 5;
   string secretPath = 6;
+  string property = 7;
+  string version = 8;
+
+  
 }

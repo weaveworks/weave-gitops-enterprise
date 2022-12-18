@@ -178,11 +178,13 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 
 		return &capiv1_proto.GetExternalSecretResponse{
 			SecretName:         clusterExternalSecret.Spec.ExternalSecretSpec.Target.Name,
+			ExternalSecretName: clusterExternalSecret.GetName(),
 			ClusterName:        req.ClusterName,
 			Namespace:          req.Namespace,
 			SecretStore:        clusterExternalSecret.Spec.ExternalSecretSpec.SecretStoreRef.Name,
-			ExternalSecretName: clusterExternalSecret.GetName(),
 			SecretPath:         clusterExternalSecret.Spec.ExternalSecretSpec.Data[0].RemoteRef.Key,
+			Property:           clusterExternalSecret.Spec.ExternalSecretSpec.Data[0].RemoteRef.Property,
+			Version:            clusterExternalSecret.Spec.ExternalSecretSpec.Data[0].RemoteRef.Version,
 		}, nil
 
 	} else {
@@ -193,11 +195,13 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 
 		return &capiv1_proto.GetExternalSecretResponse{
 			SecretName:         externalSecret.Spec.Target.Name,
+			ExternalSecretName: externalSecret.GetName(),
 			ClusterName:        req.ClusterName,
 			Namespace:          req.Namespace,
 			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
-			ExternalSecretName: externalSecret.GetName(),
 			SecretPath:         externalSecret.Spec.Data[0].RemoteRef.Key,
+			Property:           externalSecret.Spec.Data[0].RemoteRef.Property,
+			Version:            externalSecret.Spec.Data[0].RemoteRef.Version,
 		}, nil
 	}
 
