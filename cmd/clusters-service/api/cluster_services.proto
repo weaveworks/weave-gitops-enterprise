@@ -235,7 +235,7 @@ service ClustersService {
     // GetExternalSecret get secret details
     rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
     option (google.api.http) = {
-      get : "/v1/external-secrets/{secretName}"
+      get : "/v1/external-secrets/{externalSecretName}"
     };
   }
 }
@@ -991,7 +991,7 @@ message ListExternalSecretsResponse {
 message GetExternalSecretRequest{
   string clusterName = 1;
   string namespace = 2;
-  string secretName = 3;
+  string externalSecretName = 3;
 }
 
 message GetExternalSecretResponse{
