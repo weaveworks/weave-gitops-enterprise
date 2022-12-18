@@ -734,11 +734,13 @@ export type GetExternalSecretRequest = {
 
 export type GetExternalSecretResponse = {
   secretName?: string
+  externalSecretName?: string
   clusterName?: string
   namespace?: string
   secretStore?: string
-  externalSecretName?: string
   secretPath?: string
+  property?: string
+  version?: string
 }
 
 export class ClustersService {

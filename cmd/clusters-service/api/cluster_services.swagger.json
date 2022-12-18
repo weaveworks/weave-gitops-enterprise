@@ -1772,6 +1772,9 @@
         "secretName": {
           "type": "string"
         },
+        "externalSecretName": {
+          "type": "string"
+        },
         "clusterName": {
           "type": "string"
         },
@@ -1781,10 +1784,13 @@
         "secretStore": {
           "type": "string"
         },
-        "externalSecretName": {
+        "secretPath": {
           "type": "string"
         },
-        "secretPath": {
+        "property": {
+          "type": "string"
+        },
+        "version": {
           "type": "string"
         }
       }
