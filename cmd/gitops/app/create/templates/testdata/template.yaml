@@ -1,0 +1,33 @@
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: test-template
+  namespace: default
+spec:
+  description: This is a sample WGE template to test parsing functionality.
+  params:
+    - name: CLUSTER_NAME
+      description: Name of the cluster.
+    - name: RESOURCE_NAME
+      description: Name of the template.
+    - name: NAMESPACE
+      description: Namespace to create the resource in.
+    - name: GIT_REPO_NAMESPACE
+      description: Namespace of the configuring git repository object.
+    - name: GIT_REPO_NAME
+      description: Name of the configuring git repository.
+    - name: PATH
+      description: Path to the generated resource.
+  resourcetemplates:
+    - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      kind: Kustomization
+      metadata:
+        name: ${RESOURCE_NAME}
+        namespace: ${NAMESPACE}
+      spec:
+        interval: 1h
+        path: ${TEMPLATE_PATH}
+        sourceRef:
+          kind: GitRepository
+          name: ${GIT_REPO_NAME}
+          namespace: ${GIT_REPO_NAMESPACE}

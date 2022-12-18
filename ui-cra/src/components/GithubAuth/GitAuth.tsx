@@ -1,11 +1,9 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
-import {
-  RepoInputWithAuth,
-  useIsAuthenticated,
-} from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { GithubDeviceAuthModal } from '.';
-import { GitProvider } from '../../contexts/GithubAuth/provider';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import { useIsAuthenticated } from '../../hooks/gitprovider';
+import RepoInputWithAuth from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   margin-bottom: ${({ theme }) => theme.spacing.medium};
@@ -58,13 +56,13 @@ const GitAuth: FC<{
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
-        onChange={e => {
+        onChange={(e: any) => {
           setFormData({
             ...formData,
             url: e.currentTarget.value,
           });
         }}
-        onAuthClick={provider => {
+        onAuthClick={(provider: GitProvider) => {
           if (provider === ('GitHub' as GitProvider)) {
             setShowAuthDialog(true);
           }
@@ -73,6 +71,7 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
+        // this needs to be a dropdown; we need to get the list of git repos that we use when we create apps
         value={formData.url}
         helperText=""
         disabled={true}
