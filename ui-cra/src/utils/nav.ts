@@ -58,4 +58,7 @@ export enum Routes {
   AddCluster = '/templates/:templateName/create',
 
   Templates = '/templates',
+
+  Workspaces= '/workspaces',
+  WorkspaceDetails= '/workspaces/details'
 }
