@@ -912,6 +912,7 @@ message WorkspaceServiceAccount {
   string name = 1;
   string namespace = 2;
   string timestamp = 3;
+  string manifest = 4;
 }
 
 message WorkspacePolicy {
