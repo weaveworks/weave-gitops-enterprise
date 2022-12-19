@@ -157,11 +157,16 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 				Verbs:     rule.Verbs,
 			})
 		}
-		yml, err := k8sObjectToYaml(&list.Items[i])
+
+		obj := list.Items[i]
+		obj.SetGroupVersionKind(rbacv1.SchemeGroupVersion.WithKind("Role"))
+
+		manifest, err := k8sObjectToYaml(&obj)
 		if err != nil {
 			return nil, err
 		}
-		role.Manifest = yml
+
+		role.Manifest = manifest
 		roles = append(roles, &role)
 	}
 
@@ -213,11 +218,14 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 			})
 		}
 
-		yml, err := k8sObjectToYaml(&list.Items[i])
+		obj := list.Items[i]
+		obj.SetGroupVersionKind(rbacv1.SchemeGroupVersion.WithKind("RoleBinding"))
+
+		manifest, err := k8sObjectToYaml(&obj)
 		if err != nil {
 			return nil, err
 		}
-		roleBinding.Manifest = yml
+		roleBinding.Manifest = manifest
 		roleBindings = append(roleBindings, &roleBinding)
 	}
 
@@ -254,7 +262,11 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 			Namespace: list.Items[i].Namespace,
 			Timestamp: list.Items[i].CreationTimestamp.String(),
 		}
-		manifest, err := k8sObjectToYaml(&list.Items[i])
+
+		obj := list.Items[i]
+		obj.SetGroupVersionKind(rbacv1.SchemeGroupVersion.WithKind(rbacv1.ServiceAccountKind))
+
+		manifest, err := k8sObjectToYaml(&obj)
 		if err != nil {
 			return nil, err
 		}
