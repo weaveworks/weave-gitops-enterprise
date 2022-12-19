@@ -37,25 +37,17 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 
 	var externalSecrets []*capiv1_proto.ExternalSecretItem
 	var clusterExternalSecrets []*capiv1_proto.ExternalSecretItem
+	var externalSecretsListErrors []*capiv1_proto.ListError
+	var clusterExternalSecretsErrors []*capiv1_proto.ListError
 
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		externalSecrets, err = s.listExternalSecrets(gctx, clustersClient)
-		if err != nil {
-			if !errors.As(err, &clustersmngr.ClusteredListError{}) {
-				return err
-			}
-		}
-		return nil
+		externalSecrets, externalSecretsListErrors, err = s.listExternalSecrets(gctx, clustersClient)
+		return err
 	})
 	g.Go(func() error {
-		clusterExternalSecrets, err = s.listClusterExternalSecrets(gctx, clustersClient)
-		if err != nil {
-			if !errors.As(err, &clustersmngr.ClusteredListError{}) {
-				return err
-			}
-		}
-		return nil
+		clusterExternalSecrets, clusterExternalSecretsErrors, err = s.listClusterExternalSecrets(gctx, clustersClient)
+		return err
 	})
 
 	if err := g.Wait(); err != nil {
@@ -65,7 +57,8 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 	response := capiv1_proto.ListExternalSecretsResponse{
 		Errors: respErrors,
 	}
-
+	response.Errors = append(response.Errors, externalSecretsListErrors...)
+	response.Errors = append(response.Errors, clusterExternalSecretsErrors...)
 	response.Secrets = append(response.Secrets, externalSecrets...)
 	response.Secrets = append(response.Secrets, clusterExternalSecrets...)
 	response.Total = int32(len(response.Secrets))
@@ -73,13 +66,21 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 	return &response, nil
 }
 
-func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client) ([]*capiv1_proto.ExternalSecretItem, error) {
+func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client) ([]*capiv1_proto.ExternalSecretItem, []*capiv1_proto.ListError, error) {
+	clusterListErrors := []*capiv1_proto.ListError{}
+
 	list := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &esv1beta1.ExternalSecretList{}
 	})
 
 	if err := cl.ClusteredList(ctx, list, true); err != nil {
-		return nil, fmt.Errorf("failed to list external secrets, error: %w", err)
+		if e, ok := err.(clustersmngr.ClusteredListError); ok {
+			for i := range e.Errors {
+				clusterListErrors = append(clusterListErrors, &capiv1_proto.ListError{ClusterName: e.Errors[i].Cluster, Message: e.Errors[i].Error()})
+			}
+		} else {
+			return nil, clusterListErrors, fmt.Errorf("failed to list external secrets, error: %w", err)
+		}
 	}
 
 	secretList := list.Lists()
@@ -113,19 +114,26 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 				}
 				secrets = append(secrets, &secret)
 			}
-
 		}
 	}
-	return secrets, nil
+	return secrets, clusterListErrors, nil
 }
 
-func (s *server) listClusterExternalSecrets(ctx context.Context, cl clustersmngr.Client) ([]*capiv1_proto.ExternalSecretItem, error) {
+func (s *server) listClusterExternalSecrets(ctx context.Context, cl clustersmngr.Client) ([]*capiv1_proto.ExternalSecretItem, []*capiv1_proto.ListError, error) {
+	clusterListErrors := []*capiv1_proto.ListError{}
+
 	list := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &esv1beta1.ClusterExternalSecretList{}
 	})
 
 	if err := cl.ClusteredList(ctx, list, false); err != nil {
-		return nil, fmt.Errorf("failed to list cluster external secrets, error: %w", err)
+		if e, ok := err.(clustersmngr.ClusteredListError); ok {
+			for i := range e.Errors {
+				clusterListErrors = append(clusterListErrors, &capiv1_proto.ListError{ClusterName: e.Errors[i].Cluster, Message: e.Errors[i].Error()})
+			}
+		} else {
+			return nil, clusterListErrors, fmt.Errorf("failed to list cluster external secrets, error: %w", err)
+		}
 	}
 
 	secretList := list.Lists()
@@ -162,7 +170,7 @@ func (s *server) listClusterExternalSecrets(ctx context.Context, cl clustersmngr
 
 		}
 	}
-	return secrets, nil
+	return secrets, clusterListErrors, nil
 }
 
 func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExternalSecretRequest) (*capiv1_proto.GetExternalSecretResponse, error) {
