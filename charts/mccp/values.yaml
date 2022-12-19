@@ -54,14 +54,15 @@ config:
   checkpoint:
     enabled: true
   oidc:
-    enabled: false
-    issuerURL: ""
-    redirectURL: ""
+    enabled: true
+    issuerURL: "https://dex.dex:32000"
+    redirectURL: "http://localhost:3000/oauth2/callback"
     cookieDuration: 1h
-    claimUsername: ""
-    claimGroups: ""
+    claimUsername: "email"
+    claimGroups: "groups"
+    clientID: "example-app"
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
-    clientCredentialsSecret: ""
+    clientCredentialsSecret: "github-client"
   auth:
     userAccount:
       enabled: true
