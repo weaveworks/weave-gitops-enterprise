@@ -97,8 +97,8 @@ func installPolicyConfig(clusterName string, policyConfigYaml string) {
 }
 
 func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
-	ginkgo.By("And navigate to Applicartions page via header link", func() {
-		gomega.Expect(applicationsPage.ApplicationHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Applications pages via header link")
+	ginkgo.By("And back to Applications page via navigation bar", func() {
+		pages.NavigateToPage(webDriver, "Applications")
 		pages.WaitForPageToLoad(webDriver)
 	})
 }
