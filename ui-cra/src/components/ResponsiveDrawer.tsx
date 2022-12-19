@@ -170,6 +170,11 @@ const App = () => {
 };
 
 const ResponsiveDrawer = () => {
+  console.log('TIER:');
+  console.log(process.env.TIER);
+  console.log('TEST1:');
+  console.log(process.env.TEST1);
+
   return (
     <AuthContextProvider>
       <EnterpriseClientProvider api={ClustersService}>
