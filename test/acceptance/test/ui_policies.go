@@ -286,8 +286,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 				gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
 			})
 
-			ginkgo.By("And again navigate to Polisies page via header link", func() {
-				gomega.Expect(policiesPage.PolicyHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Policies pages via header link")
+			ginkgo.By("And back to Policies page via navigation bar", func() {
+				pages.NavigateToPage(webDriver, "Policies")
 				pages.WaitForPageToLoad(webDriver)
 			})
 		})
@@ -458,8 +458,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 				gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
 			})
 
-			ginkgo.By("And again navigate to Polisies page via header link", func() {
-				gomega.Expect(policiesPage.PolicyHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Policies pages via header link")
+			ginkgo.By("And back to Policies page via navigation bar", func() {
+				pages.NavigateToPage(webDriver, "Policies")
 				pages.WaitForPageToLoad(webDriver)
 			})
 		})
