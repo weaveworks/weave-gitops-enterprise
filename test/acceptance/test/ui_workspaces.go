@@ -2,6 +2,7 @@ package acceptance
 
 import (
 	"fmt"
+	"os"
 	"path"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 func installTestWorkspaces(clusterName string, workspacesYaml string) {
 	ginkgo.By(fmt.Sprintf("Add test workspaces to the %s cluster", clusterName), func() {
+		os.Setenv("PATH", "$PATH:$(go env GOPATH)/bin")
 		// createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 		_, stdErr := runGitopsCommand(fmt.Sprintf(`go run cmd/gitops/main.go create tenants --from-file %s --prune`, workspacesYaml))
 		gomega.Expect(stdErr).Should(gomega.BeEmpty(), fmt.Sprintf("Failed to add test workspaces to cluster '%s'", clusterName))
@@ -23,6 +25,7 @@ func installTestWorkspaces(clusterName string, workspacesYaml string) {
 }
 
 func deleteTestWorkspaces(clusterName string, toBeDeletedWorkspacesYaml string) {
+	os.Setenv("PATH", "$PATH:$(go env GOPATH)/bin")
 	ginkgo.By(fmt.Sprintf("And Finally delete test workspaces from %s cluster", clusterName), func() {
 		// createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 		_, stdErr := runGitopsCommand(fmt.Sprintf(`go run cmd/gitops/main.go create tenants --from-file %s --prune`, toBeDeletedWorkspacesYaml))
