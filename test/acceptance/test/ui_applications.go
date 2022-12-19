@@ -97,7 +97,7 @@ func installPolicyConfig(clusterName string, policyConfigYaml string) {
 }
 
 func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
-	ginkgo.By("And back to Applicartions page via navigation bar", func() {
+	ginkgo.By("And back to Applications page via navigation bar", func() {
 		pages.NavigateToPage(webDriver, "Applications")
 		pages.WaitForPageToLoad(webDriver)
 	})
