@@ -88,7 +88,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			defer deleteTenants([]string{getTenantYamlPath()})
 		})
 
-		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
+		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
 			existingWorkspacesCount := getWorkspacesCount()
 
 			pages.NavigateToPage(webDriver, "Workspaces")
