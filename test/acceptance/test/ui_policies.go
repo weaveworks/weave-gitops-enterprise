@@ -286,7 +286,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 				gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
 			})
 
-			ginkgo.By("And back to Polisies page via navigation bar", func() {
+			ginkgo.By("And back to Policies page via navigation bar", func() {
 				pages.NavigateToPage(webDriver, "Policies")
 				pages.WaitForPageToLoad(webDriver)
 			})
