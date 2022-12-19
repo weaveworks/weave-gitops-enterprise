@@ -70,3 +70,6 @@ tools/core-files
 # ignore custom scripts and generated config
 /tools/custom/
 /tools/kind-config.yaml
+
+# ignore error files
+yarn-error.log

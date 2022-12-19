@@ -1594,7 +1594,7 @@ status: {}
 		[]helm.Chart{})
 	values := []byte("foo: bar")
 	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
-	files, err := getFiles(
+	files, err := GetFiles(
 		context.TODO(),
 		c,
 		log,

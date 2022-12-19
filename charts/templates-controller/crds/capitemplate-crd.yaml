@@ -268,8 +268,6 @@ spec:
                       type: array
                     path:
                       type: string
-                  required:
-                  - content
                   type: object
                 type: array
             type: object

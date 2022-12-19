@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/weave-gitops v0.12.1-0.20221214145601-61f117c89cda
+	github.com/weaveworks/weave-gitops v0.12.1-0.20221215075450-2a3c5b228b7b
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -57,7 +57,7 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
-	github.com/weaveworks/templates-controller v0.0.0-20221208162948-7ee990021d3d
+	github.com/weaveworks/templates-controller v0.1.1
 	github.com/xanzy/go-gitlab v0.74.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/oauth2 v0.2.0

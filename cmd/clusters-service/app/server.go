@@ -48,9 +48,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
 	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
@@ -62,7 +64,6 @@ import (
 	core_fetcher "github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
-	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -342,7 +343,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 
-	appsConfig, err := core.DefaultApplicationsConfig(log)
+	appsConfig, err := gitauth_server.DefaultApplicationsConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
@@ -596,8 +597,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	//Add weave-gitops core handlers
-	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
-	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
+	wegoApplicationServer := gitauth_server.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
+	if err := gitauth.RegisterGitAuthHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
 	}
 

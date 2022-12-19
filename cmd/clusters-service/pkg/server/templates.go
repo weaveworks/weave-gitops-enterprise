@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -232,7 +233,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error getting client: %v", err)
 	}
 
-	files, err := getFiles(
+	files, err := GetFiles(
 		ctx,
 		client,
 		s.log,
@@ -255,7 +256,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
 }
 
-func getFiles(
+func GetFiles(
 	ctx context.Context,
 	client client.Client,
 	log logr.Logger,
@@ -305,9 +306,13 @@ func getFiles(
 			return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
 		}
 
-		tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
-		if err != nil {
-			return nil, err
+		if client != nil {
+			tmplWithValues, err = credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
+			if err != nil {
+				return nil, fmt.Errorf("failed to inject credentials: %w", err)
+			}
+		} else {
+			log.Info("client is nil, skipping credentials injection")
 		}
 
 		path := renderedTemplate.Path
@@ -315,7 +320,7 @@ func getFiles(
 			path = defaultPath
 		}
 
-		content := string(tmplWithValuesAndCredentials)
+		content := string(bytes.Join(tmplWithValues, []byte("\n---\n")))
 		files = append(files, gitprovider.CommitFile{
 			Path:    &path,
 			Content: &content,

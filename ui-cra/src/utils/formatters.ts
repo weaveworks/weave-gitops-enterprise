@@ -2,6 +2,7 @@ import { URL } from '../types/global';
 import GitUrlParse from 'git-url-parse';
 import { CostEstimate } from '../cluster-services/cluster_services.pb';
 import { NotificationData } from '../contexts/Notifications';
+import { Routes } from './nav';
 
 export const toPercent = (value: number, precision = 0) =>
   `${(100 * value).toFixed(precision)}%`;
@@ -58,3 +59,9 @@ export const formatError = (error: Error) =>
   [
     { message: { text: error.message }, severity: 'error' },
   ] as NotificationData[];
+
+// Must be one of the valid URLs that we have already
+// configured on the Gitlab backend for our Oauth app.
+export function gitlabOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.GitlabOauthCallback}`;
+}

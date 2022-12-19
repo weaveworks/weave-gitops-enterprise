@@ -4,7 +4,7 @@ import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { useRequest } from '../contexts/Request';
 import GitUrlParse from 'git-url-parse';
-import { applicationsClient } from '@weaveworks/weave-gitops';
+import { GitAuth } from '../contexts/GitAuth';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();
@@ -25,11 +25,13 @@ export function useListConfig() {
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
   );
+  const { gitAuthClient } = useContext(GitAuth);
+
   const repositoryURL = queryResponse?.data?.repositoryURL || '';
   const uiConfig = JSON.parse(queryResponse?.data?.uiConfig || '{}');
   useEffect(() => {
     repositoryURL &&
-      applicationsClient.ParseRepoURL({ url: repositoryURL }).then(res => {
+      gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
         const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
         if (res.provider === 'GitHub') {
           setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
@@ -39,7 +41,7 @@ export function useListConfig() {
           );
         }
       });
-  }, [repositoryURL]);
+  }, [repositoryURL, gitAuthClient]);
 
   return {
     ...queryResponse,

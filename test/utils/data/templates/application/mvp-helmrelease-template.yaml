@@ -1,4 +1,4 @@
-apiVersion: templates.weave.works/v1alpha2
+apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsTemplate
 metadata:
   name: mvp-helmrelease-template
@@ -39,7 +39,7 @@ spec:
     - name: VALUES
       required: false
       default: nil
-      description: "Values for the helm chart,e.g. {ui: {message: hello}}"
+      description: 'Json string that contains the values.yaml data for the helm chart,e.g. "{\"accountID\": id-account}"'
     - name: HOST_NAME
       required: true
       description: Host name running backend services for the deployment(s)
@@ -80,7 +80,7 @@ spec:
                   name: ${{ .params.RESOURCE_NAME }}
                   namespace: ${{ .params.NAMESPACE }}
             targetNamespace: ${{ .params.TARGET_NAMESPACE }}
-            values: ${{ .params.VALUES }}
+            values: ${{ .params.VALUES | fromJson}}
         - apiVersion: networking.k8s.io/v1
           kind: Ingress
           metadata:

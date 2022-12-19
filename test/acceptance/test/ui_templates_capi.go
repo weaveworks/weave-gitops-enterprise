@@ -80,7 +80,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -120,7 +120,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -199,7 +199,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				gomega.Eventually(preview.Title).Should(matchers.MatchText("PR Preview"))
 
 				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 			})
 
 		})
@@ -224,7 +224,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -291,7 +291,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				gomega.Eventually(preview.Title).Should(matchers.MatchText("PR Preview"))
 
 				gomega.Eventually(preview.Text).ShouldNot(matchers.MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 			})
 
 		})
@@ -326,6 +326,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 		})
 
 		ginkgo.JustAfterEach(func() {
+			pages.CloseOtherWindows(webDriver, enterpriseWindow)
 			_ = deleteFile([]string{downloadedKubeconfigPath})
 			deleteSecret([]string{patSecret}, capdCluster.Namespace)
 			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
@@ -365,7 +366,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -482,7 +483,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				gomega.Eventually(preview.GetPreviewTab("Profiles").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
 				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
 
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 			})
 
 			// Pull request values
@@ -638,7 +639,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})

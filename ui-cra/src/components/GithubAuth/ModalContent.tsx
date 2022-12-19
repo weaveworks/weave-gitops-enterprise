@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import styled from 'styled-components';
 import { Flex, Icon, IconType, Button, theme } from '@weaveworks/weave-gitops';
-import { useGetGithubAuthStatus } from '../../contexts/GithubAuth';
+import { useGetGithubAuthStatus } from '../../contexts/GitAuth';
 
 const { extraLarge } = theme.fontSizes;
 const { neutral30, primary10 } = theme.colors;
@@ -35,7 +35,7 @@ const CopyToClipboard = ({ value }: { value: string }) => {
   }, [value]);
 
   return (
-    <Text onClick={handleCopy} data-testid='github-code'>
+    <Text onClick={handleCopy} data-testid="github-code">
       {value}
       <PointerIcon
         type={copied ? IconType.CheckMark : IconType.FileCopyIcon}

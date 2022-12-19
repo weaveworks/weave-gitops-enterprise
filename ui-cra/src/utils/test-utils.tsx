@@ -18,6 +18,13 @@ import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import {
+  GetGithubAuthStatusResponse,
+  GetGithubDeviceCodeResponse,
+  GetGitlabAuthURLResponse,
+  ParseRepoURLResponse,
+  ValidateProviderTokenResponse,
+} from '../api/gitauth/gitauth.pb';
+import {
   GetPipelineResponse,
   ListPipelinesResponse,
   Pipelines,
@@ -40,13 +47,22 @@ import {
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
-import {
-  GetGithubAuthStatusResponse,
-  GetGithubDeviceCodeResponse,
-} from '../contexts/GithubAuth/provider';
+import { GitAuthProvider } from '../contexts/GitAuth';
 import NotificationProvider from '../contexts/Notifications/Provider';
 import RequestContextProvider from '../contexts/Request';
 import { muiTheme } from '../muiTheme';
+
+export type RequestError = Error & {
+  code?: number;
+};
+
+export function withTheme(element: any) {
+  return (
+    <MuiThemeProvider theme={muiTheme}>
+      <ThemeProvider theme={theme}>{element}</ThemeProvider>
+    </MuiThemeProvider>
+  );
+}
 
 export const withContext = (contexts: any[]) => {
   return (component: React.ReactElement) => {
@@ -117,9 +133,10 @@ export const defaultContexts = () => [
   ],
   [MemoryRouter],
   [NotificationProvider],
+  [GitAuthProvider, { api: new ApplicationsClientMock() }],
 ];
 
-const promisify = <R, E>(res: R, errRes?: E) =>
+export const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {
     if (errRes) {
       return reject(errRes);
@@ -184,19 +201,39 @@ export class CoreClientMock {
     return promisify(this.GetObjectReturns);
   }
 }
+
 export class ApplicationsClientMock {
   constructor() {
     this.GetGithubDeviceCode = this.GetGithubDeviceCode.bind(this);
     this.GetGithubAuthStatus = this.GetGithubAuthStatus.bind(this);
+    this.ParseRepoURL = this.ParseRepoURL.bind(this);
+    this.GetGitlabAuthURL = this.GetGitlabAuthURL.bind(this);
+    this.ValidateProviderToken = this.ValidateProviderToken.bind(this);
   }
   GetGithubDeviceCodeReturn: GetGithubDeviceCodeResponse = {};
   GetGithubAuthStatusReturn: GetGithubAuthStatusResponse = {};
+  ParseRepoURLReturn: ParseRepoURLResponse = {};
+  GetGitlabAuthURLReturn: GetGitlabAuthURLResponse = {};
+  ValidateProviderTokenReturn: ValidateProviderTokenResponse = {};
+
   GetGithubDeviceCode() {
     return promisify(this.GetGithubDeviceCodeReturn);
   }
 
   GetGithubAuthStatus() {
     return promisify(this.GetGithubAuthStatusReturn);
+  }
+
+  ParseRepoURL() {
+    return promisify(this.ParseRepoURLReturn);
+  }
+
+  GetGitlabAuthURL(req: any) {
+    return promisify(this.GetGitlabAuthURLReturn);
+  }
+
+  ValidateProviderToken() {
+    return promisify(this.ValidateProviderTokenReturn);
   }
 }
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
@@ -466,7 +503,7 @@ export class TestFilterableTable {
   }
 
   testSorthTableByColumn(columnName: string, rowValues: Array<Array<string>>) {
-   this.sortTableByColumn(columnName);
+    this.sortTableByColumn(columnName);
     const { rows } = this.getTableInfo();
     expect(rows).toHaveLength(rowValues.length);
     rowValues.forEach((row, index) => {

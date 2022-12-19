@@ -7,9 +7,10 @@ import (
 )
 
 type PoliciesPage struct {
-	PolicyHeader *agouti.Selection
-	PoliciesList *agouti.Selection
-	AlertError   *agouti.Selection
+	PolicyHeader     *agouti.Selection
+	PolicyHeaderLink *agouti.Selection
+	PoliciesList     *agouti.Selection
+	AlertError       *agouti.Selection
 }
 
 type PolicyInformation struct {
@@ -82,9 +83,10 @@ func (p PoliciesPage) CountPolicies() int {
 
 func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 	policyPage := PoliciesPage{
-		PolicyHeader: webDriver.Find(`div[role="heading"] a[href="/policies"]`),
-		PoliciesList: webDriver.First(`table tbody`),
-		AlertError:   webDriver.Find(`#alert-list-errors`),
+		PolicyHeader:     webDriver.Find(`span[title="Policies"]`),
+		PolicyHeaderLink: webDriver.Find(`div[role="heading"] a[href="/policies"]`),
+		PoliciesList:     webDriver.First(`table tbody`),
+		AlertError:       webDriver.Find(`#alert-list-errors`),
 	}
 	return &policyPage
 }

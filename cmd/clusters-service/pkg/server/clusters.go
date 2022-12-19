@@ -163,7 +163,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	// Update the  previous values to be nil to skip including it in the updated create-request annotation
 	prevFiles := &GetFilesReturn{}
 	if msg.PreviousValues != nil {
-		prevFiles, err = getFiles(
+		prevFiles, err = GetFiles(
 			ctx,
 			client,
 			s.log,
@@ -181,7 +181,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		msg.PreviousValues = nil
 	}
 
-	git_files, err := getFiles(
+	git_files, err := GetFiles(
 		ctx,
 		client,
 		s.log,

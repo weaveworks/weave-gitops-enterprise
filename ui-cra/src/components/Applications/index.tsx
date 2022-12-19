@@ -50,7 +50,6 @@ const WGApplicationsDashboard: FC = () => {
       path={[
         {
           label: 'Applications',
-          url: Routes.Applications,
         },
       ]}
     >
