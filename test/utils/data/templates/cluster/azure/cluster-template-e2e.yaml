@@ -19,30 +19,38 @@ spec:
     - name: KUBERNETES_VERSION
       description: Kubernetes version to use for the cluster
       options: ["1.19.7", "1.20.9", "1.21.2"]
+      default: "1.21.2"
     - name: AZURE_CONTROL_PLANE_MACHINE_TYPE
       description: VM control plane types
       options: ["Standard_D2s_v3", "Standard_D4_v4"]
+      default: Standard_D2s_v3
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      description: Number of control planes
     - name: AZURE_NODE_MACHINE_TYPE
       description: VM node types
       options: ["Standard_D2s_v3", "Standard_D4_v4"]
+      default: Standard_D2s_v3
+    - name: WORKER_MACHINE_COUNT
+      description: Number of control planes
+      required: false
   resourcetemplates:
     - apiVersion: gitops.weave.works/v1alpha1
       kind: GitopsCluster
       metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}"
+        namespace: "${NAMESPACE,,}"
         labels:
           weave.works/capi: bootstrap
       spec:
         capiClusterRef:
-          name: "${CLUSTER_NAME}"
+          name: "${CLUSTER_NAME,,}"
     - apiVersion: cluster.x-k8s.io/v1alpha4
       kind: Cluster
       metadata:
         labels:
           cni: calico
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}"
+        namespace: "${NAMESPACE,,}"
       spec:
         clusterNetwork:
           pods:
@@ -50,28 +58,28 @@ spec:
         infrastructureRef:
           apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
           kind: AzureCluster
-          name: "${CLUSTER_NAME}"
+          name: "${CLUSTER_NAME,,}"
         controlPlaneRef:
           kind: KubeadmControlPlane
           apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
-          name: "${CLUSTER_NAME}-control-plane"
+          name: "${CLUSTER_NAME,,}-control-plane"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
       kind: AzureCluster
       metadata:
-        name: "${CLUSTER_NAME}"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}"
+        namespace: "${NAMESPACE,,}"
       spec:
         location: centralus
         networkSpec:
           vnet:
-            name: "${CLUSTER_NAME}-vnet"
-        resourceGroup: "${CLUSTER_NAME}"
+            name: "${CLUSTER_NAME,,}-vnet"
+        resourceGroup: "${CLUSTER_NAME,,}"
         subscriptionID: 526be93c-8b93-4ca3-a34f-559d10cdcef4
     - apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
       kind: KubeadmControlPlane
       metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}-control-plane"
+        namespace: "${NAMESPACE,,}"
       spec:
         kubeadmConfigSpec:
           clusterConfiguration:
@@ -90,7 +98,7 @@ spec:
                 allocate-node-cidrs: "false"
                 cloud-config: /etc/kubernetes/azure.json
                 cloud-provider: azure
-                cluster-name: "${CLUSTER_NAME}"
+                cluster-name: "${CLUSTER_NAME,,}"
               extraVolumes:
               - hostPath: /etc/kubernetes/azure.json
                 mountPath: /etc/kubernetes/azure.json
@@ -120,7 +128,7 @@ spec:
           - contentFrom:
               secret:
                 key: control-plane-azure.json
-                name: "${CLUSTER_NAME}-control-plane-azure-json"
+                name: "${CLUSTER_NAME,,}-control-plane-azure-json"
             owner: root:root
             path: /etc/kubernetes/azure.json
             permissions: "0644"
@@ -145,14 +153,14 @@ spec:
           infrastructureRef:
             apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
             kind: AzureMachineTemplate
-            name: "${CLUSTER_NAME}-control-plane"
+            name: "${CLUSTER_NAME,,}-control-plane"
         replicas: ${CONTROL_PLANE_MACHINE_COUNT}
         version: "${KUBERNETES_VERSION}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
       kind: AzureMachineTemplate
       metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}-control-plane"
+        namespace: "${NAMESPACE,,}"
       spec:
         template:
           spec:
@@ -168,11 +176,11 @@ spec:
     - apiVersion: cluster.x-k8s.io/v1alpha4
       kind: MachineDeployment
       metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}-md-0"
+        namespace: "${NAMESPACE,,}"
       spec:
-        clusterName: "${CLUSTER_NAME}"
-        replicas: ${WORKER_MACHINE_COUNT}
+        clusterName: "${CLUSTER_NAME,,}"
+        replicas: ${WORKER_MACHINE_COUNT:=${CONTROL_PLANE_MACHINE_COUNT}}
         selector:
           matchLabels: null
         template:
@@ -181,18 +189,18 @@ spec:
               configRef:
                 apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
                 kind: KubeadmConfigTemplate
-                name: "${CLUSTER_NAME}-md-0"
-            clusterName: "${CLUSTER_NAME}"
+                name: "${CLUSTER_NAME,,}-md-0"
+            clusterName: "${CLUSTER_NAME,,}"
             infrastructureRef:
               apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
               kind: AzureMachineTemplate
-              name: "${CLUSTER_NAME}-md-0"
+              name: "${CLUSTER_NAME,,}-md-0"
             version: "${KUBERNETES_VERSION}"
     - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
       kind: AzureMachineTemplate
       metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}-md-0"
+        namespace: "${NAMESPACE,,}"
       spec:
         template:
           spec:
@@ -204,8 +212,8 @@ spec:
     - apiVersion: bootstrap.cluster.x-k8s.io/v1alpha4
       kind: KubeadmConfigTemplate
       metadata:
-        name: "${CLUSTER_NAME}-md-0"
-        namespace: "${NAMESPACE}"
+        name: "${CLUSTER_NAME,,}-md-0"
+        namespace: "${NAMESPACE,,}"
       spec:
         template:
           spec:
@@ -213,7 +221,7 @@ spec:
             - contentFrom:
                 secret:
                   key: worker-node-azure.json
-                  name: "${CLUSTER_NAME}-md-0-azure-json"
+                  name: "${CLUSTER_NAME,,}-md-0-azure-json"
               owner: root:root
               path: /etc/kubernetes/azure.json
               permissions: "0644"
