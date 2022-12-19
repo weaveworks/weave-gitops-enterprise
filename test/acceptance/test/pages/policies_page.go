@@ -82,7 +82,7 @@ func (p PoliciesPage) CountPolicies() int {
 
 func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 	policyPage := PoliciesPage{
-		PolicyHeader: webDriver.Find(`div[role="heading"] a[href="/policies"]`),
+		PolicyHeader: webDriver.Find(`span[title="Policies"]`),
 		PoliciesList: webDriver.First(`table tbody`),
 		AlertError:   webDriver.Find(`#alert-list-errors`),
 	}

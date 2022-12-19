@@ -22,11 +22,13 @@ type Application struct {
 	DefaultApp      bool
 	Type            string
 	Chart           string
+	Url             string
 	Source          string
 	Path            string
 	SyncInterval    string
 	Name            string
 	Namespace       string
+	Description     string
 	Tenant          string
 	TargetNamespace string
 	DeploymentName  string
@@ -95,8 +97,8 @@ func installPolicyConfig(clusterName string, policyConfigYaml string) {
 }
 
 func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
-	ginkgo.By("And navigate to Applicartions page via header link", func() {
-		gomega.Expect(applicationsPage.ApplicationHeader.Click()).Should(gomega.Succeed(), "Failed to navigate to Applications pages via header link")
+	ginkgo.By("And back to Applications page via navigation bar", func() {
+		pages.NavigateToPage(webDriver, "Applications")
 		pages.WaitForPageToLoad(webDriver)
 	})
 }
@@ -470,7 +472,7 @@ func verifyPolicyConfigInAppViolationsDetails(policyName string, violationMsg st
 }
 
 func verifyDeleteApplication(applicationsPage *pages.ApplicationsPage, existingAppCount int, appName, appKustomization string) {
-	navigatetoApplicationsPage(applicationsPage)
+	pages.NavigateToPage(webDriver, "Applications")
 
 	if appKustomization != "" {
 		ginkgo.By(fmt.Sprintf("And delete the %s kustomization and source maifest from the repository's master branch", appName), func() {
@@ -593,6 +595,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 
 		ginkgo.JustAfterEach(func() {
+			pages.CloseOtherWindows(webDriver, enterpriseWindow)
 			// Wait for the application to be deleted gracefully, needed when the test fails before deleting the application
 			gomega.Eventually(func(g gomega.Gomega) int {
 				return getApplicationCount()
@@ -750,7 +753,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 					_, err := os.Stat(downloadedResourcesPath)
 					g.Expect(err).Should(gomega.Succeed())
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 
 				fileList, _ := getArchiveFileList(downloadedResourcesPath)
 				previewResources := []string{
@@ -896,7 +899,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 					_, err := os.Stat(downloadedResourcesPath)
 					g.Expect(err).Should(gomega.Succeed())
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
-				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed())
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 
 				fileList, _ := getArchiveFileList(downloadedResourcesPath)
 				previewResources := []string{

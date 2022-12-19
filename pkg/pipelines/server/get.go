@@ -64,14 +64,14 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(t.Namespace)
 			clusterName := s.cluster
+			clusterNamespace := p.Namespace
+			if t.ClusterRef != nil && t.ClusterRef.Namespace != "" {
+				clusterNamespace = t.ClusterRef.Namespace
+			}
 			if t.ClusterRef != nil {
-				ns := t.ClusterRef.Namespace
-				if ns == "" {
-					ns = p.Namespace
-				}
 				clusterName = types.NamespacedName{
 					Name:      t.ClusterRef.Name,
-					Namespace: ns,
+					Namespace: clusterNamespace,
 				}.String()
 			}
 
@@ -100,7 +100,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 				clusterRef = pb.ClusterRef{
 					Kind:      t.ClusterRef.Kind,
 					Name:      t.ClusterRef.Name,
-					Namespace: t.ClusterRef.Namespace,
+					Namespace: clusterNamespace,
 				}
 			}
 
