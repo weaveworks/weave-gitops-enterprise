@@ -333,7 +333,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 				})
 			}
 		}
-
 	}
 
 	if msg.HeadBranch == "" {
@@ -684,9 +683,9 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		})
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(HelmReleaseNamespace, installs)
 	if err != nil {
-		return nil, fmt.Errorf("making helm releases for cluster %s: %w", cluster.Name, err)
+		return nil, fmt.Errorf("making helm releases for cluster %w", err)
 	}
 	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
 	if err != nil {

@@ -39,7 +39,6 @@ type GetFilesReturn struct {
 	RenderedTemplate   []gitprovider.CommitFile
 	ProfileFiles       []gitprovider.CommitFile
 	KustomizationFiles []gitprovider.CommitFile
-	Cluster            types.NamespacedName
 	CostEstimate       *capiv1_proto.CostEstimate
 }
 
@@ -268,25 +267,9 @@ func GetFiles(
 	msg GetFilesRequest,
 	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 
-	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
-	// FIXME: parse and read from Cluster in yaml template
-	clusterName := msg.ParameterValues["CLUSTER_NAME"]
-	resourceName := msg.ParameterValues["RESOURCE_NAME"]
+	resourcesNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
-	if clusterName == "" && resourceName == "" {
-		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
-	}
-
-	if clusterName != "" {
-		resourceName = clusterName
-	}
-
-	cluster := createNamespacedName(resourceName, clusterNamespace)
-
-	// begin
-
-	defaultPath := getClusterManifestPath(cluster)
-	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, clusterNamespace, msg.ParameterValues)
+	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, resourcesNamespace, msg.ParameterValues)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
@@ -317,7 +300,10 @@ func GetFiles(
 
 		path := renderedTemplate.Path
 		if path == "" {
-			path = defaultPath
+			path, err = getDefaultPath(resourcesNamespace, msg)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get default path: %w", err)
+			}
 		}
 
 		content := string(bytes.Join(tmplWithValues, []byte("\n---\n")))
@@ -327,14 +313,16 @@ func GetFiles(
 		})
 	}
 
-	/// end
-
 	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
 	costEstimate := getCostEstimate(ctx, estimator, renderedTemplates)
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
 	if shouldAddCommonBases(tmpl) {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
 		commonKustomization, err := getCommonKustomization(cluster)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues, err)
@@ -348,6 +336,10 @@ func GetFiles(
 	}
 
 	if len(msg.Profiles) > 0 || len(requiredProfiles) > 0 {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
 		profilesFile, err := generateProfileFiles(
 			ctx,
 			tmpl,
@@ -368,6 +360,10 @@ func GetFiles(
 	}
 
 	if len(msg.Kustomizations) > 0 {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
 		for _, k := range msg.Kustomizations {
 			// FIXME: dedup this with the automations
 			if k.Spec.CreateNamespace {
@@ -390,7 +386,28 @@ func GetFiles(
 		}
 	}
 
-	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
+	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate}, err
+}
+
+func getCluster(namespace string, msg GetFilesRequest) (types.NamespacedName, error) {
+	clusterName := msg.ParameterValues["CLUSTER_NAME"]
+	resourceName := msg.ParameterValues["RESOURCE_NAME"]
+	if clusterName == "" && resourceName == "" {
+		return types.NamespacedName{}, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
+	}
+	if resourceName == "" {
+		resourceName = clusterName
+	}
+	return createNamespacedName(resourceName, namespace), nil
+}
+
+func getDefaultPath(namespace string, msg GetFilesRequest) (string, error) {
+	cluster, err := getCluster(namespace, msg)
+	if err != nil {
+		return "", fmt.Errorf("failed to get cluster: %w", err)
+	}
+	defaultPath := getClusterManifestPath(cluster)
+	return defaultPath, nil
 }
 
 func shouldAddCommonBases(t templatesv1.Template) bool {

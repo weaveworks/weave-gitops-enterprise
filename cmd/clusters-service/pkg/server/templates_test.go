@@ -1288,7 +1288,7 @@ func TestRenderTemplate_MissingRequiredVariable(t *testing.T) {
 	}
 
 	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
-	if diff := cmp.Diff(err.Error(), "unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values"); diff != "" {
+	if diff := cmp.Diff(err.Error(), "failed to render template with parameter values: error rendering template cluster-template-1, missing required parameter: CLUSTER_NAME"); diff != "" {
 		t.Fatalf("got the wrong error:\n%s", diff)
 	}
 }
@@ -1582,7 +1582,6 @@ status: {}
 				High: 2,
 			},
 		},
-		Cluster: nsn("cluster-foo", "ns-foo"),
 	}
 
 	fakeChartCache := testNewFakeChartCache(t,
