@@ -50,7 +50,12 @@ func installPolicySet(clusterName string, policySetYaml string) {
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy set on cluster '%s'", clusterName))
 	})
 }
-
+func navigateToPoliciesPage(policiesPage *pages.PoliciesPage) {
+	ginkgo.By("And back to Policies page via header link", func() {
+		gomega.Expect(policiesPage.PolicyHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Policies pages via header link")
+		pages.WaitForPageToLoad(webDriver)
+	})
+}
 func verifyPolicyModes() {
 	ginkgo.By("Verify different policy Modes", func() {
 		testPolicies := [5]string{
@@ -286,10 +291,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 				gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
 			})
 
-			ginkgo.By("And back to Policies page via navigation bar", func() {
-				pages.NavigateToPage(webDriver, "Policies")
-				pages.WaitForPageToLoad(webDriver)
-			})
+			navigateToPoliciesPage(policiesPage)
 		})
 	})
 
@@ -458,10 +460,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 				gomega.Expect(parameter.Required.Text()).Should(gomega.MatchRegexp(`False`), "Failed to verify parameter exclude_label_value 'Required'")
 			})
 
-			ginkgo.By("And back to Policies page via navigation bar", func() {
-				pages.NavigateToPage(webDriver, "Policies")
-				pages.WaitForPageToLoad(webDriver)
-			})
+			navigateToPoliciesPage(policiesPage)
 		})
 	})
 })
