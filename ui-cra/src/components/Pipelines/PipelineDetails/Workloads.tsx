@@ -19,6 +19,7 @@ import {
   WorkloadWrapper,
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
@@ -33,8 +34,7 @@ const TargetStatus = ({
   target: PipelineTargetStatus;
   classes: any;
 }) => {
-  const configResponse = useConfig();
-
+  const configResponse = useListConfigContext();
   const clusterName = target?.clusterRef?.name
     ? `${target?.clusterRef?.namespace || 'default'}/${
         target?.clusterRef?.name
