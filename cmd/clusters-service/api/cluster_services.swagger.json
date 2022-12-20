@@ -493,6 +493,37 @@
         ]
       }
     },
+    "/v1/external-secrets/stores": {
+      "get": {
+        "summary": "ListExternalSecretStores list external secrets stores",
+        "operationId": "ClustersService_ListExternalSecretStores",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretStoresResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/external-secrets/{externalSecretName}": {
       "get": {
         "summary": "GetExternalSecret get secret details",
@@ -1731,6 +1762,20 @@
         }
       }
     },
+    "v1ExternalSecretStore": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetChartsJobResponse": {
       "type": "object",
       "properties": {
@@ -2085,6 +2130,21 @@
           "items": {
             "$ref": "#/definitions/v1Event"
           }
+        }
+      }
+    },
+    "v1ListExternalSecretStoresResponse": {
+      "type": "object",
+      "properties": {
+        "stores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecretStore"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
