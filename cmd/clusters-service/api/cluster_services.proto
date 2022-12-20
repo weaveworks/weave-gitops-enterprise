@@ -1004,6 +1004,7 @@ message GetExternalSecretResponse{
   string secretPath = 6;
   string property = 7;
   string version = 8;
-
+  string status = 9;
+  string timestamp = 10;
   
 }

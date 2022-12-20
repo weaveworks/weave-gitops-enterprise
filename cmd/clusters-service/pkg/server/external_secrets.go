@@ -99,19 +99,10 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 					ExternalSecretName: item.GetName(),
 					SecretStore:        item.Spec.SecretStoreRef.Name,
 					Namespace:          item.GetNamespace(),
+					Status:             getExternalSecretStatus(&item),
 					Timestamp:          item.CreationTimestamp.String(),
 				}
-				if item.Status.Conditions != nil {
-					latest := item.Status.Conditions[len(item.Status.Conditions)-1]
-					if latest.Type == esv1beta1.ExternalSecretReady &&
-						latest.Status == v1.ConditionTrue {
-						secret.Status = ExternalSecretStatusReady
-					} else {
-						secret.Status = ExternalSecretStatusNotReady
-					}
-				} else {
-					secret.Status = ExternalSecretStatusNotReady
-				}
+
 				secrets = append(secrets, &secret)
 			}
 		}
@@ -150,19 +141,8 @@ func (s *server) listClusterExternalSecrets(ctx context.Context, cl clustersmngr
 					SecretName:         item.Spec.ExternalSecretSpec.Target.Name,
 					ExternalSecretName: item.GetName(),
 					SecretStore:        item.Spec.ExternalSecretSpec.SecretStoreRef.Name,
+					Status:             getClusterExternalSecretStatus(&item),
 					Timestamp:          item.CreationTimestamp.String(),
-				}
-
-				if item.Status.Conditions != nil {
-					latest := item.Status.Conditions[len(item.Status.Conditions)-1]
-					if latest.Type == esv1beta1.ClusterExternalSecretReady &&
-						latest.Status == v1.ConditionTrue {
-						secret.Status = ExternalSecretStatusReady
-					} else {
-						secret.Status = ExternalSecretStatusNotReady
-					}
-				} else {
-					secret.Status = ExternalSecretStatusNotReady
 				}
 
 				secrets = append(secrets, &secret)
@@ -202,6 +182,8 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			SecretPath:         clusterExternalSecret.Spec.ExternalSecretSpec.Data[0].RemoteRef.Key,
 			Property:           clusterExternalSecret.Spec.ExternalSecretSpec.Data[0].RemoteRef.Property,
 			Version:            clusterExternalSecret.Spec.ExternalSecretSpec.Data[0].RemoteRef.Version,
+			Status:             getClusterExternalSecretStatus(&clusterExternalSecret),
+			Timestamp:          clusterExternalSecret.CreationTimestamp.String(),
 		}, nil
 
 	} else {
@@ -219,6 +201,8 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			SecretPath:         externalSecret.Spec.Data[0].RemoteRef.Key,
 			Property:           externalSecret.Spec.Data[0].RemoteRef.Property,
 			Version:            externalSecret.Spec.Data[0].RemoteRef.Version,
+			Status:             getExternalSecretStatus(&externalSecret),
+			Timestamp:          externalSecret.CreationTimestamp.String(),
 		}, nil
 	}
 
@@ -232,4 +216,31 @@ func validateReq(req *capiv1_proto.GetExternalSecretRequest) error {
 		return errors.New("external secret name is required")
 	}
 	return nil
+}
+
+func getClusterExternalSecretStatus(item *esv1beta1.ClusterExternalSecret) string {
+	if item.Status.Conditions != nil {
+		latest := item.Status.Conditions[len(item.Status.Conditions)-1]
+		if latest.Type == esv1beta1.ClusterExternalSecretReady &&
+			latest.Status == v1.ConditionTrue {
+			return ExternalSecretStatusReady
+		} else {
+			return ExternalSecretStatusNotReady
+		}
+	} else {
+		return ExternalSecretStatusNotReady
+	}
+}
+func getExternalSecretStatus(item *esv1beta1.ExternalSecret) string {
+	if item.Status.Conditions != nil {
+		latest := item.Status.Conditions[len(item.Status.Conditions)-1]
+		if latest.Type == esv1beta1.ExternalSecretReady &&
+			latest.Status == v1.ConditionTrue {
+			return ExternalSecretStatusReady
+		} else {
+			return ExternalSecretStatusNotReady
+		}
+	} else {
+		return ExternalSecretStatusNotReady
+	}
 }

@@ -741,6 +741,8 @@ export type GetExternalSecretResponse = {
   secretPath?: string
   property?: string
   version?: string
+  status?: string
+  timestamp?: string
 }
 
 export class ClustersService {

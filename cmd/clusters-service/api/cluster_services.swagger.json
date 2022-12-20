@@ -1792,6 +1792,12 @@
         },
         "version": {
           "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
         }
       }
     },
