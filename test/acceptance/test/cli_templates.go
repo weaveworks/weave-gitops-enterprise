@@ -6,12 +6,25 @@ import (
 	"path"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
 
+func waitForTemplatesCli(templateCpunt int) (stdOut, stdErr string) {
+	ginkgo.By("And wait for Templates to be appear", func() {
+		gomega.Eventually(func(g gomega.Gomega) {
+			stdOut, stdErr = runGitopsCommand(`get templates`)
+			g.Expect(stdErr).Should(gomega.BeEmpty())
+			g.Expect(strings.Count(stdOut, "\n")).Should(gomega.Equal(templateCpunt))
+		}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), "The number of template rows should be equal to number of templates created")
+	})
+	return stdOut, stdErr
+}
+
 var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), func() {
+	var templateNamespaces []string
 	var stdOut string
 	var stdErr string
 	var repoAbsolutePath string
@@ -20,6 +33,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 	ginkgo.AfterEach(func() {
 		_ = runCommandPassThrough("kubectl", "delete", "CapiTemplate", "--all")
 		_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
+		deleteNamespace(templateNamespaces)
 	})
 
 	ginkgo.Context("[CLI] When no Templates are available in the cluster", func() {
@@ -44,7 +58,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 			stdOut, stdErr = runGitopsCommand(`get templates`)
 
 			ginkgo.By("Then I should see template table header", func() {
-				gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`NAME\s+PROVIDER[\s\w]+\s+DESCRIPTION\s+ERROR`))
 			})
 
 			ginkgo.By("And I should see template rows", func() {
@@ -64,6 +78,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 				"capd-cluster-template":             path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
 				"capz-cluster-template":             path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
 				"invalid-cluster-template":          path.Join(testDataPath, "templates/miscellaneous/invalid-cluster-template.yaml"),
+				"mvp-helmrelease-template":          path.Join(testDataPath, "templates/application/mvp-helmrelease-template.yaml"),
 			}
 			installGitOpsTemplate(templateFiles)
 
@@ -72,7 +87,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 			stdOut, stdErr = runGitopsCommand(`get templates`)
 
 			ginkgo.By("Then I should see template table header", func() {
-				gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`NAME\s+PROVIDER[\s\w]+\s+DESCRIPTION\s+ERROR`))
 			})
 
 			ginkgo.By("And I should see template rows for invalid template", func() {
@@ -110,6 +125,8 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 	ginkgo.Context("[CLI] When Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify gitops can list templates from template library", func() {
+			templateNamespaces = []string{"dev-system", "test-system"}
+			createNamespace(templateNamespaces)
 
 			templateFiles := map[string]string{
 				"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/aws/cluster-template-eks-fargate.yaml"),
@@ -117,21 +134,21 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 				"capa-cluster-template":             path.Join(testDataPath, "templates/cluster/aws/cluster-template-ec2.yaml"),
 				"capz-cluster-template":             path.Join(testDataPath, "templates/cluster/azure/cluster-template-e2e.yaml"),
 				"capd-cluster-template":             path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				"git-repository-template":           path.Join(testDataPath, "templates/source/git-repository-template.yaml"),
+				"helm-repository-template":          path.Join(testDataPath, "templates/source/helm-repository-template.yaml"),
+				"mvp-helmrelease-template":          path.Join(testDataPath, "templates/application/mvp-helmrelease-template.yaml"),
 			}
 			installGitOpsTemplate(templateFiles)
 
 			noOfTemplates := len(templateFiles)
-			stdOut, stdErr = runGitopsCommand(`get templates`)
+			stdOut, stdErr = waitForTemplatesCli(noOfTemplates)
 
 			ginkgo.By("Then I should see template table header", func() {
-				gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`NAME\s+PROVIDER\s+DESCRIPTION\s+ERROR`))
+				gomega.Eventually(stdOut).Should(gomega.MatchRegexp(`NAME\s+PROVIDER[\s\w]+\s+DESCRIPTION\s+ERROR`))
 			})
 
+			actualTemplateList, _ := StringToLines(stdOut)
 			ginkgo.By("And I should see ordered list of templates", func() {
-				re := regexp.MustCompile(`cap[azd]+-cluster-template.+\s+(azure|aws|docker)\s+`)
-				matched_list := re.FindAllString(stdOut, noOfTemplates)
-				gomega.Eventually(len(matched_list)).Should(gomega.Equal(noOfTemplates), "The number of listed templates should be equal to number of templates created")
-
 				var keys []string
 				for k := range templateFiles {
 					keys = append(keys, k)
@@ -139,11 +156,12 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 				sort.Strings(keys)
 
 				for i := 0; i < noOfTemplates; i++ {
-					gomega.Expect(matched_list[i]).Should(gomega.ContainSubstring(keys[i]))
+					gomega.Expect(actualTemplateList[i+1]).Should(gomega.ContainSubstring(keys[i]))
 				}
 			})
 
 			stdOut, stdErr = runGitopsCommand(`get templates --provider aws`)
+			actualTemplateList, _ = StringToLines(stdOut)
 			ginkgo.By("And I should see templates list filtered by provider", func() {
 				awsCluster_list := []string{
 					"capa-cluster-template-eks-fargate",
@@ -153,7 +171,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 				sort.Strings(awsCluster_list)
 
 				for i := 0; i < len(awsCluster_list); i++ {
-					gomega.Eventually(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`%s\s+.*`, awsCluster_list[i])))
+					gomega.Eventually(actualTemplateList[i+1]).Should(gomega.MatchRegexp(fmt.Sprintf(`%s\s+.*`, awsCluster_list[i])))
 				}
 
 				re := regexp.MustCompile(`capd-cluster-template\s+.*`)
