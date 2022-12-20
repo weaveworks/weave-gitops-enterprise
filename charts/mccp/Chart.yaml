@@ -29,7 +29,7 @@ dependencies:
     repository: "file://../templates-controller"
     condition: templates-controller.enabled
   - name: policy-agent
-    version: "2.1.1"
+    version: "2.2.0"
     repository: "https://weaveworks.github.io/policy-agent"
     condition: policy-agent.enabled
   - name: pipeline-controller
