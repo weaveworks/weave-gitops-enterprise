@@ -31,6 +31,8 @@ function resolveLink(obj: string, params: any) {
       return formatURL(Routes.PipelineDetails, params);
     case 'ClusterDashboard':
       return formatClusterDashboardUrl(params.clusterName);
+    case 'Terraform':
+      return formatURL(Routes.TerraformDetail, params);
     default:
       return null;
   }

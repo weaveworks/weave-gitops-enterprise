@@ -17,7 +17,6 @@ function TerraformObjectList({ className }: Props) {
       path={[
         {
           label: 'Terraform Objects',
-          url: '/terraform',
         },
       ]}
     >

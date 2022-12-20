@@ -69,7 +69,6 @@ const TemplatesDashboard: FC<{
       path={[
         {
           label: 'Templates',
-          url: '/templates',
         },
       ]}
     >

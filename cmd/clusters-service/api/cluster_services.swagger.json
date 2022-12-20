@@ -2952,6 +2952,9 @@
         },
         "timestamp": {
           "type": "string"
+        },
+        "manifest": {
+          "type": "string"
         }
       }
     }

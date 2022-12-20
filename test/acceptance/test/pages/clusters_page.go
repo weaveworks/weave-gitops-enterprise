@@ -128,7 +128,7 @@ func GetDeletePRPopup(webDriver *agouti.Page) *DeletePullRequestPopup {
 // GetClustersPage initialises the webDriver object
 func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 	clustersPage := ClustersPage{
-		ClusterHeader:         webDriver.Find(`div[role="heading"] a[href="/clusters"]`),
+		ClusterHeader:         webDriver.Find(`span[title="Clusters"]`),
 		ConnectClusterButton:  webDriver.Find(`#connect-cluster`),
 		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
 		ClustersList:          webDriver.First(`#clusters-list table tbody`),

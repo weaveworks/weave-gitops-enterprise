@@ -22,7 +22,7 @@ const {
 
 const BoxWrapper = styled(Box)<{ severity: string }>`
   div[class*='MuiAlert-root'] {
-    margin: 0 ${base} ${base} ${base};
+    margin-bottom: ${base};
     border-radius: ${xs};
   }
   div[class*='MuiAlert-action'] {

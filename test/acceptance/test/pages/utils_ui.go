@@ -78,7 +78,20 @@ func GetNextWindow(webDriver *agouti.Page) *api.Window {
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to get opened active window")
 
 	gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch back to old window")
+
 	return window
+}
+
+func CloseOtherWindows(webDriver *agouti.Page, enterpriseWindow *api.Window) {
+	gomega.Expect(webDriver.Session().SetWindow(enterpriseWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to specified window")
+
+	windows, err := webDriver.Session().GetWindows()
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to get Windows")
+	for _, window := range windows {
+		if window.ID != enterpriseWindow.ID {
+			CloseWindow(webDriver, window)
+		}
+	}
 }
 
 func ClearFieldValue(field *agouti.Selection) {

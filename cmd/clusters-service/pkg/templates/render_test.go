@@ -117,7 +117,7 @@ spec:
 	_, err = processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME": "testing.name",
 	})
-	assert.ErrorContains(t, err, `template: capi-template:4: function "env" not defined`)
+	assert.ErrorContains(t, err, `template: cluster-template-1:4: function "env" not defined`)
 }
 
 func TestGitopsRender(t *testing.T) {

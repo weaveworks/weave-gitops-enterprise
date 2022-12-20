@@ -32,7 +32,7 @@ export const useIsClusterWithSources = (clusterName: string): boolean => {
   return clusters?.some((c: GitopsCluster) => c.name === clusterName) || false;
 };
 
-export const AddApplicationRequest = ({ ...data }, token: string) => {
+export const AddApplicationRequest = ({ ...data }, token: string | null) => {
   return request('POST', `/v1/enterprise/automations`, {
     body: JSON.stringify(data),
     headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),

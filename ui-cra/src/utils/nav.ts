@@ -41,8 +41,8 @@ export enum Routes {
 
   GitOpsRun = '/gitopsrun',
 
-  TerraformObjects = '/terraform_objects',
-  TerraformDetail = '/terraform',
+  TerraformObjects = '/terraform',
+  TerraformDetail = '/terraform/object',
   Clusters = '/clusters',
   ClusterDashboard = '/cluster',
   DeleteCluster = '/clusters/delete',
@@ -58,4 +58,7 @@ export enum Routes {
   AddCluster = '/templates/:templateName/create',
 
   Templates = '/templates',
+
+  Workspaces= '/workspaces',
+  WorkspaceDetails= '/workspaces/details'
 }
