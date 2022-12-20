@@ -196,7 +196,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 		})
 
-		ginkgo.FIt("Verify Policies and policy set can be installed on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+		ginkgo.It("Verify Policies and policy set can be installed on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
 			existingPoliciesCount := getPoliciesCount()
 			installTestPolicies("management", policiesYaml)
 			installPolicySet("management", policySetYaml)

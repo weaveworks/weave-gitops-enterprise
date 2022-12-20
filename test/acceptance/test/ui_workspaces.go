@@ -106,17 +106,17 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		})
 
 		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
-			existingWorkspacesCount := getWorkspacesCount()
+			initialWorkspacesCount := 0
 			// Install test workspaces on management cluster
 			installTestWorkspaces("management", workspacesYaml)
-
+			existingWorkspacesCount := getWorkspacesCount()
 			pages.NavigateToPage(webDriver, "Workspaces")
 			WorkspacesPage := pages.GetWorkspacesPage(webDriver)
 
 			ginkgo.By("And wait for workspaces to be visibe on the dashboard", func() {
 				gomega.Eventually(WorkspacesPage.WorkspaceHeader).Should(matchers.BeVisible())
 
-				totalWorkspacesCount := existingWorkspacesCount + 2 // They sould be 2 workspaces 'test-team' and 'dev-team'
+				totalWorkspacesCount := initialWorkspacesCount + existingWorkspacesCount // They sould be 2 workspaces 'test-team' and 'dev-team'
 				gomega.Eventually(func(g gomega.Gomega) int {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					time.Sleep(POLL_INTERVAL_1SECONDS)
@@ -203,7 +203,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces", "leaf-workspaces"), func() {
 			ginkgo.Skip("workspaces created normally on the leaf cluster but doesn't appear in the list because of an issue in the product itself and it needs more investigation from dev team")
-			existingWorkspacesCount := getWorkspacesCount()
+			initialWorkspacesCount := 0
 
 			useClusterContext(mgmtClusterContext)
 			// Create leaf cluster namespace
@@ -233,13 +233,15 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			// Install test workspaces on leaf cluster
 			installTestWorkspaces(leafCluster.Name, workspacesYaml)
 
+			existingWorkspacesCount := getWorkspacesCount()
+
 			pages.NavigateToPage(webDriver, "Workspaces")
 			WorkspacesPage := pages.GetWorkspacesPage(webDriver)
 
 			ginkgo.By("And wait for workspaces to be visibe on the dashboard", func() {
 				gomega.Eventually(WorkspacesPage.WorkspaceHeader).Should(matchers.BeVisible())
 
-				totalWorkspacesCount := existingWorkspacesCount + 4 //Should return 4 workspaces (2 on management cluster + 2 on leaf cluster)
+				totalWorkspacesCount := initialWorkspacesCount + existingWorkspacesCount //Should return 4 workspaces (2 on management cluster + 2 on leaf cluster)
 				gomega.Eventually(func(g gomega.Gomega) int {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					time.Sleep(POLL_INTERVAL_1SECONDS)
