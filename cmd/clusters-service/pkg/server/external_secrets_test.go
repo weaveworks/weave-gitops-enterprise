@@ -323,3 +323,123 @@ func TestGetExternalSecret(t *testing.T) {
 		assert.Equal(t, tt.response.Version, res.Version, "version is not correct")
 	}
 }
+
+func TestListSecretStores(t *testing.T) {
+	clusters := []struct {
+		name  string
+		state []runtime.Object
+	}{
+		{
+			name: "management",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a",
+					},
+				},
+				&esv1beta1.SecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "secret-store-1",
+						Namespace: "namespace-a",
+					},
+				},
+				&esv1beta1.ClusterSecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "cluster-secret-store-1",
+					},
+				},
+			},
+		},
+		{
+			name: "leaf-1",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-b",
+					},
+				},
+				&esv1beta1.SecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "secret-store-2",
+						Namespace: "namespace-b",
+					},
+				},
+				&esv1beta1.ClusterSecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "cluster-secret-store-2",
+					},
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		request  *capiv1_proto.ListExternalSecretStoresRequest
+		response *capiv1_proto.ListExternalSecretStoresResponse
+		err      bool
+	}{
+		{
+			request: &capiv1_proto.ListExternalSecretStoresRequest{
+				ClusterName: "management",
+			},
+			response: &capiv1_proto.ListExternalSecretStoresResponse{
+				Stores: []*capiv1_proto.ExternalSecretStore{
+					{
+						Kind:      esv1beta1.SecretStoreKind,
+						Name:      "secret-store-1",
+						Namespace: "namespace-a",
+					},
+					{
+						Kind: esv1beta1.ClusterSecretStoreKind,
+						Name: "cluster-secret-store-1",
+					},
+				},
+				Total: 2,
+			},
+		},
+		{
+			request: &capiv1_proto.ListExternalSecretStoresRequest{
+				ClusterName: "leaf-1",
+			},
+			response: &capiv1_proto.ListExternalSecretStoresResponse{
+				Stores: []*capiv1_proto.ExternalSecretStore{
+					{
+						Kind:      esv1beta1.SecretStoreKind,
+						Name:      "secret-store-2",
+						Namespace: "namespace-b",
+					},
+					{
+						Kind: esv1beta1.ClusterSecretStoreKind,
+						Name: "cluster-secret-store-2",
+					},
+				},
+				Total: 2,
+			},
+		},
+		{
+			request: &capiv1_proto.ListExternalSecretStoresRequest{
+				ClusterName: uuid.NewString(),
+			},
+			err: true,
+		},
+	}
+
+	clustersClients := map[string]client.Client{}
+	for _, cluster := range clusters {
+		clustersClients[cluster.name] = createClient(t, cluster.state...)
+	}
+
+	s := getServer(t, clustersClients, nil)
+
+	for _, tt := range tests {
+		res, err := s.ListExternalSecretStores(context.Background(), tt.request)
+		if err != nil {
+			if tt.err {
+				continue
+			}
+			t.Fatalf("got unexpected error when getting external secret, error: %v", err)
+		}
+		assert.ElementsMatch(t, tt.response.Stores, res.Stores, "stores do not match expected stores")
+		assert.Equal(t, tt.response.Total, res.Total, "total items number is not correct")
+	}
+}
