@@ -3,6 +3,7 @@ package acceptance
 import (
 	"fmt"
 	"path"
+	"time"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -116,13 +117,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 				gomega.Eventually(WorkspacesPage.WorkspaceHeader).Should(matchers.BeVisible())
 
 				totalWorkspacesCount := initialWorkspacesCount + existingWorkspacesCount // They sould be 2 workspaces 'test-team' and 'dev-team'
-				// gomega.Eventually(func(g gomega.Gomega) int {
-				// 	gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-				// 	time.Sleep(POLL_INTERVAL_1SECONDS)
-				// 	return WorkspacesPage.CountWorkspaces()
-				// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
 				logger.Info("Existing number of workspaces int the list is :", totalWorkspacesCount)
-				gomega.Eventually(totalWorkspacesCount).Should(gomega.Equal(2), fmt.Sprintf("There should be '2' workspaces in Workspaces list but found '%d'", totalWorkspacesCount))
+				gomega.Eventually(totalWorkspacesCount).Should(gomega.Equal(2), fmt.Sprintf("There should be '2' workspaces in the Workspaces list but found '%d'", totalWorkspacesCount))
+
+				gomega.Eventually(func(g gomega.Gomega) int {
+					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					time.Sleep(POLL_INTERVAL_1SECONDS)
+					return WorkspacesPage.CountWorkspaces()
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
@@ -242,13 +244,15 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 				gomega.Eventually(WorkspacesPage.WorkspaceHeader).Should(matchers.BeVisible())
 
 				totalWorkspacesCount := initialWorkspacesCount + existingWorkspacesCount //Should return 4 workspaces (2 on management cluster + 2 on leaf cluster)
-				// gomega.Eventually(func(g gomega.Gomega) int {
-				// 	gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
-				// 	time.Sleep(POLL_INTERVAL_1SECONDS)
-				// 	return WorkspacesPage.CountWorkspaces()
-				// }, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
+
 				logger.Info("Existing number of workspaces int the list is :", totalWorkspacesCount)
 				gomega.Eventually(totalWorkspacesCount).Should(gomega.Equal(4), fmt.Sprintf("There should be '4' workspaces in the Workspaces list but found '%d'", totalWorkspacesCount))
+
+				gomega.Eventually(func(g gomega.Gomega) int {
+					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
+					time.Sleep(POLL_INTERVAL_1SECONDS)
+					return WorkspacesPage.CountWorkspaces()
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
