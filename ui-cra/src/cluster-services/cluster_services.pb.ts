@@ -70,6 +70,7 @@ export type RenderTemplateRequest = {
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
   templateNamespace?: string
+  externalsecrets?: ExternalSecret[]
 }
 
 export type CommitFile = {
@@ -92,6 +93,7 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
+  externalSecretsFiles?: CommitFile[]
   costEstimate?: CostEstimate
 }
 
@@ -102,6 +104,7 @@ export type RenderAutomationRequest = {
 export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
   helmReleaseFiles?: CommitFile[]
+  externalSecretsFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -211,6 +214,7 @@ export type CreatePullRequestRequest = {
   templateNamespace?: string
   templateKind?: string
   previousValues?: PreviousValues
+  externalsecrets?: ExternalSecret[]
 }
 
 export type PreviousValues = {
@@ -218,6 +222,7 @@ export type PreviousValues = {
   credentials?: Credential
   values?: ProfileValues[]
   kustomizations?: Kustomization[]
+  externalsecrets?: ExternalSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -402,7 +407,40 @@ export type ClusterAutomation = {
   isControlPlane?: boolean
   kustomization?: Kustomization
   helmRelease?: HelmRelease
+  externalSecret?: ExternalSecret
   filePath?: string
+}
+
+export type ExternalSecret = {
+  metadata?: Metadata
+  spec?: ExternalSecretSpec
+}
+
+export type ExternalSecretSpec = {
+  refreshInterval?: string
+  secretStoreRef?: externalSecretStoreRef
+  target?: externalSecretTarget
+  data?: externalSecretData
+}
+
+export type externalSecretStoreRef = {
+  name?: string
+  kind?: string
+}
+
+export type externalSecretTarget = {
+  name?: string
+  creationPolicy?: string
+}
+
+export type externalSecretData = {
+  secretKey?: string
+  remoteRef?: externalSecretRemoteRef
+}
+
+export type externalSecretRemoteRef = {
+  key?: string
+  property?: string
 }
 
 export type Kustomization = {

@@ -911,6 +911,12 @@
                 },
                 "templateNamespace": {
                   "type": "string"
+                },
+                "externalsecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
                 }
               }
             }
@@ -1350,6 +1356,9 @@
         "helmRelease": {
           "$ref": "#/definitions/v1HelmRelease"
         },
+        "externalSecret": {
+          "$ref": "#/definitions/v1ExternalSecret"
+        },
         "filePath": {
           "type": "string",
           "title": "A path to write the resource to in the management git repo"
@@ -1532,6 +1541,12 @@
         },
         "previousValues": {
           "$ref": "#/definitions/v1PreviousValues"
+        },
+        "externalsecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecret"
+          }
         }
       }
     },
@@ -1705,6 +1720,18 @@
         }
       }
     },
+    "v1ExternalSecret": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ExternalSecretSpec"
+        }
+      },
+      "title": "External Secrets template"
+    },
     "v1ExternalSecretItem": {
       "type": "object",
       "properties": {
@@ -1728,6 +1755,23 @@
         },
         "timestamp": {
           "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretSpec": {
+      "type": "object",
+      "properties": {
+        "refreshInterval": {
+          "type": "string"
+        },
+        "secretStoreRef": {
+          "$ref": "#/definitions/v1externalSecretStoreRef"
+        },
+        "target": {
+          "$ref": "#/definitions/v1externalSecretTarget"
+        },
+        "data": {
+          "$ref": "#/definitions/v1externalSecretData"
         }
       }
     },
@@ -2581,6 +2625,12 @@
           "items": {
             "$ref": "#/definitions/v1Kustomization"
           }
+        },
+        "externalsecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecret"
+          }
         }
       },
       "description": "Previous values for a CreatePullRequestRequest."
@@ -2630,6 +2680,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -2646,6 +2702,12 @@
           }
         },
         "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "externalSecretsFiles": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"
@@ -2960,6 +3022,50 @@
           "type": "string"
         },
         "manifest": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretData": {
+      "type": "object",
+      "properties": {
+        "secretKey": {
+          "type": "string"
+        },
+        "remoteRef": {
+          "$ref": "#/definitions/v1externalSecretRemoteRef"
+        }
+      }
+    },
+    "v1externalSecretRemoteRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretStoreRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretTarget": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "creationPolicy": {
           "type": "string"
         }
       }

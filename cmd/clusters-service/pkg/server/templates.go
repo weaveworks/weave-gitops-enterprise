@@ -32,14 +32,16 @@ type GetFilesRequest struct {
 	Credentials      *capiv1_proto.Credential
 	Profiles         []*capiv1_proto.ProfileValues
 	Kustomizations   []*capiv1_proto.Kustomization
+	ExternalSecrets  []*capiv1_proto.ExternalSecret
 }
 
 type GetFilesReturn struct {
-	RenderedTemplate   gitprovider.CommitFile
-	ProfileFiles       []gitprovider.CommitFile
-	KustomizationFiles []gitprovider.CommitFile
-	Cluster            types.NamespacedName
-	CostEstimate       *capiv1_proto.CostEstimate
+	RenderedTemplate     gitprovider.CommitFile
+	ProfileFiles         []gitprovider.CommitFile
+	KustomizationFiles   []gitprovider.CommitFile
+	Cluster              types.NamespacedName
+	CostEstimate         *capiv1_proto.CostEstimate
+	ExternalSecretsFiles []gitprovider.CommitFile
 }
 
 func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind string) (templatesv1.Template, error) {
@@ -237,7 +239,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tm,
-		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
+		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, msg.Externalsecrets},
 		nil,
 	)
 	if err != nil {
@@ -246,6 +248,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 
 	var profileFiles []*capiv1_proto.CommitFile
 	var kustomizationFiles []*capiv1_proto.CommitFile
+	var externalSecretFiles []*capiv1_proto.CommitFile
 
 	if len(files.ProfileFiles) > 0 {
 		for _, f := range files.ProfileFiles {
@@ -259,7 +262,13 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		}
 	}
 
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: *files.RenderedTemplate.Content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
+	if len(files.ExternalSecretsFiles) > 0 {
+		for _, f := range files.ExternalSecretsFiles {
+			externalSecretFiles = append(externalSecretFiles, toCommitFile(f))
+		}
+	}
+
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: *files.RenderedTemplate.Content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
 func GetFiles(
@@ -326,6 +335,8 @@ func GetFiles(
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
+	var externalSecretFiles []gitprovider.CommitFile
+
 	if shouldAddCommonBases(tmpl) {
 		commonKustomization, err := getCommonKustomization(cluster)
 		if err != nil {
@@ -388,7 +399,7 @@ func GetFiles(
 		Content: &content,
 	}
 
-	return &GetFilesReturn{RenderedTemplate: contentFile, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
+	return &GetFilesReturn{RenderedTemplate: contentFile, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
 func shouldAddCommonBases(t templatesv1.Template) bool {
