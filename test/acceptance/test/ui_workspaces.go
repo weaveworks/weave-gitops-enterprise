@@ -105,8 +105,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			deleteTestWorkspaces("management", toBeDeletedWorkspacesYaml)
 		})
 
-		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
-			//initialWorkspacesCount := 0
+		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install test workspaces on management cluster
 			installTestWorkspaces("management", workspacesYaml)
@@ -119,13 +118,12 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 				totalWorkspacesCount := existingWorkspacesCount + 2 // should return 2 workspaces 'test-team' and 'dev-team'
 				logger.Info("Existing number of workspaces int the list is :", totalWorkspacesCount)
-				//gomega.Eventually(totalWorkspacesCount).Should(gomega.Equal(2), fmt.Sprintf("There should be '2' workspaces in the Workspaces list but found '%d'", totalWorkspacesCount))
 
 				gomega.Eventually(func(g gomega.Gomega) int {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 					return WorkspacesPage.CountWorkspaces()
-				}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
+				}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces list", totalWorkspacesCount))
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
@@ -206,7 +204,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces", "leaf-workspaces"), func() {
 			ginkgo.Skip("workspaces created normally on the leaf cluster but doesn't appear in the list because of an issue in the product itself and it needs more investigation from dev team")
-			initialWorkspacesCount := 0
+			existingWorkspacesCount := getWorkspacesCount()
 
 			useClusterContext(mgmtClusterContext)
 			// Create leaf cluster namespace
@@ -236,24 +234,21 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			// Install test workspaces on leaf cluster
 			installTestWorkspaces(leafCluster.Name, workspacesYaml)
 
-			existingWorkspacesCount := getWorkspacesCount()
-
 			pages.NavigateToPage(webDriver, "Workspaces")
 			WorkspacesPage := pages.GetWorkspacesPage(webDriver)
 
 			ginkgo.By("And wait for workspaces to be visibe on the dashboard", func() {
 				gomega.Eventually(WorkspacesPage.WorkspaceHeader).Should(matchers.BeVisible())
 
-				totalWorkspacesCount := initialWorkspacesCount + existingWorkspacesCount //Should return 4 workspaces (2 on management cluster + 2 on leaf cluster)
+				totalWorkspacesCount := existingWorkspacesCount + 4 //Should return 4 workspaces (2 on management cluster + 2 on leaf cluster)
 
 				logger.Info("Existing number of workspaces int the list is :", totalWorkspacesCount)
-				//gomega.Eventually(totalWorkspacesCount).Should(gomega.Equal(4), fmt.Sprintf("There should be '4' workspaces in the Workspaces list but found '%d'", totalWorkspacesCount))
 
 				gomega.Eventually(func(g gomega.Gomega) int {
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 					return WorkspacesPage.CountWorkspaces()
-				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(4), fmt.Sprintf("There should be '%d' workspaces in the Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces list", totalWorkspacesCount))
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
