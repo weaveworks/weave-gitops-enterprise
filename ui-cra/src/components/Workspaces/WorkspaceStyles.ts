@@ -41,8 +41,7 @@ export const useWorkspaceStyle = makeStyles(() =>
     },
   }),
 );
-
-export const CustomSubRouterTabs = styled(SubRouterTabs)(({}) => ({
+export const CustomSubRouterTabs = styled(SubRouterTabs)(props => ({
   '.MuiTabs-root': {
     width: '100%',
     '.MuiTab-root': {
@@ -53,7 +52,7 @@ export const CustomSubRouterTabs = styled(SubRouterTabs)(({}) => ({
     },
   },
   '.Mui-selected': {
-    borderBottom: '3px solid #00b3ec',
+    borderBottom: `3px solid ${props.theme.colors.primary}`,
   },
 }));
 
