@@ -148,8 +148,12 @@ func TestListExternalSecrets(t *testing.T) {
 		clustersClients[cluster.name] = createClient(t, cluster.state...)
 	}
 
+	namespaces := map[string][]v1.Namespace{
+		"management": {v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "namespace-a-1"}}},
+		"leaf-1":     {v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "namespace-x-1"}}},
+	}
 	ctx := context.Background()
-	s := getServer(t, clustersClients, nil)
+	s := getServer(t, clustersClients, namespaces)
 
 	for _, tt := range tests {
 		res, err := s.ListExternalSecrets(ctx, tt.request)
