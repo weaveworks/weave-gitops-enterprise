@@ -35,25 +35,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c27 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.c32 {
+.c26 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -70,6 +52,24 @@ exports[`PipelineDetails snapshots renders 1`] = `
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
   justify-content: space-between;
+}
+
+.c28 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
 }
 
 .c17 {
@@ -90,13 +90,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #737373;
 }
 
-.c31 {
+.c32 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 800;
   text-transform: none;
   font-style: normal;
-  color: #BC3B1D;
+  color: #27AE60;
 }
 
 .c9 svg {
@@ -125,34 +125,34 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: 24px;
 }
 
-.c30 svg {
-  fill: #BC3B1D !important;
+.c31 svg {
+  fill: #27AE60 !important;
   height: 16px;
   width: 16px;
 }
 
-.c30.downward {
+.c31.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c30.upward {
+.c31.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c30 .c16 {
+.c31 .c16 {
   margin-left: 4px;
-  color: #BC3B1D;
+  color: #27AE60;
 }
 
-.c30 img {
+.c31 img {
   width: 16px;
 }
 
-.c29 .c8 .c16 {
+.c30 .c8 .c16 {
   color: #1a1a1a;
   font-weight: 400;
 }
@@ -322,18 +322,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   min-width: 30px;
 }
 
-.c26 {
-  font-size: 20px;
-}
-
-.c26 .c28 span {
-  display: none;
-}
-
-.c26 .c8 img {
-  width: 16px;
-}
-
 .c12 span {
   margin-right: 0px;
 }
@@ -389,6 +377,18 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border: 1px solid #d8d8d8;
   padding: 14px 6px;
   border-radius: 50%;
+}
+
+.c27 {
+  font-size: 20px;
+}
+
+.c27 .c29 span {
+  display: none;
+}
+
+.c27 .c8 img {
+  width: 16px;
 }
 
 @media (min-width:600px) {
@@ -520,7 +520,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c10"
       >
         <a
-          href="/"
+          href="/resources/edit?kind=Pipeline&name=podinfo-02&namespace=flux-system"
           style="pointer-events: none;"
         >
           <div
@@ -689,78 +689,77 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   class="c25"
                 >
                   <div
-                    class="automation"
-                  >
-                    <a
-                      class="c15"
-                      href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
-                    >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        <div
-                          class="c26 WorkloadStatus"
-                        >
-                          <div
-                            class="c7"
-                          >
-                            <div
-                              style="margin-right: 4px;"
-                            >
-                              <div
-                                class="c27 c28 c29 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                              >
-                                <div
-                                  class="c7 c8 c30"
-                                >
-                                  <svg
-                                    aria-hidden="true"
-                                    class="MuiSvgIcon-root"
-                                    focusable="false"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-                                    />
-                                  </svg>
-                                  <span
-                                    class="c16 c31"
-                                    color="alertOriginal"
-                                  >
-                                    Not Ready
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              podinfo
-                            </div>
-                          </div>
-                        </div>
-                      </span>
-                    </a>
-                  </div>
-                  <div
-                    class="c32"
+                    class="c26"
                   >
                     <div
-                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
-                      style="align-self: flex-end;"
+                      class="automation"
                     >
-                      <span>
-                        Specification:
-                      </span>
-                      <span
-                        class="version"
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
                       >
-                        v6.2.0
-                      </span>
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.2.1
+                        </span>
+                      </div>
                     </div>
                     <span
                       class="c33 last-applied-version"
                     >
-                      v6.2.0
+                      v6.2.1
                     </span>
                   </div>
                 </div>
@@ -821,74 +820,78 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   class="c25"
                 >
                   <div
-                    class="automation"
-                  >
-                    <a
-                      class="c15"
-                      href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-qa"
-                    >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        <div
-                          class="c26 WorkloadStatus"
-                        >
-                          <div
-                            class="c7"
-                          >
-                            <div
-                              style="margin-right: 4px;"
-                            >
-                              <div
-                                class="c27 c28 c29 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                              >
-                                <div
-                                  class="c7 c8 c30"
-                                >
-                                  <svg
-                                    aria-hidden="true"
-                                    class="MuiSvgIcon-root"
-                                    focusable="false"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-                                    />
-                                  </svg>
-                                  <span
-                                    class="c16 c31"
-                                    color="alertOriginal"
-                                  >
-                                    Not Ready
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              podinfo
-                            </div>
-                          </div>
-                        </div>
-                      </span>
-                    </a>
-                  </div>
-                  <div
-                    class="c32"
+                    class="c26"
                   >
                     <div
-                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
-                      style="align-self: flex-end;"
+                      class="automation"
                     >
-                      <span>
-                        Specification:
-                      </span>
-                      <span
-                        class="version"
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-qa"
                       >
-                        v6.1.8
-                      </span>
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.8
+                        </span>
+                      </div>
                     </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.8
+                    </span>
                   </div>
                 </div>
               </div>
@@ -928,74 +931,78 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   class="c25"
                 >
                   <div
-                    class="automation"
-                  >
-                    <a
-                      class="c15"
-                      href="/helm_release/details?clusterName=undefined%2Fdev&name=podinfo&namespace=podinfo-02-perf"
-                    >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        <div
-                          class="c26 WorkloadStatus"
-                        >
-                          <div
-                            class="c7"
-                          >
-                            <div
-                              style="margin-right: 4px;"
-                            >
-                              <div
-                                class="c27 c28 c29 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                              >
-                                <div
-                                  class="c7 c8 c30"
-                                >
-                                  <svg
-                                    aria-hidden="true"
-                                    class="MuiSvgIcon-root"
-                                    focusable="false"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-                                    />
-                                  </svg>
-                                  <span
-                                    class="c16 c31"
-                                    color="alertOriginal"
-                                  >
-                                    Not Ready
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              podinfo
-                            </div>
-                          </div>
-                        </div>
-                      </span>
-                    </a>
-                  </div>
-                  <div
-                    class="c32"
+                    class="c26"
                   >
                     <div
-                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
-                      style="align-self: flex-end;"
+                      class="automation"
                     >
-                      <span>
-                        Specification:
-                      </span>
-                      <span
-                        class="version"
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-perf"
                       >
-                        v6.1.8
-                      </span>
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.8
+                        </span>
+                      </div>
                     </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.8
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1055,74 +1062,78 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   class="c25"
                 >
                   <div
-                    class="automation"
-                  >
-                    <a
-                      class="c15"
-                      href="/helm_release/details?clusterName=undefined%2Fprod&name=podinfo&namespace=podinfo-02-prod"
-                    >
-                      <span
-                        class="c16 c17"
-                        color="primary"
-                      >
-                        <div
-                          class="c26 WorkloadStatus"
-                        >
-                          <div
-                            class="c7"
-                          >
-                            <div
-                              style="margin-right: 4px;"
-                            >
-                              <div
-                                class="c27 c28 c29 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                              >
-                                <div
-                                  class="c7 c8 c30"
-                                >
-                                  <svg
-                                    aria-hidden="true"
-                                    class="MuiSvgIcon-root"
-                                    focusable="false"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
-                                    />
-                                  </svg>
-                                  <span
-                                    class="c16 c31"
-                                    color="alertOriginal"
-                                  >
-                                    Not Ready
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              podinfo
-                            </div>
-                          </div>
-                        </div>
-                      </span>
-                    </a>
-                  </div>
-                  <div
-                    class="c32"
+                    class="c26"
                   >
                     <div
-                      class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
-                      style="align-self: flex-end;"
+                      class="automation"
                     >
-                      <span>
-                        Specification:
-                      </span>
-                      <span
-                        class="version"
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=default%2Fprod&name=podinfo&namespace=podinfo-02-prod"
                       >
-                        v6.1.6
-                      </span>
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.6
+                        </span>
+                      </div>
                     </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.6
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1130,9 +1141,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
       </div>
-      <div
-        style="padding-top: 16px;"
-      />
       <div
         class="c34"
       >

@@ -381,9 +381,6 @@ exports[`Applications index test snapshots loading 1`] = `
         </div>
       </div>
       <div
-        style="padding-top: 16px;"
-      />
-      <div
         class="c13"
       >
         <div>
@@ -2133,9 +2130,6 @@ exports[`Applications index test snapshots success 1`] = `
           </div>
         </div>
       </div>
-      <div
-        style="padding-top: 16px;"
-      />
       <div
         class="c41"
       >
