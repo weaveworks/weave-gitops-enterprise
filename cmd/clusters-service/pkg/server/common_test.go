@@ -39,6 +39,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
@@ -55,6 +56,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		gapiv1.AddToScheme,
 		clusterv1.AddToScheme,
 		rbacv1.AddToScheme,
+		esv1beta1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
