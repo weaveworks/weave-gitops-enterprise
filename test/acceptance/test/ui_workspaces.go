@@ -83,7 +83,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 	})
 
 	ginkgo.AfterEach(ginkgo.OncePerOrdered, func() {
-		// Create the oidc user default roles/rolebindings afte tenant tests completed
+		// Create the oidc user default roles/rolebindings afte workspaces tests completed
 		_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 	})
 
@@ -106,17 +106,18 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		})
 
 		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
-			initialWorkspacesCount := 0
+			//initialWorkspacesCount := 0
+			existingWorkspacesCount := getWorkspacesCount()
 			// Install test workspaces on management cluster
 			installTestWorkspaces("management", workspacesYaml)
-			existingWorkspacesCount := getWorkspacesCount()
+
 			pages.NavigateToPage(webDriver, "Workspaces")
 			WorkspacesPage := pages.GetWorkspacesPage(webDriver)
 
 			ginkgo.By("And wait for workspaces to be visibe on the dashboard", func() {
 				gomega.Eventually(WorkspacesPage.WorkspaceHeader).Should(matchers.BeVisible())
 
-				totalWorkspacesCount := initialWorkspacesCount + existingWorkspacesCount // They sould be 2 workspaces 'test-team' and 'dev-team'
+				totalWorkspacesCount := existingWorkspacesCount + 2 // should return 2 workspaces 'test-team' and 'dev-team'
 				logger.Info("Existing number of workspaces int the list is :", totalWorkspacesCount)
 				//gomega.Eventually(totalWorkspacesCount).Should(gomega.Equal(2), fmt.Sprintf("There should be '2' workspaces in the Workspaces list but found '%d'", totalWorkspacesCount))
 
@@ -124,7 +125,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 					return WorkspacesPage.CountWorkspaces()
-				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(2), fmt.Sprintf("There should be '%d' workspaces in the Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
+				}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces table but found '%d'", totalWorkspacesCount, existingWorkspacesCount))
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
