@@ -47,6 +47,55 @@
         ]
       }
     },
+    "/v1/pipelines/approve/{name}": {
+      "post": {
+        "operationId": "Pipelines_ApprovePromotion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ApprovePromotionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "namespace": {
+                  "type": "string"
+                },
+                "env": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
     "/v1/pipelines/{name}": {
       "get": {
         "operationId": "Pipelines_GetPipeline",
@@ -136,6 +185,9 @@
           "type": "string"
         }
       }
+    },
+    "v1ApprovePromotionResponse": {
+      "type": "object"
     },
     "v1ClusterRef": {
       "type": "object",

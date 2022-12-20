@@ -1,6 +1,9 @@
 load('ext://restart_process', 'docker_build_with_restart')
 load('ext://helm_remote', 'helm_remote')
 
+if os.path.exists('Tiltfile.local'):
+   include('Tiltfile.local')
+
 if os.getenv('MANUAL_MODE'):
    trigger_mode(TRIGGER_MODE_MANUAL)
 
@@ -93,7 +96,7 @@ if native_build:
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
       dockerfile="cmd/clusters-service/dev.dockerfile",
-      entrypoint='/app/clusters-service',
+      entrypoint='/app/clusters-service --dev-mode',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'},
       live_update=[
          sync('cmd/clusters-service/bin', '/app'),
