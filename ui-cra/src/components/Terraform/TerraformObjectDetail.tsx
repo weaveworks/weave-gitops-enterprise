@@ -2,7 +2,6 @@ import { Box } from '@material-ui/core';
 import {
   Button,
   Flex,
-  formatURL,
   InfoList,
   Interval,
   KubeStatusIndicator,
@@ -68,7 +67,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
   const toggleSuspend = useToggleSuspendTerraformObject(params);
   const { setNotifications } = useNotifications();
 
-  const { object, yaml, type } = (data || {}) as GetTerraformObjectResponse;
+  const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
 
   const handleSyncClick = () => {
     setSyncing(true);

@@ -5,7 +5,6 @@ import {
   Pipeline,
   PipelineTargetStatus,
 } from '../../../api/pipelines/types.pb';
-import useConfig from '../../../hooks/config';
 
 import { Grid } from '@material-ui/core';
 import {
