@@ -4,7 +4,7 @@ metadata:
   name: capi-templates
 data:
   template1: |
-    apiVersion: capi.weave.works/v1alpha1
+    apiVersion: capi.weave.works/v1alpha2
     kind: CAPITemplate
     metadata:
       name: cluster-template-1
@@ -16,24 +16,25 @@ data:
         - name: REGION
           description: Cluster region.
       resourcetemplates:
-      - apiVersion: cluster.x-k8s.io/v1alpha3
-        kind: Cluster
-        metadata:
-          name: "${CLUSTER_NAME}"
-        spec:
-          clusterNetwork:
-            pods:
-              cidrBlocks: ["192.168.0.0/16"]
-          infrastructureRef:
-            apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-            kind: AWSCluster
+      - content:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
             name: "${CLUSTER_NAME}"
-          controlPlaneRef:
-            kind: KubeadmControlPlane
-            apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            clusterNetwork:
+              pods:
+                cidrBlocks: ["192.168.0.0/16"]
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+              kind: AWSCluster
+              name: "${CLUSTER_NAME}"
+            controlPlaneRef:
+              kind: KubeadmControlPlane
+              apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+              name: "${CLUSTER_NAME}-control-plane"
   template2: |
-    apiVersion: capi.weave.works/v1alpha1
+    apiVersion: capi.weave.works/v1alpha2
     kind: CAPITemplate
     metadata:
       name: cluster-template-2
@@ -47,24 +48,25 @@ data:
         - name: SOME_OTHER_PARAM
           description: Some other param.
       resourcetemplates:
-      - apiVersion: cluster.x-k8s.io/v1alpha3
-        kind: Cluster
-        metadata:
-          name: "${CLUSTER_NAME}"
-        spec:
-          clusterNetwork:
-            pods:
-              cidrBlocks: ["192.168.0.0/16"]
-          infrastructureRef:
-            apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-            kind: AWSCluster
+      - content:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
             name: "${CLUSTER_NAME}"
-          controlPlaneRef:
-            kind: KubeadmControlPlane
-            apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            clusterNetwork:
+              pods:
+                cidrBlocks: ["192.168.0.0/16"]
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+              kind: AWSCluster
+              name: "${CLUSTER_NAME}"
+            controlPlaneRef:
+              kind: KubeadmControlPlane
+              apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+              name: "${CLUSTER_NAME}-control-plane"
   template3: |
-    apiVersion: capi.weave.works/v1alpha1
+    apiVersion: capi.weave.works/v1alpha2
     kind: CAPITemplate
     metadata:
       name: cluster-template-3
@@ -76,24 +78,25 @@ data:
         - name: REGION
           description: Cluster region.
       resourcetemplates:
-      - apiVersion: cluster.x-k8s.io/v1alpha3
-        kind: Cluster
-        metadata:
-          name: "${CLUSTER_NAME}"
-        spec:
-          clusterNetwork:
-            pods:
-              cidrBlocks: ["192.168.0.0/16"]
-          infrastructureRef:
-            apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-            kind: AWSCluster
+      - content:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
             name: "${CLUSTER_NAME}"
-          controlPlaneRef:
-            kind: KubeadmControlPlane
-            apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            clusterNetwork:
+              pods:
+                cidrBlocks: ["192.168.0.0/16"]
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+              kind: AWSCluster
+              name: "${CLUSTER_NAME}"
+            controlPlaneRef:
+              kind: KubeadmControlPlane
+              apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+              name: "${CLUSTER_NAME}-control-plane"
   template4: |
-    apiVersion: capi.weave.works/v1alpha1
+    apiVersion: capi.weave.works/v1alpha2
     kind: CAPITemplate
     metadata:
       name: cluster-template-4
@@ -105,19 +108,20 @@ data:
         - name: REGION
           description: Cluster region.
       resourcetemplates:
-      - apiVersion: cluster.x-k8s.io/v1alpha3
-        kind: Cluster
-        metadata:
-          name: "${CLUSTER_NAME}"
-        spec:
-          clusterNetwork:
-            pods:
-              cidrBlocks: ["192.168.0.0/16"]
-          infrastructureRef:
-            apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-            kind: AWSCluster
+      - content:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
             name: "${CLUSTER_NAME}"
-          controlPlaneRef:
-            kind: KubeadmControlPlane
-            apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            clusterNetwork:
+              pods:
+                cidrBlocks: ["192.168.0.0/16"]
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+              kind: AWSCluster
+              name: "${CLUSTER_NAME}"
+            controlPlaneRef:
+              kind: KubeadmControlPlane
+              apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+              name: "${CLUSTER_NAME}-control-plane"

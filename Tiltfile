@@ -15,6 +15,8 @@ if not os.path.exists("../cluster-bootstrap-controller"):
 if not os.path.exists("../cluster-controller"):
    fail("You need to git clone https://github.com/weaveworks/cluster-controller to a directory next to this")
 
+if not os.path.exists("../templates-controller"):
+   fail("You need to git clone https://github.com/weaveworks/templates-controller to a directory next to this")
 
 # This is needed for javascript access
 if not os.getenv('GITHUB_TOKEN'):
@@ -35,10 +37,8 @@ k8s_yaml(helm(
     values=helm_values,
 ))
 
-k8s_yaml(kustomize('../cluster-controller/config/crd'))
-k8s_yaml(kustomize('../cluster-bootstrap-controller/config/crd'))
-
 docker_build('weaveworks/cluster-controller', '../cluster-controller/')
+docker_build('weaveworks/templates-controller', '../templates-controller/')
 docker_build('weaveworks/cluster-bootstrap-controller', '../cluster-bootstrap-controller/',
    build_args={'GITHUB_BUILD_USERNAME': 'wge-build-bot', 'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN')}
 )

@@ -2,11 +2,14 @@ dependencies:
 - name: cluster-controller
   repository: file://../cluster-controller
   version: 1.0.0
+- name: templates-controller
+  repository: file://../templates-controller
+  version: 0.1.0
 - name: policy-agent
   repository: https://weaveworks.github.io/policy-agent
   version: 2.2.0
 - name: pipeline-controller
   repository: oci://ghcr.io/weaveworks/charts
   version: 0.8.0
-digest: sha256:bac4061360b443273f5e32a874014348c9e8bf0a1d8579df05acb45a6dc47eff
-generated: "2022-12-20T13:27:12.179981527+02:00"
+digest: sha256:7c47a2b47cd2969cdb6c4f6b407c05badd3360f33624f8a8127e0e74bbc79b59
+generated: "2022-12-20T13:54:53.150146+01:00"

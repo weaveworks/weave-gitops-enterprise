@@ -2489,7 +2489,10 @@
       "type": "object",
       "properties": {
         "renderedTemplate": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         },
         "profileFiles": {
           "type": "array",
