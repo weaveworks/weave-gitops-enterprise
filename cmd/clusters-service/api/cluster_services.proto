@@ -225,6 +225,25 @@ service ClustersService {
       get : "/v1/workspaces/{workspaceName}/policies"
     };
   }
+
+  // ListExternalSecrets list external secrets available on all clusters
+  rpc ListExternalSecrets(ListExternalSecretsRequest) returns (ListExternalSecretsResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets"
+    };
+  }
+  // GetExternalSecret get secret details
+  rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets/{externalSecretName}"
+    };
+  }
+  // ListExternalSecretStores list external secrets stores
+  rpc ListExternalSecretStores(ListExternalSecretStoresRequest) returns (ListExternalSecretStoresResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets-stores"
+    };
+  }
 }
 
 
@@ -956,4 +975,56 @@ message GetWorkspacePoliciesResponse{
   string name = 1;
   string clusterName = 2;
   repeated WorkspacePolicy objects = 3;
+}
+
+message ExternalSecretItem {
+  string secretName = 1;
+  string externalSecretName = 2;
+  string namespace = 3;
+  string clusterName = 4;
+  string secretStore = 5;
+  string status = 6;
+  string timestamp = 7;
+}
+
+message ListExternalSecretsRequest {}
+
+message ListExternalSecretsResponse {
+  repeated ExternalSecretItem secrets = 1;
+  int32 total = 2;
+  repeated ListError errors = 4;
+}
+
+message GetExternalSecretRequest{
+  string clusterName = 1;
+  string namespace = 2;
+  string externalSecretName = 3;
+}
+
+message GetExternalSecretResponse{
+  string secretName = 1;
+  string externalSecretName = 2;
+  string clusterName = 3;
+  string namespace = 4;
+  string secretStore = 5;
+  string secretPath = 6;
+  string property = 7;
+  string version = 8;
+  string status = 9;
+  string timestamp = 10;
+}
+  
+message ExternalSecretStore {
+  string kind = 1;
+  string name = 2;
+  string namespace = 3;
+}
+
+message ListExternalSecretStoresRequest{
+  string clusterName = 1;
+}
+
+message ListExternalSecretStoresResponse{
+  repeated ExternalSecretStore stores = 1;
+  int32 total = 2;
 }
