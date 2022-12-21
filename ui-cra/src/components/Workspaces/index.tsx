@@ -2,7 +2,6 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { WorkspacesTable } from './Table';
 import { useListWorkspaces } from '../../contexts/Workspaces';
-import { Routes } from '../../utils/nav';
 
 const WorkspacesList = () => {
   const { data, isLoading } = useListWorkspaces({});

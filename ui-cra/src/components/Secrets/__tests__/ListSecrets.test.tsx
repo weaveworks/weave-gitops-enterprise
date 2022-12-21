@@ -12,8 +12,8 @@ import {
 const ListExternalSecretsResponse = {
   secrets: [
     {
-      secretName: 'weave.categories.organizational-standards',
-      externalSecretName: 'Prohibit Naked Pods From Being Scheduled',
+      secretName: 'weave.categories.organizational-standards Not Ready',
+      externalSecretName: 'Prohibit Naked Pods From Being Scheduled 1-notready',
       namespace: 'weave.policies.prohibit-naked-pods-from-being-scheduled',
       clusterName: 'default/tw-test-cluster',
       secretStore: 'store',
@@ -21,22 +21,22 @@ const ListExternalSecretsResponse = {
       timestamp: '2022-07-30T11:23:55Z',
     },
     {
-      secretName: 'weave.categories.organizational-standards',
-      externalSecretName: 'Prohibit Naked Pods From Being Scheduled',
+      secretName: 'weave.categories.organizational-standards 1',
+      externalSecretName: 'Prohibit Naked Pods From Being Scheduled 1',
       namespace: 'weave.policies.prohibit-naked-pods-from-being-scheduled',
       clusterName: 'default/tw-test-cluster',
       secretStore: 'store',
       status: 'Ready',
-      timestamp: '2022-07-30T11:23:55Z',
+      timestamp: '2022-08-30T11:23:55Z',
     },
     {
-      secretName: 'weave.categories.organizational-standards',
-      externalSecretName: 'Prohibit Naked Pods From Being Scheduled',
+      secretName: 'weave.categories.organizational-standards Ready 2',
+      externalSecretName: 'Prohibit Naked Pods From Being Scheduled 2',
       namespace: '',
       clusterName: 'default/tw-test-cluster',
       secretStore: 'store',
       status: 'Ready',
-      timestamp: '2022-07-30T11:23:55Z',
+      timestamp: '2022-11-30T11:23:55Z',
     },
   ],
   total: 3,
@@ -64,7 +64,7 @@ describe('ListSecrets', () => {
       [EnterpriseClientProvider, { api }],
     ]);
   });
-  it('renders list secret errors', async () => {
+  it('renders list secrets errors', async () => {
     api.ListSecretsReturns = {
       secrets: [],
       total: 0,
@@ -72,8 +72,7 @@ describe('ListSecrets', () => {
         {
           clusterName: 'default/tw-test-cluster',
           namespace: '',
-          message:
-            'no matches for kind "Secret" in version "pac.weave.works/v2beta1"',
+          message: 'First Error message',
         },
         {
           clusterName: 'default/tw-test-cluster',
@@ -91,10 +90,7 @@ describe('ListSecrets', () => {
     // TODO "Move Error tests to shared Test"
 
     const alertMessage = screen.queryByTestId('error-message');
-    
-    expect(alertMessage).toHaveTextContent(
-      'no matches for kind "Secret" in version "pac.weave.works/v2beta1"',
-    );
+    expect(alertMessage).toHaveTextContent('First Error message');
 
     // Next Error
     const nextError = screen.queryByTestId('nextError');
@@ -106,27 +102,17 @@ describe('ListSecrets', () => {
     const prevError = screen.queryByTestId('prevError');
     prevError?.click();
 
-    expect(alertMessage).toHaveTextContent(
-      'no matches for kind "Secret" in version "pac.weave.works/v2beta1"',
-    );
+    expect(alertMessage).toHaveTextContent('First Error message');
 
     // Error Count
     const errorCount = screen.queryByTestId('errorsCount');
     expect(errorCount?.textContent).toEqual('2');
   });
-  it('renders a list of secrets', async () => {
+
+  it('renders a list of secrets and sort by Name', async () => {
     api.ListSecretsReturns = ListExternalSecretsResponse;
+    const secrests = ListExternalSecretsResponse.secrets;
 
-    await act(async () => {
-      const c = wrap(<SecretsList />);
-      render(c);
-    });
-
-    expect(await screen.findByText('Secrets')).toBeTruthy();
-
-  });
-  it('sort policies', async () => {
-    api.ListSecretsReturns = ListExternalSecretsResponse;
     const filterTable = new TestFilterableTable('secrets-list', fireEvent);
 
     await act(async () => {
@@ -135,14 +121,30 @@ describe('ListSecrets', () => {
     });
 
     expect(await screen.findByText('Secrets')).toBeTruthy();
-
-    const sortRowsByName = mappedSecrets(
-      ListExternalSecretsResponse.secrets.sort((a, b) =>
+    const sortRowsBySecretName = mappedSecrets(
+      secrests.sort((a, b) =>
         a.externalSecretName.localeCompare(b.externalSecretName),
       ),
     );
-
-    filterTable.testSorthTableByColumn('Name', sortRowsByName);
-
+    filterTable.testSorthTableByColumn('Name', sortRowsBySecretName);
   });
+  // it('sort Secrets by Age', async () => {
+  //   api.ListSecretsReturns = ListExternalSecretsResponse;
+  //   const secrests = ListExternalSecretsResponse.secrets;
+  //   const filterTable = new TestFilterableTable('secrets-list', fireEvent);
+  //   await act(async () => {
+  //     const c = wrap(<SecretsList />);
+  //     render(c);
+  //   });
+  //   expect(await screen.findByText('Secrets')).toBeTruthy();
+
+  //   const sortRowsByAge = mappedSecrets(
+  //     secrests.sort(({ timestamp }) => {
+  //       const t = new Date(timestamp).getTime();
+  //       return t * 1;
+  //     }),
+  //   );
+
+  //   filterTable.testSorthTableByColumn('Age', sortRowsByAge);
+  // });
 });

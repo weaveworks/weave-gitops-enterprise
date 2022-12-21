@@ -357,13 +357,13 @@ export class WorkspaceClientMock {
 
 export class SecretsClientMock {
   constructor() {
-    this.ListSecrets = this.ListSecrets.bind(this);
+    this.ListExternalSecrets = this.ListExternalSecrets.bind(this);
     this.GetSecret = this.GetSecret.bind(this);
   }
   ListSecretsReturns: ListExternalSecretsResponse = {};
   GetSecretReturns: GetExternalSecretResponse = {};
 
-  ListSecrets() {
+  ListExternalSecrets() {
     return promisify(this.ListSecretsReturns);
   }
   GetSecret() {

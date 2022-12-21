@@ -1,10 +1,8 @@
 import { FC } from 'react';
-import { DataTable, filterConfig, formatURL } from '@weaveworks/weave-gitops';
+import { DataTable, formatURL, Link } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../Shared';
 import { ExternalSecretItem } from '../../../cluster-services/cluster_services.pb';
-import { Link } from 'react-router-dom';
 import { Routes } from '../../../utils/nav';
-import { usePolicyStyle } from '../../Policies/PolicyStyles';
 import moment from 'moment';
 import Status from '../Status';
 
@@ -13,13 +11,8 @@ interface Props {
 }
 
 export const SecretsTable: FC<Props> = ({ secrets }) => {
-  const classes = usePolicyStyle();
-
   return (
-    <TableWrapper
-      id="secrets-list"
-      style={{ minHeight: 'calc(100vh - 233px)' }}
-    >
+    <TableWrapper id="secrets-list">
       <DataTable
         key={secrets?.length}
         rows={secrets}
@@ -31,21 +24,20 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
                 to={formatURL(Routes.SecretDetails, {
                   externalSecretName: s.externalSecretName,
                   clusterName: s.clusterName,
-                  namespace:s.namespace
+                  namespace: s.namespace,
                 })}
-                className={classes.link}
                 data-secret-name={s.externalSecretName}
               >
                 {s.externalSecretName}
               </Link>
             ),
             textSearchable: true,
-            sortValue: ({ name }) => name,
-            maxWidth: 650,
+            sortValue: ({ externalSecretName }) => externalSecretName,
           },
           {
             label: 'Status',
-            value: ({status})=> <Status status={status} />,
+            value: ({ status }) => <Status status={status} />,
+            sortValue: ({ status }) => status,
           },
           {
             label: 'Namespace',
@@ -70,6 +62,7 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
               const t = timestamp && new Date(timestamp).getTime();
               return t * -1;
             },
+            defaultSort: true,
           },
         ]}
       />
