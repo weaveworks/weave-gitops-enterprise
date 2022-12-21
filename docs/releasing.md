@@ -4,6 +4,12 @@
 
 How to release a new version of weave-gitops-enterprise
 
+## Versioning
+
+We follow semantic versioning where
+- New regular releases increases by minor versions (0.11.0, 0.12.0, etc)
+- Other non-regular releases could be released to bug fix or patch increasing it patch version (0.11.1, 0.11.2)
+
 ## Prerequisites
 
 Install [GnuPG](https://gnupg.org/) and [generate a GPG key and add it to your Github account](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key).
@@ -67,7 +73,7 @@ git checkout main
 git pull
 
 # Make sure your local commit is the same as the head on github
-git log 
+git log
 
 # Tag a push an annotated tag
 git tag -a -s v0.9.4 -m "Weave GitOps Enterprise v0.9.4"
@@ -96,7 +102,7 @@ You can use a [previous release](https://github.com/weaveworks/weave-gitops-ente
 - Add a **Breaking Changes** section, calling out any breaking changes in this new release.
 - Add a **Known Issues** section, calling out any known issues in this new release.
 
-Notify your Product Manager at this stage that the release notes are available. They will combine with content from the product newsletter to update the website **after** the release. 
+Notify your Product Manager at this stage that the release notes are available. They will combine with content from the product newsletter to update the website **after** the release.
 
 #### The https://docs.gitops.weave.works/ Enterprise releases page
 
