@@ -43,7 +43,7 @@ func verifyFilterWorkspacesByClusterName(clusterName string, workspaceName strin
 		filterID := "Name: " + workspaceName
 		searchPage := pages.GetSearchPage(webDriver)
 		searchPage.SelectFilter("Name", filterID)
-		gomega.Eventually(workspacesList.CountWorkspaces()).Should(gomega.BeNumerically(">=", 1), fmt.Sprintf("The number of workspaces for selected Name:  '%s' should be equa to or greater than 1", workspaceName))
+		gomega.Eventually(workspacesList.CountWorkspaces()).Should(gomega.BeNumerically(">=", 1), fmt.Sprintf("The number of workspaces for selected Name:  '%s' should be equal to or greater than 1", workspaceName))
 		// Clear the filter
 		searchPage.SelectFilter("Name", filterID)
 	})
