@@ -493,7 +493,7 @@
         ]
       }
     },
-    "/v1/external-secrets/stores": {
+    "/v1/external-secrets-stores": {
       "get": {
         "summary": "ListExternalSecretStores list external secrets stores",
         "operationId": "ClustersService_ListExternalSecretStores",

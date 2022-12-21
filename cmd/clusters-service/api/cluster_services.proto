@@ -241,7 +241,7 @@ service ClustersService {
   // ListExternalSecretStores list external secrets stores
   rpc ListExternalSecretStores(ListExternalSecretStoresRequest) returns (ListExternalSecretStoresResponse) {
     option (google.api.http) = {
-      get : "/v1/external-secrets/stores"
+      get : "/v1/external-secrets-stores"
     };
   }
 }

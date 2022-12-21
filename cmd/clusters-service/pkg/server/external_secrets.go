@@ -280,9 +280,8 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 	}
 	for _, item := range clusterSecretStores.Items {
 		response.Stores = append(response.Stores, &capiv1_proto.ExternalSecretStore{
-			Kind:      item.GetKind(),
-			Name:      item.GetName(),
-			Namespace: item.GetNamespace(),
+			Kind: item.GetKind(),
+			Name: item.GetName(),
 		})
 	}
 
