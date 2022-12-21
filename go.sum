@@ -980,6 +980,7 @@ github.com/mattn/go-oci8 v0.1.1/go.mod h1:wjDx6Xm9q7dFtHJvIlrI99JytznLw5wQ4R+9mN
 github.com/mattn/go-runewidth v0.0.2/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/mattn/go-runewidth v0.0.6/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
+github.com/mattn/go-runewidth v0.0.7/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.9/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-runewidth v0.0.10/go.mod h1:RAqKPSqVFrSLVXbA8x7dzmKdmGzieGRCM46jaSJTDAk=
 github.com/mattn/go-runewidth v0.0.12/go.mod h1:RAqKPSqVFrSLVXbA8x7dzmKdmGzieGRCM46jaSJTDAk=
@@ -990,6 +991,8 @@ github.com/mattn/go-sqlite3 v1.11.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsO
 github.com/mattn/go-sqlite3 v1.14.6/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=
 github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwpU1Y=
 github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
+github.com/mattn/go-tty v0.0.4 h1:NVikla9X8MN0SQAqCYzpGyXv0jY7MNl3HOWD2dkle7E=
+github.com/mattn/go-tty v0.0.4/go.mod h1:u5GGXBtZU6RQoKV8gY5W6UhMudbR5vXnUe7j3pxse28=
 github.com/mattn/goveralls v0.0.2/go.mod h1:8d1ZMHsd7fW6IRPKQh46F2WRpyib5/X4FOpevwGNQEw=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/matttproud/golang_protobuf_extensions v1.0.4 h1:mmDVorXM7PCGKw94cs5zkfA9PSy5pEvNWRP0ET0TIVo=
@@ -1383,8 +1386,8 @@ github.com/weaveworks/templates-controller v0.1.1 h1:+L2td92fTTmRXsIML5xU8JRlU/V
 github.com/weaveworks/templates-controller v0.1.1/go.mod h1:iLs/20GkUY94KzDhRvmctwun7yX3SGJWs8q0gbTu53I=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
-github.com/weaveworks/weave-gitops v0.12.1-0.20221215075450-2a3c5b228b7b h1:Smq8UvN34GWjroPF03qF5zQXTaZQdhgFx4/ILYV2Trc=
-github.com/weaveworks/weave-gitops v0.12.1-0.20221215075450-2a3c5b228b7b/go.mod h1:ejNiyHsnDCv2GJpcdiq+DL7/u1h9g5a4IWyvQZ9WnIM=
+github.com/weaveworks/weave-gitops v0.12.1-0.20221221105535-7fc56d6a1969 h1:7o5/jRVa6oWVjSeJHzxTW/9Bl7QiB/UT4KXhiTkcAvc=
+github.com/weaveworks/weave-gitops v0.12.1-0.20221221105535-7fc56d6a1969/go.mod h1:nKG4yfaKlp77hPJX+PsOT6ilQA2Z0JGLXpqq3+/ieQo=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.76.0 h1:mkmuB27RDVZY/iXR61pEUfIqJ15Iivfu1kc3KZtBICI=
