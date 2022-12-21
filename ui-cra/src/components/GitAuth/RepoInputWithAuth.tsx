@@ -23,7 +23,7 @@ const GitAuthForm = styled(Flex)`
   div[class*='MuiFormControl-root'] {
     padding-bottom: 0;
   }
-  justify-content: space-between;
+  justify-content: flex-start;
   #SELECT_GIT_REPO-group {
     width: 70%;
   }
@@ -34,7 +34,10 @@ type Props = SelectProps & {
   onProviderChange?: (provider: GitProvider) => void;
   isAuthenticated?: boolean;
   disabled?: boolean;
+  formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
+  disableGitRepoSelection?: boolean;
+  value: string;
 };
 
 function RepoInputWithAuth({
@@ -42,7 +45,10 @@ function RepoInputWithAuth({
   onProviderChange,
   isAuthenticated,
   disabled,
+  formData,
   setFormData,
+  disableGitRepoSelection,
+  value,
   ...props
 }: Props) {
   const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
@@ -51,16 +57,27 @@ function RepoInputWithAuth({
     () => getGitRepos(data?.result),
     [data?.result],
   );
-  const value = props.value;
-
   const { gitAuthClient } = React.useContext(GitAuth);
+  const defaultValue = gitRepos.find(
+    repo =>
+      repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] === 'default',
+  )?.obj?.spec?.url;
+
+  console.log(defaultValue);
+  const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
   React.useEffect(() => {
     if (!value) {
       return;
     }
-    const { obj } = JSON.parse(value as string);
-    req(gitAuthClient.ParseRepoURL({ url: obj?.spec?.url }));
+
+    setValueForSelect(value);
+
+    req(
+      gitAuthClient.ParseRepoURL({
+        url: value,
+      }),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gitAuthClient, value]);
 
@@ -90,10 +107,12 @@ function RepoInputWithAuth({
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
+    const gitRepo = gitRepos.find(repo => repo?.obj?.spec?.url === value);
+
     setFormData((prevState: any) => {
       return {
         ...prevState,
-        url: value,
+        url: gitRepo,
       };
     });
   };
@@ -102,18 +121,20 @@ function RepoInputWithAuth({
     <GitAuthForm className={props.className} align start>
       <Select
         error={gitRepos && !!err?.message ? true : false}
-        description={!value || !err ? props.description : err?.message}
+        description={!formData.url || !err ? props.description : err?.message}
         name="repo-select"
         required={true}
         label="SELECT_GIT_REPO"
-        value={value}
+        value={valueForSelect}
         onChange={handleSelectSource}
       >
-        {gitRepos?.map((option, index: number) => (
-          <MenuItem key={index} value={JSON.stringify(option)}>
-            {option?.obj?.spec?.url}
-          </MenuItem>
-        ))}
+        {gitRepos
+          ?.map(gitRepo => gitRepo.obj.spec.url)
+          .map((option, index: number) => (
+            <MenuItem key={index} value={option}>
+              {option}
+            </MenuItem>
+          ))}
       </Select>
       <div className="auth-message">
         {isAuthenticated && (

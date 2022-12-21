@@ -422,7 +422,7 @@ const MCCP: FC<{
                       setOpenDeletePR(true);
                     }}
                     color="secondary"
-                    disabled={selectedCapiClusters.length === 0}
+                    // disabled={selectedCapiClusters.length === 0}
                   >
                     CREATE A PR TO DELETE CLUSTERS
                   </Button>

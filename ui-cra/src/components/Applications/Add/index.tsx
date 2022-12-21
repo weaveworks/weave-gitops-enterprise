@@ -327,12 +327,21 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [setOpenPreview, getKustomizations, setNotifications]);
 
   const handleAddApplication = useCallback(() => {
+    let repositoryUrl = JSON.parse(formData.url).obj.spec.url;
+
+    // initial: ssh://git@github.com:AlinaGoaga/wge-dev-extra.git
+    // needed: https://github.com/AlinaGoaga/wge-dev-extra.git
+
+    if (repositoryUrl.includes('ssh://git@')) {
+      repositoryUrl = 'https://' + repositoryUrl.substring(10);
+    }
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
+      repositoryUrl,
     };
     setLoading(true);
     return AddApplicationRequest(payload, getProviderToken(formData.provider))

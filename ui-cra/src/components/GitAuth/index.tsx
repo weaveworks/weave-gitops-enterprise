@@ -12,7 +12,7 @@ const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
     margin-left: 0;
     margin-right: ${({ theme }) => theme.spacing.small};
     button {
-      min-width: 300px;
+      min-width: 250px;
     }
   }
 `;
@@ -23,12 +23,14 @@ const GitAuth: FC<{
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
+  disableGitRepoSelection?: boolean;
 }> = ({
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
   setEnableCreatePR,
+  disableGitRepoSelection,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, req: check } = useIsAuthenticated();
@@ -64,9 +66,11 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
-        value={formData.url}
+        value={formData?.url?.obj?.spec?.url}
         description=""
+        formData={formData}
         setFormData={setFormData}
+        disableGitRepoSelection={disableGitRepoSelection}
       />
       {showAuthDialog && (
         <GithubDeviceAuthModal

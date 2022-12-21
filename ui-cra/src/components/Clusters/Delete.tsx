@@ -174,6 +174,7 @@ export const DeleteClusterDialog: FC<Props> = ({
                   setEnableCreatePR={setEnableCreatePR}
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
+                  disableGitRepoSelection={true}
                 />
                 <Button
                   id="delete-cluster"
