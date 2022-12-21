@@ -327,7 +327,7 @@ message CostEstimate{
 }
 
 message RenderTemplateResponse {
-  string rendered_template = 1;
+  repeated CommitFile rendered_template = 1;
   repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;

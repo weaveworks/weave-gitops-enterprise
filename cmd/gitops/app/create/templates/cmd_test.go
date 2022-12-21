@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"google.golang.org/protobuf/testing/protocmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,11 +29,11 @@ func Test_parseTemplate(t *testing.T) {
 				templateFile: "testdata/template.yaml",
 			},
 			expected: &gapiv1.GitOpsTemplate{
-				TypeMeta:   metav1.TypeMeta{Kind: "GitOpsTemplate", APIVersion: "templates.weave.works/v1alpha1"},
+				TypeMeta:   metav1.TypeMeta{Kind: "GitOpsTemplate", APIVersion: "templates.weave.works/v1alpha2"},
 				ObjectMeta: metav1.ObjectMeta{Name: "test-template", Namespace: "default"},
-				Spec: templates.TemplateSpec{
+				Spec: templatesv1.TemplateSpec{
 					Description: "This is a sample WGE template to test parsing functionality.",
-					Params: []templates.TemplateParam{
+					Params: []templatesv1.TemplateParam{
 						{Name: "CLUSTER_NAME", Description: "Name of the cluster.", Required: false},
 						{Name: "RESOURCE_NAME", Description: "Name of the template.", Required: false},
 						{Name: "NAMESPACE", Description: "Namespace to create the resource in.", Required: false},
@@ -41,10 +41,14 @@ func Test_parseTemplate(t *testing.T) {
 						{Name: "GIT_REPO_NAME", Description: "Name of the configuring git repository.", Required: false},
 						{Name: "PATH", Description: "Path to the generated resource.", Required: false},
 					},
-					ResourceTemplates: []templates.ResourceTemplate{
+					ResourceTemplates: []templatesv1.ResourceTemplate{
 						{
-							RawExtension: runtime.RawExtension{
-								Raw: []byte(`{"apiVersion":"kustomize.toolkit.fluxcd.io/v1beta2","kind":"Kustomization","metadata":{"name":"${RESOURCE_NAME}","namespace":"${NAMESPACE}"},"spec":{"interval":"1h","path":"${TEMPLATE_PATH}","sourceRef":{"kind":"GitRepository","name":"${GIT_REPO_NAME}","namespace":"${GIT_REPO_NAMESPACE}"}}}`),
+							Content: []templatesv1.ResourceTemplateContent{
+								{
+									RawExtension: runtime.RawExtension{
+										Raw: []byte(`{"apiVersion":"kustomize.toolkit.fluxcd.io/v1beta2","kind":"Kustomization","metadata":{"name":"${RESOURCE_NAME}","namespace":"${NAMESPACE}"},"spec":{"interval":"1h","path":"${TEMPLATE_PATH}","sourceRef":{"kind":"GitRepository","name":"${GIT_REPO_NAME}","namespace":"${GIT_REPO_NAMESPACE}"}}}`),
+									},
+								},
 							},
 						},
 					},

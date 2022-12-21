@@ -91,7 +91,7 @@ export type CostEstimate = {
 }
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: string
+  renderedTemplate?: CommitFile[]
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate

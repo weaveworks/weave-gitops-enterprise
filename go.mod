@@ -60,6 +60,7 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
+	github.com/weaveworks/templates-controller v0.1.1
 	github.com/xanzy/go-gitlab v0.76.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/oauth2 v0.2.0
@@ -306,7 +307,7 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/net v0.4.0
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
 	golang.org/x/text v0.5.0

@@ -10,6 +10,7 @@ tenants:
         url: https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages
     allowedClusters:
       - kubeConfig: wge-leaf-tenant-kind-kubeconfig
+      - kubeConfig: workspaces-leaf-cluster-test-kubeconfig
     teamRBAC:
       groupNames:
         - wge-test-org:ci-test # CI bot user group (GitHub)

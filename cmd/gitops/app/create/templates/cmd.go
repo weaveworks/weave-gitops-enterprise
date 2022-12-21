@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -75,10 +75,13 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return fmt.Errorf("failed to get template resources: %w", err)
 		}
 
-		renderedTemplate := templateResources.RenderedTemplate.Content
+		renderedTemplate := ""
+		for _, file := range templateResources.RenderedTemplate {
+			renderedTemplate += *file.Content
+		}
 
 		if flags.export {
-			err := export(*renderedTemplate, os.Stdout)
+			err := export(renderedTemplate, os.Stdout)
 			if err != nil {
 				return fmt.Errorf("failed to export rendered template: %w", err)
 			}

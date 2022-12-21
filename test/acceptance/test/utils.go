@@ -509,3 +509,12 @@ func getArchiveFileList(archiveFile string) ([]string, error) {
 	}
 	return fileList, nil
 }
+
+func StringToLines(s string) (lines []string, err error) {
+	scanner := bufio.NewScanner(strings.NewReader(s))
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	err = scanner.Err()
+	return
+}

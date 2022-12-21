@@ -16,6 +16,7 @@ type NavbarwebDriver struct {
 	Applications *agouti.Selection
 	Policies     *agouti.Selection
 	Violations   *agouti.Selection
+	Workspaces   *agouti.Selection
 }
 
 // NavbarwebDriver initialises the webDriver object
@@ -27,6 +28,7 @@ func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 		Applications: webDriver.Find(`nav .nav-items a[href="/applications"]`),
 		Policies:     webDriver.Find(`nav .nav-items a[href="/policies"]`),
 		Violations:   webDriver.Find(`nav .nav-items a[href="/clusters/violations"]`),
+		Workspaces:   webDriver.Find(`nav .nav-items a[href="/workspaces"]`),
 	}
 
 	return &navbar
@@ -48,6 +50,8 @@ func NavigateToPage(webDriver *agouti.Page, page string) {
 			gomega.Eventually(navbarPage.Policies.Click).Should(gomega.Succeed())
 		case "Violations":
 			gomega.Eventually(navbarPage.Violations.Click).Should(gomega.Succeed())
+		case "Workspaces":
+			gomega.Eventually(navbarPage.Workspaces.Click).Should(gomega.Succeed())
 		}
 	})
 }

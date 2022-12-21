@@ -47,7 +47,6 @@ interface TabPanelProps {
 }
 interface TabContent {
   tabName: string;
-  value?: string;
   files?: CommitFile[];
 }
 
@@ -90,42 +89,29 @@ const Preview: FC<{
     setValue(newValue);
   };
 
-  const getContent = (files: CommitFile[] | undefined) =>
-    files?.map(file => file.content).join('\n---\n');
-
   const tabsContent: Array<TabContent> =
     context === 'app'
       ? [
           {
             tabName: 'Kustomizations',
-            value: getContent(PRPreview.kustomizationFiles),
             files: PRPreview.kustomizationFiles,
           },
           {
             tabName: 'Helm Releases',
-            value: getContent((PRPreview as AppPRPreview).helmReleaseFiles),
             files: (PRPreview as AppPRPreview).helmReleaseFiles,
           },
         ]
       : [
           {
             tabName: 'Resource Definition',
-            value: (PRPreview as ClusterPRPreview).renderedTemplate,
-            files: [
-              {
-                path: 'cluster_definition.yaml',
-                content: (PRPreview as ClusterPRPreview).renderedTemplate,
-              },
-            ],
+            files: (PRPreview as ClusterPRPreview).renderedTemplate,
           },
           {
             tabName: 'Profiles',
-            value: getContent((PRPreview as ClusterPRPreview).profileFiles),
             files: (PRPreview as ClusterPRPreview).profileFiles,
           },
           {
             tabName: 'Kustomizations',
-            value: getContent(PRPreview.kustomizationFiles),
             files: PRPreview.kustomizationFiles,
           },
         ];
@@ -177,8 +163,10 @@ const Preview: FC<{
         aria-label="pr-preview-sections"
         selectionFollowsFocus={true}
       >
-        {tabsContent.map(({ tabName, value }, index) =>
-          value === '' ? (
+        {tabsContent.map(({ tabName, files }, index) =>
+          files?.length ? (
+            <Tab key={index} className="tab-label" label={tabName} />
+          ) : (
             <Tooltip
               title={`No ${getTooltipText(
                 tabName,
@@ -190,25 +178,28 @@ const Preview: FC<{
                   key={index}
                   className="tab-label"
                   label={tabName}
-                  disabled={value === ''}
+                  disabled
                 />
               </div>
             </Tooltip>
-          ) : (
-            <Tab key={index} className="tab-label" label={tabName} />
           ),
         )}
       </Tabs>
       <DialogContent>
         {tabsContent.map((tab, index) => (
           <TabPanel value={value} index={index} key={index}>
-            <SyntaxHighlighter
-              language="yaml"
-              style={darcula}
-              wrapLongLines="pre-wrap"
-            >
-              {tab.value}
-            </SyntaxHighlighter>
+            {tab.files?.map(file => (
+              <div key={file.path}>
+                <Typography variant="h6">{file.path}</Typography>
+                <SyntaxHighlighter
+                  language="yaml"
+                  style={darcula}
+                  wrapLongLines="pre-wrap"
+                >
+                  {file.content}
+                </SyntaxHighlighter>
+              </div>
+            ))}
           </TabPanel>
         ))}
       </DialogContent>
