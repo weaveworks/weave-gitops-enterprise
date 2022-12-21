@@ -658,7 +658,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
               formError={formError}
-              disableGitRepoSelection={resource}
+              enableGitRepoSelection={!resource}
             />
             {loading ? (
               <LoadingPage className="create-loading" />

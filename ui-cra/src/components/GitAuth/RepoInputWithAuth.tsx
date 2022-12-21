@@ -36,7 +36,7 @@ type Props = SelectProps & {
   disabled?: boolean;
   formData: any;
   setFormData: React.Dispatch<React.SetStateAction<any>>;
-  disableGitRepoSelection?: boolean;
+  enableGitRepoSelection?: boolean;
   value: string;
 };
 
@@ -47,7 +47,7 @@ function RepoInputWithAuth({
   disabled,
   formData,
   setFormData,
-  disableGitRepoSelection,
+  enableGitRepoSelection,
   value,
   ...props
 }: Props) {
@@ -58,13 +58,15 @@ function RepoInputWithAuth({
     [data?.result],
   );
   const { gitAuthClient } = React.useContext(GitAuth);
+  // TO DO: test defaultValue
   const defaultValue = gitRepos.find(
     repo =>
       repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] === 'default',
   )?.obj?.spec?.url;
 
-  console.log(defaultValue);
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
+
+  console.log(value);
 
   React.useEffect(() => {
     if (!value) {
@@ -127,6 +129,7 @@ function RepoInputWithAuth({
         label="SELECT_GIT_REPO"
         value={valueForSelect}
         onChange={handleSelectSource}
+        disabled={!enableGitRepoSelection}
       >
         {gitRepos
           ?.map(gitRepo => gitRepo.obj.spec.url)

@@ -23,14 +23,14 @@ const GitAuth: FC<{
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
-  disableGitRepoSelection?: boolean;
+  enableGitRepoSelection?: boolean;
 }> = ({
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
   setEnableCreatePR,
-  disableGitRepoSelection,
+  enableGitRepoSelection,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, req: check } = useIsAuthenticated();
@@ -70,7 +70,7 @@ const GitAuth: FC<{
         description=""
         formData={formData}
         setFormData={setFormData}
-        disableGitRepoSelection={disableGitRepoSelection}
+        enableGitRepoSelection={enableGitRepoSelection}
       />
       {showAuthDialog && (
         <GithubDeviceAuthModal

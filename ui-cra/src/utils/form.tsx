@@ -138,7 +138,7 @@ export const Input: FC<InputProps> = ({
             position="end"
             style={{ paddingRight: weaveTheme.spacing.small }}
           >
-            {error && <ErrorIcon />}
+            {!!error && <ErrorIcon />}
           </InputAdornment>
         }
         required={required}
@@ -191,6 +191,7 @@ export const Select: FC<SelectProps> = ({
   onChange,
   className,
   description,
+  disabled,
 }) => (
   <FormControl id={`${label}-group`} className={className}>
     <InputLabel htmlFor={`${label}-input`} shrink>
@@ -202,6 +203,7 @@ export const Select: FC<SelectProps> = ({
       onChange={onChange}
       value={value}
       variant={variant ?? 'outlined'}
+      disabled={disabled}
     >
       {children ??
         items?.map(item => (

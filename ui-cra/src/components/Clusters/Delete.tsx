@@ -50,6 +50,8 @@ export const DeleteClusterDialog: FC<Props> = ({
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
+  // if you select multiple clusters then you might have multiple gitrepos. how do we want to manage that?
+
   const { deleteCreatedClusters, loading } = useClusters();
   const { setNotifications } = useNotifications();
 
@@ -174,7 +176,7 @@ export const DeleteClusterDialog: FC<Props> = ({
                   setEnableCreatePR={setEnableCreatePR}
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
-                  disableGitRepoSelection={true}
+                  enableGitRepoSelection={true}
                 />
                 <Button
                   id="delete-cluster"
