@@ -109,9 +109,11 @@ export const ContentWrapper: FC<Props> = ({
 
       <Content backgroundColor={backgroundColor}>{children}</Content>
 
-      <div style={{ paddingTop: base }}>
-        <Notifications notifications={bottomNotifications} />
-      </div>
+      {!!bottomNotifications.length && (
+        <div style={{ paddingTop: base }}>
+          <Notifications notifications={bottomNotifications} />
+        </div>
+      )}
       <MemoizedHelpLinkWrapper />
     </div>
   );

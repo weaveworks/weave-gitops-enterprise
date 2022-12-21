@@ -191,3 +191,16 @@ roleRef:
   kind: ClusterRole
   name: gitops-workspaces-reader
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-external-secrets
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-external-secrets-reader
+  apiGroup: rbac.authorization.k8s.io

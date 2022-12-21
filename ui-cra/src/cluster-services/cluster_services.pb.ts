@@ -89,7 +89,7 @@ export type CostEstimate = {
 }
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: string
+  renderedTemplate?: CommitFile[]
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
@@ -741,6 +741,23 @@ export type GetExternalSecretResponse = {
   secretPath?: string
   property?: string
   version?: string
+  status?: string
+  timestamp?: string
+}
+
+export type ExternalSecretStore = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type ListExternalSecretStoresRequest = {
+  clusterName?: string
+}
+
+export type ListExternalSecretStoresResponse = {
+  stores?: ExternalSecretStore[]
+  total?: number
 }
 
 export class ClustersService {
@@ -836,5 +853,8 @@ export class ClustersService {
   }
   static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
     return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["externalSecretName"])}`, {...initReq, method: "GET"})
+  }
+  static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
+    return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

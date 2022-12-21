@@ -7,8 +7,8 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -49,7 +49,9 @@ func TestToTemplate(t *testing.T) {
 				ct.Spec.Description = "this is test template 1"
 				ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 					{
-						RawExtension: rawExtension(`{
+						Content: []templatesv1.ResourceTemplateContent{
+							{
+								RawExtension: rawExtension(`{
 							"apiVersion": "fooversion",
 							"kind": "fookind",
 							"metadata": {
@@ -59,6 +61,8 @@ func TestToTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							},
+						},
 					},
 				}
 			}),
@@ -90,7 +94,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
@@ -131,7 +135,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations with parameters",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
@@ -166,7 +170,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations with go-template parameters",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
@@ -218,7 +222,7 @@ func makeErrorTemplate(t *testing.T, rawData string) *capiv1.CAPITemplate {
 		ct.Spec.Description = ""
 		ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
-				RawExtension: rawExtension(rawData),
+				Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(rawData)}},
 			},
 		}
 	})

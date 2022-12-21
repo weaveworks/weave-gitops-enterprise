@@ -1,4 +1,4 @@
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template
@@ -19,19 +19,21 @@ spec:
               interval: "${INTERVAL}"
       - name: foo
   resourcetemplates:
-    - apiVersion: cluster.x-k8s.io/v1alpha3
-      kind: Cluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-      spec:
-        clusterNetwork:
-          pods:
-            cidrBlocks: ["192.168.0.0/16"]
-        infrastructureRef:
-          apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-          kind: AWSCluster
-          name: "${CLUSTER_NAME}"
-        controlPlaneRef:
-          kind: KubeadmControlPlane
-          apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-          name: "${CLUSTER_NAME}-control-plane"
+    - path: "clusters/${SPECIAL_CLUSTER_PATH}.yaml"
+      content:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+          spec:
+            clusterNetwork:
+              pods:
+                cidrBlocks: ["192.168.0.0/16"]
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+              kind: AWSCluster
+              name: "${CLUSTER_NAME}"
+            controlPlaneRef:
+              kind: KubeadmControlPlane
+              apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+              name: "${CLUSTER_NAME}-control-plane"
