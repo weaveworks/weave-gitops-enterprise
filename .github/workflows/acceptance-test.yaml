@@ -370,7 +370,7 @@ jobs:
             export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
           fi
 
-          ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
+          ginkgo --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
       - name: Store test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v3.1.1

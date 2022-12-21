@@ -105,7 +105,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			deleteTestWorkspaces("management", toBeDeletedWorkspacesYaml)
 		})
 
-		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
+		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install test workspaces on management cluster
 			installTestWorkspaces("management", workspacesYaml)
@@ -123,7 +123,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 					return WorkspacesPage.CountWorkspaces()
-				}, ASSERTION_3MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces list", totalWorkspacesCount))
+				}, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces list", totalWorkspacesCount))
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
@@ -248,7 +248,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 					gomega.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					time.Sleep(POLL_INTERVAL_1SECONDS)
 					return WorkspacesPage.CountWorkspaces()
-				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces list", totalWorkspacesCount))
+				}, ASSERTION_5MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Equal(totalWorkspacesCount), fmt.Sprintf("There should be '%d' workspaces in the Workspaces list", totalWorkspacesCount))
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspacInList(workspaceName)
