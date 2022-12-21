@@ -70,7 +70,8 @@ export type RenderTemplateRequest = {
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
   templateNamespace?: string
-  externalsecrets?: ExternalSecret[]
+  externalSecrets?: ExternalSecret[]
+  clusterExternalSecrets?: ClusterExternalSecret[]
 }
 
 export type CommitFile = {
@@ -93,8 +94,9 @@ export type RenderTemplateResponse = {
   renderedTemplate?: string
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
-  externalSecretsFiles?: CommitFile[]
   costEstimate?: CostEstimate
+  externalSecretsFiles?: CommitFile[]
+  clusterExternalSecretsFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -105,6 +107,7 @@ export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
   helmReleaseFiles?: CommitFile[]
   externalSecretsFiles?: CommitFile[]
+  clusterExternalSecretsFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -214,7 +217,8 @@ export type CreatePullRequestRequest = {
   templateNamespace?: string
   templateKind?: string
   previousValues?: PreviousValues
-  externalsecrets?: ExternalSecret[]
+  externalSecrets?: ExternalSecret[]
+  clusterExternalSecrets?: ClusterExternalSecret[]
 }
 
 export type PreviousValues = {
@@ -222,7 +226,8 @@ export type PreviousValues = {
   credentials?: Credential
   values?: ProfileValues[]
   kustomizations?: Kustomization[]
-  externalsecrets?: ExternalSecret[]
+  externalSecrets?: ExternalSecret[]
+  clusterExternalSecrets?: ClusterExternalSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -407,8 +412,9 @@ export type ClusterAutomation = {
   isControlPlane?: boolean
   kustomization?: Kustomization
   helmRelease?: HelmRelease
-  externalSecret?: ExternalSecret
   filePath?: string
+  externalSecret?: ExternalSecret
+  clusterExternalSecret?: ClusterExternalSecret
 }
 
 export type ExternalSecret = {
@@ -441,6 +447,37 @@ export type externalSecretData = {
 export type externalSecretRemoteRef = {
   key?: string
   property?: string
+}
+
+export type ClusterExternalSecret = {
+  metadata?: ClusterSecretMetadata
+  spec?: ClusterSecretSpec
+}
+
+export type ClusterSecretMetadata = {
+  name?: string
+}
+
+export type ClusterSecretSpec = {
+  refreshTime?: string
+  namespaceSelector?: NamspaceSelector
+  externalSecretSpec?: ClusterExternalSecretSpec
+}
+
+export type NamspaceSelector = {
+  matchLabels?: MatchLabels
+}
+
+export type MatchLabels = {
+  key?: string
+  value?: string
+}
+
+export type ClusterExternalSecretSpec = {
+  refreshInterval?: string
+  secretStoreRef?: externalSecretStoreRef
+  target?: externalSecretTarget
+  data?: externalSecretData
 }
 
 export type Kustomization = {

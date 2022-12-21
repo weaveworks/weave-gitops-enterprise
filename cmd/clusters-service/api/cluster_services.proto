@@ -299,7 +299,8 @@ message RenderTemplateRequest {
   repeated ProfileValues profiles = 6;
   repeated Kustomization kustomizations = 7;
   string template_namespace = 8;
-  repeated ExternalSecret externalsecrets = 9;
+  repeated ExternalSecret external_secrets = 9;
+  repeated ClusterExternalSecret cluster_external_secrets = 10;
 }
 
 message CommitFile {
@@ -323,8 +324,9 @@ message RenderTemplateResponse {
   string rendered_template = 1;
   repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
-  repeated CommitFile external_secrets_files = 4;
-  CostEstimate costEstimate = 5;
+  CostEstimate costEstimate = 4;
+  repeated CommitFile external_secrets_files = 5;
+  repeated CommitFile cluster_external_secrets_files = 6;
 }
 
 message RenderAutomationRequest {
@@ -335,6 +337,7 @@ message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
   repeated CommitFile external_secrets_files = 3;
+  repeated CommitFile cluster_external_secrets_files = 4;
 }
 
 message ListGitopsClustersRequest {
@@ -450,7 +453,8 @@ message CreatePullRequestRequest {
   string template_namespace = 14;
   string template_kind = 15;
   PreviousValues previous_values = 16;
-  repeated ExternalSecret externalsecrets = 17;
+  repeated ExternalSecret external_secrets = 17;
+  repeated ClusterExternalSecret cluster_external_secrets = 18;
 }
 
 // Previous values for a CreatePullRequestRequest.
@@ -459,7 +463,8 @@ message PreviousValues {
   Credential credentials = 2;
   repeated ProfileValues values = 3;
   repeated Kustomization kustomizations = 4;
-  repeated ExternalSecret externalsecrets = 5;
+  repeated ExternalSecret external_secrets = 5;
+  repeated ClusterExternalSecret cluster_external_secrets = 6;
  }
 
 message CreatePullRequestResponse {
@@ -670,9 +675,10 @@ message ClusterAutomation {
   bool is_control_plane = 2;
   Kustomization kustomization = 3;
   HelmRelease helm_release = 4;
-  ExternalSecret external_secret = 5;
   // A path to write the resource to in the management git repo
-  string file_path = 6;
+  string file_path = 5;
+  ExternalSecret external_secret = 6;
+  ClusterExternalSecret cluster_external_secret = 7;
 }
 
 // External Secrets template
@@ -706,6 +712,38 @@ message externalSecretData {
 message externalSecretRemoteRef {
   string key = 1;
   string property = 2;
+}
+
+// Cluster External Secrets template
+message ClusterExternalSecret {
+  ClusterSecretMetadata metadata = 1;
+  ClusterSecretSpec spec = 2;
+}
+
+message ClusterSecretMetadata {
+  string name = 1;
+}
+
+message ClusterSecretSpec {
+  string refresh_time = 1;
+  NamspaceSelector namespace_selector = 2;
+  ClusterExternalSecretSpec external_secret_spec = 3;
+}
+
+message NamspaceSelector {
+  MatchLabels match_labels = 1;
+}
+
+message MatchLabels {
+  string key = 1;
+  string value = 2;
+}
+
+message ClusterExternalSecretSpec {
+  string refresh_interval = 1;
+  externalSecretStoreRef secret_store_ref = 2;
+  externalSecretTarget target = 3;
+  externalSecretData data = 4;
 }
 
 message Kustomization {

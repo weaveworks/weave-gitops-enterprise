@@ -912,10 +912,16 @@
                 "templateNamespace": {
                   "type": "string"
                 },
-                "externalsecrets": {
+                "externalSecrets": {
                   "type": "array",
                   "items": {
                     "$ref": "#/definitions/v1ExternalSecret"
+                  }
+                },
+                "clusterExternalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ClusterExternalSecret"
                   }
                 }
               }
@@ -1356,12 +1362,44 @@
         "helmRelease": {
           "$ref": "#/definitions/v1HelmRelease"
         },
-        "externalSecret": {
-          "$ref": "#/definitions/v1ExternalSecret"
-        },
         "filePath": {
           "type": "string",
           "title": "A path to write the resource to in the management git repo"
+        },
+        "externalSecret": {
+          "$ref": "#/definitions/v1ExternalSecret"
+        },
+        "clusterExternalSecret": {
+          "$ref": "#/definitions/v1ClusterExternalSecret"
+        }
+      }
+    },
+    "v1ClusterExternalSecret": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1ClusterSecretMetadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ClusterSecretSpec"
+        }
+      },
+      "title": "Cluster External Secrets template"
+    },
+    "v1ClusterExternalSecretSpec": {
+      "type": "object",
+      "properties": {
+        "refreshInterval": {
+          "type": "string"
+        },
+        "secretStoreRef": {
+          "$ref": "#/definitions/v1externalSecretStoreRef"
+        },
+        "target": {
+          "$ref": "#/definitions/v1externalSecretTarget"
+        },
+        "data": {
+          "$ref": "#/definitions/v1externalSecretData"
         }
       }
     },
@@ -1373,6 +1411,28 @@
         },
         "name": {
           "type": "string"
+        }
+      }
+    },
+    "v1ClusterSecretMetadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ClusterSecretSpec": {
+      "type": "object",
+      "properties": {
+        "refreshTime": {
+          "type": "string"
+        },
+        "namespaceSelector": {
+          "$ref": "#/definitions/v1NamspaceSelector"
+        },
+        "externalSecretSpec": {
+          "$ref": "#/definitions/v1ClusterExternalSecretSpec"
         }
       }
     },
@@ -1542,10 +1602,16 @@
         "previousValues": {
           "$ref": "#/definitions/v1PreviousValues"
         },
-        "externalsecrets": {
+        "externalSecrets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ExternalSecret"
+          }
+        },
+        "clusterExternalSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterExternalSecret"
           }
         }
       }
@@ -2321,6 +2387,17 @@
         }
       }
     },
+    "v1MatchLabels": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
     "v1Metadata": {
       "type": "object",
       "properties": {
@@ -2329,6 +2406,14 @@
         },
         "namespace": {
           "type": "string"
+        }
+      }
+    },
+    "v1NamspaceSelector": {
+      "type": "object",
+      "properties": {
+        "matchLabels": {
+          "$ref": "#/definitions/v1MatchLabels"
         }
       }
     },
@@ -2626,10 +2711,16 @@
             "$ref": "#/definitions/v1Kustomization"
           }
         },
-        "externalsecrets": {
+        "externalSecrets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ExternalSecret"
+          }
+        },
+        "clusterExternalSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterExternalSecret"
           }
         }
       },
@@ -2686,6 +2777,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "clusterExternalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -2707,14 +2804,20 @@
             "$ref": "#/definitions/v1CommitFile"
           }
         },
+        "costEstimate": {
+          "$ref": "#/definitions/v1CostEstimate"
+        },
         "externalSecretsFiles": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
         },
-        "costEstimate": {
-          "$ref": "#/definitions/v1CostEstimate"
+        "clusterExternalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },

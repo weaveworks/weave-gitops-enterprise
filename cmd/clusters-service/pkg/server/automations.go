@@ -28,10 +28,11 @@ import (
 )
 
 type GetAutomations struct {
-	KustomizationFiles   []*capiv1_proto.CommitFile
-	HelmReleaseFiles     []*capiv1_proto.CommitFile
-	Clusters             []string
-	ExternalSecretsFiles []*capiv1_proto.CommitFile
+	KustomizationFiles          []*capiv1_proto.CommitFile
+	HelmReleaseFiles            []*capiv1_proto.CommitFile
+	Clusters                    []string
+	ExternalSecretsFiles        []*capiv1_proto.CommitFile
+	ClusterExternalSecretsFiles []*capiv1_proto.CommitFile
 }
 
 func toGitCommitFile(file *capiv1_proto.CommitFile) gitprovider.CommitFile {
@@ -41,7 +42,7 @@ func toGitCommitFile(file *capiv1_proto.CommitFile) gitprovider.CommitFile {
 	}
 }
 
-// CreateAutomationsPullRequest receives a list of {kustomization, helmrelease, cluster, externalsecret}
+// CreateAutomationsPullRequest receives a list of {kustomization, helmrelease, cluster, externalsecret, clusterexternalsecret}
 // generates a kustomization file and/or a helm release file for each provided cluster in the list
 // and creates a pull request for the generated files
 func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_proto.CreateAutomationsPullRequestRequest) (*capiv1_proto.CreateAutomationsPullRequestResponse, error) {
@@ -81,6 +82,11 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 
 	if len(automations.ExternalSecretsFiles) > 0 {
 		for _, f := range automations.ExternalSecretsFiles {
+			files = append(files, toGitCommitFile(f))
+		}
+	}
+	if len(automations.ClusterExternalSecretsFiles) > 0 {
+		for _, f := range automations.ClusterExternalSecretsFiles {
 			files = append(files, toGitCommitFile(f))
 		}
 	}
@@ -145,7 +151,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		return nil, err
 	}
 
-	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automations.KustomizationFiles, HelmReleaseFiles: automations.HelmReleaseFiles, ExternalSecretsFiles: automations.ExternalSecretsFiles}, err
+	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automations.KustomizationFiles, HelmReleaseFiles: automations.HelmReleaseFiles, ExternalSecretsFiles: automations.ExternalSecretsFiles, ClusterExternalSecretsFiles: automations.ClusterExternalSecretsFiles}, err
 }
 
 func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_proto.ClusterAutomation) (*GetAutomations, error) {
@@ -159,6 +165,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 	var kustomizationFiles []*capiv1_proto.CommitFile
 	var helmReleaseFiles []*capiv1_proto.CommitFile
 	var externalSecretsFiles []*capiv1_proto.CommitFile
+	var clusterExternalSecretsFiles []*capiv1_proto.CommitFile
 
 	if len(ca) > 0 {
 		for _, c := range ca {
@@ -214,11 +221,23 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 					Content: *externalSecret.Content,
 				})
 			}
+			if c.ClusterExternalSecret != nil {
+				clusterExternalSecret, err := generateClusterExternalSecretFile(ctx, c.IsControlPlane, cluster, client, c.ClusterExternalSecret, c.FilePath)
+
+				if err != nil {
+					return nil, err
+				}
+
+				clusterExternalSecretsFiles = append(clusterExternalSecretsFiles, &capiv1_proto.CommitFile{
+					Path:    *clusterExternalSecret.Path,
+					Content: *clusterExternalSecret.Content,
+				})
+			}
 			clusters = append(clusters, c.Cluster.Name)
 		}
 	}
 
-	return &GetAutomations{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles, Clusters: clusters, ExternalSecretsFiles: externalSecretsFiles}, nil
+	return &GetAutomations{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles, Clusters: clusters, ExternalSecretsFiles: externalSecretsFiles, ClusterExternalSecretsFiles: clusterExternalSecretsFiles}, nil
 }
 
 func generateHelmReleaseFile(
@@ -309,9 +328,6 @@ func applyCreateAutomationDefaults(msg []*capiv1_proto.ClusterAutomation) {
 		if c.Kustomization != nil && c.Kustomization.Metadata != nil && c.Kustomization.Metadata.Namespace == "" {
 			c.Kustomization.Metadata.Namespace = defaultAutomationNamespace
 		}
-		if c.ExternalSecret != nil && c.ExternalSecret.Metadata != nil && c.ExternalSecret.Metadata.Namespace == "" {
-			c.ExternalSecret.Metadata.Namespace = defaultAutomationNamespace
-		}
 	}
 }
 
@@ -342,8 +358,10 @@ func validateAutomations(ca []*capiv1_proto.ClusterAutomation) error {
 			err = multierror.Append(err, validateHelmRelease(c.HelmRelease))
 		} else if c.ExternalSecret != nil {
 			err = multierror.Append(err, validateExternalSecret(c.ExternalSecret))
+		} else if c.ClusterExternalSecret != nil {
+			err = multierror.Append(err, validateClusterExternalSecret(c.ClusterExternalSecret))
 		} else {
-			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release or external secret"))
+			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release or external secret or cluster external secret"))
 		}
 	}
 
@@ -520,10 +538,11 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 		if externalSecret.Metadata.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("external secret name must be specified"))
 		}
-
-		invalidNamespaceErr := validateNamespace(externalSecret.Metadata.Namespace)
-		if invalidNamespaceErr != nil {
-			err = multierror.Append(err, invalidNamespaceErr)
+		if externalSecret.Metadata.Namespace != "" {
+			invalidNamespaceErr := validateNamespace(externalSecret.Metadata.Namespace)
+			if invalidNamespaceErr != nil {
+				err = multierror.Append(err, invalidNamespaceErr)
+			}
 		}
 	}
 
@@ -542,7 +561,7 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 		err = multierror.Append(err, errors.New("external secret target must be specified"))
 	} else {
 		if externalSecret.Spec.Target.Name == "" {
-			err = multierror.Append(err, fmt.Errorf("Target name must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
+			err = multierror.Append(err, fmt.Errorf("target name must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 		}
 	}
 
@@ -557,6 +576,135 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 		}
 		if externalSecret.Spec.Data.RemoteRef.Property == "" {
 			err = multierror.Append(err, fmt.Errorf("remoteRef property kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
+		}
+	}
+
+	return err
+}
+
+func generateClusterExternalSecretFile(
+	ctx context.Context,
+	isControlPlane bool,
+	cluster types.NamespacedName,
+	kubeClient client.Client,
+	clusterExternalSecret *capiv1_proto.ClusterExternalSecret,
+	filePath string) (gitprovider.CommitFile, error) {
+
+	clusterExternalSecretYAML, err := createClusterExternalSecretObject(clusterExternalSecret)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("failed to create Cluster External Secret object: %s: %w", clusterExternalSecret.Metadata.Name, err)
+	}
+
+	b, err := yaml.Marshal(clusterExternalSecretYAML)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s external secret, %w", clusterExternalSecret.Metadata.Name, err)
+	}
+	es := createNamespacedName(clusterExternalSecret.Metadata.Name, "")
+	clusterExternalSecretPath := getClusterResourcePath(isControlPlane, "clusterexternalsecret", cluster, es)
+	if filePath != "" {
+		clusterExternalSecretPath = filePath
+	}
+
+	clusterExternalSecretContent := string(b)
+
+	file := &gitprovider.CommitFile{
+		Path:    &clusterExternalSecretPath,
+		Content: &clusterExternalSecretContent,
+	}
+
+	return *file, nil
+}
+
+func createClusterExternalSecretObject(es *capiv1_proto.ClusterExternalSecret) (*esv1beta1.ClusterExternalSecret, error) {
+
+	refreshInterval, err := time.ParseDuration(es.Spec.ExternalSecretSpec.RefreshInterval)
+	if err != nil {
+		return &esv1beta1.ClusterExternalSecret{}, err
+	}
+	labels := map[string]string{es.Spec.NamespaceSelector.MatchLabels.Key: es.Spec.NamespaceSelector.MatchLabels.Value}
+
+	generatedClusterExternalSecret := &esv1beta1.ClusterExternalSecret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       esv1beta1.ClusterExtSecretKind,
+			APIVersion: esv1beta1.ClusterExtSecretGroupVersionKind.GroupVersion().String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: es.Metadata.Name,
+		},
+		Spec: esv1beta1.ClusterExternalSecretSpec{
+			NamespaceSelector: metav1.LabelSelector{
+				MatchLabels: labels,
+			},
+			ExternalSecretName: es.Metadata.Name,
+			ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
+				SecretStoreRef: esv1beta1.SecretStoreRef{
+					Name: es.Spec.ExternalSecretSpec.SecretStoreRef.Name,
+					Kind: es.Spec.ExternalSecretSpec.SecretStoreRef.Kind,
+				},
+				RefreshInterval: &metav1.Duration{
+					Duration: refreshInterval,
+				},
+				Target: esv1beta1.ExternalSecretTarget{
+					Name:           es.Spec.ExternalSecretSpec.Target.Name,
+					CreationPolicy: esv1beta1.ExternalSecretCreationPolicy(es.Spec.ExternalSecretSpec.Target.CreationPolicy),
+				},
+				Data: []esv1beta1.ExternalSecretData{
+					{
+						SecretKey: es.Spec.ExternalSecretSpec.Data.SecretKey,
+						RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+							Key:      es.Spec.ExternalSecretSpec.Data.RemoteRef.Key,
+							Property: es.Spec.ExternalSecretSpec.Data.RemoteRef.Property,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return generatedClusterExternalSecret, nil
+}
+
+func validateClusterExternalSecret(clusterExternalSecret *capiv1_proto.ClusterExternalSecret) error {
+	var err error
+
+	if clusterExternalSecret.Metadata == nil {
+		err = multierror.Append(err, errors.New("cluster external secret metadata must be specified"))
+	} else {
+		if clusterExternalSecret.Metadata.Name == "" {
+			err = multierror.Append(err, fmt.Errorf("cluster external secret name must be specified"))
+		}
+	}
+
+	if clusterExternalSecret.Spec.ExternalSecretSpec == nil {
+		err = multierror.Append(err, errors.New("cluster external secret ExternalSecretSpec must be specified"))
+	} else {
+		if clusterExternalSecret.Spec.ExternalSecretSpec.SecretStoreRef.Name == "" {
+			err = multierror.Append(err, fmt.Errorf("secretStoreRef name must be specified in ClusterExternalSecret %s", clusterExternalSecret.Metadata.Name))
+		}
+		if clusterExternalSecret.Spec.ExternalSecretSpec.SecretStoreRef.Kind == "" {
+			err = multierror.Append(err, fmt.Errorf("secretStoreRef kind must be specified in ClusterExternalSecret %s", clusterExternalSecret.Metadata.Name))
+		}
+
+		if clusterExternalSecret.Spec.ExternalSecretSpec.Target == nil {
+			err = multierror.Append(err, errors.New("external secret target must be specified"))
+		} else {
+			if clusterExternalSecret.Spec.ExternalSecretSpec.Target.Name == "" {
+				err = multierror.Append(err, fmt.Errorf("target name must be specified in ClusterExternalSecret %s", clusterExternalSecret.Metadata.Name))
+			}
+		}
+
+		if clusterExternalSecret.Spec.ExternalSecretSpec.Data == nil {
+			err = multierror.Append(err, errors.New("external secret data must be specified"))
+		} else {
+			if clusterExternalSecret.Spec.ExternalSecretSpec.Data.SecretKey == "" {
+				err = multierror.Append(err, fmt.Errorf("secretKey must be specified in ClusterExternalSecret %s", clusterExternalSecret.Metadata.Name))
+			}
+			if clusterExternalSecret.Spec.ExternalSecretSpec.Data.RemoteRef.Key == "" {
+				err = multierror.Append(err, fmt.Errorf("remoteRef key kind must be specified in ClusterExternalSecret %s", clusterExternalSecret.Metadata.Name))
+			}
+			if clusterExternalSecret.Spec.ExternalSecretSpec.Data.RemoteRef.Property == "" {
+				err = multierror.Append(err, fmt.Errorf("remoteRef property kind must be specified in ClusterExternalSecret %s", clusterExternalSecret.Metadata.Name))
+			}
 		}
 	}
 
