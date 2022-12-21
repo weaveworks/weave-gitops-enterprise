@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 
+	"github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 )
 
@@ -30,7 +31,8 @@ func (w WorkspacesPage) FindWorkspacInList(workspaceName string) *WorkspaceInfor
 
 func (w WorkspacesPage) CountWorkspaces() int {
 	workspaces := w.WorkspacesList.All("tr")
-	count, _ := workspaces.Count()
+	count, err := workspaces.Count()
+	gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the workspaces count")
 	return count
 }
 

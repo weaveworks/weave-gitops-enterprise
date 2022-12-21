@@ -11,14 +11,14 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func installTestWorkspaces(clusterName string, workspacesYaml string) {
+func installWorkspaces(clusterName string, workspacesYaml string) {
 
 	ginkgo.By(fmt.Sprintf("Add test workspaces to the '%s' cluster", clusterName), func() {
 		createTenant(workspacesYaml)
 	})
 }
 
-func deleteTestWorkspaces(clusterName string) {
+func deleteWorkspaces(clusterName string) {
 
 	ginkgo.By(fmt.Sprintf("And Finally delete test workspaces from '%s' cluster", clusterName), func() {
 		deleteTenants([]string{getTenantYamlPath()})
@@ -32,7 +32,7 @@ func verifyFilterWorkspacesByClusterName(clusterName string, workspaceName strin
 		filterID := "Cluster: " + clusterName
 		searchPage := pages.GetSearchPage(webDriver)
 		searchPage.SelectFilter("Cluster", filterID)
-		gomega.Eventually(workspacesList.CountWorkspaces()).Should(gomega.BeNumerically(">=", 2), fmt.Sprintf("The number of workspaces for selected cluster:  '%s' should be equal to or greater than 2", clusterName))
+		gomega.Eventually(workspacesList.CountWorkspaces()).Should(gomega.BeNumerically(">=", 2), fmt.Sprintf("The number of workspaces for selected cluster:  '%s' should  equal 2", clusterName))
 		// Clear the filter
 		searchPage.SelectFilter("Cluster", filterID)
 	})
@@ -58,7 +58,7 @@ func verifySearchWorkspaceByName(workspaceName string) {
 		searchPage.SearchName(workspaceName)
 		gomega.Eventually(func(g gomega.Gomega) int {
 			return pages.CountAppViolations(webDriver)
-		}).Should(gomega.BeNumerically(">=", 1), "Search should return '1' workspace in the list")
+		}).Should(gomega.BeNumerically(">=", 1), "Search should return '1'  or greater than workspaces in the list")
 		gomega.Eventually(workspaceInfo.Name.Text).Should(gomega.Equal(workspaceName), "Failed to get the workspace by its name Value in the Workspaces List")
 
 		// Clear the search result
@@ -90,13 +90,13 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		})
 
 		ginkgo.JustAfterEach(func() {
-			deleteTestWorkspaces("management")
+			deleteWorkspaces("management")
 		})
 
 		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
 			existingWorkspacesCount := getWorkspacesCount()
-			// Install test workspaces on management cluster
-			installTestWorkspaces("management", workspacesYaml)
+			// Install workspaces on management cluster
+			installWorkspaces("management", workspacesYaml)
 
 			pages.NavigateToPage(webDriver, "Workspaces")
 			WorkspacesPage := pages.GetWorkspacesPage(webDriver)
@@ -120,11 +120,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 
 			ginkgo.By(fmt.Sprintf("And verify '%s' workspace Namespaces", workspaceName), func() {
-				gomega.Eventually(workspaceInfo.Namespaces).Should(matchers.MatchText(workspaceNamespaces), fmt.Sprintf("Failed to get the expected '%s' workspace Namespaces", workspaceName))
+				gomega.Eventually(workspaceInfo.Namespaces).Should(matchers.MatchText(workspaceNamespaces), fmt.Sprintf("Failed to get the expected Namespaces for '%s' workspace ", workspaceName))
 			})
 
 			ginkgo.By(fmt.Sprintf("And verify '%s' workspace Cluster", workspaceName), func() {
-				gomega.Eventually(workspaceInfo.Cluster).Should(matchers.MatchText(workspaceClusterName), fmt.Sprintf("Failed to get the expected %[1]v workspace Cluster: %[1]v", workspaceName))
+				gomega.Eventually(workspaceInfo.Cluster).Should(matchers.MatchText(workspaceClusterName), fmt.Sprintf("Failed to get the expected Cluster Name for '%s' workspace", workspaceName))
 			})
 			verifyFilterWorkspacesByClusterName("management", workspaceName)
 			verifySearchWorkspaceByName(workspaceName)
@@ -140,6 +140,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		var clusterBootstrapCopnfig string
 		var gitopsCluster string
 		var workspacesYaml string
+		var err string
 
 		patSecret := "workspace-pat"
 		bootstrapLabel := "bootstrap"
@@ -162,9 +163,12 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 				loginUser()
 			}
 			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml")
-			mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			mgmtClusterContext, err = runCommandAndReturnStringOutput("kubectl config current-context")
+			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the management clsuter context")
+
 			createCluster("kind", leafCluster.Name, "")
-			leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+			leafClusterContext, err = runCommandAndReturnStringOutput("kubectl config current-context")
+			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the leaf clsuter context")
 
 			// Add/Install Policy Agent on the leaf cluster
 			installPolicyAgent(leafCluster.Name)
@@ -174,11 +178,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
-			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
+			err := runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			gomega.Expect(err).Should(gomega.BeNil(), "Failed to delete the leaf clsuter bootstrap config")
+
+			err = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
+			gomega.Expect(err).Should(gomega.BeNil(), "Failed to delete the gitops cluster")
 
 			// Delete the test workspaces from management cluster
-			deleteTestWorkspaces("management")
+			deleteWorkspaces("management")
 
 			deleteCluster("kind", leafCluster.Name, "")
 			cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
@@ -187,7 +194,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		})
 
 		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces", "leaf-workspaces"), func() {
-			// ginkgo.Skip("workspaces created normally on the leaf cluster but doesn't appear in the list because of an issue in the product itself and it needs more investigation from dev team")
+			ginkgo.Skip("workspaces created normally on the leaf cluster but doesn't appear in the list because of an issue in the product itself and it needs more investigation from dev team")
 
 			// Create leaf cluster kubeconfig
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
@@ -198,7 +205,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			// Create leaf cluster namespace
 			createNamespace([]string{leafCluster.Namespace})
 			// Install test workspaces on management cluster
-			installTestWorkspaces("management", workspacesYaml)
+			installWorkspaces("management", workspacesYaml)
 			createPATSecret(leafCluster.Namespace, patSecret)
 			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
@@ -214,7 +221,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 			useClusterContext(leafClusterContext)
 			// Installing test workspaces on leaf cluster after leaf-cluster is bootstrap completely
-			installTestWorkspaces(leafCluster.Name, workspacesYaml)
+			installWorkspaces(leafCluster.Name, workspacesYaml)
 
 			useClusterContext(mgmtClusterContext)
 			pages.NavigateToPage(webDriver, "Workspaces")
@@ -245,11 +252,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 
 			ginkgo.By(fmt.Sprintf("And verify '%s' workspace Namespaces", workspaceName), func() {
-				gomega.Eventually(workspaceInfo.Namespaces).Should(matchers.MatchText(workspaceNamespaces), fmt.Sprintf("Failed to get the expected '%s' workspace Namespaces", workspaceName))
+				gomega.Eventually(workspaceInfo.Namespaces).Should(matchers.MatchText(workspaceNamespaces), fmt.Sprintf("Failed to get the expected Namespaces for '%s' workspace ", workspaceName))
 			})
 
 			ginkgo.By(fmt.Sprintf("And verify '%s' workspace Cluster", workspaceName), func() {
-				gomega.Eventually(workspaceInfo.Cluster).Should(matchers.MatchText(workspaceClusterName), fmt.Sprintf("Failed to get the expected %[1]v workspace Cluster: %[1]v", workspaceName))
+				gomega.Eventually(workspaceInfo.Cluster).Should(matchers.MatchText(workspaceClusterName), fmt.Sprintf("Failed to get the expected Cluster Name for '%s' workspace", workspaceName))
 			})
 			verifyFilterWorkspacesByClusterName(leafCluster.Name, workspaceName)
 			verifySearchWorkspaceByName(workspaceName)
