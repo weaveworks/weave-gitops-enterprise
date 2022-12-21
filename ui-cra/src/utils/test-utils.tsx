@@ -38,9 +38,11 @@ import {
 } from '../api/terraform/terraform.pb';
 import {
   GetConfigResponse,
+  GetExternalSecretResponse,
   GetPolicyResponse,
   GetPolicyValidationResponse,
   GetWorkspaceResponse,
+  ListExternalSecretsResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
   ListPolicyValidationsResponse,
@@ -350,6 +352,22 @@ export class WorkspaceClientMock {
   }
   GetWorkspace() {
     return promisify(this.GetWorkspaceReturns);
+  }
+}
+
+export class SecretsClientMock {
+  constructor() {
+    this.ListSecrets = this.ListSecrets.bind(this);
+    this.GetSecret = this.GetSecret.bind(this);
+  }
+  ListSecretsReturns: ListExternalSecretsResponse = {};
+  GetSecretReturns: GetExternalSecretResponse = {};
+
+  ListSecrets() {
+    return promisify(this.ListSecretsReturns);
+  }
+  GetSecret() {
+    return promisify(this.GetSecretReturns);
   }
 }
 
