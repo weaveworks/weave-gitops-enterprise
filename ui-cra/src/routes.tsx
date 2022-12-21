@@ -35,6 +35,8 @@ import AddClusterWithCredentials from './components/Templates/Create';
 import EditResourcePage from './components/Templates/Edit';
 import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail';
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
+import Workspaces from './components/Workspaces';
+import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import { GitProvider } from './api/gitauth/gitauth.pb';
@@ -244,6 +246,12 @@ const AppRoutes = () => {
         path={Routes.TerraformObjects}
         component={withSearchParams(TerraformObjectList)}
       />
+      <Route exact path={Routes.Workspaces} component={Workspaces} />
+      <Route
+        path={Routes.WorkspaceDetails}
+        component={withSearchParams(WorkspaceDetails)}
+      />
+
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}

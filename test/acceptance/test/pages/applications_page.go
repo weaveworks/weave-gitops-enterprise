@@ -8,13 +8,14 @@ import (
 )
 
 type ApplicationsPage struct {
-	ApplicationHeader *agouti.Selection
-	ApplicationCount  *agouti.Selection
-	AddApplication    *agouti.Selection
-	ApplicationsList  *agouti.Selection
-	SupportEmailLink  *agouti.Selection
-	MessageBar        *agouti.Selection
-	Version           *agouti.Selection
+	ApplicationHeader     *agouti.Selection
+	ApplicationHeaderLink *agouti.Selection
+	ApplicationCount      *agouti.Selection
+	AddApplication        *agouti.Selection
+	ApplicationsList      *agouti.Selection
+	SupportEmailLink      *agouti.Selection
+	MessageBar            *agouti.Selection
+	Version               *agouti.Selection
 }
 
 type ApplicationInformation struct {
@@ -38,6 +39,7 @@ type ApplicationDetailPage struct {
 	Events     *agouti.Selection
 	Graph      *agouti.Selection
 	Violations *agouti.Selection
+	Edit       *agouti.Selection
 }
 
 type ApplicationDetail struct {
@@ -158,13 +160,14 @@ func (a ApplicationsPage) ApplicationsHeaderCount() int {
 
 func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	return &ApplicationsPage{
-		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
-		ApplicationCount:  webDriver.Find(`.section-header-count`),
-		AddApplication:    webDriver.FindByButton("ADD AN APPLICATION"),
-		ApplicationsList:  webDriver.First(`table tbody`),
-		SupportEmailLink:  webDriver.FindByLink(`support ticket`),
-		MessageBar:        webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
-		Version:           webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
+		ApplicationHeader:     webDriver.Find(`span[title="Applications"]`),
+		ApplicationHeaderLink: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		ApplicationCount:      webDriver.Find(`.section-header-count`),
+		AddApplication:        webDriver.FindByButton("ADD AN APPLICATION"),
+		ApplicationsList:      webDriver.First(`table tbody`),
+		SupportEmailLink:      webDriver.FindByLink(`support ticket`),
+		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
+		Version:               webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
 }
 
@@ -181,6 +184,7 @@ func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *Applicat
 		Events:     webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/event"`, appType)),
 		Graph:      webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/graph"`, appType)),
 		Violations: webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/violations"`, appType)),
+		Edit:       webDriver.First(`a[href*="resources/edit"] button`),
 	}
 }
 

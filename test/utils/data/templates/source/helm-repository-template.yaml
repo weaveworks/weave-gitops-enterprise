@@ -1,8 +1,8 @@
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: helm-repository-template
-  namespace: default
+  namespace: dev-system
   labels:
     weave.works/template-type: source
   annotations:
@@ -29,13 +29,14 @@ spec:
       description: How often to check for updates
       default: 30s
   resourcetemplates:
-    - apiVersion: source.toolkit.fluxcd.io/v1beta1
-      kind: HelmRepository
-      metadata:
-        name: $[[ .params.RESOURCE_NAME ]]
-        namespace: $[[ .params.NAMESPACE ]]
-        annotations:
-          templates.weave.works/create-request: ""
-      spec:
-        interval: $[[ .params.INTERVAL ]]
-        url: $[[ .params.URL ]]
+    - content:
+        - apiVersion: source.toolkit.fluxcd.io/v1beta1
+          kind: HelmRepository
+          metadata:
+            name: $[[ .params.RESOURCE_NAME ]]
+            namespace: $[[ .params.NAMESPACE ]]
+            annotations:
+              templates.weave.works/create-request: ""
+          spec:
+            interval: $[[ .params.INTERVAL ]]
+            url: $[[ .params.URL ]]

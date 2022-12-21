@@ -10,25 +10,16 @@ fi
 
 set -x 
 
-function get-localhost-ip {
+function get-external-ip {
   local  __resultvar=$1
-  local $interface
-  local locahost_ip
-  for i in {0..10}
-  do
-    if [ "$(uname -s)" == "Linux" ]; then
-      interface=eth$i
-    elif [ "$(uname -s)" == "Darwin" ]; then
-      interface=en$i
-    fi
-    locahost_ip=$(ifconfig $interface | grep -i MASK | awk '{print $2}' | cut -f2 -d: | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
-    if [ -z $locahost_ip ]; then
-      continue
-    else          
-      break
-    fi
-  done  
-  eval $__resultvar="'$locahost_ip'"
+  local worker_name
+  local external_ip
+  
+  if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
+    worker_name=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
+    external_ip=$(kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='${worker_name}')].status.addresses[?(@.type=='ExternalIP')].address}")
+  fi
+  eval $__resultvar="'$external_ip'"
 }
 
 function setup {
@@ -37,13 +28,9 @@ function setup {
     echo "Workspace path is a required argument"
     exit 1
   fi
-
-  get-localhost-ip LOCALHOST_IP
-
+  
   if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ] || [ "$MANAGEMENT_CLUSTER_KIND" == "gke" ]; then
-    WORKER_NAME=$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | head -n 1 | cut -d '/' -f2-)
-    WORKER_NODE_EXTERNAL_IP=$(kubectl get nodes -o jsonpath="{.items[?(@.metadata.name=='${WORKER_NAME}')].status.addresses[?(@.type=='ExternalIP')].address}")
-
+    get-external-ip WORKER_NODE_EXTERNAL_IP
     # Configure inbound UI node ports
     if [ "$MANAGEMENT_CLUSTER_KIND" == "eks" ]; then
       INSTANCE_SECURITY_GROUP=$(aws ec2 describe-instances --filter "Name=ip-address,Values=${WORKER_NODE_EXTERNAL_IP}" --query 'Reservations[*].Instances[*].NetworkInterfaces[0].Groups[0].{sg:GroupId}' --output text)
@@ -57,19 +44,12 @@ function setup {
       # query made by the clusters-service when responding to get /v1/clusters and /v1/templates etc.
       kubectl apply -f ${args[1]}/test/utils/data/rbac/gke-ci-user-cluster-admin-rolebinding.yaml
     fi
-  elif [ -z ${WORKER_NODE_EXTERNAL_IP} ]; then
-    # MANAGEMENT_CLUSTER_KIND is a KIND cluster
-    WORKER_NODE_EXTERNAL_IP=${LOCALHOST_IP}
-  fi
-
-  # Set enterprise cluster CNAME host entry in the hosts file
-  hostEntry=$(cat /etc/hosts | grep "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}")
-  upgradeHostEntry=$(cat /etc/hosts | grep "${LOCALHOST_IP} ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}")
-  if [ -z "${hostEntry}" ] || [ -z "${upgradeHostEntry}" ]; then
-    echo "${WORKER_NODE_EXTERNAL_IP} ${MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
-    echo "${LOCALHOST_IP} ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}" | sudo tee -a /etc/hosts
   fi
   
+  # Set enterprise cluster CNAME host entry mapping in the /etc/hosts file
+  ${args[1]}/test/utils/scripts/hostname-to-ip.sh ${MANAGEMENT_CLUSTER_CNAME}
+  ${args[1]}/test/utils/scripts/hostname-to-ip.sh ${UPGRADE_MANAGEMENT_CLUSTER_CNAME}
+   
   helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
   helm repo add cert-manager https://charts.jetstack.io

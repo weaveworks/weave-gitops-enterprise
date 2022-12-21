@@ -4,10 +4,10 @@ import {
   Link,
   theme,
   useFeatureFlags,
-  V2Routes,
+  V2Routes
 } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
@@ -16,6 +16,7 @@ import { ReactComponent as GitOpsRun } from '../assets/img/gitops-run-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
+import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
@@ -119,6 +120,7 @@ const useStyles = makeStyles({
 
 const NavItems = () => {
   const { data: flagsRes } = useFeatureFlags();
+  const location = useLocation();
   const navItems: Array<NavigationItem> = [
     {
       name: 'CLUSTERS',
@@ -158,6 +160,7 @@ const NavItems = () => {
           link: Routes.Canaries,
           isVisible:
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
+          relatedRoutes: [Routes.CanaryDetails],
         },
       ],
       relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
@@ -180,6 +183,11 @@ const NavItems = () => {
       isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
+      name: 'WORKSPACES',
+      link: Routes.Workspaces,
+      icon: <WorkspacesIcon />,
+    },
+    {
       name: 'FLUX RUNTIME',
       link: V2Routes.FluxRuntime,
       icon: <FluxIcon />,
@@ -200,7 +208,7 @@ const NavItems = () => {
               to={item.link}
               className={`route-nav ${
                 item.relatedRoutes?.some(link =>
-                  window.location.pathname.includes(link),
+                  location.pathname.includes(link),
                 )
                   ? 'nav-link-active'
                   : ''
@@ -220,7 +228,7 @@ const NavItems = () => {
                         key={subItem.name}
                         className={`subroute-nav ${
                           subItem.relatedRoutes?.some(link =>
-                            window.location.pathname.includes(link),
+                            location.pathname.includes(link),
                           )
                             ? 'nav-link-active'
                             : ''

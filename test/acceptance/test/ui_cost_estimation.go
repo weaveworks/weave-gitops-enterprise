@@ -53,7 +53,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -172,7 +172,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -226,7 +226,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})
@@ -286,8 +286,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 					GITOPS_DEFAULT_NAMESPACE))
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to create secret for leaf cluster kubeconfig")
 			})
-			gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
-			loginUser()
+			ginkgo.By("Then I restart the cluster service pod for invalid aws pricing secret to take effect", func() {
+				gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
+				checkClusterService(wgeEndpointUrl)
+				loginUser()
+			})
 		})
 
 		ginkgo.JustAfterEach(func() {
@@ -300,8 +303,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 					GITOPS_DEFAULT_NAMESPACE, GetEnv("AWS_ACCESS_KEY_ID", ""), GetEnv("AWS_SECRET_ACCESS_KEY", "")))
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to create secret for leaf cluster kubeconfig")
 			})
-			gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
-			loginUser()
+			ginkgo.By("Then I restart the cluster service pod for valid aws pricing secret to take effect", func() {
+				gomega.Expect(restartDeploymentPods(DEPLOYMENT_APP, GITOPS_DEFAULT_NAMESPACE)).ShouldNot(gomega.HaveOccurred(), "Failed restart deployment successfully")
+				checkClusterService(wgeEndpointUrl)
+				loginUser()
+			})
 		})
 
 		ginkgo.It("Verify capa cost estimation with invalid pricing secrert", func() {
@@ -320,7 +326,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			})
 
 			createPage := pages.GetCreateClusterPage(webDriver)
-			ginkgo.By("And wait for Create cluster page to be fully rendered", func() {
+			ginkgo.By("And wait for Create resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
 				gomega.Eventually(createPage.CreateHeader).Should(matchers.MatchText(".*Create new resource.*"))
 			})

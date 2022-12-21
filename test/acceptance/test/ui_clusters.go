@@ -125,6 +125,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", ginkgo.Label("ui
 		}
 	})
 
+	ginkgo.AfterEach(func() {
+		pages.CloseOtherWindows(webDriver, enterpriseWindow)
+
+	})
+
 	ginkgo.Context("[UI] When no leaf cluster is connected", func() {
 
 		ginkgo.It("Verify connected cluster dashboard shows only management cluster", func() {

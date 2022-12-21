@@ -17,6 +17,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
+const (
+	pipelineKind       = "Pipeline"
+	pipelineAPIVersion = "pipelines.weave.works/v1alpha1"
+)
+
 func TestGetPipeline(t *testing.T) {
 	ctx := context.Background()
 
@@ -67,6 +72,8 @@ func TestGetPipeline(t *testing.T) {
 		assert.Equal(t, p.Name, res.Pipeline.Name)
 		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
 		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
 
 	t.Run("cluster ref without Namespace", func(t *testing.T) {
@@ -84,9 +91,14 @@ func TestGetPipeline(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		targetStatus := res.Pipeline.Status.Environments[envName].TargetsStatuses[0]
+
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
+		assert.Equal(t, hr.Spec.Chart.Spec.Version, targetStatus.Workloads[0].Version)
+		assert.Equal(t, targetNamespace.Name, targetStatus.Namespace)
+		assert.Equal(t, pipelineNamespace.Name, targetStatus.ClusterRef.Namespace)
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
 
 	t.Run("invalid app ref", func(t *testing.T) {
@@ -109,6 +121,8 @@ func TestGetPipeline(t *testing.T) {
 		assert.Len(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads, 0)
 		assert.Len(t, res.Errors, 1)
 		assert.Equal(t, res.Errors[0], "unknown workload kind for app-1: helmrelease")
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
 }
 

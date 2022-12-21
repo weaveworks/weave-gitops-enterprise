@@ -67,7 +67,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
   const toggleSuspend = useToggleSuspendTerraformObject(params);
   const { setNotifications } = useNotifications();
 
-  const { object, yaml, type } = (data || {}) as GetTerraformObjectResponse;
+  const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
 
   const handleSyncClick = () => {
     setSyncing(true);

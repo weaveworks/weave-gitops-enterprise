@@ -20,9 +20,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
@@ -662,7 +662,7 @@ func TestRenderTemplate(t *testing.T) {
 					})
 					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
@@ -673,6 +673,7 @@ func TestRenderTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							}},
 						},
 					}
 				}),
@@ -692,7 +693,7 @@ func TestRenderTemplate(t *testing.T) {
 					})
 					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
@@ -703,6 +704,7 @@ func TestRenderTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							}},
 						},
 					}
 				}),
@@ -737,11 +739,13 @@ func TestRenderTemplate(t *testing.T) {
 					ct.Spec.Description = "this is test template 1"
 					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []templatesv1.ResourceTemplateContent{
+								{RawExtension: rawExtension(`{
 							"apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha4",
 							"kind": "AWSCluster",
 							"metadata": { "name": "boop" }
-						}`),
+						}`)},
+							},
 						},
 					}
 				}),
@@ -785,13 +789,17 @@ func TestRenderTemplate(t *testing.T) {
 				makeClusterTemplateWithProvider(t, "AWSCluster", func(gt *gapiv1.GitOpsTemplate) {
 					gt.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []templatesv1.ResourceTemplateContent{
+								{
+									RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
 								"name": "${CLUSTER_NAME}"
 							}
 						}`),
+								},
+							},
 						},
 					}
 				}),
@@ -811,7 +819,7 @@ func TestRenderTemplate(t *testing.T) {
 					})
 					ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 						{
-							RawExtension: rawExtension(`{
+							Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(`{
 							"apiVersion":"fooversion",
 							"kind":"fookind",
 							"metadata":{
@@ -822,6 +830,7 @@ func TestRenderTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							}},
 						},
 					}
 				}),
@@ -861,7 +870,7 @@ func TestRenderTemplate(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate[0].Content, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}
@@ -1025,7 +1034,12 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				RenderedTemplate: []*capiv1_protos.CommitFile{
+					{
+						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
+						Path:    "clusters-namespace/dev.yaml",
+					},
+				},
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
@@ -1094,7 +1108,12 @@ status: {}
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				RenderedTemplate: []*capiv1_protos.CommitFile{
+					{
+						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
+						Path:    "clusters-namespace/dev.yaml",
+					},
+				},
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
@@ -1176,7 +1195,12 @@ status: {}
 				TemplateNamespace: "default",
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate:   "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: test-ns\n",
+				RenderedTemplate: []*capiv1_protos.CommitFile{
+					{
+						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
+						Path:    "clusters-namespace/dev.yaml",
+					},
+				},
 				KustomizationFiles: []*capiv1_protos.CommitFile{},
 				ProfileFiles:       []*capiv1_protos.CommitFile{},
 			},
@@ -1264,7 +1288,7 @@ func TestRenderTemplate_MissingRequiredVariable(t *testing.T) {
 	}
 
 	_, err := s.RenderTemplate(context.Background(), renderTemplateRequest)
-	if diff := cmp.Diff(err.Error(), "error rendering template cluster-template-1, missing required parameter: CLUSTER_NAME"); diff != "" {
+	if diff := cmp.Diff(err.Error(), "failed to render template with parameter values: error rendering template cluster-template-1, missing required parameter: CLUSTER_NAME"); diff != "" {
 		t.Fatalf("got the wrong error:\n%s", diff)
 	}
 }
@@ -1338,7 +1362,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate[0].Content, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}
@@ -1505,8 +1529,8 @@ func TestGetFiles_required_profiles(t *testing.T) {
 		Kustomizations: []*capiv1_protos.Kustomization{},
 	}
 
-	path := "ns-foo/cluster-foo/profiles.yaml"
-	templateContent := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expectedPath := "ns-foo/cluster-foo/profiles.yaml"
+	expectedTemplateContent := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -1542,16 +1566,13 @@ spec:
     foo: bar
 status: {}
 `
-	content := simpleTemplate(t, templateContent, struct{ URL string }{URL: ts.URL})
+	expectedContent := simpleTemplate(t, expectedTemplateContent, struct{ URL string }{URL: ts.URL})
 	expected := &GetFilesReturn{
-		RenderedTemplate: gitprovider.CommitFile{
-			Path:    strPtr("ns-foo/cluster-foo.yaml"),
-			Content: strPtr(""),
-		},
+		RenderedTemplate: nil,
 		ProfileFiles: []gitprovider.CommitFile{
 			{
-				Path:    &path,
-				Content: &content,
+				Path:    &expectedPath,
+				Content: &expectedContent,
 			},
 		},
 		CostEstimate: &capiv1_protos.CostEstimate{
@@ -1561,7 +1582,6 @@ status: {}
 				High: 2,
 			},
 		},
-		Cluster: nsn("cluster-foo", "ns-foo"),
 	}
 
 	fakeChartCache := testNewFakeChartCache(t,
@@ -1573,7 +1593,7 @@ status: {}
 		[]helm.Chart{})
 	values := []byte("foo: bar")
 	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
-	files, err := getFiles(
+	files, err := GetFiles(
 		context.TODO(),
 		c,
 		log,
@@ -1607,7 +1627,7 @@ func makeTemplateWithProvider(t *testing.T, clusterKind string, opts ...func(*ca
 	return makeCAPITemplate(t, append(opts, func(c *capiv1.CAPITemplate) {
 		c.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
-				RawExtension: rawExtension(basicRaw),
+				Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(basicRaw)}},
 			},
 		}
 	})...)
@@ -1623,15 +1643,17 @@ func makeClusterTemplateWithProvider(t *testing.T, clusterKind string, opts ...f
 		  "name": "${RESOURCE_NAME}"
 		}
 	  }`
+
 	defaultOpts := []func(template *gapiv1.GitOpsTemplate){
 		func(c *gapiv1.GitOpsTemplate) {
 			c.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 				{
-					RawExtension: rawExtension(basicRaw),
+					Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(basicRaw)}},
 				},
 			}
 		},
 	}
+
 	return makeClusterTemplates(t, append(defaultOpts, opts...)...)
 }
 
