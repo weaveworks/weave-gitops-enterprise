@@ -60,7 +60,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			Name:      "management",
 			Namespace: "",
 		}
-		templateRepoPath := "./clusters/management/clusters"
+		templateRepoPath := path.Join("clusters/management/mvp/test-system/podinfo.yaml")
 
 		ginkgo.JustBeforeEach(func() {
 			createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -173,14 +173,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 				gomega.Eventually(func(g gomega.Gomega) {
 					g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
 					g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
-
+					g.Expect(preview.Path.At(0)).Should(matchers.MatchText(templateRepoPath))
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 			})
 
 			ginkgo.By("Then verify all resources are labelled with template name and namespace", func() {
 				// Verify resource definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
-				previewText, _ := preview.Text.Text()
+				previewText, _ := preview.Text.At(0).Text()
 
 				re, _ := regexp.Compile(fmt.Sprintf("templates.weave.works/template-name: %s", templateName))
 				matches := re.FindAllString(previewText, -1)
