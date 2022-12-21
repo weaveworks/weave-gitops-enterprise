@@ -20,7 +20,7 @@ type WorkspaceInformation struct {
 	Cluster    *agouti.Selection
 }
 
-func (w WorkspacesPage) FindWorkspacInList(workspaceName string) *WorkspaceInformation {
+func (w WorkspacesPage) FindWorkspaceInList(workspaceName string) *WorkspaceInformation {
 	workspace := w.WorkspacesList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, workspaceName))
 	return &WorkspaceInformation{
 		Name:       workspace.FindByXPath(`td[1]//a`),
