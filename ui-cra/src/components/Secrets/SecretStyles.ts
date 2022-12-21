@@ -6,7 +6,7 @@ const {
   successOriginal,
   alertOriginal,
 } = theme.colors;
-export const useSecretStyle = makeStyles((wtheme: Theme) =>
+export const useSecretStyle = makeStyles(() =>
   createStyles({
     flexStart: {
       display: 'flex',

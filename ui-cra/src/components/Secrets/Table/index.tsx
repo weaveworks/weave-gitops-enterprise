@@ -1,10 +1,14 @@
 import { FC } from 'react';
-import { DataTable, formatURL, Link } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  formatURL,
+  KubeStatusIndicator,
+  Link,
+} from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../Shared';
 import { ExternalSecretItem } from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
 import moment from 'moment';
-import Status from '../Status';
 
 interface Props {
   secrets: ExternalSecretItem[];
@@ -36,7 +40,17 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
           },
           {
             label: 'Status',
-            value: ({ status }) => <Status status={status} />,
+            value: ({ status }) => (
+              <KubeStatusIndicator
+                short
+                conditions={[
+                  {
+                    status: status === 'Ready' ? 'True' : 'False',
+                    type: status,
+                  },
+                ]}
+              />
+            ),
             sortValue: ({ status }) => status,
           },
           {
