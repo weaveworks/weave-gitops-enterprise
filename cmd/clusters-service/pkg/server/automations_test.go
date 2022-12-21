@@ -663,6 +663,157 @@ status: {}
 			},
 			expected: "https://github.com/org/repo/pull/1",
 		},
+		{
+			name: "committed files for external secret",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New external secret",
+				Description:   "Creates external secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						ExternalSecret: &capiv1_protos.ExternalSecret{
+							Metadata: testNewMetadata(t, "new-secret", "flux-system"),
+							Spec: &capiv1_protos.ExternalSecretSpec{
+								RefreshInterval: "1h",
+								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
+									Name: "testname",
+									Kind: "testkind",
+								},
+								Target: &capiv1_protos.ExternalSecretTarget{
+									Name:           "new-secret",
+									CreationPolicy: "owner",
+								},
+								Data: &capiv1_protos.ExternalSecretData{
+									SecretKey: "test-secret-key",
+									RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+										Key:      "key",
+										Property: "property",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/new-secret-flux-system-externalsecret.yaml",
+					Content: `apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  creationTimestamp: null
+  name: new-secret
+  namespace: flux-system
+spec:
+  data:
+  - remoteRef:
+      key: key
+      property: property
+    secretKey: test-secret-key
+  refreshInterval: 1h0m0s
+  secretStoreRef:
+    kind: testkind
+    name: testname
+  target:
+    creationPolicy: owner
+    name: new-secret
+status:
+  refreshTime: null
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files for cluster external secret",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New Cluster external secret",
+				Description:   "Creates cluster external secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						ClusterExternalSecret: &capiv1_protos.ClusterExternalSecret{
+							Metadata: &capiv1_protos.ClusterSecretMetadata{
+								Name: "new-secret",
+							},
+							Spec: &capiv1_protos.ClusterSecretSpec{
+								NamespaceSelector: &capiv1_protos.NamspaceSelector{
+									MatchLabels: &capiv1_protos.MatchLabels{
+										Key:   "test",
+										Value: "cluster",
+									},
+								},
+								ExternalSecretSpec: &capiv1_protos.ClusterExternalSecretSpec{
+									RefreshInterval: "1h",
+									SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
+										Name: "testname",
+										Kind: "testkind",
+									},
+									Target: &capiv1_protos.ExternalSecretTarget{
+										Name:           "new-secret",
+										CreationPolicy: "owner",
+									},
+									Data: &capiv1_protos.ExternalSecretData{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key",
+											Property: "property",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/new-secret-clusterscoped-clusterexternalsecret.yaml",
+					Content: `apiVersion: external-secrets.io/v1beta1
+kind: ClusterExternalSecret
+metadata:
+  creationTimestamp: null
+  name: new-secret
+spec:
+  externalSecretName: new-secret
+  externalSecretSpec:
+    data:
+    - remoteRef:
+        key: key
+        property: property
+      secretKey: test-secret-key
+    refreshInterval: 1h0m0s
+    secretStoreRef:
+      kind: testkind
+      name: testname
+    target:
+      creationPolicy: owner
+      name: new-secret
+  namespaceSelector:
+    matchLabels:
+      test: cluster
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
 	}
 
 	for _, tt := range testCases {

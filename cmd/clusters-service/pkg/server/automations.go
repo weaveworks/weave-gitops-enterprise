@@ -599,7 +599,7 @@ func generateClusterExternalSecretFile(
 	if err != nil {
 		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s external secret, %w", clusterExternalSecret.Metadata.Name, err)
 	}
-	es := createNamespacedName(clusterExternalSecret.Metadata.Name, "")
+	es := createNamespacedName(clusterExternalSecret.Metadata.Name, "clusterscoped")
 	clusterExternalSecretPath := getClusterResourcePath(isControlPlane, "clusterexternalsecret", cluster, es)
 	if filePath != "" {
 		clusterExternalSecretPath = filePath
