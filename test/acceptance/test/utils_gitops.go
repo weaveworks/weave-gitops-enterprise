@@ -720,7 +720,7 @@ func getViolationsCount() int {
 }
 
 func getWorkspacesCount() int {
-	stdOut, _ := runCommandAndReturnStringOutput("kubectl get namespaces -l toolkit.fluxcd.io/tenant -o yaml | grep toolkit.fluxcd.io/tenant | sort --unique | wc -l")
+	stdOut, _ := runCommandAndReturnStringOutput(`kubectl get namespaces -l toolkit.fluxcd.io/tenant -o yaml | grep "toolkit.fluxcd.io/tenant" | sort --unique | wc -l`)
 	wCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
 	return wCount
 }

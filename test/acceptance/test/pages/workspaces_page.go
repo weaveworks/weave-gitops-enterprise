@@ -7,9 +7,10 @@ import (
 )
 
 type WorkspacesPage struct {
-	WorkspaceHeader *agouti.Selection
-	WorkspacesList  *agouti.Selection
-	AlertError      *agouti.Selection
+	WorkspaceHeader     *agouti.Selection
+	WorkspaceHeaderLink *agouti.Selection
+	WorkspacesList      *agouti.Selection
+	AlertError          *agouti.Selection
 }
 
 type WorkspaceInformation struct {
@@ -35,9 +36,10 @@ func (w WorkspacesPage) CountWorkspaces() int {
 
 func GetWorkspacesPage(webDriver *agouti.Page) *WorkspacesPage {
 	workspacePage := WorkspacesPage{
-		WorkspaceHeader: webDriver.Find(`div[role="heading"] a[href="/workspaces"]`),
-		WorkspacesList:  webDriver.First(`table tbody`),
-		AlertError:      webDriver.Find(`#alert-list-errors`),
+		WorkspaceHeader:     webDriver.Find(`span[title="Workspaces"]`),
+		WorkspaceHeaderLink: webDriver.Find(`div[role="heading"] a[href="/workspaces"]`),
+		WorkspacesList:      webDriver.First(`table tbody`),
+		AlertError:          webDriver.Find(`#alert-list-errors`),
 	}
 	return &workspacePage
 }
