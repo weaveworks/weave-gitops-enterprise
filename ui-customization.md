@@ -13,6 +13,7 @@ We make some configuration changes to the `values` in the Weave Gitops Enterpris
       backgroundColor: red
       color: blue
       content: My footer header This is the footer [link](example.com)
+      # Show or hide version of Weave GitOps
       hideVersion: false
 ```
 
