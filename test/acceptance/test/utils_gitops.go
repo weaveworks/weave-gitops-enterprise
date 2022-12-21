@@ -718,3 +718,11 @@ func getViolationsCount() int {
 	vCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
 	return vCount
 }
+
+func getWorkspacesCount() int {
+	stdOut, err := runCommandAndReturnStringOutput(`kubectl get namespaces -l toolkit.fluxcd.io/tenant -o yaml | grep "toolkit.fluxcd.io/tenant" | sort --unique | wc -l`)
+	gomega.Expect(err).Should(gomega.BeEmpty(), "Failed to get workspaces count")
+
+	wCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return wCount
+}
