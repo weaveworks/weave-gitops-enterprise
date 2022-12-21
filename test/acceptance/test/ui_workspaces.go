@@ -164,11 +164,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			}
 			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml")
 			mgmtClusterContext, err = runCommandAndReturnStringOutput("kubectl config current-context")
-			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the management clsuter context")
+			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the management cluster context")
 
 			createCluster("kind", leafCluster.Name, "")
 			leafClusterContext, err = runCommandAndReturnStringOutput("kubectl config current-context")
-			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the leaf clsuter context")
+			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the leaf cluster context")
 
 			// Add/Install Policy Agent on the leaf cluster
 			installPolicyAgent(leafCluster.Name)
