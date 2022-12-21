@@ -26,6 +26,7 @@ import (
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -378,6 +379,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
 		pipelinev1alpha1.AddToScheme,
+		esv1beta1.AddToScheme,
 	)
 
 	rest, clusterName, err := kube.RestConfig()
@@ -398,6 +400,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	runtimeUtil.Must(capiv1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pacv2beta2.AddToScheme(clustersManagerScheme))
+	runtimeUtil.Must(esv1beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
 	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))

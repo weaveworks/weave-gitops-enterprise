@@ -41,3 +41,10 @@ rules:
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["roles", "rolebindings"]
     verbs: ["get", "list"]
+  - apiGroups: ["external-secrets.io"]
+    resources: 
+    - externalsecrets
+    - clusterexternalsecrets
+    - secretstores
+    - clustersecretstores
+    verbs: ["get", "list"]
