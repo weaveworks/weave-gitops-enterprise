@@ -1,7 +1,6 @@
 import {
   SourcesTable,
   useListSources,
-  V2Routes,
 } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import { Routes } from '../../utils/nav';

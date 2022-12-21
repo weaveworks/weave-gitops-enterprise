@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"strings"
@@ -130,27 +129,26 @@ func checkCRDExists(dc discovery.DiscoveryInterface, gvk schema.GroupVersionKind
 	return ok, nil
 }
 
-func CheckAndInjectCredentials(log logr.Logger, c client.Client, tmplWithValues [][]byte, creds *capiv1_proto.Credential, tmpName string) ([]byte, error) {
+func CheckAndInjectCredentials(log logr.Logger, c client.Client, tmplWithValues [][]byte, creds *capiv1_proto.Credential, tmpName string) ([][]byte, error) {
 	if creds == nil || isEmptyCredentials(creds) {
 		log.Info("No credentials were passed or credentials are empty", "credentials", creds)
-		return bytes.Join(tmplWithValues, []byte("\n---\n")), nil
+		return tmplWithValues, nil
 	}
 	exist, err := CheckCredentialsExist(c, creds)
-	var tmpl [][]byte
-	var result []byte
+	var result [][]byte
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if credentials exist: %w", err)
 	}
 	if exist {
 		log.Info("Found credentials", "credentials", creds)
-		tmpl, err = InjectCredentials(tmplWithValues, creds)
+		tmpl, err := InjectCredentials(tmplWithValues, creds)
 		if err != nil {
 			return nil, fmt.Errorf("unable to inject credentials %q: %w", tmpName, err)
 		}
-		result = bytes.Join(tmpl, []byte("\n---\n"))
+		result = append(result, tmpl...)
 	} else if !exist {
 		log.Info("Couldn't find credentials!", "credentials", creds)
-		result = bytes.Join(tmplWithValues, []byte("\n---\n"))
+		result = append(result, tmplWithValues...)
 	}
 
 	return result, nil
@@ -207,9 +205,7 @@ func InjectCredentials(tmplWithValues [][]byte, creds *capiv1_proto.Credential) 
 	return newBits, nil
 }
 
-//
 // Some good examples of kyaml at https://github.com/kubernetes-sigs/kustomize/blob/master/kyaml/yaml/example_test.go
-//
 func MaybeInjectCredentials(templateObject []byte, clusterKind string, creds *capiv1_proto.Credential) ([]byte, error) {
 	obj, err := kyaml.Parse(string(templateObject))
 	if err != nil {

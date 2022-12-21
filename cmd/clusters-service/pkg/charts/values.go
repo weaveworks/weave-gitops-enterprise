@@ -191,7 +191,7 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 //
 // For charts without a layer, these will be configured to depend on the highest
 // layer.
-func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartInstall) ([]*helmv2.HelmRelease, error) {
+func MakeHelmReleasesInLayers(namespace string, installs []ChartInstall) ([]*helmv2.HelmRelease, error) {
 	layerInstalls := map[string][]ChartInstall{}
 	for _, v := range installs {
 		current, ok := layerInstalls[v.Layer]

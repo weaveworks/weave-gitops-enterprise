@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	"sigs.k8s.io/yaml"
 )
 
@@ -102,7 +102,7 @@ func TestParseTemplateCAPIMeta(t *testing.T) {
 }
 
 func TestParseTemplateMeta_bad_parameter(t *testing.T) {
-	parsed := parseCAPITemplateFromBytes(t, []byte("apiVersion: capi.weave.works/v1alpha1\nkind: CAPITemplate\nspec:\n  resourcetemplates:\n   - apiVersion: ${CLUSTER_NAME"))
+	parsed := parseCAPITemplateFromBytes(t, []byte("apiVersion: capi.weave.works/v1alpha2\nkind: CAPITemplate\nspec:\n  resourcetemplates:\n  - content:\n    - apiVersion: ${CLUSTER_NAME"))
 
 	_, err := ParseTemplateMeta(parsed, GitOpsTemplateNameAnnotation)
 	assert.EqualError(t, err, "failed to parse params in template: processing template: missing closing brace")

@@ -1394,6 +1394,10 @@ github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34 h1:/
 github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34/go.mod h1:Bzy4vzn0cAfnzllxsPI7pnUgMwAL97QqBdV/3cDTW50=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1:EG/SrRMfrUAUCclChn8JwPBlZ5mFtstsnQ1hc241GLg=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
+github.com/weaveworks/templates-controller v0.0.0-20221208162948-7ee990021d3d h1:kUPH6ndGDlnCs4bxqGonqjmegdJ1D6pBsVnt7hYgfwA=
+github.com/weaveworks/templates-controller v0.0.0-20221208162948-7ee990021d3d/go.mod h1:8cv70werGvskQ/LcDYg9slppVze/Xro5KjbM5DN8YXY=
+github.com/weaveworks/templates-controller v0.1.1 h1:+L2td92fTTmRXsIML5xU8JRlU/VhLrRy7LPh5yN0w3w=
+github.com/weaveworks/templates-controller v0.1.1/go.mod h1:iLs/20GkUY94KzDhRvmctwun7yX3SGJWs8q0gbTu53I=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c h1:mbiOaxEammDTQX0wWZdJ6cfIgGqP7Zf3zyF+qbeTG0s=
 github.com/weaveworks/tf-controller/api v0.0.0-20220829140311-2391c1d66e7c/go.mod h1:I+QGICmh0CMNJnbJamO6+tfdHvOrceMQdYZcj2AzBVA=
 github.com/weaveworks/weave-gitops v0.12.1-0.20221215075450-2a3c5b228b7b h1:Smq8UvN34GWjroPF03qF5zQXTaZQdhgFx4/ILYV2Trc=
