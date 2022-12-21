@@ -32,7 +32,7 @@ func (w WorkspacesPage) FindWorkspaceInList(workspaceName string) *WorkspaceInfo
 func (w WorkspacesPage) CountWorkspaces() int {
 	workspaces := w.WorkspacesList.All("tr")
 	count, err := workspaces.Count()
-	gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the workspaces count")
+	gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the number of workspaces records in the list")
 	return count
 }
 
