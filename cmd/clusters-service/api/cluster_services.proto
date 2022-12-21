@@ -226,16 +226,22 @@ service ClustersService {
     };
   }
 
-   // ListExternalSecrets list external secrets available on all clusters
-   rpc ListExternalSecrets(ListExternalSecretsRequest) returns (ListExternalSecretsResponse) {
+  // ListExternalSecrets list external secrets available on all clusters
+  rpc ListExternalSecrets(ListExternalSecretsRequest) returns (ListExternalSecretsResponse) {
     option (google.api.http) = {
       get : "/v1/external-secrets"
     };
   }
-    // GetExternalSecret get secret details
-    rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
+  // GetExternalSecret get secret details
+  rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
     option (google.api.http) = {
       get : "/v1/external-secrets/{externalSecretName}"
+    };
+  }
+  // ListExternalSecretStores list external secrets stores
+  rpc ListExternalSecretStores(ListExternalSecretStoresRequest) returns (ListExternalSecretStoresResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets-stores"
     };
   }
 }
@@ -1083,5 +1089,19 @@ message GetExternalSecretResponse{
   string version = 8;
   string status = 9;
   string timestamp = 10;
+}
   
+message ExternalSecretStore {
+  string kind = 1;
+  string name = 2;
+  string namespace = 3;
+}
+
+message ListExternalSecretStoresRequest{
+  string clusterName = 1;
+}
+
+message ListExternalSecretStoresResponse{
+  repeated ExternalSecretStore stores = 1;
+  int32 total = 2;
 }

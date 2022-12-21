@@ -820,6 +820,21 @@ export type GetExternalSecretResponse = {
   timestamp?: string
 }
 
+export type ExternalSecretStore = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type ListExternalSecretStoresRequest = {
+  clusterName?: string
+}
+
+export type ListExternalSecretStoresResponse = {
+  stores?: ExternalSecretStore[]
+  total?: number
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -913,5 +928,8 @@ export class ClustersService {
   }
   static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
     return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["externalSecretName"])}`, {...initReq, method: "GET"})
+  }
+  static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
+    return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

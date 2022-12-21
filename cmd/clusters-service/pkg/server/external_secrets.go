@@ -244,3 +244,47 @@ func getExternalSecretStatus(item *esv1beta1.ExternalSecret) string {
 		return ExternalSecretStatusNotReady
 	}
 }
+
+func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto.ListExternalSecretStoresRequest) (*capiv1_proto.ListExternalSecretStoresResponse, error) {
+	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), req.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	if clustersClient == nil {
+		return nil, fmt.Errorf("cluster %s not found", req.ClusterName)
+	}
+
+	var secretStores esv1beta1.SecretStoreList
+	var clusterSecretStores esv1beta1.ClusterSecretStoreList
+
+	g, gctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		return clustersClient.List(gctx, req.ClusterName, &secretStores)
+	})
+	g.Go(func() error {
+		return clustersClient.List(gctx, req.ClusterName, &clusterSecretStores)
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to list secret stores, error %w", err)
+	}
+
+	response := capiv1_proto.ListExternalSecretStoresResponse{}
+	for _, item := range secretStores.Items {
+		response.Stores = append(response.Stores, &capiv1_proto.ExternalSecretStore{
+			Kind:      item.GetKind(),
+			Name:      item.GetName(),
+			Namespace: item.GetNamespace(),
+		})
+	}
+	for _, item := range clusterSecretStores.Items {
+		response.Stores = append(response.Stores, &capiv1_proto.ExternalSecretStore{
+			Kind: item.GetKind(),
+			Name: item.GetName(),
+		})
+	}
+
+	response.Total = int32(len(response.Stores))
+	return &response, nil
+}
