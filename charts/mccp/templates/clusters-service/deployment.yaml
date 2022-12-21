@@ -45,6 +45,8 @@ spec:
               name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
           {{- end }}
           env:
+            - name: USE_OTHER_CLIENT
+              value: "true"
             - name: RUNTIME_NAMESPACE
               valueFrom:
                 fieldRef:

@@ -1,21 +1,19 @@
-import { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { createStyles, makeStyles } from '@material-ui/core';
 import {
   AutomationsTable,
   Button,
   Icon,
   IconType,
-  LoadingPage,
-  useListAutomations,
-  theme,
+  LoadingPage, theme, useListAutomations
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
+import { FC } from 'react';
 import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import { useListConfig } from '../../hooks/versions';
-import { makeStyles, createStyles } from '@material-ui/core';
 import { openLinkHandler } from '../../utils/link-checker';
 import { Routes } from '../../utils/nav';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 
 interface Size {
   size?: 'small';
@@ -35,8 +33,9 @@ const useStyles = makeStyles(() =>
   }),
 );
 
+
 const WGApplicationsDashboard: FC = () => {
-  const { data: automations, isLoading } = useListAutomations();
+  const { data: automations, isLoading, error } = useListAutomations();
   const history = useHistory();
   const { repoLink } = useListConfig();
   const classes = useStyles();
@@ -83,7 +82,8 @@ const WGApplicationsDashboard: FC = () => {
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={automations?.result} />
+          automations && <AutomationsTable automations={automations?.result} />
+          
         )}
       </ContentWrapper>
     </PageTemplate>

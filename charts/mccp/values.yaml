@@ -150,6 +150,8 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_USERS_CLIENTS_TTL
     value: "30s"
+  - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH
+    value: "true"
 
 # extraEnvVars is a list of extra environment variables to set on the
 # deployment. These are in addition to the envVars above.
