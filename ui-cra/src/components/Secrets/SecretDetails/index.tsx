@@ -18,7 +18,6 @@ const SecretDetails = ({
       clusterName,
       namespace,
     });
-  console.log('secretDetails', secretDetails, externalSecretName);
   return (
     <>
       <PageTemplate
