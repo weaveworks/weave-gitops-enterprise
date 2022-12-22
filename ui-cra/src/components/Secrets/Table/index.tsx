@@ -23,18 +23,7 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
         fields={[
           {
             label: 'Name',
-            value: (s: ExternalSecretItem) => (
-              <Link
-                to={formatURL(Routes.SecretDetails, {
-                  externalSecretName: s.externalSecretName,
-                  clusterName: s.clusterName,
-                  namespace: s.namespace,
-                })}
-                data-secret-name={s.externalSecretName}
-              >
-                {s.externalSecretName}
-              </Link>
-            ),
+            value: 'externalSecretName',
             textSearchable: true,
             sortValue: ({ externalSecretName }) => externalSecretName,
           },
