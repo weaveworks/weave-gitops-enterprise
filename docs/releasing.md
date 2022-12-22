@@ -6,9 +6,9 @@ How to release a new version of weave-gitops-enterprise
 
 ## Versioning
 
-We follow semantic versioning where
-- New regular releases increases by minor versions (0.11.0, 0.12.0, etc)
-- Other non-regular releases could be released to bug fix or patch increasing it patch version (0.11.1, 0.11.2)
+We follow [semantic versioning](https://semver.org/) where
+- Releases adding new features or changing existing ones increase the minor versions (0.11.0, 0.12.0, etc)
+- Releases exclusively fixing bugs increase the patch version (0.11.1, 0.11.2)
 
 ## Prerequisites
 
