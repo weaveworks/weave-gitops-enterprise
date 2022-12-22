@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
@@ -146,6 +147,40 @@ func (s *server) GetTerraformObject(ctx context.Context, msg *pb.GetTerraformObj
 		Object: &obj,
 		Yaml:   string(yaml),
 		Type:   result.GetObjectKind().GroupVersionKind().Kind,
+	}, nil
+}
+
+func (s *server) GetTerraformObjectPlan(ctx context.Context, msg *pb.GetTerraformObjectPlanRequest) (*pb.GetTerraformObjectPlanResponse, error) {
+	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
+
+	n := types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}
+
+	result := &tfctrl.Terraform{}
+	if err := c.Get(ctx, msg.ClusterName, n, result); err != nil {
+		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
+	}
+
+	if result.Spec.StoreReadablePlan != "human" {
+		return nil, fmt.Errorf("no human-readable plan found: %w", err)
+	}
+
+	planKey := types.NamespacedName{
+		Name:      fmt.Sprintf("tfplan-%s-%s", result.WorkspaceName(), msg.Name),
+		Namespace: msg.Namespace,
+	}
+
+	var tfplanCM corev1.ConfigMap
+	if err := c.Get(ctx, msg.ClusterName, planKey, &tfplanCM); err != nil {
+		return nil, fmt.Errorf("error getting terraform plan: %w", err)
+	}
+
+	plan := tfplanCM.Data["tfplan"]
+
+	return &pb.GetTerraformObjectPlanResponse{
+		Plan: plan,
 	}, nil
 }
 
