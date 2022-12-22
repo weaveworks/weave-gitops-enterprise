@@ -40,7 +40,18 @@ const ListExternalSecretsResponse = {
     },
   ],
   total: 3,
-  errors: [],
+  errors: [
+    {
+      clusterName: 'default/tw-test-cluster',
+      namespace: '',
+      message: 'First Error message',
+    },
+    {
+      clusterName: 'default/tw-test-cluster',
+      namespace: '',
+      message: 'second Error message',
+    },
+  ],
 };
 const mappedSecrets = (secrets: Array<any>) => {
   return secrets.map(e => [
@@ -53,6 +64,10 @@ const mappedSecrets = (secrets: Array<any>) => {
     moment(e.timestamp).fromNow(),
   ]);
 };
+
+const filterTable = new TestFilterableTable('secrets-list', fireEvent);
+const secrests = ListExternalSecretsResponse.secrets;
+
 describe('ListSecrets', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: SecretsClientMock;
@@ -63,25 +78,9 @@ describe('ListSecrets', () => {
       ...defaultContexts(),
       [EnterpriseClientProvider, { api }],
     ]);
+    api.ListSecretsReturns = ListExternalSecretsResponse;
   });
   it('renders list secrets errors', async () => {
-    api.ListSecretsReturns = {
-      secrets: [],
-      total: 0,
-      errors: [
-        {
-          clusterName: 'default/tw-test-cluster',
-          namespace: '',
-          message: 'First Error message',
-        },
-        {
-          clusterName: 'default/tw-test-cluster',
-          namespace: '',
-          message: 'second Error message',
-        },
-      ],
-    };
-
     await act(async () => {
       const c = wrap(<SecretsList />);
       render(c);
@@ -109,12 +108,7 @@ describe('ListSecrets', () => {
     expect(errorCount?.textContent).toEqual('2');
   });
 
-  it('renders a list of secrets and sort by Name', async () => {
-    api.ListSecretsReturns = ListExternalSecretsResponse;
-    const secrests = ListExternalSecretsResponse.secrets;
-
-    const filterTable = new TestFilterableTable('secrets-list', fireEvent);
-
+  it('renders a list of secrets and sort by Name then by age', async () => {
     await act(async () => {
       const c = wrap(<SecretsList />);
       render(c);
@@ -127,24 +121,14 @@ describe('ListSecrets', () => {
       ),
     );
     filterTable.testSorthTableByColumn('Name', sortRowsBySecretName);
+
+    const sortRowsByAge = mappedSecrets(
+      secrests.sort((a, b) => {
+        const t1 = new Date(a.timestamp).getTime();
+        const t2 = new Date(b.timestamp).getTime();
+        return t2 - t1;
+      }),
+    );
+    filterTable.testSorthTableByColumn('Age', sortRowsByAge);
   });
-  // it('sort Secrets by Age', async () => {
-  //   api.ListSecretsReturns = ListExternalSecretsResponse;
-  //   const secrests = ListExternalSecretsResponse.secrets;
-  //   const filterTable = new TestFilterableTable('secrets-list', fireEvent);
-  //   await act(async () => {
-  //     const c = wrap(<SecretsList />);
-  //     render(c);
-  //   });
-  //   expect(await screen.findByText('Secrets')).toBeTruthy();
-
-  //   const sortRowsByAge = mappedSecrets(
-  //     secrests.sort(({ timestamp }) => {
-  //       const t = new Date(timestamp).getTime();
-  //       return t * 1;
-  //     }),
-  //   );
-
-  //   filterTable.testSorthTableByColumn('Age', sortRowsByAge);
-  // });
 });
