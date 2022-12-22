@@ -10,20 +10,24 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 )
 
+const DefaultPipelineControllerAddress = "chart-pipeline-controller-promotion:8082"
+
 type ServerOpts struct {
 	logr.Logger
-	ClustersManager   clustersmngr.ClustersManager
-	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
-	Cluster           string
+	ClustersManager           clustersmngr.ClustersManager
+	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Cluster                   string
+	PipelineControllerAddress string
 }
 
 type server struct {
 	pb.UnimplementedPipelinesServer
 
-	log               logr.Logger
-	clients           clustersmngr.ClustersManager
-	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
-	cluster           string
+	log                       logr.Logger
+	clients                   clustersmngr.ClustersManager
+	managementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
+	cluster                   string
+	pipelineControllerAddress string
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -34,9 +38,10 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error 
 
 func NewPipelinesServer(opts ServerOpts) pb.PipelinesServer {
 	return &server{
-		log:               opts.Logger,
-		clients:           opts.ClustersManager,
-		managementFetcher: opts.ManagementFetcher,
-		cluster:           opts.Cluster,
+		log:                       opts.Logger,
+		clients:                   opts.ClustersManager,
+		managementFetcher:         opts.ManagementFetcher,
+		cluster:                   opts.Cluster,
+		pipelineControllerAddress: opts.PipelineControllerAddress,
 	}
 }

@@ -187,7 +187,12 @@
       }
     },
     "v1ApprovePromotionResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "PullRequestURL": {
+          "type": "string"
+        }
+      }
     },
     "v1ClusterRef": {
       "type": "object",

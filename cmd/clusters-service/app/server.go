@@ -627,10 +627,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
-			Logger:            args.Log,
-			ClustersManager:   args.ClustersManager,
-			ManagementFetcher: args.ManagementFetcher,
-			Cluster:           args.Cluster,
+			Logger:                    args.Log,
+			ClustersManager:           args.ClustersManager,
+			ManagementFetcher:         args.ManagementFetcher,
+			Cluster:                   args.Cluster,
+			PipelineControllerAddress: pipelines.DefaultPipelineControllerAddress,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}

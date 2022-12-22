@@ -6,6 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -15,8 +16,6 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-const DefaultPipelineControllerAddress = "chart-pipeline-controller-promotion:8082"
 
 func (s *server) ApprovePromotion(ctx context.Context, msg *pb.ApprovePromotionRequest) (*pb.ApprovePromotionResponse, error) {
 	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
@@ -54,12 +53,15 @@ func (s *server) ApprovePromotion(ctx context.Context, msg *pb.ApprovePromotionR
 		}
 	}
 
-	if err := postApproveRequest(p, hmacSecret); err != nil {
+	prURL, err := postApproveRequest(s.pipelineControllerAddress, p, hmacSecret)
+	if err != nil {
 		return nil, fmt.Errorf("failed sending approve request to pipeline controller for pipeline=%s in namespace=%s in cluster=%s: %w",
 			msg.Name, msg.Namespace, s.cluster, err)
 	}
 
-	return &pb.ApprovePromotionResponse{}, nil
+	return &pb.ApprovePromotionResponse{
+		PullRequestURL: prURL,
+	}, nil
 }
 
 func sign(payload, key string) string {
@@ -68,7 +70,7 @@ func sign(payload, key string) string {
 	return fmt.Sprintf("sha256=%x", h.Sum(nil))
 }
 
-func postApproveRequest(p ctrl.Pipeline, hmacSecret *corev1.Secret) error {
+func postApproveRequest(controllerAddress string, p ctrl.Pipeline, hmacSecret *corev1.Secret) (string, error) {
 	headers := map[string][]string{
 		"Content-Type": {"application/json"},
 	}
@@ -80,9 +82,9 @@ func postApproveRequest(p ctrl.Pipeline, hmacSecret *corev1.Secret) error {
 	}
 
 	// Create the HTTP request
-	httpReq, err := http.NewRequest("POST", DefaultPipelineControllerAddress, bytes.NewBuffer([]byte{}))
+	httpReq, err := http.NewRequest("POST", controllerAddress, bytes.NewBuffer([]byte{}))
 	if err != nil {
-		return fmt.Errorf("failed to create approve pipeline request: %w", err)
+		return "", fmt.Errorf("failed to create approve pipeline request: %w", err)
 	}
 
 	// Set the request headers
@@ -92,11 +94,24 @@ func postApproveRequest(p ctrl.Pipeline, hmacSecret *corev1.Secret) error {
 
 	// Send the request
 	client := &http.Client{}
-	httpResp, err := client.Do(httpReq)
+	resp, err := client.Do(httpReq)
 	if err != nil {
-		return fmt.Errorf("failed to send approve pipeline request: %w", err)
+		return "", fmt.Errorf("failed to send approve pipeline request: %w", err)
 	}
-	defer httpResp.Body.Close()
+	defer resp.Body.Close()
 
-	return nil
+	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		return "", fmt.Errorf("request to pipeline controller failed: status=%d body=%s", resp.StatusCode, string(body))
+	}
+
+	if val, ok := resp.Header["Location"]; ok {
+		return val[0], nil
+	}
+
+	return "", nil
 }
