@@ -123,6 +123,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 
 			ginkgo.By("And set cluster hostname mapping in the /etc/hosts file for deploy service", func() {
 				err := runCommandPassThrough(path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "hostname-to-ip.sh"), ingressHost)
+				// Ignore error checking when running the test locally as the local test host user is not a root user, instead add the entry manually to /etc/hosts file
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to set deployment service hostname entry in /etc/hosts file")
 			})
 

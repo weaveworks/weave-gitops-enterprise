@@ -53,7 +53,7 @@ func waitForTemplatesToAppear(templateCpunt int) {
 			g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 			pages.WaitForPageToLoad(webDriver)
 			g.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-			g.Eventually(templatesPage.CountTemplateRows).Should(gomega.Equal(templateCpunt))
+			g.Eventually(templatesPage.CountTemplateRows).Should(gomega.BeNumerically(">=", templateCpunt))
 		}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), "The number of template rows should be equal to number of templates created")
 	})
 }
