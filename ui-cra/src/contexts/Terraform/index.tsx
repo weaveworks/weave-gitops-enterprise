@@ -5,7 +5,7 @@ import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
-  Terraform
+  Terraform,
 } from '../../api/terraform/terraform.pb';
 import { formatError } from '../../utils/formatters';
 import useNotifications from './../../contexts/Notifications';

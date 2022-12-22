@@ -205,3 +205,21 @@ rules:
   - apiGroups: ["pac.weave.works"]
     resources: ["policies"]
     verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-external-secrets-reader
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- if .Values.rbac.userRoles.roleAggregation.enabled }}
+    rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
+    {{- end }}
+rules:
+  - apiGroups: ["external-secrets.io"]
+    resources: 
+    - externalsecrets
+    - clusterexternalsecrets
+    - secretstores
+    - clustersecretstores
+    verbs: ["get", "list"]

@@ -8,7 +8,6 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -28,9 +27,9 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	apitemplates "github.com/weaveworks/templates-controller/apis/core"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
@@ -39,6 +38,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
@@ -55,6 +55,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		gapiv1.AddToScheme,
 		clusterv1.AddToScheme,
 		rbacv1.AddToScheme,
+		esv1beta1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -84,7 +85,7 @@ type serverOptions struct {
 	estimator             estimation.Estimator
 }
 
-func getServer(t *testing.T, clients map[string]client.Client, namespaces map[string][]v1.Namespace) capiv1_protos.ClustersServiceServer {
+func getServer(t *testing.T, clients map[string]client.Client, namespaces map[string][]corev1.Namespace) capiv1_protos.ClustersServiceServer {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(clients)
 	clientsPool.ClientStub = func(name string) (client.Client, error) {
@@ -229,7 +230,7 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.
 	ct := &capiv1.CAPITemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       capiv1.Kind,
-			APIVersion: "capi.weave.works/v1alpha1",
+			APIVersion: "capi.weave.works/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",
@@ -245,7 +246,11 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					RawExtension: rawExtension(basicRaw),
+					Content: []apitemplates.ResourceTemplateContent{
+						{
+							RawExtension: rawExtension(basicRaw),
+						},
+					},
 				},
 			},
 		},
@@ -272,7 +277,7 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 	ct := &gapiv1.GitOpsTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       gapiv1.Kind,
-			APIVersion: "templates.weave.works/v1alpha1",
+			APIVersion: "templates.weave.works/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",
@@ -288,7 +293,11 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					RawExtension: rawExtension(basicRaw),
+					Content: []apitemplates.ResourceTemplateContent{
+						{
+							RawExtension: rawExtension(basicRaw),
+						},
+					},
 				},
 			},
 		},
