@@ -66,6 +66,48 @@
         ]
       }
     },
+    "/v1/terraform_objects/plan": {
+      "get": {
+        "operationId": "Terraform_GetTerraformObjectPlan",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTerraformObjectPlanResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
+    },
     "/v1/terraform_objects/suspend": {
       "post": {
         "operationId": "Terraform_ToggleSuspendTerraformObject",
@@ -217,6 +259,14 @@
           "type": "string"
         },
         "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetTerraformObjectPlanResponse": {
+      "type": "object",
+      "properties": {
+        "plan": {
           "type": "string"
         }
       }
