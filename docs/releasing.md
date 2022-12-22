@@ -109,7 +109,7 @@ Notify your Product Manager at this stage that the release notes are available. 
 > **Note**
 > This is for non-rc.x releases only
 
-Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://github.com/weaveworks/weave-gitops/blob/main/website/docs/enterprise/releases.mdx).
+Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://github.com/weaveworks/weave-gitops/blob/main/website/docs/releases.mdx).
 
 - Paste it up the top, keeping previous releases in order.
 - Add the current date under the release version
