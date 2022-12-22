@@ -49,6 +49,16 @@ export type ToggleSuspendTerraformObjectRequest = {
 export type ToggleSuspendTerraformObjectResponse = {
 }
 
+export type GetTerraformObjectPlanRequest = {
+  clusterName?: string
+  name?: string
+  namespace?: string
+}
+
+export type GetTerraformObjectPlanResponse = {
+  plan?: string
+}
+
 export class Terraform {
   static ListTerraformObjects(req: ListTerraformObjectsRequest, initReq?: fm.InitReq): Promise<ListTerraformObjectsResponse> {
     return fm.fetchReq<ListTerraformObjectsRequest, ListTerraformObjectsResponse>(`/v1/terraform_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -61,5 +71,8 @@ export class Terraform {
   }
   static ToggleSuspendTerraformObject(req: ToggleSuspendTerraformObjectRequest, initReq?: fm.InitReq): Promise<ToggleSuspendTerraformObjectResponse> {
     return fm.fetchReq<ToggleSuspendTerraformObjectRequest, ToggleSuspendTerraformObjectResponse>(`/v1/terraform_objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetTerraformObjectPlan(req: GetTerraformObjectPlanRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectPlanResponse> {
+    return fm.fetchReq<GetTerraformObjectPlanRequest, GetTerraformObjectPlanResponse>(`/v1/terraform_objects/plan?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }
