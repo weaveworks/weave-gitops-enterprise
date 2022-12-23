@@ -33,7 +33,6 @@ import (
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -524,7 +523,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithManagementCluster(p.Cluster),
 		WithTemplateCostEstimator(estimator),
 		WithUIConfig(p.UIConfig),
-		WithPipelineControllerAddress(p.CAPIRepositoryClustersPath)
+		WithPipelineControllerAddress(p.CAPIRepositoryClustersPath),
 	)
 }
 
@@ -635,7 +634,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClustersManager:           args.ClustersManager,
 			ManagementFetcher:         args.ManagementFetcher,
 			Cluster:                   args.Cluster,
-			PipelineControllerAddress: args.PipelineControllerAddress
+			PipelineControllerAddress: args.PipelineControllerAddress,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
