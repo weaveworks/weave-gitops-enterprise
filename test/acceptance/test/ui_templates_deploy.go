@@ -111,7 +111,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 				Type:            "helm_release",
 				Url:             "https://stefanprodan.github.io/podinfo",
 				Chart:           "podinfo",
-				Version:         "6.2.3",
+				Version:         "6.3.0",
 				TargetNamespace: appTargetNamespace,
 				Values:          `"{ui: {color: \"#7c4e34\", message: \"Hello World\"}}"`,
 			}
