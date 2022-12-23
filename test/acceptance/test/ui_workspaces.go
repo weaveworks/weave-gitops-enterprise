@@ -93,7 +93,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			deleteWorkspaces("management")
 		})
 
-		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
+		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install workspaces on management cluster
 			installWorkspaces("management", workspacesYaml)
@@ -183,9 +183,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 		})
 
-		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces", "leaf-workspaces"), func() {
-			ginkgo.Skip("workspaces created normally on the leaf cluster but doesn't appear in the list because of an issue in the product itself and it needs more investigation from dev team")
-
+		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", func() {
 			// Add/Install Policy Agent on the leaf cluster
 			installPolicyAgent(leafCluster.Name)
 			// Create leaf cluster kubeconfig
@@ -206,12 +204,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			waitForLeafClusterAvailability(leafCluster.Name, "Ready")
 			addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
 
+			useClusterContext(leafClusterContext)
 			ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster is bootstraped)", leafCluster.Name), func() {
-				useClusterContext(leafClusterContext)
 				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
 				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
-			useClusterContext(leafClusterContext)
 			// Installing test workspaces on leaf cluster after leaf-cluster is bootstrap completely
 			installWorkspaces(leafCluster.Name, workspacesYaml)
 

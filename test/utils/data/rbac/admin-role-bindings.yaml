@@ -114,3 +114,16 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
   name: wego-admin
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-workspaces
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gitops-workspaces-reader
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: wego-admin
