@@ -60,7 +60,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			Name:      "management",
 			Namespace: "",
 		}
-		templateRepoPath := "./clusters/management/clusters"
+		templateRepoPath := path.Join("clusters/management/mvp/test-system/podinfo.yaml")
 
 		ginkgo.JustBeforeEach(func() {
 			createNamespace([]string{appNameSpace, appTargetNamespace})
@@ -111,7 +111,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 				Type:            "helm_release",
 				Url:             "https://stefanprodan.github.io/podinfo",
 				Chart:           "podinfo",
-				Version:         "6.2.3",
+				Version:         "6.3.0",
 				TargetNamespace: appTargetNamespace,
 				Values:          `"{ui: {color: \"#7c4e34\", message: \"Hello World\"}}"`,
 			}
@@ -123,6 +123,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 
 			ginkgo.By("And set cluster hostname mapping in the /etc/hosts file for deploy service", func() {
 				err := runCommandPassThrough(path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "hostname-to-ip.sh"), ingressHost)
+				// Ignore error checking when running the test locally as the local test host user is not a root user, instead add the entry manually to /etc/hosts file
 				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to set deployment service hostname entry in /etc/hosts file")
 			})
 
@@ -173,14 +174,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 				gomega.Eventually(func(g gomega.Gomega) {
 					g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
 					g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
-
+					g.Expect(preview.Path.At(0)).Should(matchers.MatchText(templateRepoPath))
 				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 			})
 
 			ginkgo.By("Then verify all resources are labelled with template name and namespace", func() {
 				// Verify resource definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
-				previewText, _ := preview.Text.Text()
+				previewText, _ := preview.Text.At(0).Text()
 
 				re, _ := regexp.Compile(fmt.Sprintf("templates.weave.works/template-name: %s", templateName))
 				matches := re.FindAllString(previewText, -1)
