@@ -1,6 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import WorkspacesList from '..';
-import { Workspace } from '../../../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
@@ -12,19 +11,31 @@ import {
 const listWorkspacesResponse = {
   workspaces: [
     {
-        name: 'bar-tenant',
-        clusterName: 'management',
-        namespaces: ['foo-ns'],
-      },
-      {
-        name: 'foo-tenant',
-        clusterName: 'management',
-        namespaces: [],
-      }
+      name: 'bar-tenant',
+      clusterName: 'management',
+      namespaces: ['foo-ns'],
+    },
+    {
+      name: 'foo-tenant',
+      clusterName: 'management',
+      namespaces: [],
+    },
   ],
   total: 2,
   nextPageToken: 'eyJDb250aW51ZVRva2VucyI6eyJtYW5hZ2VtZW50Ijp7IiI6IiJ9fX0K',
-  errors: [],
+  errors: [
+    {
+      clusterName: 'default/tw-test-cluster',
+      namespace: '',
+      message:
+        'no matches for kind "Workspace" in version "pac.weave.works/v2beta1"',
+    },
+    {
+      clusterName: 'default/tw-test-cluster',
+      namespace: '',
+      message: 'second Error message',
+    },
+  ],
 };
 const mappedWorkspaces = (workspaces: Array<any>) => {
   return workspaces.map(e => [
@@ -45,24 +56,6 @@ describe('ListWorkspaces', () => {
     ]);
   });
   it('renders list workspaces errors', async () => {
-    api.ListWorkspacesReturns = {
-      workspaces: [],
-      total: 0,
-      errors: [
-        {
-          clusterName: 'default/tw-test-cluster',
-          namespace: '',
-          message:
-            'no matches for kind "Workspace" in version "pac.weave.works/v2beta1"',
-        },
-        {
-          clusterName: 'default/tw-test-cluster',
-          namespace: '',
-          message: 'second Error message',
-        },
-      ],
-    };
-
     await act(async () => {
       const c = wrap(<WorkspacesList />);
       render(c);
@@ -105,39 +98,23 @@ describe('ListWorkspaces', () => {
     expect(await screen.findByText('Workspaces')).toBeTruthy();
 
     filterTable.testRenderTable(
-      [
-        'Name',
-        'Namespaces',
-        'Cluster',
-      ],
+      ['Name', 'Namespaces', 'Cluster'],
       listWorkspacesResponse.workspaces.length,
     );
 
     const search = listWorkspacesResponse.workspaces[0].name;
     const searchedRows = mappedWorkspaces(
-        listWorkspacesResponse.workspaces.filter(e => e.name === search),
+      listWorkspacesResponse.workspaces.filter(e => e.name === search),
     );
 
     filterTable.testSearchTableByValue(search, searchedRows);
     filterTable.clearSearchByVal(search);
-  });
-  it('sort workspaces', async () => {
-    api.ListWorkspacesReturns = listWorkspacesResponse;
-    const filterTable = new TestFilterableTable('workspaces-list', fireEvent);
-
-    await act(async () => {
-      const c = wrap(<WorkspacesList />);
-      render(c);
-    });
-
-    expect(await screen.findByText('Workspaces')).toBeTruthy();
 
     const sortRowsByName = mappedWorkspaces(
       listWorkspacesResponse.workspaces.sort((a, b) =>
-      b.name.localeCompare(a.name),
-    ),
-  );
-
-    filterTable.testSorthTableByColumn('Name', sortRowsByName );
+        b.name.localeCompare(a.name),
+      ),
+    );
+    filterTable.testSorthTableByColumn('Name', sortRowsByName);
   });
 });
