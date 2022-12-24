@@ -11,6 +11,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
+/*
+	Tenant tests are meant to be run with oidc user only. The tests treat an oidc user as tenant and add the user to tenant group with restricted permissions.
+	Cluster user or wego-admin user have access to all resources which will fail these tests expected results.
+*/
+
 func getTenantYamlPath() string {
 	return path.Join("/tmp", "generated-tenant.yaml")
 }
@@ -294,13 +299,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 		patSecret := "application-pat"
 		bootstrapLabel := "bootstrap"
 
+		leafClusterNamespace := "leaf-system"
 		appNameSpace := "test-system"
 		appTargetNamespace := "test-system"
 
 		leafCluster := ClusterConfig{
 			Type:      "other",
 			Name:      "wge-leaf-tenant-kind",
-			Namespace: appNameSpace,
+			Namespace: leafClusterNamespace,
 		}
 
 		ginkgo.JustBeforeEach(func() {
@@ -309,7 +315,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 				loginUser()
 			}
 
-			createNamespace([]string{appNameSpace, appTargetNamespace})
+			createNamespace([]string{leafClusterNamespace})
 			mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 			createCluster("kind", leafCluster.Name, "")
 			leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -358,29 +364,29 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
-
 			// Installing policy-agent to leaf cluster
 			installPolicyAgent(leafCluster.Name)
-			// Installing tenant resources to leaf cluster
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 			useClusterContext(mgmtClusterContext)
+			// Installing tenant resources to management cluster. This is an easy way to add oidc tenant user rbac
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 			createPATSecret(leafCluster.Namespace, patSecret)
 			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 			createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
+			useClusterContext(leafClusterContext)
 			ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
-				useClusterContext(leafClusterContext)
 				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
 				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
 
+			// Installing tenant resources to leaf cluster after leaf-cluster is bootstrapped
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 			// Add GitRepository source to leaf cluster
 			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 
 			useClusterContext(mgmtClusterContext)
-
 			pages.NavigateToPage(webDriver, "Applications")
 			applicationsPage := pages.GetApplicationsPage(webDriver)
 

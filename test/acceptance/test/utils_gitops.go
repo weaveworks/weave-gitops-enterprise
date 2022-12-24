@@ -701,6 +701,19 @@ func getApplicationCount() int {
 	return kCount + hCount
 }
 
+func getSourceCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl get helmrepository -A --output name | wc -l")
+	hCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	stdOut, _ = runCommandAndReturnStringOutput("kubectl get helmchart -A --output name | wc -l")
+	cCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	stdOut, _ = runCommandAndReturnStringOutput("kubectl get gitrepository -A --output name | wc -l")
+	gCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	return gCount + hCount + cCount
+}
+
 func getClustersCount() int {
 	stdOut, _ := runCommandAndReturnStringOutput("kubectl get GitopsCluster --output name | wc -l")
 	cCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
@@ -720,7 +733,7 @@ func getViolationsCount() int {
 }
 
 func getWorkspacesCount() int {
-	stdOut, err := runCommandAndReturnStringOutput(`kubectl get namespaces -l toolkit.fluxcd.io/tenant -o yaml | grep "toolkit.fluxcd.io/tenant" | sort --unique | wc -l`)
+	stdOut, err := runCommandAndReturnStringOutput(`kubectl get namespaces -l toolkit.fluxcd.io/tenant -o yaml | grep -oE "toolkit.fluxcd.io/tenant: [a-zA-Z0-9]+" | sort --unique | wc -l`)
 	gomega.Expect(err).Should(gomega.BeEmpty(), "Failed to get workspaces count")
 
 	wCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))

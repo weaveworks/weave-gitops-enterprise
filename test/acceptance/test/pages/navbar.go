@@ -14,6 +14,7 @@ type NavbarwebDriver struct {
 	Clusters     *agouti.Selection
 	Templates    *agouti.Selection
 	Applications *agouti.Selection
+	Sources      *agouti.Selection
 	Policies     *agouti.Selection
 	Violations   *agouti.Selection
 	Workspaces   *agouti.Selection
@@ -26,6 +27,7 @@ func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 		Clusters:     webDriver.Find(`nav .nav-items a[href="/clusters"]`),
 		Templates:    webDriver.Find(`nav .nav-items a[href="/templates"]`),
 		Applications: webDriver.Find(`nav .nav-items a[href="/applications"]`),
+		Sources:      webDriver.Find(`nav .nav-items a[href="/sources"]`),
 		Policies:     webDriver.Find(`nav .nav-items a[href="/policies"]`),
 		Violations:   webDriver.Find(`nav .nav-items a[href="/clusters/violations"]`),
 		Workspaces:   webDriver.Find(`nav .nav-items a[href="/workspaces"]`),
@@ -46,6 +48,8 @@ func NavigateToPage(webDriver *agouti.Page, page string) {
 			gomega.Eventually(navbarPage.Templates.Click).Should(gomega.Succeed())
 		case "Applications":
 			gomega.Eventually(navbarPage.Applications.Click).Should(gomega.Succeed())
+		case "Sources":
+			gomega.Eventually(navbarPage.Sources.Click).Should(gomega.Succeed())
 		case "Policies":
 			gomega.Eventually(navbarPage.Policies.Click).Should(gomega.Succeed())
 		case "Violations":
