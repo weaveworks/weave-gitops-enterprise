@@ -56,6 +56,8 @@ describe('ListWorkspaces', () => {
     ]);
   });
   it('renders list workspaces errors', async () => {
+    api.ListWorkspacesReturns = listWorkspacesResponse;
+
     await act(async () => {
       const c = wrap(<WorkspacesList />);
       render(c);
