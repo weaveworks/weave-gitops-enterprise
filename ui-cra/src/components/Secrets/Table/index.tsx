@@ -1,11 +1,14 @@
 import { FC } from 'react';
 import {
   DataTable,
+  formatURL,
   KubeStatusIndicator,
+  Link,
 } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../Shared';
 import { ExternalSecretItem } from '../../../cluster-services/cluster_services.pb';
 import moment from 'moment';
+import { Routes } from '../../../utils/nav';
 
 interface Props {
   secrets: ExternalSecretItem[];
@@ -21,7 +24,7 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
           {
             label: 'Name',
             value: (s: ExternalSecretItem) => (
-              <Link
+              <Link 
                 to={formatURL(Routes.SecretDetails, {
                   externalSecretName: s.externalSecretName,
                   clusterName: s.clusterName,
