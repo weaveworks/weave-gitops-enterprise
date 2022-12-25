@@ -117,7 +117,7 @@ describe('ListSecrets', () => {
     expect(await screen.findByText('Secrets')).toBeTruthy();
     const sortRowsBySecretName = mappedSecrets(
       secrests.sort((a, b) =>
-        a.externalSecretName.localeCompare(b.externalSecretName),
+        b.externalSecretName.localeCompare(a.externalSecretName),
       ),
     );
     filterTable.testSorthTableByColumn('Name', sortRowsBySecretName);
