@@ -1,13 +1,10 @@
 import { FC } from 'react';
 import {
   DataTable,
-  formatURL,
   KubeStatusIndicator,
-  Link,
 } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../Shared';
 import { ExternalSecretItem } from '../../../cluster-services/cluster_services.pb';
-import { Routes } from '../../../utils/nav';
 import moment from 'moment';
 
 interface Props {
