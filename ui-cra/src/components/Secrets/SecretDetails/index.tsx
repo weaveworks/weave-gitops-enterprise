@@ -1,9 +1,15 @@
-import { useGetSecretDetails } from '../../../contexts/Secrets';
+import {
+  useGetSecretDetails,
+  useGetSecretStoreDetails,
+} from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
+import { RouterTab } from '@weaveworks/weave-gitops';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import moment from 'moment';
+import { CustomSubRouterTabs } from '../../Workspaces/WorkspaceStyles';
+import SecretDetailsTabs from './SecretDetailsTabs';
 
 const SecretDetails = ({
   externalSecretName,
@@ -45,6 +51,11 @@ const SecretDetails = ({
       >
         <ContentWrapper loading={isSecretDetailsLoading}>
           {generateRowHeaders(defaultHeaders)}
+          <SecretDetailsTabs
+            externalSecretName={externalSecretName}
+            clusterName={clusterName}
+            namespace={namespace}
+          />
         </ContentWrapper>
       </PageTemplate>
     </>
