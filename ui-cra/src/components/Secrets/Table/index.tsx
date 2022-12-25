@@ -76,7 +76,6 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
               const t = timestamp && new Date(timestamp).getTime();
               return t * -1;
             },
-            defaultSort: true,
           },
         ]}
       />

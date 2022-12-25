@@ -201,7 +201,7 @@ function setup {
   kubectl wait --for=condition=Ready --timeout=120s -n ingress-nginx --all pod
   
   cat ${args[1]}/test/utils/data/ingress/certificate-issuer.yaml | \
-      sed s,{{HOST_NAME}},${MANAGEMENT_CLUSTER_CNAME},g | \
+      sed s,{{HOST_NAME}},"${MANAGEMENT_CLUSTER_CNAME}",g | \
       kubectl apply -f -
   kubectl wait --for=condition=Ready --timeout=60s -n flux-system --all certificate
 
