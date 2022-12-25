@@ -14,12 +14,10 @@ metadata:
   namespace: flux-system
 spec:
   isCA: true
-  commonName: "{{HOST_NAME}}"
   secretName: weave-gitops-tls
   issuerRef:
     name: selfsigned-issuer
     kind: Issuer
     group: cert-manager.io
-  dnsNames:
-  - "{{HOST_NAME}}"
+  dnsNames: [{{HOST_NAME}}]
   usages: ["server auth", "client auth", "signing", "digital signature", "key encipherment"]

@@ -50,7 +50,8 @@ spec:
       required: true
       description: ClusterIP service port
   resourcetemplates:
-    - content:
+    - path: "clusters/management/mvp/${{ .params.NAMESPACE }}/${{ .params.RESOURCE_NAME }}.yaml"
+      content:
         - apiVersion: source.toolkit.fluxcd.io/v1beta1
           kind: HelmRepository
           metadata:

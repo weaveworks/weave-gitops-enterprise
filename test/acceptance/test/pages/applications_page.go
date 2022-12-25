@@ -2,7 +2,6 @@ package pages
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/sclevine/agouti"
 )
@@ -10,7 +9,6 @@ import (
 type ApplicationsPage struct {
 	ApplicationHeader     *agouti.Selection
 	ApplicationHeaderLink *agouti.Selection
-	ApplicationCount      *agouti.Selection
 	AddApplication        *agouti.Selection
 	ApplicationsList      *agouti.Selection
 	SupportEmailLink      *agouti.Selection
@@ -152,17 +150,10 @@ func CountUnfilteredAppViolations(webDriver *agouti.Page, filterKey, filterValue
 	return count
 }
 
-func (a ApplicationsPage) ApplicationsHeaderCount() int {
-	cnt, _ := a.ApplicationCount.Text()
-	count, _ := strconv.Atoi(cnt)
-	return count
-}
-
 func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	return &ApplicationsPage{
 		ApplicationHeader:     webDriver.Find(`span[title="Applications"]`),
 		ApplicationHeaderLink: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
-		ApplicationCount:      webDriver.Find(`.section-header-count`),
 		AddApplication:        webDriver.FindByButton("ADD AN APPLICATION"),
 		ApplicationsList:      webDriver.First(`table tbody`),
 		SupportEmailLink:      webDriver.FindByLink(`support ticket`),
