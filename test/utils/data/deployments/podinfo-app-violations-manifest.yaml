@@ -24,7 +24,7 @@ spec:
       containers:
       - name: podinfod
         imagePullPolicy: Always
-        image: ghcr.io/stefanprodan/podinfo:6.2.0:latest
+        image: ghcr.io/stefanprodan/podinfo:6.3.0:latest
         securityContext:
           allowPrivilegeEscalation: true
         ports:

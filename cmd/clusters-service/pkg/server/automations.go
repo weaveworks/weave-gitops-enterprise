@@ -675,6 +675,10 @@ func validateClusterExternalSecret(clusterExternalSecret *capiv1_proto.ClusterEx
 		}
 	}
 
+	if clusterExternalSecret.Spec.NamespaceSelector == nil {
+		err = multierror.Append(err, errors.New("cluster external secret NamespaceSelector must be specified"))
+	}
+
 	if clusterExternalSecret.Spec.ExternalSecretSpec == nil {
 		err = multierror.Append(err, errors.New("cluster external secret ExternalSecretSpec must be specified"))
 	} else {

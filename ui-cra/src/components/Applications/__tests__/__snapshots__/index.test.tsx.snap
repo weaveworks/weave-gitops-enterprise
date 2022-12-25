@@ -95,6 +95,11 @@ exports[`Applications index test snapshots loading 1`] = `
   width: 16px;
 }
 
+.c14 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
 .c10.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -110,11 +115,6 @@ exports[`Applications index test snapshots loading 1`] = `
 .c10.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
-}
-
-.c14 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
 }
 
 .c5 {
@@ -705,6 +705,15 @@ exports[`Applications index test snapshots success 1`] = `
   width: 16px;
 }
 
+.c22 {
+  padding: 4px;
+}
+
+.c42 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
 .c10.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -731,10 +740,6 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c19.MuiButton-text {
   padding: 0;
-}
-
-.c22 {
-  padding: 4px;
 }
 
 .c20.MuiButton-outlined {
@@ -916,11 +921,6 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c13 .filter-options-chip {
   background-color: #E5F7FD;
-}
-
-.c42 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
 }
 
 .c14 td:nth-child(7) {
