@@ -8,23 +8,7 @@ const {
 } = theme.colors;
 export const useSecretStyle = makeStyles(() =>
   createStyles({
-    flexStart: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-    },
-    capitlize: {
-      textTransform: 'capitalize',
-    },
-    statusIcon: {
-      fontSize: theme.fontSizes.large,
-      marginRight: xxs,
-    },
-    readyIcon: {
-      color: successOriginal,
-    },
-    notReadyIcon: {
-      color: alertOriginal,
-    },
+
+
   }),
 );
