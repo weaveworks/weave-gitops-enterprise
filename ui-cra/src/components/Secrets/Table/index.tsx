@@ -24,6 +24,7 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
           {
             label: 'Name',
             value: 'externalSecretName',
+            defaultSort: true,
             textSearchable: true,
             sortValue: ({ externalSecretName }) => externalSecretName,
           },
@@ -65,7 +66,6 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
               const t = timestamp && new Date(timestamp).getTime();
               return t * -1;
             },
-            defaultSort: true,
           },
         ]}
       />
