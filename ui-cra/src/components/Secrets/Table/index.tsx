@@ -58,9 +58,10 @@ export const SecretsTable: FC<Props> = ({ secrets }) => {
           },
           {
             label: 'Age',
-            value: ({ timestamp }) => moment(timestamp).fromNow(),
+            value: ({ timestamp }) => moment.utc(timestamp, 'YYYY-DD-MM HH:MM:SS').fromNow(),
             sortValue: ({ timestamp }) => {
               const t = timestamp && new Date(timestamp).getTime();
+              console.log(moment(timestamp, 'YYYY-DD-MM HH:MM:SS').fromNow())
               return t * -1;
             },
           },
