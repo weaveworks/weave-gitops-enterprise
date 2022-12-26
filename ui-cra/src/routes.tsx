@@ -253,7 +253,6 @@ const AppRoutes = () => {
         path={Routes.WorkspaceDetails}
         component={withSearchParams(WorkspaceDetails)}
       />
-
       <Route exact path={Routes.Secrets} component={SecretsList} />
       <Route
         path={Routes.SecretDetails}
