@@ -202,6 +202,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
 	files = append(files, git_files.ExternalSecretsFiles...)
+	files = append(files, git_files.ClusterExternalSecretsFiles...)
 
 	deletedFiles := getDeletedFiles(prevFiles, git_files)
 	files = append(files, deletedFiles...)
