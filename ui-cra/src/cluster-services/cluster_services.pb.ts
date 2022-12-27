@@ -71,7 +71,6 @@ export type RenderTemplateRequest = {
   kustomizations?: Kustomization[]
   templateNamespace?: string
   externalSecrets?: ExternalSecret[]
-  clusterExternalSecrets?: ClusterExternalSecret[]
 }
 
 export type CommitFile = {
@@ -218,7 +217,6 @@ export type CreatePullRequestRequest = {
   templateKind?: string
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
-  clusterExternalSecrets?: ClusterExternalSecret[]
 }
 
 export type PreviousValues = {
@@ -227,7 +225,6 @@ export type PreviousValues = {
   values?: ProfileValues[]
   kustomizations?: Kustomization[]
   externalSecrets?: ExternalSecret[]
-  clusterExternalSecrets?: ClusterExternalSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -414,7 +411,6 @@ export type ClusterAutomation = {
   helmRelease?: HelmRelease
   filePath?: string
   externalSecret?: ExternalSecret
-  clusterExternalSecret?: ClusterExternalSecret
 }
 
 export type ExternalSecret = {
@@ -447,37 +443,6 @@ export type externalSecretData = {
 export type externalSecretRemoteRef = {
   key?: string
   property?: string
-}
-
-export type ClusterExternalSecret = {
-  metadata?: ClusterSecretMetadata
-  spec?: ClusterSecretSpec
-}
-
-export type ClusterSecretMetadata = {
-  name?: string
-}
-
-export type ClusterSecretSpec = {
-  refreshTime?: string
-  namespaceSelector?: NamspaceSelector
-  externalSecretSpec?: ClusterExternalSecretSpec
-}
-
-export type NamspaceSelector = {
-  matchLabels?: MatchLabels
-}
-
-export type MatchLabels = {
-  key?: string
-  value?: string
-}
-
-export type ClusterExternalSecretSpec = {
-  refreshInterval?: string
-  secretStoreRef?: externalSecretStoreRef
-  target?: externalSecretTarget
-  data?: externalSecretData
 }
 
 export type Kustomization = {

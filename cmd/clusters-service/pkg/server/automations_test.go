@@ -733,6 +733,45 @@ status:
 			expected: "https://github.com/org/repo/pull/1",
 		},
 	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			viper.SetDefault("runtime-namespace", "default")
+			// setup
+			ts := httptest.NewServer(makeServeMux(t))
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+				hr.Name = "weaveworks-charts"
+				hr.Namespace = "default"
+			})
+			tt.clusterState = append(tt.clusterState, hr)
+			s := createServer(t, serverOptions{
+				clusterState: tt.clusterState,
+				namespace:    "default",
+				provider:     tt.provider,
+			})
+
+			// request
+			createPullRequestResponse, err := s.CreateAutomationsPullRequest(context.Background(), tt.req)
+
+			// Check the response looks good
+			if err != nil {
+				if tt.err == nil {
+					t.Fatalf("failed to create a pull request:\n%s", err)
+				}
+				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					t.Fatalf("got the wrong error:\n%s", diff)
+				}
+			} else {
+				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
+					t.Fatalf("pull request url didn't match expected:\n%s", diff)
+				}
+				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
+					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
+				}
+			}
+		})
+	}
 }
 
 func TestRenderAutomation(t *testing.T) {
