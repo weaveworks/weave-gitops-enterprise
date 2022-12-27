@@ -3128,9 +3128,6 @@
       "properties": {
         "name": {
           "type": "string"
-        },
-        "kind": {
-          "type": "string"
         }
       }
     },
@@ -3138,9 +3135,6 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
-        },
-        "creationPolicy": {
           "type": "string"
         }
       }

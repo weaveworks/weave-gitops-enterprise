@@ -959,6 +959,16 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
 	}
 
+	if resourceType == "externalsecret" {
+		return filepath.Join(
+			viper.GetString("capi-repository-clusters-path"),
+			clusterNamespace,
+			cluster.Name,
+			"secrets",
+			fileName,
+		)
+	}
+
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,

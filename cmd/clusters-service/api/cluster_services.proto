@@ -698,12 +698,10 @@ message ExternalSecretSpec {
 
 message externalSecretStoreRef {
   string name = 1;
-  string kind = 2;
 }
 
 message externalSecretTarget {
   string name = 1;
-  string creation_policy = 2;
 }
 
 message externalSecretData {

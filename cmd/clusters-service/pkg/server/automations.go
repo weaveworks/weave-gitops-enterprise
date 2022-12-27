@@ -482,14 +482,14 @@ func createExternalSecretObject(es *capiv1_proto.ExternalSecret) (*esv1beta1.Ext
 		Spec: esv1beta1.ExternalSecretSpec{
 			SecretStoreRef: esv1beta1.SecretStoreRef{
 				Name: es.Spec.SecretStoreRef.Name,
-				Kind: es.Spec.SecretStoreRef.Kind,
+				Kind: "SecretStore",
 			},
 			RefreshInterval: &metav1.Duration{
 				Duration: refreshInterval,
 			},
 			Target: esv1beta1.ExternalSecretTarget{
 				Name:           es.Spec.Target.Name,
-				CreationPolicy: esv1beta1.ExternalSecretCreationPolicy(es.Spec.Target.CreationPolicy),
+				CreationPolicy: esv1beta1.ExternalSecretCreationPolicy("Owner"),
 			},
 			Data: []esv1beta1.ExternalSecretData{
 				{
@@ -532,9 +532,6 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 	} else {
 		if externalSecret.Spec.SecretStoreRef.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("secretStoreRef name must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
-		}
-		if externalSecret.Spec.SecretStoreRef.Kind == "" {
-			err = multierror.Append(err, fmt.Errorf("secretStoreRef kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 		}
 	}
 

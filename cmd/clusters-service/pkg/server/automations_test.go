@@ -685,11 +685,9 @@ status: {}
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
-									Kind: "testkind",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
-									Name:           "new-secret",
-									CreationPolicy: "owner",
+									Name: "new-secret",
 								},
 								Data: &capiv1_protos.ExternalSecretData{
 									SecretKey: "test-secret-key",
@@ -705,7 +703,7 @@ status: {}
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "clusters/management/new-secret-flux-system-externalsecret.yaml",
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
 					Content: `apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -720,10 +718,10 @@ spec:
     secretKey: test-secret-key
   refreshInterval: 1h0m0s
   secretStoreRef:
-    kind: testkind
+    kind: SecretStore
     name: testname
   target:
-    creationPolicy: owner
+    creationPolicy: Owner
     name: new-secret
 status:
   refreshTime: null
@@ -753,11 +751,9 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
-									Kind: "testkind",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
-									Name:           "new-secret",
-									CreationPolicy: "owner",
+									Name: "new-secret",
 								},
 								Data: &capiv1_protos.ExternalSecretData{
 									SecretKey: "test-secret-key",
@@ -773,7 +769,7 @@ status:
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "clusters/management/new-secret-flux-system-externalsecret.yaml",
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
 					Content: `apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 spec:
@@ -784,10 +780,10 @@ spec:
     secretKey: test-secret-key
   refreshInterval: 1h0m0s
   secretStoreRef:
-    kind: testkind
+    kind: SecretStore
     name: testname
   target:
-    creationPolicy: owner
+    creationPolicy: Owner
     name: new-secret
 status:
   refreshTime: null
@@ -818,11 +814,9 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
-									Kind: "testkind",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
-									Name:           "new-secret",
-									CreationPolicy: "owner",
+									Name: "new-secret",
 								},
 								Data: &capiv1_protos.ExternalSecretData{
 									SecretKey: "test-secret-key",
@@ -838,7 +832,7 @@ status:
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "clusters/management/new-secret-flux-system-externalsecret.yaml",
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
 					Content: `apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -852,10 +846,10 @@ spec:
     secretKey: test-secret-key
   refreshInterval: 1h0m0s
   secretStoreRef:
-    kind: testkind
+    kind: SecretStore
     name: testname
   target:
-    creationPolicy: owner
+    creationPolicy: Owner
     name: new-secret
 status:
   refreshTime: null
@@ -886,11 +880,9 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
-									Kind: "testkind",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
-									Name:           "new-secret",
-									CreationPolicy: "owner",
+									Name: "new-secret",
 								},
 								Data: &capiv1_protos.ExternalSecretData{
 									SecretKey: "test-secret-key",
@@ -906,7 +898,7 @@ status:
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "clusters/management/new-secret-flux-system-externalsecret.yaml",
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
 					Content: `apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -920,10 +912,10 @@ spec:
     secretKey: test-secret-key
   refreshInterval: 1h0m0s
   secretStoreRef:
-    kind: testkind
+    kind: SecretStore
     name: testname
   target:
-    creationPolicy: owner
+    creationPolicy: Owner
     name: new-secret
 status:
   refreshTime: null
@@ -952,12 +944,9 @@ status:
 							Metadata: testNewMetadata(t, "new-secret", "flux-system"),
 							Spec: &capiv1_protos.ExternalSecretSpec{
 								RefreshInterval: "1h",
-								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
-									Kind: "testkind",
-								},
+								SecretStoreRef:  &capiv1_protos.ExternalSecretStoreRef{},
 								Target: &capiv1_protos.ExternalSecretTarget{
-									Name:           "new-secret",
-									CreationPolicy: "Owner",
+									Name: "new-secret",
 								},
 								Data: &capiv1_protos.ExternalSecretData{
 									SecretKey: "test-secret-key",
@@ -973,7 +962,7 @@ status:
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "clusters/management/new-secret-flux-system-externalsecret.yaml",
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
 					Content: `apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -988,9 +977,9 @@ spec:
     secretKey: test-secret-key
   refreshInterval: 1h0m0s
   secretStoreRef:
-    kind: testkind
+    kind: SecretStore
   target:
-    creationPolicy: owner
+    creationPolicy: Owner
     name: new-secret
 status:
   refreshTime: null
@@ -1021,11 +1010,9 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
-									Kind: "testkind",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
-									Name:           "new-secret",
-									CreationPolicy: "owner",
+									Name: "new-secret",
 								},
 								Data: &capiv1_protos.ExternalSecretData{
 									SecretKey: "test-secret-key",
@@ -1040,7 +1027,7 @@ status:
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "clusters/management/new-secret-flux-system-externalsecret.yaml",
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
 					Content: `apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -1054,10 +1041,10 @@ spec:
     secretKey: test-secret-key
   refreshInterval: 1h0m0s
   secretStoreRef:
-    kind: testkind
+    kind: SecretStore
     name: testname
   target:
-    creationPolicy: owner
+    creationPolicy: Owner
     name: new-secret
 status:
   refreshTime: null

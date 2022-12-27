@@ -427,12 +427,10 @@ export type ExternalSecretSpec = {
 
 export type externalSecretStoreRef = {
   name?: string
-  kind?: string
 }
 
 export type externalSecretTarget = {
   name?: string
-  creationPolicy?: string
 }
 
 export type externalSecretData = {
