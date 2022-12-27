@@ -185,11 +185,17 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 		// 	Status:             getClusterExternalSecretStatus(&clusterExternalSecret),
 		// 	Timestamp:          clusterExternalSecret.CreationTimestamp.String(),
 		// }, nil
-		return nil, errors.New("Namespace is required")
+		return nil, fmt.Errorf("cluster external secrets are not supported yet")
+
 	} else {
 		var externalSecret esv1beta1.ExternalSecret
 		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.ExternalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
 			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
+		}
+		//Get SecretStore
+		var externalSecretStore esv1beta1.SecretStore
+		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name, Namespace: req.Namespace}, &externalSecretStore); err != nil {
+			return nil, fmt.Errorf("error getting secret store %s from cluster %s: %w", externalSecret.Spec.SecretStoreRef.Name, req.ClusterName, err)
 		}
 
 		return &capiv1_proto.GetExternalSecretResponse{
@@ -198,6 +204,7 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			ClusterName:        req.ClusterName,
 			Namespace:          req.Namespace,
 			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
+			SecretStoreType:    getSecretStoreType(&externalSecretStore.Spec.Provider),
 			SecretPath:         externalSecret.Spec.Data[0].RemoteRef.Key,
 			Property:           externalSecret.Spec.Data[0].RemoteRef.Property,
 			Version:            externalSecret.Spec.Data[0].RemoteRef.Version,
@@ -214,6 +221,9 @@ func validateReq(req *capiv1_proto.GetExternalSecretRequest) error {
 	}
 	if req.ExternalSecretName == "" {
 		return errors.New("external secret name is required")
+	}
+	if req.Namespace == "" {
+		return errors.New("namespace is required")
 	}
 	return nil
 }
@@ -276,6 +286,7 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 			Kind:      item.GetKind(),
 			Name:      item.GetName(),
 			Namespace: item.GetNamespace(),
+			Type:      getSecretStoreType(&item.Spec.Provider),
 		})
 	}
 	// for _, item := range clusterSecretStores.Items {
@@ -287,4 +298,17 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 
 	response.Total = int32(len(response.Stores))
 	return &response, nil
+}
+
+// Get SecretStoreType from SecretStore
+func getSecretStoreType(secretStoreProvider interface{}) string {
+	switch secretStoreProvider.(type) {
+	case esv1beta1.AWSProvider:
+		return "AWS Secret Manager"
+	case esv1beta1.AzureKVProvider:
+		return "Azure Key Vault"
+	default:
+		return "Unknown"
+	}
+
 }
