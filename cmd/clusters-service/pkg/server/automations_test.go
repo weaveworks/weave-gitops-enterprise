@@ -922,7 +922,7 @@ status:
 `,
 				},
 			},
-			err: errors.New("external secret namespace must be specified"),
+			err: errors.New("external secret namespace must be specified in ExternalSecret new-secret"),
 		},
 		{
 			name: "validate secretstore ref for external secret",

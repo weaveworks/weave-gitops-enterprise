@@ -518,7 +518,7 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 			return err
 		}
 		if externalSecret.Metadata.Namespace == "" {
-			err = multierror.Append(err, fmt.Errorf("external secret namespace must be specified"))
+			err = multierror.Append(err, fmt.Errorf("external secret namespace must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 		} else {
 			invalidNamespaceErr := validateNamespace(externalSecret.Metadata.Namespace)
 			if invalidNamespaceErr != nil {
@@ -528,7 +528,7 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 	}
 
 	if externalSecret.Spec.SecretStoreRef == nil {
-		err = multierror.Append(err, errors.New("external secret secretStoreRef must be specified"))
+		err = multierror.Append(err, fmt.Errorf("external secret secretStoreRef must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 	} else {
 		if externalSecret.Spec.SecretStoreRef.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("secretStoreRef name must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
@@ -536,7 +536,7 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 	}
 
 	if externalSecret.Spec.Target == nil {
-		err = multierror.Append(err, errors.New("external secret target must be specified"))
+		err = multierror.Append(err, fmt.Errorf("external secret target must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 	} else {
 		if externalSecret.Spec.Target.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("target name must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
@@ -544,7 +544,7 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 	}
 
 	if externalSecret.Spec.Data == nil {
-		err = multierror.Append(err, errors.New("external secret data must be specified"))
+		err = multierror.Append(err, fmt.Errorf("external secret data must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 	} else {
 		if externalSecret.Spec.Data.SecretKey == "" {
 			err = multierror.Append(err, fmt.Errorf("secretKey must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
