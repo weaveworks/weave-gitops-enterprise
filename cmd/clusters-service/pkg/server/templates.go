@@ -26,24 +26,22 @@ import (
 )
 
 type GetFilesRequest struct {
-	ClusterNamespace       string
-	TemplateName           string
-	TemplateKind           string
-	ParameterValues        map[string]string
-	Credentials            *capiv1_proto.Credential
-	Profiles               []*capiv1_proto.ProfileValues
-	Kustomizations         []*capiv1_proto.Kustomization
-	ExternalSecrets        []*capiv1_proto.ExternalSecret
-	ClusterExternalSecrets []*capiv1_proto.ClusterExternalSecret
+	ClusterNamespace string
+	TemplateName     string
+	TemplateKind     string
+	ParameterValues  map[string]string
+	Credentials      *capiv1_proto.Credential
+	Profiles         []*capiv1_proto.ProfileValues
+	Kustomizations   []*capiv1_proto.Kustomization
+	ExternalSecrets  []*capiv1_proto.ExternalSecret
 }
 
 type GetFilesReturn struct {
-	RenderedTemplate            []gitprovider.CommitFile
-	ProfileFiles                []gitprovider.CommitFile
-	KustomizationFiles          []gitprovider.CommitFile
-	CostEstimate                *capiv1_proto.CostEstimate
-	ExternalSecretsFiles        []gitprovider.CommitFile
-	ClusterExternalSecretsFiles []gitprovider.CommitFile
+	RenderedTemplate     []gitprovider.CommitFile
+	ProfileFiles         []gitprovider.CommitFile
+	KustomizationFiles   []gitprovider.CommitFile
+	CostEstimate         *capiv1_proto.CostEstimate
+	ExternalSecretsFiles []gitprovider.CommitFile
 }
 
 func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind string) (templatesv1.Template, error) {
@@ -245,7 +243,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tm,
-		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, msg.ExternalSecrets, msg.ClusterExternalSecrets},
+		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, msg.ExternalSecrets},
 		nil,
 	)
 	if err != nil {
@@ -256,8 +254,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	kustomizationFiles := toCommitFileProtos(files.KustomizationFiles)
 	renderedTemplateFiles := toCommitFileProtos(files.RenderedTemplate)
 	externalSecretFiles := toCommitFileProtos(files.ExternalSecretsFiles)
-	clusterExternalSecretsFiles := toCommitFileProtos(files.ClusterExternalSecretsFiles)
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles, ClusterExternalSecretsFiles: clusterExternalSecretsFiles}, err
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
 func GetFiles(
@@ -324,7 +321,6 @@ func GetFiles(
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
 	var externalSecretFiles []gitprovider.CommitFile
-	var clusterExternalSecretFiles []gitprovider.CommitFile
 
 	if shouldAddCommonBases(tmpl) {
 		cluster, err := getCluster(resourcesNamespace, msg)
@@ -394,7 +390,7 @@ func GetFiles(
 		}
 	}
 
-	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate, ExternalSecretsFiles: externalSecretFiles, ClusterExternalSecretsFiles: clusterExternalSecretFiles}, err
+	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
 func getCluster(namespace string, msg GetFilesRequest) (types.NamespacedName, error) {

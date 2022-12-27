@@ -172,7 +172,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			types.NamespacedName{Name: s.cluster},
 			s.profileHelmRepository,
 			tmpl,
-			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations, msg.PreviousValues.ExternalSecrets, msg.PreviousValues.ClusterExternalSecrets},
+			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations, msg.PreviousValues.ExternalSecrets},
 			msg,
 		)
 		if err != nil {
@@ -190,7 +190,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tmpl,
-		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.ExternalSecrets, msg.ClusterExternalSecrets},
+		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.ExternalSecrets},
 		msg,
 	)
 	if err != nil {
@@ -202,7 +202,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
 	files = append(files, git_files.ExternalSecretsFiles...)
-	files = append(files, git_files.ClusterExternalSecretsFiles...)
 
 	deletedFiles := getDeletedFiles(prevFiles, git_files)
 	files = append(files, deletedFiles...)
