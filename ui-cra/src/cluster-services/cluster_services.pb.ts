@@ -95,7 +95,6 @@ export type RenderTemplateResponse = {
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
   externalSecretsFiles?: CommitFile[]
-  clusterExternalSecretsFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -106,7 +105,6 @@ export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
   helmReleaseFiles?: CommitFile[]
   externalSecretsFiles?: CommitFile[]
-  clusterExternalSecretsFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {

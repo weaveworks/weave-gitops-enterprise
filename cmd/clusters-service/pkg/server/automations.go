@@ -340,7 +340,7 @@ func validateAutomations(ca []*capiv1_proto.ClusterAutomation) error {
 		} else if c.ExternalSecret != nil {
 			err = multierror.Append(err, validateExternalSecret(c.ExternalSecret))
 		} else {
-			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release or external secret or cluster external secret"))
+			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release or external secret"))
 		}
 	}
 

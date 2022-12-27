@@ -331,7 +331,6 @@ message RenderTemplateResponse {
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
   repeated CommitFile external_secrets_files = 5;
-  repeated CommitFile cluster_external_secrets_files = 6;
 }
 
 message RenderAutomationRequest {
@@ -342,7 +341,6 @@ message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
   repeated CommitFile external_secrets_files = 3;
-  repeated CommitFile cluster_external_secrets_files = 4;
 }
 
 message ListGitopsClustersRequest {
