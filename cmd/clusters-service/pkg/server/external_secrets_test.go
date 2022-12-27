@@ -29,21 +29,21 @@ func TestListExternalSecrets(t *testing.T) {
 						Name: "namespace-a-1",
 					},
 				},
-				&esv1beta1.ClusterExternalSecret{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-external-secret-a-1",
-					},
-					Spec: esv1beta1.ClusterExternalSecretSpec{
-						ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
-							SecretStoreRef: esv1beta1.SecretStoreRef{
-								Name: "aws-secret-store",
-							},
-							Target: esv1beta1.ExternalSecretTarget{
-								Name: "cluster-secret-a-1",
-							},
-						},
-					},
-				},
+				// &esv1beta1.ClusterExternalSecret{
+				// 	ObjectMeta: metav1.ObjectMeta{
+				// 		Name: "cluster-external-secret-a-1",
+				// 	},
+				// 	Spec: esv1beta1.ClusterExternalSecretSpec{
+				// 		ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
+				// 			SecretStoreRef: esv1beta1.SecretStoreRef{
+				// 				Name: "aws-secret-store",
+				// 			},
+				// 			Target: esv1beta1.ExternalSecretTarget{
+				// 				Name: "cluster-secret-a-1",
+				// 			},
+				// 		},
+				// 	},
+				// },
 				&esv1beta1.ExternalSecret{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "external-secret-a-1",
@@ -68,21 +68,21 @@ func TestListExternalSecrets(t *testing.T) {
 						Name: "namespace-x-1",
 					},
 				},
-				&esv1beta1.ClusterExternalSecret{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-external-secret-x-1",
-					},
-					Spec: esv1beta1.ClusterExternalSecretSpec{
-						ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
-							SecretStoreRef: esv1beta1.SecretStoreRef{
-								Name: "aws-secret-store",
-							},
-							Target: esv1beta1.ExternalSecretTarget{
-								Name: "cluster-secret-x-1",
-							},
-						},
-					},
-				},
+				// &esv1beta1.ClusterExternalSecret{
+				// 	ObjectMeta: metav1.ObjectMeta{
+				// 		Name: "cluster-external-secret-x-1",
+				// 	},
+				// 	Spec: esv1beta1.ClusterExternalSecretSpec{
+				// 		ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
+				// 			SecretStoreRef: esv1beta1.SecretStoreRef{
+				// 				Name: "aws-secret-store",
+				// 			},
+				// 			Target: esv1beta1.ExternalSecretTarget{
+				// 				Name: "cluster-secret-x-1",
+				// 			},
+				// 		},
+				// 	},
+				// },
 				&esv1beta1.ExternalSecret{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "external-secret-x-1",
@@ -117,13 +117,13 @@ func TestListExternalSecrets(t *testing.T) {
 						ClusterName:        "management",
 						SecretStore:        "aws-secret-store",
 					},
-					{
-						SecretName:         "cluster-secret-a-1",
-						ExternalSecretName: "cluster-external-secret-a-1",
-						Namespace:          "",
-						ClusterName:        "management",
-						SecretStore:        "aws-secret-store",
-					},
+					// {
+					// 	SecretName:         "cluster-secret-a-1",
+					// 	ExternalSecretName: "cluster-external-secret-a-1",
+					// 	Namespace:          "",
+					// 	ClusterName:        "management",
+					// 	SecretStore:        "aws-secret-store",
+					// },
 					{
 						SecretName:         "secret-x-1",
 						ExternalSecretName: "external-secret-x-1",
@@ -131,13 +131,13 @@ func TestListExternalSecrets(t *testing.T) {
 						ClusterName:        "leaf-1",
 						SecretStore:        "aws-secret-store",
 					},
-					{
-						SecretName:         "cluster-secret-x-1",
-						ExternalSecretName: "cluster-external-secret-x-1",
-						Namespace:          "",
-						ClusterName:        "leaf-1",
-						SecretStore:        "aws-secret-store",
-					},
+					// {
+					// 	SecretName:         "cluster-secret-x-1",
+					// 	ExternalSecretName: "cluster-external-secret-x-1",
+					// 	Namespace:          "",
+					// 	ClusterName:        "leaf-1",
+					// 	SecretStore:        "aws-secret-store",
+					// },
 				},
 			},
 		},
@@ -217,30 +217,30 @@ func TestGetExternalSecret(t *testing.T) {
 						},
 					},
 				},
-				&esv1beta1.ClusterExternalSecret{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-external-secret-a-1",
-					},
-					Spec: esv1beta1.ClusterExternalSecretSpec{
-						ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
-							SecretStoreRef: esv1beta1.SecretStoreRef{
-								Name: "aws-secret-store",
-							},
-							Target: esv1beta1.ExternalSecretTarget{
-								Name: "cluster-secret-a-1",
-							},
-							Data: []esv1beta1.ExternalSecretData{
-								{
-									RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
-										Key:      "Data/key-a-1",
-										Property: "property-a-1",
-										Version:  "1.0.0",
-									},
-								},
-							},
-						},
-					},
-				},
+				// &esv1beta1.ClusterExternalSecret{
+				// 	ObjectMeta: metav1.ObjectMeta{
+				// 		Name: "cluster-external-secret-a-1",
+				// 	},
+				// 	Spec: esv1beta1.ClusterExternalSecretSpec{
+				// 		ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
+				// 			SecretStoreRef: esv1beta1.SecretStoreRef{
+				// 				Name: "aws-secret-store",
+				// 			},
+				// 			Target: esv1beta1.ExternalSecretTarget{
+				// 				Name: "cluster-secret-a-1",
+				// 			},
+				// 			Data: []esv1beta1.ExternalSecretData{
+				// 				{
+				// 					RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+				// 						Key:      "Data/key-a-1",
+				// 						Property: "property-a-1",
+				// 						Version:  "1.0.0",
+				// 					},
+				// 				},
+				// 			},
+				// 		},
+				// 	},
+				// },
 			},
 		},
 	}
@@ -267,21 +267,21 @@ func TestGetExternalSecret(t *testing.T) {
 				Version:            "1.0.0",
 			},
 		},
-		{
-			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: "cluster-external-secret-a-1",
-				ClusterName:        "management",
-			},
-			response: &capiv1_proto.GetExternalSecretResponse{
-				SecretName:         "cluster-secret-a-1",
-				ExternalSecretName: "cluster-external-secret-a-1",
-				ClusterName:        "management",
-				SecretStore:        "aws-secret-store",
-				SecretPath:         "Data/key-a-1",
-				Property:           "property-a-1",
-				Version:            "1.0.0",
-			},
-		},
+		// {
+		// 	request: &capiv1_proto.GetExternalSecretRequest{
+		// 		ExternalSecretName: "cluster-external-secret-a-1",
+		// 		ClusterName:        "management",
+		// 	},
+		// 	response: &capiv1_proto.GetExternalSecretResponse{
+		// 		SecretName:         "cluster-secret-a-1",
+		// 		ExternalSecretName: "cluster-external-secret-a-1",
+		// 		ClusterName:        "management",
+		// 		SecretStore:        "aws-secret-store",
+		// 		SecretPath:         "Data/key-a-1",
+		// 		Property:           "property-a-1",
+		// 		Version:            "1.0.0",
+		// 	},
+		// },
 		{
 			request: &capiv1_proto.GetExternalSecretRequest{
 				ExternalSecretName: uuid.NewString(),
@@ -290,13 +290,13 @@ func TestGetExternalSecret(t *testing.T) {
 			},
 			err: true,
 		},
-		{
-			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: uuid.NewString(),
-				ClusterName:        uuid.NewString(),
-			},
-			err: true,
-		},
+		// {
+		// 	request: &capiv1_proto.GetExternalSecretRequest{
+		// 		ExternalSecretName: uuid.NewString(),
+		// 		ClusterName:        uuid.NewString(),
+		// 	},
+		// 	err: true,
+		// },
 	}
 
 	clustersClients := map[string]client.Client{}
@@ -343,11 +343,11 @@ func TestListSecretStores(t *testing.T) {
 						Namespace: "namespace-a",
 					},
 				},
-				&esv1beta1.ClusterSecretStore{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-secret-store-1",
-					},
-				},
+				// &esv1beta1.ClusterSecretStore{
+				// 	ObjectMeta: metav1.ObjectMeta{
+				// 		Name: "cluster-secret-store-1",
+				// 	},
+				// },
 			},
 		},
 		{
@@ -364,11 +364,11 @@ func TestListSecretStores(t *testing.T) {
 						Namespace: "namespace-b",
 					},
 				},
-				&esv1beta1.ClusterSecretStore{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-secret-store-2",
-					},
-				},
+				// &esv1beta1.ClusterSecretStore{
+				// 	ObjectMeta: metav1.ObjectMeta{
+				// 		Name: "cluster-secret-store-2",
+				// 	},
+				// },
 			},
 		},
 	}
@@ -389,12 +389,12 @@ func TestListSecretStores(t *testing.T) {
 						Name:      "secret-store-1",
 						Namespace: "namespace-a",
 					},
-					{
-						Kind: esv1beta1.ClusterSecretStoreKind,
-						Name: "cluster-secret-store-1",
-					},
+					// {
+					// 	Kind: esv1beta1.ClusterSecretStoreKind,
+					// 	Name: "cluster-secret-store-1",
+					// },
 				},
-				Total: 2,
+				Total: 1,
 			},
 		},
 		{
@@ -408,12 +408,12 @@ func TestListSecretStores(t *testing.T) {
 						Name:      "secret-store-2",
 						Namespace: "namespace-b",
 					},
-					{
-						Kind: esv1beta1.ClusterSecretStoreKind,
-						Name: "cluster-secret-store-2",
-					},
+					// {
+					// 	Kind: esv1beta1.ClusterSecretStoreKind,
+					// 	Name: "cluster-secret-store-2",
+					// },
 				},
-				Total: 2,
+				Total: 1,
 			},
 		},
 		{
