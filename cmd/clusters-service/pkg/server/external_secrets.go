@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"github.com/hashicorp/go-multierror"
@@ -76,10 +77,16 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 	if err := cl.ClusteredList(ctx, list, true); err != nil {
 		if e, ok := err.(clustersmngr.ClusteredListError); ok {
 			for i := range e.Errors {
-				clusterListErrors = append(clusterListErrors, &capiv1_proto.ListError{ClusterName: e.Errors[i].Cluster, Message: e.Errors[i].Error()})
+				if !strings.Contains(e.Errors[i].Error(), "no matches for kind \"ExternalSecret\"") {
+					clusterListErrors = append(clusterListErrors, &capiv1_proto.ListError{ClusterName: e.Errors[i].Cluster, Message: e.Errors[i].Error()})
+				}
+
 			}
 		} else {
-			return nil, clusterListErrors, fmt.Errorf("failed to list external secrets, error: %w", err)
+			if !strings.Contains(e.Error(), "no matches for kind \"ExternalSecret\"") {
+				return nil, clusterListErrors, fmt.Errorf("failed to list external secrets, error: %w", err)
+			}
+
 		}
 	}
 
