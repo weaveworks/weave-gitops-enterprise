@@ -217,15 +217,14 @@ const MCCP: FC<{
 }> = ({ location }) => {
   const { clusters, isLoading } = useClusters();
   const { setNotifications } = useNotifications();
-  const [selectedClusters, setSelectedClusters] = useState<
-    ClusterNamespacedName[]
-  >([]);
+  const [selectedCluster, setSelectedCluster] =
+    useState<ClusterNamespacedName | null>(null);
   const [openConnectInfo, setOpenConnectInfo] = useState<boolean>(false);
   const [openDeletePR, setOpenDeletePR] = useState<boolean>(false);
   const handleClose = useCallback(() => {
     setOpenDeletePR(false);
-    setSelectedClusters([]);
-  }, [setOpenDeletePR, setSelectedClusters]);
+    setSelectedCluster(null);
+  }, [setOpenDeletePR, setSelectedCluster]);
   const { data: sources } = useListSources();
 
   const gitRepos = useMemo(
@@ -239,13 +238,16 @@ const MCCP: FC<{
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
   );
-  let selectedCapiClusters = useMemo(
+  let selectedCapiCluster = useMemo(
     () =>
-      selectedClusters.filter(({ name, namespace }) =>
-        capiClusters.find(c => c.name === name && c.namespace === namespace),
-      ),
-    [capiClusters, selectedClusters],
+      capiClusters.find(
+        c =>
+          c.name === selectedCluster?.name &&
+          c.namespace === selectedCluster?.namespace,
+      ) || null,
+    [capiClusters, selectedCluster],
   );
+
   const [random, setRandom] = useState<string>(
     Math.random().toString(36).substring(7),
   );
@@ -278,10 +280,8 @@ const MCCP: FC<{
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    selectedCapiClusters = [
-      ...selectedCapiClusters,
-      ...(callbackState.state.selectedCapiClusters || []),
-    ];
+    // check that the selection is kept after Gitlab Auth
+    selectedCapiCluster = callbackState.state.selectedCapiCluster || null;
   }
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -300,9 +300,7 @@ const MCCP: FC<{
 
   useEffect(() => {
     if (!callbackState) {
-      const prTitle = `Delete clusters: ${selectedCapiClusters
-        .map(c => `${c.namespace}/${c.name}`)
-        .join(', ')}`;
+      const prTitle = `Delete cluster: ${selectedCluster?.namespace}/${selectedCluster?.name}`;
       setFormData((prevState: FormData) => ({
         ...prevState,
         gitRepos,
@@ -312,18 +310,18 @@ const MCCP: FC<{
       }));
     }
 
-    if (!callbackState && selectedClusters.length === 0) {
+    if (!callbackState && !selectedCluster) {
       setOpenDeletePR(false);
     }
 
-    if (callbackState?.state?.selectedCapiClusters?.length > 0) {
+    if (!callbackState?.state?.selectedCapiCluster) {
       setOpenDeletePR(true);
     }
   }, [
     callbackState,
-    selectedCapiClusters,
+    selectedCapiCluster,
     capiClusters,
-    selectedClusters,
+    selectedCluster,
     gitRepos,
   ]);
 
@@ -340,18 +338,18 @@ const MCCP: FC<{
     [location?.state?.notification, setNotifications],
   );
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      setSelectedClusters(
-        clusters.map(({ name, namespace }: GitopsClusterEnriched) => ({
-          name,
-          namespace,
-        })),
-      );
-      return;
-    }
-    setSelectedClusters([]);
-  };
+  // const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (event.target.checked) {
+  //     setSelectedClusters(
+  //       clusters.map(({ name, namespace }: GitopsClusterEnriched) => ({
+  //         name,
+  //         namespace,
+  //       })),
+  //     );
+  //     return;
+  //   }
+  //   setSelectedClusters([]);
+  // };
 
   const handleIndividualClick = useCallback(
     (
@@ -359,30 +357,27 @@ const MCCP: FC<{
       event: React.ChangeEvent<HTMLInputElement>,
     ) => {
       if (event.target.checked === true) {
-        setSelectedClusters((prevState: ClusterNamespacedName[]) => [
-          ...prevState,
-          { name, namespace },
-        ]);
-      } else {
-        setSelectedClusters((prevState: ClusterNamespacedName[]) =>
-          prevState.filter(
-            cls => cls.name !== name && cls.namespace !== namespace,
-          ),
-        );
+        setSelectedCluster({ name, namespace });
+        // } else {
+        //   setSelectedClusters((prevState: ClusterNamespacedName[]) =>
+        //     prevState.filter(
+        //       cls => cls.name !== name && cls.namespace !== namespace,
+        //     ),
+        //   );
       }
     },
-    [setSelectedClusters],
+    [setSelectedCluster],
   );
 
-  const numSelected = selectedClusters.length;
-  const rowCount = clusters.length || 0;
+  // const numSelected = selectedClusters.length;
+  // const rowCount = clusters.length || 0;
 
   return (
     <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
-          state: { formData, selectedCapiClusters },
+          state: { formData, selectedCapiCluster },
         }}
       >
         <ContentWrapper>
@@ -409,9 +404,9 @@ const MCCP: FC<{
                 CONNECT A CLUSTER
               </Button>
               <Tooltip
-                title="No CAPI clusters selected"
+                title="No CAPI cluster selected"
                 placement="top"
-                disabled={selectedCapiClusters.length !== 0}
+                disabled={Boolean(selectedCapiCluster)}
               >
                 <div>
                   <Button
@@ -428,11 +423,11 @@ const MCCP: FC<{
                   </Button>
                 </div>
               </Tooltip>
-              {openDeletePR && (
+              {openDeletePR && selectedCapiCluster && (
                 <DeleteClusterDialog
                   formData={formData}
                   setFormData={setFormData}
-                  selectedCapiClusters={selectedCapiClusters}
+                  selectedCapiCluster={selectedCapiCluster}
                   onClose={handleClose}
                   prDefaults={PRdefaults}
                 />
@@ -461,29 +456,27 @@ const MCCP: FC<{
                 fields={[
                   {
                     label: 'checkbox',
-                    labelRenderer: () => (
-                      <Checkbox
-                        indeterminate={
-                          numSelected > 0 && numSelected < rowCount
-                        }
-                        checked={rowCount > 0 && numSelected === rowCount}
-                        onChange={handleSelectAllClick}
-                        inputProps={{ 'aria-label': 'select all rows' }}
-                        style={{
-                          color: theme.colors.primary,
-                        }}
-                      />
-                    ),
+                    // labelRenderer: () => (
+                    //   <Checkbox
+                    //     indeterminate={
+                    //       numSelected > 0 && numSelected < rowCount
+                    //     }
+                    //     checked={rowCount > 0 && numSelected === rowCount}
+                    //     onChange={handleSelectAllClick}
+                    //     inputProps={{ 'aria-label': 'select all rows' }}
+                    //     style={{
+                    //       color: theme.colors.primary,
+                    //     }}
+                    //   />
+                    // ),
                     value: ({ name, namespace }: GitopsClusterEnriched) => (
                       <ClusterRowCheckbox
                         name={name}
                         namespace={namespace}
                         onChange={handleIndividualClick}
                         checked={Boolean(
-                          selectedClusters.find(
-                            cls =>
-                              cls.name === name && cls.namespace === namespace,
-                          ),
+                          selectedCluster?.name === name &&
+                            selectedCluster?.namespace === namespace,
                         )}
                       />
                     ),

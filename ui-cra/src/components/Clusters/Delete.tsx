@@ -35,7 +35,7 @@ const DeleteClusterWrapper = styled(Dialog)`
 interface Props {
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  selectedCapiClusters: ClusterNamespacedName[];
+  selectedCapiCluster: ClusterNamespacedName;
   onClose: () => void;
   prDefaults: PRDefaults;
 }
@@ -43,14 +43,12 @@ interface Props {
 export const DeleteClusterDialog: FC<Props> = ({
   formData,
   setFormData,
-  selectedCapiClusters,
+  selectedCapiCluster,
   onClose,
   prDefaults,
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-
-  // if you select multiple clusters then you might have multiple gitrepos. how do we want to manage that?
 
   const { deleteCreatedClusters, loading } = useClusters();
   const { setNotifications } = useNotifications();
@@ -94,7 +92,7 @@ export const DeleteClusterDialog: FC<Props> = ({
   const handleClickRemove = () =>
     deleteCreatedClusters(
       {
-        clusterNamespacedNames: selectedCapiClusters,
+        clusterNamespacedNames: [selectedCapiCluster],
         headBranch: formData.branchName,
         title: formData.pullRequestTitle,
         commitMessage: formData.commitMessage,
