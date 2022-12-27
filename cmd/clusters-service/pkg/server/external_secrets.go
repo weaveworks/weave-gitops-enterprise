@@ -204,7 +204,7 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			ClusterName:        req.ClusterName,
 			Namespace:          req.Namespace,
 			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
-			SecretStoreType:    getSecretStoreType(&externalSecretStore.Spec.Provider),
+			SecretStoreType:    getSecretStoreType(&externalSecretStore),
 			SecretPath:         externalSecret.Spec.Data[0].RemoteRef.Key,
 			Property:           externalSecret.Spec.Data[0].RemoteRef.Property,
 			Version:            externalSecret.Spec.Data[0].RemoteRef.Version,
@@ -286,7 +286,7 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 			Kind:      item.GetKind(),
 			Name:      item.GetName(),
 			Namespace: item.GetNamespace(),
-			Type:      getSecretStoreType(&item.Spec.Provider),
+			Type:      getSecretStoreType(&item),
 		})
 	}
 	// for _, item := range clusterSecretStores.Items {
@@ -301,14 +301,17 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 }
 
 // Get SecretStoreType from SecretStore
-func getSecretStoreType(secretStoreProvider interface{}) string {
-	switch secretStoreProvider.(type) {
-	case esv1beta1.AWSProvider:
+func getSecretStoreType(secretStore *esv1beta1.SecretStore) string {
+
+	if secretStore.Spec.Provider.AWS != nil {
 		return "AWS Secret Manager"
-	case esv1beta1.AzureKVProvider:
+	} else if secretStore.Spec.Provider.AzureKV != nil {
 		return "Azure Key Vault"
-	default:
+	} else if secretStore.Spec.Provider.GCPSM != nil {
+		return "Google Cloud Platform Secret Manager"
+	} else if secretStore.Spec.Provider.Vault != nil {
+		return "Hashi provider"
+	} else {
 		return "Unknown"
 	}
-
 }

@@ -194,6 +194,20 @@ func TestGetExternalSecret(t *testing.T) {
 						Name: "namespace-a-1",
 					},
 				},
+				&esv1beta1.SecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "aws-secret-store",
+						Namespace: "namespace-a-1",
+					},
+					Spec: esv1beta1.SecretStoreSpec{
+						Provider: &esv1beta1.SecretStoreProvider{
+							AWS: &esv1beta1.AWSProvider{
+								Region: "eu-north-1",
+							},
+						},
+					},
+				},
+
 				&esv1beta1.ExternalSecret{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "external-secret-a-1",
