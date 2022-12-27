@@ -458,12 +458,10 @@ func generateExternalSecretFile(
 
 	externalSecretContent := string(b)
 
-	file := &gitprovider.CommitFile{
+	return gitprovider.CommitFile{
 		Path:    &externalSecretPath,
 		Content: &externalSecretContent,
-	}
-
-	return *file, nil
+	}, nil
 }
 
 func createExternalSecretObject(es *capiv1_proto.ExternalSecret) (*esv1beta1.ExternalSecret, error) {
@@ -513,11 +511,15 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 
 	if externalSecret.Metadata == nil {
 		err = multierror.Append(err, errors.New("external secret metadata must be specified"))
+		return err
 	} else {
 		if externalSecret.Metadata.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("external secret name must be specified"))
+			return err
 		}
-		if externalSecret.Metadata.Namespace != "" {
+		if externalSecret.Metadata.Namespace == "" {
+			err = multierror.Append(err, fmt.Errorf("external secret namespace must be specified"))
+		} else {
 			invalidNamespaceErr := validateNamespace(externalSecret.Metadata.Namespace)
 			if invalidNamespaceErr != nil {
 				err = multierror.Append(err, invalidNamespaceErr)
