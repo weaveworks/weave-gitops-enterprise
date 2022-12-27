@@ -280,8 +280,10 @@ const MCCP: FC<{
       ...initialFormData,
       ...callbackState.state.formData,
     };
-    // check that the selection is kept after Gitlab Auth
-    selectedCapiCluster = callbackState.state.selectedCapiCluster || null;
+    selectedCapiCluster = {
+      ...selectedCapiCluster,
+      ...callbackState.state.selectedCapiCluster,
+    };
   }
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -314,7 +316,7 @@ const MCCP: FC<{
       setOpenDeletePR(false);
     }
 
-    if (!callbackState?.state?.selectedCapiCluster) {
+    if (callbackState?.state?.selectedCapiCluster) {
       setOpenDeletePR(true);
     }
   }, [
@@ -351,8 +353,6 @@ const MCCP: FC<{
     },
     [setSelectedCluster],
   );
-
-  console.log(selectedCapiCluster);
 
   return (
     <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
@@ -399,13 +399,13 @@ const MCCP: FC<{
                       setOpenDeletePR(true);
                     }}
                     color="secondary"
-                    // disabled={!selectedCapiCluster}
+                    disabled={!selectedCapiCluster}
                   >
                     CREATE A PR TO DELETE CLUSTERS
                   </Button>
                 </div>
               </Tooltip>
-              {openDeletePR && selectedCapiCluster && (
+              {openDeletePR && (
                 <DeleteClusterDialog
                   formData={formData}
                   setFormData={setFormData}
@@ -439,7 +439,7 @@ const MCCP: FC<{
                 rows={clusters}
                 fields={[
                   {
-                    label: '',
+                    label: 'Select',
                     value: ({ name, namespace }: GitopsClusterEnriched) => (
                       <ClusterRowCheckbox
                         name={name}

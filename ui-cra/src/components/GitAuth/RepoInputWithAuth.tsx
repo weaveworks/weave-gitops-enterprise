@@ -66,8 +66,6 @@ function RepoInputWithAuth({
 
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
-  console.log(value);
-
   React.useEffect(() => {
     if (!value) {
       return;
