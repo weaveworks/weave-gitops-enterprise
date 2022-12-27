@@ -338,19 +338,6 @@ const MCCP: FC<{
     [location?.state?.notification, setNotifications],
   );
 
-  // const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (event.target.checked) {
-  //     setSelectedClusters(
-  //       clusters.map(({ name, namespace }: GitopsClusterEnriched) => ({
-  //         name,
-  //         namespace,
-  //       })),
-  //     );
-  //     return;
-  //   }
-  //   setSelectedClusters([]);
-  // };
-
   const handleIndividualClick = useCallback(
     (
       { name, namespace }: ClusterNamespacedName,
@@ -358,19 +345,14 @@ const MCCP: FC<{
     ) => {
       if (event.target.checked === true) {
         setSelectedCluster({ name, namespace });
-        // } else {
-        //   setSelectedClusters((prevState: ClusterNamespacedName[]) =>
-        //     prevState.filter(
-        //       cls => cls.name !== name && cls.namespace !== namespace,
-        //     ),
-        //   );
+      } else {
+        setSelectedCluster(null);
       }
     },
     [setSelectedCluster],
   );
 
-  // const numSelected = selectedClusters.length;
-  // const rowCount = clusters.length || 0;
+  console.log(selectedCapiCluster);
 
   return (
     <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
@@ -417,7 +399,7 @@ const MCCP: FC<{
                       setOpenDeletePR(true);
                     }}
                     color="secondary"
-                    // disabled={selectedCapiClusters.length === 0}
+                    // disabled={!selectedCapiCluster}
                   >
                     CREATE A PR TO DELETE CLUSTERS
                   </Button>
@@ -427,7 +409,9 @@ const MCCP: FC<{
                 <DeleteClusterDialog
                   formData={formData}
                   setFormData={setFormData}
-                  selectedCapiCluster={selectedCapiCluster}
+                  selectedCapiCluster={
+                    selectedCapiCluster || ({} as ClusterNamespacedName)
+                  }
                   onClose={handleClose}
                   prDefaults={PRdefaults}
                 />
@@ -455,20 +439,7 @@ const MCCP: FC<{
                 rows={clusters}
                 fields={[
                   {
-                    label: 'checkbox',
-                    // labelRenderer: () => (
-                    //   <Checkbox
-                    //     indeterminate={
-                    //       numSelected > 0 && numSelected < rowCount
-                    //     }
-                    //     checked={rowCount > 0 && numSelected === rowCount}
-                    //     onChange={handleSelectAllClick}
-                    //     inputProps={{ 'aria-label': 'select all rows' }}
-                    //     style={{
-                    //       color: theme.colors.primary,
-                    //     }}
-                    //   />
-                    // ),
+                    label: '',
                     value: ({ name, namespace }: GitopsClusterEnriched) => (
                       <ClusterRowCheckbox
                         name={name}
