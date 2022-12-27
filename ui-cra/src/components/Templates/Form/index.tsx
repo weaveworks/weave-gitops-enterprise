@@ -140,14 +140,20 @@ const useStyles = makeStyles(theme =>
   }),
 );
 
-function getInitialGitRepo(initialUrl: string, gitRepos: GitRepository[]) {
+export function getInitialGitRepo(
+  initialUrl: string,
+  gitRepos: GitRepository[],
+) {
+  if (!initialUrl) {
+    return null;
+  }
   for (var repo of gitRepos) {
     let repoUrl = repo?.obj?.spec?.url;
     if (repoUrl === initialUrl) {
       return repo;
     }
-    let parsedRepoUrl = GitUrlParse(repoUrl || '');
-    let parsedInitialUrl = GitUrlParse(initialUrl || '');
+    let parsedRepoUrl = GitUrlParse(repoUrl);
+    let parsedInitialUrl = GitUrlParse(initialUrl);
     if (parsedRepoUrl?.name === parsedInitialUrl?.name) {
       return repo;
     }
@@ -165,7 +171,6 @@ function getInitialData(
   callbackState: any,
   random: string,
   templateName: string,
-  gitRepos: GitRepository[],
 ) {
   const resourceData = resource && getCreateRequestAnnotation(resource);
 
@@ -309,7 +314,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     callbackState,
     random,
     template.name,
-    gitRepos,
   );
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(

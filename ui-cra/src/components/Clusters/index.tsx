@@ -55,6 +55,8 @@ import { useListConfigContext } from '../../contexts/ListConfig';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import _ from 'lodash';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { getInitialGitRepo } from '../Templates/Form';
+import { getCreateRequestAnnotation } from '../Templates/Form/utils';
 
 interface Size {
   size?: 'small';
@@ -193,6 +195,7 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
 
 interface FormData {
   gitRepos: GitRepository[] | null;
+  url: GitRepository | null;
   branchName: string;
   pullRequestTitle: string;
   commitMessage: string;
@@ -269,6 +272,7 @@ const MCCP: FC<{
 
   let initialFormData = {
     ...PRdefaults,
+    url: null,
     gitRepos: [],
     pullRequestDescription: '',
   };
@@ -287,6 +291,11 @@ const MCCP: FC<{
   }
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const initialUrl =
+    selectedCapiCluster &&
+    getCreateRequestAnnotation(selectedCapiCluster)?.parameter_values?.url;
+  const initialGitRepo =
+    selectedCapiCluster && getInitialGitRepo(initialUrl, gitRepos);
   const history = useHistory();
 
   const handleAddCluster = useCallback(
@@ -339,6 +348,14 @@ const MCCP: FC<{
       ]),
     [location?.state?.notification, setNotifications],
   );
+
+  useEffect(() => {
+    if (formData.url === null)
+      setFormData((prevState: any) => ({
+        ...prevState,
+        url: initialGitRepo,
+      }));
+  }, [initialGitRepo, formData.url]);
 
   const handleIndividualClick = useCallback(
     (
