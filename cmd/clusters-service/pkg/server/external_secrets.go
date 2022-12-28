@@ -107,7 +107,7 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 					SecretStore:        item.Spec.SecretStoreRef.Name,
 					Namespace:          item.GetNamespace(),
 					Status:             getExternalSecretStatus(&item),
-					Timestamp:          item.CreationTimestamp.String(),
+					Timestamp:          item.CreationTimestamp.Format("2022-12-26T14:45:01Z"),
 				}
 
 				secrets = append(secrets, &secret)
@@ -216,7 +216,7 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			Property:           externalSecret.Spec.Data[0].RemoteRef.Property,
 			Version:            externalSecret.Spec.Data[0].RemoteRef.Version,
 			Status:             getExternalSecretStatus(&externalSecret),
-			Timestamp:          externalSecret.CreationTimestamp.String(),
+			Timestamp:          externalSecret.CreationTimestamp.Format("2022-12-26T14:45:01Z"),
 		}, nil
 	}
 
