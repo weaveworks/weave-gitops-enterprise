@@ -31,12 +31,7 @@ const SecretDetails = ({
     },
     {
       rowkey: 'Last Updated',
-      value: (
-        <>
-          {moment(secretDetails?.timestamp).fromNow()}
-          <b> (Synced every 1h)</b>
-        </>
-      ),
+      value: moment(secretDetails?.timestamp).fromNow(),
     },
   ];
 

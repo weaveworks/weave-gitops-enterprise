@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { Routes } from '../../../utils/nav';
 import { CustomSubRouterTabs } from '../../Workspaces/WorkspaceStyles';
-import ListEvents from '../../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
+import ListEvents from './Events/ListEvents';
 
 const ListEventsWrapper = styled.div`
   width: 100%;
@@ -45,6 +45,10 @@ const SecretDetailsTabs = ({
       rowkey: 'Secret Store',
       value: secretDetails.secretStore,
     },
+    // {
+    //   rowkey: 'Secret Store Type',
+    //   value: secretDetails.secretStore,
+    // },
     {
       rowkey: 'Secret path',
       value: secretDetails.secretPath,
@@ -58,7 +62,7 @@ const SecretDetailsTabs = ({
       value: secretDetails.version,
     },
   ];
-  
+
   return (
     <div>
       <CustomSubRouterTabs rootPath={`${path}/secretDetails`}>
