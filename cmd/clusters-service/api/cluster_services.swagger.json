@@ -1773,6 +1773,9 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
@@ -1827,6 +1830,9 @@
           "type": "string"
         },
         "secretStore": {
+          "type": "string"
+        },
+        "secretStoreType": {
           "type": "string"
         },
         "secretPath": {

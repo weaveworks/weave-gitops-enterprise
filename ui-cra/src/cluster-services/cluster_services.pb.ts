@@ -738,6 +738,7 @@ export type GetExternalSecretResponse = {
   clusterName?: string
   namespace?: string
   secretStore?: string
+  secretStoreType?: string
   secretPath?: string
   property?: string
   version?: string
@@ -749,6 +750,7 @@ export type ExternalSecretStore = {
   kind?: string
   name?: string
   namespace?: string
+  type?: string
 }
 
 export type ListExternalSecretStoresRequest = {
