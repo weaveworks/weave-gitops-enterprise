@@ -221,7 +221,7 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 func getSecretStoreType(secretStore *esv1beta1.SecretStore) string {
 
 	if secretStore.Spec.Provider.AWS != nil {
-		return "AWS Secret Manager"
+		return "AWS Secrets Manager"
 	} else if secretStore.Spec.Provider.AzureKV != nil {
 		return "Azure Key Vault"
 	} else if secretStore.Spec.Provider.GCPSM != nil {
