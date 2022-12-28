@@ -45,10 +45,10 @@ const SecretDetailsTabs = ({
       rowkey: 'Secret Store',
       value: secretDetails.secretStore,
     },
-    // {
-    //   rowkey: 'Secret Store Type',
-    //   value: secretDetails.secretStore,
-    // },
+    {
+      rowkey: 'Secret Store Type',
+      value: secretDetails.secretStoreType,
+    },
     {
       rowkey: 'Secret path',
       value: secretDetails.secretPath,
