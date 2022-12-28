@@ -355,7 +355,7 @@ func TestListSecretStores(t *testing.T) {
 						Kind:      esv1beta1.SecretStoreKind,
 						Name:      "secret-store-1",
 						Namespace: "namespace-a",
-						Type:      "AWS Secret Manager",
+						Type:      "AWS Secrets Manager",
 					},
 					{
 						Kind:      esv1beta1.SecretStoreKind,
