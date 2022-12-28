@@ -687,7 +687,7 @@ func waitForNamespaceDeletion(namespaces []string) {
 		checkOutput := func() error {
 			return runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get namespace %s`, namespace))
 		}
-		gomega.Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.HaveOccurred(), fmt.Sprintf("'%s' namespace is expected not to be available", namespace))
+		gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.HaveOccurred(), fmt.Sprintf("'%s' namespace is expected not to be available", namespace))
 	}
 }
 
