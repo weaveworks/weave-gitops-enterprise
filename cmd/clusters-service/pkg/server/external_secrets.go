@@ -138,19 +138,24 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			return nil, fmt.Errorf("error getting secret store %s from cluster %s: %w", externalSecret.Spec.SecretStoreRef.Name, req.ClusterName, err)
 		}
 
-		return &capiv1_proto.GetExternalSecretResponse{
+		response := capiv1_proto.GetExternalSecretResponse{
 			SecretName:         externalSecret.Spec.Target.Name,
 			ExternalSecretName: externalSecret.GetName(),
 			ClusterName:        req.ClusterName,
 			Namespace:          req.Namespace,
 			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
 			SecretStoreType:    getSecretStoreType(&externalSecretStore),
-			SecretPath:         externalSecret.Spec.Data[0].RemoteRef.Key,
-			Property:           externalSecret.Spec.Data[0].RemoteRef.Property,
-			Version:            externalSecret.Spec.Data[0].RemoteRef.Version,
 			Status:             getExternalSecretStatus(&externalSecret),
 			Timestamp:          externalSecret.CreationTimestamp.Format(time.RFC3339),
-		}, nil
+		}
+
+		if externalSecret.Spec.Data != nil {
+			response.SecretPath = externalSecret.Spec.Data[0].RemoteRef.Key
+			response.Property = externalSecret.Spec.Data[0].RemoteRef.Property
+			response.Version = externalSecret.Spec.Data[0].RemoteRef.Version
+		}
+
+		return &response, nil
 	}
 
 }
