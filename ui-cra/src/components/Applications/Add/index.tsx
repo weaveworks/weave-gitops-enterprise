@@ -37,6 +37,7 @@ import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { getRepositoryUrl } from '../../Templates/Form/utils';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -70,7 +71,7 @@ const SourceLinkWrapper = styled.div`
 `;
 
 interface FormData {
-  url: GitRepository | null;
+  repo: GitRepository | null;
   provider: string;
   branchName: string;
   pullRequestTitle: string;
@@ -327,21 +328,13 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [setOpenPreview, getKustomizations, setNotifications]);
 
   const handleAddApplication = useCallback(() => {
-    let repositoryUrl = JSON.parse(formData.repo).obj.spec.url;
-
-    // initial: ssh://git@github.com:AlinaGoaga/wge-dev-extra.git
-    // needed: https://github.com/AlinaGoaga/wge-dev-extra.git
-
-    if (repositoryUrl.includes('ssh://git@')) {
-      repositoryUrl = 'https://' + repositoryUrl.substring(10);
-    }
     const payload = {
       head_branch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
-      repositoryUrl,
+      repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
     return AddApplicationRequest(payload, getProviderToken(formData.provider))

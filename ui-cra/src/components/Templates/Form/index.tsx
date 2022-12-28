@@ -50,7 +50,7 @@ import GitOps from './Partials/GitOps';
 import Preview from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
-import { getCreateRequestAnnotation } from './utils';
+import { getCreateRequestAnnotation, getRepositoryUrl } from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
