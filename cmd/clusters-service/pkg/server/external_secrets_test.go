@@ -208,7 +208,7 @@ func TestGetExternalSecret(t *testing.T) {
 				Namespace:          "namespace-a-1",
 				ClusterName:        "management",
 				SecretStore:        "aws-secret-store",
-				SecretStoreType:    "AWS Secret Manager",
+				SecretStoreType:    "AWS Secrets Manager",
 				SecretPath:         "Data/key-a-1",
 				Property:           "property-a-1",
 				Version:            "1.0.0",
