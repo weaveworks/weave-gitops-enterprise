@@ -50,6 +50,10 @@ const SecretDetailsTabs = ({
       value: secretDetails.secretPath,
     },
     {
+      rowkey: 'Property',
+      value: secretDetails.property,
+    },
+    {
       rowkey: 'Version',
       value: secretDetails.version,
     },
