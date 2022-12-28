@@ -38,7 +38,7 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import OAuthCallback from './components/GithubAuth/OAuthCallback';
+import OAuthCallback from './components/GitAuth/OAuthCallback';
 import { GitProvider } from './api/gitauth/gitauth.pb';
 
 function withSearchParams(Cmp: any) {

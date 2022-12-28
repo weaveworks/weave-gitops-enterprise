@@ -1,19 +1,18 @@
 import React, { FC, Dispatch, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { GithubDeviceAuthModal } from '.';
+import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
 import RepoInputWithAuth from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
   width: 100%;
   & .auth-message {
     margin-top: ${({ theme }) => theme.spacing.base};
-    button,
-    > div {
-      width: 200px;
-      margin-right: ${({ theme }) => theme.spacing.medium};
+    margin-left: 0;
+    margin-right: ${({ theme }) => theme.spacing.small};
+    button {
+      min-width: 250px;
     }
   }
 `;
@@ -24,12 +23,14 @@ const GitAuth: FC<{
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
+  enableGitRepoSelection?: boolean;
 }> = ({
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
   setEnableCreatePR,
+  enableGitRepoSelection,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, req: check } = useIsAuthenticated();
@@ -56,12 +57,6 @@ const GitAuth: FC<{
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
-        onChange={(e: any) => {
-          setFormData({
-            ...formData,
-            url: e.currentTarget.value,
-          });
-        }}
         onAuthClick={(provider: GitProvider) => {
           if (provider === ('GitHub' as GitProvider)) {
             setShowAuthDialog(true);
@@ -71,10 +66,11 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
-        // this needs to be a dropdown; we need to get the list of git repos that we use when we create apps
-        value={formData.url}
-        helperText=""
-        disabled={true}
+        value={formData?.url?.obj?.spec?.url}
+        description=""
+        formData={formData}
+        setFormData={setFormData}
+        enableGitRepoSelection={enableGitRepoSelection}
       />
       {showAuthDialog && (
         <GithubDeviceAuthModal

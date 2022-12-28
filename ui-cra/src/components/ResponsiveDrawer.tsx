@@ -178,6 +178,7 @@ const ResponsiveDrawer = () => {
             <LinkResolverProvider resolver={resolver}>
               <Pendo
                 defaultTelemetryFlag="true"
+                //@ts-ignore
                 tier="enterprise"
                 version={process.env.REACT_APP_VERSION}
               />
