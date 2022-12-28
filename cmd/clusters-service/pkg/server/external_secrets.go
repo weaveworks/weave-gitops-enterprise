@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	"github.com/hashicorp/go-multierror"
@@ -107,7 +108,7 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 					SecretStore:        item.Spec.SecretStoreRef.Name,
 					Namespace:          item.GetNamespace(),
 					Status:             getExternalSecretStatus(&item),
-					Timestamp:          item.CreationTimestamp.Format("2022-12-26T14:45:01Z"),
+					Timestamp:          item.CreationTimestamp.Format(time.RFC3339),
 				}
 
 				secrets = append(secrets, &secret)
@@ -192,7 +193,7 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 		// 	Status:             getClusterExternalSecretStatus(&clusterExternalSecret),
 		// 	Timestamp:          clusterExternalSecret.CreationTimestamp.String(),
 		// }, nil
-		return nil, fmt.Errorf("cluster external secrets are not supported yet")
+		return nil, errors.New("cluster external secrets are not supported yet")
 
 	} else {
 		var externalSecret esv1beta1.ExternalSecret
@@ -216,7 +217,7 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			Property:           externalSecret.Spec.Data[0].RemoteRef.Property,
 			Version:            externalSecret.Spec.Data[0].RemoteRef.Version,
 			Status:             getExternalSecretStatus(&externalSecret),
-			Timestamp:          externalSecret.CreationTimestamp.Format("2022-12-26T14:45:01Z"),
+			Timestamp:          externalSecret.CreationTimestamp.Format(time.RFC3339),
 		}, nil
 	}
 
@@ -307,7 +308,7 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 	return &response, nil
 }
 
-// Get SecretStoreType from SecretStore
+// getSecretStoreType gets SecretStoreType from SecretStore object
 func getSecretStoreType(secretStore *esv1beta1.SecretStore) string {
 
 	if secretStore.Spec.Provider.AWS != nil {
@@ -317,7 +318,7 @@ func getSecretStoreType(secretStore *esv1beta1.SecretStore) string {
 	} else if secretStore.Spec.Provider.GCPSM != nil {
 		return "Google Cloud Platform Secret Manager"
 	} else if secretStore.Spec.Provider.Vault != nil {
-		return "Hashi provider"
+		return "HashiCorp Vault"
 	} else {
 		return "Unknown"
 	}
