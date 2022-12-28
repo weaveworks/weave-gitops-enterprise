@@ -132,11 +132,6 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.ExternalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
 			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
 		}
-		//Get SecretStore
-		var externalSecretStore esv1beta1.SecretStore
-		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name, Namespace: req.Namespace}, &externalSecretStore); err != nil {
-			return nil, fmt.Errorf("error getting secret store %s from cluster %s: %w", externalSecret.Spec.SecretStoreRef.Name, req.ClusterName, err)
-		}
 
 		response := capiv1_proto.GetExternalSecretResponse{
 			SecretName:         externalSecret.Spec.Target.Name,
@@ -144,7 +139,6 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			ClusterName:        req.ClusterName,
 			Namespace:          req.Namespace,
 			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
-			SecretStoreType:    getSecretStoreType(&externalSecretStore),
 			Status:             getExternalSecretStatus(&externalSecret),
 			Timestamp:          externalSecret.CreationTimestamp.Format(time.RFC3339),
 		}
@@ -153,6 +147,12 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			response.SecretPath = externalSecret.Spec.Data[0].RemoteRef.Key
 			response.Property = externalSecret.Spec.Data[0].RemoteRef.Property
 			response.Version = externalSecret.Spec.Data[0].RemoteRef.Version
+		}
+
+		//Get SecretStore
+		var externalSecretStore esv1beta1.SecretStore
+		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name, Namespace: req.Namespace}, &externalSecretStore); err == nil {
+			response.SecretStoreType = getSecretStoreType(&externalSecretStore)
 		}
 
 		return &response, nil
