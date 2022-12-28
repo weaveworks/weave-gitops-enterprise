@@ -181,7 +181,7 @@ function getInitialData(
     resourceData?.objects?.[0].name;
 
   const defaultFormData = {
-    url: null,
+    repo: null,
     provider: '',
     branchName: resourceData
       ? `edit-${resourceName}-branch-${random}`
@@ -453,13 +453,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     if (resource !== undefined) {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
-    let repositoryUrl = JSON.parse(formData.url).obj.spec.url;
-    let parsedUrl = GitUrlParse(repositoryUrl);
-
-    if (parsedUrl?.protocol === 'ssh') {
-      parsedUrl.git_suffix = true;
-      repositoryUrl = parsedUrl.toString('https');
-    }
 
     const payload = toPayload(
       formData,
@@ -469,7 +462,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       template.templateKind,
       updatedProfiles,
       createReqAnnot,
-      repositoryUrl,
+      getRepositoryUrl(formData.repo),
     );
 
     setLoading(true);
@@ -530,12 +523,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   }, [resource, formData.parameterValues, setFormData]);
 
   useEffect(() => {
-    if (formData.url === null)
+    if (formData.repo === null)
       setFormData((prevState: any) => ({
         ...prevState,
-        url: initialGitRepo,
+        repo: initialGitRepo,
       }));
-  }, [initialGitRepo, formData.url]);
+  }, [initialGitRepo, formData.repo]);
 
   useEffect(() => {
     setCostEstimate('00.00 USD');

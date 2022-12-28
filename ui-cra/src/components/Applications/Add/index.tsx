@@ -106,7 +106,7 @@ function getInitialData(
   random: string,
 ) {
   let defaultFormData = {
-    url: null,
+    repo: null,
     provider: '',
     branchName: `add-application-branch-${random}`,
     pullRequestTitle: 'Add application',
@@ -327,7 +327,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [setOpenPreview, getKustomizations, setNotifications]);
 
   const handleAddApplication = useCallback(() => {
-    let repositoryUrl = JSON.parse(formData.url).obj.spec.url;
+    let repositoryUrl = JSON.parse(formData.repo).obj.spec.url;
 
     // initial: ssh://git@github.com:AlinaGoaga/wge-dev-extra.git
     // needed: https://github.com/AlinaGoaga/wge-dev-extra.git

@@ -194,8 +194,7 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
 };
 
 interface FormData {
-  gitRepos: GitRepository[] | null;
-  url: GitRepository | null;
+  repo: GitRepository | null;
   branchName: string;
   pullRequestTitle: string;
   commitMessage: string;
@@ -272,8 +271,7 @@ const MCCP: FC<{
 
   let initialFormData = {
     ...PRdefaults,
-    url: null,
-    gitRepos: [],
+    repo: null,
     pullRequestDescription: '',
   };
 
@@ -350,12 +348,12 @@ const MCCP: FC<{
   );
 
   useEffect(() => {
-    if (formData.url === null)
+    if (formData.repo === null)
       setFormData((prevState: any) => ({
         ...prevState,
-        url: initialGitRepo,
+        repo: initialGitRepo,
       }));
-  }, [initialGitRepo, formData.url]);
+  }, [initialGitRepo, formData.repo]);
 
   const handleIndividualClick = useCallback(
     (

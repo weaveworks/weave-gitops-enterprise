@@ -19,7 +19,8 @@ import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
 import GitAuth from '../GitAuth';
 import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
-import { getCreateRequestAnnotation } from '../Templates/Form/utils';
+import GitUrlParse from 'git-url-parse';
+import { getRepositoryUrl } from '../Templates/Form/utils';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {
@@ -48,10 +49,6 @@ export const DeleteClusterDialog: FC<Props> = ({
   onClose,
   prDefaults,
 }) => {
-  console.log(
-    getCreateRequestAnnotation(selectedCapiCluster)?.parameter_values?.url,
-  );
-  // use the above to get the git repo and set it in the formData (maybe move to previous step?)
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
@@ -102,7 +99,7 @@ export const DeleteClusterDialog: FC<Props> = ({
         title: formData.pullRequestTitle,
         commitMessage: formData.commitMessage,
         description: formData.pullRequestDescription,
-        repositoryUrl: formData.repositoryURL,
+        repositoryUrl: getRepositoryUrl(formData.repo),
       },
       getProviderToken(formData.provider),
     )

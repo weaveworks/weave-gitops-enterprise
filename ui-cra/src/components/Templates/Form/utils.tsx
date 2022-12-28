@@ -1,8 +1,13 @@
-import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import {
+  Automation,
+  GitRepository,
+  Source,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
+import GitUrlParse from 'git-url-parse';
 
 const yamlConverter = require('js-yaml');
 
@@ -43,4 +48,17 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
   };
 
   return maybeParseJSON(getAnnotation(resource));
+};
+
+export const getRepositoryUrl = (repo: GitRepository) => {
+  //@ts-ignore
+  let repositoryUrl = JSON.parse(repo).obj.spec.url;
+  let parsedUrl = GitUrlParse(repositoryUrl);
+
+  if (parsedUrl?.protocol === 'ssh') {
+    parsedUrl.git_suffix = true;
+    repositoryUrl = parsedUrl.toString('https');
+  }
+
+  return repositoryUrl;
 };
