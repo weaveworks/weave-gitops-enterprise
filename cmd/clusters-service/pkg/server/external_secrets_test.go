@@ -276,6 +276,7 @@ func TestGetExternalSecret(t *testing.T) {
 				Namespace:          "namespace-a-1",
 				ClusterName:        "management",
 				SecretStore:        "aws-secret-store",
+				SecretStoreType:    "AWS Secret Manager",
 				SecretPath:         "Data/key-a-1",
 				Property:           "property-a-1",
 				Version:            "1.0.0",
@@ -332,6 +333,7 @@ func TestGetExternalSecret(t *testing.T) {
 		assert.Equal(t, tt.response.Namespace, res.Namespace, "namespace is not correct")
 		assert.Equal(t, tt.response.ClusterName, res.ClusterName, "cluster name is not correct")
 		assert.Equal(t, tt.response.SecretStore, res.SecretStore, "secret store is not correct")
+		assert.Equal(t, tt.response.SecretStoreType, res.SecretStoreType, "secret store type is not correct")
 		assert.Equal(t, tt.response.SecretPath, res.SecretPath, "secret path is not correct")
 		assert.Equal(t, tt.response.Property, res.Property, "property is not correct")
 		assert.Equal(t, tt.response.Version, res.Version, "version is not correct")
