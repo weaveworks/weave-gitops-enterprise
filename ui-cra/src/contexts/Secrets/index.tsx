@@ -3,8 +3,6 @@ import { useQuery } from 'react-query';
 import {
   GetExternalSecretRequest,
   GetExternalSecretResponse,
-  ListEventsRequest,
-  ListEventsResponse,
   ListExternalSecretsRequest,
   ListExternalSecretsResponse,
   ListExternalSecretStoresRequest,
@@ -37,19 +35,6 @@ export function useGetSecretDetails(req: GetExternalSecretRequest) {
   return useQuery<GetExternalSecretResponse, Error>(
     [GET_SECRET_QUERY_KEY, req],
     () => api.GetExternalSecret(req),
-    { onError },
-  );
-}
-
-const GET_SECRET_EVENT_QUERY_KEY = 'secret-store-details';
-
-export function useGetSecretEvent(req: ListEventsRequest) {
-  const { api } = useContext(EnterpriseClientContext);
-  const { setNotifications } = useNotifications();
-  const onError = (error: Error) => setNotifications(formatError(error));
-  return useQuery<ListEventsResponse, Error>(
-    [GET_SECRET_EVENT_QUERY_KEY, req],
-    () => api.ListEvents(req),
     { onError },
   );
 }

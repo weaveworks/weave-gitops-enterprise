@@ -64,5 +64,5 @@ export enum Routes {
   WorkspaceDetails = '/workspaces/details',
 
   Secrets = '/secrets',
-  SecretDetails = "SecretDetails"
+  SecretDetails = '/details'
 }

@@ -1,14 +1,9 @@
-import {
-  useGetSecretDetails,
-  useGetSecretStoreDetails,
-} from '../../../contexts/Secrets';
+import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
-import { RouterTab } from '@weaveworks/weave-gitops';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import moment from 'moment';
-import { CustomSubRouterTabs } from '../../Workspaces/WorkspaceStyles';
 import SecretDetailsTabs from './SecretDetailsTabs';
 
 const SecretDetails = ({
@@ -36,9 +31,15 @@ const SecretDetails = ({
     },
     {
       rowkey: 'Last Updated',
-      value: moment(secretDetails?.timestamp).fromNow(),
+      value: (
+        <>
+          {moment(secretDetails?.timestamp).fromNow()}
+          <b> (Synced every 1h)</b>
+        </>
+      ),
     },
   ];
+
   console.log(secretDetails);
   return (
     <>
@@ -55,6 +56,7 @@ const SecretDetails = ({
             externalSecretName={externalSecretName}
             clusterName={clusterName}
             namespace={namespace}
+            secretDetails={secretDetails || {}}
           />
         </ContentWrapper>
       </PageTemplate>
