@@ -51,14 +51,31 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
 };
 
 export const getRepositoryUrl = (repo: GitRepository) => {
-  //@ts-ignore
-  let repositoryUrl = JSON.parse(repo)?.obj?.spec?.url;
+  let repositoryUrl = repo?.obj?.spec?.url;
   let parsedUrl = GitUrlParse(repositoryUrl);
-
   if (parsedUrl?.protocol === 'ssh') {
     parsedUrl.git_suffix = true;
-    repositoryUrl = parsedUrl.toString('https');
+    repositoryUrl = parsedUrl.pathname.replace('//git@', 'https://');
   }
-
   return repositoryUrl;
 };
+
+export function getInitialGitRepo(
+  initialUrl: string,
+  gitRepos: GitRepository[],
+) {
+  if (!initialUrl) {
+    return null;
+  }
+  for (var repo of gitRepos) {
+    let repoUrl = repo?.obj?.spec?.url;
+    if (repoUrl === initialUrl) {
+      return repo;
+    }
+    let parsedRepoUrl = GitUrlParse(repoUrl);
+    let parsedInitialUrl = GitUrlParse(initialUrl);
+    if (parsedRepoUrl?.name === parsedInitialUrl?.name) {
+      return repo;
+    }
+  }
+}

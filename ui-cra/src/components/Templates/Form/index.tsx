@@ -50,7 +50,11 @@ import GitOps from './Partials/GitOps';
 import Preview from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
-import { getCreateRequestAnnotation, getRepositoryUrl } from './utils';
+import {
+  getCreateRequestAnnotation,
+  getInitialGitRepo,
+  getRepositoryUrl,
+} from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
@@ -60,7 +64,6 @@ import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb'
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
 import { getGitRepos } from '../../Clusters';
-import GitUrlParse from 'git-url-parse';
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -139,26 +142,6 @@ const useStyles = makeStyles(theme =>
     },
   }),
 );
-
-export function getInitialGitRepo(
-  initialUrl: string,
-  gitRepos: GitRepository[],
-) {
-  if (!initialUrl) {
-    return null;
-  }
-  for (var repo of gitRepos) {
-    let repoUrl = repo?.obj?.spec?.url;
-    if (repoUrl === initialUrl) {
-      return repo;
-    }
-    let parsedRepoUrl = GitUrlParse(repoUrl);
-    let parsedInitialUrl = GitUrlParse(initialUrl);
-    if (parsedRepoUrl?.name === parsedInitialUrl?.name) {
-      return repo;
-    }
-  }
-}
 
 function getInitialData(
   resource:
@@ -306,7 +289,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     [data?.result],
   );
   const resourceData = resource && getCreateRequestAnnotation(resource);
-  const initialUrl = resourceData?.parameter_values?.url;
+  const initialUrl = resourceData?.repository_url;
   const initialGitRepo = resource && getInitialGitRepo(initialUrl, gitRepos);
 
   const { initialFormData, initialInfraCredentials } = getInitialData(

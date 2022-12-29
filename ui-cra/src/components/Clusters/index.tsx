@@ -55,8 +55,10 @@ import { useListConfigContext } from '../../contexts/ListConfig';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import _ from 'lodash';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { getInitialGitRepo } from '../Templates/Form';
-import { getCreateRequestAnnotation } from '../Templates/Form/utils';
+import {
+  getCreateRequestAnnotation,
+  getInitialGitRepo,
+} from '../Templates/Form/utils';
 
 interface Size {
   size?: 'small';
@@ -291,7 +293,7 @@ const MCCP: FC<{
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const initialUrl =
     selectedCapiCluster &&
-    getCreateRequestAnnotation(selectedCapiCluster)?.parameter_values?.url;
+    getCreateRequestAnnotation(selectedCapiCluster)?.repository_url;
   const initialGitRepo =
     selectedCapiCluster && getInitialGitRepo(initialUrl, gitRepos);
   const history = useHistory();
@@ -348,11 +350,12 @@ const MCCP: FC<{
   );
 
   useEffect(() => {
-    if (formData.repo === null)
+    if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
         repo: initialGitRepo,
       }));
+    }
   }, [initialGitRepo, formData.repo]);
 
   const handleIndividualClick = useCallback(
