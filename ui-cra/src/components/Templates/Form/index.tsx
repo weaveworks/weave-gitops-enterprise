@@ -454,6 +454,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
 
+    console.log(formData.repo);
+
     const payload = toPayload(
       formData,
       infraCredential,

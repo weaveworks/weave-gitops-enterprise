@@ -58,7 +58,7 @@ function RepoInputWithAuth({
     [data?.result],
   );
   const { gitAuthClient } = React.useContext(GitAuth);
-  // TO DO: test defaultValue
+  // TO DO: test defaultValue; if there is no annotation look for the gitrepo flux-system/flux-system
   const defaultValue = gitRepos.find(
     repo =>
       repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] === 'default',
@@ -112,7 +112,7 @@ function RepoInputWithAuth({
     setFormData((prevState: any) => {
       return {
         ...prevState,
-        url: gitRepo,
+        repo: gitRepo,
       };
     });
   };

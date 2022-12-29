@@ -52,7 +52,7 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
 
 export const getRepositoryUrl = (repo: GitRepository) => {
   //@ts-ignore
-  let repositoryUrl = JSON.parse(repo).obj.spec.url;
+  let repositoryUrl = JSON.parse(repo)?.obj?.spec?.url;
   let parsedUrl = GitUrlParse(repositoryUrl);
 
   if (parsedUrl?.protocol === 'ssh') {
