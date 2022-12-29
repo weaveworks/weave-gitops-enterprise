@@ -75,12 +75,12 @@ const SecretDetailsTabs = ({
         <RouterTab name="Events" path={`${path}/events`}>
           <ListEventsWrapper>
             <ListEvents
-              clusterName={clusterName}
               involvedObject={{
-                kind: secretDetails?.secretName,
                 name: externalSecretName,
                 namespace: namespace || '',
+                kind: 'ExternalSecret',
               }}
+              clusterName={clusterName}
             />
           </ListEventsWrapper>
         </RouterTab>
