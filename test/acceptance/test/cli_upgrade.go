@@ -70,7 +70,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 			upgradeTestUiUrl = fmt.Sprintf(`https://%s:%s`, upgradeMgmtClusterHostname, UI_NODEPORT)
 
 			// Create vanilla cluster for WGE upgrade
-			createCluster("kind", kind_upgrade_cluster_name, "kind/upgrade-kind-config.yaml")
+			createCluster("kind", kind_upgrade_cluster_name, "kind/extra-port-mapping-kind-config.yaml")
 
 		})
 
