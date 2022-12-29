@@ -41,6 +41,12 @@ func deleteTenants(tenantYamls []string) {
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, ginkgo.Label("ui", "tenant"), func() {
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
+
+		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+			loginUser()
+		}
+
 		// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
 		_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 	})
