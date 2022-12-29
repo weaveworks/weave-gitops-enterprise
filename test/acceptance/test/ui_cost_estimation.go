@@ -44,7 +44,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -163,7 +163,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -217,7 +217,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -317,7 +317,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {

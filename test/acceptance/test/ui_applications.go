@@ -1247,7 +1247,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 
 			ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
 				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
 				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 			})
 
@@ -1597,7 +1596,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 
 			ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
 				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
 				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 			})
 

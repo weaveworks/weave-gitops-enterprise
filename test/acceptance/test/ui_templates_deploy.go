@@ -33,7 +33,7 @@ func verifySelfServicePodinfo(podinfo Application, webUrl, bgColour, message str
 	gomega.Expect(webDriver.Session().SetWindow(currentWindow)).ShouldNot(gomega.HaveOccurred(), "Failed to switch to weave gitops enterprise dashboard")
 }
 
-var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deployments", ginkgo.Label("ui", "template"), func() {
+var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deployments", ginkgo.Label("ui", "template", "deploy"), func() {
 	var templateNamespaces []string
 
 	ginkgo.BeforeEach(func() {
@@ -50,7 +50,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 		deleteNamespace(templateNamespaces)
 	})
 
-	ginkgo.Context("[UI] GitOps Template can create resources in the management cluster", ginkgo.Label("deploy", "application"), func() {
+	ginkgo.Context("GitOps Template can create resources in the management cluster", func() {
 		var existingAppCount int
 		appNameSpace := "test-system"
 		appTargetNamespace := "test-system"
@@ -78,7 +78,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			deleteNamespace([]string{appNameSpace, appTargetNamespace})
 		})
 
-		ginkgo.It("Verify self service MVP deployment workflow for management cluster", func() {
+		ginkgo.It("Verify self service MVP deployment workflow for management cluster", ginkgo.Label("application"), func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			existingAppCount = getApplicationCount()
 
@@ -121,6 +121,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			appServicePort := "9898" // default podinfo service
 			podinfoWebUrl := fmt.Sprintf(`https://%s:%s`, ingressHost, GetEnv("UI_NODEPORT", "30080"))
 
+			// Comment out this step if runnig the test locally. Local user is not a root user and failed to edit /etc/hosts file which fails the step.
+			// Add host entry manually to the /etc/hosts file before running test locally.
 			ginkgo.By("And set cluster hostname mapping in the /etc/hosts file for deploy service", func() {
 				err := runCommandPassThrough(path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "hostname-to-ip.sh"), ingressHost)
 				// Ignore error checking when running the test locally as the local test host user is not a root user, instead add the entry manually to /etc/hosts file
@@ -224,7 +226,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 
 			verifyAppInformation(applicationsPage, podinfo, mgmtCluster, "Ready")
 
-			// Edit the podinfo application bakground colour and message
+			// Verify podinfo application bakground colour and message
 			applicationInfo := applicationsPage.FindApplicationInList(podinfo.Name)
 			ginkgo.By(fmt.Sprintf("And navigate to %s application page", podinfo.Name), func() {
 				gomega.Eventually(applicationInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to %s application detail page", podinfo.Name))
@@ -240,6 +242,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 				gomega.Eventually(appDetailPage.Edit.Click, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.Succeed(), "Failed to click 'EDIT' application button")
 			})
 
+			// Edit the podinfo application bakground colour and message
 			createPage = pages.GetCreateClusterPage(webDriver)
 			ginkgo.By("And wait for Edit resource page to be fully rendered", func() {
 				pages.WaitForPageToLoad(webDriver)
@@ -266,6 +269,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 				reconcile("reconcile", "", "kustomization", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 			})
 
+			// Verify edited podinfo application bakground colour and message
 			bgColour = "rgb(124, 78, 52)" // edited podinfo background colour '#7c4e34'
 			message = "Hello World"       // edited podinfo message
 			verifySelfServicePodinfo(podinfo, podinfoWebUrl, bgColour, message)
