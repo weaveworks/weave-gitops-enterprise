@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
@@ -148,7 +149,7 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 		role := capiv1_proto.WorkspaceRole{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
-			Timestamp: list.Items[i].CreationTimestamp.String(),
+			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 		}
 		for _, rule := range list.Items[i].Rules {
 			role.Rules = append(role.Rules, &capiv1_proto.WorkspaceRoleRule{
@@ -201,7 +202,7 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 		roleBinding := capiv1_proto.WorkspaceRoleBinding{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
-			Timestamp: list.Items[i].CreationTimestamp.String(),
+			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 			Role: &capiv1_proto.WorkspaceRoleBindingRoleRef{
 				ApiGroup: list.Items[i].RoleRef.APIGroup,
 				Kind:     list.Items[i].RoleRef.Kind,
@@ -260,7 +261,7 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 		serviceAccount := &capiv1_proto.WorkspaceServiceAccount{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
-			Timestamp: list.Items[i].CreationTimestamp.String(),
+			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 		}
 
 		obj := list.Items[i]
@@ -310,7 +311,7 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 				Name:      list.Items[i].Spec.Name,
 				Category:  list.Items[i].Spec.Category,
 				Severity:  list.Items[i].Spec.Severity,
-				Timestamp: list.Items[i].CreationTimestamp.String(),
+				Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 			})
 		}
 	} else {
@@ -320,7 +321,7 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 				Name:      list.Items[i].Spec.Name,
 				Category:  list.Items[i].Spec.Category,
 				Severity:  list.Items[i].Spec.Severity,
-				Timestamp: list.Items[i].CreationTimestamp.String(),
+				Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 			})
 		}
 	}
