@@ -22,7 +22,7 @@ describe('Gitlab Authenticate', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: ApplicationsClientMock;
 
-  const gitRepoUrl = '';
+  const gitRepoUrl = 'https://gitlab.git.dev.weave.works/test';
 
   const onProviderChange = jest.fn();
   const onAuthClick = jest.fn();
