@@ -5,6 +5,7 @@ import {
   IconType,
   useRequestState,
   useListSources,
+  GitRepository,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
@@ -18,6 +19,8 @@ import {
 import { Select, SelectProps } from '../../utils/form';
 import { MenuItem } from '@material-ui/core';
 import { getGitRepos } from '../Clusters';
+
+const getUrlFromRepo = (repo: GitRepository | null) => repo?.obj?.spec?.url;
 
 const GitAuthForm = styled(Flex)`
   div[class*='MuiFormControl-root'] {
@@ -58,20 +61,36 @@ function RepoInputWithAuth({
     [data?.result],
   );
   const { gitAuthClient } = React.useContext(GitAuth);
-  // TO DO: test defaultValue; if there is no annotation look for the gitrepo flux-system/flux-system
-  const defaultValue = gitRepos.find(
-    repo =>
-      repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] === 'default',
-  )?.obj?.spec?.url;
+
+  const getDefaultValue = () => {
+    const annoRepo = gitRepos.find(
+      repo =>
+        repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] ===
+        'default',
+    );
+    if (annoRepo) {
+      return getUrlFromRepo(annoRepo);
+    }
+    const mainRepo = gitRepos.find(
+      repo =>
+        repo?.obj?.metadata?.name === 'flux-system' &&
+        repo?.obj?.metadata?.namespace === 'flux-system',
+    );
+    if (mainRepo) {
+      return getUrlFromRepo(mainRepo);
+    }
+  };
 
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
   React.useEffect(() => {
-    if (!value) {
+    const defaultValue = getDefaultValue();
+
+    if (!value && !defaultValue) {
       return;
     }
 
-    setValueForSelect(value);
+    setValueForSelect(value || defaultValue);
 
     req(
       gitAuthClient.ParseRepoURL({
@@ -107,7 +126,7 @@ function RepoInputWithAuth({
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
-    const gitRepo = gitRepos.find(repo => repo?.obj?.spec?.url === value);
+    const gitRepo = gitRepos.find(repo => getUrlFromRepo(repo) === value);
 
     setFormData((prevState: any) => {
       return {

@@ -19,7 +19,6 @@ import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
 import GitAuth from '../GitAuth';
 import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
-import GitUrlParse from 'git-url-parse';
 import { getRepositoryUrl } from '../Templates/Form/utils';
 
 const DeleteClusterWrapper = styled(Dialog)`

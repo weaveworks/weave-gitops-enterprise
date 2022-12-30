@@ -9,7 +9,6 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
-  GitRepository,
   Link,
   LoadingPage,
   theme as weaveTheme,
@@ -436,8 +435,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     if (resource !== undefined) {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
-
-    console.log(formData.repo);
 
     const payload = toPayload(
       formData,
