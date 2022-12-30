@@ -13,8 +13,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
-func installIngressNginx(clusterName string, ingressHost string, ingressNamespce string, ingressNodePort int) {
-	ginkgo.By(fmt.Sprintf("And install cert-manager to %s cluster", clusterName), func() {
+func installIngressNginx(clusterName string, ingressNodePort int) {
+	ginkgo.By(fmt.Sprintf("And install cert-manager to %s cluster for tls certificate creation", clusterName), func() {
 		stdOut, _ := runCommandAndReturnStringOutput("helm search repo cert-manager")
 		if !strings.Contains(stdOut, `cert-manager/cert-manager`) {
 			err := runCommandPassThrough("helm", "repo", "add", "cert-manager", "https://charts.jetstack.io")
@@ -25,7 +25,7 @@ func installIngressNginx(clusterName string, ingressHost string, ingressNamespce
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install cert-manager to leaf cluster '%s'", clusterName))
 	})
 
-	ginkgo.By(fmt.Sprintf("And install ingress-nginx to %s cluster", clusterName), func() {
+	ginkgo.By(fmt.Sprintf("And install ingress-nginx to %s cluster for tls termination", clusterName), func() {
 		stdOut, _ := runCommandAndReturnStringOutput("helm search repo ingress-nginx")
 		if !strings.Contains(stdOut, `ingress-nginx/ingress-nginx`) {
 			err := runCommandPassThrough("sh", "-c", "helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx")
@@ -304,7 +304,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 		})
 	})
 
-	ginkgo.Context("GitOps Template can create resources in the leaf cluster", ginkgo.Label("leaf-cluster"), func() {
+	ginkgo.Context("GitOps Template can create resources in the leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -350,7 +350,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			deleteNamespace([]string{leafCluster.Namespace})
 		})
 
-		ginkgo.It("Verify self service MVP deployment workflow for leaf cluster and management dashboard is updated accordingly", ginkgo.Label("application"), func() {
+		ginkgo.It("Verify self service MVP deployment workflow for leaf cluster and management dashboard is updated accordingly", ginkgo.Label("smoke", "application"), func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
 
@@ -372,7 +372,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for deploym
 			})
 
 			// Install ingress-nginx on leaf cluster for deployment UI
-			installIngressNginx(leafCluster.Name, leafIngressHost, leafIngressNamespace, leafIngressNodePort)
+			installIngressNginx(leafCluster.Name, leafIngressNodePort)
 
 			useClusterContext(mgmtClusterContext)
 			pages.NavigateToPage(webDriver, "Applications")

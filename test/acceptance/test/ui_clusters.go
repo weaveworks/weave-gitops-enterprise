@@ -130,7 +130,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", ginkgo.Label("ui
 
 	})
 
-	ginkgo.Context("[UI] When no leaf cluster is connected", func() {
+	ginkgo.Context("When no leaf cluster is connected", func() {
 
 		ginkgo.It("Verify connected cluster dashboard shows only management cluster", func() {
 			mgmtCluster := ClusterConfig{
@@ -158,7 +158,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Clusters", ginkgo.Label("ui
 		})
 	})
 
-	ginkgo.Context("[UI] Cluster(s) can be connected", ginkgo.Label("leaf-cluster"), func() {
+	ginkgo.Context("Cluster(s) can be connected", ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string

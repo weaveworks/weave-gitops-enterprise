@@ -75,7 +75,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		deleteNamespace(templateNamespaces)
 	})
 
-	ginkgo.Context("[UI] When no GitOps Templates are available in the cluster", func() {
+	ginkgo.Context("When no GitOps Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify template page renders no GitOpsTemplate", func() {
 			ginkgo.By("And wait for  good looking response from /v1/templates", func() {
@@ -94,7 +94,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		})
 	})
 
-	ginkgo.Context("[UI] When GitOps Templates are available in the cluster", func() {
+	ginkgo.Context("When GitOps Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify template(s) are rendered from the template library.", func() {
 			// Namespace for some GitOpsTemplates
@@ -246,7 +246,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		})
 	})
 
-	ginkgo.Context("[UI] When GitOps Template are available in the management cluster for resource creation", func() {
+	ginkgo.Context("When GitOps Template are available in the management cluster for resource creation", func() {
 		clusterPath := "./clusters/management/clusters"
 		var downloadedResourcesPath string
 

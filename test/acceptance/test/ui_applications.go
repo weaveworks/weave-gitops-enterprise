@@ -539,7 +539,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		}
 	})
 
-	ginkgo.Context("[UI] When no applications are installed", func() {
+	ginkgo.Context("When no applications are installed", func() {
 
 		ginkgo.It("Verify management cluster dashboard shows bootstrap 'flux-system' application", func() {
 			fluxSystem := Application{
@@ -574,7 +574,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 	})
 
-	ginkgo.Context("[UI] Applications(s) can be installed on management cluster", func() {
+	ginkgo.Context("Applications(s) can be installed on management cluster", func() {
 
 		var existingAppCount int
 		var downloadedResourcesPath string
@@ -969,7 +969,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 	})
 
-	ginkgo.Context("[UI] Applications(s) can be installed on leaf cluster", ginkgo.Label("leaf-application"), func() {
+	ginkgo.Context("Applications(s) can be installed on leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -1360,7 +1360,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 	})
 
 	// Application Violations tests
-	ginkgo.Context("[UI] Application violations are available for management cluster", ginkgo.Label("violation"), func() {
+	ginkgo.Context("Application violations are available for management cluster", ginkgo.Label("violation"), func() {
 		// Count of existing applications before deploying new application
 		var existingAppCount int
 		var downloadedResourcesPath string
@@ -1473,7 +1473,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 	})
 
-	ginkgo.Context("[UI] Application violations are available for leaf cluster", ginkgo.Label("violation", "leaf-application"), func() {
+	ginkgo.Context("Application violations are available for leaf cluster", ginkgo.Label("violation", "kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string

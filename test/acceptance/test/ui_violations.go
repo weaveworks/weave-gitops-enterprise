@@ -31,7 +31,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", ginkgo.Label("
 		}
 	})
 
-	ginkgo.Context("[UI] Violations can be seen in management cluster dashboard", func() {
+	ginkgo.Context("Violations can be seen in management cluster dashboard", func() {
 		var policiesYaml string
 		var deploymentYaml string
 		var policyConfigYaml string
@@ -139,7 +139,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Violations", ginkgo.Label("
 		})
 	})
 
-	ginkgo.Context("[UI] Leaf cluster violations can be seen in management cluster", ginkgo.Label("leaf-violation"), func() {
+	ginkgo.Context("Leaf cluster violations can be seen in management cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
