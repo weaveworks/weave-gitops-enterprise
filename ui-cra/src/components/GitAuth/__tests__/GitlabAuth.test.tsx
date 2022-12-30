@@ -11,7 +11,6 @@ import {
 } from '../../../utils/test-utils';
 import RepoInputWithAuth from '../RepoInputWithAuth';
 import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
-import { GitRepository } from '@weaveworks/weave-gitops';
 
 Object.assign(navigator, {
   clipboard: {
@@ -22,6 +21,12 @@ Object.assign(navigator, {
 describe('Gitlab Authenticate', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: ApplicationsClientMock;
+
+  const gitRepoUrl = '';
+
+  const onProviderChange = jest.fn();
+  const onAuthClick = jest.fn();
+  const setFormData = jest.fn();
 
   beforeEach(() => {
     let clipboardContents = '';
@@ -41,8 +46,6 @@ describe('Gitlab Authenticate', () => {
   });
 
   it('renders', async () => {
-    const onAuthClick = jest.fn();
-
     await act(async () => {
       const c = wrap(
         <CallbackStateContextProvider
@@ -51,7 +54,14 @@ describe('Gitlab Authenticate', () => {
             state: { foo: 'bar' },
           }}
         >
-          <RepoInputWithAuth onAuthClick={onAuthClick} />
+          <RepoInputWithAuth
+            value={gitRepoUrl}
+            onProviderChange={onProviderChange}
+            onAuthClick={onAuthClick}
+            label=""
+            formData=""
+            setFormData={setFormData}
+          />
         </CallbackStateContextProvider>,
       );
       render(c);
@@ -59,7 +69,6 @@ describe('Gitlab Authenticate', () => {
   });
 
   it('displays a button for GitLab auth', async () => {
-    const gitRepo = {} as GitRepository;
     const oauthUrl = 'https://gitlab.com/oauth/something';
 
     const capture = jest.fn();
@@ -79,9 +88,6 @@ describe('Gitlab Authenticate', () => {
       valid: false,
     };
 
-    const onProviderChange = jest.fn();
-    const onAuthClick = jest.fn();
-
     await act(async () => {
       const c = wrap(
         <CallbackStateContextProvider
@@ -91,9 +97,12 @@ describe('Gitlab Authenticate', () => {
           }}
         >
           <RepoInputWithAuth
-            value={gitRepo}
+            value={gitRepoUrl}
             onProviderChange={onProviderChange}
             onAuthClick={onAuthClick}
+            label=""
+            formData=""
+            setFormData={setFormData}
           />
         </CallbackStateContextProvider>,
       );
