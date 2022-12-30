@@ -75,7 +75,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
-      label-filter: "--label-filter='smoke'"
+      label-filter: "--label-filter='smoke&&capd'"
       kubectl-version: "v1.21.1"
       login_user_type: "oidc"
       git-provider: github
@@ -105,7 +105,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
-      label-filter: "--label-filter='smoke'"
+      label-filter: "--label-filter='smoke&&deploy'"
       kubectl-version: "v1.22.0"
       login_user_type: "cluster-user"
       git-provider: gitlab
@@ -137,7 +137,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
-      label-filter: "--label-filter='smoke'"
+      label-filter: "--label-filter='smoke&&tenant'"
       kubectl-version: "v1.23.3"
       login_user_type: "oidc"
       git-provider: gitlab
