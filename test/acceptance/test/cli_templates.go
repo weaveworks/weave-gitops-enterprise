@@ -36,7 +36,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 		deleteNamespace(templateNamespaces)
 	})
 
-	ginkgo.Context("[CLI] When no Templates are available in the cluster", func() {
+	ginkgo.Context("When no Templates are available in the cluster", func() {
 		ginkgo.It("Verify gitops lists no templates", func() {
 			stdOut, stdErr = runGitopsCommand(`get templates`)
 
@@ -46,7 +46,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 		})
 	})
 
-	ginkgo.Context("[CLI] When only invalid Template(s) are available in the cluster", func() {
+	ginkgo.Context("When only invalid Template(s) are available in the cluster", func() {
 		ginkgo.It("Verify gitops outputs an error message related to an invalid template(s)", func() {
 
 			templateFiles := map[string]string{
@@ -69,7 +69,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 		})
 	})
 
-	ginkgo.Context("[CLI] When both valid and invalid Templates are available in the cluster", func() {
+	ginkgo.Context("When both valid and invalid Templates are available in the cluster", func() {
 		ginkgo.It("Verify gitops outputs an error message related to an invalid template and lists the valid template", func() {
 
 			templateFiles := map[string]string{
@@ -122,7 +122,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 		})
 	})
 
-	ginkgo.Context("[CLI] When Templates are available in the cluster", func() {
+	ginkgo.Context("When Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify gitops can list templates from template library", func() {
 			templateNamespaces = []string{"dev-system", "test-system"}
@@ -294,7 +294,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 		})
 	})
 
-	ginkgo.Context("[CLI] When Capi Templates are available in the cluster to create pull requests", func() {
+	ginkgo.Context("When Capi Templates are available in the cluster to create pull requests", func() {
 
 		ginkgo.BeforeEach(func() {
 			repoAbsolutePath = configRepoAbsolutePath(gitProviderEnv)
@@ -304,7 +304,7 @@ var _ = ginkgo.Describe("Gitops add Tests", ginkgo.Label("cli", "template"), fun
 			cleanGitRepository(clusterPath)
 		})
 
-		ginkgo.It("Verify gitops can create pull requests to management cluster", ginkgo.Label("smoke"), func() {
+		ginkgo.It("Verify gitops can create pull requests to management cluster", func() {
 			// CAPD Parameter values
 			capdClusterName := "my-capd-cluster2"
 			capdNamespace := "gitops-dev"
