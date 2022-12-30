@@ -9,7 +9,7 @@ import {
   promisify,
   withContext,
 } from '../../../utils/test-utils';
-import RepoInputWithAuth from '../RepoInputWithAuth';
+import { RepoInputWithAuth } from '../RepoInputWithAuth';
 import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 
 Object.assign(navigator, {

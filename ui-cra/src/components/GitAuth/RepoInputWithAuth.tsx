@@ -43,7 +43,7 @@ type Props = SelectProps & {
   value: string;
 };
 
-function RepoInputWithAuth({
+export function RepoInputWithAuth({
   onAuthClick,
   onProviderChange,
   isAuthenticated,
@@ -62,7 +62,7 @@ function RepoInputWithAuth({
   );
   const { gitAuthClient } = React.useContext(GitAuth);
 
-  const getDefaultValue = () => {
+  const getDefaultValue = React.useCallback(() => {
     const annoRepo = gitRepos.find(
       repo =>
         repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] ===
@@ -79,7 +79,7 @@ function RepoInputWithAuth({
     if (mainRepo) {
       return getUrlFromRepo(mainRepo);
     }
-  };
+  }, [gitRepos]);
 
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
@@ -94,11 +94,11 @@ function RepoInputWithAuth({
 
     req(
       gitAuthClient.ParseRepoURL({
-        url: value,
+        url: value || defaultValue,
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gitAuthClient, value]);
+  }, [gitAuthClient, value, getDefaultValue]);
 
   React.useEffect(() => {
     if (!res) {
@@ -121,7 +121,8 @@ function RepoInputWithAuth({
       <GitlabAuthButton onClick={() => onAuthClick(GitProvider.GitLab)} />
     );
 
-  const renderProviderAuthButton = value && !!res?.provider && !isAuthenticated;
+  const renderProviderAuthButton =
+    valueForSelect && !!res?.provider && !isAuthenticated;
 
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
@@ -175,15 +176,3 @@ function RepoInputWithAuth({
     </GitAuthForm>
   );
 }
-
-export default styled(RepoInputWithAuth).attrs({
-  className: RepoInputWithAuth.name,
-})`
-  .auth-message {
-    margin-left: 8px;
-
-    ${Icon} {
-      margin-right: 4px;
-    }
-  }
-`;

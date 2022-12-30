@@ -481,6 +481,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       setShowAuthDialog={setShowAuthDialog}
                       setEnableCreatePR={setEnableCreatePR}
                       formError={formError}
+                      enableGitRepoSelection={true}
                     />
                     {loading ? (
                       <LoadingPage className="create-loading" />

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
-import RepoInputWithAuth from './RepoInputWithAuth';
+import { RepoInputWithAuth } from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
