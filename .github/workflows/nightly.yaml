@@ -2,13 +2,6 @@ on:
   schedule:
     - cron: "10 0 * * 1-5"
   workflow_dispatch:
-    inputs:
-      cloud-watch-key-id:
-        required: true
-        description: Access key id
-      cloud-watch-secret-key:
-        required: true
-        description: Secret key id
 
 name: nightly
 jobs:
@@ -56,8 +49,8 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ github.event.inputs.cloud-watch-key-id }}
-      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.cloud-watch-secret-key }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   acceptance-tests-eks-github:
     needs: [build]
@@ -90,8 +83,8 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ github.event.inputs.cloud-watch-key-id }}
-      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.cloud-watch-secret-key }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   acceptance-tests-gke-gitlab:
     needs: [build]
@@ -128,8 +121,8 @@ jobs:
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ github.event.inputs.cloud-watch-key-id }}
-      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ github.event.inputs.cloud-watch-secret-key }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   acceptance-test-results:
     if: ${{ always() }}
