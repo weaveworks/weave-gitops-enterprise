@@ -37,26 +37,18 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 		}
 	}
 
-	var externalSecrets []*capiv1_proto.ExternalSecretItem
-	var externalSecretsListErrors []*capiv1_proto.ListError
-
-	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		externalSecrets, externalSecretsListErrors, err = s.listExternalSecrets(gctx, clustersClient)
-		return err
-	})
-
-	if err := g.Wait(); err != nil {
+	externalSecrets, externalSecretsListErrors, err := s.listExternalSecrets(ctx, clustersClient)
+	if err != nil {
 		return nil, err
 	}
 
 	response := capiv1_proto.ListExternalSecretsResponse{
-		Errors: respErrors,
+		Errors:  respErrors,
+		Secrets: externalSecrets,
+		Total:   int32(len(externalSecrets)),
 	}
-	response.Errors = append(response.Errors, externalSecretsListErrors...)
-	response.Secrets = append(response.Secrets, externalSecrets...)
-	response.Total = int32(len(response.Secrets))
 
+	response.Errors = append(response.Errors, externalSecretsListErrors...)
 	return &response, nil
 }
 
