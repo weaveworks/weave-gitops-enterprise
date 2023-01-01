@@ -35,16 +35,6 @@ env:
 
 EOF
 
-
-flux create source helm eks \
-    --namespace flux-system \
-    --url="https://aws.github.io/eks-charts" \
-    --interval=1m0s
-
-flux create helmrelease aws-fluent-bit \
-    --namespace=flux-system \
-    --interval=1m0s \
-    --source=HelmRepository/eks \
-    --chart=aws-for-fluent-bit \
-    --chart-version="0.1.21" \
+helm install aws-for-fluent-bit eks/aws-for-fluent-bit \
+    --namespace kube-system \
     --values=./values.yaml
