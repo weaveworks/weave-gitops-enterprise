@@ -70,6 +70,11 @@ on:
         description: "GCE leaf cluster kubeconfig path (for connect cluster tests)"
         required: false
         type: string
+      enable-cloudwatch-logging:
+        description: "Enable sending logs to CloudWatch to search and query logs"
+        default: false
+        required: false
+        type: boolean
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD:
         description: "Cluster user admin password"
@@ -134,6 +139,12 @@ on:
       WGE_EKS_AWS_SECRET_ACCESS_KEY:
         description: "AWS user access key secret"
         required: false
+      CLOUDWATCH_AWS_ACCESS_KEY_ID:
+        description: "Access key of CloudWatch AWS user"
+        required: false
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY:
+        description: "Secret key of CloudWatch AWS user"
+        required: false
 
 env:
   GO_CACHE_NAME: cache-go-modules
@@ -172,6 +183,8 @@ env:
   SELENIUM_DEBUG: true
   CHECKPOINT_DISABLE: 1
   WEAVE_GITOPS_FEATURE_TELEMETRY: "false"
+  CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+  CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   tests:
@@ -361,6 +374,13 @@ jobs:
           fi
 
           ./test/utils/scripts/mgmt-cluster-setup.sh  ${{ inputs.management-cluster-kind }} $(pwd) $CLUSTER_NAME $CLUSTER_REGION
+      - name: Setup CloudWatch logging
+        if: ${{ inputs.enable-cloudwatch-logging }}
+        run: |
+          export CLUSTER_NAME=management-${{ github.run_id }}-${{ github.run_number}}
+          export CLOUDWATCH_AWS_ACCESS_KEY_ID=${{ env.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+          export CLOUDWATCH_AWS_SECRET_ACCESS_KEY=${{ env.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
+          ./test/utils/scripts/setup-cloudwatch-logging.sh
       - name: Run Acceptance tests
         run: |
           export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)

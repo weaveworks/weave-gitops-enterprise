@@ -34,6 +34,7 @@ jobs:
       capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops      
       test-artifact-name: acceptance-tests-kind-gitlab-on-prem
+      enable-cloudwatch-logging: true
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -48,6 +49,8 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   acceptance-tests-eks-github:
     needs: [build]
@@ -66,6 +69,7 @@ jobs:
       capi_provider: capa
       gitops-bin-path: /usr/local/bin/gitops      
       test-artifact-name: acceptance-tests-eks-github
+      enable-cloudwatch-logging: true
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -79,6 +83,8 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   acceptance-tests-gke-gitlab:
     needs: [build]
@@ -97,6 +103,7 @@ jobs:
       capi_provider: capg
       gitops-bin-path: /usr/local/bin/gitops
       test-artifact-name: acceptance-tests-gke-gitlab
+      enable-cloudwatch-logging: true
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -114,6 +121,8 @@ jobs:
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   acceptance-test-results:
     if: ${{ always() }}

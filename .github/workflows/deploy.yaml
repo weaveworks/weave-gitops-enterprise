@@ -85,6 +85,7 @@ jobs:
       capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       test-artifact-name: smoke-tests-github
+      enable-cloudwatch-logging: true
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -97,6 +98,8 @@ jobs:
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   smoke-tests-gitlab:
     needs: [build, coverage]
@@ -115,6 +118,7 @@ jobs:
       capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       test-artifact-name: smoke-tests-gitlab
+      enable-cloudwatch-logging: true
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -129,6 +133,8 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_SAS_GITLAB_CLIENT_SECRET }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   smoke-tests-gitlab-on-prem:
     needs: [build, coverage]
@@ -147,6 +153,7 @@ jobs:
       capi_provider: capd
       gitops-bin-path: /usr/local/bin/gitops
       test-artifact-name: smoke-tests-gitlab-on-prem
+      enable-cloudwatch-logging: true
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
       WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
@@ -161,6 +168,8 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+      CLOUDWATCH_AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
+      CLOUDWATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
 
   smoke-test-results:
     if: ${{ always() }}
