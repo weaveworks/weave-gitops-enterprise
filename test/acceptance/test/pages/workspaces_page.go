@@ -20,6 +20,45 @@ type WorkspaceInformation struct {
 	Cluster    *agouti.Selection
 }
 
+type WorkspaceDetailsPage struct {
+	Header                   *agouti.Selection
+	GoToTenantApplicatiosBtn *agouti.Selection
+	WorkspaceName            *agouti.Selection
+	Namespaces               *agouti.Selection
+	ServiceAccountsTab       *agouti.Selection
+	RolesTab                 *agouti.Selection
+	RoleBindingsTab          *agouti.Selection
+	PoliciesTab              *agouti.Selection
+}
+
+type ServiceAccounts struct {
+	Name      *agouti.Selection
+	Namespace *agouti.Selection
+	Age       *agouti.Selection
+}
+
+type Roles struct {
+	Name      *agouti.Selection
+	Namespace *agouti.Selection
+	Rules     *agouti.Selection
+	Age       *agouti.Selection
+}
+
+type RoleBindings struct {
+	Name      *agouti.Selection
+	Namespace *agouti.Selection
+	Bindings  *agouti.Selection
+	Role      *agouti.Selection
+	Age       *agouti.Selection
+}
+
+type Policies struct {
+	Name     *agouti.Selection
+	Category *agouti.Selection
+	Severity *agouti.Selection
+	Age      *agouti.Selection
+}
+
 func (w WorkspacesPage) FindWorkspaceInList(workspaceName string) *WorkspaceInformation {
 	workspace := w.WorkspacesList.FindByXPath(fmt.Sprintf(`//tr[.//a[.="%s"]]`, workspaceName))
 	return &WorkspaceInformation{
@@ -44,4 +83,25 @@ func GetWorkspacesPage(webDriver *agouti.Page) *WorkspacesPage {
 		AlertError:          webDriver.Find(`#alert-list-errors`),
 	}
 	return &workspacePage
+}
+
+func GetWorkspaceDetailsPage(webDriver *agouti.Page) *WorkspaceDetailsPage {
+	return &WorkspaceDetailsPage{
+		Header:                   webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/workspaces"]/parent::node()/parent::node()/following-sibling::div`),
+		GoToTenantApplicatiosBtn: webDriver.FindByClass(`MuiButtonBase-root MuiButton-root MuiButton-outlined Button-sc-1w0plxi-0 fOXjJl jss241 MuiButton-outlinedPrimary MuiButton-disableElevation`),
+		WorkspaceName:            webDriver.FindByXPath(`//div[@data-testid='Tenant Name']`),
+		Namespaces:               webDriver.FindByXPath(`//div[@data-testid='Namespaces']`),
+		ServiceAccountsTab:       webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/serviceAccounts?"]`),
+		RolesTab:                 webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/roles?"]`),
+		RoleBindingsTab:          webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/roleBindings?"]`),
+		PoliciesTab:              webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/policies?"]`),
+	}
+}
+
+func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
+	return &ServiceAccounts{
+		Name:      webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="GitRepository"]/parent::node()`),
+		Namespace: webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="Kustomization"]/parent::node()`),
+		Age:       webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="HelmRepository"]/parent::node()`),
+	}
 }

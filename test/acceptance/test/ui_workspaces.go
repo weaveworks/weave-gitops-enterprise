@@ -13,14 +13,14 @@ import (
 
 func installWorkspaces(clusterName string, workspacesYaml string) {
 
-	ginkgo.By(fmt.Sprintf("Add test workspaces to the '%s' cluster", clusterName), func() {
+	ginkgo.By(fmt.Sprintf("Add workspaces to the '%s' cluster", clusterName), func() {
 		createTenant(workspacesYaml)
 	})
 }
 
 func deleteWorkspaces(clusterName string) {
 
-	ginkgo.By(fmt.Sprintf("And Finally delete test workspaces from '%s' cluster", clusterName), func() {
+	ginkgo.By(fmt.Sprintf("And Finally delete workspaces from '%s' cluster", clusterName), func() {
 		deleteTenants([]string{getTenantYamlPath()})
 	})
 }
@@ -66,6 +66,37 @@ func verifySearchWorkspaceByName(workspaceName string) {
 	})
 }
 
+func verifyWorkspaceDetailsPage(workspaceName string, WorkspaceNamespaces string) {
+
+	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
+	ginkgo.By(fmt.Sprintf("Then verify '%s' workspace details page", workspaceName), func() {
+		gomega.Eventually(WorkspacesDetailPage.Header.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify get the details page's header for '%s' workspace", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.GoToTenantApplicatiosBtn).Should(matchers.BeEnabled(), fmt.Sprintf("'Go'To'Tenant'Applicatios' button is not visible/enable for '%s' workspace", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.WorkspaceName.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify the '%s' workspace tenant name", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.Namespaces.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify the '%s' workspace namespaces", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.ServiceAccountsTab).Should(matchers.BeEnabled(), fmt.Sprintf("'Service Accounts' tab is not visible/enable for '%s' workspace", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.RolesTab).Should(matchers.BeEnabled(), fmt.Sprintf("'Roles' tab is not visible/enable for  '%s' workspace", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.RoleBindingsTab).Should(matchers.BeEnabled(), fmt.Sprintf("'Role Bindings' tab is not visible/enable for  '%s' workspace", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.PoliciesTab).Should(matchers.BeEnabled(), fmt.Sprintf("'Policies' tab is not visible/enable for  '%s' workspace", workspaceName))
+	})
+}
+
+func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces string) {
+	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
+
+	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Service Accounts", workspaceName), func() {
+		gomega.Expect(WorkspacesDetailPage.ServiceAccountsTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Service Accounts tab", workspaceName))
+		pages.WaitForPageToLoad(webDriver)
+
+		serviceAccounts := pages.GetWorkspaceServiceAccounts(webDriver)
+
+		gomega.Eventually(serviceAccounts.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
+		gomega.Eventually(serviceAccounts.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Namespaces", workspaceName))
+		gomega.Eventually(serviceAccounts.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Age", workspaceName))
+
+	})
+}
+
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("ui", "workspaces"), func() {
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
@@ -93,7 +124,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			deleteWorkspaces("management")
 		})
 
-		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
+		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install workspaces on management cluster
 			installWorkspaces("management", workspacesYaml)
@@ -129,7 +160,19 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			verifyFilterWorkspacesByClusterName("management", workspaceName)
 			verifySearchWorkspaceByName(workspaceName)
 
+			ginkgo.By(fmt.Sprintf("And navigate to '%s' workspace details page", workspaceName), func() {
+				gomega.Eventually(workspaceInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' workspace details page", workspaceName))
+			})
+			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces)
+			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces)
+			// verifyAppAnnotations(podinfo)
+
+			// navigatetoApplicationsPage(applicationsPage)
+			// verifyAppSourcePage(applicationInfo, podinfo)
+
+			// verifyDeleteApplication(applicationsPage, existingAppCount, podinfo.Name, appDir)
 		})
+
 	})
 
 	ginkgo.Context("Workspaces can be configured on leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
