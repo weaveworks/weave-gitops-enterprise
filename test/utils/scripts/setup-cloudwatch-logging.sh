@@ -35,6 +35,8 @@ env:
 
 EOF
 
+helm repo add eks https://aws.github.io/eks-charts
+
 helm install aws-for-fluent-bit eks/aws-for-fluent-bit \
     --namespace kube-system \
     --values=./values.yaml
