@@ -35,9 +35,7 @@ const SecretDetails = ({
     },
   ];
 
-  console.log(secretDetails);
   return (
-    <>
       <PageTemplate
         documentTitle="Secrets"
         path={[
@@ -55,7 +53,6 @@ const SecretDetails = ({
           />
         </ContentWrapper>
       </PageTemplate>
-    </>
   );
 };
 

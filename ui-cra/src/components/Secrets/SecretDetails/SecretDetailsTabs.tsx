@@ -64,9 +64,8 @@ const SecretDetailsTabs = ({
   ];
 
   return (
-    <div>
-      <CustomSubRouterTabs rootPath={`${path}/secretDetails`}>
-        <RouterTab name="Details" path={`${path}/secretDetails`}>
+      <CustomSubRouterTabs rootPath={`${path}/details`}>
+        <RouterTab name="Details" path={`${path}/details`}>
           <DetailsHeadersWrapper>
             {generateRowHeaders(secretDetailsHeaders)}
           </DetailsHeadersWrapper>
@@ -85,7 +84,6 @@ const SecretDetailsTabs = ({
           </ListEventsWrapper>
         </RouterTab>
       </CustomSubRouterTabs>
-    </div>
   );
 };
 
