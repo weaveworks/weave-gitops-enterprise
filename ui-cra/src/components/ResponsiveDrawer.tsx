@@ -14,6 +14,7 @@ import {
   AuthContextProvider,
   coreClient,
   CoreClientContextProvider,
+  ErrorBoundary,
   LinkResolverProvider,
   Pendo,
   SignIn,
@@ -29,11 +30,12 @@ import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import { TerraformProvider } from '../contexts/Terraform';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import AppRoutes from '../routes';
-import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
 import { resolver } from '../utils/link-resolver';
 import { ListConfigProvider, VersionProvider } from '../contexts/ListConfig';
+import { PageTemplate } from './Layout/PageTemplate';
+import { ContentWrapper } from './Layout/ContentWrapper';
 
 const drawerWidth = 220;
 
@@ -104,6 +106,24 @@ const SignInWrapper = styled.div`
   }
 `;
 
+const ErrorBoundaryPage = (error: Error) => (
+  <PageTemplate
+    documentTitle="Error"
+    path={[
+      {
+        label: 'Error',
+        url: '/',
+      },
+    ]}
+  >
+    <ContentWrapper>
+      <h3>Something went wrong.</h3>
+      <pre>{error?.message}</pre>
+      <pre>{error?.stack}</pre>
+    </ContentWrapper>
+  </PageTemplate>
+);
+
 const App = () => {
   const classes = useStyles();
   const theme = useTheme();
@@ -160,7 +180,7 @@ const App = () => {
           </Hidden>
         </nav>
         <main className={classes.content}>
-          <ErrorBoundary>
+          <ErrorBoundary errorPage={ErrorBoundaryPage}>
             <AppRoutes />
           </ErrorBoundary>
         </main>

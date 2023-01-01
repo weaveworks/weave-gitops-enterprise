@@ -2335,10 +2335,8 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.13.0-16-g174de884":
-  version "0.13.0-16-g174de884"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.13.0-16-g174de884/e4eed8447f029a50ba854a48deb32b55627d9eae#e4eed8447f029a50ba854a48deb32b55627d9eae"
-  integrity sha512-qTEzdnekx78JeRcGunVmEWae20nTSMNkkzXwzZheR6q/Td8F7m/RvO/2KgtzNHjAN74Um0+mk6lVHFyB2POCZA==
+"@weaveworks/weave-gitops@../../weave-gitops/dist":
+  version "0.13.0"
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
