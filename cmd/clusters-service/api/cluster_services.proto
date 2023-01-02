@@ -305,6 +305,7 @@ message RenderTemplateRequest {
   repeated ProfileValues profiles = 6;
   repeated Kustomization kustomizations = 7;
   string template_namespace = 8;
+  repeated ExternalSecret external_secrets = 9;
 }
 
 message CommitFile {
@@ -329,6 +330,7 @@ message RenderTemplateResponse {
   repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
+  repeated CommitFile external_secrets_files = 5;
 }
 
 message RenderAutomationRequest {
@@ -338,6 +340,7 @@ message RenderAutomationRequest {
 message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
+  repeated CommitFile external_secrets_files = 3;
 }
 
 message ListGitopsClustersRequest {
@@ -453,6 +456,7 @@ message CreatePullRequestRequest {
   string template_namespace = 14;
   string template_kind = 15;
   PreviousValues previous_values = 16;
+  repeated ExternalSecret external_secrets = 17;
 }
 
 // Previous values for a CreatePullRequestRequest.
@@ -461,6 +465,7 @@ message PreviousValues {
   Credential credentials = 2;
   repeated ProfileValues values = 3;
   repeated Kustomization kustomizations = 4;
+  repeated ExternalSecret external_secrets = 5;
  }
 
 message CreatePullRequestResponse {
@@ -673,6 +678,38 @@ message ClusterAutomation {
   HelmRelease helm_release = 4;
   // A path to write the resource to in the management git repo
   string file_path = 5;
+  ExternalSecret external_secret = 6;
+}
+
+// External Secrets template
+message ExternalSecret {
+  Metadata metadata = 1;
+  ExternalSecretSpec spec = 2;
+}
+
+message ExternalSecretSpec {
+  string refresh_interval = 1;
+  externalSecretStoreRef secret_store_ref = 2;
+  externalSecretTarget target = 3;
+  externalSecretData data = 4;
+}
+
+message externalSecretStoreRef {
+  string name = 1;
+}
+
+message externalSecretTarget {
+  string name = 1;
+}
+
+message externalSecretData {
+  string secret_key = 1;
+  externalSecretRemoteRef remote_ref = 2;
+}
+
+message externalSecretRemoteRef {
+  string key = 1;
+  string property = 2;
 }
 
 message Kustomization {

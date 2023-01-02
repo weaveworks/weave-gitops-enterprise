@@ -16,7 +16,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 	var upgradeMgmtClusterHostname string
 	var upgradeWgeEndpointUrl string
 	var upgradeTestUiUrl string
-	const UI_NODEPORT = "30081"
+	const uiNodeport = 30081
 	var stdOut string
 	var stdErr string
 
@@ -24,14 +24,14 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 
 	})
 
-	ginkgo.Context("[CLI] When gitops upgrade command is available", func() {
+	ginkgo.Context("When gitops upgrade command is available", func() {
 		ginkgo.It("Verify gitops upgrade command in --dry-run mode", func() {
 			repositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 			prBranch := "wego-enterprise-dry-run"
 			version := "1.4.20"
 
 			ginkgo.By("And I run gitops upgrade command", func() {
-				upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/management/clusters --set 'service.nodePorts.https=%s' --set 'service.type=NodePort' --dry-run", gitopsBinPath, version, prBranch, repositoryURL, UI_NODEPORT)
+				upgradeCommand := fmt.Sprintf(" %s upgrade --version %s --branch %s --config-repo %s --path=./clusters/management/clusters --set 'service.nodePorts.https=%d' --set 'service.type=NodePort' --dry-run", gitopsBinPath, version, prBranch, repositoryURL, uiNodeport)
 				logger.Infof("Upgrade command: '%s'", upgradeCommand)
 				stdOut, stdErr = runCommandAndReturnStringOutput(upgradeCommand)
 				gomega.Expect(stdErr).Should(gomega.BeEmpty())
@@ -43,7 +43,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 
 			ginkgo.By("And verify kind 'HelmRelease' in upgrade manifest", func() {
 				gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*sourceRef:[\s]*kind: HelmRepository[\s]*name: weave-gitops-enterprise-charts[\s\w\d./:-]*version: %s`, version)))
-				gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d.@/:-]*service[\s\w\d.@/:-]*nodePorts:[\s]*https: %s`, UI_NODEPORT)))
+				gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d.@/:-]*service[\s\w\d.@/:-]*nodePorts:[\s]*https: %d`, uiNodeport)))
 				gomega.Expect(stdOut).Should(gomega.MatchRegexp(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*repositoryURL: %s`, repositoryURL)))
 			})
 
@@ -54,7 +54,7 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 		})
 	})
 
-	ginkgo.Context("[CLI] When Wego core is installed in the cluster", ginkgo.Label("cluster"), func() {
+	ginkgo.Context("When Wego core is installed in the cluster", ginkgo.Label("cluster"), func() {
 		var currentConfigRepo string
 		var currentContext string
 		clusterPath := "./clusters/management/clusters"
@@ -66,11 +66,11 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 			gitProviderEnv.Repo = "upgrade-" + currentConfigRepo
 
 			upgradeMgmtClusterHostname = GetEnv("UPGRADE_MANAGEMENT_CLUSTER_CNAME", "localhost")
-			upgradeWgeEndpointUrl = fmt.Sprintf(`https://%s:%s`, upgradeMgmtClusterHostname, UI_NODEPORT)
-			upgradeTestUiUrl = fmt.Sprintf(`https://%s:%s`, upgradeMgmtClusterHostname, UI_NODEPORT)
+			upgradeWgeEndpointUrl = fmt.Sprintf(`https://%s:%d`, upgradeMgmtClusterHostname, uiNodeport)
+			upgradeTestUiUrl = fmt.Sprintf(`https://%s:%d`, upgradeMgmtClusterHostname, uiNodeport)
 
 			// Create vanilla cluster for WGE upgrade
-			createCluster("kind", kind_upgrade_cluster_name, "kind/upgrade-kind-config.yaml")
+			createCluster("kind", kind_upgrade_cluster_name, "kind/extra-port-mapping-kind-config.yaml")
 
 		})
 
@@ -143,26 +143,31 @@ var _ = ginkgo.Describe("Gitops upgrade Tests", ginkgo.Label("cli", "upgrade"), 
 				gomega.Expect(stdErr).Should(gomega.BeEmpty(), "Failed to create git repository secret for cluster service")
 			})
 
-			ginkgo.By("And install cert-manager for tls certificate creation", func() {
-				_ = runCommandPassThrough("sh", "-c", "helm upgrade --install cert-manager cert-manager/cert-manager --namespace cert-manager --create-namespace --version v1.10.0 --wait --set installCRDs=true")
-				_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cat %s | sed s,{{HOST_NAME}},"%s",g | kubectl apply -f -`, path.Join(testDataPath, "ingress/certificate-issuer.yaml"), upgradeMgmtClusterHostname))
-				_ = runCommandPassThrough("sh", "-c", "kubectl wait --for=condition=Ready --timeout=60s -n flux-system --all certificate")
-
-			})
-
-			ginkgo.By("And install ingress-nginx for tls termination", func() {
-				command := fmt.Sprintf("helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace --version 4.4.0 --wait --set controller.service.type=NodePort --set controller.service.nodePorts.https=%s --set controller.extraArgs.v=4", UI_NODEPORT)
-				_ = runCommandPassThrough("sh", "-c", command)
+			installIngressNginx(kind_upgrade_cluster_name, uiNodeport)
+			ginkgo.By(fmt.Sprintf("And install ingress rule for %s", upgradeMgmtClusterHostname), func() {
 				_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cat %s | sed s,{{HOST_NAME}},"%s",g | kubectl apply -f -`, path.Join(testDataPath, "ingress/ingress.yaml"), upgradeMgmtClusterHostname))
 			})
 
+			// Comment out this step if runnig the test locally. Local user is not a root user and failed to edit /etc/hosts file which fails the step.
+			// Add host entry manually to the /etc/hosts file before running test locally.
+			ginkgo.By("And set cluster hostname mapping in the /etc/hosts file", func() {
+				err := runCommandPassThrough(path.Join(getCheckoutRepoPath(), "test", "utils", "scripts", "hostname-to-ip.sh"), upgradeMgmtClusterHostname)
+				// Ignore error checking when running the test locally as the local test host user is not a root user, instead add the entry manually to /etc/hosts file
+				gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to set deployment service hostname entry in /etc/hosts file")
+			})
+
+			version := "0.12.0"
+			ginkgo.By("And find out the latest enterprise version available", func() {
+				version, _ = runCommandAndReturnStringOutput("git tag --sort=-version:refname | head -n 1 ")
+			})
+
 			prBranch := "wego-upgrade-enterprise"
-			version := "0.13.0"
+
 			ginkgo.By(fmt.Sprintf("And I run gitops upgrade command from directory %s", repoAbsolutePath), func() {
 				gitRepositoryURL := fmt.Sprintf(`https://%s/%s/%s`, gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 				// Explicitly setting the gitprovider type, hostname and repository path url scheme in configmap, the default is github and ssh url scheme which is not supported for capi cluster PR creation.
-				upgradeCommand := fmt.Sprintf("upgrade --version %s --branch %s --config-repo %s --path=%s --set 'config.capi.repositoryClustersPath=./clusters'  --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set tls.enabled=false --set config.oidc.enabled=true --set config.oidc.clientCredentialsSecret=client-credentials --set config.oidc.issuerURL=https://dex-01.wge.dev.weave.works --set config.oidc.redirectURL=https://weave.gitops.upgrade.enterprise.com:%s/oauth2/callback ",
-					version, prBranch, gitRepositoryURL, clusterPath, gitRepositoryURL, gitProviderEnv.Type, gitProviderEnv.Hostname, UI_NODEPORT)
+				upgradeCommand := fmt.Sprintf("upgrade --version %s --branch %s --config-repo %s --path=%s --set 'config.capi.repositoryClustersPath=./clusters'  --set 'config.capi.repositoryURL=%s' --set 'config.git.type=%s' --set 'config.git.hostname=%s' --set tls.enabled=false --set config.oidc.enabled=true --set config.oidc.clientCredentialsSecret=client-credentials --set config.oidc.issuerURL=https://dex-01.wge.dev.weave.works --set config.oidc.redirectURL=https://weave.gitops.upgrade.enterprise.com:%d/oauth2/callback ",
+					version, prBranch, gitRepositoryURL, clusterPath, gitRepositoryURL, gitProviderEnv.Type, gitProviderEnv.Hostname, uiNodeport)
 
 				if gitProviderEnv.HostTypes != "" {
 					upgradeCommand += ` --set "config.extraVolumes[0].name=ssh-config" --set "config.extraVolumes[0].configMap.name=ssh-config" --set "config.extraVolumeMounts[0].name=ssh-config" --set "config.extraVolumeMounts[0].mountPath=/root/.ssh"`

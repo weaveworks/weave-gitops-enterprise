@@ -79,7 +79,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 	})
 
-	ginkgo.Context("[UI] Workspaces can be configured on management cluster", func() {
+	ginkgo.Context("Workspaces can be configured on management cluster", func() {
 		var workspacesYaml string
 		workspaceName := "dev-team"
 		workspaceNamespaces := "dev-system"
@@ -132,7 +132,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		})
 	})
 
-	ginkgo.Context("[UI] Workspaces can be configured on leaf cluster", ginkgo.Label("leaf-workspaces"), func() {
+	ginkgo.Context("Workspaces can be configured on leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 
 		var mgmtClusterContext string
 		var leafClusterContext string

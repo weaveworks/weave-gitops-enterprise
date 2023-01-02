@@ -9,7 +9,7 @@ interface Props {
   errorMessage?: string;
   children: any;
 }
-const WorkspaceTabsWrapper: FC<Props> = ({
+const LoadingWrapper: FC<Props> = ({
   children,
   errorMessage,
   loading,
@@ -35,4 +35,4 @@ const WorkspaceTabsWrapper: FC<Props> = ({
   );
 };
 
-export default WorkspaceTabsWrapper;
+export default LoadingWrapper;

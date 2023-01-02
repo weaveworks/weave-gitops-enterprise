@@ -46,14 +46,14 @@ func installGitOpsTemplate(templateFiles map[string]string) {
 	})
 }
 
-func waitForTemplatesToAppear(templateCpunt int) {
+func waitForTemplatesToAppear(templateCount int) {
 	ginkgo.By("And wait for Templates to be rendered", func() {
 		templatesPage := pages.GetTemplatesPage(webDriver)
 		gomega.Eventually(func(g gomega.Gomega) {
 			g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 			pages.WaitForPageToLoad(webDriver)
 			g.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-			g.Eventually(templatesPage.CountTemplateRows).Should(gomega.BeNumerically(">=", templateCpunt))
+			g.Eventually(templatesPage.CountTemplateRows).Should(gomega.BeNumerically(">=", templateCount))
 		}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), "The number of template rows should be equal to number of templates created")
 	})
 }
@@ -75,7 +75,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		deleteNamespace(templateNamespaces)
 	})
 
-	ginkgo.Context("[UI] When no GitOps Templates are available in the cluster", func() {
+	ginkgo.Context("When no GitOps Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify template page renders no GitOpsTemplate", func() {
 			ginkgo.By("And wait for  good looking response from /v1/templates", func() {
@@ -94,7 +94,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		})
 	})
 
-	ginkgo.Context("[UI] When GitOps Templates are available in the cluster", func() {
+	ginkgo.Context("When GitOps Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify template(s) are rendered from the template library.", func() {
 			// Namespace for some GitOpsTemplates
@@ -178,7 +178,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			})
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(50)
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template from the default table view", func() {
@@ -246,7 +246,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		})
 	})
 
-	ginkgo.Context("[UI] When GitOps Template are available in the management cluster for resource creation", func() {
+	ginkgo.Context("When GitOps Template are available in the management cluster for resource creation", func() {
 		clusterPath := "./clusters/management/clusters"
 		var downloadedResourcesPath string
 
@@ -270,7 +270,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			templateName := "capd-cluster-template"
@@ -476,7 +476,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template", func() {
@@ -572,7 +572,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template", func() {

@@ -17,6 +17,7 @@ import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
+import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
@@ -191,6 +192,11 @@ const NavItems = () => {
       name: 'FLUX RUNTIME',
       link: V2Routes.FluxRuntime,
       icon: <FluxIcon />,
+    },
+    {
+      name: 'SECRETS',
+      link: Routes.Secrets,
+      icon: <SecretsIcon />,
     },
     {
       name: 'POLICIES',
