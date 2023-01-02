@@ -23,7 +23,7 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 
 	})
 
-	ginkgo.Context("[CLI] When no clusters are available in the management cluster", ginkgo.Label("cli", "cluster"), func() {
+	ginkgo.Context("When no clusters are available in the management cluster", ginkgo.Label("cli", "cluster"), func() {
 
 		ginkgo.It("Verify gitops lists no clusters", func() {
 			ginkgo.By("And gitops state is reset", func() {
@@ -40,7 +40,7 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 		})
 	})
 
-	ginkgo.Context("[CLI] When profiles are available in the management cluster", ginkgo.Label("profile"), func() {
+	ginkgo.Context("When profiles are available in the management cluster", ginkgo.Label("profile"), func() {
 
 		ginkgo.It("Verify gitops can list profiles from default profile repository", func() {
 			ginkgo.By("And wait for cluster-service to cache profiles", func() {
@@ -76,7 +76,7 @@ var _ = ginkgo.Describe("Gitops miscellaneous CLI tests", ginkgo.Label("cli"), f
 		})
 	})
 
-	ginkgo.Context("[CLI] When entitlement is available in the cluster", ginkgo.Label("entitlement"), func() {
+	ginkgo.Context("When entitlement is available in the cluster", ginkgo.Label("entitlement"), func() {
 		var resourceName string
 		DEPLOYMENT_APP := "my-mccp-cluster-service"
 

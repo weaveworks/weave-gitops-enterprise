@@ -56,7 +56,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "--label-filter='!(smoke, capd, upgrade&&(cluster), leaf-cluster, leaf-application, leaf-policy, leaf-violation, leaf-workspaces)'"
+      label-filter: "--label-filter='!(smoke, capd, upgrade&&(cluster), kind-leaf-cluster)'"
       kubectl-version: "v1.23.6"
       login_user_type: "oidc"
       git-provider: github
@@ -87,7 +87,7 @@ jobs:
       runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 90
-      label-filter: "--label-filter='!(smoke, upgrade&&(cluster), capd, tenant, leaf-cluster, leaf-application, leaf-policy, leaf-violation, leaf-workspaces)'"
+      label-filter: "--label-filter='!(smoke, capd, upgrade&&(cluster), kind-leaf-cluster, tenant)'"
       kubectl-version: "v1.23.3"
       login_user_type: "cluster-user"
       git-provider: gitlab

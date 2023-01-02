@@ -56,7 +56,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 		_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 	})
 
-	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources", ginkgo.Ordered, ginkgo.Label("application"), func() {
+	ginkgo.Context("Tenants are configured and can view/create allowed resources", ginkgo.Ordered, ginkgo.Label("application"), func() {
 		existingAppCount := 0 // Tenant starts from a clean slate
 
 		mgmtCluster := ClusterConfig{
@@ -295,7 +295,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 		})
 	})
 
-	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources on leaf cluster", ginkgo.Ordered, ginkgo.Label("leaf-application"), func() {
+	ginkgo.Context("Tenants are configured and can view/create allowed resources on leaf cluster", ginkgo.Ordered, ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -339,7 +339,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			deleteNamespace([]string{leafCluster.Namespace})
 		})
 
-		ginkgo.It("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
+		ginkgo.It("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", ginkgo.Label("smoke", "application"), func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",

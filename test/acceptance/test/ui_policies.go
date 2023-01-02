@@ -172,7 +172,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 		}
 	})
 
-	ginkgo.Context("[UI] Policies can be installed on management cluster", func() {
+	ginkgo.Context("Policies can be installed on management cluster", func() {
 		var policiesYaml string
 		var policySetYaml string
 
@@ -295,7 +295,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 		})
 	})
 
-	ginkgo.Context("[UI] Policies can be installed on leaf cluster", ginkgo.Label("leaf-policy"), func() {
+	ginkgo.Context("Policies can be installed on leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string

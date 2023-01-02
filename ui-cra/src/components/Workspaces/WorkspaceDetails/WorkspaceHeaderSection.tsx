@@ -11,7 +11,7 @@ function WorkspaceHeaderSection({ name, namespaces }: Workspace) {
 
   const defaultHeaders: Array<SectionRowHeader> = [
     {
-      rowkey: 'Tenant Name',
+      rowkey: 'Workspace Name',
       value: name,
     },
     {
