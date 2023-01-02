@@ -5,6 +5,8 @@ import {
   GetExternalSecretResponse,
   ListExternalSecretsRequest,
   ListExternalSecretsResponse,
+  ListExternalSecretStoresRequest,
+  ListExternalSecretStoresResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
 import { EnterpriseClientContext } from '../EnterpriseClient';
@@ -33,6 +35,19 @@ export function useGetSecretDetails(req: GetExternalSecretRequest) {
   return useQuery<GetExternalSecretResponse, Error>(
     [GET_SECRET_QUERY_KEY, req],
     () => api.GetExternalSecret(req),
+    { onError },
+  );
+}
+
+const GET_SECRET_STORE_QUERY_KEY = 'secret-store-details';
+
+export function useGetSecretStoreDetails(req: ListExternalSecretStoresRequest) {
+  const { api } = useContext(EnterpriseClientContext);
+  const { setNotifications } = useNotifications();
+  const onError = (error: Error) => setNotifications(formatError(error));
+  return useQuery<ListExternalSecretStoresResponse, Error>(
+    [GET_SECRET_STORE_QUERY_KEY, req],
+    () => api.ListExternalSecretStores(req),
     { onError },
   );
 }
