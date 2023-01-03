@@ -31,7 +31,7 @@ func installPolicyAgent(clusterName string) {
 			gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to add policy-agent repositoy")
 		}
 
-		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "policy-agent/policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "2.0.x", "--set", "policy-agent.accountId=weaveworks", "--set", "policy-agent.clusterId="+clusterName)
+		err := runCommandPassThrough("helm", "upgrade", "--install", "weave-policy-agent", "policy-agent/policy-agent", "--namespace", "policy-system", "--create-namespace", "--version", "2.2.x", "--set", "config.accountId=weaveworks", "--set", "config.clusterId="+clusterName)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to install policy agent to leaf cluster '%s'", clusterName))
 		_ = runCommandPassThrough("kubectl", "wait", "--for=condition=Ready", "--timeout=60s", "--namespace", "policy-system", "pod", "-l", "name=policy-agent")
 	})
@@ -172,7 +172,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 		}
 	})
 
-	ginkgo.Context("[UI] Policies can be installed on management cluster", func() {
+	ginkgo.Context("Policies can be installed on management cluster", func() {
 		var policiesYaml string
 		var policySetYaml string
 
@@ -196,7 +196,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 			_ = runCommandPassThrough("kubectl", "delete", "-f", policiesYaml)
 		})
 
-		ginkgo.It("Verify Policies and policy set can be installed on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "policy"), func() {
+		ginkgo.It("Verify Policies and policy set can be installed on management cluster and dashboard is updated accordingly", func() {
 			existingPoliciesCount := getPoliciesCount()
 			installTestPolicies("management", policiesYaml)
 			installPolicySet("management", policySetYaml)
@@ -295,7 +295,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 		})
 	})
 
-	ginkgo.Context("[UI] Policies can be installed on leaf cluster", ginkgo.Label("leaf-policy"), func() {
+	ginkgo.Context("Policies can be installed on leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -338,7 +338,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Policies", ginkgo.Label("ui
 
 		})
 
-		ginkgo.It("Verify Policies and policy set can be installed on leaf cluster and monitored via management cluster dashboard", ginkgo.Label("integration", "policy", "leaf-policy"), func() {
+		ginkgo.It("Verify Policies and policy set can be installed on leaf cluster and monitored via management cluster dashboard", func() {
 			existingPoliciesCount := getPoliciesCount()
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafClusterName, leafClusterNamespace)
 

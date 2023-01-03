@@ -49,8 +49,13 @@ spec:
     - name: SERVICE_PORT
       required: true
       description: ClusterIP service port
+    - name: CLUSTER_PATH
+      required: false
+      default: 'clusters/management'
+      description: Cluster repository path
   resourcetemplates:
-    - content:
+    - path: "${{ .params.CLUSTER_PATH }}/mvp/${{ .params.NAMESPACE }}/${{ .params.RESOURCE_NAME }}.yaml"
+      content:
         - apiVersion: source.toolkit.fluxcd.io/v1beta1
           kind: HelmRepository
           metadata:
@@ -58,6 +63,7 @@ spec:
             namespace: ${{ .params.NAMESPACE }}
             annotations:
               templates.weave.works/create-request: ""
+              templates.weave.works/cluster-name: "${{ .params.CLUSTER_PATH }}"
           spec:
             interval: ${{ .params.INTERVAL }}
             url: ${{ .params.URL }}

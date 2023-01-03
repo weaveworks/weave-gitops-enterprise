@@ -79,7 +79,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 	})
 
-	ginkgo.Context("[UI] Workspaces can be configured on management cluster", func() {
+	ginkgo.Context("Workspaces can be configured on management cluster", func() {
 		var workspacesYaml string
 		workspaceName := "dev-team"
 		workspaceNamespaces := "dev-system"
@@ -93,7 +93,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			deleteWorkspaces("management")
 		})
 
-		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces"), func() {
+		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install workspaces on management cluster
 			installWorkspaces("management", workspacesYaml)
@@ -132,7 +132,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		})
 	})
 
-	ginkgo.Context("[UI] Workspaces can be configured on leaf cluster", ginkgo.Label("leaf-workspaces"), func() {
+	ginkgo.Context("Workspaces can be configured on leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 
 		var mgmtClusterContext string
 		var leafClusterContext string
@@ -140,7 +140,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		var clusterBootstrapCopnfig string
 		var gitopsCluster string
 		var workspacesYaml string
-		var err string
+		var errStd string
 
 		patSecret := "workspace-pat"
 		bootstrapLabel := "bootstrap"
@@ -157,32 +157,22 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		workspaceClusterName := leafCluster.Name
 
 		ginkgo.JustBeforeEach(func() {
-
-			gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
-			if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
-				loginUser()
-			}
 			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml")
-			mgmtClusterContext, err = runCommandAndReturnStringOutput("kubectl config current-context")
-			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the management cluster context")
+			mgmtClusterContext, errStd = runCommandAndReturnStringOutput("kubectl config current-context")
+			gomega.Expect(errStd).Should(gomega.BeEmpty(), "Failed to get the management cluster context")
 
 			createCluster("kind", leafCluster.Name, "")
-			leafClusterContext, err = runCommandAndReturnStringOutput("kubectl config current-context")
-			gomega.Expect(err).Should(gomega.BeNil(), "Failed to get the leaf cluster context")
-
-			// Add/Install Policy Agent on the leaf cluster
-			installPolicyAgent(leafCluster.Name)
+			leafClusterContext, errStd = runCommandAndReturnStringOutput("kubectl config current-context")
+			gomega.Expect(errStd).Should(gomega.BeEmpty(), "Failed to get the leaf cluster context")
 		})
 
 		ginkgo.JustAfterEach(func() {
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
-			err := runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
-			gomega.Expect(err).Should(gomega.BeNil(), "Failed to delete the leaf clsuter bootstrap config")
-
-			err = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
-			gomega.Expect(err).Should(gomega.BeNil(), "Failed to delete the gitops cluster")
+			// Ignore error checking as the premature test failure may have resources not created and checking for the error in cleanup produce unncessary confusion
+			_ = runCommandPassThrough("kubectl", "delete", "-f", clusterBootstrapCopnfig)
+			_ = runCommandPassThrough("kubectl", "delete", "-f", gitopsCluster)
 
 			// Delete the test workspaces from management cluster
 			deleteWorkspaces("management")
@@ -193,9 +183,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 		})
 
-		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", ginkgo.Label("integration", "workspaces", "leaf-workspaces"), func() {
-			ginkgo.Skip("workspaces created normally on the leaf cluster but doesn't appear in the list because of an issue in the product itself and it needs more investigation from dev team")
-
+		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", func() {
+			// Add/Install Policy Agent on the leaf cluster
+			installPolicyAgent(leafCluster.Name)
 			// Create leaf cluster kubeconfig
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
 
@@ -214,12 +204,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			waitForLeafClusterAvailability(leafCluster.Name, "Ready")
 			addKustomizationBases("leaf", leafCluster.Name, leafCluster.Namespace)
 
+			useClusterContext(leafClusterContext)
 			ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster is bootstraped)", leafCluster.Name), func() {
-				useClusterContext(leafClusterContext)
 				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
 				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
-			useClusterContext(leafClusterContext)
 			// Installing test workspaces on leaf cluster after leaf-cluster is bootstrap completely
 			installWorkspaces(leafCluster.Name, workspacesYaml)
 

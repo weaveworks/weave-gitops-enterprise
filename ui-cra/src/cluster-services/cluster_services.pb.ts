@@ -70,6 +70,7 @@ export type RenderTemplateRequest = {
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
   templateNamespace?: string
+  externalSecrets?: ExternalSecret[]
 }
 
 export type CommitFile = {
@@ -93,6 +94,7 @@ export type RenderTemplateResponse = {
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
+  externalSecretsFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -102,6 +104,7 @@ export type RenderAutomationRequest = {
 export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
   helmReleaseFiles?: CommitFile[]
+  externalSecretsFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -211,6 +214,7 @@ export type CreatePullRequestRequest = {
   templateNamespace?: string
   templateKind?: string
   previousValues?: PreviousValues
+  externalSecrets?: ExternalSecret[]
 }
 
 export type PreviousValues = {
@@ -218,6 +222,7 @@ export type PreviousValues = {
   credentials?: Credential
   values?: ProfileValues[]
   kustomizations?: Kustomization[]
+  externalSecrets?: ExternalSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -403,6 +408,37 @@ export type ClusterAutomation = {
   kustomization?: Kustomization
   helmRelease?: HelmRelease
   filePath?: string
+  externalSecret?: ExternalSecret
+}
+
+export type ExternalSecret = {
+  metadata?: Metadata
+  spec?: ExternalSecretSpec
+}
+
+export type ExternalSecretSpec = {
+  refreshInterval?: string
+  secretStoreRef?: externalSecretStoreRef
+  target?: externalSecretTarget
+  data?: externalSecretData
+}
+
+export type externalSecretStoreRef = {
+  name?: string
+}
+
+export type externalSecretTarget = {
+  name?: string
+}
+
+export type externalSecretData = {
+  secretKey?: string
+  remoteRef?: externalSecretRemoteRef
+}
+
+export type externalSecretRemoteRef = {
+  key?: string
+  property?: string
 }
 
 export type Kustomization = {
@@ -738,6 +774,7 @@ export type GetExternalSecretResponse = {
   clusterName?: string
   namespace?: string
   secretStore?: string
+  secretStoreType?: string
   secretPath?: string
   property?: string
   version?: string
@@ -749,6 +786,7 @@ export type ExternalSecretStore = {
   kind?: string
   name?: string
   namespace?: string
+  type?: string
 }
 
 export type ListExternalSecretStoresRequest = {

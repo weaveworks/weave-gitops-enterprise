@@ -28,7 +28,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 		_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 	})
 
-	ginkgo.Context("[UI] When Cost estimation feature is enabled", func() {
+	ginkgo.Context("When Cost estimation feature is enabled", func() {
 
 		ginkgo.JustBeforeEach(func() {
 		})
@@ -44,7 +44,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -163,7 +163,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -217,7 +217,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -275,7 +275,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 		})
 	})
 
-	ginkgo.Context("[UI] When aws pricing secret is not available", func() {
+	ginkgo.Context("When aws pricing secret is not available", func() {
 
 		ginkgo.JustBeforeEach(func() {
 			ginkgo.By("And create invalid aws-pricing secret", func() {
@@ -317,7 +317,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Cost Estimation", ginkgo.La
 			installGitOpsTemplate(templateFiles)
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
