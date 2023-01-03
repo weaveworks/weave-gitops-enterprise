@@ -47,8 +47,8 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 		Secrets: externalSecrets,
 		Total:   int32(len(externalSecrets)),
 	}
-
-	response.Errors = append(response.Errors, externalSecretsListErrors...)
+	externalSecretsListErrors = append(externalSecretsListErrors, respErrors...)
+	//response.Errors = append(response.Errors, externalSecretsListErrors...)
 	return &response, nil
 }
 
