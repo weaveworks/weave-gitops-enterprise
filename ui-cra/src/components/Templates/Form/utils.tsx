@@ -53,6 +53,7 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
 export const getRepositoryUrl = (repo: GitRepository) => {
   // the https url can be overridden with an annotation
   const httpsUrl = repo?.obj?.metadata?.annotations?.['weave.works/https-url'];
+
   if (httpsUrl) {
     return httpsUrl;
   }
@@ -81,7 +82,6 @@ export function getInitialGitRepo(
     }
     let parsedRepoUrl = GitUrlParse(repoUrl);
     let parsedInitialUrl = GitUrlParse(initialUrl);
-    console.log(parsedInitialUrl, parsedRepoUrl);
     if (parsedRepoUrl?.name === parsedInitialUrl?.name) {
       return repo;
     }

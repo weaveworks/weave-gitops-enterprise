@@ -28,7 +28,7 @@ describe('getRepositoryUrl', () => {
     });
   });
 
-  it('should allow you to override the https URL with an annotation present', () => {
+  it('should allow you to override the https URL with an annotation present', async () => {
     const repo = {
       obj: {
         metadata: {
@@ -42,6 +42,6 @@ describe('getRepositoryUrl', () => {
       },
     } as GitRepository;
 
-    expect(getRepositoryUrl(repo)).toEqual('https://github.com/org/repo');
+    expect(await getRepositoryUrl(repo)).toEqual('https://github.com/org/repo');
   });
 });
