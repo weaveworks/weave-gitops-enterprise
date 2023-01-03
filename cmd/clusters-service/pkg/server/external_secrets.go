@@ -29,7 +29,9 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 		if merr, ok := err.(*multierror.Error); ok {
 			for _, err := range merr.Errors {
 				if cerr, ok := err.(*clustersmngr.ClientError); ok {
-					respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+					if !strings.Contains(cerr.Error(), "no matches for kind \"ExternalSecret\"") {
+						respErrors = append(respErrors, &capiv1_proto.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
+					}
 				}
 			}
 		} else {
@@ -47,8 +49,8 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 		Secrets: externalSecrets,
 		Total:   int32(len(externalSecrets)),
 	}
-	externalSecretsListErrors = append(externalSecretsListErrors, respErrors...)
-	//response.Errors = append(response.Errors, externalSecretsListErrors...)
+
+	response.Errors = append(response.Errors, externalSecretsListErrors...)
 	return &response, nil
 }
 
