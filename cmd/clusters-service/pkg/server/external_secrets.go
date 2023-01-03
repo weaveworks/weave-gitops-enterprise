@@ -62,13 +62,13 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 	if err := cl.ClusteredList(ctx, list, true); err != nil {
 		if e, ok := err.(clustersmngr.ClusteredListError); ok {
 			for i := range e.Errors {
-				if !strings.Contains(e.Errors[i].Error(), "no matches for kind \"ExternalSecret\"") {
+				if !strings.Contains(e.Errors[i].Error(), "no matches for kind ") {
 					clusterListErrors = append(clusterListErrors, &capiv1_proto.ListError{ClusterName: e.Errors[i].Cluster, Message: e.Errors[i].Error()})
 				}
 
 			}
 		} else {
-			if !strings.Contains(e.Error(), "no matches for kind \"ExternalSecret\"") {
+			if !strings.Contains(e.Error(), "no matches for kind ") {
 				return nil, clusterListErrors, fmt.Errorf("failed to list external secrets, error: %w", err)
 			}
 
