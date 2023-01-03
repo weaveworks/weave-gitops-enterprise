@@ -21,6 +21,7 @@ cloudWatch:
   enabled: true
   region: "eu-north-1"
   logGroupName: "/fluentbit/logs/$CLUSTER_NAME"
+  logRetentionDays: 14
 firehose:
   enabled: false
 kinesis:
