@@ -51,13 +51,20 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
 };
 
 export const getRepositoryUrl = (repo: GitRepository) => {
+  // the https url can be overridden with an annotation
+  const httpsUrl = repo?.obj?.metadata?.annotations?.['weave.works/https-url'];
+  if (httpsUrl) {
+    return httpsUrl;
+  }
   let repositoryUrl = repo?.obj?.spec?.url;
   let parsedUrl = GitUrlParse(repositoryUrl);
-  if (parsedUrl?.protocol === 'ssh') {
-    parsedUrl.git_suffix = true;
-    repositoryUrl = parsedUrl.pathname.replace('//git@', 'https://');
+  // flux does not support "git@github.com:org/repo.git" style urls
+  // so we return the original url, the BE handler will fail and return
+  // an error to the user
+  if (parsedUrl?.protocol === 'file') {
+    return repositoryUrl;
   }
-  return repositoryUrl;
+  return parsedUrl.toString('https');
 };
 
 export function getInitialGitRepo(
