@@ -43,7 +43,7 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 	}
 
 	response := capiv1_proto.ListExternalSecretsResponse{
-		//Errors:  respErrors,
+		Errors:  respErrors,
 		Secrets: externalSecrets,
 		Total:   int32(len(externalSecrets)),
 	}
