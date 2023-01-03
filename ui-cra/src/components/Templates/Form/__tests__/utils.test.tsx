@@ -28,12 +28,12 @@ describe('getRepositoryUrl', () => {
     });
   });
 
-  it('should allow you to override the https URL with an annotation present', async () => {
+  it('should allow you to override the https URL with an annotation present', () => {
     const repo = {
       obj: {
         metadata: {
           annotations: {
-            'weave.works/https-url': 'https://github.com/org/repo',
+            'weave.works/repo-https-url': 'https://github.com/org/repo',
           },
         },
         spec: {
@@ -42,6 +42,6 @@ describe('getRepositoryUrl', () => {
       },
     } as GitRepository;
 
-    expect(await getRepositoryUrl(repo)).toEqual('https://github.com/org/repo');
+    expect(getRepositoryUrl(repo)).toEqual('https://github.com/org/repo');
   });
 });
