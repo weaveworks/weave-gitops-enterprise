@@ -40,6 +40,8 @@ import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import { GitProvider } from './api/gitauth/gitauth.pb';
+import SecretsList from './components/Secrets';
+import SecretDetails from './components/Secrets/SecretDetails';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -251,7 +253,11 @@ const AppRoutes = () => {
         path={Routes.WorkspaceDetails}
         component={withSearchParams(WorkspaceDetails)}
       />
-
+      <Route exact path={Routes.Secrets} component={SecretsList} />
+      <Route
+        path={Routes.SecretDetails}
+        component={withSearchParams(SecretDetails)}
+      />
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}

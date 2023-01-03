@@ -43,6 +43,7 @@ export const useWorkspaceStyle = makeStyles(() =>
 );
 export const CustomSubRouterTabs = styled(SubRouterTabs)(props => ({
   '.MuiTabs-root': {
+    marginTop:medium,
     width: '100%',
     '.MuiTab-root': {
       minWidth: 'fit-content',
