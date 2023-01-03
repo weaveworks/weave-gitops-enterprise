@@ -76,13 +76,7 @@ export function getInitialGitRepo(
     return null;
   }
   for (var repo of gitRepos) {
-    let repoUrl = repo?.obj?.spec?.url;
-    if (repoUrl === initialUrl) {
-      return repo;
-    }
-    let parsedRepoUrl = GitUrlParse(repoUrl);
-    let parsedInitialUrl = GitUrlParse(initialUrl);
-    if (parsedRepoUrl?.name === parsedInitialUrl?.name) {
+    if (repo?.obj?.spec?.url === initialUrl) {
       return repo;
     }
   }
