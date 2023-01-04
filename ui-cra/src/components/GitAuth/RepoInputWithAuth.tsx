@@ -62,43 +62,22 @@ export function RepoInputWithAuth({
   );
   const { gitAuthClient } = React.useContext(GitAuth);
 
-  const getDefaultValue = React.useCallback(() => {
-    const annoRepo = gitRepos.find(
-      repo =>
-        repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] ===
-        'default',
-    );
-    if (annoRepo) {
-      return getUrlFromRepo(annoRepo);
-    }
-    const mainRepo = gitRepos.find(
-      repo =>
-        repo?.obj?.metadata?.name === 'flux-system' &&
-        repo?.obj?.metadata?.namespace === 'flux-system',
-    );
-    if (mainRepo) {
-      return getUrlFromRepo(mainRepo);
-    }
-  }, [gitRepos]);
-
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
   React.useEffect(() => {
-    const defaultValue = getDefaultValue();
-
-    if (!value && !defaultValue) {
+    if (!value) {
       return;
     }
 
-    setValueForSelect(value || defaultValue);
+    setValueForSelect(value);
 
     req(
       gitAuthClient.ParseRepoURL({
-        url: value || defaultValue,
+        url: value,
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gitAuthClient, value, getDefaultValue]);
+  }, [gitAuthClient, value]);
 
   React.useEffect(() => {
     if (!res) {

@@ -62,22 +62,40 @@ export const getRepositoryUrl = (repo: GitRepository) => {
   // flux does not support "git@github.com:org/repo.git" style urls
   // so we return the original url, the BE handler will fail and return
   // an error to the user
-  if (parsedUrl?.protocol === 'file') {
+  // if (parsedUrl?.protocol === 'file') {
+  //   return repositoryUrl;
+  // }
+  // return parsedUrl.toString('https');
+
+  if (parsedUrl?.protocol === 'ssh') {
+    repositoryUrl = parsedUrl.pathname.replace('//git@', 'https://');
     return repositoryUrl;
   }
-  return parsedUrl.toString('https');
 };
 
 export function getInitialGitRepo(
   initialUrl: string,
   gitRepos: GitRepository[],
 ) {
-  if (!initialUrl) {
-    return null;
+  const initialRepo = gitRepos.find(
+    repo => repo?.obj?.spec?.url === initialUrl,
+  );
+  if (initialRepo) {
+    return { initialRepo, createPRRepo: true };
   }
-  for (var repo of gitRepos) {
-    if (repo?.obj?.spec?.url === initialUrl) {
-      return repo;
-    }
+  const annoRepo = gitRepos.find(
+    repo =>
+      repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] === 'default',
+  );
+  if (annoRepo) {
+    return annoRepo;
+  }
+  const mainRepo = gitRepos.find(
+    repo =>
+      repo?.obj?.metadata?.name === 'flux-system' &&
+      repo?.obj?.metadata?.namespace === 'flux-system',
+  );
+  if (mainRepo) {
+    return mainRepo;
   }
 }

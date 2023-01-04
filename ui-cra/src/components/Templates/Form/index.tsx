@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
+  GitRepository,
   Link,
   LoadingPage,
   theme as weaveTheme,
@@ -275,6 +276,10 @@ interface ResourceFormProps {
   type?: string;
 }
 
+interface GitRepositoryEnriched extends GitRepository {
+  createPRRepo: boolean;
+}
+
 const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
@@ -289,7 +294,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
   const resourceData = resource && getCreateRequestAnnotation(resource);
   const initialUrl = resourceData?.repository_url;
-  const initialGitRepo = resource && getInitialGitRepo(initialUrl, gitRepos);
+  const initialGitRepo = getInitialGitRepo(
+    initialUrl,
+    gitRepos,
+  ) as GitRepositoryEnriched;
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -505,11 +513,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   }, [resource, formData.parameterValues, setFormData]);
 
   useEffect(() => {
-    if (formData.repo === null)
+    if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
         repo: initialGitRepo,
       }));
+    }
   }, [initialGitRepo, formData.repo]);
 
   useEffect(() => {
@@ -637,7 +646,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
               formError={formError}
-              enableGitRepoSelection={!resource || !initialGitRepo}
+              enableGitRepoSelection={
+                !(resource && initialGitRepo?.createPRRepo)
+              }
             />
             {loading ? (
               <LoadingPage className="create-loading" />

@@ -19,6 +19,8 @@ describe('getRepositoryUrl', () => {
       'ssh://git@github.com/org/repo.git': 'https://github.com/org/repo.git',
       // ssh without .git
       'ssh://git@github.com/org/repo': 'https://github.com/org/repo',
+      'ssh://git@github.com/AlinaGoaga/wge-dev-extra':
+        'https://github.com/AlinaGoaga/wge-dev-extra',
     };
 
     Object.entries(urls).forEach(([url, expected]) => {
