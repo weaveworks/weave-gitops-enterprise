@@ -7,7 +7,7 @@ The WGE release notes are generated from PR titles where each title gets added t
 Pull requests require exactly one label from the allowed labels:
 
  1. `ui`: New feature or request in the UI
- 1. `enhancement`: New feature or request in the BE
- 2. `bug`: Bug fixes
- 3. `test`: Mark a PR as being about tests
- 4. `exclude from release notes`: Use this label to exclude a PR from the release notes ex: doc changes
+ 2. `enhancement`: New feature or request in the BE
+ 3. `bug`: Bug fixes
+ 4. `test`: Mark a PR as being about tests
+ 5. `exclude from release notes`: Use this label to exclude a PR from the release notes ex: doc changes
