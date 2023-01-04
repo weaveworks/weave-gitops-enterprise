@@ -33,6 +33,6 @@ dependencies:
     repository: "https://weaveworks.github.io/policy-agent"
     condition: policy-agent.enabled
   - name: pipeline-controller
-    version: "0.8.0"
+    version: "0.9.0"
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: enablePipelines
