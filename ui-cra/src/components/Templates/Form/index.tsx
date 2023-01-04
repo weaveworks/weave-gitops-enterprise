@@ -65,6 +65,10 @@ import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
 import { getGitRepos } from '../../Clusters';
 
+export interface GitRepositoryEnriched extends GitRepository {
+  createPRRepo: boolean;
+}
+
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
@@ -274,10 +278,6 @@ interface ResourceFormProps {
   resource?: any;
   template: TemplateEnriched;
   type?: string;
-}
-
-interface GitRepositoryEnriched extends GitRepository {
-  createPRRepo: boolean;
 }
 
 const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {

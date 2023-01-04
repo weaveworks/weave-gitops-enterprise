@@ -59,6 +59,7 @@ import {
   getCreateRequestAnnotation,
   getInitialGitRepo,
 } from '../Templates/Form/utils';
+import { GitRepositoryEnriched } from '../Templates/Form';
 
 interface Size {
   size?: 'small';
@@ -295,7 +296,8 @@ const MCCP: FC<{
     selectedCapiCluster &&
     getCreateRequestAnnotation(selectedCapiCluster)?.repository_url;
   const initialGitRepo =
-    selectedCapiCluster && getInitialGitRepo(initialUrl, gitRepos);
+    selectedCapiCluster &&
+    (getInitialGitRepo(initialUrl, gitRepos) as GitRepositoryEnriched);
   const history = useHistory();
 
   const handleAddCluster = useCallback(
