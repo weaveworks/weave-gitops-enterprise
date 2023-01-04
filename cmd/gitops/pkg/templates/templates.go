@@ -194,13 +194,22 @@ type CommitFile struct {
 }
 
 type RenderTemplateResponse struct {
-	RenderedTemplate string       `json:"renderedTemplate"`
+	RenderedTemplate []CommitFile `json:"renderedTemplate"`
 	ProfileFiles     []CommitFile `json:"profileFiles"`
 }
 
 func (r *RenderTemplateResponse) String() string {
 	var output strings.Builder
-	output.WriteString(r.RenderedTemplate)
+	for i := range r.RenderedTemplate {
+		file := r.RenderedTemplate[i]
+		output.WriteString(
+			fmt.Sprintf(
+				"\n---\n# %s\n\n%s",
+				file.Path,
+				file.Content,
+			),
+		)
+	}
 	for i := range r.ProfileFiles {
 		file := r.ProfileFiles[i]
 		output.WriteString(
