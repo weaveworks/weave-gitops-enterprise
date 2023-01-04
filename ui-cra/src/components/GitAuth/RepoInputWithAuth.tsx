@@ -65,7 +65,7 @@ export function RepoInputWithAuth({
   const getDefaultValue = React.useCallback(() => {
     const annoRepo = gitRepos.find(
       repo =>
-        repo?.obj?.metadata?.annotations?.['weave.works/repo-role'] ===
+        repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] ===
         'default',
     );
     if (annoRepo) {
