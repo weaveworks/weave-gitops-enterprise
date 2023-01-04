@@ -128,6 +128,7 @@ type Template struct {
 	Description  string
 	Provider     string
 	TemplateKind string
+	TemplateType string
 	Error        string
 }
 
@@ -257,12 +258,12 @@ func GetTemplates(kind TemplateKind, r TemplatesRetriever, w io.Writer) error {
 
 	}
 	if len(allTemplates) > 0 {
-		fmt.Fprintf(w, "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\n")
+		fmt.Fprintf(w, "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\n")
 
 		for _, t := range allTemplates {
 			fmt.Fprintf(w, "%s", t.Name)
 			fmt.Fprintf(w, "\t%s", t.Provider)
-			fmt.Fprintf(w, "\t%s", t.TemplateKind)
+			fmt.Fprintf(w, "\t%s", t.TemplateType)
 			fmt.Fprintf(w, "\t%s", t.Description)
 			fmt.Fprintf(w, "\t%s", t.Error)
 			fmt.Fprintln(w, "")
@@ -299,12 +300,12 @@ func GetTemplatesByProvider(kind TemplateKind, provider string, r TemplatesRetri
 	}
 
 	if len(allTemplates) > 0 {
-		fmt.Fprintf(w, "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\n")
+		fmt.Fprintf(w, "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\n")
 
 		for _, t := range allTemplates {
 			fmt.Fprintf(w, "%s", t.Name)
 			fmt.Fprintf(w, "\t%s", t.Provider)
-			fmt.Fprintf(w, "\t%s", t.TemplateKind)
+			fmt.Fprintf(w, "\t%s", t.TemplateType)
 			fmt.Fprintf(w, "\t%s", t.Description)
 			fmt.Fprintf(w, "\t%s", t.Error)
 			fmt.Fprintln(w, "")
