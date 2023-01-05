@@ -29,11 +29,11 @@ import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import { TerraformProvider } from '../contexts/Terraform';
 import NotificationsProvider from '../contexts/Notifications/Provider';
 import AppRoutes from '../routes';
-import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
 import { resolver } from '../utils/link-resolver';
 import { ListConfigProvider, VersionProvider } from '../contexts/ListConfig';
+import ErrorBoundary from './ErrorBoundary';
 
 const drawerWidth = 220;
 
