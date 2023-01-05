@@ -29,21 +29,6 @@ func TestListExternalSecrets(t *testing.T) {
 						Name: "namespace-a-1",
 					},
 				},
-				&esv1beta1.ClusterExternalSecret{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-external-secret-a-1",
-					},
-					Spec: esv1beta1.ClusterExternalSecretSpec{
-						ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
-							SecretStoreRef: esv1beta1.SecretStoreRef{
-								Name: "aws-secret-store",
-							},
-							Target: esv1beta1.ExternalSecretTarget{
-								Name: "cluster-secret-a-1",
-							},
-						},
-					},
-				},
 				&esv1beta1.ExternalSecret{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "external-secret-a-1",
@@ -66,21 +51,6 @@ func TestListExternalSecrets(t *testing.T) {
 				&v1.Namespace{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: "namespace-x-1",
-					},
-				},
-				&esv1beta1.ClusterExternalSecret{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-external-secret-x-1",
-					},
-					Spec: esv1beta1.ClusterExternalSecretSpec{
-						ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
-							SecretStoreRef: esv1beta1.SecretStoreRef{
-								Name: "aws-secret-store",
-							},
-							Target: esv1beta1.ExternalSecretTarget{
-								Name: "cluster-secret-x-1",
-							},
-						},
 					},
 				},
 				&esv1beta1.ExternalSecret{
@@ -118,23 +88,9 @@ func TestListExternalSecrets(t *testing.T) {
 						SecretStore:        "aws-secret-store",
 					},
 					{
-						SecretName:         "cluster-secret-a-1",
-						ExternalSecretName: "cluster-external-secret-a-1",
-						Namespace:          "",
-						ClusterName:        "management",
-						SecretStore:        "aws-secret-store",
-					},
-					{
 						SecretName:         "secret-x-1",
 						ExternalSecretName: "external-secret-x-1",
 						Namespace:          "namespace-x-1",
-						ClusterName:        "leaf-1",
-						SecretStore:        "aws-secret-store",
-					},
-					{
-						SecretName:         "cluster-secret-x-1",
-						ExternalSecretName: "cluster-external-secret-x-1",
-						Namespace:          "",
 						ClusterName:        "leaf-1",
 						SecretStore:        "aws-secret-store",
 					},
@@ -194,6 +150,20 @@ func TestGetExternalSecret(t *testing.T) {
 						Name: "namespace-a-1",
 					},
 				},
+				&esv1beta1.SecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "aws-secret-store",
+						Namespace: "namespace-a-1",
+					},
+					Spec: esv1beta1.SecretStoreSpec{
+						Provider: &esv1beta1.SecretStoreProvider{
+							AWS: &esv1beta1.AWSProvider{
+								Region: "eu-north-1",
+							},
+						},
+					},
+				},
+
 				&esv1beta1.ExternalSecret{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "external-secret-a-1",
@@ -212,30 +182,6 @@ func TestGetExternalSecret(t *testing.T) {
 									Key:      "Data/key-a-1",
 									Property: "property-a-1",
 									Version:  "1.0.0",
-								},
-							},
-						},
-					},
-				},
-				&esv1beta1.ClusterExternalSecret{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-external-secret-a-1",
-					},
-					Spec: esv1beta1.ClusterExternalSecretSpec{
-						ExternalSecretSpec: esv1beta1.ExternalSecretSpec{
-							SecretStoreRef: esv1beta1.SecretStoreRef{
-								Name: "aws-secret-store",
-							},
-							Target: esv1beta1.ExternalSecretTarget{
-								Name: "cluster-secret-a-1",
-							},
-							Data: []esv1beta1.ExternalSecretData{
-								{
-									RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
-										Key:      "Data/key-a-1",
-										Property: "property-a-1",
-										Version:  "1.0.0",
-									},
 								},
 							},
 						},
@@ -262,21 +208,7 @@ func TestGetExternalSecret(t *testing.T) {
 				Namespace:          "namespace-a-1",
 				ClusterName:        "management",
 				SecretStore:        "aws-secret-store",
-				SecretPath:         "Data/key-a-1",
-				Property:           "property-a-1",
-				Version:            "1.0.0",
-			},
-		},
-		{
-			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: "cluster-external-secret-a-1",
-				ClusterName:        "management",
-			},
-			response: &capiv1_proto.GetExternalSecretResponse{
-				SecretName:         "cluster-secret-a-1",
-				ExternalSecretName: "cluster-external-secret-a-1",
-				ClusterName:        "management",
-				SecretStore:        "aws-secret-store",
+				SecretStoreType:    "AWS Secrets Manager",
 				SecretPath:         "Data/key-a-1",
 				Property:           "property-a-1",
 				Version:            "1.0.0",
@@ -286,13 +218,6 @@ func TestGetExternalSecret(t *testing.T) {
 			request: &capiv1_proto.GetExternalSecretRequest{
 				ExternalSecretName: uuid.NewString(),
 				Namespace:          uuid.NewString(),
-				ClusterName:        uuid.NewString(),
-			},
-			err: true,
-		},
-		{
-			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: uuid.NewString(),
 				ClusterName:        uuid.NewString(),
 			},
 			err: true,
@@ -318,6 +243,7 @@ func TestGetExternalSecret(t *testing.T) {
 		assert.Equal(t, tt.response.Namespace, res.Namespace, "namespace is not correct")
 		assert.Equal(t, tt.response.ClusterName, res.ClusterName, "cluster name is not correct")
 		assert.Equal(t, tt.response.SecretStore, res.SecretStore, "secret store is not correct")
+		assert.Equal(t, tt.response.SecretStoreType, res.SecretStoreType, "secret store type is not correct")
 		assert.Equal(t, tt.response.SecretPath, res.SecretPath, "secret path is not correct")
 		assert.Equal(t, tt.response.Property, res.Property, "property is not correct")
 		assert.Equal(t, tt.response.Version, res.Version, "version is not correct")
@@ -337,15 +263,54 @@ func TestListSecretStores(t *testing.T) {
 						Name: "namespace-a",
 					},
 				},
-				&esv1beta1.SecretStore{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "secret-store-1",
-						Namespace: "namespace-a",
-					},
-				},
-				&esv1beta1.ClusterSecretStore{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-secret-store-1",
+				&esv1beta1.SecretStoreList{
+					Items: []esv1beta1.SecretStore{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "secret-store-1",
+								Namespace: "namespace-a",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									AWS: &esv1beta1.AWSProvider{
+										Region: "eu-north-1",
+									},
+								},
+							},
+						},
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "secret-store-2",
+								Namespace: "namespace-a",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									AzureKV: &esv1beta1.AzureKVProvider{},
+								},
+							},
+						},
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "secret-store-3",
+								Namespace: "namespace-a",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									GCPSM: &esv1beta1.GCPSMProvider{},
+								},
+							},
+						},
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "secret-store-4",
+								Namespace: "namespace-a",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									Vault: &esv1beta1.VaultProvider{},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -360,13 +325,15 @@ func TestListSecretStores(t *testing.T) {
 				},
 				&esv1beta1.SecretStore{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "secret-store-2",
+						Name:      "secret-store-5",
 						Namespace: "namespace-b",
 					},
-				},
-				&esv1beta1.ClusterSecretStore{
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "cluster-secret-store-2",
+					Spec: esv1beta1.SecretStoreSpec{
+						Provider: &esv1beta1.SecretStoreProvider{
+							AWS: &esv1beta1.AWSProvider{
+								Region: "eu-north-1",
+							},
+						},
 					},
 				},
 			},
@@ -388,13 +355,28 @@ func TestListSecretStores(t *testing.T) {
 						Kind:      esv1beta1.SecretStoreKind,
 						Name:      "secret-store-1",
 						Namespace: "namespace-a",
+						Type:      "AWS Secrets Manager",
 					},
 					{
-						Kind: esv1beta1.ClusterSecretStoreKind,
-						Name: "cluster-secret-store-1",
+						Kind:      esv1beta1.SecretStoreKind,
+						Name:      "secret-store-2",
+						Namespace: "namespace-a",
+						Type:      "Azure Key Vault",
+					},
+					{
+						Kind:      esv1beta1.SecretStoreKind,
+						Name:      "secret-store-3",
+						Namespace: "namespace-a",
+						Type:      "Google Cloud Platform Secret Manager",
+					},
+					{
+						Kind:      esv1beta1.SecretStoreKind,
+						Name:      "secret-store-4",
+						Namespace: "namespace-a",
+						Type:      "HashiCorp Vault",
 					},
 				},
-				Total: 2,
+				Total: 4,
 			},
 		},
 		{
@@ -405,15 +387,12 @@ func TestListSecretStores(t *testing.T) {
 				Stores: []*capiv1_proto.ExternalSecretStore{
 					{
 						Kind:      esv1beta1.SecretStoreKind,
-						Name:      "secret-store-2",
+						Name:      "secret-store-5",
 						Namespace: "namespace-b",
-					},
-					{
-						Kind: esv1beta1.ClusterSecretStoreKind,
-						Name: "cluster-secret-store-2",
+						Type:      "AWS Secrets Manager",
 					},
 				},
-				Total: 2,
+				Total: 1,
 			},
 		},
 		{
@@ -441,5 +420,6 @@ func TestListSecretStores(t *testing.T) {
 		}
 		assert.ElementsMatch(t, tt.response.Stores, res.Stores, "stores do not match expected stores")
 		assert.Equal(t, tt.response.Total, res.Total, "total items number is not correct")
+
 	}
 }

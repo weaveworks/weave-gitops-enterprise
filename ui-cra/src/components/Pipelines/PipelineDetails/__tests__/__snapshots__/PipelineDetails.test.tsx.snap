@@ -157,6 +157,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 400;
 }
 
+.c19 {
+  padding: 8px;
+}
+
+.c15 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
 .c11.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -172,15 +181,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 .c11.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
-}
-
-.c19 {
-  padding: 8px;
-}
-
-.c15 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
 }
 
 .c14 .active-tab {
@@ -258,6 +258,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
+  height: 100%;
 }
 
 .c2 {

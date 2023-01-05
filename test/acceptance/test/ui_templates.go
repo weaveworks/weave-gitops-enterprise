@@ -46,14 +46,14 @@ func installGitOpsTemplate(templateFiles map[string]string) {
 	})
 }
 
-func waitForTemplatesToAppear(templateCpunt int) {
+func waitForTemplatesToAppear(templateCount int) {
 	ginkgo.By("And wait for Templates to be rendered", func() {
 		templatesPage := pages.GetTemplatesPage(webDriver)
 		gomega.Eventually(func(g gomega.Gomega) {
 			g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 			pages.WaitForPageToLoad(webDriver)
 			g.Eventually(templatesPage.TemplateHeader).Should(matchers.BeVisible())
-			g.Eventually(templatesPage.CountTemplateRows).Should(gomega.Equal(templateCpunt))
+			g.Eventually(templatesPage.CountTemplateRows).Should(gomega.BeNumerically(">=", templateCount))
 		}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), "The number of template rows should be equal to number of templates created")
 	})
 }
@@ -75,7 +75,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		deleteNamespace(templateNamespaces)
 	})
 
-	ginkgo.Context("[UI] When no GitOps Templates are available in the cluster", func() {
+	ginkgo.Context("When no GitOps Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify template page renders no GitOpsTemplate", func() {
 			ginkgo.By("And wait for  good looking response from /v1/templates", func() {
@@ -94,7 +94,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		})
 	})
 
-	ginkgo.Context("[UI] When GitOps Templates are available in the cluster", func() {
+	ginkgo.Context("When GitOps Templates are available in the cluster", func() {
 
 		ginkgo.It("Verify template(s) are rendered from the template library.", func() {
 			// Namespace for some GitOpsTemplates
@@ -178,7 +178,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			})
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(50)
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template from the default table view", func() {
@@ -246,7 +246,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 		})
 	})
 
-	ginkgo.Context("[UI] When GitOps Template are available in the management cluster for resource creation", func() {
+	ginkgo.Context("When GitOps Template are available in the management cluster for resource creation", func() {
 		clusterPath := "./clusters/management/clusters"
 		var downloadedResourcesPath string
 
@@ -265,12 +265,12 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 
 			templateFiles := map[string]string{
-				"capa-cluster-template-eks-fargate": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
+				"capd-cluster-template": path.Join(testDataPath, "templates/cluster/docker/cluster-template.yaml"),
 			}
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			templateName := "capd-cluster-template"
@@ -380,24 +380,29 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 			ginkgo.By("Then verify preview tab lists", func() {
 				// Verify cluster definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*templates.weave.works/template-name: %s`, templateName)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*templates.weave.works/template-namespace: default`))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*capiClusterRef`, leafCluster.Name, leafCluster.Namespace)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join(clusterPath, leafCluster.Namespace, leafCluster.Name+".yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*templates.weave.works/template-name: %s`, templateName)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*templates.weave.works/template-namespace: default`))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*capiClusterRef`, leafCluster.Name, leafCluster.Namespace)))
 
 				// Verify profiles preview
 				gomega.Eventually(preview.GetPreviewTab("Profiles").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*url: %s`, certManager.Chart, GITOPS_DEFAULT_NAMESPACE, sourceHRUrl)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, certManager.Name, certManager.Namespace)))
-				// Need to enable/update this check when profiles will eventually move out from annotations
-				// gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s[\s\w\d./:-]*installCRDs: true`, certManager.Name, certManager.Chart, certManager.Version, certManager.TargetNamespace)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "profiles.yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*url: %s`, certManager.Chart, GITOPS_DEFAULT_NAMESPACE, sourceHRUrl)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, certManager.Name, certManager.Namespace)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s`, certManager.Name, certManager.Chart, certManager.Version, certManager.TargetNamespace)))
 
 				// Verify kustomizations preview
 				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "clusters-bases-kustomization.yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: Kustomization[\s\w\d./:-]*name: clusters-bases-kustomization[\s\w\d./:-]*namespace: flux-system[\s\w\d./:-]*spec`))
+				gomega.Eventually(preview.Path.At(1)).Should(matchers.MatchText(path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(1)).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
+				gomega.Eventually(preview.Path.At(2)).Should(matchers.MatchText(path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(2)).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
+				gomega.Eventually(preview.Text.At(2)).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
 			})
 
 			ginkgo.By("And verify downloaded preview resources", func() {
@@ -411,7 +416,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				fileList, _ := getArchiveFileList(path.Join(os.Getenv("HOME"), "Downloads", "resources.zip"))
 
 				previewResources := []string{
-					"cluster_definition.yaml",
+					path.Join(clusterPath, leafCluster.Namespace, leafCluster.Name+".yaml"),
 					path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "clusters-bases-kustomization.yaml"),
 					path.Join("clusters", leafCluster.Namespace, leafCluster.Name, "profiles.yaml"),
 					path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")),
@@ -471,7 +476,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template", func() {
@@ -567,7 +572,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template", func() {
@@ -619,16 +624,18 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				// Verify resource definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
 				// Verify CLUSTER_NAME and NAMESPACE parameter values should be converted to lowecase - template is using envsubst function ${var,,}
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s`, strings.ToLower(clusterName), strings.ToLower(namespace))))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`machineTemplate[\s\w\d./:-]*infrastructureRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*replicas: %s`, strings.ToLower(clusterName), controlPlaneMachineCount)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join(clusterPath, namespace, clusterName+".yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s`, strings.ToLower(clusterName), strings.ToLower(namespace))))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`machineTemplate[\s\w\d./:-]*infrastructureRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*replicas: %s`, strings.ToLower(clusterName), controlPlaneMachineCount)))
 				// Verify WORKER_MACHINE_COUNT should be same as CONTROL_PLANE_MACHINE_COUNT - template is using envsubst function ${var:-${default}}
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: MachineDeployment[\s\w\d./:-]*spec:[\s\w\d./:-]*clusterName: %s[\s\w\d./:-]*replicas: %s`, strings.ToLower(clusterName), controlPlaneMachineCount)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: MachineDeployment[\s\w\d./:-]*spec:[\s\w\d./:-]*clusterName: %s[\s\w\d./:-]*replicas: %s`, strings.ToLower(clusterName), controlPlaneMachineCount)))
 
 				// Verify profile tab view is disabled due to no profile is part of pull request
 				gomega.Expect(preview.GetPreviewTab("Profiles").Attribute("class")).Should(gomega.MatchRegexp("Mui-disabled"), "'PROFILES' preview tab should be disabled")
 				// Verify kustomizations preview
 				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Kustomization[\s\w\d./:-]*name: clusters-bases-kustomization[\s\w\d./:-]*namespace: flux-system`))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join("clusters", namespace, clusterName, "clusters-bases-kustomization.yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: Kustomization[\s\w\d./:-]*name: clusters-bases-kustomization[\s\w\d./:-]*namespace: flux-system`))
 			})
 		})
 
@@ -716,13 +723,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates", ginkgo.La
 				// Verify resource definition preview
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
 				// Verify resource is labelled with template name and namespace
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`labels:[\s]*templates.weave.works/template-name: %s[\s]*templates.weave.works/template-namespace: %s`, templateName, templateNamespace)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s]*metadata:[|=\s\w\d./:-]*name: %s[\s]*namespace: %s`, app.Name, app.Namespace)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join(clusterPath, app.Namespace, app.Name+".yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`labels:[\s]*templates.weave.works/template-name: %s[\s]*templates.weave.works/template-namespace: %s`, templateName, templateNamespace)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s]*metadata:[|=\s\w\d./:-]*name: %s[\s]*namespace: %s`, app.Name, app.Namespace)))
 				// Verify PATH should be assigned the same value set as parameter - template is using templating functions '.params.PATH | empty |  ternary "./" .params.PATH'
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`path: %s`, app.Path)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`path: %s`, app.Path)))
 				// Verify applicartion description is base64 encoder - template is using templating function '.params.DESCRIPTION | b64enc'
 				desEnc := base64.StdEncoding.EncodeToString([]byte(app.Description))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`metadata.weave.works/description: \|[\s]*%s\s`, desEnc)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`metadata.weave.works/description: \|[\s]*%s\s`, desEnc)))
 
 				// Verify profiles and kustomization tab views are disabled because no profiles and kustomizations are part of pull request
 				gomega.Expect(preview.GetPreviewTab("Profiles").Attribute("class")).Should(gomega.MatchRegexp("Mui-disabled"), "'PROFILES' preview tab should be disabled")

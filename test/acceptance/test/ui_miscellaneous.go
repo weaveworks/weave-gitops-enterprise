@@ -23,7 +23,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane miscellaneous UI tests", gi
 
 	})
 
-	ginkgo.Context("[UI] When entitlement is available in the cluster", ginkgo.Label("entitlement"), func() {
+	ginkgo.Context("When entitlement is available in the cluster", ginkgo.Label("entitlement"), func() {
 		DEPLOYMENT_APP := "my-mccp-cluster-service"
 
 		checkEntitlement := func(typeEntitelment string, beFound bool) {
