@@ -271,14 +271,14 @@ jobs:
           helm version
       - name: Install kubectl
         run: |
-          curl -LO "https://dl.k8s.io/release/${{ inputs.kubectl-version }}/bin/${{ inputs.os-name }}/amd64/kubectl"          
+          curl -LO "https://dl.k8s.io/release/${{ inputs.kubectl-version }}/bin/${{ inputs.os-name }}/amd64/kubectl"
           chmod +x kubectl
           sudo mv ./kubectl /usr/local/bin/kubectl
       - name: Install kind
         if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
         run: |
-          brew update      
-          brew install kind          
+          brew update
+          brew install kind
           kind version
       - name: Install clusterctl
         run: |
@@ -356,7 +356,7 @@ jobs:
             export CLUSTER_NAME=wego-enterprise-nightly-gke-${{ inputs.os-name }}
             export CLUSTER_REGION=us-central1-a
 
-          elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then           
+          elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
             export CLUSTER_NAME=management-${{ github.run_id }}-${{ github.run_number}}
           fi
 
@@ -370,7 +370,7 @@ jobs:
             export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
           fi
 
-          ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
+          ginkgo --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
       - name: Store test results
         if: ${{ always() }}
         uses: actions/upload-artifact@v3.1.1
