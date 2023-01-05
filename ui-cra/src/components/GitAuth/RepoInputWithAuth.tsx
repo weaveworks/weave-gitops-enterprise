@@ -23,12 +23,9 @@ import { getGitRepos } from '../Clusters';
 const getUrlFromRepo = (repo: GitRepository | null) => repo?.obj?.spec?.url;
 
 const GitAuthForm = styled(Flex)`
-  div[class*='MuiFormControl-root'] {
-    padding-bottom: 0;
-  }
-  justify-content: flex-start;
   #SELECT_GIT_REPO-group {
-    width: 70%;
+    width: 75%;
+    padding-top: ${({ theme }) => theme.spacing.xs};
   }
 `;
 

@@ -7,12 +7,15 @@ import { RepoInputWithAuth } from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
+  display: flex;
+  justify-content: space-between;
   & .auth-message {
-    margin-top: ${({ theme }) => theme.spacing.base};
-    margin-left: 0;
-    margin-right: ${({ theme }) => theme.spacing.small};
+    padding-right: ${({ theme }) => theme.spacing.small};
     button {
       min-width: 250px;
+    }
+    div {
+      padding-right: ${({ theme }) => theme.spacing.small};
     }
   }
 `;
