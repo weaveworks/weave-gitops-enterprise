@@ -158,6 +158,14 @@ The `reboot.sh` script will execute all scripts it finds in `./tools/custom/` th
 match the file name pattern `*.sh` after creating the cluster and installing
 all components.
 
+#### Customizing Tilt
+If you create a `Tiltfile.local` in the local directory, Tilt will detect and include any calls there, allowing you to add a bit of customization to your local environment. That's useful if you want to point to another external cluster, by default Tilt only allows local clusters like kind or use a different registry:
+```
+allow_k8s_contexts('another-cluster')
+
+default_registry('my-custom-registry:5000')
+```
+
 ### Start environment
 
 To start the development environment, run
