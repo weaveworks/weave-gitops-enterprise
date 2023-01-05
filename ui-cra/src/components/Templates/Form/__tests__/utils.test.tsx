@@ -1,5 +1,5 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
-import { getRepositoryUrl } from '../utils';
+import { getInitialGitRepo, getRepositoryUrl } from '../utils';
 
 describe('getRepositoryUrl', () => {
   it('should return nil on a git@github.com: style url as flux does not support these', () => {
@@ -43,5 +43,138 @@ describe('getRepositoryUrl', () => {
     } as GitRepository;
 
     expect(getRepositoryUrl(repo)).toEqual('https://github.com/org/repo');
+  });
+});
+
+describe('getInitialGitRepo', () => {
+  const gitRepos = [
+    {
+      obj: {
+        spec: {
+          url: 'https://github.com/org/repo.git',
+        },
+      },
+    },
+    {
+      obj: {
+        spec: {
+          url: 'ssh://git@github.com/org/repo',
+        },
+      },
+    },
+    {
+      obj: {
+        metadata: {
+          annotations: {
+            'weave.works/repo-rule': 'default',
+          },
+        },
+        spec: {
+          url: 'https://github.com/test/repo.git',
+        },
+      },
+    },
+    {
+      obj: {
+        metadata: {
+          name: 'flux-system',
+          namespace: 'flux-system',
+        },
+        spec: {
+          url: 'https://github.com/test/repo.git',
+        },
+      },
+    },
+  ] as GitRepository[];
+
+  it('should return the repo containing the initial url if they are the same', () => {
+    const initialUrl = 'https://github.com/org/repo.git';
+    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+      obj: {
+        spec: {
+          url: 'https://github.com/org/repo.git',
+        },
+      },
+      createPRRepo: true,
+    });
+  });
+
+  it('should return the repo containing the initial url if the initial url is in https format and the gitrepo url is in ssh format', () => {
+    const initialUrl = 'https://github.com/org/repo';
+    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+      obj: {
+        spec: {
+          url: 'ssh://git@github.com/org/repo',
+        },
+      },
+      createPRRepo: true,
+    });
+  });
+
+  it('should return the repo containing the annotation if the initial url repo isnt found and there is a repo with anno', () => {
+    const initialUrl = 'https://github.com/test/anno';
+    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+      obj: {
+        metadata: {
+          annotations: {
+            'weave.works/repo-rule': 'default',
+          },
+        },
+        spec: {
+          url: 'https://github.com/test/repo.git',
+        },
+      },
+    });
+  });
+
+  it('should return the repo containing the flux-system combination if the initial url repo isnt found and there is no repo with anno', () => {
+    const initialUrl = 'https://github.com/test/fs';
+    const gitRepos = [
+      {
+        obj: {
+          spec: {
+            url: 'ssh://git@github.com/org/repo',
+          },
+        },
+      },
+      {
+        obj: {
+          metadata: {
+            name: 'flux-system',
+            namespace: 'flux-system',
+          },
+          spec: {
+            url: 'https://github.com/test/repo.git',
+          },
+        },
+      },
+    ] as GitRepository[];
+    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+      obj: {
+        metadata: {
+          name: 'flux-system',
+          namespace: 'flux-system',
+        },
+        spec: {
+          url: 'https://github.com/test/repo.git',
+        },
+      },
+    });
+  });
+
+  it('should return the repo containing the annotation if there is no initialUrl', () => {
+    const initialUrl = '';
+    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+      obj: {
+        metadata: {
+          annotations: {
+            'weave.works/repo-rule': 'default',
+          },
+        },
+        spec: {
+          url: 'https://github.com/test/repo.git',
+        },
+      },
+    });
   });
 });
