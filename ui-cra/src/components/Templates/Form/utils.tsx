@@ -84,7 +84,7 @@ export function getInitialGitRepo(
       let parsedRepolUrl = GitUrlParse(repoUrl);
       if (parsedRepolUrl?.protocol === 'ssh') {
         if (
-          initialUrl === parsedRepolUrl.pathname.replace('//git@', 'https://')
+          initialUrl === parsedRepolUrl.href.replace('ssh://git@', 'https://')
         ) {
           return { ...repo, createPRRepo: true };
         }
