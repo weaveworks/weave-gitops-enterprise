@@ -27,16 +27,13 @@ const PortLinks: React.FC<{ ports: string }> = ({ ports = '' }) => {
 };
 
 const AutomationLink: React.FC<{ s: FluxObject }> = ({ s }) => {
-  console.log(s);
   const metadata = s.obj.metadata;
   const kind =
     metadata.annotations['run.weave.works/automation-kind'] === 'ks'
       ? Kind.Kustomization
       : Kind.HelmRelease;
-  let namespace = metadata.annotations['run.weave.works/namespace'];
-  if (namespace === 'default') namespace = 'flux-system';
   const name = kind === Kind.Kustomization ? 'run-dev-ks' : 'run-dev-helm';
-  const clusterName = s.clusterName === 'management' ? 'default' : s.clusterName;
+  const clusterName = `${metadata.annotations['run.weave.works/namespace']}/${metadata.name}`
   const route =
     kind === Kind.Kustomization ? V2Routes.Kustomization : V2Routes.HelmRelease;
 
@@ -44,8 +41,8 @@ const AutomationLink: React.FC<{ s: FluxObject }> = ({ s }) => {
     <Link
       to={formatURL(route, {
         name,
-        namespace,
-        clusterName: `${clusterName}/${metadata.name}`,
+        namespace: "flux-system",
+        clusterName,
       })}
     >
       {kind}/{name}
@@ -87,15 +84,14 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           {
             label: 'Source',
             value: s => {
-              let namespace = s.obj.metadata.annotations['run.weave.works/namespace'];
-              if (namespace === 'default') namespace = 'flux-system';
-              const clusterName = s.clusterName === 'management' ? 'default' : s.clusterName;
+              const metadata = s.obj.metadata;
+              const clusterName = `${metadata.annotations['run.weave.works/namespace']}/${metadata.name}`
               return (
                 <Link
                   to={formatURL(V2Routes.Bucket, {
                     name: 'run-dev-bucket',
-                    namespace,
-                    clusterName: `${clusterName}/${s.obj.metadata.name}`,
+                    namespace: 'flux-system',
+                    clusterName,
                   })}
                 >
                   Bucket/run-dev-bucket
