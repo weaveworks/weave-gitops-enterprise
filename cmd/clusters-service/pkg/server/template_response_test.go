@@ -204,6 +204,30 @@ func TestToTemplate(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "with template type label",
+			value: &capiv1.CAPITemplate{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "capi.weave.works/v1alpha2",
+					Kind:       "CAPITemplate",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+					Labels: map[string]string{
+						"weave.works/template-type": "cluster-template",
+					},
+				},
+			},
+			expected: &capiv1_protos.Template{
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
+				TemplateType: "cluster-template",
+				Labels: map[string]string{
+					"weave.works/template-type": "cluster-template",
+				},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
