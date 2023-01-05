@@ -3,6 +3,7 @@ tenants:
     namespaces:
       - test-kustomization
       - test-system
+      - flux-system
     allowedRepositories:
       - kind: GitRepository
         url: https://github.com/stefanprodan/podinfo
