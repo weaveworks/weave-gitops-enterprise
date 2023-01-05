@@ -1,13 +1,11 @@
 import { Box } from '@material-ui/core';
 import {
-  Button,
-  Flex,
-  InfoList,
+  Button, DependenciesView, Flex, InfoList,
   Interval,
   KubeStatusIndicator,
   Metadata,
   RouterTab,
-  SubRouterTabs,
+  SubRouterTabs
 } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -17,7 +15,7 @@ import { TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,
-  useToggleSuspendTerraformObject,
+  useToggleSuspendTerraformObject
 } from '../../contexts/Terraform';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -206,6 +204,12 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   namespace: object?.namespace,
                 }}
               />
+            </RouterTab>
+            <RouterTab name="Dependencies" path={`${path}/dependencies`}>
+              <>
+                {/* @ts-ignore */}
+                <DependenciesView automation={{...object, kind: "Terraform"}}/>
+              </>
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
               <>
