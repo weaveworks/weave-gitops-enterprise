@@ -59,20 +59,17 @@ export const getRepositoryUrl = (repo: GitRepository) => {
   }
   let repositoryUrl = repo?.obj?.spec?.url;
   let parsedUrl = GitUrlParse(repositoryUrl);
+  if (parsedUrl?.protocol === 'ssh') {
+    repositoryUrl = parsedUrl.href.replace('ssh://git@', 'https://');
+  }
   // flux does not support "git@github.com:org/repo.git" style urls
   // so we return the original url, the BE handler will fail and return
   // an error to the user
-  if (parsedUrl?.protocol === 'file') {
-    return repositoryUrl;
-  }
-  if (parsedUrl?.protocol === 'ssh') {
-    repositoryUrl = parsedUrl.pathname.replace('//git@', 'https://');
-    return repositoryUrl;
-  }
+  return repositoryUrl;
 };
 
 export function getInitialGitRepo(
-  initialUrl: string,
+  initialUrl: string | null,
   gitRepos: GitRepository[],
 ) {
   // if there is a repository url in the create-pr annotation, go through the gitrepos and compare it to their links;
@@ -93,23 +90,22 @@ export function getInitialGitRepo(
         }
       }
     }
+  }
 
-    const annoRepo = gitRepos.find(
-      repo =>
-        repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] ===
-        'default',
-    );
-    if (annoRepo) {
-      return annoRepo;
-    }
+  const annoRepo = gitRepos.find(
+    repo =>
+      repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] === 'default',
+  );
+  if (annoRepo) {
+    return annoRepo;
+  }
 
-    const mainRepo = gitRepos.find(
-      repo =>
-        repo?.obj?.metadata?.name === 'flux-system' &&
-        repo?.obj?.metadata?.namespace === 'flux-system',
-    );
-    if (mainRepo) {
-      return mainRepo;
-    }
+  const mainRepo = gitRepos.find(
+    repo =>
+      repo?.obj?.metadata?.name === 'flux-system' &&
+      repo?.obj?.metadata?.namespace === 'flux-system',
+  );
+  if (mainRepo) {
+    return mainRepo;
   }
 }

@@ -2,7 +2,7 @@ import { GitRepository } from '@weaveworks/weave-gitops';
 import { getRepositoryUrl } from '../utils';
 
 describe('getRepositoryUrl', () => {
-  xit('should return nil on a git@github.com: style url as flux does not support these', () => {
+  it('should return nil on a git@github.com: style url as flux does not support these', () => {
     const url = 'git@github.com:org/repo.git';
     expect(getRepositoryUrl({ obj: { spec: { url } } } as GitRepository)).toBe(
       url,
@@ -28,7 +28,7 @@ describe('getRepositoryUrl', () => {
     });
   });
 
-  xit('should allow you to override the https URL with an annotation present', () => {
+  it('should allow you to override the https URL with an annotation present', () => {
     const repo = {
       obj: {
         metadata: {
