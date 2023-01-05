@@ -395,7 +395,10 @@ func TestRenderTemplate(t *testing.T) {
 		{
 			name: "result is rendered to output",
 			result: &templates.RenderTemplateResponse{
-				RenderedTemplate: `apiVersion: cluster.x-k8s.io/v1alpha3
+				RenderedTemplate: []templates.CommitFile{
+					{
+						Path: "foo.yaml",
+						Content: `apiVersion: cluster.x-k8s.io/v1alpha3
 				kind: Cluster
 				metadata:
 					name: foo
@@ -412,8 +415,14 @@ func TestRenderTemplate(t *testing.T) {
 					apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 					kind: AWSCluster
 					name: foo`,
+					},
+				},
 			},
-			expected: `apiVersion: cluster.x-k8s.io/v1alpha3
+			expected: `
+---
+# foo.yaml
+
+apiVersion: cluster.x-k8s.io/v1alpha3
 				kind: Cluster
 				metadata:
 					name: foo
