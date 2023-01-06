@@ -95,6 +95,11 @@ exports[`Applications index test snapshots loading 1`] = `
   width: 16px;
 }
 
+.c14 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
 .c10.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -110,11 +115,6 @@ exports[`Applications index test snapshots loading 1`] = `
 .c10.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
-}
-
-.c14 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
 }
 
 .c5 {
@@ -164,6 +164,7 @@ exports[`Applications index test snapshots loading 1`] = `
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
+  height: 100%;
 }
 
 .c2 {
@@ -288,7 +289,7 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
     >
       <div
         class="c8"
@@ -380,9 +381,6 @@ exports[`Applications index test snapshots loading 1`] = `
           </div>
         </div>
       </div>
-      <div
-        style="padding-top: 16px;"
-      />
       <div
         class="c13"
       >
@@ -708,6 +706,15 @@ exports[`Applications index test snapshots success 1`] = `
   width: 16px;
 }
 
+.c22 {
+  padding: 4px;
+}
+
+.c42 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
 .c10.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -734,10 +741,6 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c19.MuiButton-text {
   padding: 0;
-}
-
-.c22 {
-  padding: 4px;
 }
 
 .c20.MuiButton-outlined {
@@ -921,11 +924,6 @@ exports[`Applications index test snapshots success 1`] = `
   background-color: #E5F7FD;
 }
 
-.c42 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
-}
-
 .c14 td:nth-child(7) {
   white-space: pre-wrap;
   overflow-wrap: break-word;
@@ -979,6 +977,7 @@ exports[`Applications index test snapshots success 1`] = `
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
+  height: 100%;
 }
 
 .c2 {
@@ -1106,7 +1105,7 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
     >
       <div
         class="c8"
@@ -2133,9 +2132,6 @@ exports[`Applications index test snapshots success 1`] = `
           </div>
         </div>
       </div>
-      <div
-        style="padding-top: 16px;"
-      />
       <div
         class="c41"
       >

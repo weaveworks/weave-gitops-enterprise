@@ -19,7 +19,7 @@ function setup_eks {
   
   export CLUSTER_NAME=${args[2]}
   export AWS_REGION=${args[3]}
-  export CLUSTER_VERSION=1.21
+  export CLUSTER_VERSION=1.23
 
   export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
   if [ -z $CLUSTER_EXISTS ]; then
@@ -87,7 +87,7 @@ function setup_gke {
 
   export CLUSTER_NAME=${args[2]}
   export CLUSTER_REGION=${args[3]}
-  export CLUSTER_VERSION=1.22
+  export CLUSTER_VERSION=1.23.13
 
   export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
   if [ -z $CLUSTER_EXISTS ]; then

@@ -1,4 +1,4 @@
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template-2
@@ -15,22 +15,23 @@ spec:
       options: ["true", "false"]
       required: false
   resourcetemplates:
-  - apiVersion: cluster.x-k8s.io/v1alpha3
-    kind: Cluster
-    metadata:
-      name: "{{ .params.CLUSTER_NAME }}"
-    spec:
-      clusterNetwork:
-        pods:
-          cidrBlocks:
-            - '{{ if eq .params.TEST_VALUE "true" }}192.168.0.0/16{{ else }}192.168.1.0/16{{ end }}'
-      infrastructureRef:
-        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
-        kind: AWSCluster
+  - content:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
         name: "{{ .params.CLUSTER_NAME }}"
-      controlPlaneRef:
-        kind: KubeadmControlPlane
-        apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
-        name: "{{ .params.CLUSTER_NAME }}-control-plane"
-      notARealField:
-        name: "{{ .params.S3_BUCKET_NAME }}-test"
+      spec:
+        clusterNetwork:
+          pods:
+            cidrBlocks:
+              - '{{ if eq .params.TEST_VALUE "true" }}192.168.0.0/16{{ else }}192.168.1.0/16{{ end }}'
+        infrastructureRef:
+          apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+          kind: AWSCluster
+          name: "{{ .params.CLUSTER_NAME }}"
+        controlPlaneRef:
+          kind: KubeadmControlPlane
+          apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+          name: "{{ .params.CLUSTER_NAME }}-control-plane"
+        notARealField:
+          name: "{{ .params.S3_BUCKET_NAME }}-test"

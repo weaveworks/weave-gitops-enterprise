@@ -11,6 +11,11 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test/acceptance/test/pages"
 )
 
+/*
+	Tenant tests are meant to be run with oidc user only. The tests treat an oidc user as tenant and add the user to tenant group with restricted permissions.
+	Cluster user or wego-admin user have access to all resources which will fail these tests expected results.
+*/
+
 func getTenantYamlPath() string {
 	return path.Join("/tmp", "generated-tenant.yaml")
 }
@@ -36,6 +41,12 @@ func deleteTenants(tenantYamls []string) {
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, ginkgo.Label("ui", "tenant"), func() {
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
+		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
+
+		if !pages.ElementExist(pages.Navbar(webDriver).Title, 3) {
+			loginUser()
+		}
+
 		// Delete the oidc user default roles/rolebindings because the same user is used as a tenant
 		_ = runCommandPassThrough("kubectl", "delete", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 	})
@@ -45,7 +56,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 		_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 	})
 
-	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources", ginkgo.Ordered, ginkgo.Label("application"), func() {
+	ginkgo.Context("Tenants are configured and can view/create allowed resources", ginkgo.Ordered, ginkgo.Label("application"), func() {
 		existingAppCount := 0 // Tenant starts from a clean slate
 
 		mgmtCluster := ClusterConfig{
@@ -284,7 +295,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 		})
 	})
 
-	ginkgo.Context("[UI] Tenants are configured and can view/create allowed resources on leaf cluster", ginkgo.Ordered, ginkgo.Label("leaf-application"), func() {
+	ginkgo.Context("Tenants are configured and can view/create allowed resources on leaf cluster", ginkgo.Ordered, ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -294,13 +305,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 		patSecret := "application-pat"
 		bootstrapLabel := "bootstrap"
 
+		leafClusterNamespace := "leaf-system"
 		appNameSpace := "test-system"
 		appTargetNamespace := "test-system"
 
 		leafCluster := ClusterConfig{
 			Type:      "other",
 			Name:      "wge-leaf-tenant-kind",
-			Namespace: appNameSpace,
+			Namespace: leafClusterNamespace,
 		}
 
 		ginkgo.JustBeforeEach(func() {
@@ -309,7 +321,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 				loginUser()
 			}
 
-			createNamespace([]string{appNameSpace, appTargetNamespace})
+			createNamespace([]string{leafClusterNamespace})
 			mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 			createCluster("kind", leafCluster.Name, "")
 			leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
@@ -327,7 +339,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			deleteNamespace([]string{leafCluster.Namespace})
 		})
 
-		ginkgo.It("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", func() {
+		ginkgo.It("Verify tenant can install the kustomization application from GitRepository source on leaf cluster and management dashboard is updated accordingly", ginkgo.Label("smoke", "application"), func() {
 			podinfo := Application{
 				Type:            "kustomization",
 				Name:            "my-podinfo",
@@ -358,29 +370,29 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
-
 			// Installing policy-agent to leaf cluster
 			installPolicyAgent(leafCluster.Name)
-			// Installing tenant resources to leaf cluster
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 
 			useClusterContext(mgmtClusterContext)
+			// Installing tenant resources to management cluster. This is an easy way to add oidc tenant user rbac
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 			createPATSecret(leafCluster.Namespace, patSecret)
 			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
 			createLeafClusterSecret(leafCluster.Namespace, leafClusterkubeconfig)
 
+			useClusterContext(leafClusterContext)
 			ginkgo.By(fmt.Sprintf("And I verify %s GitopsCluster/leafCluster is bootstraped)", leafCluster.Name), func() {
-				useClusterContext(leafClusterContext)
 				verifyFluxControllers(GITOPS_DEFAULT_NAMESPACE)
 				waitForGitRepoReady("flux-system", GITOPS_DEFAULT_NAMESPACE)
 			})
 
+			// Installing tenant resources to leaf cluster after leaf-cluster is bootstrapped
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
 			// Add GitRepository source to leaf cluster
 			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 
 			useClusterContext(mgmtClusterContext)
-
 			pages.NavigateToPage(webDriver, "Applications")
 			applicationsPage := pages.GetApplicationsPage(webDriver)
 

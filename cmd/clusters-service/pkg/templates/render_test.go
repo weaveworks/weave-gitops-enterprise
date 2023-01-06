@@ -24,37 +24,48 @@ func TestCAPIRender(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing
----
-apiVersion: gitops.weave.works/v1alpha1
+`),
+				[]byte(`apiVersion: gitops.weave.works/v1alpha1
 kind: GitopsCluster
 metadata:
   name: testing-gitops
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+`),
+			},
+			Path: "./clusters/testing/capi-clusters.yaml",
+		},
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
   name: testing-md-0
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+`),
+				[]byte(`apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
 kind: KubeadmControlPlane
 metadata:
   name: testing-control-plane
 spec:
   replicas: 5
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
 
 func TestTextTemplateStringReplace(t *testing.T) {
 	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template-1
@@ -65,10 +76,12 @@ spec:
   - name: CLUSTER_NAME
     description: This is used for the cluster naming.
   resourcetemplates:
-  - apiVersion: cluster.x-k8s.io/v1alpha3
-    kind: Cluster
-    metadata:
-      name: '{{ .params.CLUSTER_NAME | replace "." "-" }}'
+  - content:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: '{{ .params.CLUSTER_NAME | replace "." "-" }}'
+    path: "./clusters/{{ .params.CLUSTER_NAME }}/capi-cluster.yaml"
 `)))
 	if err != nil {
 		t.Fatal(err)
@@ -81,20 +94,27 @@ spec:
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing-name
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+			Path: "./clusters/testing.name/capi-cluster.yaml",
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
 
 func TestTextTemplateMissingFunction(t *testing.T) {
 	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: cluster-template-1
@@ -105,10 +125,11 @@ spec:
   - name: CLUSTER_NAME
     description: This is used for the cluster naming.
   resourcetemplates:
-  - apiVersion: cluster.x-k8s.io/v1alpha3
-    kind: Cluster
-    metadata:
-      name: '{{ env "TESTING" }}'
+  - content:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: '{{ env "TESTING" }}'
 `)))
 	if err != nil {
 		t.Fatal(err)
@@ -118,6 +139,51 @@ spec:
 		"CLUSTER_NAME": "testing.name",
 	})
 	assert.ErrorContains(t, err, `template: cluster-template-1:4: function "env" not defined`)
+}
+
+func TestTextTemplate_metadata(t *testing.T) {
+	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
+apiVersion: capi.weave.works/v1alpha2
+kind: CAPITemplate
+metadata:
+  name: cluster-template-1
+  namespace: test-namespace
+spec:
+  description: this is test template 1
+  renderType: templating
+  resourcetemplates:
+  - content:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "{{ .template.meta.namespace }}-cluster"
+    path: "./clusters/{{ .template.meta.name }}/capi-cluster.yaml"
+`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rendered, err := processor.RenderTemplates(map[string]string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: test-namespace-cluster
+`),
+			},
+			Path: "./clusters/cluster-template-1/capi-cluster.yaml",
+		},
+	}
+
+	if diff := cmp.Diff(want, rendered); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
 }
 
 func TestGitopsRender(t *testing.T) {
@@ -139,8 +205,10 @@ func TestGitopsRender(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: test-tf-template
@@ -156,8 +224,12 @@ spec:
   vars:
   - name: cluster_identifier
     value: testing
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+			Path: "./clusters/testing/tf.yaml",
+		},
+	}
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
@@ -217,25 +289,32 @@ func TestRender_InjectPruneAnnotation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing
----
-apiVersion: gitops.weave.works/v1alpha1
+`),
+				[]byte(`apiVersion: gitops.weave.works/v1alpha1
 kind: GitopsCluster
 metadata:
   name: testing-gitops
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+`),
+			},
+			Path: "./clusters/testing/capi-clusters.yaml",
+		},
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
   annotations:
     kustomize.toolkit.fluxcd.io/prune: disabled
   name: testing-md-0
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+`),
+				[]byte(`apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
 kind: KubeadmControlPlane
 metadata:
   annotations:
@@ -243,8 +322,12 @@ metadata:
   name: testing-control-plane
 spec:
   replicas: 5
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
@@ -293,8 +376,10 @@ func TestInNamespaceGitOps(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: test-template
@@ -310,8 +395,13 @@ spec:
   vars:
   - name: cluster_identifier
     value: testing
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+			Path: "./clusters/testing/tf.yaml",
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
@@ -357,34 +447,45 @@ func TestRender_in_namespace(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing
   namespace: new-test-namespace
----
-apiVersion: gitops.weave.works/v1alpha1
+`),
+				[]byte(`apiVersion: gitops.weave.works/v1alpha1
 kind: GitopsCluster
 metadata:
   name: testing-gitops
   namespace: new-test-namespace
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+`),
+			},
+			Path: "./clusters/testing/capi-clusters.yaml",
+		},
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
   name: testing-md-0
   namespace: new-test-namespace
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+`),
+				[]byte(`apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
 kind: KubeadmControlPlane
 metadata:
   name: testing-control-plane
   namespace: new-test-namespace
 spec:
   replicas: 5
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
@@ -413,34 +514,45 @@ func TestRender_with_options(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: just-a-test
   namespace: not-a-real-namespace
----
-apiVersion: gitops.weave.works/v1alpha1
+`),
+				[]byte(`apiVersion: gitops.weave.works/v1alpha1
 kind: GitopsCluster
 metadata:
   name: just-a-test
   namespace: not-a-real-namespace
----
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+`),
+			},
+			Path: "./clusters/testing/capi-clusters.yaml",
+		},
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 kind: AWSMachineTemplate
 metadata:
   name: just-a-test
   namespace: not-a-real-namespace
----
-apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
+`),
+				[]byte(`apiVersion: controlplane.cluster.x-k8s.io/v1alpha4
 kind: KubeadmControlPlane
 metadata:
   name: just-a-test
   namespace: not-a-real-namespace
 spec:
   replicas: 2
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
@@ -458,8 +570,10 @@ func TestRenderWithCRD(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing
@@ -476,8 +590,12 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: AWSCluster
     name: testing
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
@@ -496,8 +614,10 @@ func TestTextTemplateRender(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing-templating
@@ -514,8 +634,13 @@ spec:
     apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
     kind: AWSCluster
     name: testing-templating
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+			Path: "./clusters/testing-templating/cluster.yaml",
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }
@@ -536,8 +661,10 @@ func TestTextTemplateRenderConditional(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := `---
-apiVersion: cluster.x-k8s.io/v1alpha3
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
 kind: Cluster
 metadata:
   name: testing-templating
@@ -556,8 +683,12 @@ spec:
     name: testing-templating
   notARealField:
     name: test-bucket-test
-`
-	if diff := cmp.Diff(want, writeMultiDoc(t, b)); diff != "" {
+`),
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, b); diff != "" {
 		t.Fatalf("rendering failure:\n%s", diff)
 	}
 }

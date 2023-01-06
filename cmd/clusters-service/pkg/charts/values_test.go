@@ -298,7 +298,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 
 	for _, tt := range layeredTests {
 		t.Run(tt.name, func(t *testing.T) {
-			r, err := MakeHelmReleasesInLayers("test-cluster", hr.GetNamespace(), tt.installs)
+			r, err := MakeHelmReleasesInLayers(hr.GetNamespace(), tt.installs)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -80,7 +80,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 		_ = runCommandPassThrough("kubectl", "apply", "-f", path.Join(testDataPath, "rbac/user-role-bindings.yaml"))
 	})
 
-	ginkgo.Context("[CLI] When input tenant definition yaml is available", ginkgo.Ordered, func() {
+	ginkgo.Context("When input tenant definition yaml is available", ginkgo.Ordered, func() {
 
 		ginkgo.JustBeforeEach(func() {
 			tenantYaml = getTenantYamlPath()
@@ -217,7 +217,7 @@ var _ = ginkgo.Describe("Gitops CLI Tenants Tests", ginkgo.Ordered, ginkgo.Label
 		})
 	})
 
-	ginkgo.Context("[CLI] When tenant name and namespaces are available", ginkgo.Ordered, func() {
+	ginkgo.Context("When tenant name and namespaces are available", ginkgo.Ordered, func() {
 
 		ginkgo.JustBeforeEach(func() {
 			tenantYaml = getTenantYamlPath()

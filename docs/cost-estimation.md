@@ -121,7 +121,7 @@ Things that are ignored and are not included in the estimate:
 # Appendix 1: Example CAPA template with COST_ESTIMATION param for debugging
 
 ```yaml
-apiVersion: capi.weave.works/v1alpha1
+apiVersion: capi.weave.works/v1alpha2
 kind: CAPITemplate
 metadata:
   name: capa-cluster-template
@@ -206,116 +206,117 @@ spec:
         - sa-east-1
       default: eu-west-1
   resourcetemplates:
-    - apiVersion: cluster.x-k8s.io/v1beta1
-      kind: Cluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-        # Important to add the estimation filters annotation HERE and NOT on the CAPITemplate
-        annotations:
-          "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
-      spec:
-        clusterNetwork:
-          pods:
-            cidrBlocks: ["192.168.0.0/16"]
-        infrastructureRef:
-          apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-          kind: AWSCluster
-          name: "${CLUSTER_NAME}"
-        controlPlaneRef:
-          kind: KubeadmControlPlane
-          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-          name: "${CLUSTER_NAME}-control-plane"
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-      kind: AWSCluster
-      metadata:
-        name: "${CLUSTER_NAME}"
-      spec:
-        region: "${AWS_REGION}"
-        sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - kind: KubeadmControlPlane
-      apiVersion: controlplane.cluster.x-k8s.io/v1beta1
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-      spec:
-        replicas: ${CONTROL_PLANE_MACHINE_COUNT}
-        machineTemplate:
-          infrastructureRef:
-            kind: AWSMachineTemplate
-            apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-            name: "${CLUSTER_NAME}-control-plane"
-        kubeadmConfigSpec:
-          initConfiguration:
-            nodeRegistration:
-              name: "{{ ds.meta_data.local_hostname }}"
-              kubeletExtraArgs:
-                cloud-provider: aws
-          clusterConfiguration:
-            apiServer:
-              extraArgs:
-                cloud-provider: aws
-            controllerManager:
-              extraArgs:
-                cloud-provider: aws
-          joinConfiguration:
-            nodeRegistration:
-              name: "{{ ds.meta_data.local_hostname }}"
-              kubeletExtraArgs:
-                cloud-provider: aws
-        version: "${KUBERNETES_VERSION}"
-    - kind: AWSMachineTemplate
-      apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-      metadata:
-        name: "${CLUSTER_NAME}-control-plane"
-      spec:
-        template:
+    - content:
+        - apiVersion: cluster.x-k8s.io/v1beta1
+          kind: Cluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+            # Important to add the estimation filters annotation HERE and NOT on the CAPITemplate
+            annotations:
+              "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
           spec:
-            instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
-            iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
+            clusterNetwork:
+              pods:
+                cidrBlocks: ["192.168.0.0/16"]
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+              kind: AWSCluster
+              name: "${CLUSTER_NAME}"
+            controlPlaneRef:
+              kind: KubeadmControlPlane
+              apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+              name: "${CLUSTER_NAME}-control-plane"
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+          kind: AWSCluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+          spec:
+            region: "${AWS_REGION}"
             sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - apiVersion: cluster.x-k8s.io/v1beta1
-      kind: MachineDeployment
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-      spec:
-        clusterName: "${CLUSTER_NAME}"
-        replicas: ${WORKER_MACHINE_COUNT}
-        selector:
-          matchLabels:
-        template:
+        - kind: KubeadmControlPlane
+          apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+          metadata:
+            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            replicas: ${CONTROL_PLANE_MACHINE_COUNT}
+            machineTemplate:
+              infrastructureRef:
+                kind: AWSMachineTemplate
+                apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+                name: "${CLUSTER_NAME}-control-plane"
+            kubeadmConfigSpec:
+              initConfiguration:
+                nodeRegistration:
+                  name: "{{ ds.meta_data.local_hostname }}"
+                  kubeletExtraArgs:
+                    cloud-provider: aws
+              clusterConfiguration:
+                apiServer:
+                  extraArgs:
+                    cloud-provider: aws
+                controllerManager:
+                  extraArgs:
+                    cloud-provider: aws
+              joinConfiguration:
+                nodeRegistration:
+                  name: "{{ ds.meta_data.local_hostname }}"
+                  kubeletExtraArgs:
+                    cloud-provider: aws
+            version: "${KUBERNETES_VERSION}"
+        - kind: AWSMachineTemplate
+          apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+          metadata:
+            name: "${CLUSTER_NAME}-control-plane"
+          spec:
+            template:
+              spec:
+                instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
+                iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
+                sshKeyName: "${AWS_SSH_KEY_NAME}"
+        - apiVersion: cluster.x-k8s.io/v1beta1
+          kind: MachineDeployment
+          metadata:
+            name: "${CLUSTER_NAME}-md-0"
           spec:
             clusterName: "${CLUSTER_NAME}"
-            version: "${KUBERNETES_VERSION}"
-            bootstrap:
-              configRef:
-                name: "${CLUSTER_NAME}-md-0"
-                apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-                kind: KubeadmConfigTemplate
-            infrastructureRef:
-              name: "${CLUSTER_NAME}-md-0"
-              apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-              kind: AWSMachineTemplate
-    - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
-      kind: AWSMachineTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-      spec:
-        template:
+            replicas: ${WORKER_MACHINE_COUNT}
+            selector:
+              matchLabels:
+            template:
+              spec:
+                clusterName: "${CLUSTER_NAME}"
+                version: "${KUBERNETES_VERSION}"
+                bootstrap:
+                  configRef:
+                    name: "${CLUSTER_NAME}-md-0"
+                    apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+                    kind: KubeadmConfigTemplate
+                infrastructureRef:
+                  name: "${CLUSTER_NAME}-md-0"
+                  apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+                  kind: AWSMachineTemplate
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+          kind: AWSMachineTemplate
+          metadata:
+            name: "${CLUSTER_NAME}-md-0"
           spec:
-            instanceType: "${AWS_NODE_MACHINE_TYPE}"
-            iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
-            sshKeyName: "${AWS_SSH_KEY_NAME}"
-    - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
-      kind: KubeadmConfigTemplate
-      metadata:
-        name: "${CLUSTER_NAME}-md-0"
-      spec:
-        template:
+            template:
+              spec:
+                instanceType: "${AWS_NODE_MACHINE_TYPE}"
+                iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
+                sshKeyName: "${AWS_SSH_KEY_NAME}"
+        - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          metadata:
+            name: "${CLUSTER_NAME}-md-0"
           spec:
-            joinConfiguration:
-              nodeRegistration:
-                name: "{{ ds.meta_data.local_hostname }}"
-                kubeletExtraArgs:
-                  cloud-provider: aws
+            template:
+              spec:
+                joinConfiguration:
+                  nodeRegistration:
+                    name: "{{ ds.meta_data.local_hostname }}"
+                    kubeletExtraArgs:
+                      cloud-provider: aws
 ```
 
 # Appendix: Available filters

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,9 +12,9 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/credentials"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
@@ -32,14 +33,15 @@ type GetFilesRequest struct {
 	Credentials      *capiv1_proto.Credential
 	Profiles         []*capiv1_proto.ProfileValues
 	Kustomizations   []*capiv1_proto.Kustomization
+	ExternalSecrets  []*capiv1_proto.ExternalSecret
 }
 
 type GetFilesReturn struct {
-	RenderedTemplate   gitprovider.CommitFile
-	ProfileFiles       []gitprovider.CommitFile
-	KustomizationFiles []gitprovider.CommitFile
-	Cluster            types.NamespacedName
-	CostEstimate       *capiv1_proto.CostEstimate
+	RenderedTemplate     []gitprovider.CommitFile
+	ProfileFiles         []gitprovider.CommitFile
+	KustomizationFiles   []gitprovider.CommitFile
+	CostEstimate         *capiv1_proto.CostEstimate
+	ExternalSecretsFiles []gitprovider.CommitFile
 }
 
 func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind string) (templatesv1.Template, error) {
@@ -203,11 +205,15 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
-func toCommitFile(file gitprovider.CommitFile) *capiv1_proto.CommitFile {
-	return &capiv1_proto.CommitFile{
-		Path:    *file.Path,
-		Content: *file.Content,
+func toCommitFileProtos(file []gitprovider.CommitFile) []*capiv1_proto.CommitFile {
+	var files []*capiv1_proto.CommitFile
+	for _, f := range file {
+		files = append(files, &capiv1_proto.CommitFile{
+			Path:    *f.Path,
+			Content: *f.Content,
+		})
 	}
+	return files
 }
 
 // Similar the others list and get will right now only work with CAPI templates.
@@ -237,29 +243,18 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tm,
-		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations},
+		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, msg.ExternalSecrets},
 		nil,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	var profileFiles []*capiv1_proto.CommitFile
-	var kustomizationFiles []*capiv1_proto.CommitFile
-
-	if len(files.ProfileFiles) > 0 {
-		for _, f := range files.ProfileFiles {
-			profileFiles = append(profileFiles, toCommitFile(f))
-		}
-	}
-
-	if len(files.KustomizationFiles) > 0 {
-		for _, f := range files.KustomizationFiles {
-			kustomizationFiles = append(kustomizationFiles, toCommitFile(f))
-		}
-	}
-
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: *files.RenderedTemplate.Content, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate}, err
+	profileFiles := toCommitFileProtos(files.ProfileFiles)
+	kustomizationFiles := toCommitFileProtos(files.KustomizationFiles)
+	renderedTemplateFiles := toCommitFileProtos(files.RenderedTemplate)
+	externalSecretFiles := toCommitFileProtos(files.ExternalSecretsFiles)
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
 func GetFiles(
@@ -273,60 +268,65 @@ func GetFiles(
 	tmpl templatesv1.Template,
 	msg GetFilesRequest,
 	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
-	var content string
-	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
-	tmplWithValues, err := renderTemplateWithValues(tmpl, msg.TemplateName, getClusterNamespace(msg.ClusterNamespace), msg.ParameterValues)
+	resourcesNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
+
+	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, resourcesNamespace, msg.ParameterValues)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
-	if createRequestMessage != nil {
-		tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", createRequestMessage)
-		if err != nil {
-			return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+	var files []gitprovider.CommitFile
+	for _, renderedTemplate := range renderedTemplates {
+		tmplWithValues := renderedTemplate.Data
+		if createRequestMessage != nil {
+			tmplWithValues, err = templates.InjectJSONAnnotation(tmplWithValues, "templates.weave.works/create-request", createRequestMessage)
+			if err != nil {
+				return nil, fmt.Errorf("failed to annotate template with parameter values: %w", err)
+			}
 		}
-	}
 
-	if err = templates.ValidateRenderedTemplates(tmplWithValues); err != nil {
-		return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
-	}
+		err = templates.ValidateRenderedTemplates(tmplWithValues)
+		if err != nil {
+			return nil, fmt.Errorf("validation error rendering template %v, %v", msg.TemplateName, err)
+		}
 
-	for _, b := range tmplWithValues {
-		content += string(b)
+		if client != nil {
+			tmplWithValues, err = credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
+			if err != nil {
+				return nil, fmt.Errorf("failed to inject credentials: %w", err)
+			}
+		} else {
+			log.Info("client is nil, skipping credentials injection")
+		}
+
+		path := renderedTemplate.Path
+		if path == "" {
+			path, err = getDefaultPath(resourcesNamespace, msg)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get default path: %w", err)
+			}
+		}
+
+		content := string(bytes.Join(tmplWithValues, []byte("\n---\n")))
+		files = append(files, gitprovider.CommitFile{
+			Path:    &path,
+			Content: &content,
+		})
 	}
 
 	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
-	costEstimate := getCostEstimate(ctx, estimator, tmplWithValues)
-
-	if client != nil {
-		tmplWithValuesAndCredentials, err := credentials.CheckAndInjectCredentials(log, client, tmplWithValues, msg.Credentials, msg.TemplateName)
-		if err != nil {
-			return nil, err
-		}
-
-		content = string(tmplWithValuesAndCredentials)
-	} else {
-		log.Info("client is nil, skipping credentials injection")
-	}
-
-	// FIXME: parse and read from Cluster in yaml template
-	clusterName := msg.ParameterValues["CLUSTER_NAME"]
-	resourceName := msg.ParameterValues["RESOURCE_NAME"]
-
-	if clusterName == "" && resourceName == "" {
-		return nil, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
-	}
-
-	if clusterName != "" {
-		resourceName = clusterName
-	}
-
-	cluster := createNamespacedName(resourceName, clusterNamespace)
+	costEstimate := getCostEstimate(ctx, estimator, renderedTemplates)
 
 	var profileFiles []gitprovider.CommitFile
 	var kustomizationFiles []gitprovider.CommitFile
+	var externalSecretFiles []gitprovider.CommitFile
+
 	if shouldAddCommonBases(tmpl) {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
 		commonKustomization, err := getCommonKustomization(cluster)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues, err)
@@ -340,6 +340,10 @@ func GetFiles(
 	}
 
 	if len(msg.Profiles) > 0 || len(requiredProfiles) > 0 {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
 		profilesFile, err := generateProfileFiles(
 			ctx,
 			tmpl,
@@ -360,6 +364,10 @@ func GetFiles(
 	}
 
 	if len(msg.Kustomizations) > 0 {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
 		for _, k := range msg.Kustomizations {
 			// FIXME: dedup this with the automations
 			if k.Spec.CreateNamespace {
@@ -382,13 +390,28 @@ func GetFiles(
 		}
 	}
 
-	path := getClusterManifestPath(cluster)
-	contentFile := gitprovider.CommitFile{
-		Path:    &path,
-		Content: &content,
-	}
+	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate, ExternalSecretsFiles: externalSecretFiles}, err
+}
 
-	return &GetFilesReturn{RenderedTemplate: contentFile, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, Cluster: cluster, CostEstimate: costEstimate}, err
+func getCluster(namespace string, msg GetFilesRequest) (types.NamespacedName, error) {
+	clusterName := msg.ParameterValues["CLUSTER_NAME"]
+	resourceName := msg.ParameterValues["RESOURCE_NAME"]
+	if clusterName == "" && resourceName == "" {
+		return types.NamespacedName{}, errors.New("unable to find 'CLUSTER_NAME' or 'RESOURCE_NAME' parameter in supplied values")
+	}
+	if resourceName == "" {
+		resourceName = clusterName
+	}
+	return createNamespacedName(resourceName, namespace), nil
+}
+
+func getDefaultPath(namespace string, msg GetFilesRequest) (string, error) {
+	cluster, err := getCluster(namespace, msg)
+	if err != nil {
+		return "", fmt.Errorf("failed to get cluster: %w", err)
+	}
+	defaultPath := getClusterManifestPath(cluster)
+	return defaultPath, nil
 }
 
 func shouldAddCommonBases(t templatesv1.Template) bool {
@@ -401,7 +424,12 @@ func shouldAddCommonBases(t templatesv1.Template) bool {
 	return viper.GetString("add-bases-kustomization") != "disabled" && isCAPITemplate(t)
 }
 
-func getCostEstimate(ctx context.Context, estimator estimation.Estimator, tmplWithValues [][]byte) *capiv1_proto.CostEstimate {
+func getCostEstimate(ctx context.Context, estimator estimation.Estimator, renderedTemplates []templates.RenderedTemplate) *capiv1_proto.CostEstimate {
+	var tmplWithValues [][]byte
+	for _, tmpl := range renderedTemplates {
+		tmplWithValues = append(tmplWithValues, tmpl.Data...)
+	}
+
 	unstructureds, err := templates.ConvertToUnstructured(tmplWithValues)
 	if err != nil {
 		return &capiv1_proto.CostEstimate{Message: fmt.Sprintf("failed to parse rendered templates: %s", err)}

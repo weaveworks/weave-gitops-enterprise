@@ -33,8 +33,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -172,7 +172,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			types.NamespacedName{Name: s.cluster},
 			s.profileHelmRepository,
 			tmpl,
-			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations},
+			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations, msg.PreviousValues.ExternalSecrets},
 			msg,
 		)
 		if err != nil {
@@ -190,7 +190,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tmpl,
-		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
+		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.ExternalSecrets},
 		msg,
 	)
 	if err != nil {
@@ -198,9 +198,10 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	files := []gitprovider.CommitFile{}
-	files = append(files, git_files.RenderedTemplate)
+	files = append(files, git_files.RenderedTemplate...)
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
+	files = append(files, git_files.ExternalSecretsFiles...)
 
 	deletedFiles := getDeletedFiles(prevFiles, git_files)
 	files = append(files, deletedFiles...)
@@ -333,7 +334,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 				})
 			}
 		}
-
 	}
 
 	if msg.HeadBranch == "" {
@@ -684,9 +684,9 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		})
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(HelmReleaseNamespace, installs)
 	if err != nil {
-		return nil, fmt.Errorf("making helm releases for cluster %s: %w", cluster.Name, err)
+		return nil, fmt.Errorf("making helm releases for cluster %w", err)
 	}
 	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
 	if err != nil {
@@ -959,6 +959,16 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
 	}
 
+	if resourceType == "externalsecret" {
+		return filepath.Join(
+			viper.GetString("capi-repository-clusters-path"),
+			clusterNamespace,
+			cluster.Name,
+			"secrets",
+			fileName,
+		)
+	}
+
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
@@ -1017,23 +1027,14 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 // Old files with changed paths are added to the deleted list
 func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitprovider.CommitFile {
 	deletedFiles := []gitprovider.CommitFile{}
-	// If there was removed kustomizations or profiles from the prevFiles that were no longer in the newFiles
-	if len(prevFiles.KustomizationFiles) > 0 || len(prevFiles.ProfileFiles) > 0 {
-		removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
-		removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)
 
-		deletedFiles = append(deletedFiles, removedKustomizations...)
-		deletedFiles = append(deletedFiles, removedProfiles...)
-	}
+	removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
+	removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)
+	removedRenderedTemplates := getMissingFiles(prevFiles.RenderedTemplate, newFiles.RenderedTemplate)
 
-	// If there were changes in the namespace resulting in the change of the file path (the old file should be deleted)
-	if prevFiles != nil && prevFiles.RenderedTemplate.Path != nil && *prevFiles.RenderedTemplate.Path != *newFiles.RenderedTemplate.Path {
-		prevPath := *prevFiles.RenderedTemplate.Path
-		deletedFiles = append(deletedFiles, gitprovider.CommitFile{
-			Path:    &prevPath,
-			Content: nil,
-		})
-	}
+	deletedFiles = append(deletedFiles, removedKustomizations...)
+	deletedFiles = append(deletedFiles, removedProfiles...)
+	deletedFiles = append(deletedFiles, removedRenderedTemplates...)
+
 	return deletedFiles
-
 }

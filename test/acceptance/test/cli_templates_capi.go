@@ -55,7 +55,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 		_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 	})
 
-	ginkgo.Context("[CLI] When no infrastructure provider credentials are available in the management cluster", func() {
+	ginkgo.Context("When no infrastructure provider credentials are available in the management cluster", func() {
 		ginkgo.It("Verify gitops lists no credentials", func() {
 			stdOut, _ = runGitopsCommand(`get credentials`, ASSERTION_1MINUTE_TIME_OUT)
 
@@ -65,7 +65,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 		})
 	})
 
-	ginkgo.Context("[CLI] When infrastructure provider credentials are available in the management cluster", func() {
+	ginkgo.Context("When infrastructure provider credentials are available in the management cluster", func() {
 
 		ginkgo.JustAfterEach(func() {
 			deleteIPCredentials("AWS")
@@ -160,7 +160,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 		})
 	})
 
-	ginkgo.Context("[CLI] When leaf cluster pull request is available in the management cluster", func() {
+	ginkgo.Context("When leaf cluster pull request is available in the management cluster", ginkgo.Label("capd"), func() {
 		var clusterBootstrapCopnfig string
 		var clusterResourceSet string
 		var crsConfigmap string
@@ -207,7 +207,7 @@ var _ = ginkgo.Describe("Gitops GitOpsTemplate tests for CAPI cluster", ginkgo.L
 			reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 		})
 
-		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("capd"), func() {
+		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", func() {
 			ginkgo.By("And wait for cluster-service to cache profiles", func() {
 				gomega.Expect(waitForGitopsResources(context.Background(), Request{Path: `charts/list?repository.name=weaveworks-charts&repository.namespace=flux-system&repository.cluster.name=management`}, POLL_INTERVAL_5SECONDS, ASSERTION_15MINUTE_TIME_OUT)).To(gomega.Succeed(), "Failed to get a successful response from /v1/charts")
 			})

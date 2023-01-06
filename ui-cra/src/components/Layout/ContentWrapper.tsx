@@ -35,6 +35,7 @@ export const contentCss = css`
   padding: ${medium};
   background-color: ${white};
   border-radius: ${xs} ${xs} 0 0;
+  height: 100%;
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
@@ -93,7 +94,7 @@ export const ContentWrapper: FC<Props> = ({
         display: 'flex',
         flexDirection: 'column',
         width: 'calc(100% - 4px)',
-        height: 'calc(100vh - 80px)',
+        maxHeight: 'calc(100vh - 80px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
         padding: '0px 12px',
@@ -109,9 +110,11 @@ export const ContentWrapper: FC<Props> = ({
 
       <Content backgroundColor={backgroundColor}>{children}</Content>
 
-      <div style={{ paddingTop: base }}>
-        <Notifications notifications={bottomNotifications} />
-      </div>
+      {!!bottomNotifications.length && (
+        <div style={{ paddingTop: base }}>
+          <Notifications notifications={bottomNotifications} />
+        </div>
+      )}
       <MemoizedHelpLinkWrapper />
     </div>
   );

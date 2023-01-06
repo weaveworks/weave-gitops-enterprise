@@ -24,11 +24,15 @@ dependencies:
     version: "1.0.0"
     repository: "file://../cluster-controller"
     condition: cluster-controller.enabled
+  - name: templates-controller
+    version: "0.1.0"
+    repository: "file://../templates-controller"
+    condition: templates-controller.enabled
   - name: policy-agent
-    version: "2.1.1"
+    version: "2.2.0"
     repository: "https://weaveworks.github.io/policy-agent"
     condition: policy-agent.enabled
   - name: pipeline-controller
-    version: "0.8.0"
+    version: "0.9.0"
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: enablePipelines

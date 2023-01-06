@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
+	//
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
@@ -82,6 +83,12 @@ type ClustersServiceClient interface {
 	GetWorkspaceServiceAccounts(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceServiceAccountsResponse, error)
 	// GetWorkspacePolicies list workspace service accounts
 	GetWorkspacePolicies(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspacePoliciesResponse, error)
+	// ListExternalSecrets list external secrets available on all clusters
+	ListExternalSecrets(ctx context.Context, in *ListExternalSecretsRequest, opts ...grpc.CallOption) (*ListExternalSecretsResponse, error)
+	// GetExternalSecret get secret details
+	GetExternalSecret(ctx context.Context, in *GetExternalSecretRequest, opts ...grpc.CallOption) (*GetExternalSecretResponse, error)
+	// ListExternalSecretStores list external secrets stores
+	ListExternalSecretStores(ctx context.Context, in *ListExternalSecretStoresRequest, opts ...grpc.CallOption) (*ListExternalSecretStoresResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -353,12 +360,40 @@ func (c *clustersServiceClient) GetWorkspacePolicies(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *clustersServiceClient) ListExternalSecrets(ctx context.Context, in *ListExternalSecretsRequest, opts ...grpc.CallOption) (*ListExternalSecretsResponse, error) {
+	out := new(ListExternalSecretsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListExternalSecrets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetExternalSecret(ctx context.Context, in *GetExternalSecretRequest, opts ...grpc.CallOption) (*GetExternalSecretResponse, error) {
+	out := new(GetExternalSecretResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetExternalSecret", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) ListExternalSecretStores(ctx context.Context, in *ListExternalSecretStoresRequest, opts ...grpc.CallOption) (*ListExternalSecretStoresResponse, error) {
+	out := new(ListExternalSecretStoresResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListExternalSecretStores", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
 type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
+	//
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
@@ -420,6 +455,12 @@ type ClustersServiceServer interface {
 	GetWorkspaceServiceAccounts(context.Context, *GetWorkspaceRequest) (*GetWorkspaceServiceAccountsResponse, error)
 	// GetWorkspacePolicies list workspace service accounts
 	GetWorkspacePolicies(context.Context, *GetWorkspaceRequest) (*GetWorkspacePoliciesResponse, error)
+	// ListExternalSecrets list external secrets available on all clusters
+	ListExternalSecrets(context.Context, *ListExternalSecretsRequest) (*ListExternalSecretsResponse, error)
+	// GetExternalSecret get secret details
+	GetExternalSecret(context.Context, *GetExternalSecretRequest) (*GetExternalSecretResponse, error)
+	// ListExternalSecretStores list external secrets stores
+	ListExternalSecretStores(context.Context, *ListExternalSecretStoresRequest) (*ListExternalSecretStoresResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -513,6 +554,15 @@ func (UnimplementedClustersServiceServer) GetWorkspaceServiceAccounts(context.Co
 }
 func (UnimplementedClustersServiceServer) GetWorkspacePolicies(context.Context, *GetWorkspaceRequest) (*GetWorkspacePoliciesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWorkspacePolicies not implemented")
+}
+func (UnimplementedClustersServiceServer) ListExternalSecrets(context.Context, *ListExternalSecretsRequest) (*ListExternalSecretsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListExternalSecrets not implemented")
+}
+func (UnimplementedClustersServiceServer) GetExternalSecret(context.Context, *GetExternalSecretRequest) (*GetExternalSecretResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetExternalSecret not implemented")
+}
+func (UnimplementedClustersServiceServer) ListExternalSecretStores(context.Context, *ListExternalSecretStoresRequest) (*ListExternalSecretStoresResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListExternalSecretStores not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -1049,6 +1099,60 @@ func _ClustersService_GetWorkspacePolicies_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_ListExternalSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListExternalSecretsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListExternalSecrets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListExternalSecrets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListExternalSecrets(ctx, req.(*ListExternalSecretsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetExternalSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetExternalSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetExternalSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetExternalSecret",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetExternalSecret(ctx, req.(*GetExternalSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_ListExternalSecretStores_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListExternalSecretStoresRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListExternalSecretStores(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListExternalSecretStores",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListExternalSecretStores(ctx, req.(*ListExternalSecretStoresRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1171,6 +1275,18 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWorkspacePolicies",
 			Handler:    _ClustersService_GetWorkspacePolicies_Handler,
+		},
+		{
+			MethodName: "ListExternalSecrets",
+			Handler:    _ClustersService_ListExternalSecrets_Handler,
+		},
+		{
+			MethodName: "GetExternalSecret",
+			Handler:    _ClustersService_GetExternalSecret_Handler,
+		},
+		{
+			MethodName: "ListExternalSecretStores",
+			Handler:    _ClustersService_ListExternalSecretStores_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

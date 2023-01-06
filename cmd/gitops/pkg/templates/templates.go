@@ -14,11 +14,51 @@ const (
 
 	// GitOpsTemplateKind defines a TF-Controller template
 	GitOpsTemplateKind TemplateKind = "GitOpsTemplate"
+
+	// Default no template kind
+	DefaultTemplateKind TemplateKind = ""
 )
+
+var TemplateKinds = []TemplateKind{
+	CAPITemplateKind,
+	GitOpsTemplateKind,
+}
+
+// Return a string representation of all supported template Kinds
+func templateKindsString() string {
+	var kinds []string
+	for _, k := range TemplateKinds {
+		kinds = append(kinds, k.String())
+	}
+	return strings.Join(kinds, ", ")
+}
 
 // String returns a string representation of the template Kind.
 func (t TemplateKind) String() string {
 	return string(t)
+}
+
+// Set the value of the template kind object with a string
+func (t *TemplateKind) Set(v string) error {
+	if v == "" {
+		*t = DefaultTemplateKind
+		return nil
+	}
+	if inTemplateKinds(v) {
+		*t = TemplateKind(v)
+		return nil
+	}
+	return fmt.Errorf("template kind not found, supported templates: %s", templateKindsString())
+
+}
+
+func inTemplateKinds(str string) bool {
+	for _, k := range TemplateKinds {
+		if k.String() == str {
+			return true
+		}
+	}
+	return false
 }
 
 type CreatePullRequestFromTemplateParams struct {
@@ -84,10 +124,11 @@ type CredentialsRetriever interface {
 }
 
 type Template struct {
-	Name        string
-	Description string
-	Provider    string
-	Error       string
+	Name         string
+	Description  string
+	Provider     string
+	TemplateKind string
+	Error        string
 }
 
 type TemplateParameter struct {
@@ -153,13 +194,22 @@ type CommitFile struct {
 }
 
 type RenderTemplateResponse struct {
-	RenderedTemplate string       `json:"renderedTemplate"`
+	RenderedTemplate []CommitFile `json:"renderedTemplate"`
 	ProfileFiles     []CommitFile `json:"profileFiles"`
 }
 
 func (r *RenderTemplateResponse) String() string {
 	var output strings.Builder
-	output.WriteString(r.RenderedTemplate)
+	for i := range r.RenderedTemplate {
+		file := r.RenderedTemplate[i]
+		output.WriteString(
+			fmt.Sprintf(
+				"\n---\n# %s\n\n%s",
+				file.Path,
+				file.Content,
+			),
+		)
+	}
 	for i := range r.ProfileFiles {
 		file := r.ProfileFiles[i]
 		output.WriteString(
@@ -194,17 +244,34 @@ func GetTemplate(name string, kind TemplateKind, namespace string, r TemplatesRe
 // GetTemplates uses a TemplatesRetriever adapter to show
 // a list of templates to the console.
 func GetTemplates(kind TemplateKind, r TemplatesRetriever, w io.Writer) error {
-	ts, err := r.RetrieveTemplates(kind)
-	if err != nil {
-		return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+	allTemplates := []Template{}
+	if kind == "" {
+		// get all templates for all supported kinds
+		for _, templateKind := range TemplateKinds {
+			ts, err := r.RetrieveTemplates(templateKind)
+			if err != nil {
+				return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+			}
+			allTemplates = append(allTemplates, ts...)
+
+		}
+	} else {
+		// get templates for given kind
+		ts, err := r.RetrieveTemplates(kind)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+		}
+
+		allTemplates = append(allTemplates, ts...)
+
 	}
+	if len(allTemplates) > 0 {
+		fmt.Fprintf(w, "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\n")
 
-	if len(ts) > 0 {
-		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\tERROR\n")
-
-		for _, t := range ts {
+		for _, t := range allTemplates {
 			fmt.Fprintf(w, "%s", t.Name)
 			fmt.Fprintf(w, "\t%s", t.Provider)
+			fmt.Fprintf(w, "\t%s", t.TemplateKind)
 			fmt.Fprintf(w, "\t%s", t.Description)
 			fmt.Fprintf(w, "\t%s", t.Error)
 			fmt.Fprintln(w, "")
@@ -221,17 +288,32 @@ func GetTemplates(kind TemplateKind, r TemplatesRetriever, w io.Writer) error {
 // GetTemplatesByProvider uses a TemplatesRetriever adapter to show
 // a list of templates for a given provider to the console.
 func GetTemplatesByProvider(kind TemplateKind, provider string, r TemplatesRetriever, w io.Writer) error {
-	ts, err := r.RetrieveTemplatesByProvider(kind, provider)
-	if err != nil {
-		return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+	allTemplates := []Template{}
+	if kind == "" {
+		// get all templates for all supported kinds
+		for _, templateKind := range TemplateKinds {
+			ts, err := r.RetrieveTemplatesByProvider(templateKind, provider)
+			if err != nil {
+				return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+			}
+			allTemplates = append(allTemplates, ts...)
+		}
+	} else {
+		// get templates for given kind
+		ts, err := r.RetrieveTemplatesByProvider(kind, provider)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve templates from %q: %w", r.Source(), err)
+		}
+		allTemplates = append(allTemplates, ts...)
 	}
 
-	if len(ts) > 0 {
-		fmt.Fprintf(w, "NAME\tPROVIDER\tDESCRIPTION\tERROR\n")
+	if len(allTemplates) > 0 {
+		fmt.Fprintf(w, "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\n")
 
-		for _, t := range ts {
+		for _, t := range allTemplates {
 			fmt.Fprintf(w, "%s", t.Name)
 			fmt.Fprintf(w, "\t%s", t.Provider)
+			fmt.Fprintf(w, "\t%s", t.TemplateKind)
 			fmt.Fprintf(w, "\t%s", t.Description)
 			fmt.Fprintf(w, "\t%s", t.Error)
 			fmt.Fprintln(w, "")
@@ -248,15 +330,28 @@ func GetTemplatesByProvider(kind TemplateKind, provider string, r TemplatesRetri
 // GetTemplateParameters uses a TemplatesRetriever adapter
 // to show a list of parameters for a given template.
 func GetTemplateParameters(kind TemplateKind, name string, namespace string, r TemplatesRetriever, w io.Writer) error {
-	ps, err := r.RetrieveTemplateParameters(kind, name, namespace)
-	if err != nil {
-		return fmt.Errorf("unable to retrieve parameters for template %q from %q: %w", name, r.Source(), err)
+	allParameters := []TemplateParameter{}
+	if kind == "" {
+		for _, templateKind := range TemplateKinds {
+			ps, err := r.RetrieveTemplateParameters(templateKind, name, namespace)
+			if err != nil {
+				continue
+			}
+			allParameters = append(allParameters, ps...)
+		}
+	} else {
+		// get templates for given kind
+		ps, err := r.RetrieveTemplateParameters(kind, name, namespace)
+		if err != nil {
+			return fmt.Errorf("unable to retrieve parameters for template %q from %q: %w", name, r.Source(), err)
+		}
+		allParameters = append(allParameters, ps...)
 	}
 
-	if len(ps) > 0 {
+	if len(allParameters) > 0 {
 		fmt.Fprintf(w, "NAME\tREQUIRED\tDESCRIPTION\tOPTIONS\n")
 
-		for _, t := range ps {
+		for _, t := range allParameters {
 			fmt.Fprintf(w, "%s", t.Name)
 			fmt.Fprintf(w, "\t%t", t.Required)
 

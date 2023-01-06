@@ -62,7 +62,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 		_ = runCommandPassThrough("kubectl", "delete", "GitOpsTemplate", "--all")
 	})
 
-	ginkgo.Context("[UI] When no infrastructure provider credentials are available in the management cluster", func() {
+	ginkgo.Context("When no infrastructure provider credentials are available in the management cluster", func() {
 
 		ginkgo.It("Verify no credentials exists in management cluster", func() {
 			templateFiles := map[string]string{
@@ -71,7 +71,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 
 			installGitOpsTemplate(templateFiles)
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -91,7 +91,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 		})
 	})
 
-	ginkgo.Context("[UI] When infrastructure provider credentials are available in the management cluster", func() {
+	ginkgo.Context("When infrastructure provider credentials are available in the management cluster", func() {
 
 		ginkgo.JustAfterEach(func() {
 			deleteIPCredentials("AWS")
@@ -111,7 +111,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -197,8 +197,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
 				gomega.Eventually(preview.Title).Should(matchers.MatchText("PR Preview"))
-
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join(clusterPath, awsNamespace, awsClusterName+".yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: AWSCluster\s+metadata:\s+annotations:[\s\w\d/:.-]+name: %s[\s\w\d-.:/]+identityRef:[\s\w\d-.:/]+kind: AWSClusterRoleIdentity\s+name: test-role-identity`, awsClusterName)))
 				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 			})
 
@@ -215,7 +215,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -289,15 +289,15 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
 				gomega.Eventually(preview.Title).Should(matchers.MatchText("PR Preview"))
-
-				gomega.Eventually(preview.Text).ShouldNot(matchers.MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join(clusterPath, azureNamespace, azureClusterName+".yaml")))
+				gomega.Eventually(preview.Text.At(0)).ShouldNot(matchers.MatchText(`kind: AWSCluster[\s\w\d-.:/]+identityRef:`), "Identity reference should not be found in preview pull request AzureCluster object")
 				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
 			})
 
 		})
 	})
 
-	ginkgo.Context("[UI] When leaf cluster pull request is available in the management cluster", func() {
+	ginkgo.Context("When leaf cluster pull request is available in the management cluster", ginkgo.Label("capd"), func() {
 		var clusterBootstrapCopnfig string
 		var clusterResourceSet string
 		var crsConfigmap string
@@ -343,7 +343,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			reconcile("resume", "source", "git", "flux-system", GITOPS_DEFAULT_NAMESPACE, "")
 		})
 
-		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("smoke", "capd"), func() {
+		ginkgo.It("Verify leaf CAPD cluster can be provisioned and kubeconfig is available for cluster operations", ginkgo.Label("smoke"), func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			appSourcePath = addKustomizationManifests([]string{"deployments/postgres-manifest.yaml", "deployments/podinfo-manifest.yaml"})
 
@@ -357,7 +357,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 
 			templatesPage := pages.GetTemplatesPage(webDriver)
 			ginkgo.By("And I should choose a template", func() {
@@ -476,9 +476,10 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed(), "Failed to get PR preview")
 
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*capiClusterRef`, leafCluster.Name, leafCluster.Namespace)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join(clusterPath, leafCluster.Namespace, leafCluster.Name+".yaml")))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*capiClusterRef`, leafCluster.Name, leafCluster.Namespace)))
 
 				gomega.Eventually(preview.GetPreviewTab("Profiles").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
 				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
@@ -616,7 +617,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 		})
 
-		ginkgo.It("Verify CAPI cluster resource can be modified/edited", ginkgo.Label("capd"), func() {
+		ginkgo.It("Verify CAPI cluster resource can be modified/edited", func() {
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			appSourcePath = addKustomizationManifests([]string{"deployments/postgres-manifest.yaml", "deployments/podinfo-manifest.yaml"})
 
@@ -630,7 +631,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			})
 
 			pages.NavigateToPage(webDriver, "Templates")
-			pages.WaitForPageToLoad(webDriver)
+			waitForTemplatesToAppear(len(templateFiles))
 			templatesPage := pages.GetTemplatesPage(webDriver)
 
 			ginkgo.By("And I should choose a template", func() {

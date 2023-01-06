@@ -31,6 +31,7 @@ export function getKindRoute(k: Kind | string): string {
   }
 }
 
+
 export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
@@ -58,4 +59,10 @@ export enum Routes {
   AddCluster = '/templates/:templateName/create',
 
   Templates = '/templates',
+
+  Workspaces = '/workspaces',
+  WorkspaceDetails = '/workspaces/details',
+
+  Secrets = '/secrets',
+  SecretDetails = '/secrets/details'
 }

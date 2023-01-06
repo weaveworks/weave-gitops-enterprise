@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/grpc"
+	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -111,6 +112,40 @@ status:
 
 	assert.Equal(t, res.Object.ClusterName, "Default")
 	assert.Equal(t, res.Yaml, expectedYaml)
+}
+
+func TestGetTerraformObjectPlan(t *testing.T) {
+	ctx := context.Background()
+	client, k8s := setup(t)
+
+	tfObj := &tfctrl.Terraform{}
+	tfObj.Name = "my-obj"
+	tfObj.Namespace = "default"
+
+	tfObj.Spec.StoreReadablePlan = "human"
+
+	assert.NoError(t, k8s.Create(context.Background(), tfObj))
+
+	planObj := &corev1.ConfigMap{}
+	planObj.Name = "tfplan-default-my-obj"
+	planObj.Namespace = "default"
+	planObj.Data = map[string]string{
+		"tfplan": "terraform plan",
+	}
+
+	assert.NoError(t, k8s.Create(context.Background(), planObj))
+
+	res, err := client.GetTerraformObjectPlan(ctx, &pb.GetTerraformObjectPlanRequest{
+		ClusterName: "Default",
+		Name:        tfObj.Name,
+		Namespace:   tfObj.Namespace,
+	})
+
+	assert.NoError(t, err)
+
+	expectedPlan := "terraform plan"
+
+	assert.Equal(t, res.Plan, expectedPlan)
 }
 
 func TestSyncTerraformObject(t *testing.T) {

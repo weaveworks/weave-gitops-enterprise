@@ -470,6 +470,103 @@
         ]
       }
     },
+    "/v1/external-secrets": {
+      "get": {
+        "summary": "ListExternalSecrets list external secrets available on all clusters",
+        "operationId": "ClustersService_ListExternalSecrets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/external-secrets-stores": {
+      "get": {
+        "summary": "ListExternalSecretStores list external secrets stores",
+        "operationId": "ClustersService_ListExternalSecretStores",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretStoresResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/external-secrets/{externalSecretName}": {
+      "get": {
+        "summary": "GetExternalSecret get secret details",
+        "operationId": "ClustersService_GetExternalSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetExternalSecretResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "externalSecretName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policies": {
       "get": {
         "summary": "ListPolicies list policies available on the management cluster",
@@ -845,6 +942,12 @@
                 },
                 "templateNamespace": {
                   "type": "string"
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
                 }
               }
             }
@@ -1287,6 +1390,9 @@
         "filePath": {
           "type": "string",
           "title": "A path to write the resource to in the management git repo"
+        },
+        "externalSecret": {
+          "$ref": "#/definitions/v1ExternalSecret"
         }
       }
     },
@@ -1466,6 +1572,12 @@
         },
         "previousValues": {
           "$ref": "#/definitions/v1PreviousValues"
+        },
+        "externalSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecret"
+          }
         }
       }
     },
@@ -1639,6 +1751,78 @@
         }
       }
     },
+    "v1ExternalSecret": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ExternalSecretSpec"
+        }
+      },
+      "title": "External Secrets template"
+    },
+    "v1ExternalSecretItem": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "externalSecretName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretSpec": {
+      "type": "object",
+      "properties": {
+        "refreshInterval": {
+          "type": "string"
+        },
+        "secretStoreRef": {
+          "$ref": "#/definitions/v1externalSecretStoreRef"
+        },
+        "target": {
+          "$ref": "#/definitions/v1externalSecretTarget"
+        },
+        "data": {
+          "$ref": "#/definitions/v1externalSecretData"
+        }
+      }
+    },
+    "v1ExternalSecretStore": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetChartsJobResponse": {
       "type": "object",
       "properties": {
@@ -1671,6 +1855,44 @@
         "version": {
           "type": "string",
           "title": "The version of WeGO Enterprise"
+        }
+      }
+    },
+    "v1GetExternalSecretResponse": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "externalSecretName": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "secretStoreType": {
+          "type": "string"
+        },
+        "secretPath": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
         }
       }
     },
@@ -1957,6 +2179,42 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
+    "v1ListExternalSecretStoresResponse": {
+      "type": "object",
+      "properties": {
+        "stores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecretStore"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListExternalSecretsResponse": {
+      "type": "object",
+      "properties": {
+        "secrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecretItem"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -2433,6 +2691,12 @@
           "items": {
             "$ref": "#/definitions/v1Kustomization"
           }
+        },
+        "externalSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecret"
+          }
         }
       },
       "description": "Previous values for a CreatePullRequestRequest."
@@ -2482,6 +2746,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -2489,7 +2759,10 @@
       "type": "object",
       "properties": {
         "renderedTemplate": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         },
         "profileFiles": {
           "type": "array",
@@ -2505,6 +2778,12 @@
         },
         "costEstimate": {
           "$ref": "#/definitions/v1CostEstimate"
+        },
+        "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -2809,6 +3088,47 @@
           "type": "string"
         },
         "timestamp": {
+          "type": "string"
+        },
+        "manifest": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretData": {
+      "type": "object",
+      "properties": {
+        "secretKey": {
+          "type": "string"
+        },
+        "remoteRef": {
+          "$ref": "#/definitions/v1externalSecretRemoteRef"
+        }
+      }
+    },
+    "v1externalSecretRemoteRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretStoreRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretTarget": {
+      "type": "object",
+      "properties": {
+        "name": {
           "type": "string"
         }
       }

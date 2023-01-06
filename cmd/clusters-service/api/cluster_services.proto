@@ -225,6 +225,25 @@ service ClustersService {
       get : "/v1/workspaces/{workspaceName}/policies"
     };
   }
+
+  // ListExternalSecrets list external secrets available on all clusters
+  rpc ListExternalSecrets(ListExternalSecretsRequest) returns (ListExternalSecretsResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets"
+    };
+  }
+  // GetExternalSecret get secret details
+  rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets/{externalSecretName}"
+    };
+  }
+  // ListExternalSecretStores list external secrets stores
+  rpc ListExternalSecretStores(ListExternalSecretStoresRequest) returns (ListExternalSecretStoresResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets-stores"
+    };
+  }
 }
 
 
@@ -286,6 +305,7 @@ message RenderTemplateRequest {
   repeated ProfileValues profiles = 6;
   repeated Kustomization kustomizations = 7;
   string template_namespace = 8;
+  repeated ExternalSecret external_secrets = 9;
 }
 
 message CommitFile {
@@ -306,10 +326,11 @@ message CostEstimate{
 }
 
 message RenderTemplateResponse {
-  string rendered_template = 1;
+  repeated CommitFile rendered_template = 1;
   repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
+  repeated CommitFile external_secrets_files = 5;
 }
 
 message RenderAutomationRequest {
@@ -319,6 +340,7 @@ message RenderAutomationRequest {
 message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
+  repeated CommitFile external_secrets_files = 3;
 }
 
 message ListGitopsClustersRequest {
@@ -434,6 +456,7 @@ message CreatePullRequestRequest {
   string template_namespace = 14;
   string template_kind = 15;
   PreviousValues previous_values = 16;
+  repeated ExternalSecret external_secrets = 17;
 }
 
 // Previous values for a CreatePullRequestRequest.
@@ -442,6 +465,7 @@ message PreviousValues {
   Credential credentials = 2;
   repeated ProfileValues values = 3;
   repeated Kustomization kustomizations = 4;
+  repeated ExternalSecret external_secrets = 5;
  }
 
 message CreatePullRequestResponse {
@@ -654,6 +678,38 @@ message ClusterAutomation {
   HelmRelease helm_release = 4;
   // A path to write the resource to in the management git repo
   string file_path = 5;
+  ExternalSecret external_secret = 6;
+}
+
+// External Secrets template
+message ExternalSecret {
+  Metadata metadata = 1;
+  ExternalSecretSpec spec = 2;
+}
+
+message ExternalSecretSpec {
+  string refresh_interval = 1;
+  externalSecretStoreRef secret_store_ref = 2;
+  externalSecretTarget target = 3;
+  externalSecretData data = 4;
+}
+
+message externalSecretStoreRef {
+  string name = 1;
+}
+
+message externalSecretTarget {
+  string name = 1;
+}
+
+message externalSecretData {
+  string secret_key = 1;
+  externalSecretRemoteRef remote_ref = 2;
+}
+
+message externalSecretRemoteRef {
+  string key = 1;
+  string property = 2;
 }
 
 message Kustomization {
@@ -912,6 +968,7 @@ message WorkspaceServiceAccount {
   string name = 1;
   string namespace = 2;
   string timestamp = 3;
+  string manifest = 4;
 }
 
 message WorkspacePolicy {
@@ -955,4 +1012,58 @@ message GetWorkspacePoliciesResponse{
   string name = 1;
   string clusterName = 2;
   repeated WorkspacePolicy objects = 3;
+}
+
+message ExternalSecretItem {
+  string secretName = 1;
+  string externalSecretName = 2;
+  string namespace = 3;
+  string clusterName = 4;
+  string secretStore = 5;
+  string status = 6;
+  string timestamp = 7;
+}
+
+message ListExternalSecretsRequest {}
+
+message ListExternalSecretsResponse {
+  repeated ExternalSecretItem secrets = 1;
+  int32 total = 2;
+  repeated ListError errors = 4;
+}
+
+message GetExternalSecretRequest{
+  string clusterName = 1;
+  string namespace = 2;
+  string externalSecretName = 3;
+}
+
+message GetExternalSecretResponse{
+  string secretName = 1;
+  string externalSecretName = 2;
+  string clusterName = 3;
+  string namespace = 4;
+  string secretStore = 5;
+  string secretStoreType = 6;
+  string secretPath = 7;
+  string property = 8;
+  string version = 9;
+  string status = 10;
+  string timestamp = 11;
+}
+  
+message ExternalSecretStore {
+  string kind = 1;
+  string name = 2;
+  string namespace = 3;
+  string type = 4;
+}
+
+message ListExternalSecretStoresRequest{
+  string clusterName = 1;
+}
+
+message ListExternalSecretStoresResponse{
+  repeated ExternalSecretStore stores = 1;
+  int32 total = 2;
 }

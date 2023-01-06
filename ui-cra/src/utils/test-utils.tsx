@@ -38,12 +38,16 @@ import {
 } from '../api/terraform/terraform.pb';
 import {
   GetConfigResponse,
+  GetExternalSecretResponse,
   GetPolicyResponse,
   GetPolicyValidationResponse,
+  GetWorkspaceResponse,
+  ListExternalSecretsResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
   ListPolicyValidationsResponse,
   ListTemplatesResponse,
+  ListWorkspacesResponse,
 } from '../cluster-services/cluster_services.pb';
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
@@ -332,6 +336,38 @@ export class TerraformClientMock implements Terraform {
     {};
   ToggleSuspendTerraformObject() {
     return promisify(this.ToggleSuspendTerraformObjectReturns);
+  }
+}
+
+export class WorkspaceClientMock {
+  constructor() {
+    this.ListWorkspaces = this.ListWorkspaces.bind(this);
+    this.GetWorkspace = this.GetWorkspace.bind(this);
+  }
+  ListWorkspacesReturns: ListWorkspacesResponse = {};
+  GetWorkspaceReturns: GetWorkspaceResponse = {};
+
+  ListWorkspaces() {
+    return promisify(this.ListWorkspacesReturns);
+  }
+  GetWorkspace() {
+    return promisify(this.GetWorkspaceReturns);
+  }
+}
+
+export class SecretsClientMock {
+  constructor() {
+    this.ListExternalSecrets = this.ListExternalSecrets.bind(this);
+    this.GetSecret = this.GetSecret.bind(this);
+  }
+  ListSecretsReturns: ListExternalSecretsResponse = {};
+  GetSecretReturns: GetExternalSecretResponse = {};
+
+  ListExternalSecrets() {
+    return promisify(this.ListSecretsReturns);
+  }
+  GetSecret() {
+    return promisify(this.GetSecretReturns);
   }
 }
 

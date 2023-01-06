@@ -63,6 +63,7 @@ const (
 
 	ASSERTION_DEFAULT_TIME_OUT   time.Duration = 15 * time.Second
 	ASSERTION_1SECOND_TIME_OUT   time.Duration = 1 * time.Second
+	ASSERTION_5SECONDS_TIME_OUT  time.Duration = 5 * time.Second
 	ASSERTION_10SECONDS_TIME_OUT time.Duration = 10 * time.Second
 	ASSERTION_15SECONDS_TIME_OUT time.Duration = 15 * time.Second
 	ASSERTION_30SECONDS_TIME_OUT time.Duration = 30 * time.Second
@@ -507,4 +508,13 @@ func getArchiveFileList(archiveFile string) ([]string, error) {
 		}
 	}
 	return fileList, nil
+}
+
+func StringToLines(s string) (lines []string, err error) {
+	scanner := bufio.NewScanner(strings.NewReader(s))
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	err = scanner.Err()
+	return
 }

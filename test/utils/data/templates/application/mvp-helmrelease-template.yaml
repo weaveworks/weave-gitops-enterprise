@@ -1,4 +1,4 @@
-apiVersion: templates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: mvp-helmrelease-template
@@ -20,7 +20,7 @@ spec:
       description: Source that contains the Kubernetes manifests
     - name: NAMESPACE
       description: Namespace to create the source in
-      default: default    
+      default: default
     - name: URL
       description: URL of the git repository
     - name: INTERVAL
@@ -31,7 +31,7 @@ spec:
       description: Helm chart name
     - name: CHART_VERSION
       required: true
-      description:  Helm chart version, accepts a semver range
+      description: Helm chart version, accepts a semver range
     - name: TARGET_NAMESPACE
       required: true
       default: default
@@ -49,60 +49,66 @@ spec:
     - name: SERVICE_PORT
       required: true
       description: ClusterIP service port
+    - name: CLUSTER_PATH
+      required: false
+      default: 'clusters/management'
+      description: Cluster repository path
   resourcetemplates:
-    - apiVersion: source.toolkit.fluxcd.io/v1beta1
-      kind: HelmRepository
-      metadata:
-        name: ${{ .params.RESOURCE_NAME }}
-        namespace: ${{ .params.NAMESPACE }}
-        annotations:
-          templates.weave.works/create-request: ""
-      spec:
-        interval: ${{ .params.INTERVAL }}
-        url: ${{ .params.URL }}
-    - apiVersion: helm.toolkit.fluxcd.io/v2beta1
-      kind: HelmRelease
-      metadata:
-        name: ${{ .params.RESOURCE_NAME }}
-        namespace: ${{ .params.NAMESPACE }}
-        annotations:
-          templates.weave.works/create-request: ""
-      spec:
-        interval: 30s
-        chart:
+    - path: "${{ .params.CLUSTER_PATH }}/mvp/${{ .params.NAMESPACE }}/${{ .params.RESOURCE_NAME }}.yaml"
+      content:
+        - apiVersion: source.toolkit.fluxcd.io/v1beta1
+          kind: HelmRepository
+          metadata:
+            name: ${{ .params.RESOURCE_NAME }}
+            namespace: ${{ .params.NAMESPACE }}
+            annotations:
+              templates.weave.works/create-request: ""
+              templates.weave.works/cluster-name: "${{ .params.CLUSTER_PATH }}"
           spec:
-            chart: ${{ .params.CHART_NAME }}
-            version: ${{ .params.CHART_VERSION }}
-            sourceRef:
-              apiVersion: source.toolkit.fluxcd.io/v1beta2
-              kind: HelmRepository
-              name: ${{ .params.RESOURCE_NAME }}
-              namespace:  ${{ .params.NAMESPACE }}
-        targetNamespace: ${{ .params.TARGET_NAMESPACE }}
-        values: ${{ .params.VALUES | fromJson}}
-    - apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        annotations:
-          cert-manager.io/issuer: selfsigned-issuer
-          kubernetes.io/ingress.class: "nginx"
-          nginx.ingress.kubernetes.io/rewrite-target: /$1
-        name: ${{ .params.RESOURCE_NAME }}
-        namespace: ${{ .params.TARGET_NAMESPACE }}
-      spec:
-        rules:
-        - host: ${{ .params.HOST_NAME}}
-          http:
-            paths:
-            - pathType: ImplementationSpecific
-              path: /?(.*)
-              backend:
-                service:
-                  name: ${{ .params.SERVICE_NAME}}
-                  port:
-                    number: ${{ .params.SERVICE_PORT}}
-        tls:
-        - hosts:
-          - ${{ .params.HOST_NAME}}
-          secretName: weave-gitops-tls
-
+            interval: ${{ .params.INTERVAL }}
+            url: ${{ .params.URL }}
+        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+          kind: HelmRelease
+          metadata:
+            name: ${{ .params.RESOURCE_NAME }}
+            namespace: ${{ .params.NAMESPACE }}
+            annotations:
+              templates.weave.works/create-request: ""
+          spec:
+            interval: 30s
+            chart:
+              spec:
+                chart: ${{ .params.CHART_NAME }}
+                version: ${{ .params.CHART_VERSION }}
+                sourceRef:
+                  apiVersion: source.toolkit.fluxcd.io/v1beta2
+                  kind: HelmRepository
+                  name: ${{ .params.RESOURCE_NAME }}
+                  namespace: ${{ .params.NAMESPACE }}
+            targetNamespace: ${{ .params.TARGET_NAMESPACE }}
+            values: ${{ .params.VALUES | fromJson}}
+        - apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            annotations:
+              cert-manager.io/issuer: selfsigned-issuer
+              kubernetes.io/ingress.class: "nginx"
+              nginx.ingress.kubernetes.io/rewrite-target: /$1
+            name: ${{ .params.RESOURCE_NAME }}
+            namespace: ${{ .params.TARGET_NAMESPACE }}
+          spec:
+            rules:
+              - host: ${{ .params.HOST_NAME}}
+                http:
+                  paths:
+                    - pathType: ImplementationSpecific
+                      path: /?(.*)
+                      backend:
+                        service:
+                          name: ${{ .params.SERVICE_NAME}}
+                          port:
+                            number: ${{ .params.SERVICE_PORT}}
+            tls:
+              - hosts:
+                  - ${{ .params.HOST_NAME}}
+                secretName: weave-gitops-tls

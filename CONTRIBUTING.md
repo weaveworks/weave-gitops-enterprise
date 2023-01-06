@@ -110,7 +110,11 @@ before, _not_ your github password.
 cluster-controller and cluster-bootstrap-controller are both
 installed at startup.
 
-You need to clone the [cluster-controller](https://github.com/weaveworks/cluster-controller) and [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller) repositories next to this repository's clone.
+You need to clone the following repositories next to this repository's clone:
+
+- [cluster-controller](https://github.com/weaveworks/cluster-controller)
+- [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller)
+- [templates-controller](https://github.com/weaveworks/templates-controller)
 
 ### Permissions
 Make sure you can access to the

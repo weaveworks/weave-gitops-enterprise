@@ -8,13 +8,13 @@ import (
 	"strings"
 	"text/template"
 
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/sets"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
 
 	"github.com/Masterminds/sprig/v3"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
 )
 
 // TemplateDelimiterAnnotation can be added to a Template to change the Go
@@ -26,6 +26,11 @@ import (
 const TemplateDelimiterAnnotation string = "templates.weave.works/delimiters"
 
 var templateFuncs template.FuncMap = makeTemplateFunctions()
+
+type RenderedTemplate struct {
+	Data [][]byte
+	Path string
+}
 
 // Processor is a generic template parser/renderer.
 type Processor interface {
@@ -42,11 +47,11 @@ type RenderOptFunc func(uns *unstructured.Unstructured) error
 
 // NewProcessorForTemplate creates and returns an appropriate processor for a
 // template based on its declared type.
-func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
+func NewProcessorForTemplate(t templatesv1.Template) (*TemplateProcessor, error) {
 	switch t.GetSpec().RenderType {
-	case "", templates.RenderTypeEnvsubst:
+	case "", templatesv1.RenderTypeEnvsubst:
 		return &TemplateProcessor{Processor: NewEnvsubstTemplateProcessor(), Template: t}, nil
-	case templates.RenderTypeTemplating:
+	case templatesv1.RenderTypeTemplating:
 		return &TemplateProcessor{Processor: NewTextTemplateProcessor(t), Template: t}, nil
 
 	}
@@ -56,7 +61,7 @@ func NewProcessorForTemplate(t templates.Template) (*TemplateProcessor, error) {
 
 // TemplateProcessor does the work of rendering a template.
 type TemplateProcessor struct {
-	templates.Template
+	templatesv1.Template
 	Processor
 }
 
@@ -68,12 +73,20 @@ type TemplateProcessor struct {
 // The returned slice is sorted by Name.
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
-	for _, v := range p.GetSpec().ResourceTemplates {
-		names, err := p.Processor.ParamNames(v.Raw)
+	for _, resourcetemplateDefinition := range p.GetSpec().ResourceTemplates {
+		names, err := p.Processor.ParamNames([]byte(resourcetemplateDefinition.Path))
 		if err != nil {
-			return nil, fmt.Errorf("failed to get params from template: %w", err)
+			return nil, fmt.Errorf("failed to get params from template path: %w", err)
 		}
 		paramNames.Insert(names...)
+
+		for _, v := range resourcetemplateDefinition.Content {
+			names, err := p.Processor.ParamNames(v.Raw)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from template: %w", err)
+			}
+			paramNames.Insert(names...)
+		}
 	}
 
 	for k, v := range p.GetAnnotations() {
@@ -147,10 +160,7 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 }
 
 // RenderTemplates renders all the resourceTemplates in the template.
-//
-// TODO: This should return []*unstructured.Unstructured to avoid having to
-// convert back and forth.
-func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([][]byte, error) {
+func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...RenderOptFunc) ([]RenderedTemplate, error) {
 	params, err := p.Params()
 	if err != nil {
 		return nil, err
@@ -175,37 +185,52 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 		}
 	}
 
-	var processed [][]byte
-	for _, v := range p.GetSpec().ResourceTemplates {
-		b, err := yaml.JSONToYAML(v.RawExtension.Raw)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+	var renderedTemplates []RenderedTemplate
+	for _, resourceTemplatesDefintion := range p.GetSpec().ResourceTemplates {
+		var renderedPath string
+		if resourceTemplatesDefintion.Path != "" {
+			p, err := p.Processor.Render([]byte(resourceTemplatesDefintion.Path), vars)
+			if err != nil {
+				return nil, fmt.Errorf("failed to render resource template definition path: %w", err)
+			}
+			renderedPath = string(p)
 		}
+		var processed [][]byte
+		for _, v := range resourceTemplatesDefintion.Content {
+			b, err := yaml.JSONToYAML(v.Raw)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+			}
 
-		data, err := p.Processor.Render(b, vars)
-		if err != nil {
-			return nil, fmt.Errorf("processing template: %w", err)
-		}
+			data, err := p.Processor.Render(b, vars)
+			if err != nil {
+				return nil, fmt.Errorf("processing template: %w", err)
+			}
 
-		data, err = processUnstructured(data, opts...)
-		if err != nil {
-			return nil, fmt.Errorf("modifying template: %w", err)
+			data, err = processUnstructured(data, opts...)
+			if err != nil {
+				return nil, fmt.Errorf("modifying template: %w", err)
+			}
+			processed = append(processed, data)
 		}
-		processed = append(processed, data)
+		renderedTemplates = append(renderedTemplates, RenderedTemplate{
+			Data: processed,
+			Path: renderedPath,
+		})
 	}
 
-	return processed, nil
+	return renderedTemplates, nil
 }
 
 // NewTextTemplateProcessor creates and returns a new TextTemplateProcessor.
-func NewTextTemplateProcessor(t templates.Template) *TextTemplateProcessor {
+func NewTextTemplateProcessor(t templatesv1.Template) *TextTemplateProcessor {
 	return &TextTemplateProcessor{template: t}
 }
 
 // TextProcessor is an implementation of the Processor interface that uses Go's
-// text/template to render templates.
+// text/template to render .
 type TextTemplateProcessor struct {
-	template templates.Template
+	template templatesv1.Template
 }
 
 func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
@@ -217,7 +242,10 @@ func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([
 	}
 
 	var out bytes.Buffer
-	if err := parsed.Execute(&out, map[string]interface{}{"params": values}); err != nil {
+	if err := parsed.Execute(&out, map[string]interface{}{
+		"params":   values,
+		"template": templateMetadata(p.template),
+	}); err != nil {
 		return nil, fmt.Errorf("failed to render template: %w", err)
 	}
 
@@ -303,4 +331,14 @@ func makeTemplateFunctions() template.FuncMap {
 		delete(f, v)
 	}
 	return f
+}
+
+// this could add additional fields from the data.
+func templateMetadata(t templatesv1.Template) map[string]any {
+	return map[string]any{
+		"meta": map[string]any{
+			"name":      t.GetName(),
+			"namespace": t.GetNamespace(),
+		},
+	}
 }

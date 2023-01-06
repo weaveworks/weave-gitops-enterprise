@@ -96,7 +96,7 @@ func installPolicyConfig(clusterName string, policyConfigYaml string) {
 }
 
 func navigatetoApplicationsPage(applicationsPage *pages.ApplicationsPage) {
-	ginkgo.By("And navigate to Applicartions page via header link", func() {
+	ginkgo.By("And back to Applications page via header link", func() {
 		gomega.Expect(applicationsPage.ApplicationHeaderLink.Click()).Should(gomega.Succeed(), "Failed to navigate to Applications pages via header link")
 		pages.WaitForPageToLoad(webDriver)
 	})
@@ -538,7 +538,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		}
 	})
 
-	ginkgo.Context("[UI] When no applications are installed", func() {
+	ginkgo.Context("When no applications are installed", func() {
 
 		ginkgo.It("Verify management cluster dashboard shows bootstrap 'flux-system' application", func() {
 			fluxSystem := Application{
@@ -573,7 +573,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 	})
 
-	ginkgo.Context("[UI] Applications(s) can be installed on management cluster", func() {
+	ginkgo.Context("Applications(s) can be installed on management cluster", func() {
 
 		var existingAppCount int
 		var downloadedResourcesPath string
@@ -690,7 +690,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 				Message: "Adding management helm applications",
 			}
 			sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
-			appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, appNameSpace)
+			appKustomization := fmt.Sprintf("./clusters/%s/%s-%s-helmrelease.yaml", mgmtCluster.Name, metallb.Name, metallb.TargetNamespace)
 
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			existingAppCount = getApplicationCount()
@@ -741,8 +741,12 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			ginkgo.By("Then verify preview tab lists", func() {
 				// Verify profiles preview
 				gomega.Eventually(preview.GetPreviewTab("Helm Releases").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, metallb.Name, metallb.Namespace)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s[\s\w\d./:-]*prometheus[\s\w\d./:-]*namespace: %s`, metallb.Name, metallb.Chart, metallb.Version, metallb.TargetNamespace, metallb.TargetNamespace)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join("clusters/management", strings.Join([]string{metallb.Name, metallb.TargetNamespace, "helmrelease.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, metallb.Name, metallb.Namespace)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s[\s\w\d./:-]*prometheus[\s\w\d./:-]*namespace: %s`, metallb.Name, metallb.Chart, metallb.Version, metallb.TargetNamespace, metallb.TargetNamespace)))
+
+				// Verify kustomization tab view is disabled because no kustomization is part of pull request
+				gomega.Expect(preview.GetPreviewTab("Kustomizations").Attribute("class")).Should(gomega.MatchRegexp("Mui-disabled"), "'KUSTOMIZATIONS' preview tab should be disabled")
 			})
 
 			ginkgo.By("And verify downloaded preview resources", func() {
@@ -885,10 +889,15 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			ginkgo.By("Then verify preview tab lists", func() {
 				// Verify kustomizations preview resources.zip
 				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`path: %s`, podinfo.Path)))
-				gomega.Eventually(preview.Text).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join("clusters/management", strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
+				gomega.Eventually(preview.Path.At(1)).Should(matchers.MatchText(path.Join("clusters/management", strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(1)).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
+				gomega.Eventually(preview.Text.At(1)).Should(matchers.MatchText(fmt.Sprintf(`path: %s`, podinfo.Path)))
+				gomega.Eventually(preview.Text.At(1)).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
+
+				// Verify helmrelease tab view is disabled because no helmrelease is part of pull request
+				gomega.Expect(preview.GetPreviewTab("Helm Releases").Attribute("class")).Should(gomega.MatchRegexp("Mui-disabled"), "'Helmrelease' preview tab should be disabled")
 			})
 
 			ginkgo.By("And verify downloaded preview resources", func() {
@@ -959,13 +968,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 	})
 
-	ginkgo.Context("[UI] Applications(s) can be installed on leaf cluster", ginkgo.Label("leaf-application"), func() {
+	ginkgo.Context("Applications(s) can be installed on leaf cluster", ginkgo.Label("kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
 		var clusterBootstrapCopnfig string
 		var gitopsCluster string
 		var existingAppCount int
+		var downloadedResourcesPath string
 		patSecret := "application-pat"
 		bootstrapLabel := "bootstrap"
 
@@ -979,11 +989,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		}
 
 		ginkgo.JustBeforeEach(func() {
+			downloadedResourcesPath = path.Join(os.Getenv("HOME"), "Downloads", "resources.zip")
 			existingAppCount = getApplicationCount()
 			mgmtClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
 			createCluster("kind", leafCluster.Name, "")
 			createNamespace([]string{appNameSpace, appTargetNamespace})
 			leafClusterContext, _ = runCommandAndReturnStringOutput("kubectl config current-context")
+
+			_ = deleteFile([]string{downloadedResourcesPath})
 		})
 
 		ginkgo.JustAfterEach(func() {
@@ -996,6 +1009,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			deleteCluster("kind", leafCluster.Name, "")
 			cleanGitRepository(path.Join("./clusters", leafCluster.Namespace))
 			deleteNamespace([]string{leafCluster.Namespace})
+			_ = deleteFile([]string{downloadedResourcesPath})
 
 		})
 
@@ -1081,6 +1095,48 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			})
 
 			AddKustomizationApp(application, podinfo)
+
+			createPage := pages.GetCreateClusterPage(webDriver)
+			preview := pages.GetPreview(webDriver)
+			ginkgo.By("Then I should preview the PR", func() {
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+					g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
+				}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), "Failed to get PR preview")
+			})
+
+			ginkgo.By("Then verify preview tab lists", func() {
+				// Verify kustomizations preview resources.zip
+				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: Namespace[\s\w\d./:-]*name: %s`, podinfo.TargetNamespace)))
+				gomega.Eventually(preview.Path.At(1)).Should(matchers.MatchText(path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(1)).Should(matchers.MatchText(fmt.Sprintf(`kind: Kustomization[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, podinfo.Name, podinfo.Namespace)))
+				gomega.Eventually(preview.Text.At(1)).Should(matchers.MatchText(fmt.Sprintf(`path: %s`, podinfo.Path)))
+				gomega.Eventually(preview.Text.At(1)).Should(matchers.MatchText(fmt.Sprintf(`sourceRef:[\s\w\d./:-]*kind: GitRepository[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*targetNamespace: %s`, podinfo.Source, podinfo.Namespace, podinfo.TargetNamespace)))
+
+				// Verify helmrelease tab view is disabled because no helmrelease is part of pull request
+				gomega.Expect(preview.GetPreviewTab("Helm Releases").Attribute("class")).Should(gomega.MatchRegexp("Mui-disabled"), "'Helmrelease' preview tab should be disabled")
+			})
+
+			ginkgo.By("And verify downloaded preview resources", func() {
+				// verify download prview resources
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(preview.Download.Click()).Should(gomega.Succeed())
+					_, err := os.Stat(downloadedResourcesPath)
+					g.Expect(err).Should(gomega.Succeed())
+				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
+
+				fileList, _ := getArchiveFileList(downloadedResourcesPath)
+				previewResources := []string{
+					path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.TargetNamespace, "namespace.yaml"}, "-")),
+					path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{podinfo.Name, podinfo.Namespace, "kustomization.yaml"}, "-")),
+				}
+				gomega.Expect(len(fileList)).Should(gomega.Equal(len(previewResources)), "Failed to verify expected number of downloaded preview resources")
+				gomega.Expect(fileList).Should(gomega.ContainElements(previewResources), "Failed to verify downloaded preview resources files")
+			})
+
 			_ = createGitopsPR(pullRequest)
 
 			ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
@@ -1127,17 +1183,15 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 
 		ginkgo.It("Verify application can be installed from HelmRepository source on leaf cluster and management dashboard is updated accordingly", func() {
-			ginkgo.Skip("Test is waiting for #1282 to be fixed. Can't get profile from leaf clusters")
-
 			metallb := Application{
 				Type:            "helm_release",
 				Chart:           "profiles-catalog",
 				SyncInterval:    "10m",
 				Name:            "metallb",
 				DeploymentName:  "metallb-controller",
-				Namespace:       appNameSpace,
+				Namespace:       GITOPS_DEFAULT_NAMESPACE, // HelmRelease application always get installed in flux-system namespace
 				TargetNamespace: appTargetNamespace,
-				Source:          appNameSpace + "-metallb",
+				Source:          GITOPS_DEFAULT_NAMESPACE + "-metallb",
 				Version:         "0.0.2",
 				ValuesRegex:     `namespace: ""`,
 				Values:          fmt.Sprintf(`namespace: %s`, appNameSpace),
@@ -1157,7 +1211,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 			}
 
 			sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
-			appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-kustomization.yaml", leafCluster.Namespace, leafCluster.Name, metallb.Name, metallb.Namespace)
+			appKustomization := fmt.Sprintf("./clusters/%s/%s/%s-%s-helmrelease.yaml", leafCluster.Namespace, leafCluster.Name, metallb.Name, metallb.TargetNamespace)
 
 			repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 			leafClusterkubeconfig = createLeafClusterKubeconfig(leafClusterContext, leafCluster.Name, leafCluster.Namespace)
@@ -1192,7 +1246,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 
 			ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
 				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
 				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 			})
 
@@ -1210,15 +1263,54 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 				gomega.Eventually(func(g gomega.Gomega) bool {
 					g.Expect(webDriver.Refresh()).ShouldNot(gomega.HaveOccurred())
 					g.Eventually(application.Cluster.Click).Should(gomega.Succeed(), "Failed to click Select Cluster list")
-					g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), "Failed to select 'management' cluster from clusters list")
+					g.Eventually(application.SelectListItem(webDriver, leafCluster.Name).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s cluster from clusters list", leafCluster.Name))
 					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
 					return pages.ElementExist(application.SelectListItem(webDriver, metallb.Chart))
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("HelmRepository %s source is not listed in source's list", metallb.Name))
 
-				gomega.Expect(pages.ClickElement(webDriver, application.SelectListItem(webDriver, metallb.Chart), -250, 0)).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+				gomega.Eventually(application.SelectListItem(webDriver, metallb.Chart).Click).Should(gomega.Succeed(), "Failed to select HelmRepository source from sources list")
+				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
 			})
 
 			AddHelmReleaseApp(profile, metallb)
+
+			preview := pages.GetPreview(webDriver)
+			ginkgo.By("Then I should preview the PR", func() {
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(createPage.PreviewPR.Click()).Should(gomega.Succeed())
+					g.Expect(preview.Title.Text()).Should(gomega.MatchRegexp("PR Preview"))
+
+				}, ASSERTION_1MINUTE_TIME_OUT).Should(gomega.Succeed(), "Failed to get PR preview")
+			})
+
+			ginkgo.By("Then verify preview tab lists", func() {
+				// Verify profiles preview
+				gomega.Eventually(preview.GetPreviewTab("Helm Releases").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
+				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{metallb.Name, metallb.TargetNamespace, "helmrelease.yaml"}, "-"))))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: HelmRelease[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*spec`, metallb.Name, metallb.Namespace)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`chart: %s[\s\w\d./:-]*sourceRef:[\s\w\d./:-]*name: %s[\s\w\d./:-]*version: %s[\s\w\d./:-]*targetNamespace: %s[\s\w\d./:-]*prometheus[\s\w\d./:-]*namespace: %s`, metallb.Name, metallb.Chart, metallb.Version, metallb.TargetNamespace, appNameSpace)))
+
+				// Verify kustomization tab view is disabled because no kustomization is part of pull request
+				gomega.Expect(preview.GetPreviewTab("Kustomizations").Attribute("class")).Should(gomega.MatchRegexp("Mui-disabled"), "'KUSTOMIZATIONS' preview tab should be disabled")
+			})
+
+			ginkgo.By("And verify downloaded preview resources", func() {
+				// verify download prview resources
+				gomega.Eventually(func(g gomega.Gomega) {
+					g.Expect(preview.Download.Click()).Should(gomega.Succeed())
+					_, err := os.Stat(downloadedResourcesPath)
+					g.Expect(err).Should(gomega.Succeed())
+				}, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).ShouldNot(gomega.HaveOccurred(), "Failed to click 'Download' preview resources")
+				gomega.Eventually(preview.Close.Click).Should(gomega.Succeed(), "Failed to close the preview dialog")
+
+				fileList, _ := getArchiveFileList(downloadedResourcesPath)
+				previewResources := []string{
+					path.Join("clusters", leafCluster.Namespace, leafCluster.Name, strings.Join([]string{metallb.Name, metallb.TargetNamespace, "helmrelease.yaml"}, "-")),
+				}
+				gomega.Expect(len(fileList)).Should(gomega.Equal(len(previewResources)), "Failed to verify expected number of downloaded preview resources")
+				gomega.Expect(fileList).Should(gomega.ContainElements(previewResources), "Failed to verify downloaded preview resources files")
+			})
+
 			_ = createGitopsPR(pullRequest)
 
 			ginkgo.By("Then I should merge the pull request to start application reconciliation", func() {
@@ -1267,7 +1359,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 	})
 
 	// Application Violations tests
-	ginkgo.Context("[UI] Application violations are available for management cluster", ginkgo.Label("violation"), func() {
+	ginkgo.Context("Application violations are available for management cluster", ginkgo.Label("violation"), func() {
 		// Count of existing applications before deploying new application
 		var existingAppCount int
 		var downloadedResourcesPath string
@@ -1380,7 +1472,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 		})
 	})
 
-	ginkgo.Context("[UI] Application violations are available for leaf cluster", ginkgo.Label("violation", "leaf-application"), func() {
+	ginkgo.Context("Application violations are available for leaf cluster", ginkgo.Label("violation", "kind-leaf-cluster"), func() {
 		var mgmtClusterContext string
 		var leafClusterContext string
 		var leafClusterkubeconfig string
@@ -1503,7 +1595,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Applications", ginkgo.Label
 
 			ginkgo.By("And wait for existing applications to be visibe on the dashboard", func() {
 				gomega.Eventually(applicationsPage.ApplicationHeader).Should(matchers.BeVisible())
-
 				existingAppCount += 2 // flux-system + clusters-bases-kustomization (leaf cluster)
 			})
 

@@ -686,7 +686,7 @@ func waitForNamespaceDeletion(namespaces []string) {
 		checkOutput := func() error {
 			return runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get namespace %s`, namespace))
 		}
-		gomega.Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.HaveOccurred(), fmt.Sprintf("'%s' namespace is expected not to be available", namespace))
+		gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.HaveOccurred(), fmt.Sprintf("'%s' namespace is expected not to be available", namespace))
 	}
 }
 
@@ -698,6 +698,19 @@ func getApplicationCount() int {
 	hCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
 
 	return kCount + hCount
+}
+
+func getSourceCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl get helmrepository -A --output name | wc -l")
+	hCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	stdOut, _ = runCommandAndReturnStringOutput("kubectl get helmchart -A --output name | wc -l")
+	cCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	stdOut, _ = runCommandAndReturnStringOutput("kubectl get gitrepository -A --output name | wc -l")
+	gCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	return gCount + hCount + cCount
 }
 
 func getClustersCount() int {
@@ -716,4 +729,12 @@ func getViolationsCount() int {
 	stdOut, _ := runCommandAndReturnStringOutput("kubectl  get events --field-selector reason=PolicyViolation  --output name | wc -l")
 	vCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
 	return vCount
+}
+
+func getWorkspacesCount() int {
+	stdOut, err := runCommandAndReturnStringOutput(`kubectl get namespaces -l toolkit.fluxcd.io/tenant -o yaml | grep -oE "toolkit.fluxcd.io/tenant: [a-zA-Z0-9]+" | sort --unique | wc -l`)
+	gomega.Expect(err).Should(gomega.BeEmpty(), "Failed to get workspaces count")
+
+	wCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return wCount
 }

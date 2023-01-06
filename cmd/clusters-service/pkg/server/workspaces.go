@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
@@ -148,7 +149,7 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 		role := capiv1_proto.WorkspaceRole{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
-			Timestamp: list.Items[i].CreationTimestamp.String(),
+			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 		}
 		for _, rule := range list.Items[i].Rules {
 			role.Rules = append(role.Rules, &capiv1_proto.WorkspaceRoleRule{
@@ -157,11 +158,16 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 				Verbs:     rule.Verbs,
 			})
 		}
-		yml, err := k8sObjectToYaml(&list.Items[i])
+
+		obj := list.Items[i]
+		obj.SetGroupVersionKind(rbacv1.SchemeGroupVersion.WithKind("Role"))
+
+		manifest, err := k8sObjectToYaml(&obj)
 		if err != nil {
 			return nil, err
 		}
-		role.Manifest = yml
+
+		role.Manifest = manifest
 		roles = append(roles, &role)
 	}
 
@@ -196,11 +202,11 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 		roleBinding := capiv1_proto.WorkspaceRoleBinding{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
-			Timestamp: list.Items[i].CreationTimestamp.String(),
+			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 			Role: &capiv1_proto.WorkspaceRoleBindingRoleRef{
 				ApiGroup: list.Items[i].RoleRef.APIGroup,
 				Kind:     list.Items[i].RoleRef.Kind,
-				Name:     list.Items[i].RoleRef.Kind,
+				Name:     list.Items[i].RoleRef.Name,
 			},
 		}
 
@@ -213,11 +219,14 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 			})
 		}
 
-		yml, err := k8sObjectToYaml(&list.Items[i])
+		obj := list.Items[i]
+		obj.SetGroupVersionKind(rbacv1.SchemeGroupVersion.WithKind("RoleBinding"))
+
+		manifest, err := k8sObjectToYaml(&obj)
 		if err != nil {
 			return nil, err
 		}
-		roleBinding.Manifest = yml
+		roleBinding.Manifest = manifest
 		roleBindings = append(roleBindings, &roleBinding)
 	}
 
@@ -249,11 +258,22 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 
 	var serviceAccounts []*capiv1_proto.WorkspaceServiceAccount
 	for i := range list.Items {
-		serviceAccounts = append(serviceAccounts, &capiv1_proto.WorkspaceServiceAccount{
+		serviceAccount := &capiv1_proto.WorkspaceServiceAccount{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
-			Timestamp: list.Items[i].CreationTimestamp.String(),
-		})
+			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
+		}
+
+		obj := list.Items[i]
+		obj.SetGroupVersionKind(rbacv1.SchemeGroupVersion.WithKind(rbacv1.ServiceAccountKind))
+
+		manifest, err := k8sObjectToYaml(&obj)
+		if err != nil {
+			return nil, err
+		}
+
+		serviceAccount.Manifest = manifest
+		serviceAccounts = append(serviceAccounts, serviceAccount)
 	}
 
 	return &capiv1_proto.GetWorkspaceServiceAccountsResponse{
@@ -291,7 +311,7 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 				Name:      list.Items[i].Spec.Name,
 				Category:  list.Items[i].Spec.Category,
 				Severity:  list.Items[i].Spec.Severity,
-				Timestamp: list.Items[i].CreationTimestamp.String(),
+				Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 			})
 		}
 	} else {
@@ -301,7 +321,7 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 				Name:      list.Items[i].Spec.Name,
 				Category:  list.Items[i].Spec.Category,
 				Severity:  list.Items[i].Spec.Severity,
-				Timestamp: list.Items[i].CreationTimestamp.String(),
+				Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 			})
 		}
 	}
