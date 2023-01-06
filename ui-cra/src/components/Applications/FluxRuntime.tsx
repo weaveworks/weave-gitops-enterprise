@@ -1,7 +1,7 @@
 import {
   FluxRuntime,
-  useListFluxRuntimeObjects,
   useListFluxCrds,
+  useListFluxRuntimeObjects,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { FC } from 'react';
