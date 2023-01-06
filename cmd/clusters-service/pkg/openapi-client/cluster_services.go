@@ -6,7 +6,7 @@ package cluster_services
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -207,7 +207,7 @@ func (c *ClientWithResponses) ClustersServiceListTemplatesWithResponse(ctx conte
 
 // ParseClustersServiceListTemplatesResponse parses an HTTP response from a ClustersServiceListTemplatesWithResponse call
 func ParseClustersServiceListTemplatesResponse(rsp *http.Response) (*ClustersServiceListTemplatesResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer rsp.Body.Close()
 	if err != nil {
 		return nil, err

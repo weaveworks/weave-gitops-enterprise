@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -338,7 +337,7 @@ func dumpingDOM(name string) {
 		filepath := path.Join(artifactsBaseDir, SCREENSHOTS_DIR_NAME, name+".html")
 		var htmlDocument interface{}
 		_ = webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)
-		_ = ioutil.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+		_ = os.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
 	}
 }
 
@@ -453,12 +452,12 @@ func copyFile(sourceFile, destination string) error {
 			destination = path.Join(destination, src)
 		}
 
-		input, err := ioutil.ReadFile(sourceFile)
+		input, err := os.ReadFile(sourceFile)
 		if err != nil {
 			return err
 		}
 
-		err = ioutil.WriteFile(destination, input, 0644)
+		err = os.WriteFile(destination, input, 0644)
 		if err != nil {
 			return err
 		}
