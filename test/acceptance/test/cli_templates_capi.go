@@ -3,7 +3,6 @@ package acceptance
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
@@ -40,7 +39,7 @@ func createProfileValuesYaml(profileName string, clusterName string) string {
 	data, err := yaml.Marshal(&values)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to serializes yaml values")
 
-	err = ioutil.WriteFile(profileValues, data, 0644)
+	err = os.WriteFile(profileValues, data, 0644)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to write data to file "+profileValues)
 
 	return profileValues

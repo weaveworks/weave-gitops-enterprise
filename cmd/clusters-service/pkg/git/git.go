@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -149,7 +149,7 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 
 func (s *GitProviderService) CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error) {
 	s.log.Info("Creating a temp directory...")
-	gitDir, err := ioutil.TempDir(req.ParentDir, "git-")
+	gitDir, err := os.MkdirTemp(req.ParentDir, "git-")
 	if err != nil {
 		return nil, err
 	}
