@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -90,6 +91,16 @@ type FakeClient struct {
 	}
 	listReturnsOnCall map[int]struct {
 		result1 error
+	}
+	NamespacesStub        func() map[string][]v1.Namespace
+	namespacesMutex       sync.RWMutex
+	namespacesArgsForCall []struct {
+	}
+	namespacesReturns struct {
+		result1 map[string][]v1.Namespace
+	}
+	namespacesReturnsOnCall map[int]struct {
+		result1 map[string][]v1.Namespace
 	}
 	PatchStub        func(context.Context, string, client.Object, client.Patch, ...client.PatchOption) error
 	patchMutex       sync.RWMutex
@@ -510,6 +521,59 @@ func (fake *FakeClient) ListReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeClient) Namespaces() map[string][]v1.Namespace {
+	fake.namespacesMutex.Lock()
+	ret, specificReturn := fake.namespacesReturnsOnCall[len(fake.namespacesArgsForCall)]
+	fake.namespacesArgsForCall = append(fake.namespacesArgsForCall, struct {
+	}{})
+	stub := fake.NamespacesStub
+	fakeReturns := fake.namespacesReturns
+	fake.recordInvocation("Namespaces", []interface{}{})
+	fake.namespacesMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClient) NamespacesCallCount() int {
+	fake.namespacesMutex.RLock()
+	defer fake.namespacesMutex.RUnlock()
+	return len(fake.namespacesArgsForCall)
+}
+
+func (fake *FakeClient) NamespacesCalls(stub func() map[string][]v1.Namespace) {
+	fake.namespacesMutex.Lock()
+	defer fake.namespacesMutex.Unlock()
+	fake.NamespacesStub = stub
+}
+
+func (fake *FakeClient) NamespacesReturns(result1 map[string][]v1.Namespace) {
+	fake.namespacesMutex.Lock()
+	defer fake.namespacesMutex.Unlock()
+	fake.NamespacesStub = nil
+	fake.namespacesReturns = struct {
+		result1 map[string][]v1.Namespace
+	}{result1}
+}
+
+func (fake *FakeClient) NamespacesReturnsOnCall(i int, result1 map[string][]v1.Namespace) {
+	fake.namespacesMutex.Lock()
+	defer fake.namespacesMutex.Unlock()
+	fake.NamespacesStub = nil
+	if fake.namespacesReturnsOnCall == nil {
+		fake.namespacesReturnsOnCall = make(map[int]struct {
+			result1 map[string][]v1.Namespace
+		})
+	}
+	fake.namespacesReturnsOnCall[i] = struct {
+		result1 map[string][]v1.Namespace
+	}{result1}
+}
+
 func (fake *FakeClient) Patch(arg1 context.Context, arg2 string, arg3 client.Object, arg4 client.Patch, arg5 ...client.PatchOption) error {
 	fake.patchMutex.Lock()
 	ret, specificReturn := fake.patchReturnsOnCall[len(fake.patchArgsForCall)]
@@ -718,6 +782,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.getMutex.RUnlock()
 	fake.listMutex.RLock()
 	defer fake.listMutex.RUnlock()
+	fake.namespacesMutex.RLock()
+	defer fake.namespacesMutex.RUnlock()
 	fake.patchMutex.RLock()
 	defer fake.patchMutex.RUnlock()
 	fake.scopedMutex.RLock()
