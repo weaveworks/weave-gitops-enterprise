@@ -98,14 +98,6 @@ func GetWorkspaceDetailsPage(webDriver *agouti.Page) *WorkspaceDetailsPage {
 	}
 }
 
-// func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
-// 	return &ServiceAccounts{
-// 		Name:      webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="GitRepository"]/parent::node()`),
-// 		Namespace: webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="Kustomization"]/parent::node()`),
-// 		Age:       webDriver.FirstByXPath(`//div[contains(@class, "GraphNode__NodeText")]/div[contains(@class, "GraphNode__Kinds")][.="HelmRepository"]/parent::node()`),
-// 	}
-// }
-
 func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 	return &ServiceAccounts{
 		Name:      webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
