@@ -71,7 +71,7 @@ func verifyWorkspaceDetailsPage(workspaceName string, WorkspaceNamespaces string
 	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 	ginkgo.By(fmt.Sprintf("Then verify '%s' workspace details page", workspaceName), func() {
 		gomega.Eventually(WorkspacesDetailPage.Header.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify get the details page's header for '%s' workspace", workspaceName))
-		gomega.Eventually(WorkspacesDetailPage.GoToTenantApplicatiosBtn).Should(matchers.BeEnabled(), fmt.Sprintf("'Go'To'Tenant'Applicatios' button is not visible/enable for '%s' workspace", workspaceName))
+		gomega.Eventually(WorkspacesDetailPage.GoToTenantApplicationsBtn).Should(matchers.BeEnabled(), fmt.Sprintf("'Go'To'Tenant'Applications' button is not visible/enable for '%s' workspace", workspaceName))
 		gomega.Eventually(WorkspacesDetailPage.WorkspaceName.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify the '%s' workspace tenant name", workspaceName))
 		gomega.Eventually(WorkspacesDetailPage.Namespaces.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify the '%s' workspace namespaces", workspaceName))
 		gomega.Eventually(WorkspacesDetailPage.ServiceAccountsTab).Should(matchers.BeEnabled(), fmt.Sprintf("'Service Accounts' tab is not visible/enable for '%s' workspace", workspaceName))

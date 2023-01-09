@@ -21,14 +21,14 @@ type WorkspaceInformation struct {
 }
 
 type WorkspaceDetailsPage struct {
-	Header                   *agouti.Selection
-	GoToTenantApplicatiosBtn *agouti.Selection
-	WorkspaceName            *agouti.Selection
-	Namespaces               *agouti.Selection
-	ServiceAccountsTab       *agouti.Selection
-	RolesTab                 *agouti.Selection
-	RoleBindingsTab          *agouti.Selection
-	PoliciesTab              *agouti.Selection
+	Header                    *agouti.Selection
+	GoToTenantApplicationsBtn *agouti.Selection
+	WorkspaceName             *agouti.Selection
+	Namespaces                *agouti.Selection
+	ServiceAccountsTab        *agouti.Selection
+	RolesTab                  *agouti.Selection
+	RoleBindingsTab           *agouti.Selection
+	PoliciesTab               *agouti.Selection
 }
 
 type ServiceAccounts struct {
@@ -87,14 +87,14 @@ func GetWorkspacesPage(webDriver *agouti.Page) *WorkspacesPage {
 
 func GetWorkspaceDetailsPage(webDriver *agouti.Page) *WorkspaceDetailsPage {
 	return &WorkspaceDetailsPage{
-		Header:                   webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/workspaces"]/parent::node()/parent::node()/following-sibling::div`),
-		GoToTenantApplicatiosBtn: webDriver.FindByClass(`MuiButtonBase-root MuiButton-root MuiButton-outlined Button-sc-1w0plxi-0 fOXjJl jss241 MuiButton-outlinedPrimary MuiButton-disableElevation`),
-		WorkspaceName:            webDriver.FindByXPath(`//div[@data-testid='Tenant Name']`),
-		Namespaces:               webDriver.FindByXPath(`//div[@data-testid='Namespaces']`),
-		ServiceAccountsTab:       webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/serviceAccounts?"]`),
-		RolesTab:                 webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/roles?"]`),
-		RoleBindingsTab:          webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/roleBindings?"]`),
-		PoliciesTab:              webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/policies?"]`),
+		Header:                    webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/workspaces"]/parent::node()/parent::node()/following-sibling::div`),
+		GoToTenantApplicationsBtn: webDriver.FindByClass(`MuiButtonBase-root MuiButton-root MuiButton-outlined Button-sc-1w0plxi-0 fOXjJl jss88 MuiButton-outlinedPrimary MuiButton-disableElevation`),
+		WorkspaceName:             webDriver.FindByXPath(`//div[@data-testid='Workspace Name']`),
+		Namespaces:                webDriver.FindByXPath(`//div[@data-testid='Namespaces']`),
+		ServiceAccountsTab:        webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/serviceAccounts?"]`),
+		RolesTab:                  webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/roles?"]`),
+		RoleBindingsTab:           webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/roleBindings?"]`),
+		PoliciesTab:               webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/policies?"]`),
 	}
 }
 
