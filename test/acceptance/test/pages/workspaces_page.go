@@ -88,7 +88,7 @@ func GetWorkspacesPage(webDriver *agouti.Page) *WorkspacesPage {
 func GetWorkspaceDetailsPage(webDriver *agouti.Page) *WorkspaceDetailsPage {
 	return &WorkspaceDetailsPage{
 		Header:                    webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/workspaces"]/parent::node()/parent::node()/following-sibling::div`),
-		GoToTenantApplicationsBtn: webDriver.FindByXPath(`/html/body/div[1]/div[1]/main/div/div[2]/div[1]/div[1]/div[1]`),
+		GoToTenantApplicationsBtn: webDriver.FindByXPath(`//span[normalize-space()='go to TENANT applications']`),
 		WorkspaceName:             webDriver.FindByXPath(`//div[@data-testid='Workspace Name']`),
 		Namespaces:                webDriver.FindByXPath(`//div[@data-testid='Namespaces']`),
 		ServiceAccountsTab:        webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/serviceAccounts?"]`),
