@@ -29,9 +29,9 @@ func renderTenants(tenantDefinition string, gp GitProviderEnv) string {
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
 	t := template.Must(template.New(tenantDefinition).Parse(string(contents)))
 	input := struct {
-		MainRepoUrl string
+		MainRepoURL string
 	}{
-		MainRepoUrl: gitRepoURL,
+		MainRepoURL: gitRepoURL,
 	}
 	path := path.Join("/tmp", "rendered-tenant.yaml")
 	f, err := os.Create(path)
