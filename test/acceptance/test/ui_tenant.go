@@ -249,6 +249,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 
 			defer deleteTenants([]string{getTenantYamlPath()})
 			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 
 			// Add HelmRepository source
 			sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
@@ -410,6 +411,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			useClusterContext(mgmtClusterContext)
 			// Installing tenant resources to management cluster. This is an easy way to add oidc tenant user rbac
 			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 			createPATSecret(leafCluster.Namespace, patSecret)
 			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
@@ -423,6 +425,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 
 			// Installing tenant resources to leaf cluster after leaf-cluster is bootstrapped
 			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 			// Add GitRepository source to leaf cluster
 			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 
