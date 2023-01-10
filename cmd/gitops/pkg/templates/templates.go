@@ -124,12 +124,12 @@ type CredentialsRetriever interface {
 }
 
 type Template struct {
-	Name         string
-	Description  string
-	Provider     string
-	TemplateKind string
-	TemplateType string
-	Error        string
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	Provider     string `json:"provider"`
+	TemplateKind string `json:"templateKind"`
+	TemplateType string `json:"templateType"`
+	Error        string `json:"error"`
 }
 
 type TemplateParameter struct {

@@ -4,6 +4,7 @@
             "name": "cluster-template-2",
             "provider": "aws",
             "description": "this is test template 2",
+            "templateType": "cluster",
             "version": "",
             "parameters": [
                 {

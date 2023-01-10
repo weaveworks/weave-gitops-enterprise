@@ -214,7 +214,7 @@ func TestToTemplate(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "foo",
 					Labels: map[string]string{
-						"weave.works/template-type": "cluster-template",
+						"weave.works/template-type": "cluster",
 					},
 				},
 			},
@@ -222,9 +222,9 @@ func TestToTemplate(t *testing.T) {
 				Name:         "foo",
 				Provider:     "",
 				TemplateKind: "CAPITemplate",
-				TemplateType: "cluster-template",
+				TemplateType: "cluster",
 				Labels: map[string]string{
-					"weave.works/template-type": "cluster-template",
+					"weave.works/template-type": "cluster",
 				},
 			},
 		},
