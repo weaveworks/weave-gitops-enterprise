@@ -36,7 +36,9 @@ func renderTenants(tenantDefinition string, gp GitProviderEnv) string {
 	path := path.Join("/tmp", "rendered-tenant.yaml")
 	f, err := os.Create(path)
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to create rendered tenant yaml")
-	t.Execute(f, input)
+
+	err = t.Execute(f, input)
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to render tenant yaml")
 
 	return path
 }
