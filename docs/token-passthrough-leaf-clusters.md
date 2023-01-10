@@ -59,6 +59,45 @@ Once enabled the current user's OIDC token will be used to authenticate and _lis
 
 The management cluster's service account will no longer be used to request the full list of namespaces for any cluster including itself.
 
+## Gitops Clusters
+
+To use token passthrough with leaf clusters, the Gitops cluster needs to point to the cluster config.
+
+GitOps Cluster:
+
+```
+apiVersion: gitops.weave.works/v1alpha1
+kind: GitopsCluster
+metadata:
+  name: demo-01
+  namespace: default
+  # Signals that this cluster should be bootstrapped.
+  labels:
+    weave.works/capi: bootstrap
+spec:
+  secretRef:
+    name: my-vcluster
+```
+
+
+
+Cluster Config:
+```
+apiVersion: v1
+kind: Config
+clusters:
+- name: my-vcluster
+  cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJlRENDQVIyZ0F3SUJBZ0lCQURBS0JnZ3Foa2pPUFFRREFqQWpNU0V3SHdZRFZRUUREQmhyTTNNdGMyVnkKZG1WeUxXTmhRREUyTnpNeU56a3hNVE13SGhjTk1qTXdNVEE1TVRVME5URXpXaGNOTXpNd01UQTJNVFUwTlRFegpXakFqTVNFd0h3WURWUVFEREJock0zTXRjMlZ5ZG1WeUxXTmhRREUyTnpNeU56a3hNVE13V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFRd3p3TkhlQmgzaCtTSEZ6eWcxb1FVenBMYXlKdExrWi8zczJ4ZmlMR2oKMWtjRG9lbDZVNVlIMjZQWTB1SHpVcy9MKzg5UlhlaXlMdEMyVnl0Z21rVzdvMEl3UURBT0JnTlZIUThCQWY4RQpCQU1DQXFRd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFRmdRVW4rT0hrQ0hOQVRpU0l0d0RVOExDCkZnVnhKMDR3Q2dZSUtvWkl6ajBFQXdJRFNRQXdSZ0loQUsxejhpMExJcGtLNVVzeWJreitsdDRJcmdmOStEanAKNC9JZ21CU0JMZkZMQWlFQWh5cTJsRStPY3phQVBsV2F6T2dQdTE3ZXVPSFhPOGpQTGZDZVlndHZSOGs9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    server: https://localhost:8443
+contexts:
+- context:
+    cluster: my-vcluster
+    namespace: default
+  name: my-vcluster
+current-context: my-vcluster
+```
+
 ## Caveats
 
 - All OIDC users must have RBAC permissions to list namespaces on any GitopsCluster they have access to.
