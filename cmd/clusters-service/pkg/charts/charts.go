@@ -3,7 +3,7 @@ package charts
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 
@@ -115,7 +115,7 @@ func fetchIndexFile(chartURL string) (*repo.IndexFile, error) {
 		return nil, fmt.Errorf("get chart URL: %w", err)
 	}
 
-	b, err := ioutil.ReadAll(res)
+	b, err := io.ReadAll(res)
 	if err != nil {
 		return nil, fmt.Errorf("read chart response: %w", err)
 	}
