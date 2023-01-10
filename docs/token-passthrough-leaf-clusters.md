@@ -73,12 +73,12 @@ metadata:
   namespace: default
 spec:
   secretRef:
-    name: my-vcluster
+    name: my-vcluster-kubeconfig
 ```
 
 
 
-Cluster Config:
+Cluster Config: `my-vcluster-oidc-kubeconfig.yaml`
 ```
 apiVersion: v1
 kind: Config
@@ -94,7 +94,9 @@ contexts:
   name: my-vcluster
 current-context: my-vcluster
 ```
+Create a secret to hold the config:
 
+`kubectl create secret generic my-vcluster-kubeconfig --from-file value=my-vcluster-oidc-kubeconfig.yaml`
 ## Caveats
 
 - All OIDC users must have RBAC permissions to list namespaces on any GitopsCluster they have access to.
