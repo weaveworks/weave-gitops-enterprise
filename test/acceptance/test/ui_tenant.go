@@ -140,9 +140,15 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
 					return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
-
-				gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
 				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
+				gomega.Eventually(application.SelectListItem(webDriver, podinfo.GitRepository).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from git repos list")
+			})
+
+			ginkgo.By(fmt.Sprintf("And select %s GitRepository for PR", podinfo.GitRepository), func() {
+				gomega.Eventually(func(g gomega.Gomega) bool {
+					g.Eventually(application.GitRepository.Click).Should(gomega.Succeed(), "Failed to click Select GitRepository list")
+					return pages.ElementExist(application.SelectListItem(webDriver, podinfo.GitRepository))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s is not listed in the gitrepo list", podinfo.GitRepository))
 				gomega.Eventually(application.SelectListItem(webDriver, podinfo.GitRepository).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from git repos list")
 			})
 
