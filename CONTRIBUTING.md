@@ -52,21 +52,24 @@ annoying mystery errors.
 After making this change, remember to turn your Docker Desktop off and
 on again.
 
-### Enable buildkit in docker
+### Enable buildkit in docker (linux only)
 
 You need to enable the buildkit feature in docker, or docker will complain:
+
+> [BuildKit is enabled by default for all users on Docker Desktop](https://docs.docker.com/build/buildkit/#getting-started)
 
 ```bash
 export DOCKER_BUILDKIT=1
 ```
 
 ### Github Personal Access Token
+
 A PAT is needed to get access to our private repositories and packages.
 
 This token needs at least the `repo` and `read:packages`
 permissions. If you want to be able to delete the GitOps repo every
 time you recreate your local Kind cluster, add the `delete_repo`
-permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1.  You
+permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1. You
 can create a token [here](https://github.com/settings/tokens), and
 export it as:
 
@@ -75,6 +78,7 @@ export GITHUB_TOKEN=your_token
 ```
 
 ### Go package configuration
+
 In order for Go to be able to download private dependencies, you must also
 update your `~/.gitconfig` with:
 
@@ -90,6 +94,7 @@ export GOPRIVATE=github.com/weaveworks/*
 ```
 
 ### Github user
+
 You will also be using your personal GitHub account to host GitOps repositories. Therefore you need to export your GitHub username as well:
 
 ```bash
@@ -97,30 +102,13 @@ export GITHUB_USER=your_username
 ```
 
 ### Log in to GHCR
+
 We use OCI artifacts hosted in GHCR, so you need your docker to be
 logged in to this repository:
+
 ```bash
-docker login ghcr.io
+echo $GITHUB_TOKEN | docker login --username $GITHUB_USER --password-stdin ghcr.io
 ```
-When it asks you for your username, use your github username. When it
-asks you for your password, use the Personal Access Token you set up
-before, _not_ your github password.
-
-### Other repositories
-cluster-controller and cluster-bootstrap-controller are both
-installed at startup.
-
-You need to clone the following repositories next to this repository's clone:
-
-- [cluster-controller](https://github.com/weaveworks/cluster-controller)
-- [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller)
-- [templates-controller](https://github.com/weaveworks/templates-controller)
-
-### Permissions
-Make sure you can access to the
-[weave-gitops-enterprise-credentials][wge-creds] repository.
-
-[wge-creds]: https://github.com/weaveworks/weave-gitops-enterprise-credentials
 
 ## Run a local development environment
 
@@ -176,18 +164,12 @@ and deploy them to your local cluster. This is because the docker builds have to
 download all the Go modules/JS libraries from scratch, use the Tilt UI to check
 progress. Subsequent runs should be a lot faster.
 
-When `chart-mccp-cluster-service` has become green, you should be able to access
+When `cluster-service` has become green, you should be able to access
 your cluster at [http://localhost:8000](http://localhost:8000). The login is
 username `wego-admin` and password `dev`.
 
 Any change you make to local code will trigger tilt to rebuild and restart the
 pods running in your system.
-
-**THINGS TO WATCH OUT FOR**
-
-- If a change in your local settings results in a ConfigMap update, you will
-  need to restart the `clusters-service` pod in order for the pod to read the
-  updated ConfigMap.
 
 ### Faster frontend development
 
@@ -198,7 +180,7 @@ development cluster, run:
 ```
 cd ui-cra
 yarn
-PROXY_HOST=https://localhost:8000 yarn start
+PROXY_HOST=http://localhost:8000 yarn start
 ```
 
 Now you have a separate frontend running on
@@ -357,28 +339,6 @@ To run all tests, including integration tests run:
 make test
 ```
 
-### How to do local dev on the controllers
-
-When working on controllers it's often easier to run them locally against kind
-clusters to avoid causing issues on shared clusters (i.e. demo-01) that may be
-used by other engineers. To install the CRDs on your local kind cluster run:
-
-```bash
-make install
-```
-
-To run the controller locally run:
-
-```bash
-make run
-```
-
-To run all tests before pushing run:
-
-```bash
-make test
-```
-
 ### Creating leaf cluster
 
 To create leaf clusters to test out our features, we can rely on the [vcluster](https://www.vcluster.com/) to help us deploy new clusters on the fly. That project will basically create a entire cluster inside you kind cluster without adding much overhead.
@@ -481,86 +441,6 @@ When making code modifications see if you can write a test first!
 - **Integration and unit tests** should be placed in the `_test.go` file next
   to the source you're modifying.
 - **Acceptance tests** live in `./test/acceptance`
-
-## How to run services locally against an existing cluster
-
-Sometimes it's nice to demo / experiment with the service(s) you're changing
-locally.
-
-### The `clusters-service`
-
-To have entitlements, create a cluster and point your `kubectl` to it. It
-doesn't matter what kind of cluster you create. Integration tests have a config
-located [here](../test/integration/test/kind-config.yaml) for inspiration.
-
-The `clusters-service` requires the presence of a valid entitlement secret for
-it to work. Make sure an entitlement secret has been added to the cluster and
-that the `clusters-service` has been configured to look for it using the correct
-namespace/name. By default, entitlement secrets are named
-`weave-gitops-enterprise-credentials` and are added to the `flux-system`
-namespace. If that's not the case, you will need to point the service to the
-right place by explicitly specifying the relevant environment variables (example
-below).
-
-An existing entitlement secret that you can use can be found
-[here](../test/utils/data/entitlement/entitlement-secret.yaml). Alternatively, you can
-generate your own entitlement secret by using the `wge-credentials` binary.
-
-#### Port forward the source-controller to access profiles (optional):
-
-To query profiles the `clusters-service` needs to be able to DNS resolve the
-source-controller which provides the helm-repo (profile) info.
-
-Goes like this: `/v1/profiles` on the `clusters-service` finds the
-`HelmRepository` CR to figure out the URL where it can get a copy of the
-`index.yaml` that lists all the profiles.
-
-```yaml
-kind: HelmRepository
-status:
-  # some url that only resolves when running inside the cluster
-  url: source-controller.svc.flux-system/my-repo/index.yaml
-```
-
-Outside the cluster this is no good (e.g. `curl`ing the above URL will fail). To
-fix this we need to:
-
-1. expose the source-controller outside the cluster (in another terminal):
-   - `kubectl -n flux-system port-forward svc/source-controller 8080:80`
-2. tell the `clusters-service` to forget about _most_ of that above URL it finds
-   on the `HelmRepository` and use the port-forwarded one instead:
-   - `SOURCE_CONTROLLER_LOCALHOST=localhost:8080`
-
-#### Run the server:
-
-```bash
-# Optional, configure the kube context the capi-server should use
-export KUBECONFIG=test-server-kubeconfig
-
-# The weave-gitops core library uses an embedded Flux. That's not going to work when used as a library though
-# so we need to tell it to use a different Flux. This is also done by the clusters-service deployment.
-export WEAVE_GITOPS_FLUX_BIN_PATH=`which flux`
-
-# If you have port-forward the source-controller from a cluster make sure to include its local address when starting the clusters-service:
-SOURCE_CONTROLLER_LOCALHOST=localhost:8080
-
-# Run the server configured using lots of env vars
-CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=flux-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
-```
-
-You can query the local capi-server:
-
-```bash
-# via curl
-curl http://localhost:8000/v1/credentials
-
-# via the cli
-go run cmd/mccp/main.go --endpoint http://localhost:8000/ templates list
-
-# via the ui
-cd ui-cra
-CAPI_SERVER_HOST=http://localhost:8000 yarn start
-```
 
 #### Grab a copy of the SQLite chart cache
 
@@ -756,7 +636,6 @@ new features.
 | ----------------------------------- | ----------------------------------------------------- | ---- |
 | http://35.188.40.143:30080          | https://github.com/wkp-example-org/capd-demo-reloaded | CAPD |
 | https://demo-01.wge.dev.weave.works | https://gitlab.git.dev.weave.works/wge/demo-01        | CAPG |
-| https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02            | CAPG |
 
 ---
 
@@ -800,48 +679,6 @@ rules:
     verbs: ["get", "list", "watch"]
 ```
 
-**CAPI NAME COLLISION WARNING**
-
-`demo-01` and `demo-02` are currently deployed on the same [GCP
-project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so
-there may be collisions when creating CAPI clusters if they share the same name.
-Therefore avoid using common names like `test` and prefer to prefix them with
-your name i.e. `bob-test-2` instead.
-
----
-
-`demo-01` is automatically updated to the latest version of main. `demo-02` is
-manually updated to the latest release of Weave GitOps Enterprise. The following
-sections describe how to get kubectl access to each of those clusters and how to
-update them to a newer version of Weave GitOps Enterprise.
-
-#### 35.188.40.143
-
-The test cluster currently lives at a static ip but will hopefully move behind a
-DNS address with auth _soon_.
-
-Hit up http://35.188.40.143:30080
-
-The private ssh key to the server lives in the `pesto test cluster ssh key`
-secret in 1Password.
-
-1. Grab it and save it to `~/.ssh/cluster-key`
-1. Set permissions `chmod 600 ~/.ssh/cluster-key`
-1. Add it to your current ssh agent session with `ssh-add ~/.ssh/cluster-key`
-1. Copy `kubeconfig` using this ssh key
-   ```
-   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@35.188.40.143:.kube/config demokubeconfig.txt
-   ```
-1. Port forward the api-server port (6443) in another tab
-   ```
-   ssh wks@35.188.40.143 -L 6443:localhost:6443
-   ```
-1. Use the `kubeconfig`:
-   ```
-   export KUBECONFIG=demokubeconfig.txt
-   kubectl get pods -A
-   ```
-
 #### demo-01
 
 Requires: gcloud CLI >= 352.0.0
@@ -850,16 +687,6 @@ Install and configure the gcloud CLI if needed. Then run:
 
 ```bash
 gcloud container clusters get-credentials demo-01 --region europe-north1-a
-```
-
-#### demo-02
-
-Requires: gcloud CLI >= 352.0.0
-
-Install and configure the gcloud CLI if needed. Then run:
-
-```bash
-gcloud container clusters get-credentials demo-02 --region europe-north1-a
 ```
 
 ### How to update to a new version

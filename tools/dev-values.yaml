@@ -1,8 +1,7 @@
----
-images:
-  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.1.1
 policy-agent:
   enabled: true
+  # maybe we disable the policy-agent with tilt so ignore timeouts etc
+  failurePolicy: Ignore
   config:
     accountId: "weaveworks"
     clusterId: "tilt-cluster"
