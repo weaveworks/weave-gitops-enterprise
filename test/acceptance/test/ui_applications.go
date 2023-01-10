@@ -36,6 +36,7 @@ type Application struct {
 	ValuesRegex     string
 	Values          string
 	Layer           string
+	GitRepository   string
 }
 
 type ApplicationEvent struct {

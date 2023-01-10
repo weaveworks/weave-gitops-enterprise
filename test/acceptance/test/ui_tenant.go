@@ -92,6 +92,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 				Path:            "./kustomize",
 				SyncInterval:    "10m",
 				Tenant:          "test-team",
+				GitRepository:   "https://github.com/stefanprodan/podinfo",
 			}
 
 			appEvent := ApplicationEvent{
@@ -142,6 +143,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 
 				gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
 				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
+				gomega.Eventually(application.SelectListItem(webDriver, podinfo.GitRepository).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from git repos list")
 			})
 
 			AddKustomizationApp(application, podinfo)

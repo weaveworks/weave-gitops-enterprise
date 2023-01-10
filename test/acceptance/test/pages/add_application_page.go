@@ -20,6 +20,7 @@ type AddApplication struct {
 	RemoveApplication     *agouti.Selection
 	SourceHref            *agouti.Selection
 	CreateTargetNamespace *agouti.Selection
+	GitRepository		  *agouti.Selection
 }
 
 type GitOps struct {
@@ -61,6 +62,7 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 		RemoveApplication:     app.Find(`button#remove-application`),
 		CreateTargetNamespace: app.First(`input[type="checkbox"]`),
 		SourceHref:            app.FindByXPath(`div[contains(@class, "MuiGrid-container")]/div[2]`),
+		GitRepository:         app.Find(`[id="SELECT_GIT_REPO-input"]`),
 	}
 }
 
