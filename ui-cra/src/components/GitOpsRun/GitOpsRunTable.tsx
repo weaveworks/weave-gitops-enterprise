@@ -2,9 +2,13 @@ import {
   DataTable,
   filterConfig,
   Flex,
+  formatURL,
+  Kind,
   Link,
   Timestamp,
+  V2Routes
 } from '@weaveworks/weave-gitops';
+import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { TableWrapper } from '../Shared';
 import CommandCell from './CommandCell';
@@ -21,8 +25,32 @@ const PortLinks: React.FC<{ ports: string }> = ({ ports = '' }) => {
     </Flex>
   );
 };
+
+const AutomationLink: React.FC<{ s: FluxObject }> = ({ s }) => {
+  const metadata = s.obj.metadata;
+  const kind =
+    metadata.annotations['run.weave.works/automation-kind'] === 'ks'
+      ? Kind.Kustomization
+      : Kind.HelmRelease;
+  const name = kind === Kind.Kustomization ? 'run-dev-ks' : 'run-dev-helm';
+  const clusterName = `${metadata.annotations['run.weave.works/namespace']}/${metadata.name}`
+  const route =
+    kind === Kind.Kustomization ? V2Routes.Kustomization : V2Routes.HelmRelease;
+
+  return (
+    <Link
+      to={formatURL(route, {
+        name,
+        namespace: "flux-system",
+        clusterName,
+      })}
+    >
+      {kind}/{name}
+    </Link>
+  );
+};
 interface Props {
-  sessions: any[];
+  sessions: FluxObject[];
 }
 
 const GitOpsRunTable: FC<Props> = ({ sessions }) => {
@@ -49,6 +77,28 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
         rows={sessions}
         fields={[
           { label: 'Name', value: 'name', textSearchable: true },
+          {
+            label: 'Automation',
+            value: s => <AutomationLink s={s} />,
+          },
+          {
+            label: 'Source',
+            value: s => {
+              const metadata = s.obj.metadata;
+              const clusterName = `${metadata.annotations['run.weave.works/namespace']}/${metadata.name}`
+              return (
+                <Link
+                  to={formatURL(V2Routes.Bucket, {
+                    name: 'run-dev-bucket',
+                    namespace: 'flux-system',
+                    clusterName,
+                  })}
+                >
+                  Bucket/run-dev-bucket
+                </Link>
+              );
+            },
+          },
           {
             label: 'CLI Version',
             value: ({ obj }) =>

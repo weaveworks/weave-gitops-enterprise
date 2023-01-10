@@ -40,6 +40,7 @@ data:
   OIDC_REDIRECT_URL: {{ .Values.config.oidc.redirectURL | quote }}
   OIDC_COOKIE_DURATION: {{ .Values.config.oidc.cookieDuration | quote }}
   OIDC_CLAIM_USERNAME: {{ .Values.config.oidc.claimUsername | quote }}
+  CUSTOM_OIDC_SCOPES: {{ .Values.config.oidc.customScopes | quote }}
   OIDC_CLAIM_GROUPS: {{ .Values.config.oidc.claimGroups | quote }}
   {{- end }}
   NO_TLS: {{ not .Values.tls.enabled | quote }}
