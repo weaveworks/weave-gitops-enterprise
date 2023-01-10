@@ -242,7 +242,10 @@ func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([
 	}
 
 	var out bytes.Buffer
-	if err := parsed.Execute(&out, map[string]interface{}{"params": values}); err != nil {
+	if err := parsed.Execute(&out, map[string]interface{}{
+		"params":   values,
+		"template": templateMetadata(p.template),
+	}); err != nil {
 		return nil, fmt.Errorf("failed to render template: %w", err)
 	}
 
@@ -328,4 +331,14 @@ func makeTemplateFunctions() template.FuncMap {
 		delete(f, v)
 	}
 	return f
+}
+
+// this could add additional fields from the data.
+func templateMetadata(t templatesv1.Template) map[string]any {
+	return map[string]any{
+		"meta": map[string]any{
+			"name":      t.GetName(),
+			"namespace": t.GetNamespace(),
+		},
+	}
 }
