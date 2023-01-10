@@ -71,9 +71,6 @@ kind: GitopsCluster
 metadata:
   name: demo-01
   namespace: default
-  # Signals that this cluster should be bootstrapped.
-  labels:
-    weave.works/capi: bootstrap
 spec:
   secretRef:
     name: my-vcluster
