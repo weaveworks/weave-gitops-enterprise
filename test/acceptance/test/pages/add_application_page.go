@@ -20,7 +20,7 @@ type AddApplication struct {
 	RemoveApplication     *agouti.Selection
 	SourceHref            *agouti.Selection
 	CreateTargetNamespace *agouti.Selection
-	GitRepository		  *agouti.Selection
+	GitRepository         *agouti.Selection
 }
 
 type GitOps struct {
