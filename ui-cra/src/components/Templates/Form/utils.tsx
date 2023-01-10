@@ -94,7 +94,7 @@ export function getInitialGitRepo(
 
   const annoRepo = gitRepos.find(
     repo =>
-      repo?.obj?.metadata?.annotations?.['weave.works/repo-rule'] === 'default',
+      repo?.obj?.metadata?.annotations?.['weave.works/repo-role'] === 'default',
   );
   if (annoRepo) {
     return annoRepo;

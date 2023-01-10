@@ -3,7 +3,9 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
+	"text/template"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -20,11 +22,32 @@ func getTenantYamlPath() string {
 	return path.Join("/tmp", "generated-tenant.yaml")
 }
 
-func createTenant(tenatDefination string) {
+func renderTenants(tenantDefinition string, gp GitProviderEnv) string {
+	// render the tenant file out
+	gitRepoURL := fmt.Sprintf("ssh://git@%s/%s/%s", gp.Hostname, gp.Org, gp.Repo)
+	contents, err := os.ReadFile(tenantDefinition)
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
+	t := template.Must(template.New(tenantDefinition).Parse(string(contents)))
+	input := struct {
+		MainRepoUrl string
+	}{
+		MainRepoUrl: gitRepoURL,
+	}
+	path := path.Join("/tmp", "rendered-tenant.yaml")
+	f, err := os.Create(path)
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to create rendered tenant yaml")
+	t.Execute(f, input)
+
+	return path
+}
+
+func createTenant(tenantDefinition string, gp GitProviderEnv) {
 	tenantYaml := getTenantYamlPath()
 
+	renderedTenantsPath := renderTenants(tenantDefinition, gp)
+
 	// Export tenants resources to output file (required to delete tenant resources after test completion)
-	_, stdErr := runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
+	_, stdErr := runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, renderedTenantsPath, tenantYaml))
 	gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
 
 	// Create tenant resource using default kubeconfig
@@ -109,7 +132,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			}
 
 			defer deleteTenants([]string{getTenantYamlPath()})
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 
 			// Add GitRepository source
 			sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -222,7 +246,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			}
 
 			defer deleteTenants([]string{getTenantYamlPath()})
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
 
 			// Add HelmRepository source
 			sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
@@ -383,7 +407,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 
 			useClusterContext(mgmtClusterContext)
 			// Installing tenant resources to management cluster. This is an easy way to add oidc tenant user rbac
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
 			createPATSecret(leafCluster.Namespace, patSecret)
 			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
@@ -396,7 +420,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			})
 
 			// Installing tenant resources to leaf cluster after leaf-cluster is bootstrapped
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
 			// Add GitRepository source to leaf cluster
 			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 

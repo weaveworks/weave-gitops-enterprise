@@ -66,7 +66,7 @@ describe('getInitialGitRepo', () => {
       obj: {
         metadata: {
           annotations: {
-            'weave.works/repo-rule': 'default',
+            'weave.works/repo-role': 'default',
           },
         },
         spec: {
@@ -117,7 +117,7 @@ describe('getInitialGitRepo', () => {
       obj: {
         metadata: {
           annotations: {
-            'weave.works/repo-rule': 'default',
+            'weave.works/repo-role': 'default',
           },
         },
         spec: {
@@ -168,7 +168,7 @@ describe('getInitialGitRepo', () => {
       obj: {
         metadata: {
           annotations: {
-            'weave.works/repo-rule': 'default',
+            'weave.works/repo-role': 'default',
           },
         },
         spec: {
