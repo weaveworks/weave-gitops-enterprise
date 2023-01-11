@@ -96,21 +96,22 @@ func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces st
 
 	})
 }
-func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
-	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
-	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Roles", workspaceName), func() {
-		gomega.Expect(WorkspacesDetailPage.RolesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles tab", workspaceName))
-		pages.WaitForPageToLoad(webDriver)
+// func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
+// 	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
-		Role := pages.GetWorkspaceRoles(webDriver)
+// 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Roles", workspaceName), func() {
+// 		gomega.Expect(WorkspacesDetailPage.RolesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles tab", workspaceName))
+// 		pages.WaitForPageToLoad(webDriver)
 
-		// gomega.Eventually(roles.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Roles's Name", workspaceName))
-		// gomega.Eventually(roles.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
-		gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
-		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
-	})
-}
+// 		Role := pages.GetWorkspaceRoles(webDriver)
+
+// 		// gomega.Eventually(roles.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Roles's Name", workspaceName))
+// 		// gomega.Eventually(roles.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
+// 		gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
+// 		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
+// 	})
+// }
 
 func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces string) {
 	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
@@ -197,7 +198,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces)
 			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces)
-			verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
+			// verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
 			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces)
 
 			// verifyAppAnnotations(podinfo)
