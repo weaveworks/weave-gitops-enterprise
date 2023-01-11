@@ -106,14 +106,14 @@ func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 	}
 }
 
-// func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
-// 	return &Roles{
-// 		Name:      webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-// 		Namespace: webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
-// 		Rules:       webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
-// 		Age:       webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
-// 	}
-// }
+func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
+	return &Roles{
+		Name:      webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		Namespace: webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
+		Rules:     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
+		Age:       webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
+	}
+}
 
 func GetWorkspaceRoleBindings(webDriver *agouti.Page) *RoleBindings {
 	return &RoleBindings{
