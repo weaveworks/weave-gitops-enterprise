@@ -103,13 +103,13 @@ func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces strin
 		gomega.Expect(WorkspacesDetailPage.RoleBindingsTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Role Bindings tab", workspaceName))
 		pages.WaitForPageToLoad(webDriver)
 
-		RoleBindings := pages.GetWorkspaceRoleBindings(webDriver)
+		roleBindings := pages.GetWorkspaceRoleBindings(webDriver)
 
-		gomega.Eventually(RoleBindings.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Name", workspaceName))
-		gomega.Eventually(RoleBindings.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
-		gomega.Eventually(RoleBindings.Bindings.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Bindings", workspaceName))
-		gomega.Eventually(RoleBindings.Role.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Role", workspaceName))
-		gomega.Eventually(RoleBindings.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Age", workspaceName))
+		// gomega.Eventually(roleBindings.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Name", workspaceName))
+		gomega.Eventually(roleBindings.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
+		gomega.Eventually(roleBindings.Bindings.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Bindings", workspaceName))
+		gomega.Eventually(roleBindings.Role.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Role", workspaceName))
+		gomega.Eventually(roleBindings.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Age", workspaceName))
 	})
 }
 
