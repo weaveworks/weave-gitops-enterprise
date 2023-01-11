@@ -111,6 +111,7 @@ func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
 		gomega.Eventually(roles.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
 	})
 }
+
 func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces string) {
 	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
