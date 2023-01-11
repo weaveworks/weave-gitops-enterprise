@@ -54,14 +54,14 @@ config:
   checkpoint:
     enabled: true
   oidc:
-    enabled: true
-    issuerURL: "https://dev-dox5prxhgkda6bz8.us.auth0.com/"
-    redirectURL: "http://localhost:9001/oauth2/callback"
+    enabled: false
+    issuerURL: ""
+    redirectURL: ""
     cookieDuration: 1h
-    claimUsername: "email"
+    claimUsername: ""
     claimGroups: ""
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
-    clientCredentialsSecret: "oidc-auth"
+    clientCredentialsSecret: ""
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
     customScopes: ""
   auth:
@@ -145,10 +145,6 @@ ingress:
   #      - chart-example.local
 
 envVars:
-  - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH
-    value: "true"
-  - name: WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES
-    value: "true"
   - name: WEAVE_GITOPS_FEATURE_TENANCY
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER

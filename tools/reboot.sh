@@ -116,7 +116,7 @@ run_custom_scripts(){
 
 main() {
   github_env_check
-  # do_kind
+  do_kind
   do_capi
   do_flux
   create_local_values_file
