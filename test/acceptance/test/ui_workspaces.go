@@ -96,6 +96,22 @@ func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces st
 
 	})
 }
+func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces string) {
+	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
+
+	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Role Bindings", workspaceName), func() {
+		gomega.Expect(WorkspacesDetailPage.RoleBindingsTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Role Bindings tab", workspaceName))
+		pages.WaitForPageToLoad(webDriver)
+
+		RoleBindings := pages.GetWorkspaceRoleBindings(webDriver)
+
+		gomega.Eventually(RoleBindings.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Name", workspaceName))
+		gomega.Eventually(RoleBindings.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
+		gomega.Eventually(RoleBindings.Bindings.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Bindings", workspaceName))
+		gomega.Eventually(RoleBindings.Role.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Role", workspaceName))
+		gomega.Eventually(RoleBindings.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Age", workspaceName))
+	})
+}
 
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("ui", "workspaces"), func() {
 
@@ -123,8 +139,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		ginkgo.JustAfterEach(func() {
 			deleteWorkspaces("management")
 		})
-
-		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////start here
+		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install workspaces on management cluster
 			installWorkspaces("management", workspacesYaml)
