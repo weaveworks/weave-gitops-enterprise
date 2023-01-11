@@ -105,7 +105,7 @@ func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces strin
 
 		roleBindings := pages.GetWorkspaceRoleBindings(webDriver)
 
-		// gomega.Eventually(roleBindings.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Name", workspaceName))
+		gomega.Eventually(roleBindings.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
 		gomega.Eventually(roleBindings.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
 		gomega.Eventually(roleBindings.Bindings.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Bindings", workspaceName))
 		gomega.Eventually(roleBindings.Role.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Role", workspaceName))
