@@ -38,10 +38,12 @@ type ServiceAccounts struct {
 }
 
 type Roles struct {
-	Name      *agouti.Selection
-	Namespace *agouti.Selection
-	Rules     *agouti.Selection
-	Age       *agouti.Selection
+	Name             *agouti.Selection
+	RoleName         *agouti.Selection
+	RoleNameCloseBtn *agouti.Selection
+	Namespace        *agouti.Selection
+	Rules            *agouti.Selection
+	Age              *agouti.Selection
 }
 
 type RoleBindings struct {
@@ -108,10 +110,12 @@ func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 
 func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
 	return &Roles{
-		Name:      webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		Namespace: webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
-		Rules:     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
-		Age:       webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
+		Name:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		RoleName:         webDriver.FindByXPath(`//p[@class='MuiTypography-root MuiTypography-body1']`),
+		RoleNameCloseBtn: webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
+		Namespace:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
+		Rules:            webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
+		Age:              webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
 	}
 }
 

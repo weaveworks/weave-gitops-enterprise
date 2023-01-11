@@ -107,6 +107,11 @@ func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
 		Role := pages.GetWorkspaceRoles(webDriver)
 
 		gomega.Eventually(Role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Name", workspaceName))
+		gomega.Expect(Role.RoleName.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Name", workspaceName))
+		pages.WaitForPageToLoad(webDriver)
+		gomega.Expect(Role.RoleName.Text()).Should(gomega.MatchRegexp(`Role Manifest`), "Failed to verify Role Manifest	Role's 'Name'")
+		gomega.Expect(Role.RoleNameCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' workspace's Roles Name popup", workspaceName))
+		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
 		gomega.Eventually(Role.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
 		gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
 		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
