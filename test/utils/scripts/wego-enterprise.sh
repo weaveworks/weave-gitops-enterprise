@@ -263,6 +263,8 @@ function reset {
   else
     clusterctl delete --infrastructure docker    
   fi
+  # Delete fluent-bit helm release if found
+  helm delete aws-for-fluent-bit --namespace kube-system || true
 }
 
 function reset_controllers {
