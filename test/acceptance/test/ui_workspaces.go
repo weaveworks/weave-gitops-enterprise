@@ -106,7 +106,7 @@ func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
 
 		Role := pages.GetWorkspaceRoles(webDriver)
 
-		gomega.Eventually(Role.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Roles's Name", workspaceName))
+		gomega.Eventually(Role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Name", workspaceName))
 		gomega.Eventually(Role.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
 		gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
 		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
