@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getCallbackState } from '../components/GithubAuth/utils';
+import { getCallbackState } from '../components/GitAuth/utils';
 
 export const useCallbackState = () => {
   const [callbackState] = useState(getCallbackState());

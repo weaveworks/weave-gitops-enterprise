@@ -1,6 +1,6 @@
 import React, { FC, useCallback, Dispatch, ChangeEvent } from 'react';
 import styled from 'styled-components';
-import GitAuth from '../../../GithubAuth/GitAuth';
+import GitAuth from '../../../GitAuth';
 import { Input } from '../../../../utils/form';
 
 const GitOpsWrapper = styled.div`
@@ -17,6 +17,7 @@ const GitOps: FC<{
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   formError?: string;
+  enableGitRepoSelection?: boolean;
 }> = ({
   formData,
   setFormData,
@@ -24,6 +25,7 @@ const GitOps: FC<{
   setShowAuthDialog,
   setEnableCreatePR,
   formError,
+  enableGitRepoSelection,
 }) => {
   const {
     branchName,
@@ -31,6 +33,7 @@ const GitOps: FC<{
     commitMessage,
     pullRequestDescription,
   } = formData;
+
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
       setFormData((prevState: any) => ({
@@ -118,6 +121,7 @@ const GitOps: FC<{
         setEnableCreatePR={setEnableCreatePR}
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
+        enableGitRepoSelection={enableGitRepoSelection}
       />
     </GitOpsWrapper>
   );
