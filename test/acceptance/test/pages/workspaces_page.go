@@ -111,7 +111,7 @@ func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
 	return &Roles{
 		Name:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		RoleName:         webDriver.FindByXPath(`//p[@class='MuiTypography-root MuiTypography-body1']`),
+		RoleName:         webDriver.FindByXPath(`(//p[@class='MuiTypography-root MuiTypography-body1'])[1]`),
 		RoleNameCloseBtn: webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
 		Namespace:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		Rules:            webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
