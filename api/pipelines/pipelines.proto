@@ -32,6 +32,12 @@ service Pipelines {
         };
     }
 
+    rpc ApprovePromotion(ApprovePromotionRequest) returns (ApprovePromotionResponse) {
+        option (google.api.http) = {
+            post : "/v1/pipelines/approve/{name}"
+            body: "*"
+        };
+    }
 }
 
 message ListPipelinesRequest {
@@ -51,6 +57,17 @@ message GetPipelineRequest {
 message GetPipelineResponse {
     Pipeline pipeline = 1;
     repeated string errors = 2;
+}
+
+message ApprovePromotionRequest {
+    string namespace = 1;
+    string name = 2;
+    string env = 3;
+    string revision = 4;
+}
+
+message ApprovePromotionResponse {
+    string PullRequestURL = 1;
 }
 
 message ListError {
