@@ -17,6 +17,8 @@ spec:
           content:
             spec:
               interval: "${INTERVAL}"
+        helmRepositoryTemplate:
+          path: "${HELM_REPO_PATH}/helmrepo.yaml"
       - name: foo
   resourcetemplates:
     - path: "clusters/${SPECIAL_CLUSTER_PATH}.yaml"

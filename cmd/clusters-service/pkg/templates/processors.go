@@ -116,6 +116,16 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		}
 	}
 
+	for _, profile := range p.GetSpec().Charts.Items {
+		if profile.HelmRepositoryTemplate.Path != "" {
+			names, err := p.Processor.ParamNames([]byte(profile.HelmRepositoryTemplate.Path))
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from profile.helmRepositoryTemplate.path of %s: %w", profile.Chart, err)
+			}
+			paramNames.Insert(names...)
+		}
+	}
+
 	paramsMeta := map[string]Param{}
 	for _, v := range paramNames.List() {
 		paramsMeta[v] = Param{Name: v}
