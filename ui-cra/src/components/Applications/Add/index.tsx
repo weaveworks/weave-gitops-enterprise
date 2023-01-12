@@ -199,7 +199,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [firstAuto]);
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
-    true,
+    firstAuto.source_type === 'HelmRepository',
     undefined,
     undefined,
     helmRepo,
