@@ -31,10 +31,10 @@ var CreateCommand = &cobra.Command{
 	Use:   "template",
 	Short: "Create template resources",
 	Example: `
-	  # export or apply rendered resources of template to stdout
+	  # export rendered resources of template to stdout
  	  gitops create template.yaml --values key1=value1,key2=value2 --export
 
-	  # export or apply rendered resources of template to cluster or path
+	  # apply rendered resources of template to path
 	  gitops create template.yaml --values key1=value1,key2=value2 --outDir ./out 
 	`,
 	RunE: templatesCmdRunE(),
@@ -84,11 +84,6 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 		renderedTemplate := ""
 		for _, file := range templateResources.RenderedTemplate {
 			renderedTemplate += *file.Content
-		}
-
-		var paths []string
-		for _, file := range templateResources.RenderedTemplate {
-			paths = append(paths, *file.Path)
 		}
 
 		if flags.export {
