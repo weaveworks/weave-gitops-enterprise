@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -21,6 +22,7 @@ import (
 type templateCommandFlags struct {
 	parameterValues []string
 	export          bool
+	outDir          string
 }
 
 var flags templateCommandFlags
@@ -29,8 +31,11 @@ var CreateCommand = &cobra.Command{
 	Use:   "template",
 	Short: "Create template resources",
 	Example: `
-	  export or apply rendered resources of template to cluster or path
-	  gitops create template.yaml --values key1=value1,key2=value2 --export > clusters/management/template.yaml
+	  # export or apply rendered resources of template to stdout
+ 	  gitops create template.yaml --values key1=value1,key2=value2 --export
+
+	  # export or apply rendered resources of template to cluster or path
+	  gitops create template.yaml --values key1=value1,key2=value2 --outDir ./out 
 	`,
 	RunE: templatesCmdRunE(),
 }
@@ -38,6 +43,7 @@ var CreateCommand = &cobra.Command{
 func init() {
 	CreateCommand.Flags().StringSliceVar(&flags.parameterValues, "values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
+	CreateCommand.Flags().StringVar(&flags.outDir, "outDir", "", "write YAML format to file")
 }
 
 func templatesCmdRunE() func(*cobra.Command, []string) error {
@@ -80,6 +86,11 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			renderedTemplate += *file.Content
 		}
 
+		var paths []string
+		for _, file := range templateResources.RenderedTemplate {
+			paths = append(paths, *file.Path)
+		}
+
 		if flags.export {
 			err := export(renderedTemplate, os.Stdout)
 			if err != nil {
@@ -89,6 +100,33 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return nil
 		}
 
+		if flags.outDir != "" {
+			for _, res := range templateResources.RenderedTemplate {
+				filePath := flags.outDir + *res.Path
+				directoryPath := filepath.Dir(filePath)
+
+				err := os.MkdirAll(directoryPath, 0755)
+
+				if err != nil {
+					return fmt.Errorf("failed to create directory: %w", err)
+				}
+
+				file, err := os.Create(filePath)
+
+				if err != nil {
+					return fmt.Errorf("failed to create file: %w", err)
+				}
+
+				defer file.Close()
+
+				_, err2 := file.Write([]byte(*res.Content))
+
+				if err2 != nil {
+					return fmt.Errorf("failed to write to file: %w", err2)
+				}
+			}
+			return nil
+		}
 		return nil
 	}
 }
