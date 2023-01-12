@@ -149,7 +149,7 @@ func TestGetTemplates(t *testing.T) {
 					Name: "template-b",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\t\t\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\t\t\t\t\n",
 		},
 		{
 			name: "templates include all fields",
@@ -166,20 +166,20 @@ func TestGetTemplates(t *testing.T) {
 					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\t\t\tb desc\tsomething went wrong\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\t\t\tb desc\tsomething went wrong\n",
 		},
 		{
-			name: "templates with template kind",
+			name: "templates with template type",
 			ts: []templates.Template{
 				{
 					Name:         "template-a",
 					Description:  "a desc",
 					Provider:     "azure",
-					TemplateKind: "CAPITemplate",
+					TemplateType: "cluster",
 					Error:        "",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\tCAPITemplate\ta desc\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\tcluster\ta desc\t\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -224,7 +224,7 @@ func TestGetTemplate(t *testing.T) {
 					Provider: "aws",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -273,7 +273,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Provider: "aws",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\taws\t\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\taws\t\t\t\n",
 		},
 		{
 			name:     "templates include all fields",
@@ -292,7 +292,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\tazure\t\tb desc\tsomething went wrong\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\tazure\t\tb desc\tsomething went wrong\n",
 		},
 		{
 			name:             "error retrieving templates",
