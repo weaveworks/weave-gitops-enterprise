@@ -22,7 +22,7 @@ import (
 type templateCommandFlags struct {
 	parameterValues []string
 	export          bool
-	outDir          string
+	outputDir       string
 }
 
 var flags templateCommandFlags
@@ -35,7 +35,7 @@ var CreateCommand = &cobra.Command{
  	  gitops create template.yaml --values key1=value1,key2=value2 --export
 
 	  # apply rendered resources of template to path
-	  gitops create template.yaml --values key1=value1,key2=value2 --outDir ./out 
+	  gitops create template.yaml --values key1=value1,key2=value2 --output-dir ./out 
 	`,
 	RunE: templatesCmdRunE(),
 }
@@ -43,7 +43,7 @@ var CreateCommand = &cobra.Command{
 func init() {
 	CreateCommand.Flags().StringSliceVar(&flags.parameterValues, "values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
-	CreateCommand.Flags().StringVar(&flags.outDir, "outDir", "", "write YAML format to file")
+	CreateCommand.Flags().StringVar(&flags.outputDir, "output-dir", "", "write YAML format to file")
 }
 
 func templatesCmdRunE() func(*cobra.Command, []string) error {
@@ -95,9 +95,9 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return nil
 		}
 
-		if flags.outDir != "" {
+		if flags.outputDir != "" {
 			for _, res := range templateResources.RenderedTemplate {
-				filePath := flags.outDir + *res.Path
+				filePath := filepath.Join(flags.outputDir, *res.Path)
 				directoryPath := filepath.Dir(filePath)
 
 				err := os.MkdirAll(directoryPath, 0755)
@@ -122,7 +122,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			}
 			return nil
 		}
-		return nil
+		return errors.New("Please provide either --export or --output-dir")
 	}
 }
 
