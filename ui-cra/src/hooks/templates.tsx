@@ -22,14 +22,7 @@ const useTemplates = () => {
       onError,
     },
   );
-  const templates = useMemo(
-    () =>
-      data?.templates?.map(template => ({
-        ...template,
-        templateType: template?.labels?.['weave.works/template-type'] || '',
-      })),
-    [data],
-  ) as TemplateEnriched[] | undefined;
+  const templates = data?.templates as TemplateEnriched[] | undefined;
 
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;

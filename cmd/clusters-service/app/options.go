@@ -52,6 +52,7 @@ type Options struct {
 	Cluster                      string
 	Estimator                    estimation.Estimator
 	UIConfig                     string
+	PipelineControllerAddress    string
 }
 
 type Option func(*Options)
@@ -253,5 +254,11 @@ func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
 func WithUIConfig(uiConfig string) Option {
 	return func(o *Options) {
 		o.UIConfig = uiConfig
+	}
+}
+
+func WithPipelineControllerAddress(address string) Option {
+	return func(o *Options) {
+		o.PipelineControllerAddress = address
 	}
 }

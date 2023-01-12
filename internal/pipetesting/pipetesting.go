@@ -2,6 +2,7 @@ package pipetesting
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/alecthomas/assert"
@@ -21,7 +22,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client, cluster string) pb.PipelinesClient {
+func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Client, cluster string, pipelineControllerAddress string) pb.PipelinesClient {
 	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
 		Namespaces: []*v1.Namespace{
 			{
@@ -44,10 +45,13 @@ func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Clien
 			},
 		},
 	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
+
+	fmt.Println(pipelineControllerAddress)
 	pipeSrv := server.NewPipelinesServer(server.ServerOpts{
-		ClustersManager:   fact,
-		ManagementFetcher: mgmtFetcher,
-		Cluster:           cluster,
+		ClustersManager:           fact,
+		ManagementFetcher:         mgmtFetcher,
+		Cluster:                   cluster,
+		PipelineControllerAddress: pipelineControllerAddress,
 	})
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {

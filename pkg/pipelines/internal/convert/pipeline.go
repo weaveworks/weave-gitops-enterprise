@@ -6,7 +6,6 @@ import (
 )
 
 func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
-
 	r := &pb.Pipeline{
 		Name:      p.Name,
 		Namespace: p.Namespace,

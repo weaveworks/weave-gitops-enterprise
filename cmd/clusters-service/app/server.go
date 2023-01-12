@@ -142,6 +142,7 @@ type Params struct {
 	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
 	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 	UIConfig                          string                    `mapstructure:"ui-config"`
+	PipelineControllerAddress         string                    `mapstructure:"pipeline-controller-address"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -225,6 +226,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
 	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
 	cmd.Flags().String("ui-config", "", "UI configuration, JSON encoded")
+	cmd.Flags().String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
 
 	// Hide some flags from the help output
 	err := cmd.Flags().MarkHidden("cost-estimation-filters")
@@ -523,6 +525,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithManagementCluster(p.Cluster),
 		WithTemplateCostEstimator(estimator),
 		WithUIConfig(p.UIConfig),
+		WithPipelineControllerAddress(p.CAPIRepositoryClustersPath),
 	)
 }
 
@@ -629,10 +632,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
-			Logger:            args.Log,
-			ClustersManager:   args.ClustersManager,
-			ManagementFetcher: args.ManagementFetcher,
-			Cluster:           args.Cluster,
+			Logger:                    args.Log,
+			ClustersManager:           args.ClustersManager,
+			ManagementFetcher:         args.ManagementFetcher,
+			Cluster:                   args.Cluster,
+			PipelineControllerAddress: args.PipelineControllerAddress,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
