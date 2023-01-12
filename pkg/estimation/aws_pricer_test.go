@@ -11,7 +11,7 @@ import (
 	"github.com/go-logr/logr"
 )
 
-func TestPricing(t *testing.T) {
+func TestAWSPricer_ListPrices(t *testing.T) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)

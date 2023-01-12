@@ -1,0 +1,3 @@
+currency,serviceCode,locationCode,instanceType,price
+USD,AmazonEC2,us-east-1,t3.large,0.1
+USD,AmazonEC2,us-east-1,t3.medium,0.08
