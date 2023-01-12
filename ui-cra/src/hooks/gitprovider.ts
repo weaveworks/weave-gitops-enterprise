@@ -12,7 +12,7 @@ import {
   GrpcErrorCodes,
   makeHeaders,
   storeProviderToken,
-} from '../components/GithubAuth/utils';
+} from '../components/GitAuth/utils';
 import { GitAuth } from '../contexts/GitAuth';
 
 export function useIsAuthenticated() {
