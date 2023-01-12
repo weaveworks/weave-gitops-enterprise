@@ -108,4 +108,6 @@ export function getInitialGitRepo(
   if (mainRepo) {
     return mainRepo;
   }
+
+  return gitRepos[0];
 }

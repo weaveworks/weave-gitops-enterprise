@@ -177,4 +177,23 @@ describe('getInitialGitRepo', () => {
       },
     });
   });
+
+  it('should return the first repo if nothing matches', () => {
+    const repos = [
+      {
+        obj: {
+          spec: {
+            url: 'https://github.com/test/repo.git',
+          },
+        },
+      },
+    ] as GitRepository[];
+    expect(getInitialGitRepo('', repos)).toStrictEqual({
+      obj: {
+        spec: {
+          url: 'https://github.com/test/repo.git',
+        },
+      },
+    });
+  });
 });
