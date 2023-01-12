@@ -3,7 +3,6 @@ package acceptance
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -36,6 +35,7 @@ type Application struct {
 	ValuesRegex     string
 	Values          string
 	Layer           string
+	GitRepository   string
 }
 
 type ApplicationEvent struct {
@@ -62,7 +62,7 @@ type ApplicationViolations struct {
 }
 
 func createGitKustomization(kustomizationName, kustomizationNameSpace, kustomizationPath, repoName, sourceNameSpace, targetNamespace string) (kustomization string) {
-	contents, err := ioutil.ReadFile(path.Join(testDataPath, "kustomization/git-kustomization.yaml"))
+	contents, err := os.ReadFile(path.Join(testDataPath, "kustomization/git-kustomization.yaml"))
 	gomega.Expect(err).To(gomega.BeNil(), "Failed to read git-kustomization template yaml")
 
 	t := template.Must(template.New("kustomization").Parse(string(contents)))

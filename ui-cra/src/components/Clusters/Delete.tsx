@@ -17,8 +17,9 @@ import { isUnauthenticated, removeToken } from '../../utils/request';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
-import GitAuth from '../GithubAuth/GitAuth';
-import { clearCallbackState, getProviderToken } from '../GithubAuth/utils';
+import GitAuth from '../GitAuth';
+import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
+import { getRepositoryUrl } from '../Templates/Form/utils';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {
@@ -35,7 +36,7 @@ const DeleteClusterWrapper = styled(Dialog)`
 interface Props {
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  selectedCapiClusters: ClusterNamespacedName[];
+  selectedCapiCluster: ClusterNamespacedName;
   onClose: () => void;
   prDefaults: PRDefaults;
 }
@@ -43,7 +44,7 @@ interface Props {
 export const DeleteClusterDialog: FC<Props> = ({
   formData,
   setFormData,
-  selectedCapiClusters,
+  selectedCapiCluster,
   onClose,
   prDefaults,
 }) => {
@@ -92,12 +93,12 @@ export const DeleteClusterDialog: FC<Props> = ({
   const handleClickRemove = () =>
     deleteCreatedClusters(
       {
-        clusterNamespacedNames: selectedCapiClusters,
+        clusterNamespacedNames: [selectedCapiCluster],
         headBranch: formData.branchName,
         title: formData.pullRequestTitle,
         commitMessage: formData.commitMessage,
         description: formData.pullRequestDescription,
-        repositoryUrl: formData.repositoryURL,
+        repositoryUrl: getRepositoryUrl(formData.repo),
       },
       getProviderToken(formData.provider),
     )
@@ -174,6 +175,7 @@ export const DeleteClusterDialog: FC<Props> = ({
                   setEnableCreatePR={setEnableCreatePR}
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
+                  enableGitRepoSelection={!formData?.repo?.createPRRepo}
                 />
                 <Button
                   id="delete-cluster"

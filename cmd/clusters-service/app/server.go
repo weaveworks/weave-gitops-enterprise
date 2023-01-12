@@ -153,6 +153,7 @@ type OIDCAuthenticationOptions struct {
 	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
 	ClaimUsername string        `mapstructure:"oidc-claim-username"`
 	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
+	CustomScopes  []string      `mapstructure:"custom-oidc-scopes"`
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -218,6 +219,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
 	cmd.Flags().String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
 	cmd.Flags().String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
+	cmd.Flags().StringSlice("custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
 
 	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
 	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
@@ -555,7 +557,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return errors.New("clusters manager is not set")
 	}
 	// TokenDuration at least should be set
-	if (args.OIDC == OIDCAuthenticationOptions{}) {
+	if args.OIDC.TokenDuration == 0 {
 		return errors.New("OIDC configuration is not set")
 	}
 
@@ -684,6 +686,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		tsv.SetDevMode(args.DevMode)
 	}
 
+	if len(args.OIDC.CustomScopes) != 0 {
+		args.Log.Info("setting custom OIDC scopes", "scopes", args.OIDC.CustomScopes)
+	}
+
 	authServerConfig, err := auth.NewAuthServerConfig(
 		args.Log,
 		auth.OIDCConfig{
@@ -696,6 +702,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 				Username: args.OIDC.ClaimUsername,
 				Groups:   args.OIDC.ClaimGroups,
 			},
+			Scopes: args.OIDC.CustomScopes,
 		},
 		args.KubernetesClient,
 		tsv,

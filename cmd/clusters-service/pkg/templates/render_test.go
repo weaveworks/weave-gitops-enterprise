@@ -141,6 +141,51 @@ spec:
 	assert.ErrorContains(t, err, `template: cluster-template-1:4: function "env" not defined`)
 }
 
+func TestTextTemplate_metadata(t *testing.T) {
+	processor, err := NewProcessorForTemplate(parseCAPITemplateFromBytes(t, []byte(`---
+apiVersion: capi.weave.works/v1alpha2
+kind: CAPITemplate
+metadata:
+  name: cluster-template-1
+  namespace: test-namespace
+spec:
+  description: this is test template 1
+  renderType: templating
+  resourcetemplates:
+  - content:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "{{ .template.meta.namespace }}-cluster"
+    path: "./clusters/{{ .template.meta.name }}/capi-cluster.yaml"
+`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rendered, err := processor.RenderTemplates(map[string]string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []RenderedTemplate{
+		{
+			Data: [][]byte{
+				[]byte(`apiVersion: cluster.x-k8s.io/v1alpha3
+kind: Cluster
+metadata:
+  name: test-namespace-cluster
+`),
+			},
+			Path: "./clusters/cluster-template-1/capi-cluster.yaml",
+		},
+	}
+
+	if diff := cmp.Diff(want, rendered); diff != "" {
+		t.Fatalf("rendering failure:\n%s", diff)
+	}
+}
+
 func TestGitopsRender(t *testing.T) {
 	parsed := parseCAPITemplateFromFile(t, "testdata/cluster-template.yaml")
 	processor, err := NewProcessorForTemplate(parsed)

@@ -24,7 +24,7 @@ export const GKEDefault = createIcon(
 );
 
 // // From @bia's design https://github.com/weaveworks/weave-gitops-enterprise/pull/1302#issuecomment-1223929209
-export const Kind = createIcon(
+export const KindIcon = createIcon(
   () => (
     // <>
     <g>
