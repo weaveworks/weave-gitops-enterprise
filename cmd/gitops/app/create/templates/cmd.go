@@ -87,6 +87,12 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 		}
 
 		if flags.export {
+			renderedTemplate := ""
+			for _, file := range templateResources.RenderedTemplate {
+				fileName := filepath.Base(*file.Path)
+				renderedTemplate += "\n#" + fileName + "\n---\n" + *file.Content
+			}
+
 			err := export(renderedTemplate, os.Stdout)
 			if err != nil {
 				return fmt.Errorf("failed to export rendered template: %w", err)
@@ -114,14 +120,15 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 
 				defer file.Close()
 
-				_, err2 := file.Write([]byte(*res.Content))
+				_, err = file.Write([]byte(*res.Content))
 
-				if err2 != nil {
-					return fmt.Errorf("failed to write to file: %w", err2)
+				if err != nil {
+					return fmt.Errorf("failed to write to file: %w", err)
 				}
 			}
 			return nil
 		}
+
 		return errors.New("Please provide either --export or --output-dir")
 	}
 }
