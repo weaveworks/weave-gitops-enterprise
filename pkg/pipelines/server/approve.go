@@ -46,8 +46,8 @@ func (s *server) ApprovePromotion(ctx context.Context, msg *pb.ApprovePromotionR
 
 	var hmacSecret *corev1.Secret
 
-	if p.Spec.AppRef.SecretRef != nil {
-		err := sc.Get(ctx, s.cluster, client.ObjectKey{Namespace: msg.Namespace, Name: p.Spec.AppRef.SecretRef.Name}, hmacSecret)
+	if p.Spec.Promotion != nil && p.Spec.Promotion.Strategy.SecretRef != nil {
+		err := sc.Get(ctx, s.cluster, client.ObjectKey{Namespace: msg.Namespace, Name: p.Spec.Promotion.Strategy.SecretRef.Name}, hmacSecret)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting hmac secret for pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 		}
