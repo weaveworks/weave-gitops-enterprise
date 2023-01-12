@@ -62,7 +62,7 @@ require (
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
-	github.com/weaveworks/templates-controller v0.1.1
+	github.com/weaveworks/templates-controller v0.1.2-0.20230110152328-484e275175ce
 	github.com/xanzy/go-gitlab v0.76.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/oauth2 v0.2.0
