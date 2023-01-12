@@ -126,8 +126,7 @@ export type TemplateType = {
   templateType: string;
 };
 
-export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'> &
-  TemplateType;
+export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'>;
 
 export type DeleteClustersPRRequestEnriched = WithRequired<
   DeleteClustersPullRequestRequest,

@@ -2869,6 +2869,9 @@
         "templateKind": {
           "type": "string"
         },
+        "templateType": {
+          "type": "string"
+        },
         "labels": {
           "type": "object",
           "additionalProperties": {

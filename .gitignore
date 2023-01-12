@@ -63,6 +63,7 @@ tilt_modules
 
 # Helm files pulled in by Tilt
 .helm
+Tiltfile.local
 
 # build flag artifacts
 tools/core-files
