@@ -377,7 +377,7 @@ jobs:
       - name: Setup CloudWatch logging
         if: ${{ inputs.enable-cloudwatch-logging }}
         run: |
-          export CLUSTER_NAME=management-${{ github.run_id }}-${{ github.run_number}}
+          export CLUSTER_NAME=management-${{ github.run_id }}-${{ github.run_number}}-${{ inputs.management-cluster-kind }}
           export CLOUDWATCH_AWS_ACCESS_KEY_ID=${{ env.CLOUDWATCH_AWS_ACCESS_KEY_ID }}
           export CLOUDWATCH_AWS_SECRET_ACCESS_KEY=${{ env.CLOUDWATCH_AWS_SECRET_ACCESS_KEY }}
           ./test/utils/scripts/setup-cloudwatch-logging.sh
