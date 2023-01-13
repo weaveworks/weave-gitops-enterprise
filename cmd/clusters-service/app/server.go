@@ -401,16 +401,21 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
-	cobra.CheckErr(capiv1.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(pacv2beta1.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(pacv2beta2.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(esv1beta1.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(flaggerv1beta1.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(tfctrl.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(gitopsv1alpha1.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(clusterv1.AddToScheme(clustersManagerScheme))
-	cobra.CheckErr(gapiv1.AddToScheme(clustersManagerScheme))
+	builder := runtime.NewSchemeBuilder(
+		capiv1.AddToScheme,
+		pacv2beta1.AddToScheme,
+		pacv2beta2.AddToScheme,
+		esv1beta1.AddToScheme,
+		flaggerv1beta1.AddToScheme,
+		pipelinev1alpha1.AddToScheme,
+		tfctrl.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+		clusterv1.AddToScheme,
+		gapiv1.AddToScheme,
+	)
+	if err := builder.AddToScheme(clustersManagerScheme); err != nil {
+		return err
+	}
 
 	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
