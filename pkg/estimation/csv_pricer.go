@@ -5,9 +5,20 @@ import (
 	"encoding/csv"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/go-logr/logr"
 )
+
+type caseInsensitiveMap map[string]string
+
+func (c caseInsensitiveMap) set(key, value string) {
+	c[strings.ToLower(key)] = value
+}
+
+func (c caseInsensitiveMap) get(key string) string {
+	return c[strings.ToLower(key)]
+}
 
 // NewCSVPricer creates and returns a new CSVPricer ready for use.
 func NewCSVPricer(l logr.Logger, in io.Reader) (*CSVPricer, error) {
@@ -18,11 +29,11 @@ func NewCSVPricer(l logr.Logger, in io.Reader) (*CSVPricer, error) {
 	}
 	headers := rawRecords[0]
 
-	records := []map[string]string{}
+	records := []caseInsensitiveMap{}
 	for _, row := range rawRecords[1:] {
-		record := map[string]string{}
+		record := caseInsensitiveMap{}
 		for i := range headers {
-			record[headers[i]] = row[i]
+			record.set(headers[i], row[i])
 		}
 		records = append(records, record)
 	}
@@ -37,7 +48,7 @@ func NewCSVPricer(l logr.Logger, in io.Reader) (*CSVPricer, error) {
 // source of pricing data.
 type CSVPricer struct {
 	log     logr.Logger
-	Records []map[string]string
+	Records []caseInsensitiveMap
 }
 
 func (p *CSVPricer) ListPrices(ctx context.Context, service, currency string, filter map[string]string) ([]float32, error) {
@@ -48,7 +59,7 @@ func (p *CSVPricer) ListPrices(ctx context.Context, service, currency string, fi
 	queryFilter["serviceCode"] = service
 	queryFilter["currency"] = currency
 
-	matchingRows := []map[string]string{}
+	matchingRows := []caseInsensitiveMap{}
 	for i := range p.Records {
 		if count := matchingKeyCount(queryFilter, p.Records[i]); count == len(queryFilter) {
 			matchingRows = append(matchingRows, p.Records[i])
@@ -57,7 +68,7 @@ func (p *CSVPricer) ListPrices(ctx context.Context, service, currency string, fi
 
 	results := []float32{}
 	for _, row := range matchingRows {
-		price, err := strconv.ParseFloat(row["price"], 32)
+		price, err := strconv.ParseFloat(row.get("price"), 32)
 		if err != nil {
 			continue // what to do?
 		}
@@ -68,10 +79,10 @@ func (p *CSVPricer) ListPrices(ctx context.Context, service, currency string, fi
 }
 
 // returns the number of keys in the row that match the filter.
-func matchingKeyCount(filter, row map[string]string) int {
+func matchingKeyCount(filter map[string]string, row caseInsensitiveMap) int {
 	matches := 0
 	for k, v := range filter {
-		if row[k] == v {
+		if row.get(k) == v {
 			matches += 1
 		}
 	}
