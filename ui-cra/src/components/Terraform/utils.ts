@@ -98,7 +98,5 @@ export function getGraphNodes(
     return [];
   }
 
-  console.log(graphNodes);
-
   return graphNodes;
 }
