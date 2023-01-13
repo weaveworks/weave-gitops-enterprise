@@ -23,6 +23,7 @@ if not os.getenv('GITHUB_TOKEN'):
 # e.g.
 # TO_EDIT="templates-controller,clusters-controller" tilt up
 
+
 to_edit = os.getenv('TO_EDIT', '').split(",")
 
 cluster_bootstrap_controller_labels = ["remote-images"]
@@ -100,12 +101,13 @@ elif native_build:
    # Build UI locally
 
    local_resource(
-      'ui',
+      'ui-native-build',
       'make build',
       deps=[
          './ui-cra/src',
       ],
       dir='ui-cra',
+      labels=['local'],
    )
    docker_build(
       'weaveworks/weave-gitops-enterprise-ui-server',
@@ -129,7 +131,7 @@ if native_build:
    # Build locally (usually slower under MacOS than build in container)
 
    local_resource(
-      'clusters-service',
+      'clusters-service-native-build',
       'make build-linux',
       deps=[
          './cmd/clusters-service',
@@ -139,6 +141,7 @@ if native_build:
          './cmd/clusters-service/bin'
       ],
       dir='cmd/clusters-service',
+      labels=["local"]
    )
 
    docker_build_with_restart(
@@ -152,7 +155,7 @@ if native_build:
       ],
       ignore=[
          'cmd/clusters-service/clusters-service'
-      ]
+      ],
    )
 else:
    # Build in container (default)
