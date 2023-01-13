@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -21,6 +22,7 @@ import (
 type templateCommandFlags struct {
 	parameterValues []string
 	export          bool
+	outputDir       string
 }
 
 var flags templateCommandFlags
@@ -29,8 +31,11 @@ var CreateCommand = &cobra.Command{
 	Use:   "template",
 	Short: "Create template resources",
 	Example: `
-	  export or apply rendered resources of template to cluster or path
-	  gitops create template.yaml --values key1=value1,key2=value2 --export > clusters/management/template.yaml
+	  # export rendered resources of template to stdout
+ 	  gitops create template.yaml --values key1=value1,key2=value2 --export
+
+	  # apply rendered resources of template to path
+	  gitops create template.yaml --values key1=value1,key2=value2 --output-dir ./out 
 	`,
 	RunE: templatesCmdRunE(),
 }
@@ -38,6 +43,7 @@ var CreateCommand = &cobra.Command{
 func init() {
 	CreateCommand.Flags().StringSliceVar(&flags.parameterValues, "values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
 	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
+	CreateCommand.Flags().StringVar(&flags.outputDir, "output-dir", "", "write YAML format to file")
 }
 
 func templatesCmdRunE() func(*cobra.Command, []string) error {
@@ -81,6 +87,11 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 		}
 
 		if flags.export {
+			renderedTemplate := ""
+			for _, file := range templateResources.RenderedTemplate {
+				renderedTemplate += "\n# path: " + *file.Path + "\n---\n" + *file.Content
+			}
+
 			err := export(renderedTemplate, os.Stdout)
 			if err != nil {
 				return fmt.Errorf("failed to export rendered template: %w", err)
@@ -89,7 +100,35 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return nil
 		}
 
-		return nil
+		if flags.outputDir != "" {
+			for _, res := range templateResources.RenderedTemplate {
+				filePath := filepath.Join(flags.outputDir, *res.Path)
+				directoryPath := filepath.Dir(filePath)
+
+				err := os.MkdirAll(directoryPath, 0755)
+
+				if err != nil {
+					return fmt.Errorf("failed to create directory: %w", err)
+				}
+
+				file, err := os.Create(filePath)
+
+				if err != nil {
+					return fmt.Errorf("failed to create file: %w", err)
+				}
+
+				defer file.Close()
+
+				_, err = file.Write([]byte(*res.Content))
+
+				if err != nil {
+					return fmt.Errorf("failed to write to file: %w", err)
+				}
+			}
+			return nil
+		}
+
+		return errors.New("Please provide either --export or --output-dir")
 	}
 }
 
