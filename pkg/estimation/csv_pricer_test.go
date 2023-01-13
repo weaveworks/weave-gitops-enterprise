@@ -19,19 +19,19 @@ func TestCSVPricer_ListPrices(t *testing.T) {
 		want   []float32
 	}{
 		{
-			filter: map[string]string{"locationCode": "us-east-1", "instanceType": "t3.medium"},
+			filter: map[string]string{"regionCode": "us-east-1", "instanceType": "t3.medium"},
 			want:   []float32{0.08},
 		},
 		{
-			filter: map[string]string{"locationCode": "us-east-1", "instanceType": "t3.medium", "TenancyCode": "testing"},
+			filter: map[string]string{"regionCode": "us-east-1", "instanceType": "t3.medium", "TenancyCode": "testing"},
 			want:   []float32{},
 		},
 		{
-			filter: map[string]string{"locationCode": "us-east-1", "instanceType": "t3.large"},
+			filter: map[string]string{"regionCode": "us-east-1", "instanceType": "t3.large"},
 			want:   []float32{0.1},
 		},
 		{
-			filter: map[string]string{"locationCode": "us-east-1"},
+			filter: map[string]string{"regionCode": "us-east-1"},
 			want:   []float32{0.1, 0.08},
 		},
 	}
@@ -66,19 +66,19 @@ func TestCSVPricer_ListPrices_insensitive_parsing(t *testing.T) {
 		want   []float32
 	}{
 		{
-			filter: map[string]string{"locationCode": "us-east-1", "instanceType": "t3.medium"},
+			filter: map[string]string{"regionCode": "us-east-1", "instanceType": "t3.medium"},
 			want:   []float32{0.08},
 		},
 		{
-			filter: map[string]string{"locationCode": "us-east-1", "instanceType": "t3.medium", "TenancyCode": "testing"},
+			filter: map[string]string{"regionCode": "us-east-1", "instanceType": "t3.medium", "TenancyCode": "testing"},
 			want:   []float32{},
 		},
 		{
-			filter: map[string]string{"locationCode": "us-east-1", "instanceType": "t3.large"},
+			filter: map[string]string{"regionCode": "us-east-1", "instanceType": "t3.large"},
 			want:   []float32{0.1},
 		},
 		{
-			filter: map[string]string{"locationCode": "us-east-1"},
+			filter: map[string]string{"regionCode": "us-east-1"},
 			want:   []float32{0.1, 0.08},
 		},
 	}
@@ -109,7 +109,7 @@ func TestCSVPricer_ListPrices_logging(t *testing.T) {
 	}{
 		{
 			name:    "invalid price",
-			data:    "serviceCode,currency,locationCode,instanceType,price\nAmazonEC2,USD,us-east-1,t3.large,1x\nAmazonEC2,USD,us-east-1,t3.medium,0.08\n",
+			data:    "serviceCode,currency,regionCode,instanceType,price\nAmazonEC2,USD,us-east-1,t3.large,1x\nAmazonEC2,USD,us-east-1,t3.medium,0.08\n",
 			wantOut: "parsing \"1x\": invalid syntax failed to parse pricing data",
 		},
 	}
@@ -122,7 +122,7 @@ func TestCSVPricer_ListPrices_logging(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = pricer.ListPrices(context.TODO(), "AmazonEC2", "USD", map[string]string{"locationCode": "us-east-1", "instanceType": "t3.large"})
+			_, err = pricer.ListPrices(context.TODO(), "AmazonEC2", "USD", map[string]string{"regionCode": "us-east-1", "instanceType": "t3.large"})
 			if err != nil {
 				t.Fatal(err)
 			}

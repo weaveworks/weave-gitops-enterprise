@@ -961,10 +961,6 @@ func (fs *spaFileSystem) Open(name string) (http.File, error) {
 }
 
 func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimation.Estimator, error) {
-	if p.CostEstimationFilters == "" {
-		return nil, errors.New("cost estimation filters cannot be empty")
-	}
-
 	var pricer estimation.Pricer
 	if p.CostEstimationFilename != "" {
 		log.Info("configuring cost estimation from CSV", "filename", p.CostEstimationFilename)
@@ -974,6 +970,9 @@ func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimati
 		}
 		pricer = pr
 	} else {
+		if p.CostEstimationFilters == "" {
+			return nil, errors.New("cost estimation filters cannot be empty")
+		}
 		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
 		if err != nil {
 			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
