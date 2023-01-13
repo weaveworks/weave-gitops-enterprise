@@ -3,7 +3,10 @@ package estimation
 import (
 	"context"
 	"encoding/csv"
+	"errors"
+	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 
@@ -20,17 +23,41 @@ func (c caseInsensitiveMap) get(key string) string {
 	return c[strings.ToLower(key)]
 }
 
+// NewCSVPricerFromFile parses the CSV pricing data by opening the provided
+// filename.
+func NewCSVPricerFromFile(l logr.Logger, filename string) (*CSVPricer, error) {
+	data, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open csv pricing data: %w", err)
+	}
+	defer data.Close()
+
+	return NewCSVPricer(l, data)
+}
+
 // NewCSVPricer creates and returns a new CSVPricer ready for use.
 func NewCSVPricer(l logr.Logger, in io.Reader) (*CSVPricer, error) {
 	reader := csv.NewReader(in)
-	rawRecords, err := reader.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-	headers := rawRecords[0]
 
+	count := 0
+	headers := []string{}
 	records := []caseInsensitiveMap{}
-	for _, row := range rawRecords[1:] {
+	for {
+		row, err := reader.Read()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return nil, fmt.Errorf("failed to read pricing CSV: %w", err)
+		}
+
+		count++
+
+		if count == 1 {
+			headers = row
+			continue
+		}
+
 		record := caseInsensitiveMap{}
 		for i := range headers {
 			record.set(headers[i], row[i])
@@ -70,7 +97,8 @@ func (p *CSVPricer) ListPrices(ctx context.Context, service, currency string, fi
 	for _, row := range matchingRows {
 		price, err := strconv.ParseFloat(row.get("price"), 32)
 		if err != nil {
-			continue // what to do?
+			p.log.Error(err, "failed to parse pricing data", "row", row)
+			continue
 		}
 		results = append(results, float32(price))
 	}
@@ -83,7 +111,7 @@ func matchingKeyCount(filter map[string]string, row caseInsensitiveMap) int {
 	matches := 0
 	for k, v := range filter {
 		if row.get(k) == v {
-			matches += 1
+			matches++
 		}
 	}
 
