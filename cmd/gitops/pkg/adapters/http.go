@@ -64,7 +64,7 @@ func (c *HTTPClient) ConfigureClientWithOptions(opts *config.Options, out io.Wri
 
 	c.baseURI = u
 
-	c.client = c.client.SetBaseURL(u.String()).
+	c.client = c.client.SetDebug(true).SetBaseURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if r.StatusCode() >= http.StatusInternalServerError {
 				fmt.Fprintf(out, "Server error: %s\n", r.Body())
@@ -223,7 +223,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 		ts = append(ts, templates.Template{
 			Name:         t.Name,
 			Provider:     t.Provider,
-			TemplateKind: t.TemplateKind,
+			TemplateType: t.TemplateType,
 			Description:  t.Description,
 			Error:        t.Error,
 		})

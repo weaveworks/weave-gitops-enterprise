@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CallbackSessionState } from '../../components/GithubAuth/utils';
+import { CallbackSessionState } from '../../components/GitAuth/utils';
 
 type Props = {
   callbackState: CallbackSessionState;

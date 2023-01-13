@@ -498,6 +498,22 @@ func createPATSecret(clusterNamespace string, patSecret string) {
 	})
 }
 
+// Copy the flux-system git repo and its secret from the flux-system namespace to a given namespace
+func copyFluxSystemGitRepo(namespace string) {
+	ginkgo.By("Copy flux-system git repo and its secret from the flux-system namespace a tenant namespace", func() {
+		// Copy the flux-system git repo and its secret from the flux-system namespace to a given namespace
+		// This is required for the cluster to be able to sync with the git repo
+		err := runCommandPassThrough("sh", "-c", "kubectl get gitrepositories -n flux-system flux-system -o yaml | sed 's/  namespace: flux-system/  namespace: "+namespace+"/' | kubectl apply -f -")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get gitrepositories from flux-system namespace")
+
+		err = runCommandPassThrough("sh", "-c", "kubectl get secret -n flux-system flux-system -o yaml | sed 's/  namespace: flux-system/  namespace: "+namespace+"/' | kubectl apply -f -")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get secret from flux-system namespace")
+
+		err = runCommandPassThrough("sh", "-c", "kubectl annotate -n "+namespace+" gitrepo flux-system weave.works/repo-role=default")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to annotate gitrepo with weave.works/repo-role=default")
+	})
+}
+
 func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet string) {
 	ginkgo.By(fmt.Sprintf("Add ClusterResourceSet resource for %s cluster to management cluster", clusterName), func() {
 		contents, err := os.ReadFile(path.Join(testDataPath, "bootstrap/calico-crs.yaml"))

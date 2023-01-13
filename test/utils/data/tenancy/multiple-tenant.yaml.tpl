@@ -8,6 +8,8 @@ tenants:
         url: https://github.com/stefanprodan/podinfo
       - kind: HelmRepository
         url: https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages
+      - kind: GitRepository
+        url: {{ .MainRepoURL }}
     allowedClusters:
       - kubeConfig: wge-leaf-tenant-kind-kubeconfig
       - kubeConfig: workspaces-leaf-cluster-test-kubeconfig
@@ -77,6 +79,8 @@ tenants:
         url: https://github.com/example-org/example-app
       - kind: HelmRepository
         url: https://raw.githubusercontent.com/weaveworks/example-catalogue/gh-pages
+      - kind: GitRepository
+        url: {{ .MainRepoURL }}
     allowedClusters:
       - kubeConfig: fake-kubeconfig
     teamRBAC:

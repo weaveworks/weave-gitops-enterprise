@@ -14,7 +14,7 @@ import (
 func installWorkspaces(clusterName string, workspacesYaml string) {
 
 	ginkgo.By(fmt.Sprintf("Add test workspaces to the '%s' cluster", clusterName), func() {
-		createTenant(workspacesYaml)
+		createTenant(workspacesYaml, gitProviderEnv)
 	})
 }
 
@@ -86,7 +86,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		workspaceClusterName := "management"
 
 		ginkgo.JustBeforeEach(func() {
-			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml")
+			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml.tpl")
 		})
 
 		ginkgo.JustAfterEach(func() {

@@ -4,7 +4,7 @@ import {
   Link,
   theme,
   useFeatureFlags,
-  V2Routes
+  V2Routes,
 } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
