@@ -89,8 +89,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 		if flags.export {
 			renderedTemplate := ""
 			for _, file := range templateResources.RenderedTemplate {
-				fileName := filepath.Base(*file.Path)
-				renderedTemplate += "\n#" + fileName + "\n---\n" + *file.Content
+				renderedTemplate += "\n# path: " + *file.Path + "\n---\n" + *file.Content
 			}
 
 			err := export(renderedTemplate, os.Stdout)
