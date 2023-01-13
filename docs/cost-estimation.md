@@ -55,6 +55,15 @@ Either save the configmap to git for flux to apply it, or apply it directly:
 kubectl apply -f configmap.yaml
 ```
 
+> **Warning**
+>
+> When updating the pricing data `ConfigMap` you must restart the cluster-service to refresh the new values and see the updated estimates in the UI.
+>
+> ```
+> kubectl -n flux-system rollout restart deploy/weave-gitops-enterprise-mccp-cluster-service
+> ```
+
+
 ### AWS Pricer
 
 ```yaml
