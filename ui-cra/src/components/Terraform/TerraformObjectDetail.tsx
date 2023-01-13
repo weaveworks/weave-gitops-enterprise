@@ -1,11 +1,13 @@
 import { Box } from '@material-ui/core';
 import {
-  Button, DependenciesView, Flex, InfoList,
+  Button,
+  Flex,
+  InfoList,
   Interval,
   KubeStatusIndicator,
   Metadata,
   RouterTab,
-  SubRouterTabs
+  SubRouterTabs,
 } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -15,7 +17,7 @@ import { TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,
-  useToggleSuspendTerraformObject
+  useToggleSuspendTerraformObject,
 } from '../../contexts/Terraform';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -25,6 +27,7 @@ import { TableWrapper } from '../Shared';
 import YamlView from '../YamlView';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
+import TerraformDependencyView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
 
 type Props = {
@@ -206,10 +209,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
               />
             </RouterTab>
             <RouterTab name="Dependencies" path={`${path}/dependencies`}>
-              <>
-                {/* @ts-ignore */}
-                <DependenciesView automation={{...object, kind: "Terraform"}}/>
-              </>
+              <TerraformDependencyView object={object || {}} />
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
               <>
