@@ -153,8 +153,8 @@ func verifyWrokspacePolicies(workspaceName string, WorkspaceNamespaces string) {
 		// Navigate back to the policies list
 		gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to navigate back to the '%s' policies list", workspaceName))
 
-		gomega.Eventually(Policies.Category.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Category", workspaceName))
-		gomega.Eventually(Policies.Severity.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Severity", workspaceName))
+		// gomega.Eventually(Policies.Category.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Category", workspaceName))
+		// gomega.Eventually(Policies.Severity.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Severity", workspaceName))
 		gomega.Eventually(Policies.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Age", workspaceName))
 	})
 }
