@@ -2,9 +2,11 @@ import { Box } from '@material-ui/core';
 import {
   Button,
   Flex,
+  formatURL,
   InfoList,
   Interval,
   KubeStatusIndicator,
+  LinkResolverProvider,
   Metadata,
   RouterTab,
   SubRouterTabs,
@@ -27,6 +29,7 @@ import { TableWrapper } from '../Shared';
 import YamlView from '../YamlView';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
+import TerraformDependencyView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
 
 type Props = {
@@ -118,6 +121,16 @@ function TerraformObjectDetail({ className, ...params }: Props) {
       .finally(() => setSuspending(false));
   };
 
+  const resolver = (type: string, params: any) => {
+    return (
+      formatURL(Routes.TerraformDetail, {
+        name: params.name,
+        namespace: params.namespace,
+        clusterName: params.clusterName,
+      }) || ''
+    );
+  };
+
   return (
     <PageTemplate
       documentTitle="Terraform"
@@ -206,6 +219,11 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   namespace: object?.namespace,
                 }}
               />
+            </RouterTab>
+            <RouterTab name="Dependencies" path={`${path}/dependencies`}>
+              <LinkResolverProvider resolver={resolver}>
+                <TerraformDependencyView object={object || {}} />
+              </LinkResolverProvider>
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
               <>

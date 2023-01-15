@@ -10,6 +10,6 @@ dependencies:
   version: 2.2.0
 - name: pipeline-controller
   repository: oci://ghcr.io/weaveworks/charts
-  version: 0.8.0
-digest: sha256:7c47a2b47cd2969cdb6c4f6b407c05badd3360f33624f8a8127e0e74bbc79b59
-generated: "2022-12-20T13:54:53.150146+01:00"
+  version: 0.14.0
+digest: sha256:beecc8853443e2686476b7e6cd2dfbbc70f893fa67d4a772edc28f2a0817f8ec
+generated: "2023-01-12T11:36:54.93099404Z"

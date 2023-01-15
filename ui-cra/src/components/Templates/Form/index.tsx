@@ -9,10 +9,12 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
+  GitRepository,
   Link,
   LoadingPage,
   theme as weaveTheme,
   useFeatureFlags,
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -48,16 +50,24 @@ import GitOps from './Partials/GitOps';
 import Preview from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
-import { getCreateRequestAnnotation } from './utils';
+import {
+  getCreateRequestAnnotation,
+  getInitialGitRepo,
+  getRepositoryUrl,
+} from './utils';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
-import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { getLink } from '../Edit/EditButton';
-import { useListConfigContext } from '../../../contexts/ListConfig';
+import { getGitRepos } from '../../Clusters';
+
+export interface GitRepositoryEnriched extends GitRepository {
+  createPRRepo: boolean;
+}
 
 const large = weaveTheme.spacing.large;
 const medium = weaveTheme.spacing.medium;
@@ -156,8 +166,9 @@ function getInitialData(
       ?.name ||
     (resource as GetTerraformObjectResponse)?.object?.name ||
     resourceData?.objects?.[0].name;
+
   const defaultFormData = {
-    url: '',
+    repo: null,
     provider: '',
     branchName: resourceData
       ? `edit-${resourceName}-branch-${random}`
@@ -242,6 +253,7 @@ const toPayload = (
   templateKind: string,
   updatedProfiles: ProfilesIndex,
   createRequestAnnotation: any,
+  repositoryUrl: string,
 ): CreatePullRequestRequest => {
   const { parameterValues } = formData;
   const createReqAnnot = createRequestAnnotation;
@@ -258,6 +270,7 @@ const toPayload = (
     values: encodedProfiles(updatedProfiles),
     templateKind,
     previousValues: createReqAnnot,
+    repositoryUrl,
   };
 };
 
@@ -271,12 +284,20 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
   const { renderTemplate, addResource } = useTemplates();
-  const listConfigContext = useListConfigContext();
-  const data = listConfigContext?.data;
-  const repositoryURL = data?.repositoryURL || '';
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
   const { setNotifications } = useNotifications();
+  const { data } = useListSources();
+  const gitRepos = React.useMemo(
+    () => getGitRepos(data?.result),
+    [data?.result],
+  );
+  const resourceData = resource && getCreateRequestAnnotation(resource);
+  const initialUrl = resourceData?.repository_url;
+  const initialGitRepo = getInitialGitRepo(
+    initialUrl,
+    gitRepos,
+  ) as GitRepositoryEnriched;
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -422,6 +443,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     if (resource !== undefined) {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
+
     const payload = toPayload(
       formData,
       infraCredential,
@@ -430,7 +452,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       template.templateKind,
       updatedProfiles,
       createReqAnnot,
+      getRepositoryUrl(formData.repo),
     );
+
     setLoading(true);
     return addResource(payload, getProviderToken(formData.provider))
       .then(response => {
@@ -478,13 +502,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   ]);
 
   useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      url: repositoryURL,
-    }));
-  }, [repositoryURL]);
-
-  useEffect(() => {
     if (!resource) {
       setFormData((prevState: any) => ({
         ...prevState,
@@ -494,6 +511,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       }));
     }
   }, [resource, formData.parameterValues, setFormData]);
+
+  useEffect(() => {
+    if (!formData.repo) {
+      setFormData((prevState: any) => ({
+        ...prevState,
+        repo: initialGitRepo,
+      }));
+    }
+  }, [initialGitRepo, formData.repo]);
 
   useEffect(() => {
     setCostEstimate('00.00 USD');
@@ -620,6 +646,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
               formError={formError}
+              enableGitRepoSelection={
+                !(resource && initialGitRepo?.createPRRepo)
+              }
             />
             {loading ? (
               <LoadingPage className="create-loading" />
@@ -665,6 +694,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formError,
     submitType,
     getSubmitFunction,
+    resource,
+    initialGitRepo,
   ]);
 };
 

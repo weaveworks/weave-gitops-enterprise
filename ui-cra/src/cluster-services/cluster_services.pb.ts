@@ -351,6 +351,7 @@ export type Template = {
   error?: string
   annotations?: {[key: string]: string}
   templateKind?: string
+  templateType?: string
   labels?: {[key: string]: string}
   namespace?: string
   profiles?: TemplateProfile[]

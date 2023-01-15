@@ -38,7 +38,7 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import OAuthCallback from './components/GithubAuth/OAuthCallback';
+import OAuthCallback from './components/GitAuth/OAuthCallback';
 import { GitProvider } from './api/gitauth/gitauth.pb';
 import SecretsList from './components/Secrets';
 import SecretDetails from './components/Secrets/SecretDetails';

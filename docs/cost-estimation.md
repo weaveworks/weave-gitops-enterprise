@@ -12,6 +12,60 @@ Cost estimation was requested by a specific customer (IQT) and is not available 
 
 We make some configuration changes to the `values` in the Weave Gitops Enterprise `HelmRelease`.
 
+### AWS CSV Pricer
+
+```yaml
+spec:
+  values:
+    extraEnvVars:
+      - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
+        value: "true"
+      - name: COST_ESTIMATION_CSV_FILE
+        value: "/var/aws-pricing/aws-pricing.csv"
+    extraVolumeMounts:
+      - name: aws-pricing
+        mountPath: /var/aws-pricing
+        readOnly: true
+    extraVolumes:
+      - name: aws-pricing
+        configMap:
+          name: aws-pricing
+```
+
+Given a sample `aws-pricing.csv` file:
+
+```csv
+currency,serviceCode,regionCode,instanceType,price
+USD,AmazonEC2,us-east-1,t3.large,0.1
+USD,AmazonEC2,us-east-1,t3.medium,0.08
+```
+
+Create a configmap.yaml with the following command:
+
+```bash
+kubectl create configmap aws-pricing \
+  --namespace flux-system \
+  --from-file=aws-pricing.csv \
+  --dry-run=client -o yaml > configmap.yaml
+```
+
+Either save the configmap to git for flux to apply it, or apply it directly:
+
+```bash
+kubectl apply -f configmap.yaml
+```
+
+> **Warning**
+>
+> When updating the pricing data `ConfigMap` you must restart the cluster-service to refresh the new values and see the updated estimates in the UI.
+>
+> ```
+> kubectl -n flux-system rollout restart deploy/weave-gitops-enterprise-mccp-cluster-service
+> ```
+
+
+### AWS Pricer
+
 ```yaml
 spec:
   values:
@@ -118,33 +172,26 @@ Things that are ignored and are not included in the estimate:
   - etc
 - MachinePool `minSize` and `maxSize` are ignored, the estimate is based on the number of `replicas`
 
-# Appendix 1: Example CAPA template with COST_ESTIMATION param for debugging
+# Appendix 1: Example CAPA template
 
 ```yaml
-apiVersion: capi.weave.works/v1alpha2
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
 metadata:
-  name: capa-cluster-template
+  name: capa-official-cluster-template
   namespace: default
-  annotations:
-    # Disable apps/profiles for a more compact demo
-    "templates.weave.works/profiles-enabled": "false"
-    "templates.weave.works/kustomizations-enabled": "false"
-    "templates.weave.works/credentials-enabled": "false"
 spec:
-  description: A base CAPA templated imported from github.com/kubernetes-sigs/cluster-api-provider-aws
   params:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
-    - name: COST_ESTIMATION_FILTERS
-      description: "(Optional) DEBUG: Query string of extra filters to use when estimating costs."
-      required: false
     - name: AWS_SSH_KEY_NAME
       description: AWS SSH key name
       default: default
     - name: KUBERNETES_VERSION
       description: Kubernetes version
-      options: ["v1.22.1", "v1.23.2"]
+      options:
+        - v1.22.1
+        - v1.23.2
       default: v1.23.2
     - name: CONTROL_PLANE_MACHINE_COUNT
       description: Number of control planes
@@ -179,7 +226,7 @@ spec:
         - t3.large
         - t3.xlarge
         - t3.2xlarge
-      default: t3.micro
+      default: t3.large
     - name: AWS_REGION
       description: AWS Region
       options:
@@ -204,20 +251,18 @@ spec:
         - eu-north-1
         - me-south-1
         - sa-east-1
-      default: eu-west-1
+      default: us-east-1
   resourcetemplates:
     - content:
         - apiVersion: cluster.x-k8s.io/v1beta1
           kind: Cluster
           metadata:
             name: "${CLUSTER_NAME}"
-            # Important to add the estimation filters annotation HERE and NOT on the CAPITemplate
-            annotations:
-              "templates.weave.works/estimation-filters": "${COST_ESTIMATION_FILTERS}"
           spec:
             clusterNetwork:
               pods:
-                cidrBlocks: ["192.168.0.0/16"]
+                cidrBlocks:
+                  - 192.168.0.0/16
             infrastructureRef:
               apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
               kind: AWSCluster
@@ -238,7 +283,7 @@ spec:
           metadata:
             name: "${CLUSTER_NAME}-control-plane"
           spec:
-            replicas: ${CONTROL_PLANE_MACHINE_COUNT}
+            replicas: "${CONTROL_PLANE_MACHINE_COUNT}"
             machineTemplate:
               infrastructureRef:
                 kind: AWSMachineTemplate
@@ -271,7 +316,7 @@ spec:
             template:
               spec:
                 instanceType: "${AWS_CONTROL_PLANE_MACHINE_TYPE}"
-                iamInstanceProfile: "control-plane.cluster-api-provider-aws.sigs.k8s.io"
+                iamInstanceProfile: control-plane.cluster-api-provider-aws.sigs.k8s.io
                 sshKeyName: "${AWS_SSH_KEY_NAME}"
         - apiVersion: cluster.x-k8s.io/v1beta1
           kind: MachineDeployment
@@ -279,9 +324,9 @@ spec:
             name: "${CLUSTER_NAME}-md-0"
           spec:
             clusterName: "${CLUSTER_NAME}"
-            replicas: ${WORKER_MACHINE_COUNT}
+            replicas: "${WORKER_MACHINE_COUNT}"
             selector:
-              matchLabels:
+              matchLabels: null
             template:
               spec:
                 clusterName: "${CLUSTER_NAME}"
@@ -303,7 +348,7 @@ spec:
             template:
               spec:
                 instanceType: "${AWS_NODE_MACHINE_TYPE}"
-                iamInstanceProfile: "nodes.cluster-api-provider-aws.sigs.k8s.io"
+                iamInstanceProfile: nodes.cluster-api-provider-aws.sigs.k8s.io
                 sshKeyName: "${AWS_SSH_KEY_NAME}"
         - apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
           kind: KubeadmConfigTemplate

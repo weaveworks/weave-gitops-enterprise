@@ -3,6 +3,7 @@
         {
             "name": "cluster-template-2",
             "provider": "aws",
+            "templateType": "cluster",
             "description": "this is test template 2",
             "version": "",
             "parameters": [
@@ -16,6 +17,7 @@
             "name": "cluster-template-3",
             "provider": "azure",
             "description": "this is test template 3",
+            "templateType": "cluster",
             "version": "",
             "parameters": [
                 {
@@ -28,6 +30,7 @@
             "name": "cluster-template",
             "provider": "",
             "description": "this is test template 1",
+            "templateType": "cluster",
             "version": "",
             "parameters": [
                 {
