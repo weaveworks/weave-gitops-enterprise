@@ -131,7 +131,7 @@ func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces strin
 
 		gomega.Eventually(roleBindings.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
 		gomega.Expect(roleBindings.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Bindings Name", workspaceName))
-		gomega.Eventually(roleBindings.RoleBindingApi.Text).Should(gomega.Equal("apiVersion:"), "Failed to verify Role Manifest's apiVersion ")
+		gomega.Eventually(roleBindings.RoleBindingApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Manifest's apiVersion ")
 		gomega.Eventually(roleBindings.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
 		gomega.Eventually(roleBindings.Bindings.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Bindings", workspaceName))
 		gomega.Eventually(roleBindings.Role.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Role", workspaceName))
