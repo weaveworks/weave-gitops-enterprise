@@ -39,7 +39,7 @@ type ServiceAccounts struct {
 
 type Roles struct {
 	Name             *agouti.Selection
-	RoleName         *agouti.Selection
+	RoleApi          *agouti.Selection
 	ManifestCloseBtn *agouti.Selection
 	Namespace        *agouti.Selection
 	Rules            *agouti.Selection
@@ -113,7 +113,7 @@ func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
 	return &Roles{
 		Name:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		RoleName:         webDriver.FindByXPath(`(//span[@class='token key'][normalize-space()='apiVersion'])[1]`),
+		RoleApi:          webDriver.FindByXPath(`(//span[@class='token key'][normalize-space()='apiVersion'])[1]`),
 		ManifestCloseBtn: webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
 		Namespace:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		Rules:            webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),

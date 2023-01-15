@@ -97,28 +97,26 @@ func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces st
 	})
 }
 
-// func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
-// 	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
+func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
+	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
-// 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Roles", workspaceName), func() {
-// 		gomega.Expect(WorkspacesDetailPage.RolesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles tab", workspaceName))
-// 		pages.WaitForPageToLoad(webDriver)
+	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Roles", workspaceName), func() {
+		gomega.Expect(WorkspacesDetailPage.RolesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles tab", workspaceName))
+		pages.WaitForPageToLoad(webDriver)
 
-// 		Role := pages.GetWorkspaceRoles(webDriver)
+		Role := pages.GetWorkspaceRoles(webDriver)
 
-// 		gomega.Eventually(Role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Name testtttttttttttt", workspaceName))
-// 		gomega.Expect(Role.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' role Name", workspaceName))
-// 		pages.WaitForPageToLoad(webDriver)
-// 		// gomega.Expect(Role.RoleName.Text()).Should(gomega.MatchRegexp(`apiVersion`), "Failed to verify Role Manifest	Role's 'Name testtttttttttttttesttttttttttttt'")
-// 		gomega.Eventually(Role.RoleName.Text).Should(gomega.Equal("apiVersion:"), "Failed to verify Role Manifest's apiVersion ")
-// 		gomega.Expect(Role.RoleName.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' testtttttttttttt", workspaceName))
-// gomega.Expect(Role.RoleNameCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' testtttttttttttt", workspaceName))
-// 		// gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
-// 		// gomega.Eventually(Role.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
-// 		// gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
-// 		// gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
-// 	})
-// }
+		gomega.Eventually(Role.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role 's Name", workspaceName))
+		gomega.Expect(Role.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Name", workspaceName))
+		pages.WaitForPageToLoad(webDriver)
+		gomega.Eventually(Role.RoleApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Manifest's apiVersion ")
+		gomega.Expect(Role.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Roles manifest", workspaceName))
+		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
+		gomega.Eventually(Role.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
+		gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
+		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
+	})
+}
 
 func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces string) {
 	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
@@ -131,7 +129,7 @@ func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces strin
 
 		gomega.Eventually(roleBindings.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
 		gomega.Expect(roleBindings.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Bindings Name", workspaceName))
-		gomega.Eventually(roleBindings.RoleBindingApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Manifest's apiVersion ")
+		gomega.Eventually(roleBindings.RoleBindingApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Bindings Manifest's apiVersion ")
 		gomega.Expect(roleBindings.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Roles Bindings manifest", workspaceName))
 		gomega.Eventually(roleBindings.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
 		gomega.Eventually(roleBindings.Bindings.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Bindings", workspaceName))
