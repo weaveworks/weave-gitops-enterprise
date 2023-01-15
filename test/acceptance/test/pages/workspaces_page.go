@@ -132,3 +132,12 @@ func GetWorkspaceRoleBindings(webDriver *agouti.Page) *RoleBindings {
 		Age:              webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[5]`),
 	}
 }
+
+func GetWorkspacePolicies(webDriver *agouti.Page) *Policies {
+	return &Policies{
+		Name:     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		Category: webDriver.FindByXPath(`//span[normalize-space()='weave.categories.tenancy']`),
+		Severity: webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
+		Age:      webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
+	}
+}

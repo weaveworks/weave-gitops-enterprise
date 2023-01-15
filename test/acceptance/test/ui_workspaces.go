@@ -138,6 +138,27 @@ func verifyWrokspaceRoleBindings(workspaceName string, WorkspaceNamespaces strin
 	})
 }
 
+func verifyWrokspacePolicies(workspaceName string, WorkspaceNamespaces string) {
+	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
+
+	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Policies", workspaceName), func() {
+		gomega.Expect(WorkspacesDetailPage.PoliciesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Policies tab", workspaceName))
+		pages.WaitForPageToLoad(webDriver)
+
+		Policies := pages.GetWorkspacePolicies(webDriver)
+
+		gomega.Eventually(Policies.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
+		gomega.Expect(Policies.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Bindings Name", workspaceName))
+
+		// Navigate back to the policies list
+		gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to navigate back to the '%s' policies list", workspaceName))
+
+		gomega.Eventually(Policies.Category.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Category", workspaceName))
+		gomega.Eventually(Policies.Severity.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Severity", workspaceName))
+		gomega.Eventually(Policies.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Policies's Age", workspaceName))
+	})
+}
+
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("ui", "workspaces"), func() {
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
@@ -208,6 +229,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces)
 			verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
 			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces)
+			verifyWrokspacePolicies(workspaceName, workspaceNamespaces)
 
 			// verifyAppAnnotations(podinfo)
 
