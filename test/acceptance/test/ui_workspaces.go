@@ -109,7 +109,7 @@ func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
 		gomega.Eventually(Role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Name testtttttttttttt", workspaceName))
 		gomega.Expect(Role.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' testtttttttttttt", workspaceName))
 		pages.WaitForPageToLoad(webDriver)
-		gomega.Expect(Role.RoleName.Text()).Should(gomega.MatchRegexp(`apiVersion`), "Failed to verify Role Manifest	Role's 'Name testtttttttttttttesttttttttttttt'")
+		// gomega.Expect(Role.RoleName.Text()).Should(gomega.MatchRegexp(`apiVersion`), "Failed to verify Role Manifest	Role's 'Name testtttttttttttttesttttttttttttt'")
 		gomega.Eventually(Role.RoleName.Text).Should(gomega.Equal("apiVersion:"), "Failed to verify Role Manifest's apiVersion ")
 		gomega.Expect(Role.RoleName.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' testtttttttttttt", workspaceName))
 		gomega.Expect(Role.RoleNameCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' testtttttttttttt", workspaceName))
