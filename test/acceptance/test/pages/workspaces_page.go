@@ -40,19 +40,20 @@ type ServiceAccounts struct {
 type Roles struct {
 	Name             *agouti.Selection
 	RoleName         *agouti.Selection
-	RoleNameCloseBtn *agouti.Selection
+	ManifestCloseBtn *agouti.Selection
 	Namespace        *agouti.Selection
 	Rules            *agouti.Selection
 	Age              *agouti.Selection
 }
 
 type RoleBindings struct {
-	Name           *agouti.Selection
-	RoleBindingApi *agouti.Selection
-	Namespace      *agouti.Selection
-	Bindings       *agouti.Selection
-	Role           *agouti.Selection
-	Age            *agouti.Selection
+	Name             *agouti.Selection
+	RoleBindingApi   *agouti.Selection
+	ManifestCloseBtn *agouti.Selection
+	Namespace        *agouti.Selection
+	Bindings         *agouti.Selection
+	Role             *agouti.Selection
+	Age              *agouti.Selection
 }
 
 type Policies struct {
@@ -113,7 +114,7 @@ func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
 	return &Roles{
 		Name:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
 		RoleName:         webDriver.FindByXPath(`(//span[@class='token key'][normalize-space()='apiVersion'])[1]`),
-		RoleNameCloseBtn: webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
+		ManifestCloseBtn: webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
 		Namespace:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		Rules:            webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
 		Age:              webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
@@ -122,11 +123,12 @@ func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
 
 func GetWorkspaceRoleBindings(webDriver *agouti.Page) *RoleBindings {
 	return &RoleBindings{
-		Name:           webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		RoleBindingApi: webDriver.FindByXPath(`(//span[@class='token key'][normalize-space()='apiVersion'])[1]`),
-		Namespace:      webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
-		Bindings:       webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
-		Role:           webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
-		Age:            webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[5]`),
+		Name:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		RoleBindingApi:   webDriver.FindByXPath(`(//span[@class='token key'][normalize-space()='apiVersion'])[1]`),
+		ManifestCloseBtn: webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
+		Namespace:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
+		Bindings:         webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
+		Role:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
+		Age:              webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[5]`),
 	}
 }
