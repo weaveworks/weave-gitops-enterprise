@@ -206,7 +206,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces)
 			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces)
-			// verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
+			verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
 			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces)
 
 			// verifyAppAnnotations(podinfo)
