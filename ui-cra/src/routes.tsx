@@ -42,6 +42,7 @@ import OAuthCallback from './components/GithubAuth/OAuthCallback';
 import { GitProvider } from './api/gitauth/gitauth.pb';
 import SecretsList from './components/Secrets';
 import SecretDetails from './components/Secrets/SecretDetails';
+import CreateSecret from './components/Secrets/Create';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -258,6 +259,8 @@ const AppRoutes = () => {
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
       />
+      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
