@@ -83,12 +83,11 @@ spec:
                           properties:
                             content:
                               description: Content of the template
-                              properties:
-                                path:
-                                  description: Path of the template
-                                  type: string
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
+                            path:
+                              description: Path of the template
+                              type: string
                           type: object
                         values:
                           description: Shortcut to template.content.spec.values
@@ -215,12 +214,11 @@ spec:
                           properties:
                             content:
                               description: Content of the template
-                              properties:
-                                path:
-                                  description: Path of the template
-                                  type: string
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
+                            path:
+                              description: Path of the template
+                              type: string
                           type: object
                         values:
                           description: Shortcut to template.content.spec.values
