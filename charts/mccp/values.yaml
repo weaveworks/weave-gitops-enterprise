@@ -165,7 +165,7 @@ global:
 
 templates-controller:
   enabled: true
-  # templates-controller-manager etc
+  # templates-controller-controller-manager etc
   fullnameOverride: templates-controller
   controllerManager:
     manager:
