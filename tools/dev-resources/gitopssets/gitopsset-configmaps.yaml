@@ -1,0 +1,26 @@
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  name: gitopsset-configmaps
+  namespace: default
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            team: dev-team
+          - env: production
+            team: ops-team
+          - env: staging
+            team: ops-team
+  templates:
+    - kind: ConfigMap
+      apiVersion: v1
+      metadata:
+        name: "{{ .env }}-info-configmap"
+        namespace: default
+      spec:
+        data:
+          team: "{{ .team }}"
+          env: "{{ .env }}"
+          description: "This is a configmap for the {{ .env }} environment"

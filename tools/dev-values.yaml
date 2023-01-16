@@ -26,6 +26,9 @@ extraEnvVarsSecret: ""
 # Turns on UI elements for GitOps Run
 enableRunUI: true
 
+gitopssets-controller:
+  enabled: true
+
 # Re-clarify capiEnabled
 global:
   capiEnabled: true
