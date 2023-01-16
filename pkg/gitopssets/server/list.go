@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	ctrl "github.com/weaveworks/gitops-controller/api/v1alpha1"
+	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/internal/convert"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsRequest) (*pb.ListGitOpsSetsResponse, error) {
-	namespacedLists, err := s.managementFetcher.Fetch(ctx, ctrl.GitOpsKind, func() client.ObjectList {
-		return &ctrl.GitOpsList{}
+	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitOpsSet", func() client.ObjectList {
+		return &ctrl.GitOpsSetList{}
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query gitops sets: %w", err)
@@ -27,14 +27,14 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 				Message:   err.Error(),
 			})
 		}
-		gitOpsList := namespacedList.List.(*ctrl.GitOpsList)
+		gitOpsList := namespacedList.List.(*ctrl.GitOpsSetList)
 		for _, gs := range gitOpsList.Items {
 			gitopssets = append(gitopssets, convert.GitOpsToProto(gs))
 		}
 	}
 
 	return &pb.ListGitOpsSetsResponse{
-		GitOpsSets: gitopssets,
+		Gitopssets: gitopssets,
 		Errors:     errors,
 	}, nil
 }

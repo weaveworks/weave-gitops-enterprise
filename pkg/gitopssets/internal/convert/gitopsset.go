@@ -1,47 +1,42 @@
 package convert
 
 import (
+	"fmt"
+
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
 )
 
-func GitOpsToProto(p ctrl.GitOpsSet) *pb.GitOpsSet {
-	r := &pb.GitOpsSet{
-		Name:      p.Name,
-		Namespace: p.Namespace,
-		AppRef: &pb.AppRef{
-			ApiVersion: p.Spec.AppRef.APIVersion,
-			Kind:       p.Spec.AppRef.Kind,
-			Name:       p.Spec.AppRef.Name,
-		},
-		Environments: []*pb.Environment{},
-		Type:         p.GetObjectKind().GroupVersionKind().Kind,
-	}
+func GitOpsToProto(gs ctrl.GitOpsSet) *pb.GitOpsSet {
+	inv := []*pb.ResourceRef{}
 
-	for _, e := range p.Spec.Environments {
-		env := &pb.Environment{
-			Name:    e.Name,
-			Targets: []*pb.Target{},
-		}
-
-		for _, t := range e.Targets {
-			var clusterRef pb.ClusterRef
-
-			if t.ClusterRef != nil {
-				clusterRef = pb.ClusterRef{
-					Kind: t.ClusterRef.Kind,
-					Name: t.ClusterRef.Name,
-				}
-			}
-
-			env.Targets = append(env.Targets, &pb.Target{
-				Namespace:  t.Namespace,
-				ClusterRef: &clusterRef,
+	if gs.Status.Inventory != nil {
+		for _, r := range gs.Status.Inventory.Entries {
+			inv = append(inv, &pb.ResourceRef{
+				ID:      r.ID,
+				Version: r.Version,
 			})
 		}
-
-		r.Environments = append(r.Environments, env)
-
 	}
-	return r
+
+	conditions := []*pb.Condition{}
+
+	if gs.Status.Conditions != nil {
+		for _, r := range gs.Status.Conditions {
+			conditions = append(conditions, &pb.Condition{
+				Type:      r.Type,
+				Status:    fmt.Sprint(r.Status),
+				Reason:    r.Reason,
+				Message:   r.Message,
+				Timestamp: r.LastTransitionTime.String(),
+			})
+		}
+	}
+
+	return &pb.GitOpsSet{
+		Name:       gs.Name,
+		Namespace:  gs.Namespace,
+		Inventory:  inv,
+		Conditions: conditions,
+	}
 }

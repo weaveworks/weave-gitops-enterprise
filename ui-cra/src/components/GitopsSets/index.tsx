@@ -12,10 +12,6 @@ import { makeStyles, createStyles } from '@material-ui/core';
 import { useListConfigContext } from '../../contexts/ListConfig';
 import useGitOpsSets from '../../hooks/gitopssets';
 
-interface Size {
-  size?: 'small';
-}
-
 const useStyles = makeStyles(() =>
   createStyles({
     externalIcon: {
@@ -25,7 +21,7 @@ const useStyles = makeStyles(() =>
 );
 
 const GitopsSets: FC = () => {
-  const { data: gitopssets, isLoading } = useGitOpsSets();
+  const { data, isLoading } = useGitOpsSets();
   const history = useHistory();
   const listConfigContext = useListConfigContext();
   const repoLink = listConfigContext?.repoLink || '';
@@ -40,11 +36,11 @@ const GitopsSets: FC = () => {
         },
       ]}
     >
-      <ContentWrapper errors={automations?.errors}>
+      <ContentWrapper errors={data?.errors}>
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={gitopssets?.result} />
+          <AutomationsTable automations={data?.gitopssets} />
         )}
       </ContentWrapper>
     </PageTemplate>

@@ -23,11 +23,9 @@ const useGitOpsSets = () => {
     },
   );
 
-  const gitopssets = data?.gitopssets as GitOpsSet[] | undefined;
-
   return {
     isLoading,
-    gitopssets,
+    data,
     loading,
   };
 };

@@ -7,9 +7,25 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/ap
 message GitOpsSet {
     string         name                     = 1;
     string         namespace                = 2;
+    repeated ResourceRef inventory   = 3;
+    repeated Condition   conditions  = 4;
 }
 
 message ListError {
     string namespace = 1;
     string message = 2;
+
+}
+
+message ResourceRef {
+    string ID       = 1;
+    string version  = 2;
+}
+
+message Condition {
+    string type = 1;
+    string status = 2;
+    string reason = 3;
+    string message = 4;
+    string timestamp = 5;
 }
