@@ -138,11 +138,11 @@ lint:
 
 .PHONY: lint-and-install-chart
 lint-and-install-chart:
-	ct lint-and-install --config ct.yaml --target-branch main
+	ct lint-and-install --config tools/test/ct.yaml --target-branch main
 
 .PHONY: lint-chart
 lint-chart:
-	ct lint --config ct.yaml --target-branch main
+	ct lint --config tools/test/ct.yaml --target-branch main
 
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
 	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
