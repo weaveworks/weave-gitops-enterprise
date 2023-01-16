@@ -165,8 +165,18 @@ global:
 
 templates-controller:
   enabled: true
+  # templates-controller-manager etc
   fullnameOverride: templates-controller
   controllerManager:
     manager:
       image:
         tag: v0.1.1
+
+gitopssets-controller:
+  enabled: false
+  # gitops-controller-manager etc
+  fullnameOverride: gitopssets
+  controllerManager:
+    manager:
+      image:
+        tag: v0.1.0
