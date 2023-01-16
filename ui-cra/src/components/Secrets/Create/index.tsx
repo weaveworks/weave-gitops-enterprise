@@ -21,9 +21,18 @@ import {
   Link,
   LoadingPage,
   theme,
+  GitRepository,
+  useListSources,
+
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { AddApplicationRequest } from '../../Applications/utils';
+import {
+  getInitialGitRepo,
+  getRepositoryUrl,
+} from '../../Templates/Form/utils';
+import { GitRepositoryEnriched } from '../../Templates/Form';
+import { getGitRepos } from '../../Clusters';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -47,6 +56,7 @@ const FormWrapper = styled.form`
 `;
 
 interface FormData {
+  repo: GitRepository | null;
   branchName: string;
   provider: string;
   pullRequestTitle: string;
@@ -82,6 +92,7 @@ function getInitialData(
   random: string,
 ) {
   let defaultFormData = {
+    repo: null,
     provider: '',
     branchName: `add-external-secret-branch-${random}`,
     pullRequestTitle: 'Add External Secret',
@@ -121,9 +132,6 @@ const CreateSecret = () => {
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { initialFormData } = getInitialData(callbackState, random);
 
-  const listConfigContext = useListConfigContext();
-  const data = listConfigContext?.data;
-  const repositoryURL = data?.repositoryURL || '';
 
   const [loading, setLoading] = useState<boolean>(false);
   const [isclusterSelected, setIsclusterSelected] = useState<boolean>(false);
@@ -133,6 +141,17 @@ const CreateSecret = () => {
   const [submitType, setSubmitType] = useState<string>('');
 
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+
+  const { data } = useListSources();
+  const gitRepos = useMemo(
+    () => getGitRepos(data?.result),
+    [data?.result],
+  );
+  const initialGitRepo = getInitialGitRepo(
+    null,
+    gitRepos,
+  ) as GitRepositoryEnriched;
+
   const [formError, setFormError] = useState<string>('');
   const automation = formData.clusterAutomations[0];
 
@@ -151,83 +170,15 @@ const CreateSecret = () => {
     target_Cluster,
   } = automation;
 
-  const handleCreateSecret = useCallback(() => {
-    let clusterAutomations: ClusterAutomation[] = [];
-    clusterAutomations.push({
-      cluster: {
-        name: cluster_name,
-        namespace: cluster_namespace,
-      },
-      isControlPlane: isControlPlane,
-      externalSecret: {
-        metadata: {
-          name: secret_name,
-          namespace: secret_namespace,
-        },
-        spec: {
-          refreshInterval: '1h',
-          secretStoreRef: {
-            name: secretStoreRef,
-          },
-          target: {
-            name: data_secretKey,
-          },
-          data: {
-            secretKey: data_secretKey,
-            remoteRef: {
-              key: data_remoteRef_key,
-              property: data_remoteRef_property,
-            },
-          },
-        },
-      },
-    });
-    const payload = {
-      headBranch: formData.branchName,
-      title: formData.pullRequestTitle,
-      description: formData.pullRequestDescription,
-      commitMessage: formData.commitMessage,
-      clusterAutomations: clusterAutomations,
-    };
-    setLoading(true);
-    return AddApplicationRequest(payload, getProviderToken(formData.provider))
-      .then(response => {
-        history.push(Routes.Secrets);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [formData]);
-
   useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      url: repositoryURL,
-    }));
-  }, [repositoryURL]);
+    if (!formData.repo) {
+      setFormData((prevState: any) => ({
+        ...prevState,
+        repo: initialGitRepo,
+      }));
+    }
+  }, [initialGitRepo, formData.repo]);
+
 
   const handleSelectSecretStore = (event: React.ChangeEvent<any>) => {
     const sercetStore = event.target.value;
@@ -289,6 +240,79 @@ const CreateSecret = () => {
       clusterAutomations: currentAutomation,
     });
   };
+
+
+  const handleCreateSecret = useCallback(() => {
+    let clusterAutomations: ClusterAutomation[] = [];
+    clusterAutomations.push({
+      cluster: {
+        name: cluster_name,
+        namespace: cluster_namespace,
+      },
+      isControlPlane: isControlPlane,
+      externalSecret: {
+        metadata: {
+          name: secret_name,
+          namespace: secret_namespace,
+        },
+        spec: {
+          refreshInterval: '1h',
+          secretStoreRef: {
+            name: secretStoreRef,
+          },
+          target: {
+            name: data_secretKey,
+          },
+          data: {
+            secretKey: data_secretKey,
+            remoteRef: {
+              key: data_remoteRef_key,
+              property: data_remoteRef_property,
+            },
+          },
+        },
+      },
+    });
+    const payload = {
+      headBranch: formData.branchName,
+      title: formData.pullRequestTitle,
+      description: formData.pullRequestDescription,
+      commitMessage: formData.commitMessage,
+      clusterAutomations: clusterAutomations,
+      repositoryUrl: getRepositoryUrl(formData.repo),
+    };
+    setLoading(true);
+    return AddApplicationRequest(payload, getProviderToken(formData.provider))
+      .then(response => {
+        history.push(Routes.Secrets);
+        setNotifications([
+          {
+            message: {
+              component: (
+                <Link href={response.webUrl} newTab>
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
+                </Link>
+              ),
+            },
+            severity: 'success',
+          },
+        ]);
+      })
+      .catch(error => {
+        setNotifications([
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]);
+        if (isUnauthenticated(error.code)) {
+          removeToken(formData.provider);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [formData]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -397,6 +421,7 @@ const CreateSecret = () => {
               setShowAuthDialog={setShowAuthDialog}
               setEnableCreatePR={setEnableCreatePR}
               formError={formError}
+              enableGitRepoSelection={true}
             />
 
             {loading ? (
