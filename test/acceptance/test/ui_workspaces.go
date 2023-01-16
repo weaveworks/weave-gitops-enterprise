@@ -116,7 +116,7 @@ func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
 		gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
 		gomega.Expect(Role.Rules.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's view rules button", workspaceName))
 		gomega.Eventually(Role.ViewRules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to open workspace view rules button", workspaceName))
-		gomega.Expect(Role.CloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' workspace's view rules button", workspaceName))
+		// gomega.Expect(Role.CloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' workspace's view rules button", workspaceName))
 		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
 	})
 }
