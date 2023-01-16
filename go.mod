@@ -38,9 +38,9 @@ require (
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.11.0
 	github.com/fluxcd/helm-controller/api v0.27.0
-	github.com/fluxcd/kustomize-controller/api v0.31.0
+	github.com/fluxcd/kustomize-controller/api v0.32.0
 	github.com/fluxcd/pkg/apis/meta v0.18.0
-	github.com/fluxcd/pkg/runtime v0.24.0
+	github.com/fluxcd/pkg/runtime v0.25.0
 	github.com/fluxcd/pkg/untar v0.2.0
 	github.com/fluxcd/source-controller/api v0.32.1
 	github.com/go-resty/resty/v2 v2.7.0
@@ -127,6 +127,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
+	github.com/weaveworks/gitopssets-controller v0.1.0 // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	k8s.io/klog v1.0.0 // indirect

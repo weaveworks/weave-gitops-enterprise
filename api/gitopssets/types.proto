@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package gitopssets.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/api";
+
+message GitOpsSet {
+    string         name                     = 1;
+    string         namespace                = 2;
+}
+
+message ListError {
+    string namespace = 1;
+    string message = 2;
+}
