@@ -1,0 +1,5 @@
+apiVersion: v2
+name: templates
+description: A set of gitops templates for getting started. Bundled with weave gitops enterprise for providing an initial baseline experience.
+type: application
+version: 0.1.0

@@ -1,0 +1,4 @@
+# configuration for pipelines templates
+pipelines:
+  # namespace where to install the templates
+  namespace: "pipeline-system"

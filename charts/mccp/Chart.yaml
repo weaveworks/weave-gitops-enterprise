@@ -28,6 +28,10 @@ dependencies:
     version: "0.1.0"
     repository: "file://../templates-controller"
     condition: templates-controller.enabled
+  - name: templates
+    version: "0.1.0"
+    repository: "file://../templates"
+    condition: templates.enabled
   - name: policy-agent
     version: "2.2.0"
     repository: "https://weaveworks.github.io/policy-agent"

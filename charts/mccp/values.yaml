@@ -163,6 +163,8 @@ global:
   capiEnabled: true
   useK8sCachedClients: false
 
+### gitops templates values
+# templates controller
 templates-controller:
   enabled: true
   fullnameOverride: templates-controller
@@ -170,3 +172,6 @@ templates-controller:
     manager:
       image:
         tag: v0.1.1
+# templates getting started
+templates:
+  enabled: false

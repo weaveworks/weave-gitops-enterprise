@@ -1,0 +1,9 @@
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: pipeline-sample
+  namespace: {{ .Values.namespace }}
+  labels:
+    weave.works/template-type: pipeline
+spec:
+  description: a blank pipeline template for development purposes
