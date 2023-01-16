@@ -23,7 +23,6 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
-
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -32,6 +31,7 @@ import (
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
@@ -77,7 +77,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -139,10 +138,11 @@ type Params struct {
 	DevMode                           bool                      `mapstructure:"dev-mode"`
 	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
-	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
-	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 	UIConfig                          string                    `mapstructure:"ui-config"`
 	PipelineControllerAddress         string                    `mapstructure:"pipeline-controller-address"`
+	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
+	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
+	CostEstimationFilename            string                    `mapstructure:"cost-estimation-csv-file"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -183,60 +183,60 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		},
 	}
 
+	cmdFlags := cmd.Flags()
+
 	// Have to declare a flag for viper to correctly read and then bind environment variables too
 	// FIXME: why? We don't actually use the flags in helm templates etc.
 	//
-	cmd.Flags().String("entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
-	cmd.Flags().String("entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
-	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
-	cmd.Flags().String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
-	cmd.Flags().String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
-	cmd.Flags().String("html-root-path", "/html", "Where to serve static assets from")
-	cmd.Flags().String("git-provider-type", "", "")
-	cmd.Flags().String("git-provider-hostname", "", "")
-	cmd.Flags().Bool("capi-enabled", true, "")
-	cmd.Flags().String("capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
-	cmd.Flags().String("capi-templates-namespace", "", "where to look for CAPI template resources, required")
-	cmd.Flags().String("inject-prune-annotation", "", "")
-	cmd.Flags().String("add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
-	cmd.Flags().String("capi-templates-repository-url", "", "")
-	cmd.Flags().String("capi-repository-path", "", "")
-	cmd.Flags().String("capi-repository-clusters-path", "./clusters", "")
-	cmd.Flags().String("capi-templates-repository-api-url", "", "")
-	cmd.Flags().String("capi-templates-repository-base-branch", "", "")
-	cmd.Flags().String("runtime-namespace", "flux-system", "Namespace hosting Gitops configuration objects (e.g. cluster-user-auth secrets)")
-	cmd.Flags().String("git-provider-token", "", "")
-	cmd.Flags().String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
-	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
-	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
-	cmd.Flags().String("cluster-name", "management", "name of the management cluster")
+	cmdFlags.String("entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
+	cmdFlags.String("entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
+	cmdFlags.String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
+	cmdFlags.String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	cmdFlags.String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
+	cmdFlags.String("html-root-path", "/html", "Where to serve static assets from")
+	cmdFlags.String("git-provider-type", "", "")
+	cmdFlags.String("git-provider-hostname", "", "")
+	cmdFlags.Bool("capi-enabled", true, "")
+	cmdFlags.String("capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
+	cmdFlags.String("capi-templates-namespace", "", "where to look for CAPI template resources, required")
+	cmdFlags.String("inject-prune-annotation", "", "")
+	cmdFlags.String("add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
+	cmdFlags.String("capi-templates-repository-url", "", "")
+	cmdFlags.String("capi-repository-path", "", "")
+	cmdFlags.String("capi-repository-clusters-path", "./clusters", "")
+	cmdFlags.String("capi-templates-repository-api-url", "", "")
+	cmdFlags.String("capi-templates-repository-base-branch", "", "")
+	cmdFlags.String("runtime-namespace", "flux-system", "Namespace hosting Gitops configuration objects (e.g. cluster-user-auth secrets)")
+	cmdFlags.String("git-provider-token", "", "")
+	cmdFlags.String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
+	cmdFlags.String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
+	cmdFlags.Bool("no-tls", false, "do not attempt to read TLS certificates")
+	cmdFlags.String("cluster-name", "management", "name of the management cluster")
 
-	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
-	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
-	cmd.Flags().String("oidc-client-id", "", "The client ID for the OpenID Connect client")
-	cmd.Flags().String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
-	cmd.Flags().String("oidc-redirect-url", "", "The OAuth2 redirect URL")
-	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
-	cmd.Flags().String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
-	cmd.Flags().String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
-	cmd.Flags().StringSlice("custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
+	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
+	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+	cmdFlags.String("oidc-client-id", "", "The client ID for the OpenID Connect client")
+	cmdFlags.String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+	cmdFlags.String("oidc-redirect-url", "", "The OAuth2 redirect URL")
+	cmdFlags.Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	cmdFlags.String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
+	cmdFlags.String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
+	cmdFlags.StringSlice("custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
 
-	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
-	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
-	cmd.Flags().String("cost-estimation-filters", "", "Cost estimation filters")
-	cmd.Flags().String("cost-estimation-api-region", "", "API region for cost estimation queries")
-	cmd.Flags().String("ui-config", "", "UI configuration, JSON encoded")
-	cmd.Flags().String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
+	cmdFlags.Bool("dev-mode", false, "starts the server in development mode")
+	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
+	cmdFlags.String("ui-config", "", "UI configuration, JSON encoded")
+	cmdFlags.String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
 
-	// Hide some flags from the help output
-	err := cmd.Flags().MarkHidden("cost-estimation-filters")
-	if err != nil {
-		log.Error(err, "error marking cost-estimation-filters flag as hidden")
-	}
-	err = cmd.Flags().MarkHidden("cost-estimation-api-region")
-	if err != nil {
-		log.Error(err, "error marking cost-estimation-api-region flag as hidden")
-	}
+	cmdFlags.String("cost-estimation-filters", "", "Cost estimation filters")
+	cmdFlags.String("cost-estimation-api-region", "", "API region for cost estimation queries")
+	cmdFlags.String("cost-estimation-csv-file", "", "Filename to parse as Cost Estimation data")
+
+	cmdFlags.VisitAll(func(fl *flag.Flag) {
+		if strings.HasPrefix(fl.Name, "cost-estimation") {
+			cobra.CheckErr(cmdFlags.MarkHidden(fl.Name))
+		}
+	})
 
 	return cmd
 }
@@ -401,16 +401,21 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
-	runtimeUtil.Must(capiv1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(pacv2beta2.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(esv1beta1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(gitopsv1alpha1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(clusterv1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(gapiv1.AddToScheme(clustersManagerScheme))
+	builder := runtime.NewSchemeBuilder(
+		capiv1.AddToScheme,
+		pacv2beta1.AddToScheme,
+		pacv2beta2.AddToScheme,
+		esv1beta1.AddToScheme,
+		flaggerv1beta1.AddToScheme,
+		pipelinev1alpha1.AddToScheme,
+		tfctrl.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+		clusterv1.AddToScheme,
+		gapiv1.AddToScheme,
+	)
+	if err := builder.AddToScheme(clustersManagerScheme); err != nil {
+		return err
+	}
 
 	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
@@ -463,25 +468,11 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	var estimator estimation.Estimator
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
 		log.Info("Cost estimation feature flag is enabled")
-		if p.CostEstimationFilters == "" {
-			return fmt.Errorf("cost estimation filters cannot be empty")
-		}
-		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
+		est, err := makeCostEstimator(ctx, log, p)
 		if err != nil {
-			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
-		} else {
-			svc := pricing.NewFromConfig(cfg)
-			pricer := estimation.NewAWSPricer(log, svc)
-
-			log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
-			filters, err := estimation.ParseFilterQueryString(p.CostEstimationFilters)
-			if err != nil {
-				return fmt.Errorf("could not parse cost estimation filters: %w", err)
-			}
-			log.Info("Parsed default cost estimation filters", "filters", filters)
-
-			estimator = estimation.NewAWSClusterEstimator(pricer, filters)
+			return err
 		}
+		estimator = est
 	}
 
 	coreCfg, err := core_core.NewCoreConfig(
@@ -972,4 +963,35 @@ func (fs *spaFileSystem) Open(name string) (http.File, error) {
 		return fs.root.Open("index.html")
 	}
 	return f, err
+}
+
+func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimation.Estimator, error) {
+	var pricer estimation.Pricer
+	if p.CostEstimationFilename != "" {
+		log.Info("configuring cost estimation from CSV", "filename", p.CostEstimationFilename)
+		pr, err := estimation.NewCSVPricerFromFile(log, p.CostEstimationFilename)
+		if err != nil {
+			return nil, err
+		}
+		pricer = pr
+	} else {
+		if p.CostEstimationFilters == "" {
+			return nil, errors.New("cost estimation filters cannot be empty")
+		}
+		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
+		if err != nil {
+			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
+		} else {
+			svc := pricing.NewFromConfig(cfg)
+			pricer = estimation.NewAWSPricer(log, svc)
+		}
+	}
+	log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
+	filters, err := estimation.ParseFilterQueryString(p.CostEstimationFilters)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse cost estimation filters: %w", err)
+	}
+	log.Info("Parsed default cost estimation filters", "filters", filters)
+
+	return estimation.NewAWSClusterEstimator(pricer, filters), nil
 }
