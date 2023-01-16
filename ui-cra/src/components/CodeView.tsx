@@ -8,9 +8,10 @@ import styled from 'styled-components';
 
 type Props = {
   className?: string;
-  yaml: string;
-  object: Canary | CanaryMetricTemplate;
-  kind: string;
+  code: string;
+  object?: Canary | CanaryMetricTemplate;
+  kind?: string;
+  colorizeChanges?: boolean;
 };
 
 export const IconButton = styled(Button)`
@@ -47,46 +48,85 @@ const CopyButton = styled(IconButton)`
   }
 `;
 
-function YamlView({ yaml, object, className, kind }: Props) {
+const additionColor = '#2e5f38';
+const deletionColor = '#814a1c';
+const updateColor = '#787118';
+
+function CodeView({ code, object, className, kind, colorizeChanges }: Props) {
   const [copied, setCopied] = React.useState(false);
-  const headerText = `kubectl get ${kind?.toLowerCase()} ${object.name} -n ${
-    object.namespace
-  } -o yaml `;
+
+  let headerText = '';
+
+  if (kind && object) {
+    headerText = `kubectl get ${kind.toLowerCase()} ${object.name} -n ${
+      object.namespace
+    } -o yaml `;
+  }
 
   return (
     <div className={className}>
-      <YamlHeader>
-        {headerText}
-        <CopyButton
-          onClick={() => {
-            navigator.clipboard.writeText(headerText);
-            setCopied(true);
-          }}
-        >
-          <Icon
-            type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
-            size="small"
-          />
-        </CopyButton>
-      </YamlHeader>
+      {headerText && (
+        <YamlHeader>
+          {headerText}
+          <CopyButton
+            onClick={() => {
+              navigator.clipboard.writeText(headerText);
+              setCopied(true);
+            }}
+          >
+            <Icon
+              type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
+              size="small"
+            />
+          </CopyButton>
+        </YamlHeader>
+      )}
+
       <pre>
-        {yaml.split('\n').map((yaml, index) => (
-          <code key={index}>{yaml}</code>
-        ))}
+        {colorizeChanges
+          ? code.split('\n').map((code, index) => {
+              let color = '';
+
+              if (/^\s+\+ /.test(code)) {
+                color = additionColor;
+              } else if (/^\s+\- /.test(code)) {
+                color = deletionColor;
+              } else if (/^\s+\~ /.test(code)) {
+                color = updateColor;
+              }
+
+              return (
+                <code key={index}>
+                  {color ? (
+                    <span
+                      style={{
+                        color: color,
+                      }}
+                    >
+                      {code}
+                    </span>
+                  ) : (
+                    code
+                  )}
+                </code>
+              );
+            })
+          : code
+              .split('\n')
+              .map((code, index) => <code key={index}>{code}</code>)}
       </pre>
     </div>
   );
 }
 
-export default styled(YamlView).attrs({
-  className: YamlView.name,
+export default styled(CodeView).attrs({
+  className: CodeView.name,
 })`
   margin-bottom: ${props => props.theme.spacing.small};
   width: calc(100% - ${props => props.theme.spacing.medium});
   font-size: ${props => props.theme.fontSizes.small};
   border: 1px solid ${props => props.theme.colors.neutral20};
   border-radius: 8px;
-  overflow: scroll;
   pre {
     padding: ${props => props.theme.spacing.small};
     white-space: pre-wrap;

@@ -18,6 +18,7 @@ import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
+  useGetTerraformObjectPlan,
   useSyncTerraformObject,
   useToggleSuspendTerraformObject,
 } from '../../contexts/Terraform';
@@ -26,11 +27,12 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
-import YamlView from '../YamlView';
+import CodeView from '../CodeView';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependencyView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
+import TerraformPlanView from './TerraformPlanView';
 
 type Props = {
   className?: string;
@@ -226,16 +228,17 @@ function TerraformObjectDetail({ className, ...params }: Props) {
               </LinkResolverProvider>
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
-              <>
-                <YamlView
-                  kind="Terraform"
-                  object={{
-                    name: object?.name,
-                    namespace: object?.namespace,
-                  }}
-                  yaml={yaml as string}
-                />
-              </>
+              <CodeView
+                kind="Terraform"
+                object={{
+                  name: object?.name,
+                  namespace: object?.namespace,
+                }}
+                code={yaml || ''}
+              />
+            </RouterTab>
+            <RouterTab name="Plan" path={`${path}/plan`}>
+              <TerraformPlanView {...params} />
             </RouterTab>
           </SubRouterTabs>
         </div>
