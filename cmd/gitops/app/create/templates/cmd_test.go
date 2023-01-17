@@ -96,14 +96,10 @@ func Test_CreateCommand(t *testing.T) {
 
 func Test_initializeConfig(t *testing.T) {
 	cmd := &cobra.Command{}
-	cmd.Flags().String("config-path", "", "path to config file")
-	cmd.Flags().String("template-file", "", "a test flag")
-
 	configPath = "testdata/config.yaml"
 	config = Config{}
 
 	err := initializeConfig(cmd)
-
 	if err != nil {
 		t.Errorf("Error initializing config: %v", err)
 	}
