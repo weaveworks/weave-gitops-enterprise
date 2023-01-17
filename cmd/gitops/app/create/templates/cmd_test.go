@@ -108,7 +108,13 @@ func Test_initializeConfig(t *testing.T) {
 		t.Errorf("Error initializing config: %v", err)
 	}
 
-	if config.TemplateFile != "template.yaml" {
-		t.Errorf("flag was not set correctly. Expected: 'template.yaml', Got: '%s'", config.TemplateFile)
+	assert.Equal(t, config.TemplateFile, "template.yaml")
+
+	expectedParams := []string{
+		"CLUSTER_NAME=test-cluster", "RESOURCE_NAME=test-resource", "NAMESPACE=test-namespace",
+		"GIT_REPO_NAMESPACE=test-git-repo-namespace", "GIT_REPO_NAME=test-git-repo-name", "PATH=../clusters/out.yaml"}
+
+	if diff := cmp.Diff(expectedParams, config.ParameterValues); diff != "" {
+		t.Fatalf("result didn't match expected:\n%s", diff)
 	}
 }
