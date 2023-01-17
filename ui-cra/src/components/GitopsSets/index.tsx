@@ -2,15 +2,24 @@ import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
-  AutomationsTable,
   LoadingPage,
-  useListAutomations,
   theme,
+  DataTable,
+  filterConfig,
+  formatURL,
+  KubeStatusIndicator,
+  filterByStatusCallback,
+  statusSortHelper,
+  Timestamp,
 } from '@weaveworks/weave-gitops';
+import { Link } from 'react-router-dom';
 import { useHistory } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core';
 import { useListConfigContext } from '../../contexts/ListConfig';
 import useGitOpsSets from '../../hooks/gitopssets';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
+import { GitOpsSet } from '../../api/gitopssets/types.pb';
+import { computeMessage } from '../Clusters';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -22,10 +31,78 @@ const useStyles = makeStyles(() =>
 
 const GitopsSets: FC = () => {
   const { data, isLoading } = useGitOpsSets();
-  const history = useHistory();
-  const listConfigContext = useListConfigContext();
-  const repoLink = listConfigContext?.repoLink || '';
-  const classes = useStyles();
+  const gitopssets = data?.gitopssets;
+
+  let initialFilterState = {
+    ...filterConfig(gitopssets, 'status', filterByStatusCallback),
+    ...filterConfig(gitopssets, 'type'),
+    ...filterConfig(gitopssets, 'namespace'),
+    ...filterConfig(gitopssets, 'tenant'),
+    ...filterConfig(gitopssets, 'clusterName'),
+  };
+
+  let fields: Field[] = [
+    {
+      label: 'Name',
+      value: (gs: GitOpsSet) => (
+        <Link
+          to={`/${gs.name}`}
+          color={theme.colors.primary}
+          data-gs-name={gs.name}
+        >
+          {gs.name}
+        </Link>
+      ),
+      sortValue: ({ name }) => name,
+      textSearchable: true,
+      maxWidth: 600,
+    },
+    {
+      label: 'Kind',
+      value: 'type',
+    },
+    {
+      label: 'Namespace',
+      value: 'namespace',
+    },
+    { label: 'Tenant', value: 'tenant' },
+    { label: 'Cluster', value: 'clusterName' },
+    {
+      label: 'Status',
+      value: (gs: GitOpsSet) =>
+        gs?.conditions?.length > 0 ? (
+          <KubeStatusIndicator
+            short
+            conditions={gs.conditions}
+            suspended={gs.suspended}
+          />
+        ) : null,
+      sortValue: statusSortHelper,
+      defaultSort: true,
+    },
+    {
+      label: 'Message',
+      value: (gs: GitOpsSet) => computeMessage(gs.conditions),
+      sortValue: ({ conditions }) => computeMessage(conditions),
+      maxWidth: 600,
+    },
+    {
+      label: 'Revision',
+      maxWidth: 36,
+      value: 'lastAppliedRevision',
+    },
+    {
+      label: 'Last Updated',
+      value: (gs: GitOpsSet) => (
+        <Timestamp
+          time={_.get(_.find(gs.conditions, { type: 'Ready' }), 'timestamp')}
+        />
+      ),
+      sortValue: (gs: GitOpsSet) => {
+        return _.get(_.find(gs.conditions, { type: 'Ready' }), 'timestamp');
+      },
+    },
+  ];
 
   return (
     <PageTemplate
@@ -40,7 +117,12 @@ const GitopsSets: FC = () => {
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <AutomationsTable automations={data?.gitopssets} />
+          <DataTable
+            fields={fields}
+            rows={data?.gitopssets}
+            filters={initialFilterState}
+            hasCheckboxes
+          />
         )}
       </ContentWrapper>
     </PageTemplate>
