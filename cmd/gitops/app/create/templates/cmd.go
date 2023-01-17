@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
@@ -102,17 +103,18 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 
 		if flags.outputDir != "" {
 			for _, res := range templateResources.RenderedTemplate {
-				filePath := filepath.Join(flags.outputDir, *res.Path)
+				filePath, err := securejoin.SecureJoin(flags.outputDir, *res.Path)
+				if err != nil {
+					return fmt.Errorf("failed to join %s to %s: %w", flags.outputDir, *res.Path, err)
+				}
 				directoryPath := filepath.Dir(filePath)
 
-				err := os.MkdirAll(directoryPath, 0755)
-
+				err = os.MkdirAll(directoryPath, 0755)
 				if err != nil {
 					return fmt.Errorf("failed to create directory: %w", err)
 				}
 
 				file, err := os.Create(filePath)
-
 				if err != nil {
 					return fmt.Errorf("failed to create file: %w", err)
 				}
@@ -120,7 +122,6 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 				defer file.Close()
 
 				_, err = file.Write([]byte(*res.Content))
-
 				if err != nil {
 					return fmt.Errorf("failed to write to file: %w", err)
 				}
