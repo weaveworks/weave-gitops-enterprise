@@ -40,7 +40,6 @@ describe('dependencies', () => {
       namespace: 'default',
       dependsOn: [],
       parentIds: [],
-      isCurrentNode: false,
       id: 'default/terraform1',
     },
     {
@@ -49,7 +48,6 @@ describe('dependencies', () => {
       namespace: 'default',
       dependsOn: [],
       parentIds: [],
-      isCurrentNode: false,
       id: 'default/terraforma',
     },
     {
@@ -62,7 +60,7 @@ describe('dependencies', () => {
         },
       ],
       parentIds: ['default/terraforma'],
-      isCurrentNode: false,
+
       id: 'default/terraformb',
     },
     {
@@ -75,7 +73,6 @@ describe('dependencies', () => {
         },
       ],
       parentIds: ['default/terraforma'],
-      isCurrentNode: false,
       id: 'default/terraformc',
     },
     {
@@ -88,7 +85,6 @@ describe('dependencies', () => {
         },
       ],
       parentIds: ['default/terraformb'],
-      isCurrentNode: false,
       id: 'default/terraformd',
     },
     {
@@ -104,7 +100,6 @@ describe('dependencies', () => {
         },
       ],
       parentIds: ['default/terraforma', 'default/terraform1'],
-      isCurrentNode: false,
       id: 'default/terraforme',
     },
   ];
