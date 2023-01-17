@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
 import { ListTemplatesResponse } from '../cluster-services/cluster_services.pb';
 import { TemplateEnriched } from '../types/custom';
