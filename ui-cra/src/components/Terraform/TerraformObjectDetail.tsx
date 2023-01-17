@@ -22,14 +22,14 @@ import {
   useToggleSuspendTerraformObject,
 } from '../../contexts/Terraform';
 import { Routes } from '../../utils/nav';
+import CodeView from '../CodeView';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
-import CodeView from '../CodeView';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
-import TerraformDependencyView from './TerraformDependencyView';
+import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
 import TerraformPlanView from './TerraformPlanView';
 
@@ -223,7 +223,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             </RouterTab>
             <RouterTab name="Dependencies" path={`${path}/dependencies`}>
               <LinkResolverProvider resolver={resolver}>
-                <TerraformDependencyView object={object || {}} />
+                <TerraformDependenciesView object={object || {}} />
               </LinkResolverProvider>
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
