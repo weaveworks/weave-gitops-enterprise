@@ -63,6 +63,7 @@ tilt_modules
 
 # Helm files pulled in by Tilt
 .helm
+Tiltfile.local
 
 # build flag artifacts
 tools/core-files
@@ -70,3 +71,6 @@ tools/core-files
 # ignore custom scripts and generated config
 /tools/custom/
 /tools/kind-config.yaml
+
+# ignore error files
+yarn-error.log

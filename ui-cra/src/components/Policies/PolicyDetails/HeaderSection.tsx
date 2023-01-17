@@ -5,11 +5,10 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { usePolicyStyle } from '../PolicyStyles';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import {
-  generateRowHeaders,
-  SectionRowHeader,
-} from '../../RowHeader';
-import { useFeatureFlags } from '@weaveworks/weave-gitops';
+import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
+import {  useFeatureFlags } from '@weaveworks/weave-gitops';
+import Mode from '../Mode';
+import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
 
 function HeaderSection({
   id,
@@ -22,11 +21,11 @@ function HeaderSection({
   howToSolve,
   code,
   tenant,
+  modes,
 }: Policy) {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
-
+  const flags = data.flags;
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
@@ -34,7 +33,7 @@ function HeaderSection({
     },
     {
       rowkey: 'Cluster Name',
-      value: clusterName,
+      value: <ClusterDashboardLink clusterName={clusterName || ''}/>,
     },
     {
       rowkey: 'Tenant',
@@ -66,6 +65,14 @@ function HeaderSection({
       value: category,
     },
     {
+      rowkey: 'Mode',
+      children: modes?.length
+        ? modes.map((mode, index) => (
+            <Mode key={index} modeName={mode} showName />
+          ))
+        : '',
+    },
+    {
       rowkey: 'Targeted K8s Kind',
       children: (
         <div id="policy-details-header-kinds">
@@ -91,7 +98,7 @@ function HeaderSection({
         <div className={classes.cardTitle}>Description:</div>
         <ReactMarkdown
           children={description || ''}
-          className={classes.editor}
+          className={`editor ${classes.editor}`}
         />
       </div>
 
@@ -99,7 +106,7 @@ function HeaderSection({
         <div className={classes.cardTitle}>How to solve:</div>
         <ReactMarkdown
           children={howToSolve || ''}
-          className={classes.editor}
+          className={`editor ${classes.editor}`}
           remarkPlugins={[remarkGfm]}
         />
       </div>

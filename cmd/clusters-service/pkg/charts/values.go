@@ -18,6 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -190,7 +191,7 @@ func (h HelmChartClient) envSettings() *cli.EnvSettings {
 //
 // For charts without a layer, these will be configured to depend on the highest
 // layer.
-func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartInstall) ([]*helmv2.HelmRelease, error) {
+func MakeHelmReleasesInLayers(namespace string, installs []ChartInstall) ([]*helmv2.HelmRelease, error) {
 	layerInstalls := map[string][]ChartInstall{}
 	for _, v := range installs {
 		current, ok := layerInstalls[v.Layer]
@@ -263,6 +264,13 @@ func MakeHelmReleasesInLayers(clusterName, namespace string, installs []ChartIns
 					LayerLabel: layer.name,
 				}
 			}
+			if install.ProfileTemplate != "" {
+				err := yaml.Unmarshal([]byte(install.ProfileTemplate), &hr)
+				if err != nil {
+					return nil, fmt.Errorf("failed to unmarshal spec for chart %s: %w", install.Ref.Chart, err)
+				}
+			}
+
 			releases = append(releases, &hr)
 		}
 	}
@@ -304,4 +312,6 @@ type ChartInstall struct {
 	Layer     string
 	Values    map[string]interface{}
 	Namespace string
+	// Spec is a RawExtension.Raw field that contains the raw JSON data
+	ProfileTemplate string
 }

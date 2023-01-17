@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
+	"github.com/Masterminds/semver"
 	_ "github.com/mattn/go-sqlite3"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -25,6 +27,8 @@ type ChartsCacheReader interface {
 	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error)
 	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error)
 	UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error
+	GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error)
+	GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error)
 }
 
 type ChartsCache interface {
@@ -245,6 +249,68 @@ AND cluster_name = $3 AND cluster_namespace = $4`
 	return charts, nil
 }
 
+// GetLatestVersion returns the latest version of a chart in a repo and cluster.
+func (i *HelmChartIndexer) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
+	sqlStatement := `
+SELECT version FROM helm_charts
+WHERE name = $1
+AND repo_name = $2 AND repo_namespace = $3
+AND cluster_name = $4 AND cluster_namespace = $5`
+
+	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, name, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	if err != nil {
+		return "", fmt.Errorf("failed to query database: %w", err)
+	}
+	defer rows.Close()
+
+	var versions []string
+	for rows.Next() {
+		var version string
+		if err := rows.Scan(&version); err != nil {
+			return "", fmt.Errorf("failed to scan database: %w", err)
+		}
+		versions = append(versions, version)
+	}
+
+	if len(versions) == 0 {
+		return "", nil
+	}
+
+	sorted, err := ReverseSemVerSort(versions)
+	if err != nil {
+		return "", fmt.Errorf("retrieving latest version %s: %w", name, err)
+	}
+
+	return sorted[0], nil
+}
+
+// GetLayer returns the layer of a chart in a repo and cluster.
+func (i *HelmChartIndexer) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
+	sqlStatement := `
+SELECT layer FROM helm_charts
+WHERE name = $1 AND version = $2
+AND repo_name = $3 AND repo_namespace = $4
+AND cluster_name = $5 AND cluster_namespace = $6`
+
+	rows, err := i.CacheDB.QueryContext(ctx, sqlStatement, name, version, repoRef.Name, repoRef.Namespace, clusterRef.Name, clusterRef.Namespace)
+	if err != nil {
+		return "", fmt.Errorf("failed to query database: %w", err)
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return "", nil
+	} else {
+		var layer sql.NullString
+		if err := rows.Scan(&layer); err != nil {
+			return "", fmt.Errorf("failed to scan database: %w", err)
+		}
+		if layer.Valid {
+			return layer.String, nil
+		}
+		return "", nil
+	}
+}
+
 func (i *HelmChartIndexer) Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error {
 	sqlStatement := `
 DELETE FROM helm_charts
@@ -300,4 +366,26 @@ func createDB(cacheLocation string) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func ReverseSemVerSort(versions []string) ([]string, error) {
+	vs := make([]*semver.Version, len(versions))
+
+	for i, r := range versions {
+		v, err := semver.NewVersion(r)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", r, err)
+		}
+
+		vs[i] = v
+	}
+
+	sort.Sort(sort.Reverse(semver.Collection(vs)))
+
+	result := make([]string, len(versions))
+	for i := range vs {
+		result[i] = vs[i].String()
+	}
+
+	return result, nil
 }

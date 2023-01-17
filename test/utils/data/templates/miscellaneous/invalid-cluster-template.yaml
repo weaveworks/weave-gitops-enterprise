@@ -1,0 +1,18 @@
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: invalid-cluster-template
+  namespace: default
+  labels:
+    weave.works/template-type: cluster
+spec:
+  resourcetemplates:
+    - content:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
+            name: "${CLUSTER_NAME"
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+          kind: AWSMachineTemplate
+          metadata:
+            name: "${CLUSTER_NAME-md-0"

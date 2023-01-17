@@ -70,6 +70,7 @@ export type RenderTemplateRequest = {
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
   templateNamespace?: string
+  externalSecrets?: ExternalSecret[]
 }
 
 export type CommitFile = {
@@ -85,13 +86,15 @@ export type CostEstimateRange = {
 export type CostEstimate = {
   currency?: string
   range?: CostEstimateRange
+  message?: string
 }
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: string
+  renderedTemplate?: CommitFile[]
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
+  externalSecretsFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -101,6 +104,7 @@ export type RenderAutomationRequest = {
 export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
   helmReleaseFiles?: CommitFile[]
+  externalSecretsFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -166,6 +170,14 @@ export type PolicyValidationOccurrence = {
   message?: string
 }
 
+export type PolicyValidationParam = {
+  name?: string
+  type?: string
+  value?: GoogleProtobufAny.Any
+  required?: boolean
+  configRef?: string
+}
+
 export type PolicyValidation = {
   id?: string
   message?: string
@@ -182,6 +194,7 @@ export type PolicyValidation = {
   clusterName?: string
   occurrences?: PolicyValidationOccurrence[]
   policyId?: string
+  parameters?: PolicyValidationParam[]
 }
 
 export type CreatePullRequestRequest = {
@@ -199,6 +212,17 @@ export type CreatePullRequestRequest = {
   clusterNamespace?: string
   kustomizations?: Kustomization[]
   templateNamespace?: string
+  templateKind?: string
+  previousValues?: PreviousValues
+  externalSecrets?: ExternalSecret[]
+}
+
+export type PreviousValues = {
+  parameterValues?: {[key: string]: string}
+  credentials?: Credential
+  values?: ProfileValues[]
+  kustomizations?: Kustomization[]
+  externalSecrets?: ExternalSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -279,6 +303,7 @@ export type GitopsCluster = {
   secretRef?: GitopsClusterRef
   capiCluster?: CapiCluster
   controlPlane?: boolean
+  type?: string
 }
 
 export type CapiCluster = {
@@ -326,8 +351,10 @@ export type Template = {
   error?: string
   annotations?: {[key: string]: string}
   templateKind?: string
+  templateType?: string
   labels?: {[key: string]: string}
   namespace?: string
+  profiles?: TemplateProfile[]
 }
 
 export type Parameter = {
@@ -336,6 +363,7 @@ export type Parameter = {
   required?: boolean
   options?: string[]
   default?: string
+  editable?: boolean
 }
 
 export type TemplateProfile = {
@@ -344,6 +372,9 @@ export type TemplateProfile = {
   editable?: boolean
   values?: string
   namespace?: string
+  required?: boolean
+  profileTemplate?: string
+  layer?: string
 }
 
 export type TemplateObject = {
@@ -378,6 +409,37 @@ export type ClusterAutomation = {
   kustomization?: Kustomization
   helmRelease?: HelmRelease
   filePath?: string
+  externalSecret?: ExternalSecret
+}
+
+export type ExternalSecret = {
+  metadata?: Metadata
+  spec?: ExternalSecretSpec
+}
+
+export type ExternalSecretSpec = {
+  refreshInterval?: string
+  secretStoreRef?: externalSecretStoreRef
+  target?: externalSecretTarget
+  data?: externalSecretData
+}
+
+export type externalSecretStoreRef = {
+  name?: string
+}
+
+export type externalSecretTarget = {
+  name?: string
+}
+
+export type externalSecretData = {
+  secretKey?: string
+  remoteRef?: externalSecretRemoteRef
+}
+
+export type externalSecretRemoteRef = {
+  key?: string
+  property?: string
 }
 
 export type Kustomization = {
@@ -464,6 +526,8 @@ export type GetConfigRequest = {
 
 export type GetConfigResponse = {
   repositoryURL?: string
+  managementClusterName?: string
+  uiConfig?: string
 }
 
 export type PolicyParamRepeatedString = {
@@ -508,6 +572,7 @@ export type Policy = {
   createdAt?: string
   clusterName?: string
   tenant?: string
+  modes?: string[]
 }
 
 export type ObjectRef = {
@@ -574,6 +639,164 @@ export type GetChartsJobRequest = {
 export type GetChartsJobResponse = {
   values?: string
   error?: string
+}
+
+export type Workspace = {
+  name?: string
+  clusterName?: string
+  namespaces?: string[]
+}
+
+export type ListWorkspacesRequest = {
+  pagination?: Pagination
+}
+
+export type ListWorkspacesResponse = {
+  workspaces?: Workspace[]
+  total?: number
+  nextPageToken?: string
+  errors?: ListError[]
+}
+
+export type WorkspaceRoleRule = {
+  groups?: string[]
+  resources?: string[]
+  verbs?: string[]
+}
+
+export type WorkspaceRole = {
+  name?: string
+  namespace?: string
+  rules?: WorkspaceRoleRule[]
+  manifest?: string
+  timestamp?: string
+}
+
+export type WorkspaceRoleBindingRoleRef = {
+  apiGroup?: string
+  kind?: string
+  name?: string
+}
+
+export type WorkspaceRoleBindingSubject = {
+  apiGroup?: string
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type WorkspaceRoleBinding = {
+  name?: string
+  namespace?: string
+  manifest?: string
+  timestamp?: string
+  role?: WorkspaceRoleBindingRoleRef
+  subjects?: WorkspaceRoleBindingSubject[]
+}
+
+export type WorkspaceServiceAccount = {
+  name?: string
+  namespace?: string
+  timestamp?: string
+  manifest?: string
+}
+
+export type WorkspacePolicy = {
+  id?: string
+  name?: string
+  category?: string
+  severity?: string
+  timestamp?: string
+}
+
+export type GetWorkspaceRequest = {
+  clusterName?: string
+  workspaceName?: string
+}
+
+export type GetWorkspaceResponse = {
+  name?: string
+  clusterName?: string
+  namespaces?: string[]
+}
+
+export type GetWorkspaceRolesResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceRole[]
+}
+
+export type GetWorkspaceRoleBindingsResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceRoleBinding[]
+}
+
+export type GetWorkspaceServiceAccountsResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspaceServiceAccount[]
+}
+
+export type GetWorkspacePoliciesResponse = {
+  name?: string
+  clusterName?: string
+  objects?: WorkspacePolicy[]
+}
+
+export type ExternalSecretItem = {
+  secretName?: string
+  externalSecretName?: string
+  namespace?: string
+  clusterName?: string
+  secretStore?: string
+  status?: string
+  timestamp?: string
+}
+
+export type ListExternalSecretsRequest = {
+}
+
+export type ListExternalSecretsResponse = {
+  secrets?: ExternalSecretItem[]
+  total?: number
+  errors?: ListError[]
+}
+
+export type GetExternalSecretRequest = {
+  clusterName?: string
+  namespace?: string
+  externalSecretName?: string
+}
+
+export type GetExternalSecretResponse = {
+  secretName?: string
+  externalSecretName?: string
+  clusterName?: string
+  namespace?: string
+  secretStore?: string
+  secretStoreType?: string
+  secretPath?: string
+  property?: string
+  version?: string
+  status?: string
+  timestamp?: string
+}
+
+export type ExternalSecretStore = {
+  kind?: string
+  name?: string
+  namespace?: string
+  type?: string
+}
+
+export type ListExternalSecretStoresRequest = {
+  clusterName?: string
+}
+
+export type ListExternalSecretStoresResponse = {
+  stores?: ExternalSecretStore[]
+  total?: number
 }
 
 export class ClustersService {
@@ -645,5 +868,32 @@ export class ClustersService {
   }
   static GetChartsJob(req: GetChartsJobRequest, initReq?: fm.InitReq): Promise<GetChartsJobResponse> {
     return fm.fetchReq<GetChartsJobRequest, GetChartsJobResponse>(`/v1/charts/jobs/${req["jobId"]}?${fm.renderURLSearchParams(req, ["jobId"])}`, {...initReq, method: "GET"})
+  }
+  static ListWorkspaces(req: ListWorkspacesRequest, initReq?: fm.InitReq): Promise<ListWorkspacesResponse> {
+    return fm.fetchReq<ListWorkspacesRequest, ListWorkspacesResponse>(`/v1/workspaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspace(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/workspaces/${req["workspaceName"]}?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceRoles(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRolesResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRolesResponse>(`/v1/workspaces/${req["workspaceName"]}/roles?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceRoleBindings(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRoleBindingsResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRoleBindingsResponse>(`/v1/workspaces/${req["workspaceName"]}/rolebindings?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspaceServiceAccounts(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceServiceAccountsResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceServiceAccountsResponse>(`/v1/workspaces/${req["workspaceName"]}/serviceaccounts?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static GetWorkspacePolicies(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspacePoliciesResponse> {
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/workspaces/${req["workspaceName"]}/policies?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
+  }
+  static ListExternalSecrets(req: ListExternalSecretsRequest, initReq?: fm.InitReq): Promise<ListExternalSecretsResponse> {
+    return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external-secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
+    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["externalSecretName"])}`, {...initReq, method: "GET"})
+  }
+  static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
+    return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

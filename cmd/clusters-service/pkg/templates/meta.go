@@ -3,15 +3,19 @@ package templates
 import (
 	"fmt"
 
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	apitemplates "github.com/weaveworks/templates-controller/apis/core"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const (
 	// DisplayNameAnnotation is the annotation used for labeling template resources
-	GitOpsTemplateNameAnnotation = "clustertemplates.weave.works/display-name"
+	GitOpsTemplateNameAnnotation = "templates.weave.works/display-name"
 	CAPIDisplayNameAnnotation    = "capi.weave.works/display-name"
+	// CostEstimationAnnotation is to signal we should try and estimate the cost of a template when rendering it
+	CostEstimationAnnotation        = "templates.weave.works/cost-estimation-enabled"
+	AddCommonBasesAnnotation        = "templates.weave.works/add-common-bases"
+	InjectPruneAnnotationAnnotation = "templates.weave.works/inject-prune-annotation"
 )
 
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
@@ -24,22 +28,24 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 	}
 
 	var objects []Object
-	for _, v := range s.GetSpec().ResourceTemplates {
-		params, err := processor.ParamNames(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse params in template: %w", err)
+	for _, resourcetemplateDefinition := range s.GetSpec().ResourceTemplates {
+		for _, v := range resourcetemplateDefinition.Content {
+			params, err := processor.ParamNames(v.Raw)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse params in template: %w", err)
+			}
+			var uv unstructured.Unstructured
+			if err := uv.UnmarshalJSON(v.Raw); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
+			}
+			objects = append(objects, Object{
+				Kind:        uv.GetKind(),
+				APIVersion:  uv.GetAPIVersion(),
+				Params:      params,
+				Name:        uv.GetName(),
+				DisplayName: uv.GetAnnotations()[annotation],
+			})
 		}
-		var uv unstructured.Unstructured
-		if err := uv.UnmarshalJSON(v.RawExtension.Raw); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal resourceTemplate: %w", err)
-		}
-		objects = append(objects, Object{
-			Kind:        uv.GetKind(),
-			APIVersion:  uv.GetAPIVersion(),
-			Params:      params,
-			Name:        uv.GetName(),
-			DisplayName: uv.GetAnnotations()[annotation],
-		})
 	}
 
 	enriched, err := processor.Params()

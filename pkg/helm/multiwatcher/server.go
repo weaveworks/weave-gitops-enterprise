@@ -15,10 +15,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
-)
-
-var (
-	scheme = runtime.NewScheme()
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
 type Options struct {
@@ -30,16 +27,20 @@ type Options struct {
 }
 
 type Watcher struct {
+	scheme        *runtime.Scheme
 	clusterRef    types.NamespacedName
-	clientConfig  *rest.Config
+	cluster       cluster.Cluster
 	cache         helm.ChartsCacherWriter
 	valuesFetcher helm.ValuesFetcher
-	useProxy      bool
 	stopFn        context.CancelFunc
 	log           logr.Logger
+
+	// UseProxy is a flag to indicate if the helm watcher should use the proxy
+	UseProxy bool
 }
 
 func NewWatcher(opts Options) (*Watcher, error) {
+	scheme := runtime.NewScheme()
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
@@ -48,12 +49,18 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		return nil, err
 	}
 
+	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.String(), opts.ClientConfig, scheme)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Watcher{
 		clusterRef:    opts.ClusterRef,
-		clientConfig:  opts.ClientConfig,
+		cluster:       cluster,
 		cache:         opts.Cache,
 		valuesFetcher: opts.ValuesFetcher,
-		useProxy:      opts.UseProxy,
+		UseProxy:      opts.UseProxy,
+		scheme:        scheme,
 	}, nil
 }
 
@@ -63,8 +70,13 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 	ctx, cancel := context.WithCancel(ctx)
 	w.stopFn = cancel
 
-	mgr, err := ctrl.NewManager(w.clientConfig, ctrl.Options{
-		Scheme:             scheme,
+	cfg, err := w.cluster.GetServerConfig()
+	if err != nil {
+		w.log.Error(err, "unable to get manager config")
+		return err
+	}
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme:             w.scheme,
 		Logger:             w.log,
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
@@ -76,12 +88,12 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 
 	if err = (&controller.HelmWatcherReconciler{
 		ClusterRef:    w.clusterRef,
-		ClientConfig:  w.clientConfig,
+		Cluster:       w.cluster,
 		Cache:         w.cache,
 		ValuesFetcher: w.valuesFetcher,
-		UseProxy:      w.useProxy,
+		UseProxy:      w.UseProxy,
 		Client:        mgr.GetClient(),
-		Scheme:        scheme,
+		Scheme:        w.scheme,
 	}).SetupWithManager(mgr); err != nil {
 		w.log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err

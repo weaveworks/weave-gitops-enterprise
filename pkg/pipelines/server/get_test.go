@@ -17,6 +17,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
+const (
+	pipelineKind       = "Pipeline"
+	pipelineAPIVersion = "pipelines.weave.works/v1alpha1"
+)
+
 func TestGetPipeline(t *testing.T) {
 	ctx := context.Background()
 
@@ -26,7 +31,7 @@ func TestGetPipeline(t *testing.T) {
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 
 	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
-	serverClient := pipetesting.SetupServer(t, factory, kclient, "management")
+	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", "")
 
 	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)
 
@@ -67,6 +72,8 @@ func TestGetPipeline(t *testing.T) {
 		assert.Equal(t, p.Name, res.Pipeline.Name)
 		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
 		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
 
 	t.Run("cluster ref without Namespace", func(t *testing.T) {
@@ -84,11 +91,39 @@ func TestGetPipeline(t *testing.T) {
 		})
 		require.NoError(t, err)
 
+		targetStatus := res.Pipeline.Status.Environments[envName].TargetsStatuses[0]
+
 		assert.Equal(t, p.Name, res.Pipeline.Name)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads[0].Version, hr.Spec.Chart.Spec.Version)
-		assert.Equal(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Namespace, targetNamespace.Name)
+		assert.Equal(t, hr.Spec.Chart.Spec.Version, targetStatus.Workloads[0].Version)
+		assert.Equal(t, targetNamespace.Name, targetStatus.Namespace)
+		assert.Equal(t, pipelineNamespace.Name, targetStatus.ClusterRef.Namespace)
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
 
+	t.Run("invalid app ref", func(t *testing.T) {
+		p := newPipeline("pipe-4", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
+			APIVersion: ctrl.GroupVersion.String(),
+			Kind:       "GitopsCluster",
+			Name:       "cluster-1",
+		}
+		p.Spec.AppRef.Kind = "helmrelease"
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
+			Namespace: pipelineNamespace.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, p.Name, res.Pipeline.Name)
+		assert.Len(t, res.Pipeline.Status.Environments[envName].TargetsStatuses[0].Workloads, 0)
+		assert.Len(t, res.Errors, 1)
+		assert.Equal(t, res.Errors[0], "unknown workload kind for app-1: helmrelease")
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
+	})
 }
 
 func newPipeline(name string, pNamespace string, tNamespace string, envName string, hr *helm.HelmRelease) *ctrl.Pipeline {

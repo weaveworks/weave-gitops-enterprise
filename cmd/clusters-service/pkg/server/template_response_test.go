@@ -7,8 +7,8 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -49,7 +49,9 @@ func TestToTemplate(t *testing.T) {
 				ct.Spec.Description = "this is test template 1"
 				ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 					{
-						RawExtension: rawExtension(`{
+						Content: []templatesv1.ResourceTemplateContent{
+							{
+								RawExtension: rawExtension(`{
 							"apiVersion": "fooversion",
 							"kind": "fookind",
 							"metadata": {
@@ -59,6 +61,8 @@ func TestToTemplate(t *testing.T) {
 								}
 							}
 						}`),
+							},
+						},
 					},
 				}
 			}),
@@ -90,7 +94,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
@@ -131,7 +135,7 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations with parameters",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
@@ -148,7 +152,13 @@ func TestToTemplate(t *testing.T) {
 				Annotations: map[string]string{
 					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: ${INSTALL_CRDS}"}`,
 				},
-
+				Profiles: []*capiv1_protos.TemplateProfile{
+					{
+						Name:    "cert-manager",
+						Version: "0.0.7",
+						Values:  "installCRDs: ${INSTALL_CRDS}",
+					},
+				},
 				Parameters: []*capiv1_protos.Parameter{
 					{
 						Name: "INSTALL_CRDS",
@@ -160,13 +170,13 @@ func TestToTemplate(t *testing.T) {
 			name: "annotations with go-template parameters",
 			value: &capiv1.CAPITemplate{
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "capi.weave.works/v1alpha1",
+					APIVersion: "capi.weave.works/v1alpha2",
 					Kind:       "CAPITemplate",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "foo",
 					Annotations: map[string]string{
-						"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}}"}`,
+						"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}"}`,
 					},
 				},
 				Spec: templatesv1.TemplateSpec{
@@ -178,13 +188,43 @@ func TestToTemplate(t *testing.T) {
 				Provider:     "",
 				TemplateKind: "CAPITemplate",
 				Annotations: map[string]string{
-					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}}"}`,
+					"capi.weave.works/profile-0": `{"name": "cert-manager", "version": "0.0.7", "values": "installCRDs: {{ .params.INSTALL_CRDS }}"}`,
 				},
-
+				Profiles: []*capiv1_protos.TemplateProfile{
+					{
+						Name:    "cert-manager",
+						Version: "0.0.7",
+						Values:  "installCRDs: {{ .params.INSTALL_CRDS }}",
+					},
+				},
 				Parameters: []*capiv1_protos.Parameter{
 					{
 						Name: "INSTALL_CRDS",
 					},
+				},
+			},
+		},
+		{
+			name: "with template type label",
+			value: &capiv1.CAPITemplate{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "capi.weave.works/v1alpha2",
+					Kind:       "CAPITemplate",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+					Labels: map[string]string{
+						"weave.works/template-type": "cluster",
+					},
+				},
+			},
+			expected: &capiv1_protos.Template{
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
+				TemplateType: "cluster",
+				Labels: map[string]string{
+					"weave.works/template-type": "cluster",
 				},
 			},
 		},
@@ -206,7 +246,7 @@ func makeErrorTemplate(t *testing.T, rawData string) *capiv1.CAPITemplate {
 		ct.Spec.Description = ""
 		ct.Spec.ResourceTemplates = []templatesv1.ResourceTemplate{
 			{
-				RawExtension: rawExtension(rawData),
+				Content: []templatesv1.ResourceTemplateContent{{RawExtension: rawExtension(rawData)}},
 			},
 		}
 	})

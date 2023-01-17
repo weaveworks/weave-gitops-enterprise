@@ -33,11 +33,21 @@ message AppRef {
     string name        = 3;
 }
 
+message Condition {
+    string type = 1;
+    string status = 2;
+    string reason = 3;
+    string message = 4;
+    string timestamp = 5;
+}
+
 message WorkloadStatus {
-    string kind    = 1;
-    string name    = 2;
-    string version = 3;
-    string lastAppliedRevision = 4;
+    string   kind                 = 1;
+    string   name                 = 2;
+    string   version              = 3;
+    string   lastAppliedRevision  = 4;
+    repeated Condition conditions = 5;
+    bool     suspended            = 6;
 }
 
 message PipelineTargetStatus {
@@ -61,4 +71,6 @@ message Pipeline {
     repeated       Environment environments = 4;
     repeated       Target targets           = 5;
     PipelineStatus status                   = 6;
+    string         yaml                     = 7;
+    string         type                     = 8;
 }

@@ -47,6 +47,12 @@ service Terraform {
         }; 
     }
 
+    rpc GetTerraformObjectPlan(GetTerraformObjectPlanRequest) returns (GetTerraformObjectPlanResponse) {
+        option (google.api.http) = {
+            get : "/v1/terraform_objects/plan"
+        };
+    }
+
 }
 
 message ListTerraformObjectsRequest {
@@ -70,6 +76,7 @@ message GetTerraformObjectRequest {
 message GetTerraformObjectResponse {
     TerraformObject object = 1;
     string          yaml   = 2;
+    string          type   = 3;
 }
 
 message SyncTerraformObjectRequest {
@@ -91,4 +98,14 @@ message ToggleSuspendTerraformObjectRequest {
 
 message ToggleSuspendTerraformObjectResponse {
 
+}
+
+message GetTerraformObjectPlanRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+}
+
+message  GetTerraformObjectPlanResponse {
+    string plan = 1;
 }

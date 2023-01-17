@@ -1,10 +1,11 @@
 /* eslint-disable testing-library/no-node-access */
 import { act, render, RenderResult, screen } from '@testing-library/react';
-import { formatURL } from '@weaveworks/weave-gitops';
+import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { PipelinesProvider } from '../../../../contexts/Pipelines';
 import {
+  CoreClientMock,
   defaultContexts,
   PipelinesClientMock,
   withContext,
@@ -13,7 +14,7 @@ import {
 const res: GetPipelineResponse = {
   pipeline: {
     name: 'podinfo-02',
-    namespace: 'default',
+    namespace: 'flux-system',
     appRef: {
       apiVersion: 'helm.toolkit.fluxcd.io/v2beta1',
       kind: 'HelmRelease',
@@ -28,7 +29,7 @@ const res: GetPipelineResponse = {
             clusterRef: {
               kind: 'GitopsCluster',
               name: 'dev',
-              namespace: 'flux-system',
+              namespace: '',
             },
           },
         ],
@@ -41,6 +42,7 @@ const res: GetPipelineResponse = {
             clusterRef: {
               kind: 'GitopsCluster',
               name: 'dev',
+              namespace: '',
             },
           },
           {
@@ -48,6 +50,7 @@ const res: GetPipelineResponse = {
             clusterRef: {
               kind: 'GitopsCluster',
               name: 'dev',
+              namespace: '',
             },
           },
         ],
@@ -60,6 +63,7 @@ const res: GetPipelineResponse = {
             clusterRef: {
               kind: 'GitopsCluster',
               name: 'prod',
+              namespace: '',
             },
           },
         ],
@@ -81,8 +85,25 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.2.0',
-                  lastAppliedRevision: '6.2.0',
+                  version: '6.2.1',
+                  lastAppliedRevision: '6.2.1',
+                  conditions: [
+                    {
+                      type: 'Ready',
+                      status: 'True',
+                      reason: 'ReconciliationSucceeded',
+                      message: 'Release reconciliation succeeded',
+                      timestamp: '2022-12-07T15:06:00Z',
+                    },
+                    {
+                      type: 'Released',
+                      status: 'True',
+                      reason: 'UpgradeSucceeded',
+                      message: 'Helm upgrade succeeded',
+                      timestamp: '2022-12-07T15:06:00Z',
+                    },
+                  ],
+                  suspended: false,
                 },
               ],
             },
@@ -101,6 +122,24 @@ const res: GetPipelineResponse = {
                   kind: 'HelmRelease',
                   name: 'podinfo',
                   version: '6.1.6',
+                  lastAppliedRevision: '6.1.6',
+                  conditions: [
+                    {
+                      type: 'Ready',
+                      status: 'True',
+                      reason: 'ReconciliationSucceeded',
+                      message: 'Release reconciliation succeeded',
+                      timestamp: '2022-09-20T09:06:30Z',
+                    },
+                    {
+                      type: 'Released',
+                      status: 'True',
+                      reason: 'UpgradeSucceeded',
+                      message: 'Helm upgrade succeeded',
+                      timestamp: '2022-09-20T09:06:30Z',
+                    },
+                  ],
+                  suspended: false,
                 },
               ],
             },
@@ -112,6 +151,7 @@ const res: GetPipelineResponse = {
               clusterRef: {
                 kind: 'GitopsCluster',
                 name: 'dev',
+                namespace: 'flux-system',
               },
               namespace: 'podinfo-02-qa',
               workloads: [
@@ -119,6 +159,24 @@ const res: GetPipelineResponse = {
                   kind: 'HelmRelease',
                   name: 'podinfo',
                   version: '6.1.8',
+                  lastAppliedRevision: '6.1.8',
+                  conditions: [
+                    {
+                      type: 'Ready',
+                      status: 'True',
+                      reason: 'ReconciliationSucceeded',
+                      message: 'Release reconciliation succeeded',
+                      timestamp: '2022-09-20T09:07:01Z',
+                    },
+                    {
+                      type: 'Released',
+                      status: 'True',
+                      reason: 'InstallSucceeded',
+                      message: 'Helm install succeeded',
+                      timestamp: '2022-09-20T09:07:01Z',
+                    },
+                  ],
+                  suspended: false,
                 },
               ],
             },
@@ -126,6 +184,7 @@ const res: GetPipelineResponse = {
               clusterRef: {
                 kind: 'GitopsCluster',
                 name: 'dev',
+                namespace: 'flux-system',
               },
               namespace: 'podinfo-02-perf',
               workloads: [
@@ -133,6 +192,24 @@ const res: GetPipelineResponse = {
                   kind: 'HelmRelease',
                   name: 'podinfo',
                   version: '6.1.8',
+                  lastAppliedRevision: '6.1.8',
+                  conditions: [
+                    {
+                      type: 'Ready',
+                      status: 'True',
+                      reason: 'ReconciliationSucceeded',
+                      message: 'Release reconciliation succeeded',
+                      timestamp: '2022-10-13T13:37:34Z',
+                    },
+                    {
+                      type: 'Released',
+                      status: 'True',
+                      reason: 'UpgradeSucceeded',
+                      message: 'Helm upgrade succeeded',
+                      timestamp: '2022-10-13T13:37:34Z',
+                    },
+                  ],
+                  suspended: false,
                 },
               ],
             },
@@ -140,6 +217,8 @@ const res: GetPipelineResponse = {
         },
       },
     },
+    yaml: 'apiVersion: pipelines.weave.works/v1alpha1\nkind: Pipeline\nmetadata:\n  creationTimestamp: "2022-10-25T16:49:48Z"\n  generation: 4\n  labels:\n    kustomize.toolkit.fluxcd.io/name: pipelines\n    kustomize.toolkit.fluxcd.io/namespace: flux-system\n  managedFields:\n  - apiVersion: pipelines.weave.works/v1alpha1\n    fieldsType: FieldsV1\n    fieldsV1:\n      f:metadata:\n        f:labels:\n          f:kustomize.toolkit.fluxcd.io/name: {}\n          f:kustomize.toolkit.fluxcd.io/namespace: {}\n      f:spec:\n        f:appRef:\n          f:apiVersion: {}\n          f:kind: {}\n          f:name: {}\n        f:environments: {}\n        f:promotion:\n          f:notification: {}\n          f:secretRef:\n            f:name: {}\n    manager: kustomize-controller\n    operation: Apply\n    time: "2022-12-08T13:29:01Z"\n  - apiVersion: pipelines.weave.works/v1alpha1\n    fieldsType: FieldsV1\n    fieldsV1:\n      f:status:\n        f:conditions: {}\n        f:observedGeneration: {}\n    manager: pipeline-controller\n    operation: Update\n    subresource: status\n    time: "2022-10-31T14:30:45Z"\n  name: podinfo-02\n  namespace: flux-system\n  resourceVersion: "230322663"\n  uid: cb61bc7a-9012-4d72-bedd-288699fbfabb\nspec:\n  appRef:\n    apiVersion: helm.toolkit.fluxcd.io/v2beta1\n    kind: HelmRelease\n    name: podinfo\n  environments:\n  - name: dev\n    targets:\n    - clusterRef:\n        kind: GitopsCluster\n        name: dev\n        namespace: flux-system\n      namespace: podinfo-02-dev\n  - name: test\n    targets:\n    - clusterRef:\n        kind: GitopsCluster\n        name: dev\n        namespace: flux-system\n      namespace: podinfo-02-qa\n    - clusterRef:\n        kind: GitopsCluster\n        name: dev\n        namespace: flux-system\n      namespace: podinfo-02-perf\n  - name: prod\n    targets:\n    - clusterRef:\n        kind: GitopsCluster\n        name: prod\n        namespace: default\n      namespace: podinfo-02-prod\n  promotion:\n    notification: {}\nstatus:\n  conditions:\n  - lastTransitionTime: "2022-10-31T14:30:45Z"\n    message: All clusters checked\n    reason: ReconciliationSucceeded\n    status: "True"\n    type: Ready\n  observedGeneration: 4\n',
+    type: 'Pipeline',
   },
 };
 
@@ -156,14 +235,21 @@ interface MappedWorkload {
 describe('PipelineDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PipelinesClientMock;
+  let core: CoreClientMock;
 
   beforeEach(() => {
     api = new PipelinesClientMock();
-    wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+    core = new CoreClientMock();
+    wrap = withContext([
+      ...defaultContexts(),
+      [PipelinesProvider, { api }],
+      [CoreClientContextProvider, { api: core }],
+    ]);
   });
   it('renders pipeline details', async () => {
     const params = res.pipeline;
     api.GetPipelineReturns = res;
+    core.GetObjectReturns = { object: {} };
 
     await act(async () => {
       const c = wrap(
@@ -196,10 +282,10 @@ describe('PipelineDetails', () => {
         if (ts.workloads) {
           const wrks = ts.workloads.map(wrk => ({
             ...wrk,
-            clusterName: ts.clusterRef?.name,
-            mappedClusterName: ts.clusterRef?.namespace
-              ? `${ts.clusterRef?.namespace}/${ts.clusterRef.name}`
-              : '',
+            clusterName: ts.clusterRef?.name || 'management',
+            mappedClusterName: ts.clusterRef?.name
+              ? `${ts.clusterRef?.namespace || 'default'}/${ts.clusterRef.name}`
+              : 'management',
             namespace: ts.namespace,
           }));
           workloads = [...workloads, ...wrks];
@@ -212,14 +298,10 @@ describe('PipelineDetails', () => {
 
         // Cluster Name
         const clusterNameEle = workloadTarget?.querySelector('.cluster-name');
-        if (workloads![index].clusterName) {
-          checkTextContentToEqual(
-            clusterNameEle,
-            workloads![index].clusterName || '',
-          );
-        } else {
-          elementToBeNull(clusterNameEle);
-        }
+        checkTextContentToEqual(
+          clusterNameEle,
+          workloads![index].clusterName || '',
+        );
 
         // Workload Namespace
         const workloadNamespace = workloadTarget?.querySelector(
@@ -230,21 +312,15 @@ describe('PipelineDetails', () => {
         );
 
         //Target as a link
-        const linkToAutomation = target.querySelector('.workloadName > a');
-        if (workloads![index].mappedClusterName) {
-          const href = formatURL('/helm_release/details', {
-            name: workloads![index].name,
-            namespace: workloads![index].namespace,
-            clusterName: workloads![index].mappedClusterName,
-          });
-          linkToExists(linkToAutomation, href);
-        } else {
-          elementToBeNull(linkToAutomation);
-          checkTextContentToEqual(
-            target.querySelector('.workload-name'),
-            workloads![index].name || '',
-          );
-        }
+        const linkToAutomation = target.querySelector('.automation > a');
+
+        const href = formatURL('/helm_release/details', {
+          name: workloads![index].name,
+          namespace: workloads![index].namespace,
+          clusterName: workloads![index].mappedClusterName,
+        });
+        expect(linkToAutomation).toHaveAttribute('href', href);
+
         // Workload Last Applied Version
         const lastAppliedRevision = target.querySelector(
           'workloadName > .last-applied-version',
@@ -263,6 +339,30 @@ describe('PipelineDetails', () => {
         expect(workloadVersion).toEqual(`v${workloads![index].version}`);
       });
     });
+  });
+
+  it('renders pipeline Yaml', async () => {
+    const params = res.pipeline;
+    api.GetPipelineReturns = res;
+
+    await act(async () => {
+      const c = wrap(
+        <PipelineDetails
+          name={params?.name || ''}
+          namespace={params?.namespace || ''}
+        />,
+      );
+      render(c);
+    });
+    const yamlTab = screen
+      .getAllByRole('tab')
+      .filter(tabEle => tabEle.textContent === 'Yaml')[0];
+
+    yamlTab.click();
+    const code = document.querySelector('pre')?.textContent?.trimEnd();
+    // textContent does not return newlines it seems
+    const expected = params?.yaml!.replace(/\n/g, '').trimEnd();
+    expect(code).toEqual(expected);
   });
 
   describe('snapshots', () => {
@@ -284,9 +384,6 @@ describe('PipelineDetails', () => {
   });
 });
 
-const linkToExists = (element: Element | null, href: string) => {
-  expect(element).toHaveAttribute('href', href);
-};
 const elementToBeNull = (element: Element | null | undefined) => {
   expect(element).toBeNull();
 };

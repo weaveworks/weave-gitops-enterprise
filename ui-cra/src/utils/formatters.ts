@@ -1,6 +1,8 @@
 import { URL } from '../types/global';
 import GitUrlParse from 'git-url-parse';
 import { CostEstimate } from '../cluster-services/cluster_services.pb';
+import { NotificationData } from '../contexts/Notifications';
+import { Routes } from './nav';
 
 export const toPercent = (value: number, precision = 0) =>
   `${(100 * value).toFixed(precision)}%`;
@@ -42,9 +44,24 @@ export const getFormattedCostEstimate = (
   });
   if (costEstimate) {
     const { currency, range } = costEstimate;
-    const estimate = `${costFormatter.format(
-      range?.low || 0,
-    )} - ${costFormatter.format(range?.high || 0)} ${currency}`;
+    const lowFormated = costFormatter.format(range?.low || 0);
+    const highFormated = costFormatter.format(range?.high || 0);
+
+    const estimate =
+      (lowFormated === highFormated
+        ? `${lowFormated}`
+        : `${lowFormated} - ${highFormated}`) + ` ${currency}`;
     return estimate;
   } else return 'N/A';
 };
+
+export const formatError = (error: Error) =>
+  [
+    { message: { text: error.message }, severity: 'error' },
+  ] as NotificationData[];
+
+// Must be one of the valid URLs that we have already
+// configured on the Gitlab backend for our Oauth app.
+export function gitlabOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.GitlabOauthCallback}`;
+}

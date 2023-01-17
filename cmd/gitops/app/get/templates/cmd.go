@@ -19,6 +19,8 @@ type templateCommandFlags struct {
 	ListTemplateParameters bool
 	ListTemplateProfiles   bool
 	Provider               string
+	TemplateNamespace      string
+	TemplateKind           string
 }
 
 var flags templateCommandFlags
@@ -58,6 +60,8 @@ gitops get template <template-name> --list-parameters
 	cmd.Flags().BoolVar(&flags.ListTemplateParameters, "list-parameters", false, "Show parameters of CAPI template")
 	cmd.Flags().BoolVar(&flags.ListTemplateProfiles, "list-profiles", false, "Show profiles of CAPI template")
 	cmd.Flags().StringVar(&flags.Provider, "provider", "", fmt.Sprintf("Filter templates by provider. Supported providers: %s", strings.Join(providers, " ")))
+	cmd.Flags().StringVar(&flags.TemplateNamespace, "template-namespace", "default", "Filter templates by template namespace")
+	cmd.Flags().StringVar(&flags.TemplateKind, "template-kind", "", "Filter templates by template kind. Supported templates: CAPITemplate, GitOpsTemplate")
 
 	return cmd
 }
@@ -86,12 +90,22 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 		w := printers.GetNewTabWriter(os.Stdout)
 		defer w.Flush()
 
+		templateKind := templates.TemplateKind(flags.TemplateKind)
+		err = templateKind.Set(flags.TemplateKind)
+		if err != nil {
+			return err
+		}
+
 		if flags.ListTemplateParameters {
 			if len(args) == 0 {
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateParameters(templates.CAPITemplateKind, args[0], client, w)
+			//Default template kind for GetTemplateParameters is CAPITemplate
+			if templateKind == "" {
+				templateKind = templates.CAPITemplateKind
+			}
+			return templates.GetTemplateParameters(templateKind, args[0], flags.TemplateNamespace, client, w)
 		}
 
 		if flags.ListTemplateProfiles {
@@ -99,18 +113,20 @@ func getTemplateCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(
 				return errors.New("template name is required")
 			}
 
-			return templates.GetTemplateProfiles(args[0], client, w)
+			return templates.GetTemplateProfiles(args[0], flags.TemplateNamespace, client, w)
 		}
 
 		if len(args) == 0 {
 			if flags.Provider != "" {
-				return templates.GetTemplatesByProvider(templates.CAPITemplateKind, flags.Provider, client, w)
+				return templates.GetTemplatesByProvider(templateKind, flags.Provider, client, w)
 			}
-
-			return templates.GetTemplates(templates.CAPITemplateKind, client, w)
+			return templates.GetTemplates(templateKind, client, w)
 		}
-
-		return templates.GetTemplate(args[0], templates.CAPITemplateKind, client, w)
+		// Default template kind for GetTemplate is CAPITemplate
+		if templateKind == "" {
+			templateKind = templates.CAPITemplateKind
+		}
+		return templates.GetTemplate(args[0], templateKind, flags.TemplateNamespace, client, w)
 	}
 }
 

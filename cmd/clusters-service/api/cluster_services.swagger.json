@@ -470,6 +470,103 @@
         ]
       }
     },
+    "/v1/external-secrets": {
+      "get": {
+        "summary": "ListExternalSecrets list external secrets available on all clusters",
+        "operationId": "ClustersService_ListExternalSecrets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/external-secrets-stores": {
+      "get": {
+        "summary": "ListExternalSecretStores list external secrets stores",
+        "operationId": "ClustersService_ListExternalSecretStores",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretStoresResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/external-secrets/{externalSecretName}": {
+      "get": {
+        "summary": "GetExternalSecret get secret details",
+        "operationId": "ClustersService_GetExternalSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetExternalSecretResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "externalSecretName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policies": {
       "get": {
         "summary": "ListPolicies list policies available on the management cluster",
@@ -845,6 +942,12 @@
                 },
                 "templateNamespace": {
                   "type": "string"
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
                 }
               }
             }
@@ -881,6 +984,229 @@
             "schema": {
               "$ref": "#/definitions/v1CreateTfControllerPullRequestRequest"
             }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces": {
+      "get": {
+        "summary": "ListWorkspaces list workspaces available on all clusters",
+        "operationId": "ClustersService_ListWorkspaces",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListWorkspacesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}": {
+      "get": {
+        "summary": "GetWorkspace get workspace details",
+        "operationId": "ClustersService_GetWorkspace",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/policies": {
+      "get": {
+        "summary": "GetWorkspacePolicies list workspace service accounts",
+        "operationId": "ClustersService_GetWorkspacePolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspacePoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/rolebindings": {
+      "get": {
+        "summary": "GetWorkspaceRoleBindings list workspace role bindings",
+        "operationId": "ClustersService_GetWorkspaceRoleBindings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRoleBindingsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/roles": {
+      "get": {
+        "summary": "GetWorkspaceRoles list workspace roles",
+        "operationId": "ClustersService_GetWorkspaceRoles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRolesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/workspaces/{workspaceName}/serviceaccounts": {
+      "get": {
+        "summary": "GetWorkspaceServiceAccounts list workspace service accounts",
+        "operationId": "ClustersService_GetWorkspaceServiceAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceServiceAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1064,6 +1390,9 @@
         "filePath": {
           "type": "string",
           "title": "A path to write the resource to in the management git repo"
+        },
+        "externalSecret": {
+          "$ref": "#/definitions/v1ExternalSecret"
         }
       }
     },
@@ -1118,6 +1447,9 @@
         },
         "range": {
           "$ref": "#/definitions/CostEstimateRange"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -1234,6 +1566,18 @@
         },
         "templateNamespace": {
           "type": "string"
+        },
+        "templateKind": {
+          "type": "string"
+        },
+        "previousValues": {
+          "$ref": "#/definitions/v1PreviousValues"
+        },
+        "externalSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecret"
+          }
         }
       }
     },
@@ -1407,6 +1751,78 @@
         }
       }
     },
+    "v1ExternalSecret": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ExternalSecretSpec"
+        }
+      },
+      "title": "External Secrets template"
+    },
+    "v1ExternalSecretItem": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "externalSecretName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretSpec": {
+      "type": "object",
+      "properties": {
+        "refreshInterval": {
+          "type": "string"
+        },
+        "secretStoreRef": {
+          "$ref": "#/definitions/v1externalSecretStoreRef"
+        },
+        "target": {
+          "$ref": "#/definitions/v1externalSecretTarget"
+        },
+        "data": {
+          "$ref": "#/definitions/v1externalSecretData"
+        }
+      }
+    },
+    "v1ExternalSecretStore": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetChartsJobResponse": {
       "type": "object",
       "properties": {
@@ -1424,6 +1840,12 @@
       "properties": {
         "repositoryURL": {
           "type": "string"
+        },
+        "managementClusterName": {
+          "type": "string"
+        },
+        "uiConfig": {
+          "type": "string"
         }
       }
     },
@@ -1433,6 +1855,44 @@
         "version": {
           "type": "string",
           "title": "The version of WeGO Enterprise"
+        }
+      }
+    },
+    "v1GetExternalSecretResponse": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "externalSecretName": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "secretStoreType": {
+          "type": "string"
+        },
+        "secretPath": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
         }
       }
     },
@@ -1485,6 +1945,91 @@
         }
       }
     },
+    "v1GetWorkspacePoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspacePolicy"
+          }
+        }
+      }
+    },
+    "v1GetWorkspaceResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1GetWorkspaceRoleBindingsResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspaceRoleBinding"
+          }
+        }
+      }
+    },
+    "v1GetWorkspaceRolesResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspaceRole"
+          }
+        }
+      }
+    },
+    "v1GetWorkspaceServiceAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspaceServiceAccount"
+          }
+        }
+      }
+    },
     "v1GitopsCluster": {
       "type": "object",
       "properties": {
@@ -1523,6 +2068,9 @@
         },
         "controlPlane": {
           "type": "boolean"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
@@ -1631,6 +2179,42 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
+    "v1ListExternalSecretStoresResponse": {
+      "type": "object",
+      "properties": {
+        "stores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecretStore"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListExternalSecretsResponse": {
+      "type": "object",
+      "properties": {
+        "secrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecretItem"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
           }
         }
       }
@@ -1779,6 +2363,30 @@
         }
       }
     },
+    "v1ListWorkspacesResponse": {
+      "type": "object",
+      "properties": {
+        "workspaces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Workspace"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
     "v1Metadata": {
       "type": "object",
       "properties": {
@@ -1836,6 +2444,9 @@
         },
         "default": {
           "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
         }
       }
     },
@@ -1895,6 +2506,12 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -2014,6 +2631,12 @@
         },
         "policyId": {
           "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidationParam"
+          }
         }
       }
     },
@@ -2024,6 +2647,59 @@
           "type": "string"
         }
       }
+    },
+    "v1PolicyValidationParam": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/definitions/protobufAny"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "configRef": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PreviousValues": {
+      "type": "object",
+      "properties": {
+        "parameterValues": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "credentials": {
+          "$ref": "#/definitions/v1Credential"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ProfileValues"
+          }
+        },
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Kustomization"
+          }
+        },
+        "externalSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecret"
+          }
+        }
+      },
+      "description": "Previous values for a CreatePullRequestRequest."
     },
     "v1ProfileValues": {
       "type": "object",
@@ -2070,6 +2746,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -2077,7 +2759,10 @@
       "type": "object",
       "properties": {
         "renderedTemplate": {
-          "type": "string"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         },
         "profileFiles": {
           "type": "array",
@@ -2093,6 +2778,12 @@
         },
         "costEstimate": {
           "$ref": "#/definitions/v1CostEstimate"
+        },
+        "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -2178,6 +2869,9 @@
         "templateKind": {
           "type": "string"
         },
+        "templateType": {
+          "type": "string"
+        },
         "labels": {
           "type": "object",
           "additionalProperties": {
@@ -2186,6 +2880,12 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TemplateProfile"
+          }
         }
       }
     },
@@ -2228,6 +2928,210 @@
           "type": "string"
         },
         "namespace": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "profileTemplate": {
+          "type": "string"
+        },
+        "layer": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Workspace": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1WorkspacePolicy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRole": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspaceRoleRule"
+          }
+        },
+        "manifest": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleBinding": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "manifest": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/v1WorkspaceRoleBindingRoleRef"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1WorkspaceRoleBindingSubject"
+          }
+        }
+      }
+    },
+    "v1WorkspaceRoleBindingRoleRef": {
+      "type": "object",
+      "properties": {
+        "apiGroup": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleBindingSubject": {
+      "type": "object",
+      "properties": {
+        "apiGroup": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleRule": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verbs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1WorkspaceServiceAccount": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "manifest": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretData": {
+      "type": "object",
+      "properties": {
+        "secretKey": {
+          "type": "string"
+        },
+        "remoteRef": {
+          "$ref": "#/definitions/v1externalSecretRemoteRef"
+        }
+      }
+    },
+    "v1externalSecretRemoteRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretStoreRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1externalSecretTarget": {
+      "type": "object",
+      "properties": {
+        "name": {
           "type": "string"
         }
       }

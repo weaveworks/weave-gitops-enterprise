@@ -1,7 +1,7 @@
 import {
   FluxRuntime,
-  useListFluxRuntimeObjects,
   useListFluxCrds,
+  useListFluxRuntimeObjects,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { FC } from 'react';
@@ -10,7 +10,11 @@ import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading, error } = useListFluxRuntimeObjects();
-  const { data: crds, isLoading: crdsLoading, error: crdsError } = useListFluxCrds();
+  const {
+    data: crds,
+    isLoading: crdsLoading,
+    error: crdsError,
+  } = useListFluxCrds();
 
   const errors = _.compact([
     ...(data?.errors || []),
@@ -25,7 +29,6 @@ const WGApplicationsFluxRuntime: FC = () => {
       path={[
         {
           label: 'Flux Runtime',
-          url: '/flux_runtime',
         },
       ]}
     >

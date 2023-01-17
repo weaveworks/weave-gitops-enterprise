@@ -1,8 +1,7 @@
----
-images:
-  clusterBootstrapController: docker.io/weaveworks/cluster-bootstrap-controller:v0.1.1
 policy-agent:
   enabled: true
+  # maybe we disable the policy-agent with tilt so ignore timeouts etc
+  failurePolicy: Ignore
   config:
     accountId: "weaveworks"
     clusterId: "tilt-cluster"
@@ -16,10 +15,22 @@ enablePipelines: true
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
 
-# Can bump this up to 4+ to get more verbose logging
 extraEnvVars:
+  - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
+    value: ""
+  - name: WEAVE_GITOPS_FEATURE_TELEMETRY
+    value: "false"
+  # Can bump this up to 4+ to get more verbose logging
   - name: KLOG_VERBOSITY
     value: "0"
+
+extraEnvVarsSecret: ""
+
+# Turns on UI elements for GitOps Run
+enableRunUI: true
+
+gitopssets-controller:
+  enabled: true
 
 # Re-clarify capiEnabled
 global:

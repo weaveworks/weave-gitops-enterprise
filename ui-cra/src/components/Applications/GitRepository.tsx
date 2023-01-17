@@ -8,6 +8,7 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../Templates/Edit/EditButton';
 import { Routes } from '../../utils/nav';
 
 type Props = {
@@ -52,7 +53,11 @@ const WGApplicationsGitRepository: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <GitRepositoryDetail gitRepository={gitRepository} {...props} />
+        <GitRepositoryDetail
+          gitRepository={gitRepository}
+          customActions={[<EditButton resource={gitRepository} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

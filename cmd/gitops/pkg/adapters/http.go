@@ -3,6 +3,7 @@ package adapters
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,9 +14,9 @@ import (
 	"github.com/go-resty/resty/v2"
 	"k8s.io/client-go/rest"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	kubecfg "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -63,7 +64,7 @@ func (c *HTTPClient) ConfigureClientWithOptions(opts *config.Options, out io.Wri
 
 	c.baseURI = u
 
-	c.client = c.client.SetHostURL(u.String()).
+	c.client = c.client.SetBaseURL(u.String()).
 		OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 			if r.StatusCode() >= http.StatusInternalServerError {
 				fmt.Fprintf(out, "Server error: %s\n", r.Body())
@@ -220,10 +221,11 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 	var ts []templates.Template
 	for _, t := range templateList.Templates {
 		ts = append(ts, templates.Template{
-			Name:        t.Name,
-			Provider:    t.Provider,
-			Description: t.Description,
-			Error:       t.Error,
+			Name:         t.Name,
+			Provider:     t.Provider,
+			TemplateType: t.TemplateType,
+			Description:  t.Description,
+			Error:        t.Error,
 		})
 	}
 
@@ -231,7 +233,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 }
 
 // RetrieveTemplate returns a template from the cluster service.
-func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind) (*templates.Template, error) {
+func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind, namespace string) (*templates.Template, error) {
 	endpoint := "v1/templates/{template_name}"
 
 	type GetTemplateResponse struct {
@@ -245,7 +247,8 @@ func (c *HTTPClient) RetrieveTemplate(name string, kind templates.TemplateKind) 
 			"template_name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind":      kind.String(),
+			"template_namespace": namespace,
 		}).
 		SetResult(&template).
 		Get(endpoint)
@@ -302,7 +305,7 @@ func (c *HTTPClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, pr
 
 // RetrieveTemplateParameters returns the list of all parameters of the
 // specified template.
-func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string) ([]templates.TemplateParameter, error) {
+func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string, namespace string) ([]templates.TemplateParameter, error) {
 	endpoint := "v1/templates/{template_name}/params"
 
 	type ListTemplateParametersResponse struct {
@@ -316,7 +319,8 @@ func (c *HTTPClient) RetrieveTemplateParameters(kind templates.TemplateKind, nam
 			"template_name": name,
 		}).
 		SetQueryParams(map[string]string{
-			"template_kind": kind.String(),
+			"template_kind":      kind.String(),
+			"template_namespace": namespace,
 		}).
 		SetResult(&templateParametersList).
 		Get(endpoint)
@@ -596,25 +600,49 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	return string(b), nil
 }
 
-func (c *HTTPClient) RetrieveProfiles() (*pb.GetProfilesResponse, error) {
-	endpoint := "/v1/profiles"
+func (c *HTTPClient) RetrieveProfiles(req profiles.GetOptions) (profiles.Profiles, error) {
+	endpoint := "/v1/charts/list"
 
-	result := &pb.GetProfilesResponse{}
+	result := profiles.Profiles{}
+
+	queryParams, err := toQueryParams(req)
+	if err != nil {
+		return result, fmt.Errorf("unable to convert request to query params: %w", err)
+	}
 
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
-		SetResult(result).
+		SetQueryParams(queryParams).
+		SetResult(&result).
 		Get(endpoint)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
+		return result, fmt.Errorf("unable to GET profiles from %q: %w", res.Request.URL, err)
 	}
 
 	if res.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
+		return result, fmt.Errorf("response status for GET %q was %d", res.Request.URL, res.StatusCode())
 	}
 
 	return result, nil
+}
+
+// toQueryParams converts a profiles.GetOptions struct into a map of query parameters.
+func toQueryParams(req profiles.GetOptions) (map[string]string, error) {
+	queryParams := map[string]string{}
+
+	// Encode the req into a query string
+	b, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal request: %w", err)
+	}
+
+	err = json.Unmarshal(b, &queryParams)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal request: %w", err)
+	}
+
+	return queryParams, nil
 }
 
 // DeleteClusters deletes CAPI cluster using its name
@@ -672,7 +700,7 @@ func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (strin
 
 // RetrieveTemplateProfiles returns the list of all profiles of the
 // specified template.
-func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]templates.Profile, error) {
+func (c *HTTPClient) RetrieveTemplateProfiles(name string, namespace string) ([]templates.Profile, error) {
 	endpoint := "v1/templates/{name}/profiles"
 
 	type ListTemplatePResponse struct {
@@ -684,6 +712,9 @@ func (c *HTTPClient) RetrieveTemplateProfiles(name string) ([]templates.Profile,
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
 			"name": name,
+		}).
+		SetQueryParams(map[string]string{
+			"template_namespace": namespace,
 		}).
 		SetResult(&templateProfilesList).
 		Get(endpoint)

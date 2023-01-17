@@ -1,12 +1,13 @@
 import { Box } from '@material-ui/core';
 import {
   Button,
-  DataTable,
   Flex,
   formatURL,
   InfoList,
   Interval,
   KubeStatusIndicator,
+  LinkResolverProvider,
+  Metadata,
   RouterTab,
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
@@ -14,8 +15,7 @@ import { useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
-import { ResourceRef } from '../../api/terraform/types.pb';
-import useNotifications from '../../contexts/Notifications';
+import { TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
   useSyncTerraformObject,
@@ -27,6 +27,10 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import YamlView from '../YamlView';
+import useNotifications from './../../contexts/Notifications';
+import { EditButton } from './../Templates/Edit/EditButton';
+import TerraformDependencyView from './TerraformDependencyView';
+import TerraformInventoryTable from './TerraformInventoryTable';
 
 type Props = {
   className?: string;
@@ -35,15 +39,36 @@ type Props = {
   clusterName: string;
 };
 
+const getLabels = (obj: TerraformObject | undefined): [string, string][] => {
+  const labels = obj?.labels;
+  if (!labels) return [];
+  return Object.keys(labels).flatMap(key => {
+    return [[key, labels[key] as string]];
+  });
+};
+
+const metadataPrefix = 'metadata.weave.works/';
+
+const getMetadata = (obj: TerraformObject | undefined): [string, string][] => {
+  const annotations = obj?.annotations;
+  if (!annotations) return [];
+  return Object.keys(annotations).flatMap(key => {
+    if (!key.startsWith(metadataPrefix)) {
+      return [];
+    } else {
+      return [[key.slice(metadataPrefix.length), annotations[key] as string]];
+    }
+  });
+};
+
 function TerraformObjectDetail({ className, ...params }: Props) {
   const { path } = useRouteMatch();
   const [syncing, setSyncing] = useState(false);
   const [suspending, setSuspending] = useState(false);
-  const { setNotifications } = useNotifications();
-
-  const { data, isLoading, error } = useGetTerraformObjectDetail(params);
+  const { data, isLoading } = useGetTerraformObjectDetail(params);
   const sync = useSyncTerraformObject(params);
   const toggleSuspend = useToggleSuspendTerraformObject(params);
+  const { setNotifications } = useNotifications();
 
   const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
 
@@ -55,13 +80,16 @@ function TerraformObjectDetail({ className, ...params }: Props) {
         setNotifications([
           {
             message: { text: 'Sync successful' },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(err => {
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err?.message },
+            severity: 'error',
+          },
         ]);
       })
       .finally(() => setSyncing(false));
@@ -81,16 +109,26 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 object?.name
               }`,
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(err => {
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          { message: { text: err.message }, severity: 'error' },
         ]);
       })
       .finally(() => setSuspending(false));
+  };
+
+  const resolver = (type: string, params: any) => {
+    return (
+      formatURL(Routes.TerraformDetail, {
+        name: params.name,
+        namespace: params.namespace,
+        clusterName: params.clusterName,
+      }) || ''
+    );
   };
 
   return (
@@ -103,18 +141,16 @@ function TerraformObjectDetail({ className, ...params }: Props) {
         },
         {
           label: params?.name,
-          url: formatURL(Routes.TerraformDetail, {
-            name: object?.name,
-            namespace: object?.namespace,
-            clusterName: object?.clusterName,
-          }),
         },
       ]}
     >
-      <ContentWrapper errors={error ? [error] : []} loading={isLoading}>
+      <ContentWrapper loading={isLoading}>
         <div className={className}>
           <Box paddingBottom={3}>
-            <KubeStatusIndicator conditions={object?.conditions || []} />
+            <KubeStatusIndicator
+              conditions={object?.conditions || []}
+              suspended={object?.suspended}
+            />
           </Box>
           <Box paddingBottom={3}>
             <Flex>
@@ -136,44 +172,43 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   {object?.suspended ? 'Resume' : 'Suspend'}
                 </Button>
               </Box>
+              <Box paddingLeft={1}>
+                <EditButton
+                  resource={data || ({} as GetTerraformObjectResponse)}
+                />
+              </Box>
             </Flex>
           </Box>
-
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>
-              <>
-                <Box marginBottom={2}>
-                  <InfoList
-                    data-testid="info-list"
-                    items={[
-                      ['Source', object?.sourceRef?.name],
-                      ['Applied Revision', object?.appliedRevision],
-                      ['Cluster', object?.clusterName],
-                      ['Path', object?.path],
-                      [
-                        'Interval',
-                        <Interval interval={object?.interval as any} />,
-                      ],
-                      ['Last Update', object?.lastUpdatedAt],
-                      ['Drift Detection Result', object?.driftDetectionResult],
-                      ['Suspended', object?.suspended ? 'True' : 'False'],
-                    ]}
-                  />
-                </Box>
-                <Box style={{ width: '100%' }}>
-                  <TableWrapper>
-                    <DataTable
-                      fields={[
-                        {
-                          value: (r: ResourceRef) => r.name as string,
-                          label: 'Name',
-                        },
-                      ]}
-                      rows={object?.inventory || []}
-                    />
-                  </TableWrapper>
-                </Box>
-              </>
+              <Box style={{ width: '100%' }}>
+                <InfoList
+                  data-testid="info-list"
+                  items={[
+                    ['Source', object?.sourceRef?.name],
+                    ['Applied Revision', object?.appliedRevision],
+                    ['Cluster', object?.clusterName],
+                    ['Path', object?.path],
+                    [
+                      'Interval',
+                      <Interval interval={object?.interval as any} />,
+                    ],
+                    ['Last Update', object?.lastUpdatedAt],
+                    [
+                      'Drift Detection Result',
+                      object?.driftDetectionResult ? 'True' : 'False',
+                    ],
+                    ['Suspended', object?.suspended ? 'True' : 'False'],
+                  ]}
+                />
+                <Metadata
+                  metadata={getMetadata(object)}
+                  labels={getLabels(object)}
+                />
+                <TableWrapper>
+                  <TerraformInventoryTable rows={object?.inventory || []} />
+                </TableWrapper>
+              </Box>
             </RouterTab>
             <RouterTab name="Events" path={`${path}/events`}>
               <ListEvents
@@ -184,6 +219,11 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   namespace: object?.namespace,
                 }}
               />
+            </RouterTab>
+            <RouterTab name="Dependencies" path={`${path}/dependencies`}>
+              <LinkResolverProvider resolver={resolver}>
+                <TerraformDependencyView object={object || {}} />
+              </LinkResolverProvider>
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
               <>
@@ -207,6 +247,9 @@ function TerraformObjectDetail({ className, ...params }: Props) {
 export default styled(TerraformObjectDetail).attrs({
   className: TerraformObjectDetail.name,
 })`
+  ${TableWrapper} {
+    margin-top: 0;
+  }
   #events-list {
     width: 100%;
     margin-top: 0;

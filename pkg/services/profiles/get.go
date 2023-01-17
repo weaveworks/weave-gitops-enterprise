@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
-	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
+	"github.com/Masterminds/semver/v3"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 type ProfilesRetriever interface {
 	Source() string
-	RetrieveProfiles() (*pb.GetProfilesResponse, error)
+	RetrieveProfiles(GetOptions) (Profiles, error)
 }
 
 type GetOptions struct {
@@ -23,10 +23,35 @@ type GetOptions struct {
 	Namespace string
 	Writer    io.Writer
 	Port      string
+	Kind      string `json:"kind,omitempty"`
+	RepositoryRef
 }
 
-func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer) error {
-	profiles, err := r.RetrieveProfiles()
+type RepositoryRef struct {
+	Name      string `json:"repository.name,omitempty"`
+	Namespace string `json:"repository.namespace,omitempty"`
+	Kind      string `json:"repository.kind,omitempty"`
+	ClusterRef
+}
+
+type ClusterRef struct {
+	Name      string `json:"repository.cluster.name,omitempty"`
+	Namespace string `json:"repository.cluster.namespace,omitempty"`
+}
+
+type Profile struct {
+	Name     string   `json:"name,omitempty"`
+	Versions []string `json:"versions,omitempty"`
+	Layer    string   `json:"layer,omitempty"`
+}
+
+type Profiles struct {
+	Charts []Profile `json:"charts,omitempty"`
+}
+
+func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer, opts GetOptions) error {
+
+	profiles, err := r.RetrieveProfiles(opts)
 	if err != nil {
 		if e, ok := err.(*errors.StatusError); ok {
 			return fmt.Errorf("unable to retrieve profiles from %q: status code %d", r.Source(), e.ErrStatus.Code)
@@ -35,54 +60,50 @@ func (s *ProfilesSvc) Get(ctx context.Context, r ProfilesRetriever, w io.Writer)
 		return fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
 
-	printProfiles(profiles, w)
+	printProfiles(profiles.Charts, w)
 
 	return nil
 }
 
 // GetProfile returns a single available profile.
-func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts GetOptions) (*pb.Profile, string, error) {
+func (s *ProfilesSvc) GetProfile(ctx context.Context, r ProfilesRetriever, opts GetOptions) (Profile, string, error) {
 	s.Logger.Actionf("getting available profiles from %s", r.Source())
 
-	profilesList, err := r.RetrieveProfiles()
+	profilesList, err := r.RetrieveProfiles(opts)
 	if err != nil {
-		return nil, "", fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
+		return Profile{}, "", fmt.Errorf("unable to retrieve profiles from %q: %w", r.Source(), err)
 	}
 
 	var version string
 
-	for _, p := range profilesList.Profiles {
+	for _, p := range profilesList.Charts {
 		if p.Name == opts.Name {
-			if len(p.AvailableVersions) == 0 {
-				return nil, "", fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
+			if len(p.Versions) == 0 {
+				return Profile{}, "", fmt.Errorf("no version found for profile '%s' in %s/%s", p.Name, opts.Cluster, opts.Namespace)
 			}
 
 			switch {
 			case opts.Version == "latest":
-				versions, err := controller.ConvertStringListToSemanticVersionList(p.AvailableVersions)
+				versions, err := ConvertStringListToSemanticVersionList(p.Versions)
 				if err != nil {
-					return nil, "", err
+					return Profile{}, "", err
 				}
 
-				controller.SortVersions(versions)
+				SortVersions(versions)
 				version = versions[0].String()
 			default:
-				if !foundVersion(p.AvailableVersions, opts.Version) {
-					return nil, "", fmt.Errorf("version '%s' not found for profile '%s' in %s/%s", opts.Version, opts.Name, opts.Cluster, opts.Namespace)
+				if !foundVersion(p.Versions, opts.Version) {
+					return Profile{}, "", fmt.Errorf("version '%s' not found for profile '%s' in %s/%s", opts.Version, opts.Name, opts.Cluster, opts.Namespace)
 				}
 
 				version = opts.Version
-			}
-
-			if p.GetHelmRepository().GetName() == "" || p.GetHelmRepository().GetNamespace() == "" {
-				return nil, "", fmt.Errorf("HelmRepository's name or namespace is empty")
 			}
 
 			return p, version, nil
 		}
 	}
 
-	return nil, "", fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
+	return Profile{}, "", fmt.Errorf("no available profile '%s' found in %s/%s", opts.Name, opts.Cluster, opts.Namespace)
 }
 
 func foundVersion(availableVersions []string, version string) bool {
@@ -95,13 +116,36 @@ func foundVersion(availableVersions []string, version string) bool {
 	return false
 }
 
-func printProfiles(profiles *pb.GetProfilesResponse, w io.Writer) {
-	fmt.Fprintf(w, "NAME\tDESCRIPTION\tAVAILABLE_VERSIONS\n")
+func printProfiles(profiles []Profile, w io.Writer) {
+	fmt.Fprintf(w, "NAME\tAVAILABLE_VERSIONS\tLAYER\n")
 
-	if profiles.Profiles != nil && len(profiles.Profiles) > 0 {
-		for _, p := range profiles.Profiles {
-			fmt.Fprintf(w, "%s\t%s\t%v", p.Name, p.Description, strings.Join(p.AvailableVersions, ","))
+	if len(profiles) > 0 {
+		for _, p := range profiles {
+			fmt.Fprintf(w, "%s\t%s\t%v", p.Name, strings.Join(p.Versions, ","), p.Layer)
 			fmt.Fprintln(w, "")
 		}
 	}
+}
+
+// ConvertStringListToSemanticVersionList converts a slice of strings into a slice of semantic version.
+func ConvertStringListToSemanticVersionList(versions []string) ([]*semver.Version, error) {
+	var result []*semver.Version
+
+	for _, v := range versions {
+		ver, err := semver.NewVersion(v)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, ver)
+	}
+
+	return result, nil
+}
+
+// SortVersions sorts semver versions in decreasing order.
+func SortVersions(versions []*semver.Version) {
+	sort.SliceStable(versions, func(i, j int) bool {
+		return versions[i].GreaterThan(versions[j])
+	})
 }

@@ -1,4 +1,4 @@
-.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto echo-ldflags
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto echo-ldflags update-weave-gitops
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -14,6 +14,7 @@ TIME_NOW=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 GOOS := $(shell go env GOOS)
+TIER=enterprise
 ifeq ($(GOOS),linux)
 	cgo_ldflags=-linkmode external -w -extldflags "-static"
 else
@@ -138,13 +139,12 @@ lint:
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
 	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
 
-
-# TODO: improve this, BE/FE are not upgraded to the same exact version,
-# timing could cause it get out of sync occasionally if a npm package is just being published etc.
-update-weave-gitops-main:
-	go get -d github.com/weaveworks/weave-gitops@main
+BRANCH?=main
+update-weave-gitops:
+	$(eval SHORTHASH := $(shell curl -q 'https://api.github.com/repos/weaveworks/weave-gitops/branches/$(BRANCH)' | jq -r '.commit.sha[:8]'))
+	go get -d github.com/weaveworks/weave-gitops@$(SHORTHASH)
 	go mod tidy
-	$(eval NPM_VERSION := $(shell cd ui-cra && yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | to_entries | sort_by(.value)[-1].key'))
+	$(eval NPM_VERSION := $(shell cd ui-cra && yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | keys | .[] | select(contains("$(SHORTHASH)"))'))
 	cd ui-cra && yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$(NPM_VERSION)
 
 # We select which directory we want to descend into to not execute integration
@@ -180,7 +180,7 @@ push:
 	done
 
 proto: ## Generate protobuf files
-	buf generate
+	./tools/bin/buf generate
 
 
 FORCE:
@@ -195,4 +195,4 @@ tools/core-files/charts/gitops-server/Chart.yaml: tools/core-files/Makefile.$(CO
 	@curl --silent -o tools/core-files/charts/gitops-server/Chart.yaml https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/charts/gitops-server/Chart.yaml
 
 echo-ldflags: tools/core-files/charts/gitops-server/Chart.yaml tools/core-files/Makefile.$(CORE_REVISION)
-	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)"
+	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)" TIER="$(TIER)"

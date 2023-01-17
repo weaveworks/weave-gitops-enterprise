@@ -15,7 +15,64 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
-.c18 {
+.c13 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  height: 100%;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c26 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+}
+
+.c28 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c17 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -24,31 +81,134 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-.c8 svg {
+.c18 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-style: normal;
+  color: #737373;
+}
+
+.c32 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: none;
+  font-style: normal;
+  color: #27AE60;
+}
+
+.c9 svg {
   fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c8.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c8.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c8 .c17 {
+.c9 .c16 {
   margin-left: 4px;
 }
 
-.c16 {
+.c9 img {
+  width: 24px;
+}
+
+.c31 svg {
+  fill: #27AE60 !important;
+  height: 16px;
+  width: 16px;
+}
+
+.c31.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c31.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c31 .c16 {
+  margin-left: 4px;
+  color: #27AE60;
+}
+
+.c31 img {
+  width: 16px;
+}
+
+.c30 .c8 .c16 {
+  color: #1a1a1a;
+  font-weight: 400;
+}
+
+.c19 {
+  padding: 8px;
+}
+
+.c15 {
   -webkit-text-decoration: none;
   text-decoration: none;
+}
+
+.c11.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c11.MuiButton-outlined {
+  padding: 8px 12px;
+  border-color: #d8d8d8;
+}
+
+.c14 .active-tab {
+  background: #00b3ec19;
+}
+
+.c14 .MuiTab-root {
+  line-height: 1;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  height: 32px;
+  min-height: 32px;
+  width: 132px;
+}
+
+.c14 .MuiTabs-root {
+  min-height: 32px;
+}
+
+.c14 .MuiTabs-fixed {
+  height: 32px;
+}
+
+.c14 .MuiTabs-indicator {
+  height: 3px;
+  background-color: #00b3ec;
 }
 
 .c6 {
@@ -70,21 +230,8 @@ exports[`PipelineDetails snapshots renders 1`] = `
   padding-right: 12px;
 }
 
-.c0 {
-  width: 100%;
-  margin: 0 auto;
-}
-
-.c9 {
-  margin: 0 16px;
-  padding: 24px;
-  background-color: #fff;
-  border-radius: 8px 8px 0 0;
-}
-
-.c20 {
+.c34 {
   padding: calc(24px - 4px) 24px;
-  margin: 0 16px;
   background-color: rgba(255,255,255,0.7);
   color: #737373;
   border-radius: 0 0 8px 8px;
@@ -98,8 +245,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c20 a {
+.c34 a {
   color: #00b3ec;
+}
+
+.c0 {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.c10 {
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 8px 8px 0 0;
+  height: 100%;
 }
 
 .c2 {
@@ -164,7 +323,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
   min-width: 30px;
 }
 
-.c11 {
+.c12 span {
+  margin-right: 0px;
+}
+
+.c21 {
   font-size: 20px;
   margin-bottom: 12px;
   text-overflow: ellipsis;
@@ -173,7 +336,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: calc(250px - 32px);
 }
 
-.c10 {
+.c20 {
   background: #fff;
   padding: 12px;
   margin-bottom: 8px;
@@ -182,42 +345,57 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 600;
 }
 
-.c12 {
+.c22 {
   font-size: 14px;
   color: #1a1a1a;
   font-weight: 400;
 }
 
-.c13 {
+.c23 {
   margin-bottom: 12px;
   line-height: 24px;
 }
 
-.c14 {
+.c23 a > span {
+  font-size: 20px;
+}
+
+.c24 {
   font-size: 14px;
 }
 
-.c15 {
+.c25 {
   position: relative;
 }
 
-.c15 .version {
+.c25 .version {
   margin-left: 4px;
 }
 
-.c15 .workloadName {
-  margin-bottom: 12px;
-}
-
-.c19 {
+.c33 {
   color: #737373;
-  position: absolute;
-  right: 0;
-  bottom: auto;
   font-size: 14px;
   border: 1px solid #d8d8d8;
   padding: 14px 6px;
   border-radius: 50%;
+}
+
+.c27 {
+  font-size: 20px;
+}
+
+.c27 .c29 span {
+  display: none;
+}
+
+.c27 .c8 img {
+  width: 16px;
+}
+
+@media (min-width:600px) {
+  .c14 .MuiTab-root {
+    min-width: 132px;
+  }
 }
 
 <div>
@@ -231,7 +409,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c2"
       >
         <div
-          class="makeStyles-path-21"
+          class="makeStyles-path-54"
           style="align-items: center;"
         >
           <div
@@ -239,7 +417,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-24"
+              class="makeStyles-link-57"
               href="/applications"
             >
               Applications
@@ -247,15 +425,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-21"
+          class="makeStyles-path-54"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-22"
+            class="makeStyles-divider-55"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-23"
+              class="MuiSvgIcon-root makeStyles-iconDivider-56"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -269,7 +447,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             role="heading"
           >
             <a
-              class="makeStyles-link-24"
+              class="makeStyles-link-57"
               href="/applications/pipelines"
             >
               Pipelines
@@ -277,15 +455,15 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="makeStyles-path-21"
+          class="makeStyles-path-54"
           style="align-items: center;"
         >
           <div
-            class="makeStyles-divider-22"
+            class="makeStyles-divider-55"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-23"
+              class="MuiSvgIcon-root makeStyles-iconDivider-56"
               focusable="false"
               viewBox="0 0 24 24"
             >
@@ -295,7 +473,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </svg>
           </div>
           <span
-            class="c4 makeStyles-labelLink-25"
+            class="c4 makeStyles-labelLink-58"
             title="podinfo-02"
           >
             podinfo-02
@@ -316,7 +494,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c7 c8"
+              class="c7 c8 c9"
             >
               <svg
                 aria-hidden="true"
@@ -337,297 +515,627 @@ exports[`PipelineDetails snapshots renders 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%; height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll;"
+      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
     >
       <div
-        class="c9"
+        class="c10"
       >
-        <div
-          class="MuiGrid-root makeStyles-gridWrapper-16 MuiGrid-container MuiGrid-spacing-xs-4"
+        <a
+          href="/resources/edit?kind=Pipeline&name=podinfo-02&namespace=flux-system"
+          style="pointer-events: none;"
         >
           <div
-            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
-            id="dev"
+            class="makeStyles-editButton-53"
+          >
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c11 c12 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+              disabled=""
+              tabindex="-1"
+              type="button"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <span
+                  class="MuiButton-startIcon MuiButton-iconSizeMedium"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                    />
+                  </svg>
+                </span>
+              </span>
+            </button>
+          </div>
+        </a>
+        <div
+          class="c13 c14 $66f9bbb72ea3c190$var$SubRouterTabs"
+        >
+          <div
+            class="MuiTabs-root"
           >
             <div
-              class="makeStyles-mbSmall-19"
+              class="MuiTabs-scroller MuiTabs-fixed"
+              style="overflow: hidden;"
             >
               <div
-                class="makeStyles-title-17"
+                class="MuiTabs-flexContainer"
+                role="tablist"
               >
-                dev
-              </div>
-              <div
-                class="makeStyles-subtitle-18"
-              >
-                1
-                 Targets
-              </div>
-            </div>
-            <div
-              class="c10"
-              role="targeting"
-            >
-              <div
-                class="c11 workloadTarget"
-              >
-                <div
-                  class="c12"
+                <a
+                  aria-disabled="false"
+                  aria-selected="true"
+                  class="c15 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false Mui-selected"
+                  href="/applications/pipelines/details/status"
+                  role="tab"
+                  tabindex="0"
                 >
-                  Cluster
-                </div>
-                <div
-                  class="c13 cluster-name"
-                >
-                  dev
-                </div>
-                <div
-                  class="c12"
-                >
-                  Namespace
-                </div>
-                <div
-                  class="c14 workload-namespace"
-                >
-                  podinfo-02-dev
-                </div>
-              </div>
-              <div
-                class="c15"
-              >
-                <div
-                  class="workloadName"
-                >
-                  <a
-                    class="c16"
-                    href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
+                  <span
+                    class="c16 c17"
+                    color="primary"
                   >
                     <span
-                      class="c17 c18"
-                      color="primary"
+                      class="MuiTab-wrapper"
                     >
-                      podinfo
+                      <span
+                        class="c16 c18"
+                        color="neutral30"
+                      >
+                        Status
+                      </span>
                     </span>
-                  </a>
-                  <span
-                    class="c19 last-applied-version"
-                  >
-                    v6.2.0
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
                   </span>
-                </div>
-                <div
-                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                </a>
+                <a
+                  aria-disabled="false"
+                  aria-selected="false"
+                  class="c15 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
+                  href="/applications/pipelines/details/yaml"
+                  role="tab"
+                  tabindex="-1"
                 >
-                  <span>
-                    Specification:
-                  </span>
                   <span
-                    class="version"
+                    class="c16 c17"
+                    color="primary"
                   >
-                    v6.2.0
+                    <span
+                      class="MuiTab-wrapper"
+                    >
+                      <span
+                        class="c16 c18"
+                        color="neutral30"
+                      >
+                        Yaml
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
                   </span>
-                </div>
+                </a>
               </div>
+              <span
+                class="PrivateTabIndicator-root-65 PrivateTabIndicator-colorPrimary-66 MuiTabs-indicator"
+                style="left: 0px; width: 0px;"
+              />
             </div>
           </div>
           <div
-            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
-            id="test"
+            class="c19"
+          />
+          <div
+            class="MuiGrid-root makeStyles-gridWrapper-48 MuiGrid-container MuiGrid-spacing-xs-4"
           >
             <div
-              class="makeStyles-mbSmall-19"
+              class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
+              id="dev"
             >
               <div
-                class="makeStyles-title-17"
-              >
-                test
-              </div>
-              <div
-                class="makeStyles-subtitle-18"
-              >
-                2
-                 Targets
-              </div>
-            </div>
-            <div
-              class="c10"
-              role="targeting"
-            >
-              <div
-                class="c11 workloadTarget"
+                class="makeStyles-mbSmall-51"
               >
                 <div
-                  class="c12"
-                >
-                  Cluster
-                </div>
-                <div
-                  class="c13 cluster-name"
+                  class="makeStyles-title-49"
                 >
                   dev
                 </div>
                 <div
-                  class="c12"
+                  class="makeStyles-subtitle-50"
                 >
-                  Namespace
-                </div>
-                <div
-                  class="c14 workload-namespace"
-                >
-                  podinfo-02-qa
+                  1
+                   Targets
                 </div>
               </div>
               <div
-                class="c15"
+                class="c20"
+                role="targeting"
               >
                 <div
-                  class="workloadName"
+                  class="c21 workloadTarget"
                 >
-                  <span
-                    class="workload-name"
+                  <div
+                    class="c22"
                   >
-                    podinfo
-                  </span>
+                    Cluster
+                  </div>
+                  <div
+                    class="c23 cluster-name"
+                  >
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
+                  </div>
+                  <div
+                    class="c22"
+                  >
+                    Namespace
+                  </div>
+                  <div
+                    class="c24 workload-namespace"
+                  >
+                    podinfo-02-dev
+                  </div>
                 </div>
                 <div
-                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                  class="c25"
                 >
-                  <span>
-                    Specification:
-                  </span>
-                  <span
-                    class="version"
+                  <div
+                    class="c26"
                   >
-                    v6.1.8
-                  </span>
+                    <div
+                      class="automation"
+                    >
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
+                      >
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.2.1
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.2.1
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
             <div
-              class="c10"
-              role="targeting"
+              class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
+              id="test"
             >
               <div
-                class="c11 workloadTarget"
+                class="makeStyles-mbSmall-51"
               >
                 <div
-                  class="c12"
+                  class="makeStyles-title-49"
                 >
-                  Cluster
+                  test
                 </div>
                 <div
-                  class="c13 cluster-name"
+                  class="makeStyles-subtitle-50"
                 >
-                  dev
-                </div>
-                <div
-                  class="c12"
-                >
-                  Namespace
-                </div>
-                <div
-                  class="c14 workload-namespace"
-                >
-                  podinfo-02-perf
+                  2
+                   Targets
                 </div>
               </div>
               <div
-                class="c15"
+                class="c20"
+                role="targeting"
               >
                 <div
-                  class="workloadName"
+                  class="c21 workloadTarget"
                 >
-                  <span
-                    class="workload-name"
+                  <div
+                    class="c22"
                   >
-                    podinfo
-                  </span>
+                    Cluster
+                  </div>
+                  <div
+                    class="c23 cluster-name"
+                  >
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
+                  </div>
+                  <div
+                    class="c22"
+                  >
+                    Namespace
+                  </div>
+                  <div
+                    class="c24 workload-namespace"
+                  >
+                    podinfo-02-qa
+                  </div>
                 </div>
                 <div
-                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                  class="c25"
                 >
-                  <span>
-                    Specification:
-                  </span>
-                  <span
-                    class="version"
+                  <div
+                    class="c26"
                   >
-                    v6.1.8
-                  </span>
+                    <div
+                      class="automation"
+                    >
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-qa"
+                      >
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.8
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.8
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="c20"
+                role="targeting"
+              >
+                <div
+                  class="c21 workloadTarget"
+                >
+                  <div
+                    class="c22"
+                  >
+                    Cluster
+                  </div>
+                  <div
+                    class="c23 cluster-name"
+                  >
+                    <a
+                      href="/cluster?clusterName=dev"
+                    >
+                      dev
+                    </a>
+                  </div>
+                  <div
+                    class="c22"
+                  >
+                    Namespace
+                  </div>
+                  <div
+                    class="c24 workload-namespace"
+                  >
+                    podinfo-02-perf
+                  </div>
+                </div>
+                <div
+                  class="c25"
+                >
+                  <div
+                    class="c26"
+                  >
+                    <div
+                      class="automation"
+                    >
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-perf"
+                      >
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.8
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.8
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div
-            class="MuiGrid-root makeStyles-gridContainer-15 MuiGrid-item MuiGrid-grid-xs-true"
-            id="prod"
-          >
             <div
-              class="makeStyles-mbSmall-19"
+              class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
+              id="prod"
             >
               <div
-                class="makeStyles-title-17"
-              >
-                prod
-              </div>
-              <div
-                class="makeStyles-subtitle-18"
-              >
-                1
-                 Targets
-              </div>
-            </div>
-            <div
-              class="c10"
-              role="targeting"
-            >
-              <div
-                class="c11 workloadTarget"
+                class="makeStyles-mbSmall-51"
               >
                 <div
-                  class="c12"
-                >
-                  Cluster
-                </div>
-                <div
-                  class="c13 cluster-name"
+                  class="makeStyles-title-49"
                 >
                   prod
                 </div>
                 <div
-                  class="c12"
+                  class="makeStyles-subtitle-50"
                 >
-                  Namespace
-                </div>
-                <div
-                  class="c14 workload-namespace"
-                >
-                  podinfo-02-prod
+                  1
+                   Targets
                 </div>
               </div>
               <div
-                class="c15"
+                class="c20"
+                role="targeting"
               >
                 <div
-                  class="workloadName"
+                  class="c21 workloadTarget"
                 >
-                  <span
-                    class="workload-name"
+                  <div
+                    class="c22"
                   >
-                    podinfo
-                  </span>
+                    Cluster
+                  </div>
+                  <div
+                    class="c23 cluster-name"
+                  >
+                    <a
+                      href="/cluster?clusterName=prod"
+                    >
+                      prod
+                    </a>
+                  </div>
+                  <div
+                    class="c22"
+                  >
+                    Namespace
+                  </div>
+                  <div
+                    class="c24 workload-namespace"
+                  >
+                    podinfo-02-prod
+                  </div>
                 </div>
                 <div
-                  class="makeStyles-subtitle-18 makeStyles-subtitleColor-20"
+                  class="c25"
                 >
-                  <span>
-                    Specification:
-                  </span>
-                  <span
-                    class="version"
+                  <div
+                    class="c26"
                   >
-                    v6.1.6
-                  </span>
+                    <div
+                      class="automation"
+                    >
+                      <a
+                        class="c15"
+                        href="/helm_release/details?clusterName=default%2Fprod&name=podinfo&namespace=podinfo-02-prod"
+                      >
+                        <span
+                          class="c16 c17"
+                          color="primary"
+                        >
+                          <div
+                            class="c27 WorkloadStatus"
+                          >
+                            <div
+                              class="c7"
+                            >
+                              <div
+                                style="margin-right: 4px;"
+                              >
+                                <div
+                                  class="c28 c29 c30 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                >
+                                  <div
+                                    class="c7 c8 c31"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                      />
+                                    </svg>
+                                    <span
+                                      class="c16 c32"
+                                      color="successOriginal"
+                                    >
+                                      Ready
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                podinfo
+                              </div>
+                            </div>
+                          </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-50 makeStyles-subtitleColor-52"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.6
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      class="c33 last-applied-version"
+                    >
+                      v6.1.6
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -635,18 +1143,18 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c20"
+        class="c34"
       >
         <div>
           Need help? Raise a 
           <a
-            class="c16"
+            class="c15"
             href="https://weavesupport.zendesk.com/"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              class="c17 c18"
+              class="c16 c17"
               color="primary"
             >
               support ticket

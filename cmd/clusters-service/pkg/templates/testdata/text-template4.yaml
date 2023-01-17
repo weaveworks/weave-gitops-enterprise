@@ -1,0 +1,36 @@
+apiVersion: capi.weave.works/v1alpha2
+kind: CAPITemplate
+metadata:
+  name: cluster-template-1
+  annotations:
+    templates.weave.works/delimiters: "<<,>>"
+spec:
+  description: this is test template 1
+  renderType: templating
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+      options: []
+      required: true
+    - name: NAMESPACE
+      required: true
+    - name: CONTROL_PLANE_MACHINE_COUNT
+      required: true
+    - name: KUBERNETES_VERSION
+      required: true
+  resourcetemplates:
+    - content:
+        - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+          kind: KubeadmControlPlane
+          metadata:
+            name: "<< .params.CLUSTER_NAME >>-control-plane"
+            namespace: "<< .params.NAMESPACE >>"
+          spec:
+            machineTemplate:
+              infrastructureRef:
+                apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+                kind: DockerMachineTemplate
+                name: "<< .params.CLUSTER_NAME >>-control-plane"
+                namespace: "<< .params.NAMESPACE >>"
+            replicas: << .params.CONTROL_PLANE_MACHINE_COUNT >>
+            version: "<< .params.KUBERNETES_VERSION >>"

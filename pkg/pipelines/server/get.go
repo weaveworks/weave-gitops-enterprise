@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"time"
 
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -14,7 +15,18 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
+
+type UnknownKind struct {
+	kind   string
+	source string
+	name   string
+}
+
+func (e UnknownKind) Error() string {
+	return fmt.Sprintf("unknown %s kind for %s: %s", e.source, e.name, e.kind)
+}
 
 func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*pb.GetPipelineResponse, error) {
 	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
@@ -33,7 +45,12 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	if err := c.Get(ctx, s.cluster, client.ObjectKeyFromObject(&p), &p); err != nil {
 		return nil, fmt.Errorf("failed to find pipeline=%s in namespace=%s in cluster=%s: %w", msg.Name, msg.Namespace, s.cluster, err)
 	}
+	// client.Get does not always populate TypeMeta field, without this `kind` and
+	// `apiVersion` are not returned in YAML representation.
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+	p.SetGroupVersionKind(ctrl.GroupVersion.WithKind(ctrl.PipelineKind))
 
+	pipelineErrors := []string{}
 	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
 		Environments: map[string]*pb.PipelineStatus_TargetStatusList{},
@@ -46,16 +63,15 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			app.SetKind(p.Spec.AppRef.Kind)
 			app.SetName(p.Spec.AppRef.Name)
 			app.SetNamespace(t.Namespace)
-
 			clusterName := s.cluster
+			clusterNamespace := p.Namespace
+			if t.ClusterRef != nil && t.ClusterRef.Namespace != "" {
+				clusterNamespace = t.ClusterRef.Namespace
+			}
 			if t.ClusterRef != nil {
-				ns := t.ClusterRef.Namespace
-				if ns == "" {
-					ns = p.Namespace
-				}
 				clusterName = types.NamespacedName{
 					Name:      t.ClusterRef.Name,
-					Namespace: ns,
+					Namespace: clusterNamespace,
 				}.String()
 			}
 
@@ -65,7 +81,9 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 
 			ws, err := getWorkloadStatus(app)
 			if err != nil {
-				return nil, err
+				// Do not throw an error, we want to return values we know,
+				// and return with a list of errors in the response.
+				pipelineErrors = append(pipelineErrors, err.Error())
 			}
 
 			if _, ok := pipelineResp.Status.Environments[e.Name]; !ok {
@@ -82,19 +100,32 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 				clusterRef = pb.ClusterRef{
 					Kind:      t.ClusterRef.Kind,
 					Name:      t.ClusterRef.Name,
-					Namespace: t.ClusterRef.Namespace,
+					Namespace: clusterNamespace,
 				}
 			}
+
+			workloads := []*pb.WorkloadStatus{}
+			if ws != nil {
+				workloads = append(workloads, ws)
+			}
+
 			pipelineResp.Status.Environments[e.Name].TargetsStatuses = append(targetsStatuses, &pb.PipelineTargetStatus{
 				ClusterRef: &clusterRef,
 				Namespace:  t.Namespace,
-				Workloads:  []*pb.WorkloadStatus{ws},
+				Workloads:  workloads,
 			})
 		}
 	}
 
+	pipelineYaml, err := yaml.Marshal(p)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling %s pipeline, %w", msg.Name, err)
+	}
+	pipelineResp.Yaml = string(pipelineYaml)
+
 	return &pb.GetPipelineResponse{
 		Pipeline: pipelineResp,
+		Errors:   pipelineErrors,
 	}, nil
 }
 
@@ -112,6 +143,23 @@ func getWorkloadStatus(obj *unstructured.Unstructured) (*pb.WorkloadStatus, erro
 		ws.Name = hr.Name
 		ws.Version = hr.Spec.Chart.Spec.Version
 		ws.LastAppliedRevision = hr.Status.LastAppliedRevision
+		ws.Suspended = hr.Spec.Suspend
+		ws.Conditions = []*pb.Condition{}
+		for _, c := range hr.Status.Conditions {
+			ws.Conditions = append(ws.Conditions, &pb.Condition{
+				Type:      c.Type,
+				Status:    string(c.Status),
+				Reason:    c.Reason,
+				Message:   c.Message,
+				Timestamp: c.LastTransitionTime.Format(time.RFC3339),
+			})
+		}
+	default:
+		return nil, UnknownKind{
+			kind:   obj.GetKind(),
+			source: "workload",
+			name:   obj.GetName(),
+		}
 	}
 
 	return ws, nil

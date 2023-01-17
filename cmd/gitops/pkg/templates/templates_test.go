@@ -149,7 +149,7 @@ func TestGetTemplates(t *testing.T) {
 					Name: "template-b",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\ntemplate-b\t\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\t\t\t\t\n",
 		},
 		{
 			name: "templates include all fields",
@@ -166,7 +166,20 @@ func TestGetTemplates(t *testing.T) {
 					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\tazure\ta desc\t\ntemplate-b\t\tb desc\tsomething went wrong\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\t\t\tb desc\tsomething went wrong\n",
+		},
+		{
+			name: "templates with template type",
+			ts: []templates.Template{
+				{
+					Name:         "template-a",
+					Description:  "a desc",
+					Provider:     "azure",
+					TemplateType: "cluster",
+					Error:        "",
+				},
+			},
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\tcluster\ta desc\t\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -211,7 +224,7 @@ func TestGetTemplate(t *testing.T) {
 					Provider: "aws",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -260,7 +273,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Provider: "aws",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\ntemplate-b\taws\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\taws\t\t\t\n",
 		},
 		{
 			name:     "templates include all fields",
@@ -279,7 +292,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tDESCRIPTION\tERROR\ntemplate-a\tazure\ta desc\t\ntemplate-b\tazure\tb desc\tsomething went wrong\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\tazure\t\tb desc\tsomething went wrong\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -353,7 +366,7 @@ func TestGetTemplateParameters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newFakeClient(nil, tt.tps, nil, nil, nil, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.GetTemplateParameters(templates.CAPITemplateKind, "foo", c, w)
+			err := templates.GetTemplateParameters(templates.CAPITemplateKind, "foo", "default", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -382,7 +395,10 @@ func TestRenderTemplate(t *testing.T) {
 		{
 			name: "result is rendered to output",
 			result: &templates.RenderTemplateResponse{
-				RenderedTemplate: `apiVersion: cluster.x-k8s.io/v1alpha3
+				RenderedTemplate: []templates.CommitFile{
+					{
+						Path: "foo.yaml",
+						Content: `apiVersion: cluster.x-k8s.io/v1alpha3
 				kind: Cluster
 				metadata:
 					name: foo
@@ -399,8 +415,14 @@ func TestRenderTemplate(t *testing.T) {
 					apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
 					kind: AWSCluster
 					name: foo`,
+					},
+				},
 			},
-			expected: `apiVersion: cluster.x-k8s.io/v1alpha3
+			expected: `
+---
+# foo.yaml
+
+apiVersion: cluster.x-k8s.io/v1alpha3
 				kind: Cluster
 				metadata:
 					name: foo
@@ -566,7 +588,7 @@ func TestGetTemplateProfiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := newFakeClient(nil, nil, nil, tt.fs, nil, "", tt.err)
 			w := new(bytes.Buffer)
-			err := templates.GetTemplateProfiles("profile-b", c, w)
+			err := templates.GetTemplateProfiles("profile-b", "default", c, w)
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
@@ -609,7 +631,7 @@ func (c *fakeClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 	return c.ts, nil
 }
 
-func (c *fakeClient) RetrieveTemplate(name string, kind templates.TemplateKind) (*templates.Template, error) {
+func (c *fakeClient) RetrieveTemplate(name string, kind templates.TemplateKind, namespace string) (*templates.Template, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
@@ -629,7 +651,7 @@ func (c *fakeClient) RetrieveTemplatesByProvider(kind templates.TemplateKind, pr
 	return c.ts, nil
 }
 
-func (c *fakeClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string) ([]templates.TemplateParameter, error) {
+func (c *fakeClient) RetrieveTemplateParameters(kind templates.TemplateKind, name string, namespace string) ([]templates.TemplateParameter, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
@@ -661,7 +683,7 @@ func (c *fakeClient) RetrieveCredentials() ([]templates.Credentials, error) {
 	return c.cs, nil
 }
 
-func (c *fakeClient) RetrieveTemplateProfiles(name string) ([]templates.Profile, error) {
+func (c *fakeClient) RetrieveTemplateProfiles(name string, namespace string) ([]templates.Profile, error) {
 	if c.err != nil {
 		return nil, c.err
 	}

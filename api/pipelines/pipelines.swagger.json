@@ -47,6 +47,55 @@
         ]
       }
     },
+    "/v1/pipelines/approve/{name}": {
+      "post": {
+        "operationId": "Pipelines_ApprovePromotion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ApprovePromotionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "namespace": {
+                  "type": "string"
+                },
+                "env": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
     "/v1/pipelines/{name}": {
       "get": {
         "operationId": "Pipelines_GetPipeline",
@@ -137,6 +186,14 @@
         }
       }
     },
+    "v1ApprovePromotionResponse": {
+      "type": "object",
+      "properties": {
+        "PullRequestURL": {
+          "type": "string"
+        }
+      }
+    },
     "v1ClusterRef": {
       "type": "object",
       "properties": {
@@ -147,6 +204,26 @@
           "type": "string"
         },
         "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
           "type": "string"
         }
       }
@@ -170,6 +247,12 @@
       "properties": {
         "pipeline": {
           "$ref": "#/definitions/v1Pipeline"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -227,6 +310,12 @@
         },
         "status": {
           "$ref": "#/definitions/v1PipelineStatus"
+        },
+        "yaml": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
         }
       }
     },
@@ -283,6 +372,15 @@
         },
         "lastAppliedRevision": {
           "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     }

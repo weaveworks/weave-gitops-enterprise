@@ -1,0 +1,42 @@
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: helm-repository-template
+  namespace: dev-system
+  labels:
+    weave.works/template-type: source
+  annotations:
+    templates.weave.works/cost-estimation-enabled: "false"
+    templates.weave.works/profiles-enabled: "false"
+    templates.weave.works/credentials-enabled: "false"
+    templates.weave.works/kustomizations-enabled: "false"
+    templates.weave.works/delimiters: "$[[,]]"
+spec:
+  renderType: templating
+  description: A HelmRepository template
+  params:
+    - name: RESOURCE_NAME
+      required: true
+      default: bitnami
+      description: Name to give the Helm Repository
+    - name: NAMESPACE
+      description: Namespace to create the source in
+      default: default
+    - name: URL
+      description: URL of the helm repository
+      default: https://charts.bitnami.com/bitnami
+    - name: INTERVAL
+      description: How often to check for updates
+      default: 30s
+  resourcetemplates:
+    - content:
+        - apiVersion: source.toolkit.fluxcd.io/v1beta1
+          kind: HelmRepository
+          metadata:
+            name: $[[ .params.RESOURCE_NAME ]]
+            namespace: $[[ .params.NAMESPACE ]]
+            annotations:
+              templates.weave.works/create-request: ""
+          spec:
+            interval: $[[ .params.INTERVAL ]]
+            url: $[[ .params.URL ]]

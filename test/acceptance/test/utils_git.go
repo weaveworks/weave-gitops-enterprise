@@ -335,6 +335,11 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 
 }
 
+func checkoutRepoBranch(repoAbsolutePath, branch string) {
+	logger.Infof("Checking out repo %s %s branch", repoAbsolutePath, branch)
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cd %s && git checkout main", repoAbsolutePath))
+}
+
 func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 	logger.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
 	if commitMessage == "" {
@@ -362,7 +367,12 @@ func cleanGitRepository(subDirName string) {
 	repoAbsolutePath := configRepoAbsolutePath(gitProviderEnv)
 	logger.Infof("Deleting directory %s from repo: %s", subDirName, repoAbsolutePath)
 
-	pullGitRepo(repoAbsolutePath)
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("rm -rf %s", path.Join(repoAbsolutePath, subDirName)))
-	gitUpdateCommitPush(repoAbsolutePath, "")
+	absDirPath := path.Join(repoAbsolutePath, subDirName)
+	if absDirPath != repoAbsolutePath {
+		pullGitRepo(repoAbsolutePath)
+		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("rm -rf %s", path.Join(repoAbsolutePath, subDirName)))
+		gitUpdateCommitPush(repoAbsolutePath, "")
+	} else {
+		logger.Warnf("Deleting management cluster config repository is not allowed: %s", absDirPath)
+	}
 }

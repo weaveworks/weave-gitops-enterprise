@@ -22,6 +22,18 @@ export type GetPipelineRequest = {
 
 export type GetPipelineResponse = {
   pipeline?: PipelinesV1Types.Pipeline
+  errors?: string[]
+}
+
+export type ApprovePromotionRequest = {
+  namespace?: string
+  name?: string
+  env?: string
+  revision?: string
+}
+
+export type ApprovePromotionResponse = {
+  pullRequestURL?: string
 }
 
 export type ListError = {
@@ -35,5 +47,8 @@ export class Pipelines {
   }
   static GetPipeline(req: GetPipelineRequest, initReq?: fm.InitReq): Promise<GetPipelineResponse> {
     return fm.fetchReq<GetPipelineRequest, GetPipelineResponse>(`/v1/pipelines/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static ApprovePromotion(req: ApprovePromotionRequest, initReq?: fm.InitReq): Promise<ApprovePromotionResponse> {
+    return fm.fetchReq<ApprovePromotionRequest, ApprovePromotionResponse>(`/v1/pipelines/approve/${req["name"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

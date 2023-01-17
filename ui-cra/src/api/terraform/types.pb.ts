@@ -22,6 +22,11 @@ export type ResourceRef = {
   identifier?: string
 }
 
+export type NamespacedObjectReference = {
+  name?: string
+  namespace?: string
+}
+
 export type TerraformObject = {
   name?: string
   namespace?: string
@@ -34,6 +39,9 @@ export type TerraformObject = {
   driftDetectionResult?: boolean
   inventory?: ResourceRef[]
   conditions?: Condition[]
+  labels?: {[key: string]: string}
+  annotations?: {[key: string]: string}
+  dependsOn?: NamespacedObjectReference[]
   suspended?: boolean
 }
 

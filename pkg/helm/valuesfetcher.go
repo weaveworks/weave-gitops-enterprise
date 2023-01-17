@@ -15,45 +15,19 @@ import (
 	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/fluxcd/pkg/untar"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"helm.sh/helm/v3/pkg/repo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
 
 type ValuesFetcher interface {
-	GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error)
-	GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, c Chart, useProxy bool) ([]byte, error)
-}
-
-type MakeClientsFn func(config *rest.Config) (client.Client, kubernetes.Interface, error)
-
-func MakeClients(config *rest.Config) (client.Client, kubernetes.Interface, error) {
-	cl, err := getClient(config)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create controller-runtime client: %w", err)
-	}
-
-	kcl, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create kubernetes client: %w", err)
-	}
-
-	return cl, kcl, nil
-}
-
-func getClient(config *rest.Config) (client.Client, error) {
-	schema := runtime.NewScheme()
-	if err := sourcev1.AddToScheme(schema); err != nil {
-		return nil, fmt.Errorf("failed to add sourcev1 to scheme: %w", err)
-	}
-
-	return client.New(config, client.Options{Scheme: schema})
+	GetIndexFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error)
+	GetValuesFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, c Chart, useProxy bool) ([]byte, error)
 }
 
 // use apimachinery wait package to wait for the HelmChart to be ready
@@ -74,21 +48,22 @@ func waitForReady(ctx context.Context, cl client.Client, helmChart *sourcev1.Hel
 }
 
 type valuesFetcher struct {
-	makeClients MakeClientsFn
 }
 
 func NewValuesFetcher() ValuesFetcher {
-	return &valuesFetcher{
-		makeClients: MakeClients,
-	}
+	return &valuesFetcher{}
 }
 
-func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
+func (v *valuesFetcher) GetIndexFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
 	// Get the HelmRepository
 	helmRepoObj := &sourcev1.HelmRepository{}
-	cl, kcl, err := v.makeClients(config)
+	cl, err := cluster.GetServerClient()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clients: %w", err)
+		return nil, fmt.Errorf("failed to create client: %w", err)
+	}
+	kcl, err := cluster.GetServerClientset()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	if err := cl.Get(ctx, helmRepo, helmRepoObj); err != nil {
@@ -120,11 +95,15 @@ func (v *valuesFetcher) GetIndexFile(ctx context.Context, config *rest.Config, h
 	return i, nil
 }
 
-func (v *valuesFetcher) GetValuesFile(ctx context.Context, config *rest.Config, helmRepo types.NamespacedName, chartRef Chart, useProxy bool) ([]byte, error) {
+func (v *valuesFetcher) GetValuesFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, chartRef Chart, useProxy bool) ([]byte, error) {
 	// clients
-	cl, kcl, err := v.makeClients(config)
+	cl, err := cluster.GetServerClient()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clients: %w", err)
+		return nil, fmt.Errorf("failed to create client: %w", err)
+	}
+	kcl, err := cluster.GetServerClientset()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create clientset: %w", err)
 	}
 
 	// Generate a random name for the HelmChart with a prefix of the chart name

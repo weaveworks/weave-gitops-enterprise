@@ -19,7 +19,7 @@ function setup_eks {
   
   export CLUSTER_NAME=${args[2]}
   export AWS_REGION=${args[3]}
-  export CLUSTER_VERSION=1.21
+  export CLUSTER_VERSION=1.23
 
   export CLUSTER_EXISTS=$(eksctl get clusters | grep -i $CLUSTER_NAME)
   if [ -z $CLUSTER_EXISTS ]; then
@@ -34,7 +34,7 @@ function setup_eks {
   kubectl get all --all-namespaces -o wide
 
   # Associate oidc identity provider to the cluster
-  cat ${args[1]}/test/utils/data/oidc-eks-associate-identity-provider.yaml | \
+  cat ${args[1]}/test/utils/data/oidc/oidc-eks-associate-identity-provider.yaml | \
     sed s,{{CLUSTER_NAME}},${CLUSTER_NAME},g | \
     sed s,{{AWS_REGION}},${AWS_REGION},g | \
     sed s,{{ISSUER_URL}},${OIDC_ISSUER_URL},g | \
@@ -87,7 +87,7 @@ function setup_gke {
 
   export CLUSTER_NAME=${args[2]}
   export CLUSTER_REGION=${args[3]}
-  export CLUSTER_VERSION=1.22
+  export CLUSTER_VERSION=1.23.13
 
   export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
   if [ -z $CLUSTER_EXISTS ]; then
@@ -107,7 +107,7 @@ function setup_gke {
   SERVER_NAME=$(kubectl get clientconfig default -n kube-public -o=jsonpath="{.spec.server}")
   DEX_REDIRECT_URL="http://localhost:8000"
 
-  cat ${args[1]}/test/utils/data/oidc-gke-client-config.yaml | \
+  cat ${args[1]}/test/utils/data/oidc/oidc-gke-client-config.yaml | \
     sed s,{{CA_AUTHORITY}},${CA_AUTHORITY},g | \
     sed s,{{CLUSTER_NAME}},${CLUSTER_NAME},g | \
     sed s,{{SERVER_NAME}},${SERVER_NAME},g | \
@@ -129,7 +129,8 @@ function setup_kind {
   
   export CLUSTER_NAME=${args[2]}
 
-  kind create cluster --name $CLUSTER_NAME --image=kindest/node:v1.23.4 --config ${args[1]}/test/utils/data/local-kind-config.yaml
+  kind create cluster --name $CLUSTER_NAME --image=kindest/node:v1.23.4 --config ${args[1]}/test/utils/data/kind/local-kind-config.yaml
+  kubectl wait --for=condition=Ready --timeout=120s -n kube-system pods --all
   kubectl get pods -A
   exit 0
 }

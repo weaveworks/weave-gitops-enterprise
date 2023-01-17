@@ -10,26 +10,24 @@ import {
 import { BrowserRouter } from 'react-router-dom';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { muiTheme } from './muiTheme';
-
 import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
-import {
-  AppContextProvider,
-  applicationsClient,
-  theme,
-} from '@weaveworks/weave-gitops';
+import { theme, AppContextProvider } from '@weaveworks/weave-gitops';
+import { Pipelines } from './api/pipelines/pipelines.pb';
 import bg from './assets/img/bg.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
+import { PipelinesProvider } from './contexts/Pipelines';
+import { GitAuthProvider } from './contexts/GitAuth/index';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
-import { PipelinesProvider } from './contexts/Pipelines';
-import { Pipelines } from './api/pipelines/pipelines.pb';
-import { GithubAuthProvider } from './contexts/GithubAuth';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
   /* https://github.com/necolas/normalize.css/issues/694 */
+  
   button,
   input,
   optgroup,
@@ -51,7 +49,7 @@ const GlobalStyle = createGlobalStyle`
 
   html, body {
     height: 100%;
-    background-color:#EEF0F4 !important;
+    background-color:${theme.colors.backGrey} !important;
   }
 
   body {
@@ -69,6 +67,7 @@ const GlobalStyle = createGlobalStyle`
 
   a {
     text-decoration: none;
+    color:  ${theme.colors.primary10};
   }
 
   ::-webkit-scrollbar-track {
@@ -134,11 +133,18 @@ const App: FC = () => {
               <GlobalStyle />
               <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
                 <PipelinesProvider api={Pipelines}>
-                  <GithubAuthProvider api={applicationsClient}>
-                    <AppContextProvider applicationsClient={applicationsClient}>
-                      <ResponsiveDrawer />
+                  <GitAuthProvider>
+                    <AppContextProvider>
+                     
+                          <ResponsiveDrawer />
+                          <ToastContainer
+                            position="top-center"
+                            autoClose={5000}
+                            newestOnTop={false}
+                          />
+                      
                     </AppContextProvider>
-                  </GithubAuthProvider>
+                  </GitAuthProvider>
                 </PipelinesProvider>
               </ProgressiveDeliveryProvider>
             </BrowserRouter>

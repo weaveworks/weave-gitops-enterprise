@@ -4,30 +4,26 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { AddApplicationRequest, renderKustomization } from '../utils';
-import GitOps from '../../Clusters/Form/Partials/GitOps';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   Button,
-  CallbackStateContextProvider,
-  clearCallbackState,
-  getProviderToken,
+  GitRepository,
   Link,
   LoadingPage,
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
-import { GitProvider } from '@weaveworks/weave-gitops/ui/lib/api/applications/applications.pb';
-import { useListConfig } from '../../../hooks/versions';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
-import Profiles from '../../Clusters/Form/Partials/Profiles';
-import ProfilesProvider from '../../../contexts/Profiles/Provider';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
-import Preview from '../../Clusters/Form/Partials/Preview';
+import {
+  ClusterAutomation,
+  RepositoryRef,
+} from '../../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
-import useProfiles from '../../../contexts/Profiles';
+import useProfiles from '../../../hooks/profiles';
 import { useCallbackState } from '../../../utils/callback-state';
 import {
   AppPRPreview,
@@ -37,6 +33,17 @@ import {
 import { validateFormData } from '../../../utils/form';
 import { getGitRepoHTTPSURL } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
+import Preview from '../../Templates/Form/Partials/Preview';
+import Profiles from '../../Templates/Form/Partials/Profiles';
+import GitOps from '../../Templates/Form/Partials/GitOps';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import {
+  getInitialGitRepo,
+  getRepositoryUrl,
+} from '../../Templates/Form/utils';
+import { GitRepositoryEnriched } from '../../Templates/Form';
+import { getGitRepos } from '../../Clusters';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -69,14 +76,85 @@ const SourceLinkWrapper = styled.div`
   overflow-x: auto;
 `;
 
+interface FormData {
+  repo: GitRepository | null;
+  provider: string;
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+  pullRequestDescription: string;
+  source_name: string;
+  source_namespace: string;
+  source: string;
+  source_type: string;
+  source_url: string;
+  source_branch: string;
+  clusterAutomations: {
+    name: string;
+    namespace: string;
+    target_namespace: string;
+    cluster_name: string;
+    cluster_namespace: string;
+    cluster: string;
+    cluster_isControlPlane: boolean;
+    createNamespace: boolean;
+    path: string;
+    source_name: string;
+    source_namespace: string;
+    source: string;
+    source_type: string;
+    source_url: string;
+    source_branch: string;
+  }[];
+}
+
+function getInitialData(
+  callbackState: { state: { formData: FormData } } | null,
+  random: string,
+) {
+  let defaultFormData = {
+    repo: null,
+    provider: '',
+    branchName: `add-application-branch-${random}`,
+    pullRequestTitle: 'Add application',
+    commitMessage: 'Add application',
+    pullRequestDescription: 'This PR adds a new application',
+    clusterAutomations: [
+      {
+        name: '',
+        namespace: '',
+        target_namespace: '',
+        cluster_name: '',
+        cluster_namespace: '',
+        cluster: '',
+        cluster_isControlPlane: false,
+        createNamespace: false,
+        path: '',
+        source_name: '',
+        source_namespace: '',
+        source: '',
+        source_type: '',
+        source_url: '',
+        source_branch: '',
+      },
+    ],
+  };
+
+  const initialFormData = {
+    ...defaultFormData,
+    ...callbackState?.state?.formData,
+  };
+
+  return { initialFormData };
+}
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const history = useHistory();
   const { setNotifications } = useNotifications();
-  const { data } = useListConfig();
-  const repositoryURL = data?.repositoryURL || '';
+  const history = useHistory();
   const authRedirectPage = `/applications/create`;
+  const [formError, setFormError] = useState<string>('');
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -105,37 +183,27 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const callbackState = useCallbackState();
 
-  let initialFormData = {
-    url: '',
-    provider: '',
-    branchName: `add-application-branch-${random}`,
-    title: 'Add application',
-    commitMessage: 'Add application',
-    pullRequestDescription: 'This PR adds a new application',
-    clusterAutomations: [
-      {
-        name: '',
-        namespace: '',
-        target_namespace: '',
-        cluster_name: '',
-        cluster_namespace: '',
-        cluster: '',
-        cluster_isControlPlane: false,
-        createNamespace: false,
-        path: '',
-        source_name: '',
-        source_namespace: '',
-        source: '',
-        source_type: '',
-        source_url: '',
-        source_branch: '',
-      },
-    ],
-    ...callbackState?.state?.formData,
-  };
+  const { initialFormData } = getInitialData(callbackState, random);
 
   const [formData, setFormData] = useState<any>(initialFormData);
-  const { profiles, isLoading: profilesIsLoading } = useProfiles();
+  const firstAuto = formData.clusterAutomations[0];
+  const helmRepo: RepositoryRef = useMemo(() => {
+    return {
+      name: firstAuto.source_name,
+      namespace: firstAuto.source_namespace,
+      cluster: {
+        name: firstAuto.cluster_name,
+        namespace: firstAuto.cluster_namespace,
+      },
+    };
+  }, [firstAuto]);
+
+  const { profiles, isLoading: profilesIsLoading } = useProfiles(
+    firstAuto.source_type === 'HelmRepository',
+    undefined,
+    undefined,
+    helmRepo,
+  );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -143,6 +211,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     ClusterPRPreview | AppPRPreview | null
   >(null);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const { data } = useListSources();
+  const gitRepos = React.useMemo(
+    () => getGitRepos(data?.result),
+    [data?.result],
+  );
+  const initialGitRepo = getInitialGitRepo(
+    null,
+    gitRepos,
+  ) as GitRepositoryEnriched;
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -152,13 +229,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [callbackState?.state?.updatedProfiles, profiles]);
 
   useEffect(() => clearCallbackState(), []);
-
-  useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      url: repositoryURL,
-    }));
-  }, [repositoryURL]);
 
   useEffect(() => {
     setFormData((prevState: any) => ({
@@ -251,6 +321,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     updatedProfiles,
   ]);
 
+  useEffect(() => {
+    if (!formData.repo) {
+      setFormData((prevState: any) => ({
+        ...prevState,
+        repo: initialGitRepo,
+      }));
+    }
+  }, [initialGitRepo, formData.repo]);
+
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
     return renderKustomization({
@@ -262,11 +341,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       })
       .catch(err =>
         setNotifications([
-          { message: { text: err.message }, variant: 'danger' },
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [setOpenPreview, setNotifications, getKustomizations]);
+  }, [setOpenPreview, getKustomizations, setNotifications]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -275,12 +358,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
+      repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
-    return AddApplicationRequest(
-      payload,
-      getProviderToken(formData.provider as GitProvider),
-    )
+    return AddApplicationRequest(payload, getProviderToken(formData.provider))
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Applications);
@@ -289,24 +370,31 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             message: {
               component: (
                 <Link href={response.webUrl} newTab>
-                  PR created successfully.
+                  PR created successfully, please review and merge the pull
+                  request to apply the changes to the cluster.
                 </Link>
               ),
             },
-            variant: 'success',
+            severity: 'success',
           },
         ]);
       })
       .catch(error => {
         setNotifications([
-          { message: { text: error.message }, variant: 'danger' },
+          {
+            message: { text: error.message },
+            severity: 'error',
+            display: 'bottom',
+          },
         ]);
         if (isUnauthenticated(error.code)) {
           removeToken(formData.provider);
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, setNotifications, getKustomizations]);
+  }, [formData, history, getKustomizations, setNotifications]);
+
+  const [submitType, setSubmitType] = useState<string>('');
 
   return useMemo(() => {
     return (
@@ -331,11 +419,26 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }}
           >
             <ContentWrapper>
-              <FormWrapper>
+              <FormWrapper
+                noValidate
+                onSubmit={event =>
+                  validateFormData(
+                    event,
+                    submitType === 'PR Preview'
+                      ? handlePRPreview
+                      : handleAddApplication,
+                    setFormError,
+                    setSubmitType,
+                  )
+                }
+              >
                 <Grid container>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
                     {formData.clusterAutomations.map(
-                      (automation: ClusterAutomation, index: number) => {
+                      (
+                        automation: FormData['clusterAutomations'][0],
+                        index: number,
+                      ) => {
                         return (
                           <AppFields
                             context="app"
@@ -345,6 +448,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                             setFormData={setFormData}
                             allowSelectCluster
                             clusterName={clusterName}
+                            formError={formError}
                           />
                         );
                       },
@@ -376,6 +480,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       isLoading={profilesIsLoading}
                       updatedProfiles={updatedProfiles}
                       setUpdatedProfiles={setUpdatedProfiles}
+                      helmRepo={helmRepo}
                     />
                   ) : null}
                   <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -384,9 +489,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     ) : (
                       <div className="preview-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(event, handlePRPreview)
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('PR Preview')}
                         >
                           PREVIEW PR
                         </Button>
@@ -400,15 +504,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       showAuthDialog={showAuthDialog}
                       setShowAuthDialog={setShowAuthDialog}
                       setEnableCreatePR={setEnableCreatePR}
+                      formError={formError}
+                      enableGitRepoSelection={true}
                     />
                     {loading ? (
                       <LoadingPage className="create-loading" />
                     ) : (
                       <div className="create-cta">
                         <Button
-                          onClick={event =>
-                            validateFormData(event, handleAddApplication)
-                          }
+                          type="submit"
+                          onClick={() => setSubmitType('Create app')}
                           disabled={!enableCreatePR}
                         >
                           CREATE PULL REQUEST
@@ -438,11 +543,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     previewLoading,
     clusterName,
     enableCreatePR,
+    helmRepo,
+    formError,
+    submitType,
   ]);
 };
 
-export default ({ ...rest }) => (
-  <ProfilesProvider>
-    <AddApplication {...rest} />
-  </ProfilesProvider>
-);
+export default ({ ...rest }) => <AddApplication {...rest} />;

@@ -36,6 +36,17 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 		}
 	}
 
+	dependsOn := []*pb.NamespacedObjectReference{}
+
+	if tf.Spec.DependsOn != nil {
+		for _, r := range tf.Spec.DependsOn {
+			dependsOn = append(dependsOn, &pb.NamespacedObjectReference{
+				Name:      r.Name,
+				Namespace: r.Namespace,
+			})
+		}
+	}
+
 	return pb.TerraformObject{
 		Name:        tf.Name,
 		Namespace:   tf.Namespace,
@@ -54,6 +65,9 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 		DriftDetectionResult: tf.HasDrift(),
 		Inventory:            inv,
 		Conditions:           conditions,
+		Labels:               tf.Labels,
+		Annotations:          tf.Annotations,
+		DependsOn:            dependsOn,
 		Suspended:            tf.Spec.Suspend,
 	}
 }

@@ -1,0 +1,43 @@
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: connect-a-cluster
+  namespace: default
+  labels:
+    weave.works/template-type: cluster
+  annotations:
+    templates.weave.works/cost-estimation-enabled: "false"
+    templates.weave.works/profiles-enabled: "false"
+    templates.weave.works/credentials-enabled: "false"
+    templates.weave.works/kustomizations-enabled: "false"
+    metadata.weave.works/dashboard.grafana: https://grafana.com/
+    metadata.weave.works/dashboard.prometheus: https://prometheus.io/
+    metadata.weave.works/dashboard.javascript: "javascript:alert('hello there ' + window.localStorage.getItem('name'));"
+spec:
+  description: Connect a leaf cluster
+  params:
+    - name: CLUSTER_NAME
+      required: true
+      description: Cluster name to connect
+    - name: NAMESPACE
+      description: Namespace to connect the cluster in
+      default: default
+    - name: BOOTSTRAP
+      description: Label to match respective ClusterBootstrapConfig
+      required: true
+      default: bootstrap
+    - name: SECRET_NAME
+      description: The secret that holds the kubeconfig
+      required: true
+  resourcetemplates:
+    - content:
+        - apiVersion: gitops.weave.works/v1alpha1
+          kind: GitopsCluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+            namespace: "${NAMESPACE}"
+            labels:
+              weave.works/capi: "${BOOTSTRAP}"
+          spec:
+            secretRef:
+              name: "${SECRET_NAME}"

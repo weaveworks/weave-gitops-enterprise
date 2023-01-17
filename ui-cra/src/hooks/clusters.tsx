@@ -26,7 +26,7 @@ const useClusters = () => {
     ) {
       setNotifications([
         ...notifications,
-        { message: { text: error.message }, variant: 'danger' },
+        { message: { text: error?.message }, severity: 'error' },
       ]);
     }
   };
@@ -71,7 +71,7 @@ const useClusters = () => {
   );
 
   const deleteCreatedClusters = useCallback(
-    (data: DeleteClustersPRRequestEnriched, token: string) => {
+    (data: DeleteClustersPRRequestEnriched, token: string | null) => {
       setLoading(true);
       return request('DELETE', '/v1/clusters', {
         body: JSON.stringify(data),
@@ -95,7 +95,7 @@ const useClusters = () => {
         .then(res => fileDownload(res.message, filename))
         .catch(err =>
           setNotifications([
-            { message: { text: err.message }, variant: 'danger' },
+            { message: { text: err?.message }, severity: 'error' },
           ]),
         );
     },

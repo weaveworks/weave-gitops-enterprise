@@ -1,6 +1,8 @@
 package estimation
 
 import (
+	"fmt"
+	"net/url"
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -8,14 +10,14 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-func mergeStringMaps(origin, update map[string]string) map[string]string {
+func mergeStringMaps(stringMaps ...map[string]string) map[string]string {
 	cloned := map[string]string{}
-	for k, v := range origin {
-		cloned[k] = v
-	}
-	for k, v := range update {
-		if v != "" {
-			cloned[k] = v
+
+	for _, update := range stringMaps {
+		for k, v := range update {
+			if v != "" {
+				cloned[k] = v
+			}
 		}
 	}
 
@@ -36,6 +38,9 @@ func minMax(vals []float32) (float32, float32) {
 //
 // TODO: return an error if the currencies don't match across all Estimates?
 func reduceEstimates(estimates map[string]*CostEstimate) *CostEstimate {
+	if len(estimates) == 0 {
+		return nil
+	}
 	lows, currency := func(m map[string]*CostEstimate) (float32, string) {
 		currencies := sets.NewString()
 		var total float32
@@ -67,4 +72,33 @@ func filtersFromMap(items map[string]string) []types.Filter {
 	}
 
 	return filters
+}
+
+// ParseFilterQueryString parses a query string into a map of filters.
+// Raises errors if duplicate or empty keys are provided.
+// Good:
+//   - "foo=bar&ewq=dsa" -> {"foo": "bar", "ewq": "dsa"}
+//
+// Bad:
+//   - "foo=bar&foo=dsa" -> "duplicate key: foo"
+//   - "foo=bar&" -> "empty key"
+func ParseFilterQueryString(annotations string) (map[string]string, error) {
+	resultAnnotations := make(map[string]string)
+
+	parsedAnnot, err := url.ParseQuery(annotations)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range parsedAnnot {
+		if len(v) > 1 {
+			return nil, fmt.Errorf("annotation values cannot contain multiple values for the same key %s: %v", k, &v)
+		}
+		if len(v) < 1 || v[0] == "" {
+			return nil, fmt.Errorf("invalid annotation values, cannot contain empty values %s: %v", k, annotations)
+
+		}
+		resultAnnotations[k] = v[0]
+
+	}
+	return resultAnnotations, nil
 }

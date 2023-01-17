@@ -30,23 +30,70 @@ of the following components:
 
 ## One-time setup
 
-You need a github Personal Access Token to build the service. This token needs
-at least the `repo` and `read:packages` permissions. If you want to be able to
-delete the GitOps repo every time you recreate your local Kind cluster, add the
-`delete_repo` permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1.
-You can create a token [here](https://github.com/settings/tokens), and export it
-as:
+### If using Docker Desktop for Mac, scale up the machine
+
+Docker Desktop is a complete Linux virtual machine, which will be used
+for building and running the whole product - the defaults are way too
+conservative.
+
+Dedicate at least 16GB RAM and as many CPU cores as you can
+spare - if you don't, everything will grind to a halt. Re-building the
+whole backend takes about a minute or two when there's enough
+resources, but if you're being too stingy with resources you could
+easily find yourself waiting half an hour or more, every time you want
+to change any code.
+
+As for disk space, if you can spare a few hundred gigabytes, do give
+it a few hundred gigabytes. Every time your development environment
+loads a change, Docker will store another few megabytes of volumes which
+adds up quicker than you'd think - and when you run out, you might get
+annoying mystery errors.
+
+After making this change, remember to turn your Docker Desktop off and
+on again.
+
+### Enable buildkit in docker (linux only)
+
+You need to enable the buildkit feature in docker, or docker will complain:
+
+> [BuildKit is enabled by default for all users on Docker Desktop](https://docs.docker.com/build/buildkit/#getting-started)
+
+```bash
+export DOCKER_BUILDKIT=1
+```
+
+### Github Personal Access Token
+
+A PAT is needed to get access to our private repositories and packages.
+
+This token needs at least the `repo` and `read:packages`
+permissions. If you want to be able to delete the GitOps repo every
+time you recreate your local Kind cluster, add the `delete_repo`
+permission too and set the `DELETE_GITOPS_DEV_REPO` flag to 1. You
+can create a token [here](https://github.com/settings/tokens), and
+export it as:
 
 ```bash
 export GITHUB_TOKEN=your_token
 ```
 
-You must also update your `~/.gitconfig` with:
+### Go package configuration
+
+In order for Go to be able to download private dependencies, you must also
+update your `~/.gitconfig` with:
 
 ```bash
 [url "ssh://git@github.com/"]
     insteadOf = https://github.com/
 ```
+
+If you are running into issues installing Go modules, try also setting the `GOPRIVATE` environment variable:
+
+```bash
+export GOPRIVATE=github.com/weaveworks/*
+```
+
+### Github user
 
 You will also be using your personal GitHub account to host GitOps repositories. Therefore you need to export your GitHub username as well:
 
@@ -54,18 +101,14 @@ You will also be using your personal GitHub account to host GitOps repositories.
 export GITHUB_USER=your_username
 ```
 
-If you are running into issues installing Go modules try setting the `GOPRIVATE` environment variable:
+### Log in to GHCR
+
+We use OCI artifacts hosted in GHCR, so you need your docker to be
+logged in to this repository:
 
 ```bash
-export GOPRIVATE=github.com/weaveworks/*
+echo $GITHUB_TOKEN | docker login --username $GITHUB_USER --password-stdin ghcr.io
 ```
-
-Along with this repository you need to clone the [cluster-controller](https://github.com/weaveworks/cluster-controller) and [cluster-bootstrap-controller](https://github.com/weaveworks/cluster-bootstrap-controller) repositories next to this repository's clone.
-
-Finally, make sure you can access to the
-[weave-gitops-enterprise-credentials][wge-creds] repository.
-
-[wge-creds]: https://github.com/weaveworks/weave-gitops-enterprise-credentials
 
 ## Run a local development environment
 
@@ -107,6 +150,14 @@ The `reboot.sh` script will execute all scripts it finds in `./tools/custom/` th
 match the file name pattern `*.sh` after creating the cluster and installing
 all components.
 
+#### Customizing Tilt
+If you create a `Tiltfile.local` in the local directory, Tilt will detect and include any calls there, allowing you to add a bit of customization to your local environment. That's useful if you want to point to another external cluster, by default Tilt only allows local clusters like kind or use a different registry:
+```
+allow_k8s_contexts('another-cluster')
+
+default_registry('my-custom-registry:5000')
+```
+
 ### Start environment
 
 To start the development environment, run
@@ -121,23 +172,12 @@ and deploy them to your local cluster. This is because the docker builds have to
 download all the Go modules/JS libraries from scratch, use the Tilt UI to check
 progress. Subsequent runs should be a lot faster.
 
-When `chart-mccp-cluster-service` has become green, you should be able to access
-your cluster at [https://localhost:8000](https://localhost:8000). The login is
+When `cluster-service` has become green, you should be able to access
+your cluster at [http://localhost:8000](http://localhost:8000). The login is
 username `wego-admin` and password `dev`.
 
 Any change you make to local code will trigger tilt to rebuild and restart the
 pods running in your system.
-
-**THINGS TO WATCH OUT FOR**
-
-- If a change in your local settings results in a ConfigMap update, you will
-  need to restart the `clusters-service` pod in order for the pod to read the
-  updated ConfigMap.
-- Every time you restart `clusters-service` it will generate new self-signed
-  certificates, therefore you will need to reload the UI and accept the new
-  certificate. Check for TLS certificate errors in the
-  `chart-mccp-cluster-service` logs and if necessary re-trigger an update to
-  rebuild it.
 
 ### Faster frontend development
 
@@ -148,11 +188,80 @@ development cluster, run:
 ```
 cd ui-cra
 yarn
-PROXY_HOST=https://localhost:8000 yarn start
+PROXY_HOST=http://localhost:8000 yarn start
 ```
 
 Now you have a separate frontend running on
 [http://localhost:3000](http://localhost:3000) with in-process reload.
+
+Tip: by starting tilt with the command `MANUAL_MODE=true tilt up` instead,
+you will cause tilt to stop restarting the backend unless you click
+the button in the UI. If you find that the backend always restarts
+while you're doing something, this might help.
+
+### When something goes wrong
+
+Here's a list of things that might go wrong.
+
+#### The tilt "Uncategorized" tab is red, and says something about "addons.cluster.x-k8s.io"
+
+This means you have not installed a CAPI provider. If you set up your
+cluster with `tools/reset.sh` then it should have been installed
+already.
+
+If you want to fix it without a cluster reset, look for the function
+running `clusterctl` in `tools/reset.sh`.
+
+If that doesn't help, it could also mean that your version of
+`clusterctl` is too old, so you simply have the wrong version of the
+cluster API. Note that `make dependencies` does not support upgrades,
+so running it does not keep you up to date - you have to manually
+delete `tools/bin/clusterctl` and then re-run `make dependencies` to
+upgrade it.
+
+#### Errors mentioning "Unauthorized" when building docker images
+
+Note: this only applies to the building step - not after it's started!
+
+This might mean your github token isn't set correctly. Try turning
+tilt off, running `export GITHUB_TOKEN=your_token` in that terminal,
+and starting it again and see if that fixes it.
+
+If that doesn't work, make sure your token has _both_ repo _and_
+package permissions, and that it hasn't expired.
+
+If you still experience problems, ask someone in your team if it works
+for them, as it could be a new dependency you don't have permissions
+to read. If it's stopped working for you both, you probably need to
+change the github permissions.
+
+#### The UI is empty and you see an error mentioning "kubernetes client initialization failed: Unauthorized"
+
+Whenever the `Uncategorized` job runs in tilt, it resets all
+permissions. When that happens, it can delete the permissions for the
+`chart-mccp-cluster-service` pod that's currently running.
+
+Manually re-run the `Uncategorized` job to make sure it runs as
+expected. When it's finished, re-start the
+`chart-mccp-cluster-service` deployment. Once that's finished, it
+should work again.
+
+#### Tilt keeps printing "too many open files"
+
+If you're on a mac, it should go away if you simply turn Docker
+Desktop off and on again - you don't have to delete the machine, just
+reboot. If you're on linux, try turning the kind docker
+container off and on again, or reboot your machine.
+
+To get it to go away, on mac try to put `ulimit -n <big_number>` in
+your shell config file (probably `~/.zshrc` or maybe `~/.bashrc`) -
+half a million or so is a big number.
+
+On linux, you might need to set `fs.nr_open` to a big value in
+/etc/sysctl.conf, and you might need to override LimitNOFILE for the
+containerd systemd unit. There's other related settings that can cause
+similar-looking errors - the `fs.inotify` family of settings often
+start up very low and might need a bump.
 
 ## Building the project
 
@@ -220,7 +329,7 @@ You can execute HTTP requests to the API by pointing to an endpoint, for
 example:
 
 ```bash
-curl --insecure https://localhost:8000/v1/enterprise/version
+curl --insecure http://localhost:8000/v1/enterprise/version
 ```
 
 The --insecure flag is needed because the service will generate self-signed
@@ -238,29 +347,8 @@ To run all tests, including integration tests run:
 make test
 ```
 
-### How to do local dev on the controllers
-
-When working on controllers it's often easier to run them locally against kind
-clusters to avoid causing issues on shared clusters (i.e. demo-01) that may be
-used by other engineers. To install the CRDs on your local kind cluster run:
-
-```bash
-make install
-```
-
-To run the controller locally run:
-
-```bash
-make run
-```
-
-To run all tests before pushing run:
-
-```bash
-make test
-```
-
 ### Creating leaf cluster
+
 To create leaf clusters to test out our features, we can rely on the [vcluster](https://www.vcluster.com/) to help us deploy new clusters on the fly. That project will basically create a entire cluster inside you kind cluster without adding much overhead.
 
 to get started install the `vcluster` cli first, by following https://www.vcluster.com/docs/getting-started/setup and then just run the `./tools/create-leaf-cluster.sh` script.
@@ -338,7 +426,7 @@ deploy WGE as a whole to a cluster.
        repositoryURL: <your config repo URL>
    EOF
 
-   kubectl apply -f ./test/utils/scripts/entitlement-secret.yaml
+   kubectl apply -f ./test/utils/data/entitlement/entitlement-secret.yaml
    ./tools/bin/flux create source helm weave-gitops-enterprise-charts \
        --url=https://charts.dev.wkp.weave.works/charts-v3 \
        --namespace=flux-system \
@@ -361,86 +449,6 @@ When making code modifications see if you can write a test first!
 - **Integration and unit tests** should be placed in the `_test.go` file next
   to the source you're modifying.
 - **Acceptance tests** live in `./test/acceptance`
-
-## How to run services locally against an existing cluster
-
-Sometimes it's nice to demo / experiment with the service(s) you're changing
-locally.
-
-### The `clusters-service`
-
-To have entitlements, create a cluster and point your `kubectl` to it. It
-doesn't matter what kind of cluster you create. Integration tests have a config
-located [here](../test/integration/test/kind-config.yaml) for inspiration.
-
-The `clusters-service` requires the presence of a valid entitlement secret for
-it to work. Make sure an entitlement secret has been added to the cluster and
-that the `clusters-service` has been configured to look for it using the correct
-namespace/name. By default, entitlement secrets are named
-`weave-gitops-enterprise-credentials` and are added to the `flux-system`
-namespace. If that's not the case, you will need to point the service to the
-right place by explicitly specifying the relevant environment variables (example
-below).
-
-An existing entitlement secret that you can use can be found
-[here](../test/utils/scripts/entitlement-secret.yaml). Alternatively, you can
-generate your own entitlement secret by using the `wge-credentials` binary.
-
-#### Port forward the source-controller to access profiles (optional):
-
-To query profiles the `clusters-service` needs to be able to DNS resolve the
-source-controller which provides the helm-repo (profile) info.
-
-Goes like this: `/v1/profiles` on the `clusters-service` finds the
-`HelmRepository` CR to figure out the URL where it can get a copy of the
-`index.yaml` that lists all the profiles.
-
-```yaml
-kind: HelmRepository
-status:
-  # some url that only resolves when running inside the cluster
-  url: source-controller.svc.flux-system/my-repo/index.yaml
-```
-
-Outside the cluster this is no good (e.g. `curl`ing the above URL will fail). To
-fix this we need to:
-
-1. expose the source-controller outside the cluster (in another terminal):
-   - `kubectl -n flux-system port-forward svc/source-controller 8080:80`
-2. tell the `clusters-service` to forget about _most_ of that above URL it finds
-   on the `HelmRepository` and use the port-forwarded one instead:
-   - `SOURCE_CONTROLLER_LOCALHOST=localhost:8080`
-
-#### Run the server:
-
-```bash
-# Optional, configure the kube context the capi-server should use
-export KUBECONFIG=test-server-kubeconfig
-
-# The weave-gitops core library uses an embedded Flux. That's not going to work when used as a library though
-# so we need to tell it to use a different Flux. This is also done by the clusters-service deployment.
-export WEAVE_GITOPS_FLUX_BIN_PATH=`which flux`
-
-# If you have port-forward the source-controller from a cluster make sure to include its local address when starting the clusters-service:
-SOURCE_CONTROLLER_LOCALHOST=localhost:8080
-
-# Run the server configured using lots of env vars
-CAPI_CLUSTERS_NAMESPACE=default CAPI_TEMPLATES_NAMESPACE=default GIT_PROVIDER_TYPE=github GIT_PROVIDER_HOSTNAME=github.com CAPI_TEMPLATES_REPOSITORY_URL=https://github.com/my-org/my-repo CAPI_TEMPLATES_REPOSITORY_BASE_BRANCH=main ENTITLEMENT_SECRET_NAMESPACE=flux-system ENTITLEMENT_SECRET_NAME=weave-gitops-enterprise-credentials go run cmd/clusters-service/main.go
-```
-
-You can query the local capi-server:
-
-```bash
-# via curl
-curl http://localhost:8000/v1/credentials
-
-# via the cli
-go run cmd/mccp/main.go --endpoint http://localhost:8000/ templates list
-
-# via the ui
-cd ui-cra
-CAPI_SERVER_HOST=http://localhost:8000 yarn start
-```
 
 #### Grab a copy of the SQLite chart cache
 
@@ -533,8 +541,14 @@ PROXY_HOST=http://localhost:8000 yarn start
 
 ### Testing changes to an unreleased weave-gitops locally
 
-Maybe you need to add an extra export or tweak a style in a component in
-weave-gitops:
+It is possible to test against local files from gitops OSS during
+development. If you want to do this, you need to make sure you've
+started tilt using `MANUAL_MODE=true tilt up` so that it won't
+re-start your backend. After that's running, you have to do
+development against the `yarn start` method.
+
+For another method that has fewer caveats, look at "How to update
+`weave-gitops` to a non-released version during development".
 
 ```bash
 # build the weave-gitops ui-library
@@ -558,7 +572,7 @@ One magical command to "reload" core (assumes the project directories are locate
 weave-gitops-enterprise/ui-cra$ cd ../../weave-gitops && make ui-lib && cd ../weave-gitops-enterprise/ui-cra && make core-lib
 ```
 
-## How to update the version of `weave-gitops`
+## How to update `weave-gitops` to a released version
 
 [`weave-gitops-enterprise`](https://github.com/weaveworks/weave-gitops-enterprise) depends on [`weave-gitops`](https://github.com/weaveworks/weave-gitops). When WG makes a new release we'll want to update the version WGE depends on. It goes a little something like this:
 
@@ -573,15 +587,20 @@ go mod tidy
 cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
 ```
 
-## How to update `weave-gitops` to `main` during development
+## How to update `weave-gitops` to a non-released version during development
 
 This will update WGE to use the latest `main` of `weave-gitops`
 
 ```bash
-make update-weave-gitops-main
+make update-weave-gitops
 ```
 
-You can commit and push this to GitHub and CI will be able to build and test. It is fine to merge this to main too, just be careful before a release. We always want to release WGE with a released version of WG under the hood.
+You can also pick a different branch as long as that branch has a PR
+associated with it by running
+
+```bash
+make update-weave-gitops BRANCH=<my-branch-name>
+```
 
 ## How to update the version of `cluster-controller`
 
@@ -625,7 +644,6 @@ new features.
 | ----------------------------------- | ----------------------------------------------------- | ---- |
 | http://35.188.40.143:30080          | https://github.com/wkp-example-org/capd-demo-reloaded | CAPD |
 | https://demo-01.wge.dev.weave.works | https://gitlab.git.dev.weave.works/wge/demo-01        | CAPG |
-| https://demo-02.wge.dev.weave.works | https://github.com/wkp-example-org/demo-02            | CAPG |
 
 ---
 
@@ -669,48 +687,6 @@ rules:
     verbs: ["get", "list", "watch"]
 ```
 
-**CAPI NAME COLLISION WARNING**
-
-`demo-01` and `demo-02` are currently deployed on the same [GCP
-project](https://console.cloud.google.com/home/dashboard?project=wks-tests) so
-there may be collisions when creating CAPI clusters if they share the same name.
-Therefore avoid using common names like `test` and prefer to prefix them with
-your name i.e. `bob-test-2` instead.
-
----
-
-`demo-01` is automatically updated to the latest version of main. `demo-02` is
-manually updated to the latest release of Weave GitOps Enterprise. The following
-sections describe how to get kubectl access to each of those clusters and how to
-update them to a newer version of Weave GitOps Enterprise.
-
-#### 35.188.40.143
-
-The test cluster currently lives at a static ip but will hopefully move behind a
-DNS address with auth _soon_.
-
-Hit up http://35.188.40.143:30080
-
-The private ssh key to the server lives in the `pesto test cluster ssh key`
-secret in 1Password.
-
-1. Grab it and save it to `~/.ssh/cluster-key`
-1. Set permissions `chmod 600 ~/.ssh/cluster-key`
-1. Add it to your current ssh agent session with `ssh-add ~/.ssh/cluster-key`
-1. Copy `kubeconfig` using this ssh key
-   ```
-   LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 scp wks@35.188.40.143:.kube/config demokubeconfig.txt
-   ```
-1. Port forward the api-server port (6443) in another tab
-   ```
-   ssh wks@35.188.40.143 -L 6443:localhost:6443
-   ```
-1. Use the `kubeconfig`:
-   ```
-   export KUBECONFIG=demokubeconfig.txt
-   kubectl get pods -A
-   ```
-
 #### demo-01
 
 Requires: gcloud CLI >= 352.0.0
@@ -719,16 +695,6 @@ Install and configure the gcloud CLI if needed. Then run:
 
 ```bash
 gcloud container clusters get-credentials demo-01 --region europe-north1-a
-```
-
-#### demo-02
-
-Requires: gcloud CLI >= 352.0.0
-
-Install and configure the gcloud CLI if needed. Then run:
-
-```bash
-gcloud container clusters get-credentials demo-02 --region europe-north1-a
 ```
 
 ### How to update to a new version
@@ -893,6 +859,7 @@ aws eks --region <aws-region> update-kubeconfig --name <cluster-name>
 First add a new feature flag in [values.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/0605d2992fed7888dd2c5045d675c7baeadb03ef/charts/mccp/values.yaml#L28))
 
 For example:
+
 ```yaml
 # Turns on pipelines features if set to true. This includes the UI elements.
 enablePipelines: false
@@ -901,6 +868,7 @@ enablePipelines: false
 Then add an `if` block to the [deployment.yaml](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/templates/clusters-service/deployment.yaml) ([example](https://github.com/weaveworks/weave-gitops-enterprise/blob/27e143749b5cda32d6d8ac6eadab3d1e2db2999e/charts/mccp/templates/clusters-service/deployment.yaml#L61-L64)) template of cluster-service in order to conditionally set an environment variable. This variable will be available to cluster-service at runtime. As a convention, the environment variable needs to be prefixed with `WEAVE_GITOPS_FEATURE_` and takes a value of `true`.
 
 For example:
+
 ```yaml
 {{- if .Values.enablePipelines }}
 - name: WEAVE_GITOPS_FEATURE_PIPELINES

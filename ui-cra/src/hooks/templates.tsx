@@ -12,7 +12,7 @@ const useTemplates = () => {
   const { api } = useContext(EnterpriseClientContext);
 
   const onError = (error: Error) =>
-    setNotifications([{ message: { text: error.message }, variant: 'danger' }]);
+    setNotifications([{ message: { text: error.message }, severity: 'error' }]);
 
   const { isLoading, data } = useQuery<ListTemplatesResponse, Error>(
     'templates',
@@ -22,43 +22,27 @@ const useTemplates = () => {
       onError,
     },
   );
-  const templates = useMemo(
-    () =>
-      data?.templates?.map(template => ({
-        ...template,
-        templateType: template?.labels?.['weave.works/template-type'] || '',
-      })),
-    [data],
-  ) as TemplateEnriched[] | undefined;
+  const templates = data?.templates as TemplateEnriched[] | undefined;
 
   const getTemplate = (templateName: string) =>
     templates?.find(template => template.name === templateName) || null;
 
   const renderTemplate = api.RenderTemplate;
 
-  const addCluster = useCallback(
-    ({ ...data }, token: string, templateKind: string) => {
-      setLoading(true);
-      return request(
-        'POST',
-        templateKind === 'GitOpsTemplate'
-          ? '/v1/tfcontrollers'
-          : '/v1/clusters',
-        {
-          body: JSON.stringify(data),
-          headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-        },
-      ).finally(() => setLoading(false));
-    },
-    [],
-  );
+  const addResource = useCallback(({ ...data }, token: string | null) => {
+    setLoading(true);
+    return request('POST', '/v1/clusters', {
+      body: JSON.stringify(data),
+      headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
+    }).finally(() => setLoading(false));
+  }, []);
 
   return {
     isLoading,
     templates,
     loading,
     getTemplate,
-    addCluster,
+    addResource,
     renderTemplate,
   };
 };

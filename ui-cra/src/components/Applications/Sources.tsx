@@ -1,11 +1,23 @@
-import { SourcesTable, useListSources, V2Routes } from '@weaveworks/weave-gitops';
-import { FC } from 'react';
+import {
+  SourcesTable,
+  useListSources,
+} from '@weaveworks/weave-gitops';
+import { FC, useEffect } from 'react';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
+import useNotifications from '../../contexts/Notifications';
+import { formatError } from '../../utils/formatters';
 
 const WGApplicationsSources: FC = () => {
   const { data: sources, isLoading, error } = useListSources();
+  const { setNotifications } = useNotifications();
+
+  useEffect(() => {
+    if (error) {
+      setNotifications(formatError(error));
+    }
+  }, [error, setNotifications]);
 
   return (
     <PageTemplate
@@ -17,15 +29,10 @@ const WGApplicationsSources: FC = () => {
         },
         {
           label: 'Sources',
-          url: V2Routes.Sources,
         },
       ]}
     >
-      <ContentWrapper
-        errors={sources?.errors}
-        loading={isLoading}
-        errorMessage={error?.message}
-      >
+      <ContentWrapper errors={sources?.errors} loading={isLoading}>
         {sources && <SourcesTable sources={sources?.result} />}
       </ContentWrapper>
     </PageTemplate>

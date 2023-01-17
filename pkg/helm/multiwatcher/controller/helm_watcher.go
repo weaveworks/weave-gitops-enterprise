@@ -2,20 +2,38 @@ package controller
 
 import (
 	"context"
-	"fmt"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	"helm.sh/helm/v3/pkg/repo"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	helmwatcher "github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/controller"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
+
+// ProfileAnnotation is the annotation that Helm charts must have to indicate
+// that they provide a Profile.
+const ProfileAnnotation = "weave.works/profile"
+
+// RepositoryProfilesAnnotation is the annotation that Helm Repositories must
+// have to indicate that all charts are to be considered as Profiles.
+const RepositoryProfilesAnnotation = "weave.works/profiles"
+
+// LayerAnnotation specifies profile application order.
+// Profiles are sorted by layer and those at a higher "layer" are only installed after
+// lower layers have successfully installed and started.
+const LayerAnnotation = "weave.works/layer"
+
+// Profiles is a predicate for scanning charts with the ProfileAnnotation.
+var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
+	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
+		hasAnnotation(hr.ObjectMeta.Annotations, RepositoryProfilesAnnotation)
+}
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
@@ -24,7 +42,7 @@ type HelmWatcherReconciler struct {
 
 	UseProxy      bool
 	ClusterRef    types.NamespacedName
-	ClientConfig  *rest.Config
+	Cluster       cluster.Cluster
 	Cache         helm.ChartsCacherWriter
 	ValuesFetcher helm.ValuesFetcher
 }
@@ -32,7 +50,11 @@ type HelmWatcherReconciler struct {
 // Reconcile is either called when there is a new HelmRepository or, when there is an update to a HelmRepository.
 // Because the watcher watches all helmrepositories, it will update data for all of them.
 func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logr.FromContextOrDiscard(ctx).WithValues("repository", req.NamespacedName)
+	log := logr.FromContextOrDiscard(ctx).WithValues(
+		"repository", req.NamespacedName,
+		"useProxy", r.UseProxy,
+		"cluster", r.ClusterRef,
+	)
 
 	// get source object
 	var repository sourcev1.HelmRepository
@@ -49,38 +71,41 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("found the repository: ", "name", repository.Name)
+	log.Info("found the repository")
+
 	// Reconcile is called for two reasons. One, the repository was just created, two there is a new revision.
 	// Because of that, we don't care what's in the cache. We will always fetch and set it.
 
-	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.ClientConfig, types.NamespacedName{
+	indexFile, err := r.ValuesFetcher.GetIndexFile(ctx, r.Cluster, types.NamespacedName{
 		Name:      repository.Name,
 		Namespace: repository.Namespace,
 	}, r.UseProxy)
 
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed to get index file: %w", err)
+		log.Error(err, "failed to get index file")
+		return ctrl.Result{}, err
 	}
+
 	for name, versions := range indexFile.Entries {
 		for _, version := range versions {
-			isProfile := helm.Profiles(&repository, version)
+			isProfile := Profiles(&repository, version)
 			chartKind := "chart"
 			if isProfile {
 				chartKind = "profile"
 			}
 			err := r.Cache.AddChart(
 				ctx, name, version.Version, chartKind,
-				version.Annotations[helm.LayerAnnotation],
+				version.Annotations[LayerAnnotation],
 				r.ClusterRef,
 				helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace},
 			)
 			if err != nil {
-				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version, "repository", repository, "cluster", r.ClusterRef)
+				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version)
 			}
 		}
 	}
 
-	log.Info("cached data from repository", "url", repository.Status.URL, "name", repository.Name, "number of profiles", len(indexFile.Entries))
+	log.Info("cached data from repository", "url", repository.Status.URL, "number of profiles", len(indexFile.Entries))
 
 	return ctrl.Result{}, nil
 }
@@ -88,20 +113,34 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&sourcev1.HelmRepository{}).
-		WithEventFilter(predicate.Or(helmwatcher.ArtifactUpdatePredicate{}, helmwatcher.DeletePredicate{})).
+		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).
 		Complete(r)
 }
 
 func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository sourcev1.HelmRepository) (ctrl.Result, error) {
-	log := logr.FromContextOrDiscard(ctx)
+	log := logr.FromContextOrDiscard(ctx).WithValues(
+		"repository", repository,
+		"cluster", r.ClusterRef,
+	)
 
-	log.Info("deleting repository cache", "namespace", repository.Namespace, "name", repository.Name)
+	log.Info("deleting repository cache")
 	if err := r.Cache.Delete(ctx, helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace}, r.ClusterRef); err != nil {
-		log.Error(err, "failed to remove cache for repository", "namespace", repository.Namespace, "name", repository.Name)
+		log.Error(err, "failed to remove cache for repository")
 		return ctrl.Result{}, err
 	}
 
-	log.Info("deleted repository cache", "namespace", repository.Namespace, "name", repository.Name)
+	log.Info("deleted repository cache")
+
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
+}
+
+func hasAnnotation(cm map[string]string, name string) bool {
+	for k := range cm {
+		if k == name {
+			return true
+		}
+	}
+
+	return false
 }

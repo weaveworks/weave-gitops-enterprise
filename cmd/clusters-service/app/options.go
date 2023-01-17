@@ -3,15 +3,17 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	core_server "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,14 +26,13 @@ type Options struct {
 	KubernetesClient             client.Client
 	DiscoveryClient              discovery.DiscoveryInterface
 	GitProvider                  git.Provider
-	ApplicationsConfig           *core_server.ApplicationsConfig
+	ApplicationsConfig           *gitauth.ApplicationsConfig
 	CoreServerConfig             core.CoreServerConfig
-	ApplicationsOptions          []core_server.ApplicationsOption
-	ProfilesConfig               server.ProfilesConfig
+	ApplicationsOptions          []gitauth.ApplicationsOption
 	ClusterFetcher               clustersmngr.ClusterFetcher
 	GrpcRuntimeOptions           []runtime.ServeMuxOption
 	RuntimeNamespace             string
-	ProfileHelmRepository        string
+	ProfileHelmRepository        types.NamespacedName
 	HelmRepositoryCacheDirectory string
 	CAPIClustersNamespace        string
 	CAPIEnabled                  bool
@@ -49,6 +50,9 @@ type Options struct {
 	KubernetesClientSet          kubernetes.Interface
 	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Cluster                      string
+	Estimator                    estimation.Estimator
+	UIConfig                     string
+	PipelineControllerAddress    string
 }
 
 type Option func(*Options)
@@ -86,7 +90,7 @@ func WithGitProvider(gitProvider git.Provider) Option {
 
 // WithApplicationsConfig is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsConfig(appConfig *core_server.ApplicationsConfig) Option {
+func WithApplicationsConfig(appConfig *gitauth.ApplicationsConfig) Option {
 	return func(o *Options) {
 		o.ApplicationsConfig = appConfig
 	}
@@ -94,7 +98,7 @@ func WithApplicationsConfig(appConfig *core_server.ApplicationsConfig) Option {
 
 // WithApplicationsOptions is used to set the configuration needed to work
 // with Weave GitOps Core applications
-func WithApplicationsOptions(appOptions ...core_server.ApplicationsOption) Option {
+func WithApplicationsOptions(appOptions ...gitauth.ApplicationsOption) Option {
 	return func(o *Options) {
 		o.ApplicationsOptions = appOptions
 	}
@@ -105,14 +109,6 @@ func WithApplicationsOptions(appOptions ...core_server.ApplicationsOption) Optio
 func WithCoreConfig(coreServerConfig core.CoreServerConfig) Option {
 	return func(o *Options) {
 		o.CoreServerConfig = coreServerConfig
-	}
-}
-
-// WithProfilesConfig is used to set the configuration needed to work
-// with Weave GitOps Core profiles
-func WithProfilesConfig(profilesConfig server.ProfilesConfig) Option {
-	return func(o *Options) {
-		o.ProfilesConfig = profilesConfig
 	}
 }
 
@@ -127,9 +123,9 @@ func WithRuntimeNamespace(RuntimeNamespace string) Option {
 // WithProfileHelmRepository is used to set the name of the Flux
 // HelmRepository object that will be inspected for Helm charts
 // that include the profile annotation.
-func WithProfileHelmRepository(name string) Option {
+func WithProfileHelmRepository(repo types.NamespacedName) Option {
 	return func(o *Options) {
-		o.ProfileHelmRepository = name
+		o.ProfileHelmRepository = repo
 	}
 }
 
@@ -246,5 +242,23 @@ func WithManagemetFetcher(fetcher *mgmtfetcher.ManagementCrossNamespacesFetcher)
 func WithManagementCluster(cluster string) Option {
 	return func(o *Options) {
 		o.Cluster = cluster
+	}
+}
+
+func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
+	return func(o *Options) {
+		o.Estimator = estimator
+	}
+}
+
+func WithUIConfig(uiConfig string) Option {
+	return func(o *Options) {
+		o.UIConfig = uiConfig
+	}
+}
+
+func WithPipelineControllerAddress(address string) Option {
+	return func(o *Options) {
+		o.PipelineControllerAddress = address
 	}
 }

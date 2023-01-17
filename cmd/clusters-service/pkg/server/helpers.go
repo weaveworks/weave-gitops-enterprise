@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/spf13/viper"
+	"k8s.io/apimachinery/pkg/util/sets"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	apitemplates "github.com/weaveworks/templates-controller/apis/core"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
-func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([][]byte, error) {
+func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([]templates.RenderedTemplate, error) {
 	opts := []templates.RenderOptFunc{
 		templates.InNamespace(namespace),
 		templates.InjectLabels(map[string]string{
@@ -19,7 +21,8 @@ func renderTemplateWithValues(t apitemplates.Template, name, namespace string, v
 			"templates.weave.works/template-namespace": viper.GetString("capi-templates-namespace"),
 		}),
 	}
-	if viper.GetString("inject-prune-annotation") != "disabled" && isCAPITemplate(t) {
+
+	if shouldInjectPruneAnnotation(t) {
 		opts = append(opts, templates.InjectPruneAnnotation)
 	}
 
@@ -37,6 +40,16 @@ func renderTemplateWithValues(t apitemplates.Template, name, namespace string, v
 	}
 
 	return templateBits, nil
+}
+
+func shouldInjectPruneAnnotation(t apitemplates.Template) bool {
+	anno := t.GetAnnotations()[templates.InjectPruneAnnotationAnnotation]
+	if anno != "" {
+		return anno == "true"
+	}
+
+	// FIXME: want to phase configuration option out. You can enable per template by adding the annotation
+	return viper.GetString("inject-prune-annotation") != "disabled" && isCAPITemplate(t)
 }
 
 func getProvider(t apitemplates.Template, annotation string) string {
@@ -82,4 +95,31 @@ func getClusterNamespace(clusterNamespace string) string {
 
 func isCAPITemplate(t apitemplates.Template) bool {
 	return t.GetObjectKind().GroupVersionKind().Kind == capiv1.Kind
+}
+
+func filePaths(files []gitprovider.CommitFile) []string {
+	names := []string{}
+	for _, f := range files {
+		names = append(names, *f.Path)
+	}
+	return names
+}
+
+// Check if there are files in originalFiles that are missing from extraFiles and returns them
+func getMissingFiles(originalFiles []gitprovider.CommitFile, extraFiles []gitprovider.CommitFile) []gitprovider.CommitFile {
+	originalFilePaths := filePaths(originalFiles)
+	extraFilePaths := filePaths(extraFiles)
+
+	diffPaths := sets.NewString(originalFilePaths...).Difference(sets.NewString(extraFilePaths...)).List()
+
+	removedFilenames := []gitprovider.CommitFile{}
+	for i := range diffPaths {
+		removedFilenames = append(removedFilenames, gitprovider.CommitFile{
+			Path:    &diffPaths[i],
+			Content: nil,
+		})
+	}
+
+	return removedFilenames
+
 }

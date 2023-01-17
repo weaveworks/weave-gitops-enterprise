@@ -33,6 +33,22 @@ func TestAWSClusterEstimator_Estimate(t *testing.T) {
 			want:     &CostEstimate{High: 438.0, Low: 189.8, Currency: "USD"},
 		},
 		{
+			// We have 3 instances of t3.medium in the controlPLane
+			// and 5 t3.large in the machineDeployment
+			//
+			// The overrides have an annotation that changes the tenancy to
+			// Shared.
+			//
+			// MonthlyHours == 730
+			// regionCode = us-iso-east-1
+			// controlPlane = 5 * 730.0 * 0.02, 0.03, 0.04 = [73.0, 109.5, 146.0]
+			// infrastructure = 3 * 730.0 * 0.01, 0.02, 0.03 = [[21.9, 43.8, 65.70]]
+			// max = 146+65.70
+			// min = 73+21.9
+			filename: "testdata/cluster-template-with-overrides.yaml",
+			want:     &CostEstimate{High: 211.7, Low: 94.9, Currency: "USD"},
+		},
+		{
 			// We have 6 instances of t3.medium in the controlPLane
 			// and 10 t3.large in the machineDeployment
 			// MonthlyHours == 730
@@ -69,7 +85,18 @@ func TestAWSClusterEstimator_Estimate(t *testing.T) {
 				"regionCode":      "us-iso-west-1",
 				"instanceType":    "t3.large",
 			}, []float32{0.03, 0.06, 0.07})
-
+			pricer.addPrices("AmazonEC2", "USD", map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-east-1",
+				"instanceType":    "t3.large",
+				"tenancy":         "Shared",
+			}, []float32{0.02, 0.03, 0.04})
+			pricer.addPrices("AmazonEC2", "USD", map[string]string{
+				"operatingSystem": "Linux",
+				"regionCode":      "us-iso-east-1",
+				"instanceType":    "t3.medium",
+				"tenancy":         "Shared",
+			}, []float32{0.01, 0.02, 0.03})
 			estimator := NewAWSClusterEstimator(pricer, map[string]string{
 				"operatingSystem": "Linux",
 			})

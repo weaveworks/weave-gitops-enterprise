@@ -6,12 +6,12 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -108,7 +108,7 @@ func controllerStatus(controllerName, namespace string) error {
 	return runCommandPassThroughWithoutOutput("sh", "-c", fmt.Sprintf("kubectl rollout status deployment %s -n %s", controllerName, namespace))
 }
 
-func CheckClusterService(capiEndpointURL string) {
+func checkClusterService(endpointURL string) {
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
 	gomega.Eventually(func(g gomega.Gomega) {
 		logger.Info("Trying to login to cluster service")
@@ -117,7 +117,7 @@ func CheckClusterService(capiEndpointURL string) {
 			fmt.Sprintf(
 				// insecure for self-signed tls
 				`curl --insecure  -d '{"username":"%s","password":"%s"}' -H "Content-Type: application/json" -X POST %s/oauth2/sign_in -c -`,
-				AdminUserName, adminPassword, capiEndpointURL,
+				AdminUserName, adminPassword, endpointURL,
 			),
 			ASSERTION_1MINUTE_TIME_OUT,
 		)
@@ -129,7 +129,7 @@ func CheckClusterService(capiEndpointURL string) {
 		stdOut, stdErr := runCommandAndReturnStringOutput(
 			fmt.Sprintf(
 				`curl --insecure --silent --cookie "id_token=%s" -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
-				cookie, capiEndpointURL,
+				cookie, endpointURL,
 			),
 			ASSERTION_1MINUTE_TIME_OUT,
 		)
@@ -138,9 +138,14 @@ func CheckClusterService(capiEndpointURL string) {
 	}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.Succeed())
 }
 
+type Request struct {
+	Path string
+	Body []byte
+}
+
 // Wait until we get a good looking response from /v1/<resource>
 // Ignore all errors (connection refused, 500s etc)
-func waitForGitopsResources(ctx context.Context, resourcePath string, timeout time.Duration, timeoutCtx ...time.Duration) error {
+func waitForGitopsResources(ctx context.Context, request Request, timeout time.Duration, timeoutCtx ...time.Duration) error {
 	contextTimeout := ASSERTION_5MINUTE_TIME_OUT
 	if len(timeoutCtx) > 0 {
 		contextTimeout = timeoutCtx[0]
@@ -159,7 +164,7 @@ func waitForGitopsResources(ctx context.Context, resourcePath string, timeout ti
 			},
 		}
 		// login to fetch cookie
-		resp, err := client.Post(test_ui_url+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, AdminUserName, adminPassword))))
+		resp, err := client.Post(testUiUrl+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(fmt.Sprintf(`{"username":"%s", "password":"%s"}`, AdminUserName, adminPassword))))
 		if err != nil {
 			logger.Tracef("error logging in (waiting for a success, retrying): %v", err)
 			return false, nil
@@ -169,13 +174,17 @@ func waitForGitopsResources(ctx context.Context, resourcePath string, timeout ti
 			return false, nil
 		}
 		// fetch gitops resource
-		resp, err = client.Get(test_ui_url + "/v1/" + resourcePath)
+		if request.Body != nil {
+			resp, err = client.Post(testUiUrl+"/v1/"+request.Path, "application/json", bytes.NewReader(request.Body))
+		} else {
+			resp, err = client.Get(testUiUrl + "/v1/" + request.Path)
+		}
 		if err != nil {
-			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", resourcePath, err)
+			logger.Tracef("error getting %s in (waiting for a success, retrying): %v", request.Path, err)
 			return false, nil
 		}
 		if resp.StatusCode != http.StatusOK {
-			logger.Tracef("wrong status from %s (waiting for a ok, retrying): %v", resourcePath, resp.StatusCode)
+			logger.Tracef("wrong status from %s (waiting for a ok, retrying): %v", request.Path, resp.StatusCode)
 			return false, nil
 		}
 
@@ -184,13 +193,13 @@ func waitForGitopsResources(ctx context.Context, resourcePath string, timeout ti
 			return false, nil
 		}
 
-		parseUrl, err := url.Parse(resourcePath)
+		parseUrl, err := url.Parse(request.Path)
 		if err != nil {
-			logger.Errorf("failed to parse URL: %v", resourcePath)
+			logger.Errorf("failed to parse URL: %v", request.Path)
 			return false, nil
 		}
 
-		return regexp.MatchString(strings.ToLower(fmt.Sprintf(`%s[\\"]+`, parseUrl.Path)), strings.ToLower(string(bodyBytes)))
+		return regexp.MatchString(strings.ToLower(fmt.Sprintf(`%s[\\"]+`, strings.Split(parseUrl.Path, "/")[0])), strings.ToLower(string(bodyBytes)))
 	}, waitCtx.Done())
 }
 
@@ -210,11 +219,11 @@ func runGitopsCommand(cmd string, timeout ...time.Duration) (stdOut, stdErr stri
 		case OidcUserLogin:
 			authFlag = fmt.Sprintf("--kubeconfig=%s", userCredentials.UserKubeconfig)
 		default:
-			gomega.Expect(fmt.Errorf("error: Provided authento=ication type '%s' is not supported for CLI", userCredentials.UserType))
+			gomega.Expect(fmt.Errorf("error: Provided authentication type '%s' is not supported for CLI", userCredentials.UserType))
 		}
 	}
 
-	cmd = fmt.Sprintf(`%s --endpoint %s %s %s %s`, gitops_bin_path, capi_endpoint_url, insecureFlag, authFlag, cmd)
+	cmd = fmt.Sprintf(`%s --endpoint %s %s %s %s`, gitopsBinPath, wgeEndpointUrl, insecureFlag, authFlag, cmd)
 	ginkgo.By(fmt.Sprintf(`And I run '%s'`, cmd), func() {
 		assert_timeout := ASSERTION_DEFAULT_TIME_OUT
 		if len(timeout) > 0 {
@@ -254,14 +263,12 @@ func bootstrapAndVerifyFlux(gp GitProviderEnv, gitopsNamespace string, manifestR
 	gomega.Expect(verifyGitRepositories).Should(gomega.BeTrue(), "GitRepositories resource has failed to become READY.")
 }
 
-func suspendReconciliation(sourceType string, sourceName string, namespace string) {
-	cmdSuspend := fmt.Sprintf("flux suspend source %s %s --namespace %s", sourceType, sourceName, namespace)
-	_, _ = runCommandAndReturnStringOutput(cmdSuspend, ASSERTION_30SECONDS_TIME_OUT)
+func reconcile(action, resource, resourceType, resourceName, namespace, kubeconfig string) {
+	if kubeconfig != "" {
+		kubeconfig = "--kubeconfig=" + kubeconfig
+	}
 
-}
-
-func resumeReconciliation(sourceType string, sourceName string, namespace string) {
-	cmdSuspend := fmt.Sprintf("flux resume source %s %s --namespace %s", sourceType, sourceName, namespace)
+	cmdSuspend := fmt.Sprintf("flux %s %s %s %s --namespace %s %s", action, resource, resourceType, resourceName, namespace, kubeconfig)
 	_, _ = runCommandAndReturnStringOutput(cmdSuspend, ASSERTION_30SECONDS_TIME_OUT)
 }
 
@@ -298,7 +305,7 @@ func deleteSecret(kubeconfigSecrets []string, nameSpace string) {
 func createCluster(clusterType string, clusterName string, configFile string) {
 	if clusterType == "kind" {
 		if configFile != "" {
-			configFile = "--config " + path.Join(getCheckoutRepoPath(), "test/utils/data", configFile)
+			configFile = "--config " + path.Join(testDataPath, configFile)
 		}
 		err := runCommandPassThrough("sh", "-c", fmt.Sprintf("kind create cluster --name %s --image=kindest/node:v1.23.4 %s", clusterName, configFile))
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
@@ -328,7 +335,7 @@ func deleteCluster(clusterType string, cluster string, nameSpace string) {
 }
 
 func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
-	contents, err := ioutil.ReadFile(kubeconfigPath)
+	contents, err := os.ReadFile(kubeconfigPath)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	gomega.Eventually(contents).Should(gomega.MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, capiCluster)))
 
@@ -348,26 +355,135 @@ func verifyCapiClusterHealth(kubeconfigPath string, applications []Application) 
 	waitForResourceState("Ready", "true", "pods", GITOPS_DEFAULT_NAMESPACE, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 
 	for _, app := range applications {
-		// Check all profiles are installed in layering order
 		switch app.Name {
-		case "observability":
+		case "observability": // layer-0
 			gomega.Expect(waitForResource("deploy", "observability-grafana", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			gomega.Expect(waitForResource("deploy", "observability-kube-state-metrics", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "release="+"observability", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "podinfo":
+		case "postgres": // ks
+			gomega.Expect(waitForResource("deploy", "postgres ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app=postgres", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "podinfo": // ks
 			gomega.Expect(waitForResource("deploy", "podinfo ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
-			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app.kubernetes.io/name="+"podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "metallb":
-			gomega.Expect(waitForResource("deploy", "metallb-controller ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app=podinfo", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
+		case "metallb": // layer-0
+			gomega.Expect(waitForResource("deploy", app.TargetNamespace+"-metallb-controller ", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "app.kubernetes.io/name="+"metallb", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "cert-manager":
-			gomega.Expect(waitForResource("deploy", "cert-manager-cert-manager", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
+		case "cert-manager": //l ayer-0
+			gomega.Expect(waitForResource("deploy", app.TargetNamespace+"-cert-manager", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
-		case "weave-policy-agent":
+		case "weave-policy-agent": // layer-1
 			gomega.Expect(waitForResource("deploy", "policy-agent", app.TargetNamespace, kubeconfigPath, ASSERTION_2MINUTE_TIME_OUT)).To(gomega.Succeed())
 			waitForResourceState("Ready", "true", "pods", app.TargetNamespace, "", kubeconfigPath, ASSERTION_3MINUTE_TIME_OUT)
 		}
 	}
+}
+
+// This function generates multiple template files from a single template to be used as test data
+func generateTestTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
+	// Read input capitemplate
+	contents, err := os.ReadFile(templateFile)
+
+	if err != nil {
+		return templateFiles, err
+	}
+
+	// Prepare  data to insert into the template.
+	type TemplateInput struct {
+		Count int
+	}
+
+	// Create a new template and parse the letter into it.
+	t := template.Must(template.New("capi-template").Parse(string(contents)))
+
+	// Execute the template for each count.
+	for i := 0; i < templateCount; i++ {
+		input := TemplateInput{i}
+
+		fileName := fmt.Sprintf("%s%d", filepath.Base(templateFile), i)
+
+		f, err := os.Create(path.Join("/tmp", fileName))
+		if err != nil {
+			return templateFiles, err
+		}
+		templateFiles = append(templateFiles, f.Name())
+
+		if err = t.Execute(f, input); err != nil {
+			logger.Infoln("Executing template:", err)
+		}
+
+		f.Close()
+	}
+
+	return templateFiles, nil
+}
+
+func createIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		// CAPA installs the AWS identity crds
+		if capiProvider != "capa" {
+			ginkgo.By("Install AWSClusterStaticIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterstaticidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+
+			ginkgo.By("Install AWSClusterRoleIdentity CRD", func() {
+				_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/awsclusterroleidentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+			})
+		}
+
+		ginkgo.By("Create AWS Secret, AWSClusterStaticIdentity and AWSClusterRoleIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput("kubectl create namespace capa-system")
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+		})
+
+	} else if infrastructureProvider == "AZURE" {
+		ginkgo.By("Install AzureClusterIdentity CRD", func() {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+			_, _ = runCommandAndReturnStringOutput("kubectl wait --for=condition=established --timeout=90s crd/azureclusteridentities.infrastructure.cluster.x-k8s.io", ASSERTION_2MINUTE_TIME_OUT)
+		})
+
+		ginkgo.By("Create Azure Secret and AzureClusterIdentity)", func() {
+			_, _ = runCommandAndReturnStringOutput(fmt.Sprintf("kubectl apply -f %s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath), ASSERTION_30SECONDS_TIME_OUT)
+		})
+	}
+
+}
+
+func deleteIPCredentials(infrastructureProvider string) {
+	if infrastructureProvider == "AWS" {
+		ginkgo.By("Delete AWS identities and CRD", func() {
+			// Identity crds are installed as part of CAPA installation
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/aws_cluster_credentials.yaml", testDataPath))
+			if capiProvider != "capa" {
+				_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterroleidentities.yaml", testDataPath))
+				_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_awsclusterstaticidentities.yaml", testDataPath))
+				_, _ = runCommandAndReturnStringOutput("kubectl delete namespace capa-system")
+			}
+		})
+
+	} else if infrastructureProvider == "AZURE" {
+		ginkgo.By("Delete Azure identities and CRD", func() {
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/azure_cluster_credentials.yaml", testDataPath))
+			_ = runCommandPassThrough("kubectl", "delete", "-f", fmt.Sprintf("%s/capi-multi-tenancy/infrastructure.cluster.x-k8s.io_azureclusteridentities.yaml", testDataPath))
+		})
+	}
+}
+
+func restartDeploymentPods(appName string, namespace string) error {
+	// Restart the deployment pods
+	var err error
+	for i := 1; i < 5; i++ {
+		time.Sleep(POLL_INTERVAL_1SECONDS)
+		err = runCommandPassThrough("kubectl", "rollout", "restart", "deployment", appName, "-n", namespace)
+		if err == nil {
+			// Wait for all the deployments replicas to rolled out successfully
+			err = runCommandPassThrough("kubectl", "rollout", "status", "deployment", appName, "-n", namespace)
+			break
+		}
+	}
+	return err
 }
 
 func createPATSecret(clusterNamespace string, patSecret string) {
@@ -382,9 +498,25 @@ func createPATSecret(clusterNamespace string, patSecret string) {
 	})
 }
 
+// Copy the flux-system git repo and its secret from the flux-system namespace to a given namespace
+func copyFluxSystemGitRepo(namespace string) {
+	ginkgo.By("Copy flux-system git repo and its secret from the flux-system namespace a tenant namespace", func() {
+		// Copy the flux-system git repo and its secret from the flux-system namespace to a given namespace
+		// This is required for the cluster to be able to sync with the git repo
+		err := runCommandPassThrough("sh", "-c", "kubectl get gitrepositories -n flux-system flux-system -o yaml | sed 's/  namespace: flux-system/  namespace: "+namespace+"/' | kubectl apply -f -")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get gitrepositories from flux-system namespace")
+
+		err = runCommandPassThrough("sh", "-c", "kubectl get secret -n flux-system flux-system -o yaml | sed 's/  namespace: flux-system/  namespace: "+namespace+"/' | kubectl apply -f -")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get secret from flux-system namespace")
+
+		err = runCommandPassThrough("sh", "-c", "kubectl annotate -n "+namespace+" gitrepo flux-system weave.works/repo-role=default")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to annotate gitrepo with weave.works/repo-role=default")
+	})
+}
+
 func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet string) {
 	ginkgo.By(fmt.Sprintf("Add ClusterResourceSet resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/calico-crs.yaml"))
+		contents, err := os.ReadFile(path.Join(testDataPath, "bootstrap/calico-crs.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read calico-crs template yaml")
 
 		t := template.Must(template.New("cluster-resource-set").Parse(string(contents)))
@@ -413,7 +545,7 @@ func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet
 
 func createCRSConfigmap(clusterName string, nameSpace string) (configmap string) {
 	ginkgo.By(fmt.Sprintf("Add ClusterResourceSet configmap resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/calico-crs-configmap.yaml"))
+		contents, err := os.ReadFile(path.Join(testDataPath, "bootstrap/calico-crs-configmap.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read calico-crs-configmap template yaml")
 
 		t := template.Must(template.New("crs-configmap").Parse(string(contents)))
@@ -441,7 +573,7 @@ func createCRSConfigmap(clusterName string, nameSpace string) (configmap string)
 }
 
 func createClusterBootstrapConfig(clusterName string, nameSpace string, bootstrapLabel string, patSecret string) (bootstrapConfig string) {
-	tmplConfig := path.Join(getCheckoutRepoPath(), "test", "utils", "data", "gitops-cluster-bootstrap-config.yaml")
+	tmplConfig := path.Join(testDataPath, "bootstrap/gitops-cluster-bootstrap-config.yaml")
 	bootstrapConfig = path.Join("/tmp", nameSpace+"-gitops-cluster-bootstrap-config.yaml")
 
 	ginkgo.By(fmt.Sprintf("Add ClusterBootstrapConfig resource for %s cluster to management cluster", clusterName), func() {
@@ -464,9 +596,9 @@ func createClusterBootstrapConfig(clusterName string, nameSpace string, bootstra
 	return bootstrapConfig
 }
 
-func connectGitopsCuster(clusterName string, nameSpace string, bootstrapLabel string, kubeconfigSecret string) (gitopsCluster string) {
+func connectGitopsCluster(clusterName string, nameSpace string, bootstrapLabel string, kubeconfigSecret string) (gitopsCluster string) {
 	ginkgo.By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(getCheckoutRepoPath(), "test/utils/data/gitops-cluster.yaml"))
+		contents, err := os.ReadFile(path.Join(testDataPath, "kustomization/gitops-cluster.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
 
 		t := template.Must(template.New("gitops-cluster").Parse(string(contents)))
@@ -520,9 +652,8 @@ func deleteSource(sourceType, sourceName, namespace, kubeconfig string) {
 }
 
 func addKustomizationBases(clusterType, clusterName, clusterNamespace string) {
-	ginkgo.By("And add kustomization bases for common resources for leaf cluster)", func() {
+	ginkgo.By("And add kustomization bases for common resources for leaf cluster", func() {
 		repoAbsolutePath := path.Join(configRepoAbsolutePath(gitProviderEnv))
-		checkoutTestDataPath := path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 		leafClusterPath := path.Join(repoAbsolutePath, "clusters", clusterNamespace, clusterName)
 		clusterBasesPath := path.Join(repoAbsolutePath, "clusters", "bases")
 
@@ -535,13 +666,13 @@ func addKustomizationBases(clusterType, clusterName, clusterNamespace string) {
 		gomega.Eventually(pathErr, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Leaf cluster %s repository path doesn't exists", clusterName))
 
 		if clusterType != "capi" {
-			gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
+			gomega.Expect(copyFile(path.Join(testDataPath, "kustomization/clusters-bases-kustomization.yaml"), leafClusterPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy clusters-bases-kustomization.yaml to %s", leafClusterPath))
 		}
 
 		gomega.Expect(createDirectory(clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to create %s directory", clusterBasesPath))
-		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
-		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
-		gomega.Expect(copyFile(path.Join(checkoutTestDataPath, "user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(testDataPath, "rbac/user-roles.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-roles.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(testDataPath, "rbac/admin-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy admin-role-bindings.yaml to %s", clusterBasesPath))
+		gomega.Expect(copyFile(path.Join(testDataPath, "rbac/user-role-bindings.yaml"), clusterBasesPath)).Should(gomega.Succeed(), fmt.Sprintf("Failed to copy user-role-bindings.yaml to %s", clusterBasesPath))
 
 		gitUpdateCommitPush(repoAbsolutePath, "Adding kustomization bases files")
 	})
@@ -571,7 +702,7 @@ func waitForNamespaceDeletion(namespaces []string) {
 		checkOutput := func() error {
 			return runCommandPassThrough("sh", "-c", fmt.Sprintf(`kubectl get namespace %s`, namespace))
 		}
-		gomega.Eventually(checkOutput, ASSERTION_30SECONDS_TIME_OUT).Should(gomega.HaveOccurred(), fmt.Sprintf("'%s' namespace is expected not to be available", namespace))
+		gomega.Eventually(checkOutput, ASSERTION_1MINUTE_TIME_OUT, POLL_INTERVAL_3SECONDS).Should(gomega.HaveOccurred(), fmt.Sprintf("'%s' namespace is expected not to be available", namespace))
 	}
 }
 
@@ -583,6 +714,19 @@ func getApplicationCount() int {
 	hCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
 
 	return kCount + hCount
+}
+
+func getSourceCount() int {
+	stdOut, _ := runCommandAndReturnStringOutput("kubectl get helmrepository -A --output name | wc -l")
+	hCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	stdOut, _ = runCommandAndReturnStringOutput("kubectl get helmchart -A --output name | wc -l")
+	cCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	stdOut, _ = runCommandAndReturnStringOutput("kubectl get gitrepository -A --output name | wc -l")
+	gCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+
+	return gCount + hCount + cCount
 }
 
 func getClustersCount() int {
@@ -601,4 +745,12 @@ func getViolationsCount() int {
 	stdOut, _ := runCommandAndReturnStringOutput("kubectl  get events --field-selector reason=PolicyViolation  --output name | wc -l")
 	vCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
 	return vCount
+}
+
+func getWorkspacesCount() int {
+	stdOut, err := runCommandAndReturnStringOutput(`kubectl get namespaces -l toolkit.fluxcd.io/tenant -o yaml | grep -oE "toolkit.fluxcd.io/tenant: [a-zA-Z0-9]+" | sort --unique | wc -l`)
+	gomega.Expect(err).Should(gomega.BeEmpty(), "Failed to get workspaces count")
+
+	wCount, _ := strconv.Atoi(strings.TrimSpace(stdOut))
+	return wCount
 }

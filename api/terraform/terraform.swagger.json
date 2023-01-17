@@ -66,6 +66,48 @@
         ]
       }
     },
+    "/v1/terraform_objects/plan": {
+      "get": {
+        "operationId": "Terraform_GetTerraformObjectPlan",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTerraformObjectPlanResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
+    },
     "/v1/terraform_objects/suspend": {
       "post": {
         "operationId": "Terraform_ToggleSuspendTerraformObject",
@@ -221,6 +263,14 @@
         }
       }
     },
+    "v1GetTerraformObjectPlanResponse": {
+      "type": "object",
+      "properties": {
+        "plan": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetTerraformObjectResponse": {
       "type": "object",
       "properties": {
@@ -228,6 +278,9 @@
           "$ref": "#/definitions/v1TerraformObject"
         },
         "yaml": {
+          "type": "string"
+        },
+        "type": {
           "type": "string"
         }
       }
@@ -263,6 +316,17 @@
           "items": {
             "$ref": "#/definitions/v1TerraformListError"
           }
+        }
+      }
+    },
+    "v1NamespacedObjectReference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },
@@ -385,6 +449,24 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1NamespacedObjectReference"
           }
         },
         "suspended": {

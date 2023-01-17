@@ -1,17 +1,26 @@
+import React, { FC, useEffect } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
-import { createStyles, makeStyles } from '@material-ui/styles';
-import { Flex, Link, theme } from '@weaveworks/weave-gitops';
-import { FC, useEffect } from 'react';
+import { Flex, theme } from '@weaveworks/weave-gitops';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
-import { useListVersion } from '../../hooks/versions';
-import { Tooltip } from '../Shared';
-import useNotifications from './../../contexts/Notifications';
-import { AlertListErrors } from './AlertListErrors';
 
-const { xxs, xs, small, medium, base } = theme.spacing;
-const { feedbackLight, white } = theme.colors;
+import { AlertListErrors } from './AlertListErrors';
+import useNotifications, {
+  NotificationData,
+} from './../../contexts/Notifications';
+import Notifications from './Notifications';
+
+import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
+import { useVersionContext } from '../../contexts/ListConfig';
+
+const ENTITLEMENT_ERROR =
+  'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
+
+const ENTITLEMENT_WARN =
+  'Your entitlement for Weave GitOps Enterprise has expired, please contact sales@weave.works.';
+
+const { xs, medium, base } = theme.spacing;
+const { white } = theme.colors;
 
 export const Title = styled.h2`
   margin-top: 0px;
@@ -23,10 +32,10 @@ export const PageWrapper = styled.div`
 `;
 
 export const contentCss = css`
-  margin: 0 ${base};
   padding: ${medium};
   background-color: ${white};
   border-radius: ${xs} ${xs} 0 0;
+  height: 100%;
 `;
 
 export const Content = styled.div<{ backgroundColor?: string }>`
@@ -34,74 +43,40 @@ export const Content = styled.div<{ backgroundColor?: string }>`
   background-color: ${props => props.backgroundColor};
 `;
 
-export const WGContent = styled.div`
-  margin: ${medium} ${small} 0 ${small};
-  background-color: ${white};
-  border-radius: ${xs} ${xs} 0 0;
-  > div > div {
-    border-radius: ${xs};
-    max-width: none;
-  }
-`;
-
-const HelpLinkWrapper = styled.div`
-  padding: calc(${medium} - ${xxs}) ${medium};
-  margin: 0 ${base};
-  background-color: rgba(255, 255, 255, 0.7);
-  color: ${({ theme }) => theme.colors.neutral30};
-  border-radius: 0 0 ${xs} ${xs};
-  display: flex;
-  justify-content: space-between;
-  a {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    alertWrapper: {
-      padding: base,
-      margin: `0 ${base} ${base} ${base}`,
-      borderRadius: '10px',
-    },
-    warning: {
-      backgroundColor: feedbackLight,
-    },
-  }),
-);
-
 interface Props {
   type?: string;
   backgroundColor?: string;
   errors?: ListError[];
   loading?: boolean;
-  errorMessage?: string;
+  notifications?: NotificationData[];
 }
 
 export const ContentWrapper: FC<Props> = ({
   children,
-  type,
   backgroundColor,
   errors,
   loading,
-  errorMessage,
 }) => {
-  const classes = useStyles();
-  const { setNotifications } = useNotifications();
-  const { data, error } = useListVersion();
-  const entitlement = data?.entitlement;
-  const versions = {
-    capiServer: data?.data.version,
-    ui: process.env.REACT_APP_VERSION || 'no version specified',
-  };
+  const versionResponse = useVersionContext();
+  const { notifications, setNotifications } = useNotifications();
 
   useEffect(() => {
-    if (error) {
+    if (versionResponse?.entitlement === ENTITLEMENT_WARN) {
       setNotifications([
-        { message: { text: error?.message }, variant: 'danger' },
+        {
+          message: {
+            text: versionResponse.entitlement,
+          },
+          severity: 'warning',
+        } as NotificationData,
       ]);
     }
-  }, [error, setNotifications]);
+  }, [versionResponse?.entitlement, setNotifications]);
+
+  const topNotifications = notifications.filter(
+    n => n.display !== 'bottom' && n.message.text !== ENTITLEMENT_ERROR,
+  );
+  const bottomNotifications = notifications.filter(n => n.display === 'bottom');
 
   if (loading) {
     return (
@@ -112,52 +87,35 @@ export const ContentWrapper: FC<Props> = ({
       </Box>
     );
   }
-  if (errorMessage) {
-    return (
-      <Alert severity="error" className={classes.alertWrapper}>
-        {errorMessage}
-      </Alert>
-    );
-  }
+
   return (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: '100%',
-        height: 'calc(100vh - 80px)',
+        width: 'calc(100% - 4px)',
+        maxHeight: 'calc(100vh - 80px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
+        padding: '0px 12px',
+        margin: '0 auto',
       }}
     >
-      {entitlement && (
-        <Alert
-          className={`${classes.alertWrapper} ${classes.warning}`}
-          severity="warning"
-        >
-          {entitlement}
-        </Alert>
+      {errors && (
+        <AlertListErrors
+          errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
+        />
       )}
-      {errors && <AlertListErrors errors={errors} />}
-      {type === 'WG' ? (
-        <WGContent>{children}</WGContent>
-      ) : (
-        <Content backgroundColor={backgroundColor}>{children}</Content>
-      )}
-      <HelpLinkWrapper>
-        <div>
-          Need help? Raise a&nbsp;
-          <Link newTab href="https://weavesupport.zendesk.com/">
-            support ticket
-          </Link>
+      <Notifications notifications={topNotifications} />
+
+      <Content backgroundColor={backgroundColor}>{children}</Content>
+
+      {!!bottomNotifications.length && (
+        <div style={{ paddingTop: base }}>
+          <Notifications notifications={bottomNotifications} />
         </div>
-        <Tooltip
-          title={`Server Version ${versions?.capiServer}`}
-          placement="top"
-        >
-          <div>Weave GitOps Enterprise {process.env.REACT_APP_VERSION}</div>
-        </Tooltip>
-      </HelpLinkWrapper>
+      )}
+      <MemoizedHelpLinkWrapper />
     </div>
   );
 };

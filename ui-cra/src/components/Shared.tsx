@@ -45,7 +45,6 @@ export const ColumnHeaderTooltip: FC<TooltipProps> = ({
 );
 
 export const TableWrapper = styled.div`
-  margin-top: ${({ theme }) => theme.spacing.medium};
   max-width: calc(100vw - 300px);
   div[class*='FilterDialog'] {
     .Mui-checked {
@@ -60,4 +59,26 @@ export const TableWrapper = styled.div`
   }
 `;
 
+//In NoRunsMessage and TerraformDependenciesView
+export const Message = styled.div`
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 5px 10px 50px 3px rgb(0 0 0 / 10%);
+  border-radius: 10px;
+  padding: ${({ theme }) => `${theme.spacing.large} ${theme.spacing.xxl}`};
+  max-width: 560px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+`;
+export const Title = styled.h4`
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.neutral30};
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+`;
 
+export const Body = styled.p`
+  font-size: ${({ theme }) => theme.fontSizes.medium};
+  color: ${({ theme }) => theme.colors.neutral30};
+  font-weight: 400;
+`;

@@ -2,19 +2,18 @@ package pages
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/sclevine/agouti"
 )
 
 type ApplicationsPage struct {
-	ApplicationHeader *agouti.Selection
-	ApplicationCount  *agouti.Selection
-	AddApplication    *agouti.Selection
-	ApplicationsList  *agouti.Selection
-	SupportEmailLink  *agouti.Selection
-	MessageBar        *agouti.Selection
-	Version           *agouti.Selection
+	ApplicationHeader     *agouti.Selection
+	ApplicationHeaderLink *agouti.Selection
+	AddApplication        *agouti.Selection
+	ApplicationsList      *agouti.Selection
+	SupportEmailLink      *agouti.Selection
+	MessageBar            *agouti.Selection
+	Version               *agouti.Selection
 }
 
 type ApplicationInformation struct {
@@ -38,9 +37,11 @@ type ApplicationDetailPage struct {
 	Events     *agouti.Selection
 	Graph      *agouti.Selection
 	Violations *agouti.Selection
+	Edit       *agouti.Selection
 }
 
 type ApplicationDetail struct {
+	Kind              *agouti.Selection
 	Source            *agouti.Selection
 	Chart             *agouti.Selection
 	ChartVersion      *agouti.Selection
@@ -77,49 +78,48 @@ type ApplicationGraph struct {
 }
 
 type ApplicationViolationsList struct {
-	ViolationList             *agouti.Selection
-	ViolationMessage          *agouti.Selection
-	ViolationMessageValue     *agouti.Selection
-	Severity                  *agouti.Selection
-	SeverityValue             *agouti.Selection
-	SeverityIcon              *agouti.Selection
-	ViolatedPolicy            *agouti.Selection
-	ViolatedPolicyValue       *agouti.Selection
-	ViolationTime             *agouti.Selection
-	ViolationTimeValue        *agouti.Selection
-	ViolationTimeValueSorting *agouti.Selection
-	Filter                    *agouti.Selection
-	FilterValue               *agouti.Selection
-	Search                    *agouti.Selection
-	SearchResult              *agouti.Selection
+	ViolationList         *agouti.Selection
+	ViolationMessage      *agouti.Selection
+	ViolationMessageValue *agouti.Selection
+	Severity              *agouti.Selection
+	SeverityValue         *agouti.Selection
+	SeverityIcon          *agouti.Selection
+	ViolatedPolicy        *agouti.Selection
+	ViolatedPolicyValue   *agouti.Selection
+	ViolationTime         *agouti.Selection
+	ViolationTimeValue    *agouti.Selection
 }
 
-type AppViolationsMsgInList struct {
-	AppViolationsMsg *agouti.Selection
-}
-
+// ApplicationViolationsDetailsPage contains all the fields in the app violations details page
 type ApplicationViolationsDetailsPage struct {
-	ViolationHeader      *agouti.Selection
-	PolicyName           *agouti.Selection
-	PolicyNameValue      *agouti.Selection
-	ClusterName          *agouti.Selection
-	ClusterNameValue     *agouti.Selection
-	ViolationTime        *agouti.Selection
-	ViolationTimeValue   *agouti.Selection
-	Severity             *agouti.Selection
-	SeverityIcon         *agouti.Selection
-	SeverityValue        *agouti.Selection
-	Category             *agouti.Selection
-	CategoryValue        *agouti.Selection
-	Occurrences          *agouti.Selection
-	OccurrencesCount     *agouti.Selection
-	OccurrencesValue     *agouti.MultiSelection
-	Description          *agouti.Selection
-	DescriptionValue     *agouti.Selection
-	HowToSolve           *agouti.Selection
-	HowToSolveValue      *agouti.Selection
-	ViolatingEntity      *agouti.Selection
-	ViolatingEntityValue *agouti.Selection
+	ViolationHeader        *agouti.Selection
+	PolicyName             *agouti.Selection
+	PolicyNameValue        *agouti.Selection
+	ClusterName            *agouti.Selection
+	ClusterNameValue       *agouti.Selection
+	ViolationTime          *agouti.Selection
+	ViolationTimeValue     *agouti.Selection
+	Severity               *agouti.Selection
+	SeverityIcon           *agouti.Selection
+	SeverityValue          *agouti.Selection
+	Category               *agouti.Selection
+	CategoryValue          *agouti.Selection
+	Occurrences            *agouti.Selection
+	OccurrencesCount       *agouti.Selection
+	OccurrencesValue       *agouti.MultiSelection
+	Description            *agouti.Selection
+	DescriptionValue       *agouti.Selection
+	HowToSolve             *agouti.Selection
+	HowToSolveValue        *agouti.Selection
+	ViolatingEntity        *agouti.Selection
+	ViolatingEntityValue   *agouti.Selection
+	PolicyConfigParameters *agouti.MultiSelection
+}
+
+type PolicyConfigViolationsParametersFields struct {
+	ParameterName    *agouti.Selection
+	ParameterValue   *agouti.Selection
+	PolicyConfigName *agouti.Selection
 }
 
 func (a ApplicationsPage) FindApplicationInList(applicationName string) *ApplicationInformation {
@@ -143,27 +143,22 @@ func (a ApplicationsPage) CountApplications() int {
 	count, _ := applications.Count()
 	return count
 }
-func (a ApplicationViolationsList) CountViolations() int {
-	violations := a.ViolationList.All("tr")
-	count, _ := violations.Count()
-	return count
-}
 
-func (a ApplicationsPage) ApplicationsHeaderCount() int {
-	cnt, _ := a.ApplicationCount.Text()
-	count, _ := strconv.Atoi(cnt)
+func CountUnfilteredAppViolations(webDriver *agouti.Page, filterKey, filterValue string) int {
+	violations := webDriver.All("table > tbody > tr")
+	count, _ := violations.Count()
 	return count
 }
 
 func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	return &ApplicationsPage{
-		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
-		ApplicationCount:  webDriver.Find(`.section-header-count`),
-		AddApplication:    webDriver.FindByButton("ADD AN APPLICATION"),
-		ApplicationsList:  webDriver.First(`table tbody`),
-		SupportEmailLink:  webDriver.FindByLink(`support ticket`),
-		MessageBar:        webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
-		Version:           webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
+		ApplicationHeader:     webDriver.Find(`span[title="Applications"]`),
+		ApplicationHeaderLink: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		AddApplication:        webDriver.FindByButton("ADD AN APPLICATION"),
+		ApplicationsList:      webDriver.First(`table tbody`),
+		SupportEmailLink:      webDriver.FindByLink(`support ticket`),
+		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
+		Version:               webDriver.FindByXPath(`//div[starts-with(text(), "Weave GitOps Enterprise")]`),
 	}
 }
 
@@ -180,6 +175,7 @@ func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *Applicat
 		Events:     webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/event"`, appType)),
 		Graph:      webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/graph"`, appType)),
 		Violations: webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/violations"`, appType)),
+		Edit:       webDriver.First(`a[href*="resources/edit"] button`),
 	}
 }
 
@@ -188,7 +184,8 @@ func GetApplicationDetail(webDriver *agouti.Page) *ApplicationDetail {
 	reconcileDetails := webDriver.FindByXPath(`//div[contains(@class, "ReconciledObjectsTable")]//table/tbody//td[2][.="Deployment"]/ancestor::tr`)
 
 	return &ApplicationDetail{
-		Source:            autoDetails.FindByXPath(`tr[1]/td[2]`),
+		Kind:              autoDetails.FindByXPath(`tr[contains(.,"Kind:")]/td[2]`),
+		Source:            autoDetails.FindByXPath(`tr[contains(.,"Source:")]/td[2]`),
 		Chart:             autoDetails.FindByXPath(`tr[contains(.,"Chart:")]/td[2]`),
 		ChartVersion:      autoDetails.FindByXPath(`tr[contains(.,"Chart Version")]/td[2]`),
 		AppliedRevision:   autoDetails.FindByXPath(`tr[contains(.,"Applied Revision")]/td[2]`),
@@ -234,57 +231,83 @@ func GetApplicationGraph(webDriver *agouti.Page) *ApplicationGraph {
 	}
 }
 
-// GetApplicationViolationsList will have all the locators for App Violations List page.
-func GetApplicationViolationsList(webDriver *agouti.Page) *ApplicationViolationsList {
+func CountAppViolations(webDriver *agouti.Page) int {
+	violations := webDriver.All("table > tbody > tr")
+	count, _ := violations.Count()
+	return count
+}
+
+func AppViolationOccurrances(webDriver *agouti.Page, filterKey, filterValue string) int {
+
+	var violations *agouti.MultiSelection
+	switch filterKey {
+	case "severity":
+		violations = webDriver.AllByXPath(fmt.Sprintf(`//table/tbody/tr/td[2][normalize-space("%s")]`, filterValue))
+	case "message":
+		violations = webDriver.AllByXPath(fmt.Sprintf(`//table/tbody/tr[.//a[contains(@data-violation-message, "%s")]]`, filterValue))
+	}
+	count, _ := violations.Count()
+	return count
+}
+
+// GetApplicationViolationsList will have all the locators for App Violations List page for a specific violation message.
+func GetApplicationViolationsList(webDriver *agouti.Page, violationMsg string) *ApplicationViolationsList {
+	violationHeader := webDriver.FirstByXPath(`//table/thead/tr`)
+	violationRow := webDriver.FirstByXPath(fmt.Sprintf(`//tr[.//a[contains(@data-violation-message, "%s")]]`, violationMsg))
 	applicationViolationsList := ApplicationViolationsList{
-		ViolationList:             webDriver.First(`table tbody`),
-		ViolationMessage:          webDriver.FindByXPath(`//h2[normalize-space()='Message']`),
-		ViolationMessageValue:     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		Severity:                  webDriver.FindByXPath(`(//h2[normalize-space()='Severity'])[1]`),
-		SeverityValue:             webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
-		SeverityIcon:              webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root jss55 jss58'])[1]`),
-		ViolatedPolicy:            webDriver.FindByXPath(`(//h2[normalize-space()='Violated Policy'])[1]`),
-		ViolatedPolicyValue:       webDriver.FindByXPath(`//tbody/tr[1]/td[1]/span[1]`),
-		ViolationTime:             webDriver.FindByXPath(`(//h2[normalize-space()='Violation Time'])[1]`),
-		ViolationTimeValue:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
-		ViolationTimeValueSorting: webDriver.FindByXPath(`(//*[name()='path'])[25]`),
-		Filter:                    webDriver.FindByXPath(`//*[name()='path' and contains(@d,'M10 18h4v-')]`),
-		FilterValue:               webDriver.FindByXPath(`//input[@id='severity']`),
-		Search:                    webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[4]`),
-		SearchResult:              webDriver.FindByXPath(`//input[@id='table-search']`),
+		ViolationMessage:      violationHeader.FindByXPath(`th[1]`),
+		ViolationMessageValue: violationRow.FindByXPath(`td[1]//a`),
+		Severity:              violationHeader.FindByXPath(`th[2]`),
+		SeverityValue:         violationRow.FindByXPath(`td[2]`),
+		SeverityIcon:          violationRow.FindByXPath(`td[2]//*[name()="svg"]`),
+		ViolatedPolicy:        violationHeader.FindByXPath(`th[3]`),
+		ViolatedPolicyValue:   violationRow.FindByXPath(`td[3]`),
+		ViolationTime:         violationHeader.FindByXPath(`th[4]`),
+		ViolationTimeValue:    violationRow.FindByXPath(`td[4]`),
 	}
 	return &applicationViolationsList
 }
 
-func GetAppViolationsMsgInList(webDriver *agouti.Page) *AppViolationsMsgInList {
-	return &AppViolationsMsgInList{
-		AppViolationsMsg: webDriver.FirstByXPath(`//td[1]//a`),
+// GetApplicationViolationsDetailsPage returns all the locators for the app violations details page
+func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
+	return &ApplicationViolationsDetailsPage{
+		ViolationHeader:        webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
+		PolicyName:             webDriver.FindByXPath(`//div[text()="Policy Name"]`),
+		PolicyNameValue:        webDriver.FindByXPath(`//a[contains(@href,"/policies/details?")]`),
+		ClusterName:            webDriver.FindByXPath(`//div[text()="Cluster Name"]`),
+		ClusterNameValue:       webDriver.FindByXPath(`//div[text()="Cluster Name"]/following-sibling::*[1]`),
+		ViolationTime:          webDriver.FindByXPath(`//div/*[text()="Violation Time"]`),
+		ViolationTimeValue:     webDriver.FindByXPath(`//div/*[text()="Violation Time"]/following-sibling::*[1]`),
+		Severity:               webDriver.FindByXPath(`//div[text()="Severity"]`),
+		SeverityIcon:           webDriver.AllByXPath(`//*[name()='svg' and contains(@class,'MuiSvgIcon')]`).At(3),
+		SeverityValue:          webDriver.FindByXPath(`//div[text()="Severity"]/following-sibling::*[1]`),
+		Category:               webDriver.FindByXPath(`//div[text()="Category"]`),
+		CategoryValue:          webDriver.FindByXPath(`//div[text()="Category"]/following-sibling::*[1]`),
+		Occurrences:            webDriver.FindByXPath(`//div[text()="Occurrences"]`),
+		OccurrencesCount:       webDriver.FindByXPath(`//div[text()="Occurrences"]/span`),
+		OccurrencesValue:       webDriver.AllByXPath(`//div[text()="Occurrences"]/following-sibling::*[1]/li`),
+		Description:            webDriver.FindByXPath(`//div[text()="Description:"]`),
+		DescriptionValue:       webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
+		HowToSolve:             webDriver.FindByXPath(`//div[text()="How to solve:"]`),
+		HowToSolveValue:        webDriver.FindByXPath(`//div[text()="How to solve:"]/following-sibling::*[1]`),
+		ViolatingEntity:        webDriver.FindByXPath(`//div[text()="Violating Entity:"]`),
+		ViolatingEntityValue:   webDriver.FindByXPath(`//div[text()="Violating Entity:"]/following-sibling::*[1]`),
+		PolicyConfigParameters: webDriver.AllByXPath(`//div/*[text()="Parameters Values:"]/following-sibling::*`),
 	}
 }
 
-// GetApplicationViolationsDetailsPage will have all the locators for App Violations Details page.
-func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
-	return &ApplicationViolationsDetailsPage{
-		ViolationHeader:      webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/applications"]/parent::node()/parent::node()/following-sibling::div[2]`),
-		PolicyName:           webDriver.FindByXPath(`//div[text()="Policy Name"]`),
-		PolicyNameValue:      webDriver.FindByXPath(`//a[contains(@href,"/policies/details?")]`),
-		ClusterName:          webDriver.FindByXPath(`//div[text()="Cluster Name"]`),
-		ClusterNameValue:     webDriver.FindByXPath(`//div[text()="Cluster Name"]/following-sibling::*[1]`),
-		ViolationTime:        webDriver.FindByXPath(`//div/*[text()="Violation Time"]`),
-		ViolationTimeValue:   webDriver.FindByXPath(`//div/*[text()="Violation Time"]/following-sibling::*[1]`),
-		Severity:             webDriver.FindByXPath(`//div[text()="Severity"]`),
-		SeverityIcon:         webDriver.AllByXPath(`//*[name()='svg' and contains(@class,'MuiSvgIcon')]`).At(3),
-		SeverityValue:        webDriver.FindByXPath(`//div[text()="Severity"]/following-sibling::*[1]`),
-		Category:             webDriver.FindByXPath(`//div[text()="Category"]`),
-		CategoryValue:        webDriver.FindByXPath(`//div[text()="Category"]/following-sibling::*[1]`),
-		Occurrences:          webDriver.FindByXPath(`//div[text()="Occurrences"]`),
-		OccurrencesCount:     webDriver.FindByXPath(`//div[text()="Occurrences"]/span`),
-		OccurrencesValue:     webDriver.AllByXPath(`//div[text()="Occurrences"]/following-sibling::*[1]/li`),
-		Description:          webDriver.FindByXPath(`//div[text()="Description:"]`),
-		DescriptionValue:     webDriver.FindByXPath(`//div[text()="Description:"]/following-sibling::*[1]`),
-		HowToSolve:           webDriver.FindByXPath(`//div[text()="How to solve:"]`),
-		HowToSolveValue:      webDriver.FindByXPath(`//div[text()="How to solve:"]/following-sibling::*[1]`),
-		ViolatingEntity:      webDriver.FindByXPath(`//div[text()="Violating Entity:"]`),
-		ViolatingEntityValue: webDriver.FindByXPath(`//div[text()="Violating Entity:"]/following-sibling::*[1]`),
+func (a ApplicationViolationsDetailsPage) GetPolicyConfigViolationsParameters(parameterName string) *PolicyConfigViolationsParametersFields {
+	parametersCount, _ := a.PolicyConfigParameters.Count()
+	parameterFields := PolicyConfigViolationsParametersFields{}
+
+	for i := 0; i < parametersCount; i++ {
+		if paramName, _ := a.PolicyConfigParameters.At(i).FindByXPath(`div[1]/span[2]`).Text(); paramName == parameterName {
+			parameterFields = PolicyConfigViolationsParametersFields{
+				ParameterName:    a.PolicyConfigParameters.At(i).FindByXPath(`div[1]/span[2]`),
+				ParameterValue:   a.PolicyConfigParameters.At(i).FindByXPath(`div[2]/span[2]`),
+				PolicyConfigName: a.PolicyConfigParameters.At(i).FindByXPath(`div[3]/span[2]`),
+			}
+		}
 	}
+	return &parameterFields
 }

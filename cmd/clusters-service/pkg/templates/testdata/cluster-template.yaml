@@ -1,4 +1,4 @@
-apiVersion: clustertemplates.weave.works/v1alpha1
+apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
   name: sample-wge-tf-controller-template
@@ -21,19 +21,21 @@ spec:
       # are generating Terraform Kind out of these.
       description: Path to the generated tf-controller templates.
   resourcetemplates:
-    - apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
-      kind: Terraform
-      metadata:
-        name: ${RESOURCE_NAME}
-        namespace: ${NAMESPACE}
-      spec:
-        interval: 1h
-        path: ${TEMPLATE_PATH}
-        approvePlan: "auto"
-        vars:
-          - name: cluster_identifier
-            value: ${CLUSTER_NAME}
-        sourceRef:
-          kind: GitRepository
-          name: ${GIT_REPO_NAME}
-          namespace: ${GIT_REPO_NAMESPACE}
+    - path: "./clusters/${CLUSTER_NAME}/tf.yaml"
+      content:
+      - apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+        kind: Terraform
+        metadata:
+          name: ${RESOURCE_NAME}
+          namespace: ${NAMESPACE}
+        spec:
+          interval: 1h
+          path: ${TEMPLATE_PATH}
+          approvePlan: "auto"
+          vars:
+            - name: cluster_identifier
+              value: ${CLUSTER_NAME}
+          sourceRef:
+            kind: GitRepository
+            name: ${GIT_REPO_NAME}
+            namespace: ${GIT_REPO_NAMESPACE}

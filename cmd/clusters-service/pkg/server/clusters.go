@@ -20,7 +20,9 @@ import (
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -29,11 +31,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/helm/pkg/chartutil"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
-	templatesv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -56,10 +58,11 @@ var (
 )
 
 type generateProfileFilesParams struct {
-	helmRepository         types.NamespacedName
-	helmRepositoryCacheDir string
-	profileValues          []*capiv1_proto.ProfileValues
-	parameterValues        map[string]string
+	helmRepositoryCluster types.NamespacedName
+	helmRepository        types.NamespacedName
+	chartsCache           helm.ChartsCacheReader
+	profileValues         []*capiv1_proto.ProfileValues
+	parameterValues       map[string]string
 }
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
@@ -130,7 +133,11 @@ func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListG
 }
 
 func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.CreatePullRequestRequest) (*capiv1_proto.CreatePullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
+	if msg.TemplateKind == "" {
+		msg.TemplateKind = capiv1.Kind
+	}
+
+	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -141,41 +148,64 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		s.log.Error(err, "Failed to create pull request, message payload was invalid")
 		return nil, err
 	}
-	tmpl, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, "CAPITemplate")
+	tmpl, err := s.getTemplate(ctx, msg.TemplateName, msg.TemplateNamespace, msg.TemplateKind)
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
 
 	clusterNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
-	git_files, err := s.getFiles(
+	client, err := s.clientGetter.Client(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get list of previous files to be added as deleted files in the commit,
+	// Update the  previous values to be nil to skip including it in the updated create-request annotation
+	prevFiles := &GetFilesReturn{}
+	if msg.PreviousValues != nil {
+		prevFiles, err = GetFiles(
+			ctx,
+			client,
+			s.log,
+			s.estimator,
+			s.chartsCache,
+			types.NamespacedName{Name: s.cluster},
+			s.profileHelmRepository,
+			tmpl,
+			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations, msg.PreviousValues.ExternalSecrets},
+			msg,
+		)
+		if err != nil {
+			return nil, err
+		}
+		msg.PreviousValues = nil
+	}
+
+	git_files, err := GetFiles(
 		ctx,
+		client,
+		s.log,
+		s.estimator,
+		s.chartsCache,
+		types.NamespacedName{Name: s.cluster},
+		s.profileHelmRepository,
 		tmpl,
-		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations},
+		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.ExternalSecrets},
 		msg,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	path := getClusterManifestPath(git_files.Cluster)
-	files := []gitprovider.CommitFile{
-		{
-			Path:    &path,
-			Content: &git_files.RenderedTemplate,
-		},
-	}
-
-	if viper.GetString("add-bases-kustomization") == "enabled" {
-		commonKustomization, err := getCommonKustomization(git_files.Cluster)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get common kustomization for %s: %s", msg.ParameterValues["CLUSTER_NAME"], err)
-		}
-		files = append(files, *commonKustomization)
-	}
-
+	files := []gitprovider.CommitFile{}
+	files = append(files, git_files.RenderedTemplate...)
 	files = append(files, git_files.ProfileFiles...)
 	files = append(files, git_files.KustomizationFiles...)
+	files = append(files, git_files.ExternalSecretsFiles...)
+
+	deletedFiles := getDeletedFiles(prevFiles, git_files)
+	files = append(files, deletedFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	if msg.RepositoryUrl != "" {
@@ -224,7 +254,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 }
 
 func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
+	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -305,7 +335,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 				})
 			}
 		}
-
 	}
 
 	if msg.HeadBranch == "" {
@@ -502,17 +531,33 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 	return file, nil
 }
 
-func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
+func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider, error) {
 	token, tokenType, err := getToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	// defaults from config
+	repoType := viper.GetString("git-provider-type")
+	repoHostname := viper.GetString("git-provider-hostname")
+
+	// if user supplies a different gitrepo, derive the provider and the host etc from
+	if repositoryURL != "" {
+		repoURL, err := gitproviders.NewRepoURL(repositoryURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse repository URL: %w", err)
+		}
+
+		// override defaults
+		repoType = string(repoURL.Provider())
+		repoHostname = repoURL.URL().Host
+	}
+
 	return &git.GitProvider{
-		Type:      viper.GetString("git-provider-type"),
+		Type:      repoType,
 		TokenType: tokenType,
 		Token:     token,
-		Hostname:  viper.GetString("git-provider-hostname"),
+		Hostname:  repoHostname,
 	}, nil
 }
 
@@ -558,13 +603,6 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		Spec: helmRepo.Spec,
 	}
 
-	sourceRef := helmv2.CrossNamespaceObjectReference{
-		APIVersion: helmRepo.TypeMeta.APIVersion,
-		Kind:       helmRepo.TypeMeta.Kind,
-		Name:       helmRepo.ObjectMeta.Name,
-		Namespace:  helmRepo.ObjectMeta.Namespace,
-	}
-
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
@@ -572,64 +610,80 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl.GetAnnotations())
+	requiredProfiles, err := getProfilesFromTemplate(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
 
+	profilesIndex := map[string]*capiv1_proto.ProfileValues{}
 	for _, v := range args.profileValues {
-		var requiredProfile *capiv1_proto.TemplateProfile
-		for _, rp := range requiredProfiles {
-			if rp.Name == v.Name && rp.Version == v.Version {
-				requiredProfile = rp
-			} else if rp.Name == v.Name && rp.Version == "" {
-				requiredProfile = rp
-				requiredProfile.Version = v.Version
+		profilesIndex[v.Name] = v
+	}
+
+	requiredProfilesIndex := map[string]*capiv1_proto.TemplateProfile{}
+	for _, v := range requiredProfiles {
+		requiredProfilesIndex[v.Name] = v
+	}
+
+	// add and overwrite the required values of profilesIndex where necessary.
+	for _, requiredProfile := range requiredProfiles {
+		p := profilesIndex[requiredProfile.Name]
+		// Required profile has been added by the user
+		if p != nil {
+			if !requiredProfile.Editable {
+				p.Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
+			}
+			if p.Namespace == "" {
+				p.Namespace = requiredProfile.Namespace
+			}
+			if p.Version == "" {
+				p.Version = requiredProfile.Version
+			}
+			if p.Layer == "" {
+				p.Layer = requiredProfile.Layer
+			}
+		} else {
+			profilesIndex[requiredProfile.Name] = &capiv1_proto.ProfileValues{
+				Name:      requiredProfile.Name,
+				Version:   requiredProfile.Version,
+				Values:    base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values)),
+				Namespace: requiredProfile.Namespace,
+				Layer:     requiredProfile.Layer,
 			}
 		}
+	}
 
-		editable := (requiredProfile == nil || requiredProfile.Editable)
-		// Check the values and if not editable in the Template Profiles or empty, replace with default values. This should happen before parsing.
-		if !editable || v.Values == "" {
-			if requiredProfile != nil && requiredProfile.Values != "" {
-				v.Values = base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values))
-			} else {
-				v.Values, err = getDefaultValues(ctx, kubeClient, v.Name, v.Version, args.helmRepositoryCacheDir, sourceRef, helmRepo)
-				if err != nil {
-					return nil, fmt.Errorf("cannot retrieve default values of profile: %w", err)
-				}
-			}
-		}
-
-		// Check the version and if empty use thr latest version in profile defaults.
+	for _, v := range profilesIndex {
+		// Check the version and if empty read the latest version from cache.
 		if v.Version == "" {
-			v.Version, err = getProfileLatestVersion(ctx, v.Name, helmRepo)
+			v.Version, err = args.chartsCache.GetLatestVersion(ctx, args.helmRepositoryCluster, args.helmRepository, v.Name)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
 			}
 		}
 
-		// Check the namespace and if empty, use the profile default
-		if v.Namespace == "" {
-			if requiredProfile != nil && requiredProfile.Namespace != "" {
-				v.Namespace = requiredProfile.Namespace
+		// Check the version and if empty read the layer from cache.
+		if v.Layer == "" {
+			v.Layer, err = args.chartsCache.GetLayer(ctx, args.helmRepositoryCluster, args.helmRepository, v.Name, v.Version)
+			if err != nil {
+				return nil, fmt.Errorf("cannot retrieve layer of profile: %w", err)
 			}
 		}
 
-		decoded, err := base64.StdEncoding.DecodeString(v.Values)
+		values, err := renderValues(v, *tmplProcessor, args.parameterValues)
 		if err != nil {
-			return nil, fmt.Errorf("failed to base64 decode values: %w", err)
+			return nil, fmt.Errorf("cannot get values for profile %s: %w", v.Name, err)
 		}
 
-		data, err := tmplProcessor.Render(decoded, args.parameterValues)
-		if err != nil {
-			return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
+		profileTemplate := []byte{}
+		requiredProfile := requiredProfilesIndex[v.Name]
+		if requiredProfile != nil {
+			profileTemplate, err = tmplProcessor.Render([]byte(requiredProfile.ProfileTemplate), args.parameterValues)
+			if err != nil {
+				return nil, fmt.Errorf("cannot render spec of profile %s: %w", v.Name, err)
+			}
 		}
 
-		parsed, err := ParseValues(data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
-		}
 		installs = append(installs, charts.ChartInstall{
 			Ref: charts.ChartReference{
 				Chart:   v.Name,
@@ -640,15 +694,16 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 					Kind:      "HelmRepository",
 				},
 			},
-			Layer:     v.Layer,
-			Values:    parsed,
-			Namespace: v.Namespace,
+			ProfileTemplate: string(profileTemplate),
+			Layer:           v.Layer,
+			Values:          values,
+			Namespace:       v.Namespace,
 		})
 	}
 
-	helmReleases, err := charts.MakeHelmReleasesInLayers(cluster.Name, HelmReleaseNamespace, installs)
+	helmReleases, err := charts.MakeHelmReleasesInLayers(HelmReleaseNamespace, installs)
 	if err != nil {
-		return nil, fmt.Errorf("making helm releases for cluster %s: %w", cluster.Name, err)
+		return nil, fmt.Errorf("making helm releases for cluster %w", err)
 	}
 	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
 	if err != nil {
@@ -788,38 +843,25 @@ func getClusterProfilesPath(cluster types.NamespacedName) string {
 	)
 }
 
-// getProfileLatestVersion returns the default profile values if not given
-func getDefaultValues(ctx context.Context, kubeClient client.Client, name, version, helmRepositoryCacheDir string, sourceRef helmv2.CrossNamespaceObjectReference, helmRepo *sourcev1.HelmRepository) (string, error) {
-	ref := &charts.ChartReference{Chart: name, Version: version, SourceRef: sourceRef}
-	cc := charts.NewHelmChartClient(kubeClient, viper.GetString("runtime-namespace"), helmRepo, charts.WithCacheDir(helmRepositoryCacheDir))
-	if err := cc.UpdateCache(ctx); err != nil {
-		return "", fmt.Errorf("failed to update Helm cache: %w", err)
-	}
-	bs, err := cc.FileFromChart(ctx, ref, chartutil.ValuesfileName)
+// renderValues renders the "values.yaml" section of a HelmRelease, as it can also contain template parameters.
+func renderValues(v *capiv1_proto.ProfileValues, tmplProcessor templates.TemplateProcessor, parameterValues map[string]string) (map[string]interface{}, error) {
+	// FIXME: look into decoding the base64 in the proto API rather than here.
+	decoded, err := base64.StdEncoding.DecodeString(v.Values)
 	if err != nil {
-		return "", fmt.Errorf("cannot retrieve values file from Helm chart %q: %w", ref, err)
+		return nil, fmt.Errorf("failed to base64 decode values: %w", err)
 	}
-	// Base64 encode the content of values.yaml and assign it
-	values := base64.StdEncoding.EncodeToString(bs)
 
-	return values, nil
-}
-
-// getProfileLatestVersion returns the latest profile version if not given
-func getProfileLatestVersion(ctx context.Context, name string, helmRepo *sourcev1.HelmRepository) (string, error) {
-	ps, err := charts.ScanCharts(ctx, helmRepo, charts.Profiles)
-	version := ""
+	data, err := tmplProcessor.Render(decoded, parameterValues)
 	if err != nil {
-		return "", fmt.Errorf("cannot scan for profiles: %w", err)
+		return nil, fmt.Errorf("failed to render values for profile %s/%s: %w", v.Name, v.Version, err)
 	}
 
-	for _, p := range ps {
-		if p.Name == name {
-			version = p.AvailableVersions[len(p.AvailableVersions)-1]
-		}
+	parsed, err := ParseValues(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse values for profile %s/%s: %w", v.Name, v.Version, err)
 	}
 
-	return version, nil
+	return parsed, nil
 }
 
 // ParseValues takes a YAML encoded values string and returns a struct
@@ -934,6 +976,16 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
 	}
 
+	if resourceType == "externalsecret" {
+		return filepath.Join(
+			viper.GetString("capi-repository-clusters-path"),
+			clusterNamespace,
+			cluster.Name,
+			"secrets",
+			fileName,
+		)
+	}
+
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
@@ -985,4 +1037,21 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 		Name:      name,
 		Namespace: namespace,
 	}
+}
+
+// Get list of gitprovider.CommitFile objects of files that should be deleted with empty content
+// Kustomizations and Profiles removed during an edit are added to the deleted list
+// Old files with changed paths are added to the deleted list
+func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitprovider.CommitFile {
+	deletedFiles := []gitprovider.CommitFile{}
+
+	removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
+	removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)
+	removedRenderedTemplates := getMissingFiles(prevFiles.RenderedTemplate, newFiles.RenderedTemplate)
+
+	deletedFiles = append(deletedFiles, removedKustomizations...)
+	deletedFiles = append(deletedFiles, removedProfiles...)
+	deletedFiles = append(deletedFiles, removedRenderedTemplates...)
+
+	return deletedFiles
 }

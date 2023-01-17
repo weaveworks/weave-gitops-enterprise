@@ -12,19 +12,32 @@ import Severity from '../Severity';
 import moment from 'moment';
 import { TableWrapper } from '../../Shared';
 import { Routes } from '../../../utils/nav';
+import Mode from '../Mode';
+
+interface CustomPolicy extends Policy {
+  audit?: string;
+  enforce?: string;
+}
 
 interface Props {
-  policies: Policy[];
+  policies: CustomPolicy[];
 }
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
   const { data } = useFeatureFlags();
-  const flags = data?.flags || {};
+  const flags = data.flags;
+
+  policies.forEach(policy => {
+    policy.audit = policy.modes?.includes('audit') ? 'audit' : '';
+    policy.enforce = policy.modes?.includes('admission') ? 'enforce' : '';
+  });
 
   let initialFilterState = {
     ...filterConfig(policies, 'clusterName'),
     ...filterConfig(policies, 'severity'),
+    ...filterConfig(policies, 'enforce'),
+    ...filterConfig(policies, 'audit'),
   };
 
   if (flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true') {
@@ -33,7 +46,6 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
       ...filterConfig(policies, 'tenant'),
     };
   }
-
   return (
     <TableWrapper id="policy-list">
       <DataTable
@@ -62,6 +74,16 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           {
             label: 'Category',
             value: 'category',
+          },
+          {
+            label: 'Audit',
+            value: ({ audit }) => <Mode modeName={audit} />,
+          },
+          {
+            label: 'Enforce',
+            value: ({ enforce }) => (
+              <Mode modeName={enforce ? 'admission' : ''} />
+            ),
           },
           ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
             ? [{ label: 'Tenant', value: 'tenant' }]

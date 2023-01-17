@@ -24,65 +24,69 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
-
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
-	pacv1 "github.com/weaveworks/policy-agent/api/v1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	pd "github.com/weaveworks/progressive-delivery/pkg/server"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
+	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/watcher/cache"
+	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
+	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
+	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	core_fetcher "github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
-	core_app_proto "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	runtimeUtil "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	k8scache "k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
-	pd "github.com/weaveworks/progressive-delivery/pkg/server"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	profiles_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos/profiles"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version"
-	"github.com/weaveworks/weave-gitops-enterprise/common/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
-	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
-	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
-	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
-	k8scache "k8s.io/client-go/tools/cache"
 )
 
 const (
@@ -113,9 +117,6 @@ type Params struct {
 	HelmRepoNamespace                 string                    `mapstructure:"helm-repo-namespace"`
 	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
 	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
-	WatcherMetricsBindAddress         string                    `mapstructure:"watcher-metrics-bind-address"`
-	WatcherHealthzBindAddress         string                    `mapstructure:"watcher-healthz-bind-address"`
-	WatcherPort                       int                       `mapstructure:"watcher-port"`
 	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
 	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
 	GitProviderType                   string                    `mapstructure:"git-provider-type"`
@@ -139,6 +140,11 @@ type Params struct {
 	DevMode                           bool                      `mapstructure:"dev-mode"`
 	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
+	UIConfig                          string                    `mapstructure:"ui-config"`
+	PipelineControllerAddress         string                    `mapstructure:"pipeline-controller-address"`
+	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
+	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
+	CostEstimationFilename            string                    `mapstructure:"cost-estimation-csv-file"`
 	KLogVerbosity                     string                    `mapstructure:"klog-verbosity"`
 }
 
@@ -148,6 +154,9 @@ type OIDCAuthenticationOptions struct {
 	ClientSecret  string        `mapstructure:"oidc-client-secret"`
 	RedirectURL   string        `mapstructure:"oidc-redirect-url"`
 	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
+	ClaimUsername string        `mapstructure:"oidc-claim-username"`
+	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
+	CustomScopes  []string      `mapstructure:"custom-oidc-scopes"`
 }
 
 func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
@@ -177,44 +186,61 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String("entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
-	cmd.Flags().String("entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
-	cmd.Flags().String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
-	cmd.Flags().String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
-	cmd.Flags().String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
-	cmd.Flags().String("watcher-healthz-bind-address", ":9981", "bind address for the healthz service of the watcher")
-	cmd.Flags().String("watcher-metrics-bind-address", ":9980", "bind address for the metrics service of the watcher")
-	cmd.Flags().Int("watcher-port", 9443, "the port on which the watcher is running")
-	cmd.Flags().String("html-root-path", "/html", "Where to serve static assets from")
-	cmd.Flags().String("git-provider-type", "", "")
-	cmd.Flags().String("git-provider-hostname", "", "")
-	cmd.Flags().Bool("capi-enabled", true, "")
-	cmd.Flags().String("capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
-	cmd.Flags().String("capi-templates-namespace", "", "where to look for CAPI template resources, required")
-	cmd.Flags().String("inject-prune-annotation", "", "")
-	cmd.Flags().String("add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
-	cmd.Flags().String("capi-templates-repository-url", "", "")
-	cmd.Flags().String("capi-repository-path", "", "")
-	cmd.Flags().String("capi-repository-clusters-path", "./clusters", "")
-	cmd.Flags().String("capi-templates-repository-api-url", "", "")
-	cmd.Flags().String("capi-templates-repository-base-branch", "", "")
-	cmd.Flags().String("runtime-namespace", "flux-system", "Namespace hosting Gitops configuration objects (e.g. cluster-user-auth secrets)")
-	cmd.Flags().String("git-provider-token", "", "")
-	cmd.Flags().String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
-	cmd.Flags().String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
-	cmd.Flags().Bool("no-tls", false, "do not attempt to read TLS certificates")
-	cmd.Flags().String("cluster-name", "management", "name of the management cluster")
+	cmdFlags := cmd.Flags()
 
-	cmd.Flags().StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
-	cmd.Flags().String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
-	cmd.Flags().String("oidc-client-id", "", "The client ID for the OpenID Connect client")
-	cmd.Flags().String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
-	cmd.Flags().String("oidc-redirect-url", "", "The OAuth2 redirect URL")
-	cmd.Flags().Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	// Have to declare a flag for viper to correctly read and then bind environment variables too
+	// FIXME: why? We don't actually use the flags in helm templates etc.
+	//
+	cmdFlags.String("entitlement-secret-name", ent.DefaultSecretName, "The name of the entitlement secret")
+	cmdFlags.String("entitlement-secret-namespace", "flux-system", "The namespace of the entitlement secret")
+	cmdFlags.String("helm-repo-namespace", os.Getenv("RUNTIME_NAMESPACE"), "the namespace of the Helm Repository resource to scan for profiles")
+	cmdFlags.String("helm-repo-name", "weaveworks-charts", "the name of the Helm Repository resource to scan for profiles")
+	cmdFlags.String("profile-cache-location", "/tmp/helm-cache", "the location where the cache Profile data lives")
+	cmdFlags.String("html-root-path", "/html", "Where to serve static assets from")
+	cmdFlags.String("git-provider-type", "", "")
+	cmdFlags.String("git-provider-hostname", "", "")
+	cmdFlags.Bool("capi-enabled", true, "")
+	cmdFlags.String("capi-clusters-namespace", corev1.NamespaceAll, "where to look for GitOps cluster resources, defaults to looking in all namespaces")
+	cmdFlags.String("capi-templates-namespace", "", "where to look for CAPI template resources, required")
+	cmdFlags.String("inject-prune-annotation", "", "")
+	cmdFlags.String("add-bases-kustomization", "enabled", "Add a kustomization to point to ./bases when creating leaf clusters")
+	cmdFlags.String("capi-templates-repository-url", "", "")
+	cmdFlags.String("capi-repository-path", "", "")
+	cmdFlags.String("capi-repository-clusters-path", "./clusters", "")
+	cmdFlags.String("capi-templates-repository-api-url", "", "")
+	cmdFlags.String("capi-templates-repository-base-branch", "", "")
+	cmdFlags.String("runtime-namespace", "flux-system", "Namespace hosting Gitops configuration objects (e.g. cluster-user-auth secrets)")
+	cmdFlags.String("git-provider-token", "", "")
+	cmdFlags.String("tls-cert-file", "", "filename for the TLS certficate, in-memory generated if omitted")
+	cmdFlags.String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
+	cmdFlags.Bool("no-tls", false, "do not attempt to read TLS certificates")
+	cmdFlags.String("cluster-name", "management", "name of the management cluster")
 
-	cmd.Flags().Bool("dev-mode", false, "starts the server in development mode")
-	cmd.Flags().Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
-	cmd.Flags().String("klog-verbosity", "0", "Set the logging of the klog library")
+	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
+	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
+	cmdFlags.String("oidc-client-id", "", "The client ID for the OpenID Connect client")
+	cmdFlags.String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
+	cmdFlags.String("oidc-redirect-url", "", "The OAuth2 redirect URL")
+	cmdFlags.Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
+	cmdFlags.String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
+	cmdFlags.String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
+	cmdFlags.StringSlice("custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
+
+	cmdFlags.Bool("dev-mode", false, "starts the server in development mode")
+	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
+	cmdFlags.String("ui-config", "", "UI configuration, JSON encoded")
+	cmdFlags.String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
+	cmdFlags.String("klog-verbosity", "0", "Set the logging of the klog library")
+
+	cmdFlags.String("cost-estimation-filters", "", "Cost estimation filters")
+	cmdFlags.String("cost-estimation-api-region", "", "API region for cost estimation queries")
+	cmdFlags.String("cost-estimation-csv-file", "", "Filename to parse as Cost Estimation data")
+
+	cmdFlags.VisitAll(func(fl *pflag.Flag) {
+		if strings.HasPrefix(fl.Name, "cost-estimation") {
+			cobra.CheckErr(cmdFlags.MarkHidden(fl.Name))
+		}
+	})
 
 	return cmd
 }
@@ -349,35 +375,10 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return err
 	}
 
-	appsConfig, err := core.DefaultApplicationsConfig(log)
+	appsConfig, err := gitauth_server.DefaultApplicationsConfig(log)
 	if err != nil {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
-
-	profileCache, err := cache.NewCache(p.ProfileCacheLocation)
-	if err != nil {
-		return fmt.Errorf("failed to create cacher: %w", err)
-	}
-
-	profileWatcher, err := watcher.NewWatcher(watcher.Options{
-		KubeClient:         kubeClient,
-		Cache:              profileCache,
-		MetricsBindAddress: p.WatcherMetricsBindAddress,
-		HealthzBindAddress: p.WatcherHealthzBindAddress,
-		WatcherPort:        p.WatcherPort,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to start the watcher: %w", err)
-	}
-
-	controllerContext := ctrl.SetupSignalHandler()
-
-	go func() {
-		if err := profileWatcher.StartWatcher(controllerContext, log); err != nil {
-			log.Error(err, "failed to start profile watcher")
-			os.Exit(1)
-		}
-	}()
 
 	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation, p.Cluster)
 	if err != nil {
@@ -403,22 +404,18 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
-		pacv1.AddToScheme,
 		pacv2beta1.AddToScheme,
+		pacv2beta2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
 		pipelinev1alpha1.AddToScheme,
+		esv1beta1.AddToScheme,
 	)
 
 	rest, clusterName, err := kube.RestConfig()
 	if err != nil {
 		return fmt.Errorf("could not retrieve cluster rest config: %w", err)
-	}
-
-	mcf, err := fetcher.NewMultiClusterFetcher(log, rest, clientGetter, p.CAPIClustersNamespace, p.Cluster)
-	if err != nil {
-		return err
 	}
 
 	clustersManagerScheme, err := kube.CreateScheme()
@@ -431,30 +428,60 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		return fmt.Errorf("could not parse auth methods: %w", err)
 	}
 
-	runtimeUtil.Must(pacv1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(pacv2beta1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(flaggerv1beta1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(pipelinev1alpha1.AddToScheme(clustersManagerScheme))
-	runtimeUtil.Must(tfctrl.AddToScheme(clustersManagerScheme))
+	builder := runtime.NewSchemeBuilder(
+		capiv1.AddToScheme,
+		pacv2beta1.AddToScheme,
+		pacv2beta2.AddToScheme,
+		esv1beta1.AddToScheme,
+		flaggerv1beta1.AddToScheme,
+		pipelinev1alpha1.AddToScheme,
+		tfctrl.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+		clusterv1.AddToScheme,
+		gapiv1.AddToScheme,
+	)
+	if err := builder.AddToScheme(clustersManagerScheme); err != nil {
+		return err
+	}
 
-	clientsFactory := clustersmngr.CachedClientFactory
-	if !p.UseK8sCachedClients {
-		log.Info("Using un-cached clients")
-		clientsFactory = clustersmngr.ClientFactory
-	} else {
+	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
+	if err != nil {
+		return fmt.Errorf("could not create mgmt cluster: %w", err)
+	}
+
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") != "false" {
+		err := telemetry.InitTelemetry(ctx, mgmtCluster)
+		if err != nil {
+			// If there's an error turning on telemetry, that's not a
+			// thing that should interrupt anything else
+			log.Info("Couldn't enable telemetry", "error", err)
+		}
+	}
+
+	if p.UseK8sCachedClients {
 		log.Info("Using cached clients")
+		mgmtCluster = cluster.NewDelegatingCacheCluster(mgmtCluster, rest, clustersManagerScheme)
+	} else {
+		log.Info("Using un-cached clients")
+	}
+
+	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
+	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
+		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+		fetchers = append(fetchers, sessionFetcher)
 	}
 
 	clustersManager := clustersmngr.NewClustersManager(
-		mcf,
+		fetchers,
 		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		log,
-		clustersManagerScheme,
-		clientsFactory,
-		clustersmngr.DefaultKubeConfigOptions,
 	)
 
-	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster)
+	controllerContext := ctrl.SetupSignalHandler()
+
+	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
 	go func() {
 		err := indexer.Start(controllerContext, clustersManager, log)
 		if err != nil {
@@ -465,9 +492,26 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 
 	clustersManager.Start(ctx)
 
+	var estimator estimation.Estimator
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
+		log.Info("Cost estimation feature flag is enabled")
+		est, err := makeCostEstimator(ctx, log, p)
+		if err != nil {
+			return err
+		}
+		estimator = est
+	}
+
+	coreCfg, err := core_core.NewCoreConfig(
+		log, rest, clusterName, clustersManager,
+	)
+	if err != nil {
+		return err
+	}
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
-		WithProfileHelmRepository(p.HelmRepoName),
+		WithProfileHelmRepository(types.NamespacedName{Name: p.HelmRepoName, Namespace: p.HelmRepoNamespace}),
 		WithEntitlementSecretKey(client.ObjectKey{
 			Name:      p.EntitlementSecretName,
 			Namespace: p.EntitlementSecretNamespace,
@@ -476,13 +520,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithDiscoveryClient(discoveryClient),
 		WithGitProvider(git.NewGitProviderService(log)),
 		WithApplicationsConfig(appsConfig),
-		WithCoreConfig(core_core.NewCoreConfig(
-			log, rest, clusterName, clustersManager,
-		)),
-		WithProfilesConfig(server.NewProfilesConfig(kube.ClusterConfig{
-			DefaultConfig: kubeClientConfig,
-			ClusterName:   "",
-		}, profileCache, p.HelmRepoNamespace, p.HelmRepoName)),
+		WithCoreConfig(coreCfg),
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
@@ -503,6 +541,9 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
 		WithManagementCluster(p.Cluster),
+		WithTemplateCostEstimator(estimator),
+		WithUIConfig(p.UIConfig),
+		WithPipelineControllerAddress(p.CAPIRepositoryClustersPath),
 	)
 }
 
@@ -534,15 +575,23 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return errors.New("clusters manager is not set")
 	}
 	// TokenDuration at least should be set
-	if (args.OIDC == OIDCAuthenticationOptions{}) {
+	if args.OIDC.TokenDuration == 0 {
 		return errors.New("OIDC configuration is not set")
+	}
+
+	estimator := estimation.NilEstimator()
+	if args.Estimator != nil {
+		estimator = args.Estimator
 	}
 
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
 	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
-	authClientGetter := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
+	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
+	if err != nil {
+		return fmt.Errorf("failed to set up auth client getter")
+	}
 	if args.ManagementFetcher == nil {
 		args.ManagementFetcher = mgmtfetcher.NewManagementCrossNamespacesFetcher(namespacesCache, args.ClientGetter, authClientGetter)
 	}
@@ -550,21 +599,23 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		server.ServerOpts{
-			Logger:                    args.Log,
-			ClustersManager:           args.CoreServerConfig.ClustersManager,
-			GitProvider:               args.GitProvider,
-			ClientGetter:              args.ClientGetter,
-			DiscoveryClient:           args.DiscoveryClient,
-			ClustersNamespace:         args.CAPIClustersNamespace,
-			ProfileHelmRepositoryName: args.ProfileHelmRepository,
-			HelmRepositoryCacheDir:    args.HelmRepositoryCacheDirectory,
-			CAPIEnabled:               args.CAPIEnabled,
-			ChartJobs:                 helm.NewJobs(),
-			ChartsCache:               args.ChartsCache,
-			ValuesFetcher:             helm.NewValuesFetcher(),
-			RestConfig:                args.CoreServerConfig.RestCfg,
-			ManagementFetcher:         args.ManagementFetcher,
-			Cluster:                   args.Cluster,
+			Logger:                 args.Log,
+			ClustersManager:        args.CoreServerConfig.ClustersManager,
+			GitProvider:            args.GitProvider,
+			ClientGetter:           args.ClientGetter,
+			DiscoveryClient:        args.DiscoveryClient,
+			ClustersNamespace:      args.CAPIClustersNamespace,
+			ProfileHelmRepository:  args.ProfileHelmRepository,
+			HelmRepositoryCacheDir: args.HelmRepositoryCacheDirectory,
+			CAPIEnabled:            args.CAPIEnabled,
+			ChartJobs:              helm.NewJobs(),
+			ChartsCache:            args.ChartsCache,
+			ValuesFetcher:          helm.NewValuesFetcher(),
+			RestConfig:             args.CoreServerConfig.RestCfg,
+			ManagementFetcher:      args.ManagementFetcher,
+			Cluster:                args.Cluster,
+			Estimator:              estimator,
+			UIConfig:               args.UIConfig,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
@@ -572,14 +623,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	//Add weave-gitops core handlers
-	wegoApplicationServer := core.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
-	if err := core_app_proto.RegisterApplicationsHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
+	wegoApplicationServer := gitauth_server.NewApplicationsServer(args.ApplicationsConfig, args.ApplicationsOptions...)
+	if err := gitauth.RegisterGitAuthHandlerServer(ctx, grpcMux, wegoApplicationServer); err != nil {
 		return fmt.Errorf("failed to register application handler server: %w", err)
-	}
-
-	wegoProfilesServer := server.NewProfilesServer(args.Log, args.ProfilesConfig)
-	if err := profiles_proto.RegisterProfilesHandlerServer(ctx, grpcMux, wegoProfilesServer); err != nil {
-		return fmt.Errorf("failed to register profiles handler server: %w", err)
 	}
 
 	// Add logging middleware
@@ -604,9 +650,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
-			ClustersManager:   args.ClustersManager,
-			ManagementFetcher: args.ManagementFetcher,
-			Cluster:           args.Cluster,
+			Logger:                    args.Log,
+			ClustersManager:           args.ClustersManager,
+			ManagementFetcher:         args.ManagementFetcher,
+			Cluster:                   args.Cluster,
+			PipelineControllerAddress: args.PipelineControllerAddress,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
@@ -656,6 +704,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		tsv.SetDevMode(args.DevMode)
 	}
 
+	if len(args.OIDC.CustomScopes) != 0 {
+		args.Log.Info("setting custom OIDC scopes", "scopes", args.OIDC.CustomScopes)
+	}
+
 	authServerConfig, err := auth.NewAuthServerConfig(
 		args.Log,
 		auth.OIDCConfig{
@@ -664,6 +716,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClientSecret:  args.OIDC.ClientSecret,
 			RedirectURL:   args.OIDC.RedirectURL,
 			TokenDuration: args.OIDC.TokenDuration,
+			ClaimsConfig: &auth.ClaimsConfig{
+				Username: args.OIDC.ClaimUsername,
+				Groups:   args.OIDC.ClaimGroups,
+			},
+			Scopes: args.OIDC.CustomScopes,
 		},
 		args.KubernetesClient,
 		tsv,
@@ -933,4 +990,35 @@ func (fs *spaFileSystem) Open(name string) (http.File, error) {
 		return fs.root.Open("index.html")
 	}
 	return f, err
+}
+
+func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimation.Estimator, error) {
+	var pricer estimation.Pricer
+	if p.CostEstimationFilename != "" {
+		log.Info("configuring cost estimation from CSV", "filename", p.CostEstimationFilename)
+		pr, err := estimation.NewCSVPricerFromFile(log, p.CostEstimationFilename)
+		if err != nil {
+			return nil, err
+		}
+		pricer = pr
+	} else {
+		if p.CostEstimationFilters == "" {
+			return nil, errors.New("cost estimation filters cannot be empty")
+		}
+		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
+		if err != nil {
+			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
+		} else {
+			svc := pricing.NewFromConfig(cfg)
+			pricer = estimation.NewAWSPricer(log, svc)
+		}
+	}
+	log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
+	filters, err := estimation.ParseFilterQueryString(p.CostEstimationFilters)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse cost estimation filters: %w", err)
+	}
+	log.Info("Parsed default cost estimation filters", "filters", filters)
+
+	return estimation.NewAWSClusterEstimator(pricer, filters), nil
 }

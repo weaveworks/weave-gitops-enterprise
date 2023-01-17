@@ -12,10 +12,10 @@ import {
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
-import { useListConfig } from '../../hooks/versions';
 import { makeStyles, createStyles } from '@material-ui/core';
 import { openLinkHandler } from '../../utils/link-checker';
 import { Routes } from '../../utils/nav';
+import { useListConfigContext } from '../../contexts/ListConfig';
 
 interface Size {
   size?: 'small';
@@ -38,12 +38,11 @@ const useStyles = makeStyles(() =>
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const history = useHistory();
-  const { repoLink } = useListConfig();
+  const listConfigContext = useListConfigContext();
+  const repoLink = listConfigContext?.repoLink || '';
   const classes = useStyles();
 
-  const handleAddApplication = () => {
-    history.push(Routes.AddApplication);
-  };
+  const handleAddApplication = () => history.push(Routes.AddApplication);
 
   return (
     <PageTemplate
@@ -51,7 +50,6 @@ const WGApplicationsDashboard: FC = () => {
       path={[
         {
           label: 'Applications',
-          url: Routes.Applications,
         },
       ]}
     >

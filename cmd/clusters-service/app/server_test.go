@@ -17,18 +17,16 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	wego_server "github.com/weaveworks/weave-gitops/pkg/server"
 	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
-	"github.com/weaveworks/weave-gitops/pkg/services/servicesfakes"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	pipectrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
@@ -67,12 +65,14 @@ func TestWeaveGitOpsHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res1.StatusCode)
 
-	res, err := client.Get(fmt.Sprintf("https://localhost:%s/v1/objects?kind=Kustomization", port))
+	res, err := client.Post(fmt.Sprintf("https://localhost:%s/v1/objects", port), "application/json", bytes.NewBuffer([]byte(`{"kind": "Kustomization"}`)))
 	if err != nil {
 		t.Fatalf("expected no errors but got: %v", err)
 	}
 	if res.StatusCode != http.StatusOK {
-		t.Fatalf("expected status code to be %d but got %d instead", http.StatusOK, res.StatusCode)
+		buf := make([]byte, 1024)
+		_, _ = res.Body.Read(buf)
+		t.Fatalf("expected status code to be %d but got %d instead: %v", http.StatusOK, res.StatusCode, string(buf))
 	}
 	res, err = client.Get(fmt.Sprintf("https://localhost:%s/v1/pineapples", port))
 	if err != nil {
@@ -201,7 +201,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithDiscoveryClient(dc),
 			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
-			app.WithApplicationsOptions(wego_server.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
+			app.WithApplicationsOptions(gitauth.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
 			app.WithRuntimeNamespace(ns),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
@@ -241,12 +241,15 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	clustersManager.GetImpersonatedClientReturns(client, nil)
 	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	coreConfig, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return coreConfig
 }
 
-func fakeAppsConfig(c client.Client, log logr.Logger) *wego_server.ApplicationsConfig {
-	appFactory := &servicesfakes.FakeFactory{}
+func fakeAppsConfig(c client.Client, log logr.Logger) *gitauth.ApplicationsConfig {
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
 			return &auth.Claims{
@@ -254,11 +257,9 @@ func fakeAppsConfig(c client.Client, log logr.Logger) *wego_server.ApplicationsC
 			}, nil
 		},
 	}
-	return &wego_server.ApplicationsConfig{
-		Factory:       appFactory,
-		Logger:        log,
-		JwtClient:     jwtClient,
-		ClusterConfig: kube.ClusterConfig{},
+	return &gitauth.ApplicationsConfig{
+		Logger:    log,
+		JwtClient: jwtClient,
 	}
 }
 

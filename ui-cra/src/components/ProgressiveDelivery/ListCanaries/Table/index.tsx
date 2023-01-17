@@ -18,6 +18,7 @@ import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
 import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
 import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
 import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
+import { Routes } from '../../../../utils/nav';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import { TableWrapper } from '../../../Shared';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
@@ -120,14 +121,11 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
             label: 'Name',
             value: (c: Canary) => (
               <Link
-                to={formatURL(
-                  `/applications/delivery/${c.targetDeployment?.uid}`,
-                  {
-                    clusterName: c.clusterName,
-                    namespace: c.namespace,
-                    name: c.name,
-                  },
-                )}
+                to={formatURL(Routes.CanaryDetails, {
+                  clusterName: c.clusterName,
+                  namespace: c.namespace,
+                  name: c.name,
+                })}
                 className={classes.canaryLink}
               >
                 {c.name}

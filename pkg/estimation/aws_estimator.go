@@ -54,12 +54,12 @@ func (e *AWSClusterEstimator) Estimate(ctx context.Context, us []*unstructured.U
 func (e *AWSClusterEstimator) estimateClusters(ctx context.Context, clusters []composedCluster) (map[string]*CostEstimate, error) {
 	estimates := map[string]*CostEstimate{}
 	for _, cluster := range clusters {
-		controlPlaneMin, controlPlaneMax, err := e.priceRangeFromFilters(ctx, cluster.controlPlane.instanceType, cluster.regionCode, cluster.controlPlane.instances)
+		controlPlaneMin, controlPlaneMax, err := e.priceRangeFromFilters(ctx, cluster.controlPlane.instanceType, cluster.regionCode, cluster.controlPlane.instances, cluster.filterAnnotations)
 		if err != nil {
 			return nil, err
 		}
 
-		infrastructureMin, infrastructureMax, err := e.priceRangeFromFilters(ctx, cluster.infrastructure.instanceType, cluster.regionCode, cluster.infrastructure.instances)
+		infrastructureMin, infrastructureMax, err := e.priceRangeFromFilters(ctx, cluster.infrastructure.instanceType, cluster.regionCode, cluster.infrastructure.instances, cluster.filterAnnotations)
 		if err != nil {
 			return nil, err
 		}
@@ -146,19 +146,22 @@ func composeClusters(resources *clusterResources) ([]composedCluster, error) {
 		// same region code.
 		clusters = append(clusters, composedCluster{
 			name: cluster.name, regionCode: infrastructureRegionCode,
-			controlPlane:   controlPlaneInstances,
-			infrastructure: infrastructureInstances,
+			controlPlane:      controlPlaneInstances,
+			infrastructure:    infrastructureInstances,
+			filterAnnotations: cluster.filterAnnotations,
 		})
 	}
 
 	return clusters, nil
 }
 
-func (e *AWSClusterEstimator) priceRangeFromFilters(ctx context.Context, instanceType, regionCode string, instanceCount int32) (float32, float32, error) {
-	filters := mergeStringMaps(e.EC2Filters, map[string]string{
+func (e *AWSClusterEstimator) priceRangeFromFilters(ctx context.Context, instanceType, regionCode string, instanceCount int32, additionalFilters map[string]string) (float32, float32, error) {
+	unmergedFilters := append([]map[string]string{e.EC2Filters}, additionalFilters, map[string]string{
 		"instanceType": instanceType,
 		"regionCode":   regionCode,
 	})
+	filters := mergeStringMaps(unmergedFilters...)
+
 	prices, err := e.Pricer.ListPrices(ctx, "AmazonEC2", e.Currency, filters)
 	if err != nil {
 		return invalidPrice, invalidPrice, fmt.Errorf("error getting prices for estimation: %w", err)
@@ -239,10 +242,11 @@ type clusterInstances struct {
 }
 
 type composedCluster struct {
-	name           string
-	regionCode     string
-	infrastructure clusterInstances
-	controlPlane   clusterInstances
+	name              string
+	regionCode        string
+	infrastructure    clusterInstances
+	controlPlane      clusterInstances
+	filterAnnotations map[string]string
 }
 
 type machineDeployment struct {
@@ -252,9 +256,10 @@ type machineDeployment struct {
 }
 
 type capiCluster struct {
-	name           string
-	infrastructure objectRef
-	controlPlane   objectRef
+	name              string
+	infrastructure    objectRef
+	controlPlane      objectRef
+	filterAnnotations map[string]string
 }
 
 type controlPlane struct {
@@ -324,10 +329,20 @@ func parseResources(items []*unstructured.Unstructured) (*clusterResources, erro
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse Cluster controlPlaneRef %q: %w", u.GetName(), err)
 			}
+			additionalFilters := map[string]string{}
+			annotations := u.GetAnnotations()
+			if annot, ok := annotations["templates.weave.works/estimation-filters"]; ok {
+				additionalFilters, err = ParseFilterQueryString(annot)
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse estimation-filters annotations %q: %w", u.GetName(), err)
+				}
+
+			}
 			clusters = append(clusters, capiCluster{
-				name:           u.GetName(),
-				infrastructure: *infrastructureRef,
-				controlPlane:   *controlPlaneRef,
+				name:              u.GetName(),
+				infrastructure:    *infrastructureRef,
+				controlPlane:      *controlPlaneRef,
+				filterAnnotations: additionalFilters,
 			})
 		case "AWSCluster.infrastructure.cluster.x-k8s.io":
 			regionCode, err := nestedString(u, "spec", "region")

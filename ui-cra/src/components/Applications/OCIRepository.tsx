@@ -8,6 +8,7 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { EditButton } from '../Templates/Edit/EditButton';
 import { Routes } from '../../utils/nav';
 
 type Props = {
@@ -52,7 +53,11 @@ const WGApplicationsOCIRepository: FC<Props> = props => {
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
       >
-        <OCIRepositoryDetail ociRepository={ociRepository} {...props} />
+        <OCIRepositoryDetail
+          ociRepository={ociRepository}
+          customActions={[<EditButton resource={ociRepository} />]}
+          {...props}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

@@ -3,12 +3,14 @@ package server
 import (
 	"fmt"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	apitemplates "github.com/weaveworks/templates-controller/apis/core"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
+
+const TemplateTypeLabel = "weave.works/template-type"
 
 func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 	var annotation string
@@ -19,6 +21,9 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 	case gapiv1.Kind:
 		annotation = templates.GitOpsTemplateNameAnnotation
 	}
+
+	templateType := t.GetLabels()[TemplateTypeLabel]
+
 	res := &capiv1_proto.Template{
 		Name:         t.GetName(),
 		Description:  t.GetSpec().Description,
@@ -26,6 +31,7 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 		Annotations:  t.GetAnnotations(),
 		Labels:       t.GetLabels(),
 		TemplateKind: templateKind,
+		TemplateType: templateType,
 		Namespace:    t.GetNamespace(),
 	}
 
@@ -52,6 +58,12 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 			Name:        o.Name,
 			DisplayName: o.DisplayName,
 		})
+	}
+
+	res.Profiles, err = getProfilesFromTemplate(t)
+	if err != nil {
+		res.Error = fmt.Sprintf("Couldn't load profiles from template: %s", err.Error())
+		return res
 	}
 
 	return res

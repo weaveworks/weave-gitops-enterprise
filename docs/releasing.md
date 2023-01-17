@@ -4,6 +4,12 @@
 
 How to release a new version of weave-gitops-enterprise
 
+## Versioning
+
+We follow [semantic versioning](https://semver.org/) where
+- Releases adding new features or changing existing ones increase the minor versions (0.11.0, 0.12.0, etc)
+- Releases exclusively fixing bugs increase the patch version (0.11.1, 0.11.2)
+
 ## Prerequisites
 
 Install [GnuPG](https://gnupg.org/) and [generate a GPG key and add it to your Github account](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key).
@@ -67,7 +73,7 @@ git checkout main
 git pull
 
 # Make sure your local commit is the same as the head on github
-git log 
+git log
 
 # Tag a push an annotated tag
 git tag -a -s v0.9.4 -m "Weave GitOps Enterprise v0.9.4"
@@ -79,7 +85,7 @@ This will kick off the release process in GitHub actions
 - The action will generate release notes and publish a release on GitHub
 - A message will be sent to #weave-gitops-dev in slack announcing the release
 
-### Update the release notes with *Dependencies* and *Highlights*
+### Update release notes with *Dependencies* and *Highlights* and ensure the user guide references the new version
 
 #### Github releases page
 
@@ -96,19 +102,29 @@ You can use a [previous release](https://github.com/weaveworks/weave-gitops-ente
 - Add a **Breaking Changes** section, calling out any breaking changes in this new release.
 - Add a **Known Issues** section, calling out any known issues in this new release.
 
+Notify your Product Manager at this stage that the release notes are available. They will combine with content from the product newsletter to update the website **after** the release.
+
 #### The https://docs.gitops.weave.works/ Enterprise releases page
 
 > **Note**
 > This is for non-rc.x releases only
 
-Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://github.com/weaveworks/weave-gitops/blob/main/website/docs/enterprise/releases.mdx).
+Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://github.com/weaveworks/weave-gitops/blob/main/website/docs/releases.mdx).
 
 - Paste it up the top, keeping previous releases in order.
 - Add the current date under the release version
 
-Make sure to backport the docs changes to the versioned docs. For example when releasing 0.9.5, both these files should be the same:
+Make sure to backport the docs changes to the most recent versioned docs. For example when releasing 0.9.5, both these files should be the same:
 - weave-gitops/website/docs/enterprise/releases.mdx
 - weave-gitops/website/versioned_docs/version-0.9.5/enterprise/releases.mdx
+
+#### Make sure the installation docs are updated for the upcoming version
+
+The following pages reference the version:
+- https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise/#install-cli
+- https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise/#5-configure-and-commit
+
+Ensure that the version referenced in the instructions for downloading the CLI and the version used in the WGE Helm release example, match the upcoming version.
 
 ### Announce final (non-rc) releases in #weave-gitops on slack
 

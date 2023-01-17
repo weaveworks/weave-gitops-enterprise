@@ -6,10 +6,11 @@ import (
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -18,22 +19,28 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 
-	capiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/capi/v1alpha1"
-	gapiv1 "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/gitopstemplate/v1alpha1"
-	apitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/api/templates"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	apitemplates "github.com/weaveworks/templates-controller/apis/core"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	rbacv1 "k8s.io/api/rbac/v1"
 )
 
 func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
@@ -42,10 +49,13 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
 		sourcev1.AddToScheme,
+		pacv2beta2.AddToScheme,
 		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		gapiv1.AddToScheme,
 		clusterv1.AddToScheme,
+		rbacv1.AddToScheme,
+		esv1beta1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -61,18 +71,37 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 }
 
 type serverOptions struct {
-	clusterState    []runtime.Object
-	namespace       string
-	provider        git.Provider
-	ns              string
-	hr              *sourcev1.HelmRepository
-	clustersManager clustersmngr.ClustersManager
-	capiEnabled     bool
-	chartsCache     helm.ChartsCacheReader
-	chartJobs       *helm.Jobs
-	valuesFetcher   helm.ValuesFetcher
-	cluster         string
-	estimator       estimation.Estimator
+	clusterState          []runtime.Object
+	namespace             string
+	provider              git.Provider
+	ns                    string
+	profileHelmRepository *types.NamespacedName
+	clustersManager       clustersmngr.ClustersManager
+	capiEnabled           bool
+	chartsCache           helm.ChartsCacheReader
+	chartJobs             *helm.Jobs
+	valuesFetcher         helm.ValuesFetcher
+	cluster               string
+	estimator             estimation.Estimator
+}
+
+func getServer(t *testing.T, clients map[string]client.Client, namespaces map[string][]corev1.Namespace) capiv1_protos.ClustersServiceServer {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	clientsPool.ClientsReturns(clients)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clients[name]; found && c != nil {
+			return c, nil
+		}
+		return nil, fmt.Errorf("cluster %s not found", name)
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, namespaces)
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+
+	return createServer(t, serverOptions{
+		clustersManager: fakeFactory,
+	})
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
@@ -102,24 +131,39 @@ func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceSe
 		},
 	}, kubefakes.NewFakeClientGetter(c), &mgmtfetcherfake.FakeAuthClientGetter{})
 
+	if o.estimator == nil {
+		o.estimator = estimation.NilEstimator()
+	}
+
+	if o.profileHelmRepository == nil {
+		o.profileHelmRepository = &types.NamespacedName{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		}
+	}
+
+	if o.cluster == "" {
+		o.cluster = "management"
+	}
+
 	return NewClusterServer(
 		ServerOpts{
-			Logger:                    logr.Discard(),
-			ClustersManager:           o.clustersManager,
-			GitProvider:               o.provider,
-			ClientGetter:              kubefakes.NewFakeClientGetter(c),
-			DiscoveryClient:           dc,
-			ClustersNamespace:         o.ns,
-			ProfileHelmRepositoryName: "weaveworks-charts",
-			HelmRepositoryCacheDir:    t.TempDir(),
-			CAPIEnabled:               o.capiEnabled,
-			RestConfig:                &rest.Config{},
-			ChartJobs:                 o.chartJobs,
-			ChartsCache:               o.chartsCache,
-			ValuesFetcher:             o.valuesFetcher,
-			ManagementFetcher:         mgmtFetcher,
-			Cluster:                   o.cluster,
-			Estimator:                 o.estimator,
+			Logger:                 testr.New(t),
+			ClustersManager:        o.clustersManager,
+			GitProvider:            o.provider,
+			ClientGetter:           kubefakes.NewFakeClientGetter(c),
+			DiscoveryClient:        dc,
+			ClustersNamespace:      o.ns,
+			HelmRepositoryCacheDir: t.TempDir(),
+			ProfileHelmRepository:  *o.profileHelmRepository,
+			CAPIEnabled:            o.capiEnabled,
+			RestConfig:             &rest.Config{},
+			ChartJobs:              o.chartJobs,
+			ChartsCache:            o.chartsCache,
+			ValuesFetcher:          o.valuesFetcher,
+			ManagementFetcher:      mgmtFetcher,
+			Cluster:                o.cluster,
+			Estimator:              o.estimator,
 		},
 	)
 }
@@ -140,6 +184,9 @@ func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) *clus
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeCluster := &clusterfakes.FakeCluster{}
+	fakeCluster.GetNameReturns("management")
+	fakeFactory.GetClustersReturns([]cluster.Cluster{fakeCluster})
 	return fakeFactory
 }
 
@@ -183,7 +230,7 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.
 	ct := &capiv1.CAPITemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       capiv1.Kind,
-			APIVersion: "capi.weave.works/v1alpha1",
+			APIVersion: "capi.weave.works/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",
@@ -199,7 +246,11 @@ func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					RawExtension: rawExtension(basicRaw),
+					Content: []apitemplates.ResourceTemplateContent{
+						{
+							RawExtension: rawExtension(basicRaw),
+						},
+					},
 				},
 			},
 		},
@@ -219,14 +270,14 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 		"metadata":{
 		   "name":"${RESOURCE_NAME}",
 		   "annotations":{
-			  "clustertemplates.weave.works/display-name":"ClusterName"
+			  "templates.weave.works/display-name":"ClusterName"
 		   }
 		}
 	 }`
 	ct := &gapiv1.GitOpsTemplate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       gapiv1.Kind,
-			APIVersion: "clustertemplates.weave.works/v1alpha1",
+			APIVersion: "templates.weave.works/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "cluster-template-1",
@@ -242,7 +293,11 @@ func makeClusterTemplates(t *testing.T, opts ...func(template *gapiv1.GitOpsTemp
 			},
 			ResourceTemplates: []apitemplates.ResourceTemplate{
 				{
-					RawExtension: rawExtension(basicRaw),
+					Content: []apitemplates.ResourceTemplateContent{
+						{
+							RawExtension: rawExtension(basicRaw),
+						},
+					},
 				},
 			},
 		},
@@ -259,9 +314,9 @@ func rawExtension(s string) runtime.RawExtension {
 	}
 }
 
-func makePolicy(t *testing.T, opts ...func(p *pacv2beta1.Policy)) *pacv2beta1.Policy {
+func makePolicy(t *testing.T, opts ...func(p *pacv2beta2.Policy)) *pacv2beta2.Policy {
 	t.Helper()
-	policy := &pacv2beta1.Policy{
+	policy := &pacv2beta2.Policy{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Policy",
 			APIVersion: "v1",
@@ -269,16 +324,16 @@ func makePolicy(t *testing.T, opts ...func(p *pacv2beta1.Policy)) *pacv2beta1.Po
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "weave.policies.missing-owner-label",
 		},
-		Spec: pacv2beta1.PolicySpec{
+		Spec: pacv2beta2.PolicySpec{
 			Name:     "Missing Owner Label",
 			Severity: "high",
 			Code:     "foo",
-			Targets: pacv2beta1.PolicyTargets{
+			Targets: pacv2beta2.PolicyTargets{
 				Labels:     []map[string]string{{"my-label": "my-value"}},
 				Kinds:      []string{},
 				Namespaces: []string{},
 			},
-			Standards: []pacv2beta1.PolicyStandard{},
+			Standards: []pacv2beta2.PolicyStandard{},
 		},
 	}
 	for _, o := range opts {
@@ -324,4 +379,23 @@ func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
 		o(event)
 	}
 	return event
+}
+
+func testNewFakeChartCache(t *testing.T, clusterRef types.NamespacedName, repoRef helm.ObjectReference, charts []helm.Chart) helmfakes.FakeChartCache {
+	fc := helmfakes.NewFakeChartCache(helmfakes.WithCharts(
+		helmfakes.ClusterRefToString(
+			repoRef,
+			clusterRef,
+		),
+		charts,
+	))
+
+	return fc
+}
+
+func nsn(name, namespace string) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
 }

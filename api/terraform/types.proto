@@ -23,22 +23,31 @@ message ResourceRef {
     string identifier = 3;
 }
 
+message NamespacedObjectReference {
+    string name = 1;
+    string namespace = 2;
+}
+
 message TerraformObject {
     string name        = 1;
     string namespace   = 2;
     string clusterName = 3;
 
     SourceRef sourceRef            = 4;
+
     string    appliedRevision      = 5;
     string    path                 = 6;
     Interval  interval             = 7;
     string    lastUpdatedAt        = 8;
     bool      driftDetectionResult = 9;
+    
+    repeated ResourceRef               inventory   = 10;
+    repeated Condition                 conditions  = 11;
+    map<string, string>                labels      = 12;
+    map<string, string>                annotations = 13;
+    repeated NamespacedObjectReference dependsOn   = 14;
 
-    repeated ResourceRef inventory = 10;
-    repeated Condition conditions  = 11;
-
-    bool suspended = 12;
+    bool suspended = 15;
 }
 
 message Pagination {
