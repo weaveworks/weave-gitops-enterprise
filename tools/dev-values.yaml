@@ -20,11 +20,17 @@ extraEnvVars:
     value: ""
   - name: WEAVE_GITOPS_FEATURE_TELEMETRY
     value: "false"
+  # Can bump this up to 4+ to get more verbose logging
+  - name: KLOG_VERBOSITY
+    value: "0"
 
 extraEnvVarsSecret: ""
 
 # Turns on UI elements for GitOps Run
 enableRunUI: true
+
+gitopssets-controller:
+  enabled: true
 
 # Re-clarify capiEnabled
 global:
