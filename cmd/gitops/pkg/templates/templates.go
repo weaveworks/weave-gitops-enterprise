@@ -1,9 +1,15 @@
 package templates
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"regexp"
 	"strings"
+
+	"github.com/Masterminds/semver/v3"
 )
 
 type TemplateKind string
@@ -450,4 +456,55 @@ func GetTemplateProfiles(name string, namespace string, r TemplatesRetriever, w 
 	fmt.Fprintf(w, "No template profiles were found.\n")
 
 	return nil
+}
+
+func ParseProfileFlags(profiles []string) ([]ProfileValues, error) {
+	var profilesValues []ProfileValues
+
+	// Validate values include alphanumeric or - or .
+	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
+
+	for _, p := range profiles {
+		valuesPairs := strings.Split(p, ",")
+		profileMap := make(map[string]string)
+
+		for _, pair := range valuesPairs {
+			kv := strings.Split(pair, "=")
+
+			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" && kv[0] != "namespace" {
+				return nil, fmt.Errorf("invalid key: %s", kv[0])
+			} else if kv[0] == "values" {
+				file, err := os.ReadFile(kv[1])
+				if err == nil {
+					profileMap[kv[0]] = base64.StdEncoding.EncodeToString(file)
+				}
+			} else if kv[0] == "version" {
+				_, err := semver.NewConstraint(kv[1])
+				if err != nil {
+					return nil, fmt.Errorf("invalid semver for %s: %s, %w", kv[0], kv[1], err)
+				}
+				profileMap[kv[0]] = kv[1]
+			} else if !r.MatchString(kv[1]) {
+				return nil, fmt.Errorf("invalid value for %s: %s", kv[0], kv[1])
+			} else {
+				profileMap[kv[0]] = kv[1]
+			}
+		}
+
+		profileJson, err := json.Marshal(profileMap)
+		if err != nil {
+			return nil, err
+		}
+
+		var profileValues ProfileValues
+
+		err = json.Unmarshal(profileJson, &profileValues)
+		if err != nil {
+			return nil, err
+		}
+
+		profilesValues = append(profilesValues, profileValues)
+	}
+
+	return profilesValues, nil
 }

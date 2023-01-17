@@ -1,11 +1,8 @@
 package clusters
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -102,7 +99,7 @@ func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*
 			}
 		}
 
-		profilesValues, err := parseProfileFlags(flags.Profiles)
+		profilesValues, err := templates.ParseProfileFlags(flags.Profiles)
 		if err != nil {
 			return fmt.Errorf("error parsing profiles: %w", err)
 		}
@@ -151,50 +148,4 @@ func getClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*
 
 		return templates.CreatePullRequestFromTemplate(params, client, os.Stdout)
 	}
-}
-
-func parseProfileFlags(profiles []string) ([]templates.ProfileValues, error) {
-	var profilesValues []templates.ProfileValues
-
-	// Validate values include alphanumeric or - or .
-	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
-
-	for _, p := range flags.Profiles {
-		valuesPairs := strings.Split(p, ",")
-		profileMap := make(map[string]string)
-
-		for _, pair := range valuesPairs {
-			fmt.Println(pair)
-			kv := strings.Split(pair, "=")
-
-			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" && kv[0] != "namespace" {
-				return nil, fmt.Errorf("invalid key: %s", kv[0])
-			} else if kv[0] == "values" {
-				file, err := os.ReadFile(kv[1])
-				if err == nil {
-					profileMap[kv[0]] = base64.StdEncoding.EncodeToString(file)
-				}
-			} else if !r.MatchString(kv[1]) {
-				return nil, fmt.Errorf("invalid value for %s: %s", kv[0], kv[1])
-			} else {
-				profileMap[kv[0]] = kv[1]
-			}
-		}
-
-		profileJson, err := json.Marshal(profileMap)
-		if err != nil {
-			return nil, err
-		}
-
-		var profileValues templates.ProfileValues
-
-		err = json.Unmarshal(profileJson, &profileValues)
-		if err != nil {
-			return nil, err
-		}
-
-		profilesValues = append(profilesValues, profileValues)
-	}
-
-	return profilesValues, nil
 }

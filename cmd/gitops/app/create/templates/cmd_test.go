@@ -1,19 +1,37 @@
 package templates
 
 import (
+	"encoding/base64"
 	"errors"
 	"io"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/testing/protocmp"
-	"gotest.tools/v3/assert"
+	"helm.sh/helm/v3/pkg/cli"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
+
+var defaultParams map[string]string = map[string]string{
+	"CLUSTER_NAME":       "test-cluster",
+	"RESOURCE_NAME":      "test-resource",
+	"NAMESPACE":          "test-namespace",
+	"GIT_REPO_NAMESPACE": "test-git-repo-namespace",
+	"GIT_REPO_NAME":      "test-git-repo-name",
+	"PATH":               "clusters/out.yaml",
+}
+
+var testSettings *cli.EnvSettings = &cli.EnvSettings{
+	RepositoryConfig: "testdata/repositories.yaml",
+	RepositoryCache:  "testdata/repository",
+}
 
 func Test_parseTemplate(t *testing.T) {
 	type args struct {
@@ -46,6 +64,7 @@ func Test_parseTemplate(t *testing.T) {
 					},
 					ResourceTemplates: []templatesv1.ResourceTemplate{
 						{
+							Path: "${PATH}",
 							Content: []templatesv1.ResourceTemplateContent{
 								{
 									RawExtension: runtime.RawExtension{
@@ -107,10 +126,71 @@ func Test_initializeConfig(t *testing.T) {
 	assert.Equal(t, config.TemplateFile, "template.yaml")
 
 	expectedParams := []string{
-		"CLUSTER_NAME=test-cluster", "RESOURCE_NAME=test-resource", "NAMESPACE=test-namespace",
-		"GIT_REPO_NAMESPACE=test-git-repo-namespace", "GIT_REPO_NAME=test-git-repo-name", "PATH=../clusters/out.yaml"}
+		"CLUSTER_NAME=test-cluster",
+		"RESOURCE_NAME=test-resource",
+		"NAMESPACE=test-namespace",
+		"GIT_REPO_NAMESPACE=test-git-repo-namespace",
+		"GIT_REPO_NAME=test-git-repo-name",
+		"PATH=clusters/out.yaml",
+	}
 
 	if diff := cmp.Diff(expectedParams, config.ParameterValues); diff != "" {
+		t.Fatalf("result didn't match expected:\n%s", diff)
+	}
+}
+
+func TestGenerateFilesLocally(t *testing.T) {
+	tmpl, err := parseTemplate("testdata/template.yaml")
+	assert.NoError(t, err)
+
+	// don't have to specify any helm settings if no profiles are around
+	files, err := generateFilesLocally(tmpl, defaultParams, "test-repo", nil, nil, logr.Discard())
+	assert.NoError(t, err)
+
+	expectedFiles := []string{
+		"clusters/out.yaml",
+	}
+
+	actualFilenames := []string{}
+	for _, file := range files {
+		actualFilenames = append(actualFilenames, *file.Path)
+	}
+
+	if diff := cmp.Diff(expectedFiles, actualFilenames); diff != "" {
+		t.Fatalf("result didn't match expected:\n%s", diff)
+	}
+}
+
+func TestGenerateFilesLocallyWithCharts(t *testing.T) {
+	tmpl, err := parseTemplate("testdata/template-with-charts.yaml")
+	assert.NoError(t, err)
+
+	profiles := []*capiv1_proto.ProfileValues{
+		{
+			Name:    "test-profile",
+			Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+			Version: "0.0.7",
+		},
+	}
+
+	files, err := generateFilesLocally(tmpl, defaultParams, "test-repo", profiles, testSettings, logr.Discard())
+	assert.NoError(t, err)
+
+	expectedFiles := []string{
+		"clusters/out.yaml",
+		"test-namespace/test-resource/profiles.yaml",
+	}
+
+	actualFilenames := []string{}
+	for _, file := range files {
+		actualFilenames = append(actualFilenames, *file.Path)
+	}
+
+	assert.Contains(t, *files[1].Content, "version: 0.0.8")
+	assert.Contains(t, *files[1].Content, "test-repo")
+	assert.Contains(t, *files[1].Content, "foo: bar")
+
+	if diff := cmp.Diff(expectedFiles, actualFilenames); diff != "" {
 		t.Fatalf("result didn't match expected:\n%s", diff)
 	}
 }

@@ -2,8 +2,10 @@ package templates
 
 import (
 	"fmt"
+	"strings"
 
 	apitemplates "github.com/weaveworks/templates-controller/apis/core"
+	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -16,6 +18,7 @@ const (
 	CostEstimationAnnotation        = "templates.weave.works/cost-estimation-enabled"
 	AddCommonBasesAnnotation        = "templates.weave.works/add-common-bases"
 	InjectPruneAnnotationAnnotation = "templates.weave.works/inject-prune-annotation"
+	ProfilesAnnotation              = "capi.weave.works/profile-"
 )
 
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which
@@ -58,6 +61,30 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 		Objects:     objects,
 		Params:      enriched,
 	}, nil
+}
+
+func FilterProfileAnnotations(annotations map[string]string) map[string]string {
+	filtered := make(map[string]string)
+	for k, v := range annotations {
+		if strings.HasPrefix(k, ProfilesAnnotation) {
+			filtered[k] = v
+		}
+	}
+	return filtered
+}
+
+func HasProfiles(tmpl templatesv1.Template) bool {
+	if len(FilterProfileAnnotations(tmpl.GetAnnotations())) > 0 {
+		return true
+	}
+
+	for _, chart := range tmpl.GetSpec().Charts.Items {
+		if chart.Required {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Object contains the details of the object rendered from a template along with

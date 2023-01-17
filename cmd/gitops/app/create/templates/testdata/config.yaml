@@ -5,4 +5,4 @@ values:
   - NAMESPACE=test-namespace
   - GIT_REPO_NAMESPACE=test-git-repo-namespace
   - GIT_REPO_NAME=test-git-repo-name
-  - PATH=../clusters/out.yaml
+  - PATH=clusters/out.yaml

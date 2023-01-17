@@ -18,6 +18,10 @@ spec:
       description: Name of the configuring git repository.
     - name: PATH
       description: Path to the generated resource.
+  charts:
+    items:
+      - chart: cert-manager
+        required: true
   resourcetemplates:
     - path: ${PATH}
       content:

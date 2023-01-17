@@ -1,0 +1,22 @@
+apiVersion: v1
+entries:
+  cert-manager:
+    - annotations:
+        weave.works/category: Certificate
+        weave.works/layer: layer-0
+        weave.works/profile: cert-manager
+      apiVersion: v2
+      created: "2022-10-06T10:08:21.631781995Z"
+      dependencies:
+        - name: cert-manager
+          repository: https://charts.jetstack.io
+          version: v1.8.0
+      description: A Weaveworks Helm chart for the Certificate Profile
+      digest: de57193a2d31b7f2067c5d3badbcdafe9073dfd1c436610c1752cf754cf6661b
+      home: https://github.com/weaveworks/profiles-catalog
+      kubeVersion: ">=1.16.0-0"
+      name: cert-manager
+      type: application
+      urls:
+        - https://github.com/weaveworks/weave-gitops-profile-examples/releases/download/cert-manager-0.0.8/cert-manager-0.0.8.tgz
+      version: 0.0.8

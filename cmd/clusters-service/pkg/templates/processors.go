@@ -8,13 +8,12 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/sets"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
-
-	"github.com/Masterminds/sprig/v3"
 )
 
 // TemplateDelimiterAnnotation can be added to a Template to change the Go
@@ -89,14 +88,12 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		}
 	}
 
-	for k, v := range p.GetAnnotations() {
-		if strings.HasPrefix(k, "capi.weave.works/profile-") {
-			names, err := p.Processor.ParamNames([]byte(v))
-			if err != nil {
-				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
-			}
-			paramNames.Insert(names...)
+	for _, v := range FilterProfileAnnotations(p.GetAnnotations()) {
+		names, err := p.Processor.ParamNames([]byte(v))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from annotation: %w", err)
 		}
+		paramNames.Insert(names...)
 	}
 
 	for _, profile := range p.GetSpec().Charts.Items {
