@@ -146,9 +146,9 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 
 		if config.OutputDir != "" {
 			for _, res := range templateResources.RenderedTemplate {
-				filePath, err := securejoin.SecureJoin(flags.outputDir, *res.Path)
+				filePath, err := securejoin.SecureJoin(config.OutputDir, *res.Path)
 				if err != nil {
-					return fmt.Errorf("failed to join %s to %s: %w", flags.outputDir, *res.Path, err)
+					return fmt.Errorf("failed to join %s to %s: %w", config.OutputDir, *res.Path, err)
 				}
 				directoryPath := filepath.Dir(filePath)
 
