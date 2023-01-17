@@ -11,6 +11,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"flag"
 	"fmt"
 	stdlog "log"
 	"math/big"
@@ -32,7 +33,7 @@ import (
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
@@ -83,6 +84,7 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	k8scache "k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -145,6 +147,7 @@ type Params struct {
 	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
 	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 	CostEstimationFilename            string                    `mapstructure:"cost-estimation-csv-file"`
+	KLogVerbosity                     string                    `mapstructure:"klog-verbosity"`
 	LogLevel                          string                    `mapstructure:"log-level"`
 }
 
@@ -230,13 +233,14 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 	cmdFlags.String("ui-config", "", "UI configuration, JSON encoded")
 	cmdFlags.String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
+	cmdFlags.String("klog-verbosity", "0", "Set the logging of the klog library")
 	cmdFlags.String("log-level", logger.DefaultLogLevel, "log level")
 
 	cmdFlags.String("cost-estimation-filters", "", "Cost estimation filters")
 	cmdFlags.String("cost-estimation-api-region", "", "API region for cost estimation queries")
 	cmdFlags.String("cost-estimation-csv-file", "", "Filename to parse as Cost Estimation data")
 
-	cmdFlags.VisitAll(func(fl *flag.Flag) {
+	cmdFlags.VisitAll(func(fl *pflag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
 			cobra.CheckErr(cmdFlags.MarkHidden(fl.Name))
 		}
@@ -310,6 +314,25 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
+
+// configureKlogVerbosity sets the klog verbosity level.
+// This log is used by the client-go k8s libraries and can be useful for debugging
+// client-go's network requests.
+//
+// v=5 - log CRD cache things?
+// v=6 - log requests (e.g. GET url)
+// v=7 - log req/res headers
+// v=8 - log res body
+func configureKLogVerbosity(v string) error {
+	klog.InitFlags(nil)
+	err := flag.Set("v", v)
+	if err != nil {
+		return fmt.Errorf("could not set klog verbosity: %w", err)
+	}
+	flag.Parse()
+	return nil
+}
+
 func StartServer(ctx context.Context, p Params) error {
 	log, err := logger.New(p.LogLevel, os.Getenv("HUMAN_LOGS") != "")
 	if err != nil {
@@ -317,6 +340,12 @@ func StartServer(ctx context.Context, p Params) error {
 	}
 
 	featureflags.SetFromEnv(os.Environ())
+
+	log.Info("Setting klog verbosity", "verbosity", p.KLogVerbosity)
+	err := configureKLogVerbosity(p.KLogVerbosity)
+	if err != nil {
+		return fmt.Errorf("could not configure klog verbosity: %w", err)
+	}
 
 	if p.CAPITemplatesNamespace == "" {
 		return errors.New("CAPI templates namespace not set")
