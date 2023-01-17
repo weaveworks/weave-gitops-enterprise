@@ -18,7 +18,6 @@ import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
-  useGetTerraformObjectPlan,
   useSyncTerraformObject,
   useToggleSuspendTerraformObject,
 } from '../../contexts/Terraform';

@@ -89,9 +89,9 @@ function CodeView({ code, object, className, kind, colorizeChanges }: Props) {
 
               if (/^\s+\+ /.test(code)) {
                 color = additionColor;
-              } else if (/^\s+\- /.test(code)) {
+              } else if (/^\s+- /.test(code)) {
                 color = deletionColor;
-              } else if (/^\s+\~ /.test(code)) {
+              } else if (/^\s+~ /.test(code)) {
                 color = updateColor;
               }
 
