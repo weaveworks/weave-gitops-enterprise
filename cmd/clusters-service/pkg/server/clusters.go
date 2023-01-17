@@ -561,7 +561,17 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider
 	}, nil
 }
 
-func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease) ([]byte, error) {
+func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, tmpl templatesv1.Template, defaultPath string) ([]capiv1_proto.CommitFile, error) {
+
+	// FIXME: if there is a tmpl.GetSpec().helmRepositoryTemplate.path then use that for the HelmRepository
+
+	// FIXME: for each of the helmReleases if there is a tmpl.GetSpect().charts[].template.path then use that for the HelmRelease
+	// we can just match on the name of the chart
+	// we should concat the helmreleases with common paths together somehow
+	// this functions should return a list of unique filenames and content
+
+	// OLD LOGIC that needs an update:
+
 	out := [][]byte{}
 	// Add HelmRepository object
 	b, err := yaml.Marshal(helmRepo)
@@ -585,7 +595,9 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
+//
+// FIXME: we should return multiple files from here
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
@@ -705,19 +717,13 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	if err != nil {
 		return nil, fmt.Errorf("making helm releases for cluster %w", err)
 	}
-	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
+	defaultPath := getClusterProfilesPath(cluster)
+	commitFiles, err := createProfileYAML(helmRepoTemplate, helmReleases, tmpl, defaultPath)
 	if err != nil {
 		return nil, err
 	}
 
-	profilePath := getClusterProfilesPath(cluster)
-	profileContent := string(c)
-	file := &gitprovider.CommitFile{
-		Path:    &profilePath,
-		Content: &profileContent,
-	}
-
-	return file, nil
+	return commitFiles, nil
 }
 
 func validateNamespace(namespace string) error {
