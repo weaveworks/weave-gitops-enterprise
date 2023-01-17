@@ -37,26 +37,18 @@ func (s *server) ListExternalSecrets(ctx context.Context, m *capiv1_proto.ListEx
 		}
 	}
 
-	var externalSecrets []*capiv1_proto.ExternalSecretItem
-	var externalSecretsListErrors []*capiv1_proto.ListError
-
-	g, gctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		externalSecrets, externalSecretsListErrors, err = s.listExternalSecrets(gctx, clustersClient)
-		return err
-	})
-
-	if err := g.Wait(); err != nil {
+	externalSecrets, externalSecretsListErrors, err := s.listExternalSecrets(ctx, clustersClient)
+	if err != nil {
 		return nil, err
 	}
 
 	response := capiv1_proto.ListExternalSecretsResponse{
-		Errors: respErrors,
+		Errors:  respErrors,
+		Secrets: externalSecrets,
+		Total:   int32(len(externalSecrets)),
 	}
-	response.Errors = append(response.Errors, externalSecretsListErrors...)
-	response.Secrets = append(response.Secrets, externalSecrets...)
-	response.Total = int32(len(response.Secrets))
 
+	response.Errors = append(response.Errors, externalSecretsListErrors...)
 	return &response, nil
 }
 
@@ -70,13 +62,13 @@ func (s *server) listExternalSecrets(ctx context.Context, cl clustersmngr.Client
 	if err := cl.ClusteredList(ctx, list, true); err != nil {
 		if e, ok := err.(clustersmngr.ClusteredListError); ok {
 			for i := range e.Errors {
-				if !strings.Contains(e.Errors[i].Error(), "no matches for kind \"ExternalSecret\"") {
+				if !strings.Contains(e.Errors[i].Error(), "no matches for kind ") {
 					clusterListErrors = append(clusterListErrors, &capiv1_proto.ListError{ClusterName: e.Errors[i].Cluster, Message: e.Errors[i].Error()})
 				}
 
 			}
 		} else {
-			if !strings.Contains(e.Error(), "no matches for kind \"ExternalSecret\"") {
+			if !strings.Contains(e.Error(), "no matches for kind ") {
 				return nil, clusterListErrors, fmt.Errorf("failed to list external secrets, error: %w", err)
 			}
 

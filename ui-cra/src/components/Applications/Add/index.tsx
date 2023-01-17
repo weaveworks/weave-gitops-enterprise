@@ -6,7 +6,13 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import { AddApplicationRequest, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { Button, Link, LoadingPage } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  GitRepository,
+  Link,
+  LoadingPage,
+  useListSources,
+} from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
@@ -30,9 +36,14 @@ import { Routes } from '../../../utils/nav';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
-import { useListConfigContext } from '../../../contexts/ListConfig';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { clearCallbackState, getProviderToken } from '../../GithubAuth/utils';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import {
+  getInitialGitRepo,
+  getRepositoryUrl,
+} from '../../Templates/Form/utils';
+import { GitRepositoryEnriched } from '../../Templates/Form';
+import { getGitRepos } from '../../Clusters';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -66,7 +77,7 @@ const SourceLinkWrapper = styled.div`
 `;
 
 interface FormData {
-  url: string;
+  repo: GitRepository | null;
   provider: string;
   branchName: string;
   pullRequestTitle: string;
@@ -102,7 +113,7 @@ function getInitialData(
   random: string,
 ) {
   let defaultFormData = {
-    url: '',
+    repo: null,
     provider: '',
     branchName: `add-application-branch-${random}`,
     pullRequestTitle: 'Add application',
@@ -142,9 +153,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { setNotifications } = useNotifications();
   const history = useHistory();
-  const listConfigContext = useListConfigContext();
-  const data = listConfigContext?.data;
-  const repositoryURL = data?.repositoryURL || '';
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');
 
@@ -191,7 +199,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [firstAuto]);
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
-    true,
+    firstAuto.source_type === 'HelmRepository',
     undefined,
     undefined,
     helmRepo,
@@ -203,6 +211,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     ClusterPRPreview | AppPRPreview | null
   >(null);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  const { data } = useListSources();
+  const gitRepos = React.useMemo(
+    () => getGitRepos(data?.result),
+    [data?.result],
+  );
+  const initialGitRepo = getInitialGitRepo(
+    null,
+    gitRepos,
+  ) as GitRepositoryEnriched;
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -212,13 +229,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   }, [callbackState?.state?.updatedProfiles, profiles]);
 
   useEffect(() => clearCallbackState(), []);
-
-  useEffect(() => {
-    setFormData((prevState: any) => ({
-      ...prevState,
-      url: repositoryURL,
-    }));
-  }, [repositoryURL]);
 
   useEffect(() => {
     setFormData((prevState: any) => ({
@@ -311,6 +321,15 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     updatedProfiles,
   ]);
 
+  useEffect(() => {
+    if (!formData.repo) {
+      setFormData((prevState: any) => ({
+        ...prevState,
+        repo: initialGitRepo,
+      }));
+    }
+  }, [initialGitRepo, formData.repo]);
+
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
     return renderKustomization({
@@ -339,6 +358,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
+      repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
     return AddApplicationRequest(payload, getProviderToken(formData.provider))
@@ -485,6 +505,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       setShowAuthDialog={setShowAuthDialog}
                       setEnableCreatePR={setEnableCreatePR}
                       formError={formError}
+                      enableGitRepoSelection={true}
                     />
                     {loading ? (
                       <LoadingPage className="create-loading" />

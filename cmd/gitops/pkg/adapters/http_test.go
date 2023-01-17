@@ -33,19 +33,22 @@ func TestRetrieveTemplates(t *testing.T) {
 			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
 				assert.ElementsMatch(t, ts, []templates.Template{
 					{
-						Name:        "cluster-template",
-						Provider:    "",
-						Description: "this is test template 1",
+						Name:         "cluster-template",
+						Provider:     "",
+						Description:  "this is test template 1",
+						TemplateType: "cluster",
 					},
 					{
-						Name:        "cluster-template-2",
-						Provider:    "aws",
-						Description: "this is test template 2",
+						Name:         "cluster-template-2",
+						Provider:     "aws",
+						Description:  "this is test template 2",
+						TemplateType: "cluster",
 					},
 					{
-						Name:        "cluster-template-3",
-						Description: "this is test template 3",
-						Provider:    "azure",
+						Name:         "cluster-template-3",
+						Description:  "this is test template 3",
+						Provider:     "azure",
+						TemplateType: "cluster",
 					},
 				})
 			},
@@ -193,9 +196,10 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
 				assert.ElementsMatch(t, ts, []templates.Template{
 					{
-						Name:        "cluster-template-2",
-						Provider:    "aws",
-						Description: "this is test template 2",
+						Name:         "cluster-template-2",
+						Provider:     "aws",
+						Description:  "this is test template 2",
+						TemplateType: "cluster",
 					},
 				})
 			},
@@ -331,7 +335,11 @@ func TestRenderTemplateWithParameters(t *testing.T) {
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/rendered_template_capi.json")),
 			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
-				assert.Equal(t, result.String(), `apiVersion: cluster.x-k8s.io/v1alpha4
+				assert.Equal(t, result.String(), `
+---
+# clusters/default/cli-end-to-end-capd-cluster-1/cluster.yaml
+
+apiVersion: cluster.x-k8s.io/v1alpha4
 kind: Cluster
 metadata:
   name: dev
@@ -425,7 +433,11 @@ status: {}
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewJsonResponderOrPanic(200, httpmock.File("./testdata/rendered_template_gitops.json")),
 			assertFunc: func(t *testing.T, result *templates.RenderTemplateResponse, err error) {
-				assert.Equal(t, result.String(), `apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
+				assert.Equal(t, result.String(), `
+---
+# dev.yaml
+
+apiVersion: tfcontroller.contrib.fluxcd.io/v1alpha1
 kind: Terraform
 metadata:
   name: dev

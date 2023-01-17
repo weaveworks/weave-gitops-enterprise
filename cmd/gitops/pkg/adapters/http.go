@@ -223,7 +223,7 @@ func (c *HTTPClient) RetrieveTemplates(kind templates.TemplateKind) ([]templates
 		ts = append(ts, templates.Template{
 			Name:         t.Name,
 			Provider:     t.Provider,
-			TemplateKind: t.TemplateKind,
+			TemplateType: t.TemplateType,
 			Description:  t.Description,
 			Error:        t.Error,
 		})

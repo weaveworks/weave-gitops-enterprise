@@ -162,9 +162,10 @@ describe('ListPolicies', () => {
     filterTable.testSorthTableByColumn('Severity', sortRowsBySeverity);
 
     const sortRowsByAge = mappedPolicies(
-      listPoliciesResponse.policies.sort(({ createdAt }) => {
-        const t = new Date(createdAt).getTime();
-        return t * 1;
+      listPoliciesResponse.policies.sort((a,b) => {
+        const t1 = new Date(a.createdAt).getTime();
+        const t2 = new Date(b.createdAt).getTime();
+        return t2 - t1;
       }),
     );
 
