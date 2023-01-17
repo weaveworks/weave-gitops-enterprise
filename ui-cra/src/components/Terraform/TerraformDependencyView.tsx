@@ -58,7 +58,7 @@ function TerraformDependencyView({ className, object }: Props) {
     } else {
       setGraphNodes(nodes);
     }
-  }, [isLoading, data, error]);
+  }, [isLoading, data, error, object]);
 
   const shouldShowGraph = graphNodes && graphNodes.length;
 

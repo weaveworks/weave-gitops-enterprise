@@ -158,30 +158,34 @@ func (s *server) GetTerraformObjectPlan(ctx context.Context, msg *pb.GetTerrafor
 
 	n := types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}
 
-	result := &tfctrl.Terraform{}
-	if err := c.Get(ctx, msg.ClusterName, n, result); err != nil {
+	obj := &tfctrl.Terraform{}
+	if err := c.Get(ctx, msg.ClusterName, n, obj); err != nil {
 		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
 	}
 
-	if result.Spec.StoreReadablePlan != "human" {
-		return nil, fmt.Errorf("no human-readable plan found: %w", err)
+	result := &pb.GetTerraformObjectPlanResponse{
+		EnablePlanViewing: obj.Spec.StoreReadablePlan == "human" || obj.Spec.StoreReadablePlan == "json",
+	}
+
+	if obj.Spec.StoreReadablePlan != "human" {
+		result.Error = "no human-readable plan found"
+		return result, nil
 	}
 
 	planKey := types.NamespacedName{
-		Name:      fmt.Sprintf("tfplan-%s-%s", result.WorkspaceName(), msg.Name),
+		Name:      fmt.Sprintf("tfplan-%s-%s", obj.WorkspaceName(), msg.Name),
 		Namespace: msg.Namespace,
 	}
 
 	var tfplanCM corev1.ConfigMap
 	if err := c.Get(ctx, msg.ClusterName, planKey, &tfplanCM); err != nil {
-		return nil, fmt.Errorf("error getting terraform plan: %w", err)
+		result.Error = fmt.Sprintf("error getting terraform plan: %s", err.Error())
+		return result, nil
 	}
 
-	plan := tfplanCM.Data["tfplan"]
+	result.Plan = tfplanCM.Data["tfplan"]
 
-	return &pb.GetTerraformObjectPlanResponse{
-		Plan: plan,
-	}, nil
+	return result, nil
 }
 
 func (s *server) SyncTerraformObject(ctx context.Context, msg *pb.SyncTerraformObjectRequest) (*pb.SyncTerraformObjectResponse, error) {
