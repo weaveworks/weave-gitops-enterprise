@@ -97,6 +97,9 @@ spec:
             {{- if .Values.config.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
+            {{- if .Values.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
       volumes:
       {{- if .Values.tls.secretName }}
       - name: clusters-service-tls-volume
@@ -107,4 +110,7 @@ spec:
         emptyDir: {}
       {{- if .Values.config.extraVolumes }}
       {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumes  "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.extraVolumes }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes  "context" $) | nindent 6 }}
       {{- end }}

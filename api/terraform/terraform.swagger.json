@@ -319,6 +319,17 @@
         }
       }
     },
+    "v1NamespacedObjectReference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
     "v1Pagination": {
       "type": "object",
       "properties": {
@@ -450,6 +461,12 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
+          }
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1NamespacedObjectReference"
           }
         },
         "suspended": {

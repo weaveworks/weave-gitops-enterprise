@@ -11,5 +11,8 @@ dependencies:
 - name: pipeline-controller
   repository: oci://ghcr.io/weaveworks/charts
   version: 0.14.0
-digest: sha256:beecc8853443e2686476b7e6cd2dfbbc70f893fa67d4a772edc28f2a0817f8ec
-generated: "2023-01-12T11:36:54.93099404Z"
+- name: gitopssets-controller
+  repository: file://../gitopssets-controller
+  version: 0.1.0
+digest: sha256:c9171c94a2aff78d86767e01682653f4e2f319226b0c1a44c9201a6007fe9466
+generated: "2023-01-16T10:45:53.26668+01:00"
