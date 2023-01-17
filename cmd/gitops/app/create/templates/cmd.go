@@ -25,7 +25,7 @@ type templateCommandFlags struct {
 	export          bool     `mapstructure:"export"`
 	outputDir       string   `mapstructure:"output-dir"`
 	templateFile    string   `mapstructure:"template-file"`
-	configFile      string
+	configFile      string   `mapstructure:"config"`
 }
 
 var flags templateCommandFlags
@@ -41,33 +41,35 @@ var CreateCommand = &cobra.Command{
 	  gitops create template.yaml --values key1=value1,key2=value2 --output-dir ./out 
 	`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
 		return initializeConfig(cmd)
 	},
 	RunE: templatesCmdRunE(),
 }
 
 func init() {
-	CreateCommand.Flags().StringSliceVar(&flags.parameterValues, "values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
-	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
-	CreateCommand.Flags().StringVar(&flags.outputDir, "output-dir", "", "write YAML format to file")
-	CreateCommand.Flags().StringVar(&flags.templateFile, "template-file", "", "template file to use")
-	CreateCommand.Flags().StringVar(&flags.configFile, "config", "", "config file to use")
+	CreateCommand.Flags().StringSlice("values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+	CreateCommand.Flags().Bool("export", false, "export in YAML format to stdout")
+	CreateCommand.Flags().String("output-dir", "", "write YAML format to file")
+	CreateCommand.Flags().String("template-file", "", "template file to use")
+	CreateCommand.Flags().String("config", "", "config file to use")
 }
 
 // initializeConfig reads in config file.
 func initializeConfig(cmd *cobra.Command) error {
 	v := viper.New()
 
-	v.SetConfigFile(flags.configFile)
-	if err := v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return err
-		}
-	}
-
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	v.AutomaticEnv()
+
+	err := v.BindPFlags(cmd.Flags())
+	if err != nil {
+		return err
+	}
+
+	v.SetConfigFile(flags.configFile)
+	if err = v.ReadInConfig(); err != nil {
+		return err
+	}
 
 	return nil
 }
