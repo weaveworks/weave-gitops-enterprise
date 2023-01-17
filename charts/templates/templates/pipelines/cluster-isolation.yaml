@@ -1,0 +1,91 @@
+apiVersion: clustertemplates.weave.works/v1alpha1
+kind: GitOpsTemplate
+metadata:
+  name: pr-promotion-cluster-tenancy
+  namespace: flux-system
+  annotations:
+    # These annotations remove irrelevant fields for Pipeline creation.
+    # In a future release, this will become the default behaviour and
+    # they could be removed from this template.
+    templates.weave.works/profiles-enabled: false
+    templates.weave.works/kustomizations-enabled: false
+    templates.weave.works/credentials-enabled: false
+  labels:
+    # This label determines the "Type" value for listing Templates in
+    # the dashboard. The link to "Create a Pipeline" uses this value
+    # to pre-filter the list.
+    weave.works/template-type: pipeline
+spec:
+  description: Sample pipeline to promote a Helm Release version via Pull Request across Dev, Test and Prod environments.
+  params:
+    # Pipeline parameters
+    - name: RESOURCE_NAME # Required parameter name for a valid template
+      description: Name of the Pipeline
+    - name: RESOURCE_NAMESPACE
+      description: Namespace for the Pipeline on the management cluster
+    # Application parameters - this template assumes consistent HelmRelease name and namespace across clusters
+    - name: APP_NAME
+      description: Name of the HelmRelease for your application
+    - name: APP_NAMESPACE
+      description: Namespace for the HelmRelease
+    - name: APP_REPO_URL
+      description: URL for source of HelmRelease in Git
+    - name: APP_REPO_BRANCH
+      description: Branch to write updates to in Git
+    - name: GIT_CREDENTIALS_SECRET
+      description: Name of the secret in RESOURCE_NAMESPACE containing credentials to create pull requests
+    # Deployment target parameters - this template is based on 3 environments each with a single cluster as a deployment target
+    - name: DEV_CLUSTER_NAME
+      description: Name of GitopsCluster object for Dev environment
+    - name: DEV_CLUSTER_NAMESPACE
+      description: Namespace of GitopsCluster object for Dev environment
+    - name: TEST_CLUSTER_NAME
+      description: Name of GitopsCluster object for Test environment
+    - name: TEST_CLUSTER_NAMESPACE
+      description: Namespace of GitopsCluster object for Test environment
+    - name: PROD_CLUSTER_NAME
+      description: Name of GitopsCluster object for Prod environment
+    - name: PROD_CLUSTER_NAMESPACE
+      description: Namespace of GitopsCluster object for Prod environment
+  resourcetemplates:
+  - apiVersion: pipelines.weave.works/v1alpha1
+    kind: Pipeline
+    metadata:
+      name: ${RESOURCE_NAME}
+      namespace: ${RESOURCE_NAMESPACE}
+    spec:
+      appRef:
+        apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        kind: helmrelease
+        name: ${APP_NAME}
+      environments:
+      # This template example allows the user to specify given clusters for the environments.
+      # A similar template would support teams using isolation by cluster as a tenancy model 
+      # or those generally wanting more configurability within the template by the user.
+      - name: dev
+        targets:
+          - namespace: ${APP_NAMESPACE}
+            clusterRef:
+              kind: GitopsCluster
+              name: ${DEV_CLUSTER_NAME}
+              namespace: ${DEV_CLUSTER_NAMESPACE}
+      - name: test
+        targets:
+          - namespace: ${APP_NAMESPACE}
+            clusterRef:
+              kind: GitopsCluster
+              name: ${TEST_CLUSTER_NAME}
+              namespace: ${TEST_CLUSTER_NAMESPACE}
+      - name: prod
+        targets:
+          - namespace: ${APP_NAMESPACE}
+            clusterRef:
+              kind: GitopsCluster
+              name: ${PROD_CLUSTER_NAME}
+              namespace: ${PROD_CLUSTER_NAMESPACE}
+      promotion:
+        pull-request:
+            url: ${APP_REPO_URL}
+            branch: ${APP_REPO_BRANCH}
+            secretRef:
+            name: ${GIT_CREDENTIALS_SECRET}
