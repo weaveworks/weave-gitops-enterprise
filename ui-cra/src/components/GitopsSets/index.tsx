@@ -6,20 +6,18 @@ import {
   theme,
   DataTable,
   filterConfig,
-  formatURL,
   KubeStatusIndicator,
   filterByStatusCallback,
   statusSortHelper,
   Timestamp,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
-import { useHistory } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core';
-import { useListConfigContext } from '../../contexts/ListConfig';
 import useGitOpsSets from '../../hooks/gitopssets';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import { GitOpsSet } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
+import _ from 'lodash';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -70,7 +68,7 @@ const GitopsSets: FC = () => {
     {
       label: 'Status',
       value: (gs: GitOpsSet) =>
-        gs?.conditions?.length > 0 ? (
+        gs?.conditions && gs?.conditions?.length > 0 ? (
           <KubeStatusIndicator
             short
             conditions={gs.conditions}
@@ -82,7 +80,8 @@ const GitopsSets: FC = () => {
     },
     {
       label: 'Message',
-      value: (gs: GitOpsSet) => computeMessage(gs.conditions),
+      value: (gs: GitOpsSet) =>
+        (gs?.conditions && computeMessage(gs?.conditions)) || '',
       sortValue: ({ conditions }) => computeMessage(conditions),
       maxWidth: 600,
     },
@@ -95,7 +94,7 @@ const GitopsSets: FC = () => {
       label: 'Last Updated',
       value: (gs: GitOpsSet) => (
         <Timestamp
-          time={_.get(_.find(gs.conditions, { type: 'Ready' }), 'timestamp')}
+          time={_.get(_.find(gs?.conditions, { type: 'Ready' }), 'timestamp')}
         />
       ),
       sortValue: (gs: GitOpsSet) => {

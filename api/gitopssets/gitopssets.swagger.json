@@ -116,6 +116,9 @@
           "items": {
             "$ref": "#/definitions/v1Condition"
           }
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },

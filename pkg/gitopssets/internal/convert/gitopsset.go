@@ -38,5 +38,7 @@ func GitOpsToProto(gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		Namespace:  gs.Namespace,
 		Inventory:  inv,
 		Conditions: conditions,
+		Suspended:  gs.Spec.Suspend,
+
 	}
 }
