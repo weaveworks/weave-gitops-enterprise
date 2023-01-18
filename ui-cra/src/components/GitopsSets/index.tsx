@@ -73,7 +73,7 @@ const GitopsSets: FC = () => {
           <KubeStatusIndicator
             short
             conditions={gs.conditions}
-            suspended={gs.suspended}
+            suspended={false}
           />
         ) : null,
       sortValue: statusSortHelper,
