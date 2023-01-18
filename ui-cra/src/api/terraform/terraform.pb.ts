@@ -57,6 +57,8 @@ export type GetTerraformObjectPlanRequest = {
 
 export type GetTerraformObjectPlanResponse = {
   plan?: string
+  enablePlanViewing?: boolean
+  error?: string
 }
 
 export class Terraform {

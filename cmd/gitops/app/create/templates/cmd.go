@@ -9,8 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
@@ -19,13 +21,15 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type templateCommandFlags struct {
-	parameterValues []string
-	export          bool
-	outputDir       string
+type Config struct {
+	ParameterValues []string `mapstructure:"values"`
+	Export          bool     `mapstructure:"export"`
+	OutputDir       string   `mapstructure:"output-dir"`
+	TemplateFile    string   `mapstructure:"template-file"`
 }
 
-var flags templateCommandFlags
+var config Config
+var configPath string
 
 var CreateCommand = &cobra.Command{
 	Use:   "template",
@@ -37,22 +41,62 @@ var CreateCommand = &cobra.Command{
 	  # apply rendered resources of template to path
 	  gitops create template.yaml --values key1=value1,key2=value2 --output-dir ./out 
 	`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return initializeConfig(cmd)
+	},
 	RunE: templatesCmdRunE(),
 }
 
 func init() {
-	CreateCommand.Flags().StringSliceVar(&flags.parameterValues, "values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
-	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
-	CreateCommand.Flags().StringVar(&flags.outputDir, "output-dir", "", "write YAML format to file")
+	flags := CreateCommand.Flags()
+	flags.StringSlice("values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+	flags.Bool("export", false, "export in YAML format to stdout")
+	flags.String("output-dir", "", "write YAML format to file")
+	flags.String("template-file", "", "template file to use")
+	flags.StringVar(&configPath, "config", "", "config file to use")
+}
+
+// initializeConfig reads in config file.
+func initializeConfig(cmd *cobra.Command) error {
+	v := viper.New()
+
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	v.AutomaticEnv()
+
+	err := v.BindPFlags(cmd.Flags())
+	if err != nil {
+		return err
+	}
+
+	if configPath != "" {
+		v.SetConfigFile(configPath)
+		if err = v.ReadInConfig(); err != nil {
+			return err
+		}
+	}
+
+	err = v.Unmarshal(&config)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling flags and env into config struct %w", err)
+	}
+
+	return nil
 }
 
 func templatesCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return errors.New("template file is required")
+		// set template name from args if not set in flags
+		templateFile := config.TemplateFile
+		if len(args) > 0 {
+			templateFile = args[0]
 		}
 
-		parsedTemplate, err := parseTemplate(args[0])
+		if templateFile == "" {
+			return errors.New("must specify template file")
+		}
+
+		parsedTemplate, err := parseTemplate(templateFile)
 		if err != nil {
 			return fmt.Errorf("failed to parse template file %s: %w", args[0], err)
 		}
@@ -61,7 +105,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 		vals := make(map[string]string)
 
 		// parse parameter values
-		for _, v := range flags.parameterValues {
+		for _, v := range config.ParameterValues {
 			kv := strings.SplitN(v, "=", 2)
 			if len(kv) == 2 {
 				vals[kv[0]] = kv[1]
@@ -86,7 +130,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			renderedTemplate += *file.Content
 		}
 
-		if flags.export {
+		if config.Export {
 			renderedTemplate := ""
 			for _, file := range templateResources.RenderedTemplate {
 				renderedTemplate += "\n# path: " + *file.Path + "\n---\n" + *file.Content
@@ -100,19 +144,20 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return nil
 		}
 
-		if flags.outputDir != "" {
+		if config.OutputDir != "" {
 			for _, res := range templateResources.RenderedTemplate {
-				filePath := filepath.Join(flags.outputDir, *res.Path)
+				filePath, err := securejoin.SecureJoin(config.OutputDir, *res.Path)
+				if err != nil {
+					return fmt.Errorf("failed to join %s to %s: %w", config.OutputDir, *res.Path, err)
+				}
 				directoryPath := filepath.Dir(filePath)
 
-				err := os.MkdirAll(directoryPath, 0755)
-
+				err = os.MkdirAll(directoryPath, 0755)
 				if err != nil {
 					return fmt.Errorf("failed to create directory: %w", err)
 				}
 
 				file, err := os.Create(filePath)
-
 				if err != nil {
 					return fmt.Errorf("failed to create file: %w", err)
 				}
@@ -120,7 +165,6 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 				defer file.Close()
 
 				_, err = file.Write([]byte(*res.Content))
-
 				if err != nil {
 					return fmt.Errorf("failed to write to file: %w", err)
 				}
@@ -128,7 +172,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return nil
 		}
 
-		return errors.New("Please provide either --export or --output-dir")
+		return errors.New("please provide either --export or --output-dir")
 	}
 }
 

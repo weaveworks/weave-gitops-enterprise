@@ -31,6 +31,7 @@ import {
 } from '../api/pipelines/pipelines.pb';
 import {
   GetTerraformObjectResponse,
+  GetTerraformObjectPlanResponse,
   ListTerraformObjectsResponse,
   SyncTerraformObjectResponse,
   Terraform,
@@ -325,6 +326,11 @@ export class TerraformClientMock implements Terraform {
   GetTerraformObjectReturns: GetTerraformObjectResponse = {};
   GetTerraformObject() {
     return promisify(this.GetTerraformObjectReturns);
+  }
+
+  GetTerraformObjectPlanReturns: GetTerraformObjectPlanResponse = {};
+  GetTerraformObjectPlan() {
+    return promisify(this.GetTerraformObjectPlanReturns);
   }
 
   SyncTerraformObjectReturns: SyncTerraformObjectResponse = {};

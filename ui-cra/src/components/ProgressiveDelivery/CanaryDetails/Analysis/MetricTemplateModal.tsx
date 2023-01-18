@@ -7,7 +7,7 @@ import React, { Dispatch, FC } from 'react';
 import { DialogContent, DialogTitle } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
-import YamlView from '../../../YamlView';
+import CodeView from '../../../CodeView';
 
 type Props = {
   open: boolean;
@@ -38,8 +38,8 @@ export const MetricTemplateModal: FC<Props> = ({
         </DialogTitle>
 
         <DialogContent>
-          <YamlView
-            yaml={metricTemplate.yaml || ''}
+          <CodeView
+            code={metricTemplate.yaml || ''}
             kind="MetricTemplate"
             object={metricTemplate}
           />
