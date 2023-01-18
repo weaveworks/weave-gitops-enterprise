@@ -380,6 +380,7 @@ func GetFiles(
 			helmRepo,
 			generateProfileFilesParams{
 				helmRepositoryCluster: profileHelmRepositoryCluster,
+				helmRepository:        profileHelmRepository,
 				chartsCache:           chartsCache,
 				profileValues:         msg.Profiles,
 				parameterValues:       msg.ParameterValues,
@@ -499,11 +500,6 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	}
 
 	return templates
-}
-
-func TemplateHasProfiles(tl templatesv1.Template) bool {
-	_, ok := tl.GetAnnotations()[templates.ProfilesAnnotation]
-	return ok
 }
 
 func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {

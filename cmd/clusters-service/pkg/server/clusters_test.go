@@ -1850,12 +1850,11 @@ func TestGenerateProfileFiles(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepositoryCluster: types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
 			helmRepository:        nsn("testing", "test-ns"),
@@ -1918,7 +1917,6 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
@@ -1927,7 +1925,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
 		),
 		nsn("cluster-foo", "ns-foo"),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -1990,7 +1988,6 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
@@ -1999,7 +1996,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\", \"editable\": true }",
 		),
 		nsn("management", ""),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2061,7 +2058,6 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	c := createClient(t, makeTestHelmRepository("base"))
 	params := map[string]string{
 		"CLUSTER_NAME": "test-cluster-name",
 		"NAMESPACE":    "default",
@@ -2071,7 +2067,7 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2134,12 +2130,11 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2237,7 +2232,6 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	c := createClient(t, makeTestHelmRepository("base"))
 	params := map[string]string{
 		"CLUSTER_NAME": "test-cluster-name",
 		"NAMESPACE":    "default",
@@ -2248,7 +2242,7 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeTemplating),
 		nsn("cluster-foo", "ns-foo"),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2311,7 +2305,6 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	c := createClient(t, makeTestHelmRepository("base"))
 	values := []byte("foo: defaultFoo")
 	profile := fmt.Sprintf("{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	file, err := generateProfileFiles(
@@ -2322,7 +2315,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 			profile,
 		),
 		nsn("cluster-foo", "ns-foo"),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepository: nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{
@@ -2387,12 +2380,11 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 				Layer:   "layer-1",
 			},
 		})
-	c := createClient(t, makeTestHelmRepository("base"))
 	file, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		c,
+		makeTestHelmRepository("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},

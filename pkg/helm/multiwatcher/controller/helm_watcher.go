@@ -119,7 +119,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 }
 
 // Load the index file into a charts cache.
-func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) error {
+func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
 	for name, versions := range index.Entries {
 		for _, version := range versions {
 			isProfile := Profiles(helmRepo, version)
@@ -138,8 +138,6 @@ func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef 
 			}
 		}
 	}
-
-	return nil
 }
 
 func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {

@@ -150,8 +150,6 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			})
 		}
 
-		fmt.Println("capiprofilevalues: ", capiProfileValues)
-
 		files, err := generateFilesLocally(parsedTemplate, params, config.HelmRepoName, capiProfileValues, cli.New(), log)
 		if err != nil {
 			return fmt.Errorf("failed to generate files locally: %w", err)
@@ -252,7 +250,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 	var helmRepo *sourcev1.HelmRepository
 	if templates.HasProfiles(tmpl) || len(profiles) > 0 {
-		entry, index, err := loadHelmLocalCache(helmRepoName, settings)
+		entry, index, err := localHelmRepo(helmRepoName, settings)
 		if err != nil {
 			return nil, fmt.Errorf("template has profiles and loading local helm repo data failed, try `helm repo add`. (%w)", err)
 		}
@@ -262,8 +260,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 	// no need for a real client as we're providing the helm repo
 	nilKubeClient := (client.Client)(nil)
-	// no need for helmRepoRef, we're passing in the helm repo
-	emptyHelmRepoRef := types.NamespacedName{}
+
 	// FIXME: no create message request, generated resources won't be "editable" in the UI
 	emptpyCreateMessageRequest := (*capiv1_proto.CreatePullRequestRequest)(nil)
 
@@ -274,7 +271,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		estimation.NilEstimator(),
 		chartsCache,
 		types.NamespacedName{Name: DefaultCluster},
-		emptyHelmRepoRef,
+		types.NamespacedName{Name: helmRepo.Name, Namespace: helmRepo.Namespace},
 		tmpl,
 		server.GetFilesRequest{
 			ParameterValues: params,
@@ -295,12 +292,10 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 	return files, nil
 }
 
-func loadHelmLocalCache(repoName string, settings *cli.EnvSettings) (*repo.Entry, *repo.IndexFile, error) {
+func localHelmRepo(repoName string, settings *cli.EnvSettings) (*repo.Entry, *repo.IndexFile, error) {
 	if settings == nil {
 		return nil, nil, fmt.Errorf("helm settings missing")
 	}
-
-	fmt.Println("settings.RepositoryConfig", settings.RepositoryConfig, "settings.RepositoryCache", settings.RepositoryCache)
 
 	f, err := repo.LoadFile(settings.RepositoryConfig)
 	if err != nil {

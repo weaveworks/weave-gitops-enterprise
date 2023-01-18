@@ -8,12 +8,13 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/sets"
 	processor "sigs.k8s.io/cluster-api/cmd/clusterctl/client/yamlprocessor"
 	"sigs.k8s.io/yaml"
+
+	"github.com/Masterminds/sprig/v3"
 )
 
 // TemplateDelimiterAnnotation can be added to a Template to change the Go
