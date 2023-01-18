@@ -9,7 +9,6 @@ message GitOpsSet {
     string         namespace                = 2;
     repeated ResourceRef inventory   = 3;
     repeated Condition   conditions  = 4;
-    bool     suspended            = 5;
 }
 
 message ListError {

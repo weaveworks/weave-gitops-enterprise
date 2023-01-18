@@ -8,7 +8,6 @@ export type GitOpsSet = {
   namespace?: string
   inventory?: ResourceRef[]
   conditions?: Condition[]
-  suspended?: boolean
 }
 
 export type ListError = {
