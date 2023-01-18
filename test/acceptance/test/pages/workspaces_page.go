@@ -33,6 +33,7 @@ type WorkspaceDetailsPage struct {
 
 type ServiceAccounts struct {
 	Name      *agouti.Selection
+	RoleApi   *agouti.Selection
 	Namespace *agouti.Selection
 	Age       *agouti.Selection
 }
@@ -107,6 +108,7 @@ func GetWorkspaceDetailsPage(webDriver *agouti.Page) *WorkspaceDetailsPage {
 func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 	return &ServiceAccounts{
 		Name:      webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		RoleApi:   webDriver.FindByXPath(`(//span[@class='token key'][normalize-space()='apiVersion'])[1]`),
 		Namespace: webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		Age:       webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
 	}

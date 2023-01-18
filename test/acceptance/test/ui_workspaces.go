@@ -91,6 +91,8 @@ func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces st
 		serviceAccounts := pages.GetWorkspaceServiceAccounts(webDriver)
 
 		gomega.Eventually(serviceAccounts.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
+		gomega.Expect(serviceAccounts.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Service Accounts Name", workspaceName))
+		gomega.Eventually(serviceAccounts.RoleApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Service Accounts Manifest's apiVersion ")
 		gomega.Eventually(serviceAccounts.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Namespaces", workspaceName))
 		gomega.Eventually(serviceAccounts.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Age", workspaceName))
 
@@ -108,7 +110,6 @@ func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
 
 		gomega.Eventually(Role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role 's Name", workspaceName))
 		gomega.Expect(Role.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Name", workspaceName))
-		// pages.WaitForPageToLoad(webDriver)
 		gomega.Eventually(Role.RoleApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Manifest's apiVersion ")
 		gomega.Expect(Role.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Roles manifest", workspaceName))
 		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
