@@ -34,6 +34,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
@@ -381,6 +382,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		pacv2beta1.AddToScheme,
 		pacv2beta2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
+		gitopssetsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
 		pipelinev1alpha1.AddToScheme,
@@ -411,6 +413,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		pipelinev1alpha1.AddToScheme,
 		tfctrl.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
+		gitopssetsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
 	)
