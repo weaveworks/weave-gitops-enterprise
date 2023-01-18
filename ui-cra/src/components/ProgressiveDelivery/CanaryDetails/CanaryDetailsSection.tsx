@@ -7,7 +7,7 @@ import {
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Routes } from '../../../utils/nav';
-import YamlView from '../../YamlView';
+import CodeView from '../../CodeView';
 import { getProgressValue } from '../ListCanaries/Table';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
@@ -85,7 +85,7 @@ function CanaryDetailsSection({
         </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <CanaryDetailsWrapper>
-            <YamlView yaml={canary.yaml || ''} kind="Canary" object={canary} />
+            <CodeView code={canary.yaml || ''} kind="Canary" object={canary} />
           </CanaryDetailsWrapper>
         </RouterTab>
       </SubRouterTabs>
