@@ -63,28 +63,14 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 	}, nil
 }
 
-func FilterProfileAnnotations(annotations map[string]string) map[string]string {
-	filtered := make(map[string]string)
-	for k, v := range annotations {
+func ProfileAnnotations(tmpl templatesv1.Template) map[string]string {
+	profileAnnotations := make(map[string]string)
+	for k, v := range tmpl.GetAnnotations() {
 		if strings.HasPrefix(k, ProfilesAnnotation) {
-			filtered[k] = v
+			profileAnnotations[k] = v
 		}
 	}
-	return filtered
-}
-
-func HasProfiles(tmpl templatesv1.Template) bool {
-	if len(FilterProfileAnnotations(tmpl.GetAnnotations())) > 0 {
-		return true
-	}
-
-	for _, chart := range tmpl.GetSpec().Charts.Items {
-		if chart.Required {
-			return true
-		}
-	}
-
-	return false
+	return profileAnnotations
 }
 
 // Object contains the details of the object rendered from a template along with

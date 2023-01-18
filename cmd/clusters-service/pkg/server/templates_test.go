@@ -1507,7 +1507,6 @@ func TestGetFiles_required_profiles(t *testing.T) {
 		hr.SetName("weaveworks-charts")
 		hr.SetNamespace("flux-system")
 	})
-	fmt.Println("hr", hr.GetName(), hr.GetNamespace())
 	c := createClient(t, hr)
 
 	log := logr.Discard()
@@ -1592,7 +1591,7 @@ status: {}
 		},
 		[]helm.Chart{})
 	values := []byte("foo: bar")
-	profile := fmt.Sprintf("{\"name\": \"demo-profile\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
+	profile := fmt.Sprintf(`{"name": "demo-profile", "version": "0.0.1", "values": "%s", "required": true }`, values)
 	files, err := GetFiles(
 		context.TODO(),
 		c,

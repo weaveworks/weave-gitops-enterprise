@@ -1854,7 +1854,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepositoryCluster: types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
 			helmRepository:        nsn("testing", "test-ns"),
@@ -1925,7 +1925,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
 		),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -1996,7 +1996,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\", \"editable\": true }",
 		),
 		nsn("management", ""),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2067,7 +2067,7 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2134,7 +2134,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2242,7 +2242,7 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeTemplating),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2315,7 +2315,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 			profile,
 		),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepository: nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{
@@ -2384,7 +2384,7 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepository("base"),
+		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
@@ -2474,6 +2474,12 @@ spec:
 status: {}
 `
 	assert.Equal(t, expected, *file.Content)
+}
+
+func makeTestHelmRepositoryTemplate(base string) *sourcev1.HelmRepository {
+	return makeTestHelmRepository(base, func(hr *sourcev1.HelmRepository) {
+		hr.Status = sourcev1.HelmRepositoryStatus{}
+	})
 }
 
 func makeTestTemplate(renderType string) templatesv1.Template {

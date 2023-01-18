@@ -89,7 +89,7 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		}
 	}
 
-	for _, v := range FilterProfileAnnotations(p.GetAnnotations()) {
+	for _, v := range ProfileAnnotations(p) {
 		names, err := p.Processor.ParamNames([]byte(v))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get params from annotation: %w", err)

@@ -344,14 +344,21 @@ func GetFiles(
 		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
 	}
 
-	if len(msg.Profiles) > 0 || templates.HasProfiles(tmpl) {
+	templateHasRequiredProfiles, err := TemplateHasRequiredProfiles(tmpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
+	}
+
+	if len(msg.Profiles) > 0 || templateHasRequiredProfiles {
 		cluster, err := getCluster(resourcesNamespace, msg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
 		}
 
 		helmRepo := msg.HelmRepository
+		fmt.Println("helmRepo", helmRepo)
 		if helmRepo == nil {
+			fmt.Println("client", client)
 			if client == nil {
 				return nil, fmt.Errorf("client is nil, cannot get Helm repository")
 			}
@@ -502,9 +509,22 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	return templates
 }
 
+func TemplateHasRequiredProfiles(tl templatesv1.Template) (bool, error) {
+	profiles, err := getProfilesFromTemplate(tl)
+	if err != nil {
+		return false, err
+	}
+	for _, p := range profiles {
+		if p.Required {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {
 	profilesIndex := map[string]*capiv1_proto.TemplateProfile{}
-	for _, v := range templates.FilterProfileAnnotations(tl.GetAnnotations()) {
+	for _, v := range templates.ProfileAnnotations(tl) {
 		profile := capiv1_proto.TemplateProfile{}
 		err := json.Unmarshal([]byte(v), &profile)
 		if err != nil {
