@@ -83,7 +83,7 @@ interface SelectSecretStoreProps {
   handleSelectSecretStore: (event: React.ChangeEvent<any>) => void;
   formError: string;
   secretStoreRef: string;
-  secretStoreKind: string;
+  secretStoreType: string;
   secret_namespace: string;
 }
 
@@ -107,7 +107,7 @@ function getInitialData(
         secret_namespace: '',
         refreshInterval: '1h',
         secretStoreRef: '',
-        secretStoreKind: '',
+        secretStoreType: '',
         data_secretKey: '',
         data_remoteRef_key: '',
         data_remoteRef_property: '',
@@ -161,7 +161,7 @@ const CreateSecret = () => {
     data_secretKey,
     cluster_name,
     secretStoreRef,
-    secretStoreKind,
+    secretStoreType,
     data_remoteRef_key,
     data_remoteRef_property,
     cluster_namespace,
@@ -188,7 +188,7 @@ const CreateSecret = () => {
       ...automation,
       secretStoreRef: value.name,
       secret_namespace: value.namespace,
-      secretStoreKind: value.kind,
+      secretStoreType: value.type,
       secretStoreValue: value,
     };
     setFormData({
@@ -384,7 +384,7 @@ const CreateSecret = () => {
                   handleSelectSecretStore={handleSelectSecretStore}
                   formError={formError}
                   secretStoreRef={secretStoreRef}
-                  secretStoreKind={secretStoreKind}
+                  secretStoreType={secretStoreType}
                   secret_namespace={secret_namespace}
                 />
               )}
@@ -449,7 +449,7 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
     handleSelectSecretStore,
     formError,
     secretStoreRef,
-    secretStoreKind,
+    secretStoreType,
     secret_namespace,
   } = props;
   const { data, isLoading } = useGetSecretStoreDetails({
@@ -486,8 +486,8 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
       <Input
         className="form-section"
         name="secret_store_kind"
-        label="SECRET STORE KIND"
-        value={secretStoreKind}
+        label="SECRET STORE TYPE"
+        value={secretStoreType}
         disabled={true}
         error={false}
       />
