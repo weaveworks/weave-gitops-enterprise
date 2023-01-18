@@ -54,6 +54,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
+	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
@@ -641,6 +642,15 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}); err != nil {
 			return fmt.Errorf("hydrating terraform server: %w", err)
 		}
+	}
+
+	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
+		Logger:            args.Log,
+		ClientsFactory:    args.ClustersManager,
+		ManagementFetcher: args.ManagementFetcher,
+		Scheme:            args.KubernetesClient.Scheme(),
+	}); err != nil {
+		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
 
 	// UI

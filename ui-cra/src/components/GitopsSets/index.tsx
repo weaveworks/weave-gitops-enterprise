@@ -29,6 +29,7 @@ const useStyles = makeStyles(() =>
 
 const GitopsSets: FC = () => {
   const { data, isLoading } = useGitOpsSets();
+  console.log(data);
   const gitopssets = data?.gitopssets;
 
   let initialFilterState = {
@@ -94,7 +95,9 @@ const GitopsSets: FC = () => {
       label: 'Last Updated',
       value: (gs: GitOpsSet) => (
         <Timestamp
-          time={_.get(_.find(gs?.conditions, { type: 'Ready' }), 'timestamp')}
+          time={
+            _.get(_.find(gs?.conditions, { type: 'Ready' }), 'timestamp') || ''
+          }
         />
       ),
       sortValue: (gs: GitOpsSet) => {
