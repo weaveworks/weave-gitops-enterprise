@@ -60,16 +60,16 @@ const GitAuth: FC<{
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
-        onAuthClick={(provider: GitProvider) => {
-          if (provider === ('GitHub' as GitProvider)) {
-            setShowAuthDialog(true);
-          }
-        }}
+        // onAuthClick={(provider: GitProvider) => {
+        //   if (provider === ('GitHub' as GitProvider)) {
+        //     // setShowAuthDialog(true);
+        //   }
+        // }}
         required
         id="url"
         label="Source Repo URL"
         variant="standard"
-        value={formData?.repo?.obj?.spec?.url}
+        value="https://gitlab.git.dev.weave.works/wge/demo-01"
         description=""
         formData={formData}
         setFormData={setFormData}
