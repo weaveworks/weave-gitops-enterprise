@@ -268,6 +268,7 @@ const CreateSecret = () => {
         },
       },
     });
+    return clusterAutomations
   }, [
     cluster_name,
     cluster_namespace,
@@ -289,6 +290,7 @@ const CreateSecret = () => {
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
+    console.log(payload)
     setLoading(true);
     return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
       .then(response => {
