@@ -116,15 +116,6 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		}
 	}
 
-	for _, profile := range p.GetSpec().Charts.Items {
-		if profile.HelmReleaseTemplate.Content.Path != "" {
-			names, err := p.Processor.ParamNames([]byte(profile.HelmReleaseTemplate.Content.Path))
-			if err != nil {
-				return nil, fmt.Errorf("failed to get params from profile.HelmReleaseTemplate.path of %s: %w", profile.Chart, err)
-			}
-			paramNames.Insert(names...)
-		}
-	}
 	if p.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
 		helmRepoTemplatePath := p.GetSpec().Charts.HelmRepositoryTemplate.Path
 		names, err := p.Processor.ParamNames([]byte(helmRepoTemplatePath))

@@ -561,42 +561,51 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider
 	}, nil
 }
 
-func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, tmpl templatesv1.Template, defaultPath string) ([]capiv1_proto.CommitFile, error) {
-
-	// FIXME: if there is a tmpl.GetSpec().helmRepositoryTemplate.path then use that for the HelmRepository
-
-	// FIXME: for each of the helmReleases if there is a tmpl.GetSpect().charts[].template.path then use that for the HelmRelease
-	// we can just match on the name of the chart
-	// we should concat the helmreleases with common paths together somehow
-	// this functions should return a list of unique filenames and content
-
-	// OLD LOGIC that needs an update:
-
-	out := [][]byte{}
-	// Add HelmRepository object
+// createProfileYAML creates a map of file paths to YAML bytes for a profile
+// takes into consideration the template spec.charts.HelmRepositoryTemplate.Path and list of spec.charts.items[].HelmReleaseTemplate.Path
+func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
+	profileObjects := make(map[string][][]byte)
+	// Helm repository template
+	helmRepoPath := defaultPath
+	fmt.Printf("helmRepoTemplatePath: helmRepoPath: %s", template.GetSpec().Charts.HelmRepositoryTemplate.Path)
+	if template.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
+		helmRepoPath = template.GetSpec().Charts.HelmRepositoryTemplate.Path
+	}
 	b, err := yaml.Marshal(helmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
 	}
-	out = append(out, b)
-	// Add HelmRelease objects
+	profileObjects[helmRepoPath] = append(profileObjects[helmRepoPath], b)
+	
+	// Helm release templates
 	for _, v := range helmReleases {
+		helmReleasePath := defaultPath
+		chartItems := template.GetSpec().Charts.Items
+		for i, _ := range chartItems {
+			fmt.Printf("helmRepoTemplatePath: chartItems[i].Chart: %s , v.Name %s", chartItems[i].Chart, v.Name)
+
+			if chartItems[i].Chart == v.Name {
+				if chartItems[i].HelmReleaseTemplate.Path != "" {
+					helmReleasePath = chartItems[i].HelmReleaseTemplate.Path
+				}
+			}
+		}
 		b, err := yaml.Marshal(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal HelmRelease object to YAML: %w", err)
 		}
-		out = append(out, b)
+		profileObjects[helmReleasePath] = append(profileObjects[helmReleasePath], b)
+
 	}
 
-	return bytes.Join(out, []byte("---\n")), nil
+	return profileObjects, nil
+
 }
 
 // generateProfileFiles to create a HelmRelease object with the profile and values.
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-//
-// FIXME: we should return multiple files from here
 func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
@@ -717,10 +726,26 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	if err != nil {
 		return nil, fmt.Errorf("making helm releases for cluster %w", err)
 	}
-	defaultPath := getClusterProfilesPath(cluster)
-	commitFiles, err := createProfileYAML(helmRepoTemplate, helmReleases, tmpl, defaultPath)
+
+	// profilesBytes is a map of {path: []byte} where []byte is the content of the profile.
+	profilesBytes, err := createProfileYAML(helmRepoTemplate, helmReleases, tmpl, getClusterProfilesPath(cluster))
 	if err != nil {
 		return nil, err
+	}
+	commitFiles := []gitprovider.CommitFile{}
+	// For each path, we join the content of relative profiles and add to a commit file
+	for path := range profilesBytes {
+		profileContent := string(bytes.Join(profilesBytes[path], []byte("---\n")))
+		renderedPath, err := tmplProcessor.Render([]byte(path), args.parameterValues)
+		if err != nil {
+			return nil, fmt.Errorf("cannot render path %s: %w", path, err)
+		}
+		renderedPathStr := string(renderedPath)
+		file := &gitprovider.CommitFile{
+			Path:    &renderedPathStr,
+			Content: &profileContent,
+		}
+		commitFiles = append(commitFiles, *file)
 	}
 
 	return commitFiles, nil

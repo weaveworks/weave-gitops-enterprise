@@ -344,7 +344,7 @@ func GetFiles(
 		if err != nil {
 			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
 		}
-		profilesFile, err := generateProfileFiles(
+		profilesFiles, err := generateProfileFiles(
 			ctx,
 			tmpl,
 			cluster,
@@ -360,7 +360,7 @@ func GetFiles(
 		if err != nil {
 			return nil, err
 		}
-		profileFiles = append(profileFiles, *profilesFile)
+		profileFiles = append(profileFiles, profilesFiles...)
 	}
 
 	if len(msg.Kustomizations) > 0 {
