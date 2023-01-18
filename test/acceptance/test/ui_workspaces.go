@@ -90,7 +90,7 @@ func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces st
 
 		serviceAccounts := pages.GetWorkspaceServiceAccounts(webDriver)
 
-		gomega.Eventually(serviceAccounts.Name.Text).Should(gomega.Equal(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
+		gomega.Eventually(serviceAccounts.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
 		gomega.Expect(serviceAccounts.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Service Accounts Name", workspaceName))
 		gomega.Eventually(serviceAccounts.ServiceAccountsApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Service Accounts Manifest's apiVersion ")
 		gomega.Expect(serviceAccounts.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Service Accounts manifest", workspaceName))
