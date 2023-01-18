@@ -1,4 +1,11 @@
-import { FormControl, Input, MenuItem, Select } from '@material-ui/core';
+import {
+  FormControl,
+  Input,
+  MenuItem,
+  Select,
+  TextField,
+} from '@material-ui/core';
+import { Autocomplete } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
 import React, {
   ChangeEvent,
@@ -57,9 +64,11 @@ const ProfilesListItem: FC<{
   );
 
   const handleSelectVersion = useCallback(
-    (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
-      const value = event.target.value as string;
-      setVersion(value);
+    (value: string | null) => {
+      // const value = event.target.value as string;
+
+      value && setVersion(value);
+      console.log({ value });
 
       profile.values.forEach(item =>
         item.selected === true ? (item.selected = false) : null,
@@ -102,6 +111,7 @@ const ProfilesListItem: FC<{
       if (item.version === version) {
         item.yaml = yaml;
       }
+      // console.log({ yaml });
     });
 
     handleUpdateProfile(profile);
@@ -131,7 +141,7 @@ const ProfilesListItem: FC<{
       <ProfileWrapper data-profile-name={profile.name}>
         <div className="profile-version">
           <FormControl>
-            <Select
+            {/* <Select
               disabled={profile.required && profile.values.length === 1}
               value={version}
               onChange={handleSelectVersion}
@@ -139,7 +149,25 @@ const ProfilesListItem: FC<{
               label="Versions"
             >
               {profileVersions(profile)}
-            </Select>
+            </Select> */}
+            <Autocomplete
+              disabled={profile.required && profile.values.length === 1}
+              id="free-solo-demo"
+              freeSolo
+              options={profile.values.map(option => option.version)}
+              onChange={(event, newValue) => {
+                handleSelectVersion(newValue);
+              }}
+              autoSelect
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label="freeSolo"
+                  margin="normal"
+                  variant="outlined"
+                />
+              )}
+            />
           </FormControl>
         </div>
         <div className="profile-namespace">
