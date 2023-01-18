@@ -2,12 +2,15 @@ package templates
 
 import (
 	"errors"
+	"io"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/spf13/cobra"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"google.golang.org/protobuf/testing/protocmp"
+	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -80,5 +83,34 @@ func Test_parseTemplate(t *testing.T) {
 				t.Fatalf("result didn't match expected:\n%s", diff)
 			}
 		})
+	}
+}
+
+func Test_CreateCommand(t *testing.T) {
+	cmd := CreateCommand
+	cmd.SetArgs([]string{})
+	cmd.SetOut(io.Discard)
+	err := cmd.Execute()
+	assert.ErrorContains(t, err, "must specify template file")
+}
+
+func Test_initializeConfig(t *testing.T) {
+	cmd := &cobra.Command{}
+	configPath = "testdata/config.yaml"
+	config = Config{}
+
+	err := initializeConfig(cmd)
+	if err != nil {
+		t.Errorf("Error initializing config: %v", err)
+	}
+
+	assert.Equal(t, config.TemplateFile, "template.yaml")
+
+	expectedParams := []string{
+		"CLUSTER_NAME=test-cluster", "RESOURCE_NAME=test-resource", "NAMESPACE=test-namespace",
+		"GIT_REPO_NAMESPACE=test-git-repo-namespace", "GIT_REPO_NAME=test-git-repo-name", "PATH=../clusters/out.yaml"}
+
+	if diff := cmp.Diff(expectedParams, config.ParameterValues); diff != "" {
+		t.Fatalf("result didn't match expected:\n%s", diff)
 	}
 }
