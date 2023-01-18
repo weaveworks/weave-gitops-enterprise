@@ -11,14 +11,14 @@ import {
   makeObjectId,
   TerraformNodesMap,
   TerraformObjectNode,
-} from './utils';
+} from './dependencies';
 
 type Props = {
   className?: string;
   object: TerraformObject;
 };
 
-function TerraformDependencyView({ className, object }: Props) {
+function TerraformDependenciesView({ className, object }: Props) {
   const { isLoading, data, error } = useListTerraformObjects();
   const [graphNodes, setGraphNodes] = React.useState<TerraformObjectNode[]>([]);
 
@@ -89,6 +89,6 @@ function TerraformDependencyView({ className, object }: Props) {
   );
 }
 
-export default styled(TerraformDependencyView).attrs({
-  className: TerraformDependencyView.name,
+export default styled(TerraformDependenciesView).attrs({
+  className: TerraformDependenciesView.name,
 })``;
