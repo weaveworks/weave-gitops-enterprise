@@ -320,7 +320,7 @@ const CreateSecret = () => {
         }
       })
       .finally(() => setLoading(false));
-  }, [formData]);
+  }, [formData, getClusterAutomations, history, setNotifications]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
