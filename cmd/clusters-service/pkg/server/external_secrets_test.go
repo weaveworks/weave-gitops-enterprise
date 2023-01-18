@@ -289,9 +289,13 @@ func TestListSecretStores(t *testing.T) {
 								},
 							},
 						},
+					},
+				},
+				&esv1beta1.ClusterSecretStoreList{
+					Items: []esv1beta1.ClusterSecretStore{
 						{
 							ObjectMeta: metav1.ObjectMeta{
-								Name:      "secret-store-3",
+								Name:      "cluster-ecret-store-3",
 								Namespace: "namespace-a",
 							},
 							Spec: esv1beta1.SecretStoreSpec{
@@ -302,7 +306,7 @@ func TestListSecretStores(t *testing.T) {
 						},
 						{
 							ObjectMeta: metav1.ObjectMeta{
-								Name:      "secret-store-4",
+								Name:      "cluster-secret-store-4",
 								Namespace: "namespace-a",
 							},
 							Spec: esv1beta1.SecretStoreSpec{
@@ -323,15 +327,36 @@ func TestListSecretStores(t *testing.T) {
 						Name: "namespace-b",
 					},
 				},
-				&esv1beta1.SecretStore{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "secret-store-5",
-						Namespace: "namespace-b",
+				&esv1beta1.SecretStoreList{
+					Items: []esv1beta1.SecretStore{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "secret-store-5",
+								Namespace: "namespace-b",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									AWS: &esv1beta1.AWSProvider{
+										Region: "eu-north-1",
+									},
+								},
+							},
+						},
 					},
-					Spec: esv1beta1.SecretStoreSpec{
-						Provider: &esv1beta1.SecretStoreProvider{
-							AWS: &esv1beta1.AWSProvider{
-								Region: "eu-north-1",
+				},
+				&esv1beta1.ClusterSecretStoreList{
+					Items: []esv1beta1.ClusterSecretStore{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "cluster-secret-store-6",
+								Namespace: "namespace-b",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									AWS: &esv1beta1.AWSProvider{
+										Region: "eu-north-1",
+									},
+								},
 							},
 						},
 					},
@@ -364,15 +389,15 @@ func TestListSecretStores(t *testing.T) {
 						Type:      "Azure Key Vault",
 					},
 					{
-						Kind:      esv1beta1.SecretStoreKind,
-						Name:      "secret-store-3",
-						Namespace: "namespace-a",
+						Kind:      esv1beta1.ClusterSecretStoreKind,
+						Name:      "cluster-secret-store-3",
+						Namespace: "",
 						Type:      "Google Cloud Platform Secret Manager",
 					},
 					{
-						Kind:      esv1beta1.SecretStoreKind,
-						Name:      "secret-store-4",
-						Namespace: "namespace-a",
+						Kind:      esv1beta1.ClusterSecretStoreKind,
+						Name:      "cluster-secret-store-4",
+						Namespace: "",
 						Type:      "HashiCorp Vault",
 					},
 				},
@@ -389,6 +414,12 @@ func TestListSecretStores(t *testing.T) {
 						Kind:      esv1beta1.SecretStoreKind,
 						Name:      "secret-store-5",
 						Namespace: "namespace-b",
+						Type:      "AWS Secrets Manager",
+					},
+					{
+						Kind:      esv1beta1.ClusterSecretStoreKind,
+						Name:      "cluster-secret-store-6",
+						Namespace: "",
 						Type:      "AWS Secrets Manager",
 					},
 				},
