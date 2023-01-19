@@ -1851,7 +1851,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		},
 		[]helm.Chart{})
 	c := createClient(t, makeTestHelmRepository("base"))
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
@@ -1871,7 +1871,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -1906,8 +1906,10 @@ spec:
   values:
     foo: bar
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 
 func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
@@ -1919,7 +1921,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 		},
 		[]helm.Chart{})
 	c := createClient(t, makeTestHelmRepository("base"))
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
 			templatesv1.RenderTypeEnvsubst,
@@ -1943,7 +1945,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -1978,8 +1980,10 @@ spec:
   values:
     foo: defaultFoo
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 
 func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
@@ -1991,7 +1995,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 		},
 		[]helm.Chart{})
 	c := createClient(t, makeTestHelmRepository("base"))
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
 			templatesv1.RenderTypeEnvsubst,
@@ -2015,7 +2019,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2050,8 +2054,10 @@ spec:
   values:
     foo: bar
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 func TestGenerateProfileFiles_with_templates(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
@@ -2067,7 +2073,7 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		"NAMESPACE":    "default",
 	}
 
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
@@ -2087,7 +2093,7 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2122,8 +2128,10 @@ spec:
   values:
     foo: test-cluster-name
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 
 func TestGenerateProfileFilesWithLayers(t *testing.T) {
@@ -2135,7 +2143,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		},
 		[]helm.Chart{})
 	c := createClient(t, makeTestHelmRepository("base"))
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
@@ -2161,7 +2169,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2225,8 +2233,10 @@ spec:
   values:
     foo: bar
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 
 func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
@@ -2244,7 +2254,7 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		"TEST_PARAM":   "this-is-a-test",
 	}
 
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeTemplating),
 		nsn("cluster-foo", "ns-foo"),
@@ -2264,7 +2274,7 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2299,8 +2309,10 @@ spec:
   values:
     foo: this-is-a-test
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 
 func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
@@ -2314,7 +2326,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 	c := createClient(t, makeTestHelmRepository("base"))
 	values := []byte("foo: defaultFoo")
 	profile := fmt.Sprintf("{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
 			templatesv1.RenderTypeEnvsubst,
@@ -2334,7 +2346,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2369,8 +2381,10 @@ spec:
   values:
     foo: defaultFoo
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 
 func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
@@ -2388,7 +2402,7 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 			},
 		})
 	c := createClient(t, makeTestHelmRepository("base"))
-	file, err := generateProfileFiles(
+	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
@@ -2414,7 +2428,7 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2480,8 +2494,10 @@ spec:
   values:
     foo: bar
 status: {}
-`
-	assert.Equal(t, expected, *file.Content)
+`}
+	for i := range files {
+		assert.Equal(t, expected[i], *files[i].Content)
+	}
 }
 
 func makeTestTemplate(renderType string) templatesv1.Template {

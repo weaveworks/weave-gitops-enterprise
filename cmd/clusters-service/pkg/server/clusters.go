@@ -576,12 +576,12 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
 	}
 	profileObjects[helmRepoPath] = append(profileObjects[helmRepoPath], b)
-	
+
 	// Helm release templates
 	for _, v := range helmReleases {
 		helmReleasePath := defaultPath
 		chartItems := template.GetSpec().Charts.Items
-		for i, _ := range chartItems {
+		for i := range chartItems {
 			fmt.Printf("helmRepoTemplatePath: chartItems[i].Chart: %s , v.Name %s", chartItems[i].Chart, v.Name)
 
 			if chartItems[i].Chart == v.Name {
