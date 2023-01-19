@@ -128,7 +128,10 @@ func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef 
 				chartKind = "profile"
 			}
 			err := cache.AddChart(
-				context.Background(), name, version.Version, chartKind,
+				context.Background(),
+				name,
+				version.Version,
+				chartKind,
 				version.Annotations[LayerAnnotation],
 				clusterRef,
 				helm.ObjectReference{Name: helmRepo.Name, Namespace: helmRepo.Namespace},

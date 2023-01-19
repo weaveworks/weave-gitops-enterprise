@@ -578,7 +578,6 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider
 }
 
 func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease) ([]byte, error) {
-	fmt.Println("helmRepo: ", helmRepo)
 	out := [][]byte{}
 	// Add HelmRepository object
 	b, err := yaml.Marshal(helmRepo)

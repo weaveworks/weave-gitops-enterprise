@@ -174,7 +174,7 @@ func TestProfileAnnotations(t *testing.T) {
 			Annotations: map[string]string{
 				"capi.weave.works/profile-0": "test-profile-0",
 				"capi.weave.works/profile-1": "test-profile-1",
-				// mispelled profile annotation
+				// misspelled profile annotation
 				"capi.weave.works/profiles-1": "test-profile",
 				"other-annot":                 "test-profile",
 			},
@@ -196,6 +196,7 @@ func TestProfileAnnotations(t *testing.T) {
 	}
 }
 
+// FIXME: try and share this with the other tests
 func makeCAPITemplate(t *testing.T, opts ...func(*capiv1.CAPITemplate)) *capiv1.CAPITemplate {
 	t.Helper()
 	basicRaw := `

@@ -21,8 +21,8 @@ func ProfileAnnotations(tmpl templatesv1.Template) map[string]string {
 	return profileAnnotations
 }
 
-// profileAnnotation is a struct to unmarshal the profile annotations
-// "required" and should be a pointer so that we can tell if it was set or not
+// profileAnnotation is a struct to unmarshal the profile annotations.
+// "required" should be a pointer so that we can tell if it was set or not
 // as its default value is true even if it was not set
 type profileAnnotation struct {
 	Name      string `json:"name"`
@@ -102,7 +102,7 @@ func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 func TemplateHasRequiredProfiles(tl templatesv1.Template) (bool, error) {
 	profiles, err := GetProfilesFromTemplate(tl)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to get profiles from template: %w", err)
 	}
 	for _, p := range profiles {
 		if p.Required {

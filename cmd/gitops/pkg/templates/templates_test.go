@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -592,6 +594,80 @@ func TestGetTemplateProfiles(t *testing.T) {
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
+func TestParseProfileFlags(t *testing.T) {
+
+	// make an example values.yaml in a temp dir
+	tmpDir := t.TempDir()
+	valuesFile := filepath.Join(tmpDir, "values.yaml")
+	err := ioutil.WriteFile(valuesFile, []byte("foo: bar"), 0644)
+	assert.NoError(t, err)
+
+	tests := []struct {
+		testName    string
+		profiles    []string
+		expected    []templates.ProfileValues
+		expectedErr string
+	}{
+		{
+			testName: "no profiles",
+			profiles: []string{"name=profile-a,version=v0.0.15"},
+			expected: []templates.ProfileValues{
+				{
+					Name:    "profile-a",
+					Version: "v0.0.15",
+				},
+			},
+		},
+		{
+			testName: "with values",
+			profiles: []string{fmt.Sprintf("name=profile-a,version=v0.0.15,values=%s", valuesFile)},
+			expected: []templates.ProfileValues{
+				{
+					Name:    "profile-a",
+					Version: "v0.0.15",
+					// base64 encoded version of "foo: bar"
+					Values: "Zm9vOiBiYXI=",
+				},
+			},
+		},
+		{
+			testName:    "missing name",
+			profiles:    []string{"version=v0.0.15"},
+			expectedErr: "profile name must be specified",
+		},
+		{
+			testName:    "invalid version",
+			profiles:    []string{"name=profile-a,version=foo"},
+			expectedErr: "invalid semver for version: foo, improper constraint: foo",
+		},
+		{
+			testName:    "invalid namespace",
+			profiles:    []string{"name=profile-a,namespace='how do you do'"},
+			expectedErr: "invalid value for namespace: 'how do you do'",
+		},
+		{
+			testName: "multiple profiles",
+			profiles: []string{"name=profile-a,version=v0.0.15", "name=profile-b,version=v0.0.16"},
+			expected: []templates.ProfileValues{
+				{Name: "profile-a", Version: "v0.0.15"},
+				{Name: "profile-b", Version: "v0.0.16"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			actual, err := templates.ParseProfileFlags(tt.profiles)
+			if tt.expectedErr != "" {
+				assert.EqualError(t, err, tt.expectedErr)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, actual)
 			}
 		})
 	}

@@ -491,6 +491,10 @@ func ParseProfileFlags(profiles []string) ([]ProfileValues, error) {
 			}
 		}
 
+		if _, ok := profileMap["name"]; !ok {
+			return nil, fmt.Errorf("profile name must be specified")
+		}
+
 		profileJson, err := json.Marshal(profileMap)
 		if err != nil {
 			return nil, err
