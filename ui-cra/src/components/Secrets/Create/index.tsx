@@ -1,7 +1,7 @@
 import { MenuItem } from '@material-ui/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import { ClusterAutomation, ExternalSecretStore } from '../../../cluster-services/cluster_services.pb';
 import useClusters from '../../../hooks/clusters';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
@@ -33,6 +33,7 @@ import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { clearCallbackState } from '../../GitAuth/utils';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -69,7 +70,6 @@ interface FormData {
     isControlPlane: boolean;
     secret_name: string;
     secret_namespace: string;
-    secretStoreValue: string;
     secretStoreRef: string;
     data_secretKey: string;
     data_remoteRef_key: string;
@@ -79,12 +79,13 @@ interface FormData {
 
 interface SelectSecretStoreProps {
   cluster: string;
-  secretStoreValue: string;
   handleSelectSecretStore: (event: React.ChangeEvent<any>) => void;
+  handleFormData: (event: React.ChangeEvent<{ name?: string; value: unknown }>, fieldName:string) => void;
   formError: string;
   secretStoreRef: string;
   secretStoreType: string;
   secret_namespace: string;
+  selectedSecretStore: ExternalSecretStore;
 }
 
 function getInitialData(
@@ -139,6 +140,7 @@ const CreateSecret = () => {
   const [showAuthDialog, setShowAuthDialog] = useState<boolean>(false);
   const [formData, setFormData] = useState<any>(initialFormData);
   const [submitType, setSubmitType] = useState<string>('');
+  const [selectedSecretStore, setSelectedSecretStore] = useState<ExternalSecretStore>()
 
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
@@ -163,9 +165,10 @@ const CreateSecret = () => {
     data_remoteRef_property,
     cluster_namespace,
     isControlPlane,
-    secretStoreValue,
     target_Cluster,
   } = automation;
+
+  useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
     if (!formData.repo) {
@@ -179,14 +182,16 @@ const CreateSecret = () => {
   const handleSelectSecretStore = (event: React.ChangeEvent<any>) => {
     const sercetStore = event.target.value;
     const value = JSON.parse(sercetStore);
+    setSelectedSecretStore(value)
+
     let currentAutomation = [...formData.clusterAutomations];
     currentAutomation[0] = {
       ...automation,
       secretStoreRef: value.name,
       secret_namespace: value.namespace,
       secretStoreType: value.type,
-      secretStoreValue: value,
     };
+
     setFormData({
       ...formData,
       clusterAutomations: currentAutomation,
@@ -196,14 +201,17 @@ const CreateSecret = () => {
   const HandleSelectCluster = (event: React.ChangeEvent<any>) => {
     const cluster = event.target.value;
     const value = JSON.parse(cluster);
-
     let currentAutomation = [...formData.clusterAutomations];
+    setSelectedSecretStore({})
+
     currentAutomation[0] = {
       ...automation,
       isControlPlane: value.name === 'management' ? true : false,
       cluster_name: value.name,
       cluster_namespace: value.namespace,
       target_Cluster: value,
+      secretStoreType:'',
+      secret_namespace:''
     };
     setFormData({
       ...formData,
@@ -290,7 +298,6 @@ const CreateSecret = () => {
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
-    console.log(payload)
     setLoading(true);
     return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
       .then(response => {
@@ -323,7 +330,7 @@ const CreateSecret = () => {
       })
       .finally(() => setLoading(false));
   }, [formData, getClusterAutomations, history, setNotifications]);
-
+  
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate
@@ -397,13 +404,18 @@ const CreateSecret = () => {
                 </div>
                 {isclusterSelected && (
                   <SelectSecretStore
-                    cluster={cluster_name}
-                    secretStoreValue={secretStoreValue}
+                    cluster={
+                      cluster_namespace
+                        ? `${cluster_namespace}/${cluster_name}`
+                        : cluster_name
+                    }
                     handleSelectSecretStore={handleSelectSecretStore}
                     formError={formError}
+                    handleFormData={handleFormData}
                     secretStoreRef={secretStoreRef}
                     secretStoreType={secretStoreType}
                     secret_namespace={secret_namespace}
+                    selectedSecretStore={selectedSecretStore || {}}
                   />
                 )}
                 <Input
@@ -466,12 +478,13 @@ export default CreateSecret;
 export const SelectSecretStore = (props: SelectSecretStoreProps) => {
   const {
     cluster,
-    secretStoreValue,
     handleSelectSecretStore,
+    handleFormData,
     formError,
     secretStoreRef,
     secretStoreType,
     secret_namespace,
+    selectedSecretStore
   } = props;
   const { data, isLoading } = useGetSecretStoreDetails({
     clusterName: cluster,
@@ -484,7 +497,7 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
         name="secretStoreRef"
         required
         label="SECRET STORE"
-        value={secretStoreValue}
+        value={JSON.stringify(selectedSecretStore)}
         onChange={handleSelectSecretStore}
         error={formError === 'secretStoreRef' && !secretStoreRef}
       >
@@ -518,8 +531,11 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
         name="secret_namespace"
         label="TARGET NAMESPACE"
         value={secret_namespace}
-        disabled
-        error={false}
+        disabled={selectedSecretStore.namespace?.length? true : false}
+        onChange={event =>
+          handleFormData(event, 'secret_namespace')
+        }
+        error={formError === 'secret_namespace' && !secret_namespace}
       />
     </div>
   );
