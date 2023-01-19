@@ -196,6 +196,7 @@ func TestProcessor_Params(t *testing.T) {
 				{Name: "INTERVAL"},
 				{Name: "SPECIAL_CLUSTER_PATH"},
 				{Name: "TEST_PARAMETER"},
+				{Name: "TEST_PATH"},
 			},
 		},
 		{
