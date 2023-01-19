@@ -216,7 +216,7 @@ const CreateSecret = () => {
       isControlPlane: value.name === 'management' ? true : false,
       cluster_name: value.name,
       cluster_namespace: value.namespace,
-      target_cluster: value,
+      target_cluster: cluster,
       secretStoreType: '',
       secret_namespace: '',
     };
