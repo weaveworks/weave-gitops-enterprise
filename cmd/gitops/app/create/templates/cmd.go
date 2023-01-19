@@ -258,7 +258,12 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 	if len(profiles) > 0 || templateHasRequiredProfiles {
 		entry, index, err := localHelmRepo(helmRepoName, settings)
 		if err != nil {
-			return nil, fmt.Errorf("template has profiles and loading local helm repo data failed, try `helm repo add`. (%w)", err)
+			return nil, fmt.Errorf(
+				"template has profiles and loading local helm repo data failed, try `helm repo add`. (RepositoryConfig: %s, RepositoryCache: %s): %w",
+				settings.RepositoryConfig,
+				settings.RepositoryCache,
+				err,
+			)
 		}
 		helmRepo = fluxHelmRepo(entry)
 		helmRepoRef = types.NamespacedName{Name: helmRepo.Name, Namespace: helmRepo.Namespace}

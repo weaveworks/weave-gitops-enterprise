@@ -1,4 +1,5 @@
 template-file: testdata/template-with-charts.yaml
+helm-repo-name: test-repo
 values:
   - CLUSTER_NAME=test-cluster
   - RESOURCE_NAME=test-resource

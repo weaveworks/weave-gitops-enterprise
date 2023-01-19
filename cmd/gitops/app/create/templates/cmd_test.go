@@ -203,6 +203,19 @@ func TestRunWithProfiles(t *testing.T) {
 	// make a temp dir to store the output
 	tmpDir := t.TempDir()
 
+	// Set and restore some env
+	keyCache := "HELM_REPOSITORY_CACHE"
+	keyConfig := "HELM_REPOSITORY_CONFIG"
+	repoCache, _ := os.LookupEnv(keyCache)
+	repoConfig, _ := os.LookupEnv(keyConfig)
+	// Set up the test paths for helm repo and cache
+	os.Setenv(keyCache, testSettings.RepositoryCache)
+	os.Setenv(keyConfig, testSettings.RepositoryConfig)
+	defer func() {
+		os.Setenv(keyCache, repoCache)
+		os.Setenv(keyConfig, repoConfig)
+	}()
+
 	cmd := CreateCommand
 	cmd.SetArgs([]string{
 		"--config", "testdata/config-with-values.yaml",
