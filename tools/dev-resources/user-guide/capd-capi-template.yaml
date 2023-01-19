@@ -1,10 +1,12 @@
-apiVersion: capi.weave.works/v1alpha2
-kind: CAPITemplate
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
 metadata:
   name: cluster-template-development
   namespace: default
   annotations:
     templates.weave.works/profiles-enabled: "true"
+    templates.weave.works/inject-prune-annotation: "true"
+    templates.weave.works/add-common-bases: "true"
 spec:
   description: A simple CAPD template
   params:
@@ -30,10 +32,12 @@ spec:
       - chart: cert-manager
         targetNamespace: cert-manager
         version: 0.0.8
-        spec:
-          install:
-            remediation:
-              retries: 3
+        template:
+          content:
+            spec:
+              install:
+                remediation:
+                  retries: 3
   resourcetemplates:
     - content:
         - apiVersion: gitops.weave.works/v1alpha1
