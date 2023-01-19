@@ -63,7 +63,7 @@ interface FormData {
   commitMessage: string;
   pullRequestDescription: string;
   clusterAutomations: {
-    target_Cluster: string;
+    target_cluster: string;
     cluster_name: string;
     cluster_namespace: string;
     isControlPlane: boolean;
@@ -164,7 +164,7 @@ const CreateSecret = () => {
     cluster_namespace,
     isControlPlane,
     secretStoreValue,
-    target_Cluster,
+    target_cluster,
   } = automation;
 
   useEffect(() => {
@@ -203,7 +203,7 @@ const CreateSecret = () => {
       isControlPlane: value.name === 'management' ? true : false,
       cluster_name: value.name,
       cluster_namespace: value.namespace,
-      target_Cluster: value,
+      target_cluster: cluster,
     };
     setFormData({
       ...formData,
@@ -268,7 +268,7 @@ const CreateSecret = () => {
         },
       },
     });
-    return clusterAutomations
+    return clusterAutomations;
   }, [
     cluster_name,
     cluster_namespace,
@@ -290,7 +290,7 @@ const CreateSecret = () => {
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
-    console.log(payload)
+    console.log(payload);
     setLoading(true);
     return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
       .then(response => {
@@ -378,7 +378,7 @@ const CreateSecret = () => {
                     name="cluster_name"
                     required={true}
                     label="TARGET CLUSTER"
-                    value={target_Cluster}
+                    value={target_cluster}
                     onChange={HandleSelectCluster}
                     error={formError === 'cluster_name' && !cluster_name}
                   >
