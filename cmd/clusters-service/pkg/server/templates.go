@@ -3,7 +3,6 @@ package server
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -24,7 +23,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
 )
 
 type GetFilesRequest struct {
@@ -199,7 +197,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
 	}
 
-	profiles, err := getProfilesFromTemplate(tm)
+	profiles, err := templates.GetProfilesFromTemplate(tm)
 	if err != nil {
 		return nil, fmt.Errorf("error getting profiles from template %v, %v", msg.TemplateName, err)
 	}
@@ -344,7 +342,7 @@ func GetFiles(
 		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
 	}
 
-	templateHasRequiredProfiles, err := TemplateHasRequiredProfiles(tmpl)
+	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
 	}
@@ -515,71 +513,4 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	}
 
 	return templates
-}
-
-func TemplateHasRequiredProfiles(tl templatesv1.Template) (bool, error) {
-	profiles, err := getProfilesFromTemplate(tl)
-	if err != nil {
-		return false, err
-	}
-	for _, p := range profiles {
-		if p.Required {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {
-	profilesIndex := map[string]*capiv1_proto.TemplateProfile{}
-	for _, v := range templates.ProfileAnnotations(tl) {
-		profile := capiv1_proto.TemplateProfile{}
-		err := json.Unmarshal([]byte(v), &profile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal profiles: %w", err)
-		}
-		if profile.Name == "" {
-			return nil, fmt.Errorf("profile name is required")
-		}
-
-		profilesIndex[profile.Name] = &profile
-	}
-
-	// Override anything that was still in the index with the profiles from the spec
-	for _, v := range tl.GetSpec().Charts.Items {
-		profile := capiv1_proto.TemplateProfile{
-			Name:      v.Chart,
-			Version:   v.Version,
-			Namespace: v.TargetNamespace,
-			Layer:     v.Layer,
-			Required:  v.Required,
-			Editable:  v.Editable,
-		}
-
-		if v.Values != nil {
-			valuesBytes, err := yaml.Marshal(v.Values)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal profile.values for %s: %w", v.Chart, err)
-			}
-			profile.Values = string(valuesBytes)
-		}
-
-		if v.HelmReleaseTemplate.Content != nil {
-			profileTemplateBytes, err := yaml.Marshal(v.HelmReleaseTemplate.Content)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Chart, err)
-			}
-			profile.ProfileTemplate = string(profileTemplateBytes)
-		}
-
-		profilesIndex[profile.Name] = &profile
-	}
-
-	profiles := []*capiv1_proto.TemplateProfile{}
-	for _, v := range profilesIndex {
-		profiles = append(profiles, v)
-	}
-	sort.Slice(profiles, func(i, j int) bool { return profiles[i].Name < profiles[j].Name })
-
-	return profiles, nil
 }

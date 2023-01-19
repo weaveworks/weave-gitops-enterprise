@@ -610,7 +610,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl)
+	requiredProfiles, err := templates.GetProfilesFromTemplate(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}

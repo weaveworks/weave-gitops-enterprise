@@ -19,6 +19,7 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	clitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
@@ -247,7 +248,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		return nil, fmt.Errorf("could not create charts cache: %w", err)
 	}
 
-	templateHasRequiredProfiles, err := server.TemplateHasRequiredProfiles(tmpl)
+	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
 	}

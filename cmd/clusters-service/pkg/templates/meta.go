@@ -2,10 +2,8 @@ package templates
 
 import (
 	"fmt"
-	"strings"
 
 	apitemplates "github.com/weaveworks/templates-controller/apis/core"
-	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -61,16 +59,6 @@ func ParseTemplateMeta(s apitemplates.Template, annotation string) (*TemplateMet
 		Objects:     objects,
 		Params:      enriched,
 	}, nil
-}
-
-func ProfileAnnotations(tmpl templatesv1.Template) map[string]string {
-	profileAnnotations := make(map[string]string)
-	for k, v := range tmpl.GetAnnotations() {
-		if strings.HasPrefix(k, ProfilesAnnotation) {
-			profileAnnotations[k] = v
-		}
-	}
-	return profileAnnotations
 }
 
 // Object contains the details of the object rendered from a template along with
