@@ -109,7 +109,7 @@ func GetWorkspaceDetailsPage(webDriver *agouti.Page) *WorkspaceDetailsPage {
 func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 	return &ServiceAccounts{
 		Name:                    webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		ServiceAccountsManifest: webDriver.FindByXPath(`//*[contains(text(),'Service Accounts Manifest')]`),
+		ServiceAccountsManifest: webDriver.FindByXPath(`(//span[@class='token key'][normalize-space()='apiVersion'])[1]`),
 		ManifestCloseBtn:        webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
 		Namespace:               webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		Age:                     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
