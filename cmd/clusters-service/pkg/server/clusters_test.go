@@ -2476,6 +2476,8 @@ status: {}
 	assert.Equal(t, expected, *file.Content)
 }
 
+// generateProfiles takes in a HelmRepo that we are going to write to git,
+// it shouldn't have Status etc set
 func makeTestHelmRepositoryTemplate(base string) *sourcev1.HelmRepository {
 	return makeTestHelmRepository(base, func(hr *sourcev1.HelmRepository) {
 		hr.Status = sourcev1.HelmRepositoryStatus{}

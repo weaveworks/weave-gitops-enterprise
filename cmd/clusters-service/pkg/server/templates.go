@@ -360,21 +360,9 @@ func GetFiles(
 			if client == nil {
 				return nil, fmt.Errorf("client is nil, cannot get Helm repository")
 			}
-			existingHelmRepo := &sourcev1.HelmRepository{}
-			err := client.Get(ctx, profileHelmRepository, existingHelmRepo)
+			helmRepo, err = copyHelmRepository(ctx, client, profileHelmRepository)
 			if err != nil {
-				return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", profileHelmRepository.Name, profileHelmRepository.Namespace, err)
-			}
-			helmRepo = &sourcev1.HelmRepository{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       sourcev1.HelmRepositoryKind,
-					APIVersion: sourcev1.GroupVersion.Identifier(),
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      profileHelmRepository.Name,
-					Namespace: profileHelmRepository.Namespace,
-				},
-				Spec: existingHelmRepo.Spec,
+				return nil, fmt.Errorf("failed to copy Helm repository: %w", err)
 			}
 		}
 
@@ -425,6 +413,28 @@ func GetFiles(
 	}
 
 	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate, ExternalSecretsFiles: externalSecretFiles}, err
+}
+
+// Make a copy of the Helm repository that we can save to git.
+// Copy is just the name/namespace/spec.
+// We don't need the status, annotations or labels etc.
+func copyHelmRepository(ctx context.Context, client client.Client, profileHelmRepository types.NamespacedName) (*sourcev1.HelmRepository, error) {
+	existingHelmRepo := &sourcev1.HelmRepository{}
+	err := client.Get(ctx, profileHelmRepository, existingHelmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", profileHelmRepository.Name, profileHelmRepository.Namespace, err)
+	}
+	return &sourcev1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      profileHelmRepository.Name,
+			Namespace: profileHelmRepository.Namespace,
+		},
+		Spec: existingHelmRepo.Spec,
+	}, nil
 }
 
 func getCluster(namespace string, msg GetFilesRequest) (types.NamespacedName, error) {
