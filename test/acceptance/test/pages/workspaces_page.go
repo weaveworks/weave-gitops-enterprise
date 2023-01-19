@@ -32,11 +32,11 @@ type WorkspaceDetailsPage struct {
 }
 
 type ServiceAccounts struct {
-	Name               *agouti.Selection
-	ServiceAccountsApi *agouti.Selection
-	ManifestCloseBtn   *agouti.Selection
-	Namespace          *agouti.Selection
-	Age                *agouti.Selection
+	Name                    *agouti.Selection
+	ServiceAccountsManifest *agouti.Selection
+	ManifestCloseBtn        *agouti.Selection
+	Namespace               *agouti.Selection
+	Age                     *agouti.Selection
 }
 
 type Roles struct {
@@ -108,11 +108,11 @@ func GetWorkspaceDetailsPage(webDriver *agouti.Page) *WorkspaceDetailsPage {
 
 func GetWorkspaceServiceAccounts(webDriver *agouti.Page) *ServiceAccounts {
 	return &ServiceAccounts{
-		Name:               webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
-		ServiceAccountsApi: webDriver.FindByXPath(`//p[@class='MuiTypography-root MuiTypography-body1']`),
-		ManifestCloseBtn:   webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
-		Namespace:          webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
-		Age:                webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
+		Name:                    webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[1]`),
+		ServiceAccountsManifest: webDriver.FindByXPath(`//*[contains(text(),'Service Accounts Manifest')]`),
+		ManifestCloseBtn:        webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
+		Namespace:               webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
+		Age:                     webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
 	}
 }
 
