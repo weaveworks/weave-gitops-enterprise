@@ -356,9 +356,7 @@ func GetFiles(
 		}
 
 		helmRepo := msg.HelmRepository
-		fmt.Println("helmRepo", helmRepo)
 		if helmRepo == nil {
-			fmt.Println("client", client)
 			if client == nil {
 				return nil, fmt.Errorf("client is nil, cannot get Helm repository")
 			}
