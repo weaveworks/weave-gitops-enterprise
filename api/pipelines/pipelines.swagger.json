@@ -96,6 +96,42 @@
         ]
       }
     },
+    "/v1/pipelines/list_prs/{pipelineName}": {
+      "get": {
+        "operationId": "Pipelines_ListPullRequests",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPullRequestsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pipelineName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pipelineNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
     "/v1/pipelines/{name}": {
       "get": {
         "operationId": "Pipelines_GetPipeline",
@@ -280,6 +316,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListPullRequestsResponse": {
+      "type": "object",
+      "properties": {
+        "pullRequests": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }

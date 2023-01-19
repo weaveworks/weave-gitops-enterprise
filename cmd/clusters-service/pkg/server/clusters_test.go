@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
-	"strings"
 	"testing"
 	"text/template"
 	"time"
@@ -20,7 +19,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
@@ -43,6 +41,7 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git/gitfakes"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -384,7 +383,7 @@ func TestCreatePullRequest(t *testing.T) {
 		pruneEnvVar    string
 		req            *capiv1_protos.CreatePullRequestRequest
 		expected       string
-		committedFiles []*capiv1_protos.CommitFile
+		CommittedFiles []*capiv1_protos.CommitFile
 		err            error
 	}{
 		{
@@ -444,7 +443,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
+			provider: gitfakes.NewFakeGitProvider("", nil, errors.New("oops"), nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -466,7 +465,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -488,7 +487,7 @@ func TestCreatePullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -510,7 +509,7 @@ func TestCreatePullRequest(t *testing.T) {
 					},
 				},
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/default/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -595,7 +594,7 @@ status: {}
 					c.Spec.ResourceTemplates[0].Path = "clusters/foo.yml"
 				}),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName:      "cluster-template-1",
 				TemplateNamespace: "default",
@@ -610,7 +609,7 @@ status: {}
 				Description:   "Creates a cluster through a CAPI template",
 				CommitMessage: "Add cluster manifest",
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/foo.yml",
 					Content: `apiVersion: fooversion
@@ -655,7 +654,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -678,7 +677,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -763,7 +762,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -795,7 +794,7 @@ status: {}
 					},
 				},
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -879,7 +878,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -917,7 +916,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -947,7 +946,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -981,7 +980,7 @@ status: {}
 					Credentials: &capiv1_protos.Credential{},
 				},
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/my-cluster/clusters/clusters-namespace/dev.yaml",
 					Content: `apiVersion: fooversion
@@ -1030,7 +1029,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -1073,7 +1072,7 @@ status: {}
 					Credentials: &capiv1_protos.Credential{},
 				},
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/clusters-namespace-2/dev/apps-capi-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -1150,7 +1149,7 @@ metadata:
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -1193,7 +1192,7 @@ metadata:
 					Credentials: &capiv1_protos.Credential{},
 				},
 			},
-			committedFiles: []*capiv1_protos.CommitFile{
+			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/clusters-namespace-2/dev/apps-capi-2-flux-system-kustomization.yaml",
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -1307,9 +1306,9 @@ metadata:
 				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
-				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				fakeGitProvider := (tt.provider).(*gitfakes.FakeGitProvider)
 
-				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
+				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.CommittedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.CommittedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
 			}
@@ -1543,7 +1542,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		name           string
 		provider       git.Provider
 		req            *capiv1_protos.DeleteClustersPullRequestRequest
-		committedFiles []*capiv1_protos.CommitFile
+		CommittedFiles []*capiv1_protos.CommitFile
 		expected       string
 		err            error
 	}{
@@ -1555,7 +1554,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 
 		{
 			name:     "create delete pull request",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNames:  []string{"foo", "bar"},
 				RepositoryUrl: "https://github.com/org/repo.git",
@@ -1569,10 +1568,10 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		},
 		{
 			name: "create delete pull request including multiple files in tree",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
 				"clusters/default/foo/kustomization.yaml",
 				"clusters/management/clusters/default/foo.yaml",
-			}),
+			}, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNames:  []string{"foo"},
 				RepositoryUrl: "https://github.com/org/repo.git",
@@ -1586,7 +1585,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		},
 		{
 			name:     "create delete pull request with namespaced cluster names",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
 					testNewClusterNamespacedName(t, "foo", "ns-foo"),
@@ -1603,10 +1602,10 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		},
 		{
 			name: "create delete pull request with namespaced cluster names including multiple files in tree",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, []string{
 				"clusters/ns-foo/foo/kustomization.yaml",
 				"clusters/management/clusters/ns-foo/foo.yaml",
-			}),
+			}, nil),
 			req: &capiv1_protos.DeleteClustersPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
 					{
@@ -1648,23 +1647,23 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				if diff := cmp.Diff(tt.expected, deletePullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
-				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				fakeGitProvider := (tt.provider).(*gitfakes.FakeGitProvider)
 
-				if fakeGitProvider.originalFiles != nil {
-					// sort committedFiles and originalFiles for comparison
-					sort.Slice(fakeGitProvider.committedFiles[:], func(i, j int) bool {
-						currFile := *fakeGitProvider.committedFiles[i].Path
-						nextFile := *fakeGitProvider.committedFiles[j].Path
+				if fakeGitProvider.OriginalFiles != nil {
+					// sort CommittedFiles and OriginalFiles for comparison
+					sort.Slice(fakeGitProvider.CommittedFiles[:], func(i, j int) bool {
+						currFile := *fakeGitProvider.CommittedFiles[i].Path
+						nextFile := *fakeGitProvider.CommittedFiles[j].Path
 						return currFile < nextFile
 					})
-					sort.Strings(fakeGitProvider.originalFiles)
+					sort.Strings(fakeGitProvider.OriginalFiles)
 
-					if len(fakeGitProvider.committedFiles) != len(fakeGitProvider.originalFiles) {
-						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.committedFiles), len(fakeGitProvider.originalFiles))
+					if len(fakeGitProvider.CommittedFiles) != len(fakeGitProvider.OriginalFiles) {
+						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.CommittedFiles), len(fakeGitProvider.OriginalFiles))
 					}
-					for ind, committedFile := range fakeGitProvider.committedFiles {
-						if *committedFile.Path != fakeGitProvider.originalFiles[ind] {
-							t.Fatalf("committed file does not match expected file\n%v\n%v", *committedFile.Path, fakeGitProvider.originalFiles[ind])
+					for ind, committedFile := range fakeGitProvider.CommittedFiles {
+						if *committedFile.Path != fakeGitProvider.OriginalFiles[ind] {
+							t.Fatalf("committed file does not match expected file\n%v\n%v", *committedFile.Path, fakeGitProvider.OriginalFiles[ind])
 
 						}
 					}
@@ -1713,84 +1712,84 @@ func makeTestGitopsCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv
 	return c
 }
 
-func NewFakeGitProvider(url string, repo *git.GitRepo, err error, originalFilesPaths []string) git.Provider {
-	return &FakeGitProvider{
-		url:           url,
-		repo:          repo,
-		err:           err,
-		originalFiles: originalFilesPaths,
-	}
-}
+// func NewFakeGitProvider(url string, repo *git.GitRepo, err error, OriginalFilesPaths []string) git.Provider {
+// 	return &FakeGitProvider{
+// 		url:           url,
+// 		repo:          repo,
+// 		err:           err,
+// 		OriginalFiles: OriginalFilesPaths,
+// 	}
+// }
 
-type FakeGitProvider struct {
-	url            string
-	repo           *git.GitRepo
-	err            error
-	committedFiles []gitprovider.CommitFile
-	originalFiles  []string
-}
+// type FakeGitProvider struct {
+// 	url            string
+// 	repo           *git.GitRepo
+// 	err            error
+// 	CommittedFiles []gitprovider.CommitFile
+// 	OriginalFiles  []string
+// }
 
-func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	if p.err != nil {
-		return nil, p.err
-	}
-	p.committedFiles = append(p.committedFiles, req.Files...)
-	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
-}
+// func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
+// 	if p.err != nil {
+// 		return nil, p.err
+// 	}
+// 	p.CommittedFiles = append(p.CommittedFiles, req.Files...)
+// 	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
+// }
 
-func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) (*git.CloneRepoToTempDirResponse, error) {
-	if p.err != nil {
-		return nil, p.err
-	}
-	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
-}
+// func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) (*git.CloneRepoToTempDirResponse, error) {
+// 	if p.err != nil {
+// 		return nil, p.err
+// 	}
+// 	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
+// }
 
-func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
-	if p.err != nil {
-		return nil, p.err
-	}
-	return nil, nil
-}
+// func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
+// 	if p.err != nil {
+// 		return nil, p.err
+// 	}
+// 	return nil, nil
+// }
 
-func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
-	var committedFiles []*capiv1_protos.CommitFile
-	for _, f := range p.committedFiles {
-		content := ""
-		if f.Content != nil {
-			content = *f.Content
-		}
+// func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
+// 	var CommittedFiles []*capiv1_protos.CommitFile
+// 	for _, f := range p.CommittedFiles {
+// 		content := ""
+// 		if f.Content != nil {
+// 			content = *f.Content
+// 		}
 
-		committedFiles = append(committedFiles, &capiv1_protos.CommitFile{
-			Path:    *f.Path,
-			Content: content,
-		})
-	}
-	sortCommitFiles(committedFiles)
-	return committedFiles
-}
+// 		CommittedFiles = append(CommittedFiles, &capiv1_protos.CommitFile{
+// 			Path:    *f.Path,
+// 			Content: content,
+// 		})
+// 	}
+// 	sortCommitFiles(CommittedFiles)
+// 	return CommittedFiles
+// }
 
-func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error) {
-	if p.err != nil {
-		return nil, p.err
-	}
+// func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error) {
+// 	if p.err != nil {
+// 		return nil, p.err
+// 	}
 
-	var treeEntries []*gitprovider.TreeEntry
-	for _, filePath := range p.originalFiles {
-		if path == "" || (path != "" && strings.HasPrefix(filePath, path)) {
-			treeEntries = append(treeEntries, &gitprovider.TreeEntry{
-				Path:    filePath,
-				Mode:    "",
-				Type:    "",
-				Size:    0,
-				SHA:     "",
-				Content: "",
-				URL:     "",
-			})
-		}
+// 	var treeEntries []*gitprovider.TreeEntry
+// 	for _, filePath := range p.OriginalFiles {
+// 		if path == "" || (path != "" && strings.HasPrefix(filePath, path)) {
+// 			treeEntries = append(treeEntries, &gitprovider.TreeEntry{
+// 				Path:    filePath,
+// 				Mode:    "",
+// 				Type:    "",
+// 				Size:    0,
+// 				SHA:     "",
+// 				Content: "",
+// 				URL:     "",
+// 			})
+// 		}
 
-	}
-	return treeEntries, nil
-}
+// 	}
+// 	return treeEntries, nil
+// }
 
 func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 	mux := http.NewServeMux()

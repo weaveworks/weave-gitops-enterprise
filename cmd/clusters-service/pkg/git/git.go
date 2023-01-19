@@ -36,6 +36,7 @@ type Provider interface {
 	CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error)
 	GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error)
 	GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error)
+	ListPullRequests(ctx context.Context, gp GitProvider, url string) ([]gitprovider.PullRequest, error)
 }
 
 type GitProviderService struct {
@@ -239,6 +240,20 @@ func (s *GitProviderService) GetTreeList(ctx context.Context, gp GitProvider, re
 	}
 
 	return treePaths, nil
+}
+
+func (s *GitProviderService) ListPullRequests(ctx context.Context, gp GitProvider, repoURL string) ([]gitprovider.PullRequest, error) {
+	repo, err := s.GetRepository(ctx, gp, repoURL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get repo: %w", err)
+	}
+
+	prs, err := repo.PullRequests().List(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to list pull requests for %q: %w", repoURL, err)
+	}
+
+	return prs, nil
 }
 
 type writeFilesToBranchRequest struct {

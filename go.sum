@@ -397,8 +397,8 @@ github.com/flowstack/go-jsonschema v0.1.1/go.mod h1:yL7fNggx1o8rm9RlgXv7hTBWxdBM
 github.com/fluxcd/flagger v1.21.0 h1:/h3z1BlGhKZfVCTsS50APjAfRyXvGsq0siIhO2UQO3o=
 github.com/fluxcd/flagger v1.21.0/go.mod h1:v7b10ylvAhTDloWbu6R0WJ/HY+DP5rVH1d9UTMZXtkI=
 github.com/fluxcd/flux2 v0.37.0 h1:QbAgRE8sznqoCBvSbOXWZEkSYUh8yfA6on5mVAQH4Vc=
-github.com/fluxcd/go-git-providers v0.11.0 h1:uhERrv9LX1Z+R8w0MIXLajJZSBGEEqsJWCObItFYNW4=
-github.com/fluxcd/go-git-providers v0.11.0/go.mod h1:d/Fu+FtvniNJo6B3HbeEQd4TDTUitsA/zjNOGbEjmDE=
+github.com/fluxcd/go-git-providers v0.13.0 h1:VTuOMfatoqkCrEUOX5CVpSMiA1TIs0ioLh3LPmFCqiw=
+github.com/fluxcd/go-git-providers v0.13.0/go.mod h1:VEItGJ67Xc/7Cadh/oPMPUimXv75R0XqHFtF3J4tIdE=
 github.com/fluxcd/helm-controller/api v0.27.0 h1:Ha5eCS9Xchz+TkbtUNJ6WIeUXYBR/ZXlGHAmHiqdrYY=
 github.com/fluxcd/helm-controller/api v0.27.0/go.mod h1:/qCtlP718rveiAL7Mova4fGAk0aZv2qyYQn87zcUNhs=
 github.com/fluxcd/image-automation-controller/api v0.27.0 h1:Dm2dY6JzTgoIGombOjl/h+ouxfmfjhjHFJQWBr8AlSE=
@@ -659,8 +659,8 @@ github.com/google/go-github/v30 v30.1.0/go.mod h1:n8jBpHl45a/rlBUtRJMOG4GhNADUQF
 github.com/google/go-github/v32 v32.1.0 h1:GWkQOdXqviCPx7Q7Fj+KyPoGm4SwHRh8rheoPhd27II=
 github.com/google/go-github/v32 v32.1.0/go.mod h1:rIEpZD9CTDQwDK9GDrtMTycQNA4JU3qBsCizh3q2WCI=
 github.com/google/go-github/v33 v33.0.0 h1:qAf9yP0qc54ufQxzwv+u9H0tiVOnPJxo0lI/JXqw3ZM=
-github.com/google/go-github/v47 v47.1.0 h1:Cacm/WxQBOa9lF0FT0EMjZ2BWMetQ1TQfyurn4yF1z8=
-github.com/google/go-github/v47 v47.1.0/go.mod h1:VPZBXNbFSJGjyjFRUKo9vZGawTajnWzC/YjGw/oFKi0=
+github.com/google/go-github/v48 v48.2.0 h1:68puzySE6WqUY9KWmpOsDEQfDZsso98rT6pZcz9HqcE=
+github.com/google/go-github/v48 v48.2.0/go.mod h1:dDlehKBDo850ZPvCTK0sEqTCVWcrGl2LcDiajkYi89Y=
 github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
 github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD/fhyJ8=
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
@@ -870,6 +870,8 @@ github.com/julz/importas v0.0.0-20210419104244-841f0c0fe66d/go.mod h1:oSFU2R4XK/
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
 github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213 h1:qGQQKEcAR99REcMpsXCp3lJ03zYT1PkRd3kQGPn9GVg=
 github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213/go.mod h1:vNUNkEQ1e29fT/6vq2aBdFsgNPmy8qMdSay1npru+Sw=
+github.com/k0kubun/pp v3.0.1+incompatible h1:3tqvf7QgUnZ5tXO6pNAZlrvHgl6DvifjDrd9g2S9Z40=
+github.com/k0kubun/pp v3.0.1+incompatible/go.mod h1:GWse8YhT0p8pT4ir3ZgBbfZild3tgzSScAn6HmfYukg=
 github.com/karrick/godirwalk v1.16.1 h1:DynhcF+bztK8gooS0+NDJFrdNZjJ3gzVzC545UNA9iw=
 github.com/karrick/godirwalk v1.16.1/go.mod h1:j4mkqPuvaLI8mp1DroR3P6ad7cyYd4c1qeJ3RV7ULlk=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNUXsshfwJMBgNA0RU6/i7WVaAegv3PtuIHPMs=
@@ -1384,10 +1386,6 @@ github.com/weaveworks/cluster-controller v1.4.1 h1:vnbHPI+0GkcSOp986WvO5D6grb2IM
 github.com/weaveworks/cluster-controller v1.4.1/go.mod h1:NrgkuiyejE2nizsiXNeqaNWfVhpvG2SlAiWHnxKIS4U=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQdHzmBimPxGIus5JOvNPu+tWxOTC+Q4w9fJOok=
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
-github.com/weaveworks/pipeline-controller/api v0.0.0-20221107071813-a57bdcbc3605 h1:TJtISW8uGsTBJla3h0au49AZ3PS/yjU2Cc48OmVwIh8=
-github.com/weaveworks/pipeline-controller/api v0.0.0-20221107071813-a57bdcbc3605/go.mod h1:fyUJp1+WVgxvZ05FMCA6PzarFJUV2BSAhN+DNFTcXSQ=
-github.com/weaveworks/pipeline-controller/api v0.0.0-20221213235143-a71a6bd6b5ee h1:f4ovXlezT4GZKM4itwMH/WWmiGv3zQNMjs3tBicknUg=
-github.com/weaveworks/pipeline-controller/api v0.0.0-20221213235143-a71a6bd6b5ee/go.mod h1:fyUJp1+WVgxvZ05FMCA6PzarFJUV2BSAhN+DNFTcXSQ=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230112113438-e3f798eb925b h1:fK6M9imnKSwe9pKeQHoA1tP7tWOZkpdbKTHPKl8Olfc=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230112113438-e3f798eb925b/go.mod h1:EMw4dkvNuR0GBKVbDFjZMUIma1sZhyS6heAZXM59s0Y=
 github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34 h1:/kqWn0aeSaWTtTqIe14QuY1fJMiypUhz1Bf9wn2U02w=
@@ -1402,8 +1400,8 @@ github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230111081739-3c2197da9546 h1
 github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230111081739-3c2197da9546/go.mod h1:XhJjaBe0LMZjsCeZJjVdj6EpTgHhlEuX+mAMhedjadk=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
-github.com/xanzy/go-gitlab v0.76.0 h1:mkmuB27RDVZY/iXR61pEUfIqJ15Iivfu1kc3KZtBICI=
-github.com/xanzy/go-gitlab v0.76.0/go.mod h1:d/a0vswScO7Agg1CZNz15Ic6SSvBG9vfw8egL99t4kA=
+github.com/xanzy/go-gitlab v0.77.0 h1:UrbGlxkWVCbkpa6Fk6cM8ARh+rLACWemkJnsawT7t98=
+github.com/xanzy/go-gitlab v0.77.0/go.mod h1:d/a0vswScO7Agg1CZNz15Ic6SSvBG9vfw8egL99t4kA=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xanzy/ssh-agent v0.3.0/go.mod h1:3s9xbODqPuuhK9JV1R321M/FlMZSBvE5aY6eAcqrDh0=
 github.com/xanzy/ssh-agent v0.3.2 h1:eKj4SX2Fe7mui28ZgnFW5fmTz1EIr7ugo5s6wDxdHBM=

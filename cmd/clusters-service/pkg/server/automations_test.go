@@ -9,6 +9,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git/gitfakes"
 	"google.golang.org/protobuf/testing/protocmp"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -37,7 +38,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 		},
 		{
 			name:     "pull request failed",
-			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
+			provider: gitfakes.NewFakeGitProvider("", nil, errors.New("oops"), nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -61,7 +62,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 		},
 		{
 			name:     "create pull request",
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -100,7 +101,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -180,7 +181,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -272,7 +273,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -353,7 +354,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -440,7 +441,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -475,7 +476,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -508,7 +509,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -535,7 +536,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -560,7 +561,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -585,7 +586,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -668,7 +669,7 @@ status: {}
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -735,7 +736,7 @@ status:
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -797,7 +798,7 @@ status:
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -863,7 +864,7 @@ status:
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -929,7 +930,7 @@ status:
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -993,7 +994,7 @@ status:
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-01",
@@ -1086,7 +1087,7 @@ status:
 				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
-				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				fakeGitProvider := (tt.provider).(*gitfakes.FakeGitProvider)
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles(), protocmp.Transform()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
