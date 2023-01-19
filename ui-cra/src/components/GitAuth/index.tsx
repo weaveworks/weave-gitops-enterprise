@@ -62,7 +62,7 @@ const GitAuth: FC<{
         }}
         onAuthClick={(provider: GitProvider) => {
           if (provider === ('GitHub' as GitProvider)) {
-            // setShowAuthDialog(true);
+            setShowAuthDialog(true);
           }
         }}
         required
