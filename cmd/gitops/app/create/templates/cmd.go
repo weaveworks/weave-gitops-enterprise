@@ -41,11 +41,11 @@ var CreateCommand = &cobra.Command{
 	  # apply rendered resources of template to path
 	  gitops create template.yaml --values key1=value1,key2=value2 --output-dir ./out 
 
-	  # specify a template file a config file
+	  # specify a template file and a config file
 	  gitops create template.yaml --config config.yaml --output-dir ./out
 
-	  # specify template file and values and in config file
-	  gitops create --config config.yaml
+	  # specify template file and values in a config file
+	  gitops create --config config.yaml --output-dir ./out
 	`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return initializeConfig(cmd)
