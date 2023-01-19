@@ -123,7 +123,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 
 		parsedTemplate, err := parseTemplate(templateFile)
 		if err != nil {
-			return fmt.Errorf("failed to parse template file %s: %w", args[0], err)
+			return fmt.Errorf("failed to parse template file %s: %w", templateFile, err)
 		}
 
 		params := make(map[string]string)

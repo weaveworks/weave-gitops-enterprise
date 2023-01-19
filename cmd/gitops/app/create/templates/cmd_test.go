@@ -4,6 +4,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -193,4 +197,43 @@ func TestGenerateFilesLocallyWithCharts(t *testing.T) {
 	if diff := cmp.Diff(expectedFiles, actualFilenames); diff != "" {
 		t.Fatalf("result didn't match expected:\n%s", diff)
 	}
+}
+
+func TestRunWithProfiles(t *testing.T) {
+	// make a temp dir to store the output
+	tmpDir := t.TempDir()
+
+	cmd := CreateCommand
+	cmd.SetArgs([]string{
+		"--config", "testdata/config-with-values.yaml",
+		"--output-dir", tmpDir,
+	})
+	cmd.SetOut(io.Discard)
+	err := cmd.Execute()
+	assert.NoError(t, err)
+
+	expectedFiles := []string{
+		"clusters/out.yaml",
+		"test-namespace/test-resource/profiles.yaml",
+	}
+
+	actualFilenames := []string{}
+	err = filepath.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			actualFilenames = append(actualFilenames, strings.TrimPrefix(path, tmpDir+"/"))
+		}
+		return nil
+	})
+	assert.NoError(t, err)
+
+	if diff := cmp.Diff(expectedFiles, actualFilenames); diff != "" {
+		t.Fatalf("result didn't match expected:\n%s", diff)
+	}
+
+	// check that the profiles.yaml file contains the expected values
+	profilesFile, err := ioutil.ReadFile(filepath.Join(tmpDir, "test-namespace/test-resource/profiles.yaml"))
+	assert.NoError(t, err)
+	assert.Contains(t, string(profilesFile), "version: '>0.1'")
+	assert.Contains(t, string(profilesFile), "cert-manager")
+	assert.Contains(t, string(profilesFile), "foo: bar")
 }

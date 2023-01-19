@@ -22,6 +22,7 @@ spec:
     items:
       - chart: cert-manager
         required: true
+        editable: true
   resourcetemplates:
     - path: ${PATH}
       content:
