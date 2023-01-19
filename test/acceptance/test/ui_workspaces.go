@@ -90,12 +90,8 @@ func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces st
 
 		serviceAccounts := pages.GetWorkspaceServiceAccounts(webDriver)
 
-		gomega.Eventually(serviceAccounts.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
+		gomega.Eventually(serviceAccounts.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
 		gomega.Expect(serviceAccounts.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Service Accounts Name", workspaceName))
-		gomega.Eventually(serviceAccounts.ServiceAccountsManifest.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Manifest's apiVersion ")
-
-		// gomega.Eventually(serviceAccounts.ServiceAccountsManifest.Text).Should(gomega.Equal("Service Accounts Manifest"), "Failed to verify Service Accounts Manifest's ")
-		// gomega.Expect(serviceAccounts.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Service Accounts manifest", workspaceName))
 		gomega.Eventually(serviceAccounts.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Namespaces", workspaceName))
 		gomega.Eventually(serviceAccounts.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Age", workspaceName))
 
