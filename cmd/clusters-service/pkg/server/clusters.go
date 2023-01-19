@@ -689,8 +689,8 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 				Chart:   v.Name,
 				Version: v.Version,
 				SourceRef: helmv2.CrossNamespaceObjectReference{
-					Name:      args.helmRepository.Name,
-					Namespace: args.helmRepository.Namespace,
+					Name:      helmRepo.GetName(),
+					Namespace: helmRepo.GetNamespace(),
 					Kind:      "HelmRepository",
 				},
 			},
