@@ -60,7 +60,7 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 		})
 	}
 
-	res.Profiles, err = getProfilesFromTemplate(t)
+	res.Profiles, err = templates.GetProfilesFromTemplate(t)
 	if err != nil {
 		res.Error = fmt.Sprintf("Couldn't load profiles from template: %s", err.Error())
 		return res

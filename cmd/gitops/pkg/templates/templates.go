@@ -1,9 +1,14 @@
 package templates
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
+	"os"
 	"strings"
+
+	"github.com/Masterminds/semver/v3"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 type TemplateKind string
@@ -450,4 +455,65 @@ func GetTemplateProfiles(name string, namespace string, r TemplatesRetriever, w 
 	fmt.Fprintf(w, "No template profiles were found.\n")
 
 	return nil
+}
+
+func ParseProfileFlags(profiles []string) ([]ProfileValues, error) {
+	var profilesValues []ProfileValues
+
+	for _, p := range profiles {
+		valuesPairs := strings.Split(p, ",")
+		profileMap := make(map[string]string)
+
+		for _, pair := range valuesPairs {
+			kv := strings.Split(pair, "=")
+
+			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" && kv[0] != "namespace" {
+				return nil, fmt.Errorf("invalid key: %s", kv[0])
+			}
+
+			profileMap[kv[0]] = kv[1]
+		}
+
+		if _, ok := profileMap["name"]; !ok {
+			return nil, fmt.Errorf("profile name must be specified, profile: %q", p)
+		}
+
+		// use k8s validation to check if the name is valid
+		errs := validation.IsDNS1123Subdomain(profileMap["name"])
+		if len(errs) > 0 {
+			return nil, fmt.Errorf("invalid value for name %q: %s", profileMap["name"], strings.Join(errs, ". "))
+		}
+
+		profileValues := ProfileValues{
+			Name: profileMap["name"],
+		}
+
+		if version, ok := profileMap["version"]; ok {
+			_, err := semver.NewConstraint(version)
+			if err != nil {
+				return nil, fmt.Errorf("invalid semver for version %q: %w", version, err)
+			}
+			profileValues.Version = version
+		}
+
+		if namespace, ok := profileMap["namespace"]; ok {
+			// use k8s validation to check if the namespace is valid
+			errs := validation.IsDNS1123Label(namespace)
+			if len(errs) > 0 {
+				return nil, fmt.Errorf("invalid value for namespace %q: %s", namespace, strings.Join(errs, ". "))
+			}
+			profileValues.Namespace = namespace
+		}
+
+		if values, ok := profileMap["values"]; ok {
+			file, err := os.ReadFile(values)
+			if err == nil {
+				profileValues.Values = base64.StdEncoding.EncodeToString(file)
+			}
+		}
+
+		profilesValues = append(profilesValues, profileValues)
+	}
+
+	return profilesValues, nil
 }
