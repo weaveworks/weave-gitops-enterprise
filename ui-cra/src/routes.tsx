@@ -3,6 +3,7 @@ import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
+import { GitProvider } from './api/gitauth/gitauth.pb';
 import error404 from './assets/img/error404.json';
 import WGApplicationsDashboard from './components/Applications';
 import AddApplication from './components/Applications/Add';
@@ -14,12 +15,14 @@ import WGApplicationsHelmRelease from './components/Applications/HelmRelease';
 import WGApplicationsHelmRepository from './components/Applications/HelmRepository';
 import WGApplicationsKustomization from './components/Applications/Kustomization';
 import WGNotifications from './components/Applications/Notifications';
-import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGNotificationsProvider from './components/Applications/NotificationsProvider';
+import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
 import ClusterDashboard from './components/Clusters/ClusterDashboard';
-import GitOpsRun from './components/GitOpsRun';
+import OAuthCallback from './components/GitAuth/OAuthCallback';
+import GitOpsRunDetail from './components/GitOpsRun/Detail';
+import GitOpsRun from './components/GitOpsRun/List';
 import { ContentWrapper } from './components/Layout/ContentWrapper';
 import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
@@ -30,6 +33,8 @@ import PoliciesViolations from './components/PolicyViolations';
 import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
+import SecretsList from './components/Secrets';
+import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
 import AddClusterWithCredentials from './components/Templates/Create';
 import EditResourcePage from './components/Templates/Edit';
@@ -38,10 +43,6 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import OAuthCallback from './components/GitAuth/OAuthCallback';
-import { GitProvider } from './api/gitauth/gitauth.pb';
-import SecretsList from './components/Secrets';
-import SecretDetails from './components/Secrets/SecretDetails';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -122,6 +123,10 @@ const AppRoutes = () => {
         path={Routes.PolicyViolationDetails}
       />
       <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
+      <Route
+        component={withSearchParams(GitOpsRunDetail)}
+        path={Routes.GitOpsRunDetail}
+      />
       <Route
         component={(props: any) => (
           <CoreWrapper>
