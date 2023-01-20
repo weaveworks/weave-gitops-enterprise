@@ -89,14 +89,12 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		}
 	}
 
-	for k, v := range p.GetAnnotations() {
-		if strings.HasPrefix(k, "capi.weave.works/profile-") {
-			names, err := p.Processor.ParamNames([]byte(v))
-			if err != nil {
-				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
-			}
-			paramNames.Insert(names...)
+	for _, v := range ProfileAnnotations(p) {
+		names, err := p.Processor.ParamNames([]byte(v))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from annotation: %w", err)
 		}
+		paramNames.Insert(names...)
 	}
 
 	for _, profile := range p.GetSpec().Charts.Items {
