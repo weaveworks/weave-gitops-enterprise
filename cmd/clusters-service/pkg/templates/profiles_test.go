@@ -49,7 +49,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		})
 		_, err := GetProfilesFromTemplate(tm)
 		assert.Error(t, err)
-		assert.Equal(t, "profile name is required", err.Error())
+		assert.Regexp(t, "profile name is required", err.Error())
 	})
 
 	t.Run("bad json", func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		})
 		_, err := GetProfilesFromTemplate(tm)
 		assert.Error(t, err)
-		assert.Equal(t, "failed to unmarshal profiles: unexpected end of JSON input", err.Error())
+		assert.Regexp(t, "failed to unmarshal profiles: unexpected end of JSON input", err.Error())
 	})
 
 	t.Run("profiles in template.spec.profiles overrides profiles specified in the annotations", func(t *testing.T) {

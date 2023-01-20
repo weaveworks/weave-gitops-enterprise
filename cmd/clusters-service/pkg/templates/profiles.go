@@ -34,30 +34,9 @@ type profileAnnotation struct {
 }
 
 func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {
-	profilesIndex := map[string]*capiv1_proto.TemplateProfile{}
-	for _, v := range ProfileAnnotations(tl) {
-		profile := profileAnnotation{}
-		err := json.Unmarshal([]byte(v), &profile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal profiles: %w", err)
-		}
-		if profile.Name == "" {
-			return nil, fmt.Errorf("profile name is required")
-		}
-
-		required := true
-		if profile.Required != nil {
-			required = *profile.Required
-		}
-
-		profilesIndex[profile.Name] = &capiv1_proto.TemplateProfile{
-			Name:      profile.Name,
-			Version:   profile.Version,
-			Namespace: profile.Namespace,
-			Required:  required,
-			Editable:  profile.Editable,
-			Values:    profile.Values,
-		}
+	profilesIndex, err := getProfilesFromAnnotations(tl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get profiles from annotations: %w", err)
 	}
 
 	// Override anything that was still in the index with the profiles from the spec
@@ -97,6 +76,36 @@ func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 	sort.Slice(profiles, func(i, j int) bool { return profiles[i].Name < profiles[j].Name })
 
 	return profiles, nil
+}
+
+func getProfilesFromAnnotations(tl templatesv1.Template) (map[string]*capiv1_proto.TemplateProfile, error) {
+	profilesIndex := map[string]*capiv1_proto.TemplateProfile{}
+	for _, v := range ProfileAnnotations(tl) {
+		profile := profileAnnotation{}
+		err := json.Unmarshal([]byte(v), &profile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal profiles: %w", err)
+		}
+		if profile.Name == "" {
+			return nil, fmt.Errorf("profile name is required")
+		}
+
+		required := true
+		if profile.Required != nil {
+			required = *profile.Required
+		}
+
+		profilesIndex[profile.Name] = &capiv1_proto.TemplateProfile{
+			Name:      profile.Name,
+			Version:   profile.Version,
+			Namespace: profile.Namespace,
+			Required:  required,
+			Editable:  profile.Editable,
+			Values:    profile.Values,
+		}
+	}
+
+	return profilesIndex, nil
 }
 
 func TemplateHasRequiredProfiles(tl templatesv1.Template) (bool, error) {
