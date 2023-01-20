@@ -2544,8 +2544,6 @@ func TestGenerateProfilePaths(t *testing.T) {
 			},
 		})
 
-	c := createClient(t, makeTestHelmRepository("base"))
-
 	expectedHelmRelease := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -2700,7 +2698,7 @@ status: {}
 				context.TODO(),
 				tt.template,
 				nsn("cluster-foo", "ns-foo"),
-				c,
+				makeTestHelmRepositoryTemplate("base"),
 				generateProfileFilesParams{
 					helmRepository:        nsn("testing", "test-ns"),
 					helmRepositoryCluster: types.NamespacedName{Name: "management"},
