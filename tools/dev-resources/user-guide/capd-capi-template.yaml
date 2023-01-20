@@ -28,12 +28,15 @@ spec:
       description: Number of control planes
       default: "1"
   charts:
+    helmRepositoryTemplate:
+      path: ${NAMESPACE}/${CLUSTER_NAME}/helm-repo.yaml
     items:
       - chart: cert-manager
         targetNamespace: cert-manager
         editable: true
         version: 0.0.8
         template:
+          path: ${NAMESPACE}/${CLUSTER_NAME}/cert-manager.yaml
           content:
             spec:
               install:
