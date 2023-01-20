@@ -339,7 +339,9 @@ func TestListGitopsClusters(t *testing.T) {
 	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{ID: "userID"})
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			viper.SetDefault("runtime-namespace", "default")
+			setViperWithTestCleanup(t, map[string]string{
+				"runtime-namespace": "default",
+			})
 
 			// setup
 			s := createServer(t, serverOptions{
@@ -372,11 +374,25 @@ func TestListGitopsClusters(t *testing.T) {
 	}
 }
 
+func setViperWithTestCleanup(t *testing.T, m map[string]string) {
+	t.Helper()
+	for k, v := range m {
+		viper.SetDefault(k, v)
+	}
+	t.Cleanup(func() {
+		viper.Reset()
+	})
+}
+
 func TestCreatePullRequest(t *testing.T) {
-	viper.SetDefault("capi-repository-path", "clusters/my-cluster/clusters")
-	viper.SetDefault("capi-repository-clusters-path", "clusters")
-	viper.SetDefault("add-bases-kustomization", "enabled")
-	viper.SetDefault("capi-templates-namespace", "default")
+	// Lets make the above calls here instead
+	setViperWithTestCleanup(t, map[string]string{
+		"capi-repository-path":          "clusters/my-cluster/clusters",
+		"capi-repository-clusters-path": "clusters",
+		"add-bases-kustomization":       "enabled",
+		"capi-templates-namespace":      "default",
+	})
+
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
@@ -1510,7 +1526,7 @@ func TestGetKubeconfig(t *testing.T) {
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			viper.SetDefault("capi-clusters-namespace", tt.clusterObjectsNamespace)
+			setViperWithTestCleanup(t, map[string]string{"capi-clusters-namespace": tt.clusterObjectsNamespace})
 
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
@@ -1537,8 +1553,11 @@ func TestGetKubeconfig(t *testing.T) {
 }
 
 func TestDeleteClustersPullRequest(t *testing.T) {
-	viper.SetDefault("capi-repository-path", "clusters/management/clusters")
-	viper.SetDefault("capi-repository-clusters-path", "clusters/")
+	setViperWithTestCleanup(t, map[string]string{
+		"capi-repository-path":          "clusters/management/clusters",
+		"capi-repository-clusters-path": "clusters/",
+	})
+
 	testCases := []struct {
 		name           string
 		provider       git.Provider
@@ -1871,7 +1890,10 @@ func TestGenerateProfileFiles(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"ns-foo/cluster-foo/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -1906,10 +1928,10 @@ spec:
   values:
     foo: bar
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`,
+		),
 	}
+	assert.Equal(t, expected, files)
 }
 
 func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
@@ -1945,7 +1967,10 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"ns-foo/cluster-foo/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -1980,10 +2005,9 @@ spec:
   values:
     foo: defaultFoo
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`),
 	}
+	assert.Equal(t, expected, files)
 }
 
 func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
@@ -2019,7 +2043,10 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"management/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2054,10 +2081,10 @@ spec:
   values:
     foo: bar
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`),
 	}
+
+	assert.Equal(t, expected, files)
 }
 func TestGenerateProfileFiles_with_templates(t *testing.T) {
 	fakeCache := testNewFakeChartCache(t,
@@ -2093,7 +2120,10 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"ns-foo/cluster-foo/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2128,10 +2158,9 @@ spec:
   values:
     foo: test-cluster-name
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`),
 	}
+	assert.Equal(t, expected, files)
 }
 
 func TestGenerateProfileFilesWithLayers(t *testing.T) {
@@ -2169,7 +2198,10 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"ns-foo/cluster-foo/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2233,10 +2265,9 @@ spec:
   values:
     foo: bar
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`),
 	}
+	assert.Equal(t, expected, files)
 }
 
 func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
@@ -2274,7 +2305,10 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"ns-foo/cluster-foo/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2309,10 +2343,9 @@ spec:
   values:
     foo: this-is-a-test
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`),
 	}
+	assert.Equal(t, expected, files)
 }
 
 func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
@@ -2346,7 +2379,10 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"ns-foo/cluster-foo/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2381,10 +2417,9 @@ spec:
   values:
     foo: defaultFoo
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`),
 	}
+	assert.Equal(t, expected, files)
 }
 
 func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
@@ -2428,7 +2463,10 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []string{`apiVersion: source.toolkit.fluxcd.io/v1beta2
+	expected := []gitprovider.CommitFile{
+		makeCommitFile(
+			"ns-foo/cluster-foo/profiles.yaml",
+			`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
   creationTimestamp: null
@@ -2494,13 +2532,252 @@ spec:
   values:
     foo: bar
 status: {}
-`}
-	for i := range files {
-		assert.Equal(t, expected[i], *files[i].Content)
+`),
+	}
+	assert.Equal(t, expected, files)
+}
+
+func TestGenerateProfilePaths(t *testing.T) {
+	fakeCache := testNewFakeChartCache(t,
+		nsn("management", ""),
+		helm.ObjectReference{
+			Name:      "testing",
+			Namespace: "test-ns",
+		},
+		[]helm.Chart{
+			{
+				Name:    "foo",
+				Version: "0.0.1",
+				Layer:   "layer-1",
+			},
+		})
+
+	c := createClient(t, makeTestHelmRepository("base"))
+
+	expectedHelmRelease := `apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  creationTimestamp: null
+  name: testing
+  namespace: test-ns
+spec:
+  interval: 10m0s
+  url: base/charts
+status: {}
+`
+
+	expectedBarHelmRelease := `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  labels:
+    weave.works/applied-layer: layer-0
+  name: bar
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: bar
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+status: {}
+`
+
+	expectedFooHelmRelease := `apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  creationTimestamp: null
+  labels:
+    weave.works/applied-layer: layer-1
+  name: foo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: foo
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: testing
+        namespace: test-ns
+      version: 0.0.1
+  dependsOn:
+  - name: bar
+  install:
+    crds: CreateReplace
+  interval: 1m0s
+  upgrade:
+    crds: CreateReplace
+  values:
+    foo: bar
+status: {}
+`
+
+	var tests = []struct {
+		name     string
+		template *gapiv1.GitOpsTemplate
+		expected []gitprovider.CommitFile
+		params   map[string]string
+	}{
+		{
+			name:     "generate profile paths",
+			template: makeTestTemplateWithPaths(templatesv1.RenderTypeEnvsubst, "", "", ""),
+			expected: []gitprovider.CommitFile{
+				makeCommitFile(
+					"ns-foo/cluster-foo/profiles.yaml",
+					concatYaml(expectedHelmRelease, expectedBarHelmRelease, expectedFooHelmRelease),
+				),
+			},
+		},
+		{
+			name:     "generate profile paths with custom paths",
+			template: makeTestTemplateWithPaths(templatesv1.RenderTypeEnvsubst, "repo.yaml", "foo.yaml", "bar.yaml"),
+			expected: []gitprovider.CommitFile{
+				makeCommitFile(
+					"bar.yaml",
+					concatYaml(expectedBarHelmRelease),
+				),
+				makeCommitFile(
+					"foo.yaml",
+					concatYaml(expectedFooHelmRelease),
+				),
+				makeCommitFile(
+					"repo.yaml",
+					concatYaml(expectedHelmRelease),
+				),
+			},
+		},
+		{
+			name:     "generate profile paths with custom paths and params",
+			template: makeTestTemplateWithPaths(templatesv1.RenderTypeEnvsubst, "repo.yaml", "foo.yaml", "${BAR_PATH}"),
+			params: map[string]string{
+				"BAR_PATH": "special-bar.yaml",
+			},
+			expected: []gitprovider.CommitFile{
+				makeCommitFile(
+					"foo.yaml",
+					concatYaml(expectedFooHelmRelease),
+				),
+				makeCommitFile(
+					"repo.yaml",
+					concatYaml(expectedHelmRelease),
+				),
+				makeCommitFile(
+					"special-bar.yaml",
+					concatYaml(expectedBarHelmRelease),
+				),
+			},
+		},
+		{
+			name:     "generate profile paths with custom paths and params and render type",
+			template: makeTestTemplateWithPaths(templatesv1.RenderTypeTemplating, "repo.yaml", "foo.yaml", "{{ .params.BAR_PATH }}"),
+			params: map[string]string{
+				"BAR_PATH": "special-bar.yaml",
+			},
+			expected: []gitprovider.CommitFile{
+				makeCommitFile(
+					"foo.yaml",
+					concatYaml(expectedFooHelmRelease),
+				),
+				makeCommitFile(
+					"repo.yaml",
+					concatYaml(expectedHelmRelease),
+				),
+				makeCommitFile(
+					"special-bar.yaml",
+					concatYaml(expectedBarHelmRelease),
+				),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			files, err := generateProfileFiles(
+				context.TODO(),
+				tt.template,
+				nsn("cluster-foo", "ns-foo"),
+				c,
+				generateProfileFilesParams{
+					helmRepository:        nsn("testing", "test-ns"),
+					helmRepositoryCluster: types.NamespacedName{Name: "management"},
+					profileValues: []*capiv1_protos.ProfileValues{
+						{
+							Name:    "foo",
+							Version: "0.0.1",
+							Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+						},
+						{
+							Name:    "bar",
+							Version: "0.0.1",
+							Layer:   "layer-0",
+							Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+						},
+					},
+					parameterValues: tt.params,
+					chartsCache:     fakeCache,
+				},
+			)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, files)
+		})
 	}
 }
 
-func makeTestTemplate(renderType string) templatesv1.Template {
+func concatYaml(yamls ...string) string {
+	return strings.Join(yamls, "\n---\n")
+}
+
+func makeCommitFile(path, content string) gitprovider.CommitFile {
+	p := path
+	c := content
+	return gitprovider.CommitFile{
+		Path:    &p,
+		Content: &c,
+	}
+}
+
+func makeTestTemplateWithPaths(renderType string, helmRepoPath string, fooPath string, barPath string) *gapiv1.GitOpsTemplate {
+	chartsSpec := templatesv1.ChartsSpec{
+		HelmRepositoryTemplate: templatesv1.HelmRepositoryTemplateSpec{
+			Path: helmRepoPath,
+		},
+		Items: []templatesv1.Chart{
+			{
+				Chart: "foo",
+				HelmReleaseTemplate: templatesv1.HelmReleaseTemplateSpec{
+					Path: fooPath,
+				},
+			},
+			{
+				Chart: "bar",
+				HelmReleaseTemplate: templatesv1.HelmReleaseTemplateSpec{
+					Path: barPath,
+				},
+			},
+		},
+	}
+
+	return &gapiv1.GitOpsTemplate{
+		Spec: templatesv1.TemplateSpec{
+			RenderType: renderType,
+			Charts:     chartsSpec,
+		},
+	}
+}
+
+func makeTestTemplate(renderType string) *gapiv1.GitOpsTemplate {
 	return &gapiv1.GitOpsTemplate{
 		Spec: templatesv1.TemplateSpec{
 			RenderType: renderType,
