@@ -118,7 +118,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 	return ctrl.Result{}, nil
 }
 
-// Load the index file into a charts cache.
+// LoadIndex loads the index file for a HelmRepository into the charts cache`
 func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
 	for name, versions := range index.Entries {
 		for _, version := range versions {
