@@ -364,7 +364,7 @@ func GetFiles(
 			}
 		}
 
-		profilesFile, err := generateProfileFiles(
+		profilesFiles, err := generateProfileFiles(
 			ctx,
 			tmpl,
 			cluster,
@@ -380,7 +380,7 @@ func GetFiles(
 		if err != nil {
 			return nil, err
 		}
-		profileFiles = append(profileFiles, *profilesFile)
+		profileFiles = append(profileFiles, profilesFiles...)
 	}
 
 	if len(msg.Kustomizations) > 0 {

@@ -8,6 +8,8 @@ spec:
     - name: CLUSTER_NAME
       description: This is used for the cluster naming.
   charts:
+    helmRepositoryTemplate:
+      path: "${HELM_REPO_PATH}/helmrepo.yaml"
     items:
       - name: prometheus
         version: 0.0.8
@@ -17,6 +19,8 @@ spec:
           content:
             spec:
               interval: "${INTERVAL}"
+          path: ${TEST_PATH}
+
       - name: foo
   resourcetemplates:
     - path: "clusters/${SPECIAL_CLUSTER_PATH}.yaml"
